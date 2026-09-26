@@ -34,7 +34,12 @@ Technik: Vite, React, TypeScript, [@dnd-kit](https://dndkit.com) für Drag-and-D
 
 ### Veröffentlichen auf GitHub Pages
 
-Jeder Push auf `main` baut die App und veröffentlicht sie (`.github/workflows/deploy.yml`). Einmalig im Repository einstellen: **Settings → Pages → Source: „GitHub Actions“**. Danach läuft die App unter `https://<benutzer>.github.io/edutoolboxbuilder/`.
+Jeder Push auf `main` baut die App und veröffentlicht sie (`.github/workflows/deploy.yml`) unter **https://noledge5.github.io/edutoolboxbuilder/**.
+
+Einmalig im Repository einstellen, in dieser Reihenfolge:
+1. **Settings → General → Default branch:** `main` (sonst darf `main` später nicht in die Pages-Umgebung veröffentlichen).
+2. **Settings → Pages → Build and deployment → Source:** „GitHub Actions“.
+3. Unter **Actions → Deploy to GitHub Pages** „Run workflow“ starten oder etwas auf `main` pushen.
 
 ## Aufbau des Codes
 

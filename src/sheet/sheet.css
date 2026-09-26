@@ -1,5 +1,8 @@
 /* The printed A4 page (Organic design system). Values follow docs/design/README.md exactly:
-   this is what gets printed, so keep it pixel-accurate. */
+   this is what gets printed, so keep it pixel-accurate. One deliberate change, requested by the user:
+   the paper is white instead of the design's cream (--color-bg). */
+
+:root { --paper: #ffffff; }
 
 .ws-page {
   width: 794px;
@@ -10,7 +13,7 @@
   flex-direction: column;
   gap: 16px;
   padding: 30px 36px 24px;
-  background: var(--color-bg);
+  background: var(--paper);
   border-radius: 8px;
   box-shadow: var(--shadow-md);
   overflow: hidden;
@@ -73,7 +76,7 @@
   gap: 6px;
   padding: 4px 12px;
   border-radius: 999px;
-  background: var(--color-bg);
+  background: var(--paper);
   font-size: 12px;
   font-weight: 600;
   color: var(--t-kicker);
@@ -134,7 +137,7 @@
 }
 .ws-foot-text { flex: 1; }
 .ws-foot-code { font-weight: 700; letter-spacing: 0.06em; }
-.ws-foot-page { padding: 3px 12px; border-radius: 999px; background: var(--color-bg); font-weight: 700; white-space: nowrap; }
+.ws-foot-page { padding: 3px 12px; border-radius: 999px; background: var(--paper); font-weight: 700; white-space: nowrap; }
 
 /* — Blocks: text & structure — */
 .ws-h3 { margin: 0; font-size: 21px; }
@@ -214,7 +217,7 @@
   padding: 4px 14px;
   border-radius: 999px;
   border: 1px solid var(--color-divider);
-  background: var(--color-bg);
+  background: var(--paper);
   color: var(--color-text);
   font: inherit;
   cursor: pointer;
@@ -273,7 +276,7 @@
   background: var(--color-surface);
   font-weight: 600;
 }
-.ws-check { width: 17px; height: 17px; flex: none; border-radius: 50%; border: 2px solid var(--t-num); background: var(--color-bg); }
+.ws-check { width: 17px; height: 17px; flex: none; border-radius: 50%; border: 2px solid var(--t-num); background: var(--paper); }
 
 .ws-gap { line-height: 2.2; white-space: pre-wrap; }
 .ws-blank { display: inline-block; width: 90px; margin: 0 3px; border-bottom: 2px solid var(--color-neutral-500); }
