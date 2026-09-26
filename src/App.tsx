@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Editor, errorText } from './editor/Editor';
-import { docForLesson, duplicateLesson, lessonFromDoc, lessonsOf, mergeLibrary, newLesson, newModule, subjectsOf } from './library/model';
+import { changedSince, docForLesson, duplicateLesson, lessonFromDoc, lessonsOf, newLesson, newModule, subjectsOf, syncLibrary } from './library/model';
 import { ModuleView } from './library/ModuleView';
 import { Overview } from './library/Overview';
+import { SyncDialog } from './library/SyncDialog';
 import { go, useRoute } from './library/router';
 import type { Lesson, Library, Module, Settings } from './library/types';
 import type { Doc } from './model/types';
-import { createLibraryBackup, downloadBlob, libraryFileName, readAnyFile } from './storage/backup';
+import { readAnyFile } from './storage/backup';
 import { requestPersistentStorage } from './storage/db';
 import * as store from './storage/library';
 
@@ -21,17 +22,19 @@ export function App() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [otherTab, setOtherTab] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [inSyncUntil, setInSyncUntil] = useState(0);
+  const [syncOpen, setSyncOpen] = useState(false);
   const route = useRoute();
   const libRef = useRef(lib);
   libRef.current = lib;
 
   useEffect(() => {
     let alive = true;
-    store
-      .loadLibrary()
-      .then((l) => {
+    Promise.all([store.loadLibrary(), store.loadInSyncUntil()])
+      .then(([l, t]) => {
         if (!alive) return;
         setLib(l);
+        setInSyncUntil(t);
         store.cleanUpImages(l).catch(() => {});
         requestPersistentStorage();
       })
@@ -72,8 +75,20 @@ export function App() {
   }, []);
 
   const putSettings = useCallback((s: Settings) => {
-    setLib((l) => l && { ...l, settings: s });
-    store.saveSettings(s).catch(failed);
+    const next = { ...s, updatedAt: Date.now() };
+    setLib((l) => l && { ...l, settings: next });
+    store.saveSettings(next).catch(failed);
+  }, []);
+
+  /** Removes modules and lessons, and remembers them as deleted so a sync with the other device does not bring them back. */
+  const remove = useCallback((moduleIds: string[], lessonIds: string[]) => {
+    const l = libRef.current!;
+    const now = Date.now();
+    const deleted = { ...l.deleted };
+    for (const id of [...moduleIds, ...lessonIds]) deleted[id] = now;
+    setLib({ ...l, deleted, modules: l.modules.filter((m) => !moduleIds.includes(m.id)), lessons: l.lessons.filter((x) => !lessonIds.includes(x.id)) });
+    store.deleteEntries(moduleIds, lessonIds).catch(failed);
+    store.saveDeleted(deleted).catch(failed);
   }, []);
 
   // Saving from the editor: the lesson's document; a new topic icon chosen there applies to the whole module.
@@ -89,30 +104,33 @@ export function App() {
     [putLesson, putModule],
   );
 
-  const openFileInOverview = async (file: File) => {
+  const markSaved = (t: number) => {
+    setInSyncUntil(t);
+    store.saveInSyncUntil(t).catch(failed);
+  };
+
+  // Sync with the backup file from the other device: newer versions win, deletions are carried over.
+  const syncFromFile = async (file: File) => {
     try {
       const opened = await readAnyFile(await file.text());
       if (opened.kind !== 'library') {
-        window.alert('Das ist ein einzelnes Arbeitsblatt. Öffne ein Modul und wähle dort „Modul“ → „Arbeitsblatt-Datei als Stunde importieren …“.');
+        window.alert('Das ist ein einzelnes Arbeitsblatt, keine Sicherung der Bibliothek. Öffne ein Modul und wähle dort „Modul“ → „Arbeitsblatt-Datei als Stunde importieren …“.');
         return;
       }
-      const merged = mergeLibrary(libRef.current!, opened.library);
-      await store.saveWhole(merged);
-      setLib(merged);
-      const nm = opened.library.modules.length;
-      const nl = opened.library.lessons.length;
-      setNotice(`Sicherung „${file.name}“ übernommen: ${nm} ${nm === 1 ? 'Modul' : 'Module'}, ${nl} ${nl === 1 ? 'Stunde' : 'Stunden'}.`);
+      const r = syncLibrary(libRef.current!, opened.library);
+      await store.replaceWhole(r.library);
+      setLib(r.library);
+      // Nothing here is newer than the file: this device is exactly as saved in it.
+      if (r.keptHere === 0 && opened.savedAt > inSyncUntil) markSaved(opened.savedAt);
+      setSyncOpen(false);
+      const n = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
+      setNotice(
+        r.fromFile + r.removed === 0
+          ? 'Abgeglichen: Auf diesem Gerät war schon alles aktuell.'
+          : `Abgeglichen: ${n(r.fromFile, 'Eintrag', 'Einträge')} übernommen${r.removed ? `, ${n(r.removed, 'gelöscht', 'gelöscht')}` : ''}${r.keptHere ? `, ${n(r.keptHere, 'Eintrag', 'Einträge')} hier neuer (jetzt sichern!)` : ''}.`,
+      );
     } catch (e) {
       window.alert('Die Datei konnte nicht geöffnet werden: ' + errorText(e));
-    }
-  };
-
-  const saveAll = async () => {
-    try {
-      const file = await createLibraryBackup(libRef.current!);
-      downloadBlob(new Blob([JSON.stringify(file)], { type: 'application/json' }), libraryFileName());
-    } catch (e) {
-      window.alert('Die Sicherung konnte nicht erstellt werden: ' + errorText(e));
     }
   };
 
@@ -150,6 +168,7 @@ export function App() {
         onBack={() => go({ view: 'module', id: m.id })}
         place={`${m.subject} · Klasse ${m.grade} · Modul ${m.number} · Stunde ${lesson.number}: ${lesson.title}`}
         codeLocked
+        competences={m.competences}
       />
     );
   } else if (route.view === 'module') {
@@ -166,8 +185,10 @@ export function App() {
         onChange={putModule}
         onDelete={() => {
           if (!window.confirm(`Modul „${m.title}“ mit ${lessons.length} Stunden löschen? Das lässt sich nicht rückgängig machen.`)) return;
-          store.deleteModule(m, lessons).catch(failed);
-          setLib({ ...lib, modules: lib.modules.filter((x) => x.id !== m.id), lessons: lib.lessons.filter((l) => l.moduleId !== m.id) });
+          remove(
+            [m.id],
+            lessons.map((l) => l.id),
+          );
           go({ view: 'overview', subject: m.subject, grade: m.grade });
         }}
         onAddLesson={() => {
@@ -180,14 +201,13 @@ export function App() {
         onDuplicateLesson={(l) => putLesson(duplicateLesson(lib, m, l)).catch(failed)}
         onDeleteLesson={(l) => {
           if (!window.confirm(`Stunde ${l.number} „${l.title}“ löschen? Das lässt sich nicht rückgängig machen.`)) return;
-          store.deleteLesson(l.id).catch(failed);
-          setLib({ ...lib, lessons: lib.lessons.filter((x) => x.id !== l.id) });
+          remove([], [l.id]);
         }}
         onImportFile={async (file) => {
           try {
             const opened = await readAnyFile(await file.text());
             if (opened.kind !== 'doc') {
-              window.alert('Das ist eine Sicherung der ganzen Bibliothek. Öffne sie in der Übersicht über „Datei“ → „Sicherung öffnen …“.');
+              window.alert('Das ist eine Sicherung der ganzen Bibliothek. Öffne sie in der Übersicht über „Abgleich Mac/iPad“.');
               return;
             }
             const l = lessonFromDoc(libRef.current!, m, opened.doc);
@@ -216,8 +236,8 @@ export function App() {
         onAddSubject={(name) => !subjectsOf(lib).includes(name) && putSettings({ ...lib.settings, subjects: [...lib.settings.subjects, name] })}
         onRemoveSubject={(name) => putSettings({ ...lib.settings, subjects: lib.settings.subjects.filter((s) => s !== name) })}
         onSettings={putSettings}
-        onSaveAll={saveAll}
-        onOpenFile={openFileInOverview}
+        pending={changedSince(lib, inSyncUntil)}
+        onSync={() => setSyncOpen(true)}
       />
     );
   }
@@ -225,6 +245,18 @@ export function App() {
   return (
     <>
       {view}
+      {syncOpen && (
+        <SyncDialog
+          lib={lib}
+          inSyncUntil={inSyncUntil}
+          onSaved={(t) => {
+            markSaved(t);
+            setNotice('Sicherung gespeichert. Auf dem anderen Gerät über „Abgleich Mac/iPad“ öffnen.');
+          }}
+          onOpenFile={syncFromFile}
+          onClose={() => setSyncOpen(false)}
+        />
+      )}
       {toasts}
     </>
   );

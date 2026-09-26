@@ -7,7 +7,7 @@ import { num, str } from '../model/text';
 import { SHEET_TYPES, THEMES, VARIANT_OPTIONS, WORK_FORMS } from '../model/themes';
 import type { Block, NameField, SheetType, WorkForm } from '../model/types';
 import type { EditorApi } from './api';
-import { AreaField, IconPickerField, ImageField, NumberField, SegField, TextField } from './fields';
+import { AreaField, CompetenceField, IconPickerField, ImageField, NumberField, SegField, TextField } from './fields';
 
 interface PanelProps {
   api: EditorApi;
@@ -74,6 +74,8 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         return <SegField key={f.key} label={f.label} value={str(v)} options={f.options} onPick={set(f.key)} />;
       case 'image':
         return <ImageField key={f.key} label={f.label} hasImage={!!str(v)} onFile={(file) => api.setImage(block.id, file)} onRemove={() => set(f.key)('')} />;
+      case 'competence':
+        return api.codeLocked ? <CompetenceField key={f.key} label={f.label} value={str(v)} competences={api.competences} onChange={set(f.key)} /> : null;
     }
   };
 

@@ -11,6 +11,13 @@ import './library/library.css';
 import './styles/print.css';
 import { App } from './App';
 
+// Offline support and "Zum Home-Bildschirm" (only in the built app, not while developing).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(`./sw.js?v=${__BUILD_ID__}`).catch(() => {});
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

@@ -37,4 +37,15 @@ describe('library storage', () => {
     expect(again.modules[0].title).toBe('Klima');
     expect(again.lessons[0].title).toBe('Treibhaus');
   });
+
+  it('stores a synced library exactly: removed entries disappear, deletions and sync time are kept', async () => {
+    const lib = await import('./library');
+    const first = await lib.loadLibrary();
+    await lib.replaceWhole({ ...first, lessons: [], deleted: { [first.lessons[0].id]: 5 } });
+    await lib.saveInSyncUntil(123);
+    const again = await lib.loadLibrary();
+    expect(again.lessons).toHaveLength(0);
+    expect(again.deleted).toEqual({ [first.lessons[0].id]: 5 });
+    expect(await lib.loadInSyncUntil()).toBe(123);
+  });
 });

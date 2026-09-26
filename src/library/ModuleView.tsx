@@ -7,7 +7,7 @@ import { Icon } from '../icons';
 import { THEMES } from '../model/themes';
 import { topicIcon } from '../topicIcons';
 import { ModulePrint, type PrintKind } from './ModulePrint';
-import { newCompetence } from './model';
+import { competenceLessons, competenceLinks, linkLabel, newCompetence, type CompetenceLink } from './model';
 import type { Competence, Lesson, Module, Settings } from './types';
 import { GRADES } from './types';
 
@@ -137,7 +137,7 @@ export function ModuleView(p: ModuleViewProps) {
           </button>
         </div>
 
-        {tab === 'inhalt' ? <LessonList {...p} /> : <CompetenceGrid competences={m.competences} onChange={(competences) => set({ competences })} />}
+        {tab === 'inhalt' ? <LessonList {...p} /> : <CompetenceGrid competences={m.competences} links={competenceLinks(p.lessons)} onChange={(competences) => set({ competences })} />}
       </main>
     </div>
   );
@@ -187,7 +187,7 @@ function LessonList(p: ModuleViewProps) {
   );
 }
 
-function CompetenceGrid({ competences, onChange }: { competences: Competence[]; onChange(c: Competence[]): void }) {
+function CompetenceGrid({ competences, links, onChange }: { competences: Competence[]; links: Map<string, CompetenceLink[]>; onChange(c: Competence[]): void }) {
   const update = (i: number, patch: Partial<Competence>) => onChange(competences.map((c, k) => (k === i ? { ...c, ...patch } : c)));
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
@@ -211,7 +211,7 @@ function CompetenceGrid({ competences, onChange }: { competences: Competence[]; 
               </div>
               <div className="field lib-comp-lessons">
                 <label htmlFor={'l' + c.id}>Stunde(n)</label>
-                <input id={'l' + c.id} className="input" value={c.lessons} placeholder="2, 3" onChange={(e) => update(i, { lessons: e.target.value })} />
+                <input id={'l' + c.id} className="input" value={c.lessons} placeholder={competenceLessons({ ...c, lessons: '' }, links.get(c.id)) || '2, 3'} onChange={(e) => update(i, { lessons: e.target.value })} />
               </div>
               <div className="lib-comp-actions">
                 <button type="button" className="iconbtn" title="Nach oben" aria-label="Nach oben" disabled={i === 0} onClick={() => move(i, -1)}>
@@ -233,6 +233,13 @@ function CompetenceGrid({ competences, onChange }: { competences: Competence[]; 
                 </div>
               ))}
             </div>
+            <p className="lib-comp-links">
+              {links.get(c.id)?.length ? (
+                <>Verknüpfte Aufgaben: {links.get(c.id)!.map(linkLabel).join('  ·  ')}</>
+              ) : (
+                <>Noch keine Aufgabe verknüpft. Wähle im Arbeitsblatt eine Aufgabe aus und stelle rechts die Kompetenz ein.</>
+              )}
+            </p>
           </div>
         ))}
         {competences.length === 0 && <p className="lib-empty">Noch keine Kompetenzen.</p>}

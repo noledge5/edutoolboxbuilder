@@ -1,10 +1,9 @@
 // Start page: choose subject and grade, then a module; recently edited lessons for quick access.
-import { useRef, useState } from 'react';
-import { Download, FolderOpen, Library as LibraryIcon, Plus, Settings as SettingsIcon, X } from 'lucide-react';
-import { Menu } from '../editor/TopBar';
+import { useState } from 'react';
+import { Blocks, FolderSync, Plus, Settings as SettingsIcon, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
-import { lessonsOf, modulesOf, subjectsOf } from './model';
+import { lastChange, lessonsOf, modulesOf, subjectsOf } from './model';
 import type { Lesson, Library, Module, Settings } from './types';
 import { GRADES } from './types';
 
@@ -19,8 +18,9 @@ interface OverviewProps {
   onAddSubject(name: string): void;
   onRemoveSubject(name: string): void;
   onSettings(s: Settings): void;
-  onSaveAll(): void;
-  onOpenFile(file: File): void;
+  /** Changes not yet in a backup file on this device. */
+  pending: number;
+  onSync(): void;
 }
 
 export function Overview(p: OverviewProps) {
@@ -32,7 +32,6 @@ export function Overview(p: OverviewProps) {
   const modules = subject ? modulesOf(lib, subject, grade) : [];
   const recent = [...lib.lessons].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 4);
   const moduleOf = (l: Lesson) => lib.modules.find((m) => m.id === l.moduleId);
-  const fileInput = useRef<HTMLInputElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const addSubject = () => {
@@ -44,38 +43,44 @@ export function Overview(p: OverviewProps) {
     <div className="lib">
       <header className="topbar">
         <div className="topbar-icon">
-          <Icon icon={LibraryIcon} size={20} />
+          <Icon icon={Blocks} size={20} />
         </div>
         <div className="topbar-name">
           <div className="topbar-title">Arbeitsblatt-Baukasten</div>
           <div className="topbar-place">Übersicht</div>
         </div>
-        <Menu
-          label="Datei"
-          icon={FolderOpen}
-          items={[
-            { label: 'Alles sichern (mit Bildern)', icon: Download, onClick: p.onSaveAll },
-            { label: 'Sicherung öffnen …', icon: FolderOpen, onClick: () => fileInput.current?.click() },
-          ]}
-        />
+        <button type="button" className="btn btn-secondary ui-btn sync-btn" onClick={p.onSync} title={p.pending > 0 ? 'Änderungen noch nicht gesichert' : 'Alles gesichert'}>
+          <Icon icon={FolderSync} />
+          <span className="btn-label">Abgleich Mac/iPad</span>
+          <span className={'sync-dot' + (p.pending > 0 ? ' is-open' : '')} aria-label={p.pending > 0 ? 'nicht gesichert' : 'gesichert'} />
+        </button>
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => setSettingsOpen(true)}>
           <Icon icon={SettingsIcon} />
           <span className="btn-label">Einstellungen</span>
         </button>
-        <input
-          ref={fileInput}
-          type="file"
-          accept=".json,application/json"
-          hidden
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            e.target.value = '';
-            if (f) p.onOpenFile(f);
-          }}
-        />
       </header>
 
       <main className="lib-main">
+        {lastChange(lib) === 0 && (
+          <div className="sync-banner is-welcome">
+            <span>
+              Neu auf diesem Gerät oder gerade als App installiert? Die App hat hier ihren eigenen Speicher. Öffne einmal deine Sicherung aus iCloud Drive, dann ist alles da.
+            </span>
+            <button type="button" className="btn btn-primary ui-btn" onClick={p.onSync}>
+              Sicherung öffnen
+            </button>
+          </div>
+        )}
+        {p.pending > 0 && (
+          <div className="sync-banner">
+            <span>
+              {p.pending} {p.pending === 1 ? 'Änderung ist' : 'Änderungen sind'} noch nicht in iCloud gesichert.
+            </span>
+            <button type="button" className="btn btn-primary ui-btn" onClick={p.onSync}>
+              Jetzt abgleichen
+            </button>
+          </div>
+        )}
         {recent.length > 0 && (
           <section className="lib-section">
             <h2 className="lib-h2">Zuletzt bearbeitet</h2>
@@ -205,7 +210,7 @@ function SettingsDialog({ settings, onSave, onClose }: { settings: Settings; onS
             type="button"
             className="btn btn-primary ui-btn"
             onClick={() => {
-              onSave({ ...settings, footerBase: footerBase.trim() });
+              onSave({ ...settings, footerBase: footerBase.trim(), updatedAt: Date.now() });
               onClose();
             }}
           >

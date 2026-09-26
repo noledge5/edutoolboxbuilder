@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   base: './',
   plugins: [react()],
+  // Build id for the service worker URL, so every deployment refreshes the offline copy.
+  define: { __BUILD_ID__: JSON.stringify(Date.now().toString(36)) },
   test: {
     environment: 'node',
   },

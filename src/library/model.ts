@@ -1,4 +1,5 @@
 // Pure library helpers: codes, new modules and lessons, migration of the old single worksheet, sample data.
+import { BLOCK_TYPES, LEVEL_NAMES } from '../model/blockTypes';
 import { createPage, uid } from '../model/ops';
 import { seedDoc } from '../model/seed';
 import type { Doc } from '../model/types';
@@ -23,6 +24,43 @@ export const modulesOf = (lib: Library, subject: string, grade: number) =>
   lib.modules.filter((m) => m.subject === subject && m.grade === grade).sort((a, b) => a.number - b.number || a.title.localeCompare(b.title));
 
 export const lessonsOf = (lib: Library, moduleId: string) => lib.lessons.filter((l) => l.moduleId === moduleId).sort((a, b) => a.number - b.number);
+
+/** A task linked to a competence: lesson number, page (from 1), task number on that page, level key. */
+export interface CompetenceLink {
+  lesson: number;
+  page: number;
+  task: number;
+  level: string;
+}
+
+/** For each competence id, the tasks in the module's lessons that are linked to it. */
+export function competenceLinks(lessons: Lesson[]): Map<string, CompetenceLink[]> {
+  const links = new Map<string, CompetenceLink[]>();
+  for (const l of [...lessons].sort((a, b) => a.number - b.number)) {
+    l.doc.pages.forEach((pg, p) => {
+      let task = 0;
+      for (const b of pg.blocks) {
+        if (!BLOCK_TYPES[b.type]?.task) continue;
+        task++;
+        const id = String(b.props.competence ?? '');
+        if (!id) continue;
+        const list = links.get(id) ?? [];
+        list.push({ lesson: l.number, page: p + 1, task, level: String(b.props.level ?? '') });
+        links.set(id, list);
+      }
+    });
+  }
+  return links;
+}
+
+/** "Std. 2 · S. 1 · Nr. 3 (M)" */
+export const linkLabel = (k: CompetenceLink) => `Std. ${k.lesson} · S. ${k.page} · Nr. ${k.task}${LEVEL_NAMES[k.level] ? ` (${LEVEL_NAMES[k.level]})` : ''}`;
+
+/** Lessons of a competence as shown in prints: typed by hand, or else taken from the linked tasks ("2, 3"). */
+export function competenceLessons(c: Competence, links: CompetenceLink[] = []): string {
+  if (c.lessons.trim()) return c.lessons.trim();
+  return [...new Set(links.map((k) => k.lesson))].join(', ');
+}
 
 /** Subjects from the settings and from existing modules, in the order they were added. */
 export function subjectsOf(lib: Library): string[] {
@@ -76,7 +114,7 @@ export function libraryFromOldDoc(doc: Doc): Library {
   const code = /K\s*(\d+)\s*·\s*M\s*(\d+)\s*·\s*S\s*(\d+)/.exec(doc.code);
   const parts = doc.footer.split('·').map((s) => s.trim()).filter(Boolean);
   const subject = parts.length > 1 ? parts[parts.length - 1] : 'Allgemein';
-  const settings: Settings = { subjects: [subject], footerBase: parts.slice(0, -1).join(' · ') };
+  const settings: Settings = { subjects: [subject], footerBase: parts.slice(0, -1).join(' · '), updatedAt: Date.now() };
   const grade = code ? Math.min(10, Math.max(5, Number(code[1]))) : 9;
   const module: Module = {
     id: uid(),
@@ -90,14 +128,18 @@ export function libraryFromOldDoc(doc: Doc): Library {
     updatedAt: Date.now(),
   };
   const lesson: Lesson = { id: uid(), moduleId: module.id, number: code ? Number(code[3]) : 1, title: doc.pages[0]?.title || 'Stunde', doc, updatedAt: Date.now() };
-  return { settings, modules: [module], lessons: [lesson] };
+  return { settings, modules: [module], lessons: [lesson], deleted: {} };
 }
 
-/** Sample library on first start: Geographie, Klasse 9, "Das Klima kippt" with the Treibhauseffekt lesson. */
+/**
+ * Sample library on first start: Geographie, Klasse 9, "Das Klima kippt" with the Treibhauseffekt lesson.
+ * Fixed ids and time 0: the sample is the same on every device, so syncing two fresh devices does not
+ * duplicate it, and any real edit is newer.
+ */
 export function seedLibrary(): Library {
-  const settings: Settings = { subjects: ['Geographie'], footerBase: 'Kuhl · Grafen-von-Zimmern-Realschule' };
+  const settings: Settings = { subjects: ['Geographie'], footerBase: 'Kuhl · Grafen-von-Zimmern-Realschule', updatedAt: 0 };
   const module: Module = {
-    id: uid(),
+    id: 'beispiel-modul',
     subject: 'Geographie',
     grade: 9,
     number: 1,
@@ -106,7 +148,7 @@ export function seedLibrary(): Library {
     description: 'Vom Zusammenhang zwischen CO₂ und Temperatur zum Mechanismus des Treibhauseffekts.',
     competences: [
       {
-        id: uid(),
+        id: 'beispiel-k1',
         area: 'Klimadiagramme und Kurven auswerten',
         g: 'Ich kann Werte aus einer Kurve ablesen.',
         m: 'Ich kann beschreiben, wie sich CO₂ und Temperatur entwickeln.',
@@ -114,7 +156,7 @@ export function seedLibrary(): Library {
         lessons: '1',
       },
       {
-        id: uid(),
+        id: 'beispiel-k2',
         area: 'Den Treibhauseffekt erklären',
         g: 'Ich kann die Stationen des Fließschemas nennen.',
         m: 'Ich kann den Treibhauseffekt mit dem Fließschema erklären.',
@@ -122,7 +164,7 @@ export function seedLibrary(): Library {
         lessons: '2',
       },
       {
-        id: uid(),
+        id: 'beispiel-k3',
         area: 'Mit Modellen arbeiten',
         g: 'Ich kann den Modellversuch durchführen und Werte notieren.',
         m: 'Ich kann das Ergebnis des Versuchs deuten.',
@@ -130,27 +172,84 @@ export function seedLibrary(): Library {
         lessons: '2',
       },
     ],
-    updatedAt: Date.now(),
+    updatedAt: 0,
   };
   const doc = seedDoc();
-  const lesson: Lesson = { id: uid(), moduleId: module.id, number: 2, title: 'Der Treibhauseffekt', doc, updatedAt: Date.now() };
-  return { settings, modules: [module], lessons: [lesson] };
+  const lesson: Lesson = { id: 'beispiel-stunde', moduleId: module.id, number: 2, title: 'Der Treibhauseffekt', doc, updatedAt: 0 };
+  return { settings, modules: [module], lessons: [lesson], deleted: {} };
 }
 
-/** Adds a library backup to the current library: entries with the same id are replaced, the rest is kept. */
-export function mergeLibrary(current: Library, incoming: Library): Library {
-  const modules = new Map(current.modules.map((m) => [m.id, m]));
-  for (const m of incoming.modules) modules.set(m.id, m);
-  const lessons = new Map(current.lessons.map((l) => [l.id, l]));
-  for (const l of incoming.lessons) lessons.set(l.id, l);
-  const subjects = [...current.settings.subjects];
-  for (const s of incoming.settings.subjects) if (!subjects.includes(s)) subjects.push(s);
+export interface SyncResult {
+  library: Library;
+  /** Entries taken from the file (new or newer there). */
+  fromFile: number;
+  /** Entries kept from this device because they are newer here or only here. */
+  keptHere: number;
+  /** Entries removed because they were deleted on the other device. */
+  removed: number;
+}
+
+/**
+ * Syncs this device's library with a backup from the other device (Mac ↔ iPad via iCloud Drive):
+ * for each module and lesson the newer version wins, deletions win over older versions, and the
+ * untouched sample (time 0) gives way to a file that does not contain it.
+ */
+export function syncLibrary(here: Library, file: Library): SyncResult {
+  const deleted: Record<string, number> = { ...here.deleted };
+  for (const [id, t] of Object.entries(file.deleted)) deleted[id] = Math.max(deleted[id] ?? 0, t);
+  let fromFile = 0;
+  let keptHere = 0;
+  let removed = 0;
+
+  function pick<T extends { id: string; updatedAt: number }>(mine: T[], theirs: T[]): T[] {
+    const out = new Map<string, T>();
+    const theirById = new Map(theirs.map((x) => [x.id, x]));
+    for (const x of mine) {
+      const other = theirById.get(x.id);
+      if (!other && x.updatedAt === 0 && theirs.length > 0) continue; // untouched sample, not on the other device
+      if (other && other.updatedAt > x.updatedAt) {
+        out.set(x.id, other);
+        fromFile++;
+      } else {
+        out.set(x.id, x);
+        if (!other || x.updatedAt > other.updatedAt) keptHere++;
+      }
+    }
+    for (const x of theirs) {
+      if (!out.has(x.id) && !mine.some((m) => m.id === x.id)) {
+        out.set(x.id, x);
+        fromFile++;
+      }
+    }
+    return [...out.values()].filter((x) => {
+      const gone = (deleted[x.id] ?? -1) >= x.updatedAt;
+      if (gone && mine.some((m) => m.id === x.id)) removed++;
+      return !gone;
+    });
+  }
+
+  const modules = pick(here.modules, file.modules);
+  const moduleIds = new Set(modules.map((m) => m.id));
+  const lessons = pick(here.lessons, file.lessons).filter((l) => moduleIds.has(l.moduleId));
+  const newer = file.settings.updatedAt > here.settings.updatedAt ? file.settings : here.settings;
+  const subjects = [...here.settings.subjects];
+  for (const s of file.settings.subjects) if (!subjects.includes(s)) subjects.push(s);
   return {
-    settings: { subjects, footerBase: current.settings.footerBase || incoming.settings.footerBase },
-    modules: [...modules.values()],
-    lessons: [...lessons.values()],
+    library: { settings: { ...newer, subjects }, modules, lessons, deleted },
+    fromFile,
+    keptHere,
+    removed,
   };
 }
+
+/** Latest change of anything in the library (for "changed since the last backup"). */
+export function lastChange(lib: Library): number {
+  return Math.max(lib.settings.updatedAt, ...lib.modules.map((m) => m.updatedAt), ...lib.lessons.map((l) => l.updatedAt), ...Object.values(lib.deleted), 0);
+}
+
+/** Number of modules and lessons changed (or deleted) after time `t`. */
+export const changedSince = (lib: Library, t: number) =>
+  lib.modules.filter((m) => m.updatedAt > t).length + lib.lessons.filter((l) => l.updatedAt > t).length + Object.values(lib.deleted).filter((d) => d > t).length;
 
 /** A copy of a lesson as the next lesson of its module. */
 export function duplicateLesson(lib: Library, m: Module, l: Lesson): Lesson {

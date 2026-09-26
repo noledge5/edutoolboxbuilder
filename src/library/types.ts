@@ -47,10 +47,14 @@ export interface Settings {
   subjects: string[];
   /** Start of the footer of new worksheets, e.g. "Kuhl · Grafen-von-Zimmern-Realschule"; the subject is added. */
   footerBase: string;
+  /** When the settings last changed (for the Mac ↔ iPad sync); 0 = never. */
+  updatedAt: number;
 }
 
 export interface Library {
   settings: Settings;
   modules: Module[];
   lessons: Lesson[];
+  /** Deleted modules and lessons (id → time of deletion), so a sync does not bring them back. */
+  deleted: Record<string, number>;
 }

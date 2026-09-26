@@ -25,7 +25,11 @@ export type BlockType =
   | 'table'
   | 'match'
   | 'draw'
-  | 'selfcheck';
+  | 'selfcheck'
+  | 'plan'
+  | 'goal'
+  | 'expect'
+  | 'recall';
 
 export type PropValue = string | number;
 

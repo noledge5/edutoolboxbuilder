@@ -7,7 +7,7 @@ import type { Doc, Page } from '../model/types';
 import { THEMES } from '../model/themes';
 import { PAGE_H, PAGE_W, SheetPage } from '../sheet/SheetPage';
 import { topicIcon } from '../topicIcons';
-import { footerFor, moduleCode } from './model';
+import { competenceLessons, competenceLinks, footerFor, moduleCode } from './model';
 import type { Lesson, Module, Settings } from './types';
 
 export type PrintKind = 'inhalt' | 'raster';
@@ -38,6 +38,7 @@ interface ModulePagesProps {
 export function ModulePages({ kind, module: m, lessons, settings }: ModulePagesProps) {
   const doc: Doc = { icon: m.icon, footer: footerFor(settings, m.subject), code: moduleCode(m), pages: [] };
   const kicker = `Klasse ${m.grade} · ${m.subject} · Modul ${m.number}`;
+  const links = competenceLinks(lessons);
 
   if (kind === 'inhalt') {
     const page: Page = { title: `Inhaltsübersicht: ${m.title}`, kicker, type: 'lehrkraft', form: 'allein', nameField: 'aus', blocks: [] };
@@ -79,7 +80,7 @@ export function ModulePages({ kind, module: m, lessons, settings }: ModulePagesP
                     {m.competences.map((c) => (
                       <div key={c.id} className="ov-comp-row">
                         <span>{c.area}</span>
-                        {c.lessons.trim() && <span className="ov-comp-lessons">Stunde {c.lessons}</span>}
+                        {competenceLessons(c, links.get(c.id)) && <span className="ov-comp-lessons">Stunde {competenceLessons(c, links.get(c.id))}</span>}
                       </div>
                     ))}
                   </div>
@@ -114,7 +115,7 @@ export function ModulePages({ kind, module: m, lessons, settings }: ModulePagesP
                   <div key={c.id} className="kr-row">
                     <div className="kr-area">
                       {c.area}
-                      {c.lessons.trim() && <span className="kr-lessons">Stunde {c.lessons}</span>}
+                      {competenceLessons(c, links.get(c.id)) && <span className="kr-lessons">Stunde {competenceLessons(c, links.get(c.id))}</span>}
                     </div>
                     {LEVELS.map((lv) => (
                       <div key={lv.key} className="kr-cell">

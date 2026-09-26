@@ -8,6 +8,8 @@ export interface EditorApi {
   drop: DropTarget | null;
   /** Icon and code come from the module in the library (not edited per worksheet). */
   codeLocked: boolean;
+  /** The module's competences, for linking tasks. */
+  competences: { id: string; area: string }[];
   select(s: Selection): void;
   /** Starts editing a text right on the page (see sheet/inlineEdit.tsx), selecting its block or page. */
   startEdit(target: string, s: Selection): void;

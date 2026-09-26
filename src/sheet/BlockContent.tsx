@@ -1,13 +1,16 @@
 // Printed content of one block. Pure rendering: editor chrome (selection, drag, toolbar) lives in the editor.
-import { useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useContext, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Frown, Image as ImageIcon, Meh, Smile, Star } from 'lucide-react';
 import { encode } from 'uqr';
 import { Icon, BLOCK_ICONS } from '../icons';
 import { FLOW_COLORS, VARIANTS } from '../model/themes';
-import { flowSteps, lines, num, segments, str } from '../model/text';
+import { cellRows, choices, flowSteps, lines, matchNumbers, num, rows, segments, str, type Segment } from '../model/text';
 import type { Block, Variant } from '../model/types';
 import { useImageUrl } from '../storage/images';
 import { Editable } from './inlineEdit';
+import { SheetModeContext, type SolutionView } from './sheetMode';
+import { CompetenceNamesContext } from './competences';
+import { LEVEL_NAMES } from '../model/blockTypes';
 
 interface BlockContentProps {
   block: Block;
@@ -30,10 +33,26 @@ const variantVars = (v: Variant): CSSProperties => {
   } as CSSProperties;
 };
 
+/** Class for an answer: clear on the solution sheet, faint while editing. */
+const answerClass = (view: SolutionView) => (view === 'ghost' ? ' is-ghost' : '');
+
+/** A gap to write in; wide enough for its answer, which shows on the solution sheet. */
+function Blank({ seg, cls, view }: { seg: Segment; cls: string; view: SolutionView }) {
+  const answer = seg.solution;
+  const show = !!answer && view !== 'hidden';
+  const style = answer ? ({ '--w': `${answer.length * 0.6 + 1.4}em` } as CSSProperties) : undefined;
+  return (
+    <span className={cls + (show ? ' has-answer' + answerClass(view) : '')} style={style}>
+      {show ? answer : null}
+    </span>
+  );
+}
+
 function GapText({ text, blankClass }: { text: string; blankClass: string }) {
+  const { solutions } = useContext(SheetModeContext);
   return (
     <>
-      {segments(text).map((s, k) => (s.blank ? <span key={k} className={blankClass} /> : <span key={k}>{s.text}</span>))}
+      {segments(text).map((s, k) => (s.blank ? <Blank key={k} seg={s} cls={blankClass} view={solutions} /> : <span key={k}>{s.text}</span>))}
     </>
   );
 }
@@ -93,6 +112,60 @@ export function BlockContent({ block, taskNum, editing, onImageFile }: BlockCont
       );
     case 'qr':
       return <QrBlock url={str(p.url)} caption={str(p.caption)} editing={editing} captionTarget={t('caption')} />;
+    case 'plan':
+      return (
+        <div className="ws-plan">
+          <div className="ws-plan-row is-head">
+            <div>Zeit</div>
+            <div>Phase und Ablauf</div>
+            <div>Sozialform</div>
+            <div>Material</div>
+          </div>
+          {rows(p.rows).map(([time = '', phase = '', steps = '', form = '', material = ''], k) => (
+            <div key={k} className="ws-plan-row">
+              <div className="ws-plan-time">{time}</div>
+              <div>
+                <div className="ws-plan-phase">{phase}</div>
+                {steps && <div className="ws-plan-steps">{steps}</div>}
+              </div>
+              <div>{form}</div>
+              <div>{material}</div>
+            </div>
+          ))}
+        </div>
+      );
+    case 'goal':
+      return (
+        <div className="ws-goal">
+          <div className="ws-goal-box is-goal">
+            <div className="ws-label">Ziel</div>
+            <Editable as="p" className="ws-goal-text" target={t('goal')} value={str(p.goal)} multiline />
+          </div>
+          <div className="ws-goal-box">
+            <div className="ws-label">Bildungsplan</div>
+            <Editable as="p" className="ws-goal-text" target={t('curriculum')} value={str(p.curriculum)} multiline />
+          </div>
+        </div>
+      );
+    case 'expect':
+      return (
+        <div className="ws-expect">
+          {rows(p.items).map(([verdict = '', quote = '', text = ''], k) => {
+            const kind = /^fal/i.test(verdict) ? 'is-wrong' : /^vor/i.test(verdict) ? 'is-careful' : 'is-right';
+            return (
+              <div key={k} className="ws-expect-row">
+                <span className={'ws-verdict ' + kind}>{verdict || 'Richtig'}</span>
+                <div>
+                  <div className="ws-expect-quote">{quote}</div>
+                  {text && <div className="ws-expect-text">{text}</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    case 'recall':
+      return <RecallBlock title={str(p.title)} items={rows(p.items)} always={str(p.answers) !== 'loesung'} titleTarget={t('title')} />;
     case 'selfcheck':
       return (
         <div className="ws-self">
@@ -164,6 +237,7 @@ export function BlockContent({ block, taskNum, editing, onImageFile }: BlockCont
               )}
             </div>
             <TaskBody block={block} target={t} />
+            <CompetenceTag id={str(p.competence)} level={str(p.level)} />
           </div>
         </div>
       );
@@ -173,6 +247,8 @@ export function BlockContent({ block, taskNum, editing, onImageFile }: BlockCont
 
 function TaskBody({ block, target }: { block: Block; target(key: string): string }) {
   const p = block.props;
+  const { solutions } = useContext(SheetModeContext);
+  const answers = solutions !== 'hidden';
   switch (block.type) {
     case 'open':
       return (
@@ -180,15 +256,16 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
           {Array.from({ length: Math.min(20, Math.max(0, num(p.lines, 3))) }, (_, k) => (
             <div key={k} />
           ))}
+          {answers && str(p.solution).trim() && <div className={'ws-lines-answer' + answerClass(solutions)}>{str(p.solution)}</div>}
         </div>
       );
     case 'mc':
       return (
         <div className="ws-options">
-          {lines(p.options).map((o, k) => (
+          {choices(p.options).map((o, k) => (
             <div key={k} className="ws-option">
-              <span className="ws-check" />
-              {o}
+              <span className={'ws-check' + (answers && o.correct ? ' is-correct' + answerClass(solutions) : '')} />
+              {o.text}
             </div>
           ))}
         </div>
@@ -201,6 +278,7 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
       );
     case 'table': {
       const cols = lines(p.cols);
+      const sol = answers ? cellRows(p.solution) : [];
       const template = { gridTemplateColumns: cols.length > 1 ? `1.2fr repeat(${cols.length - 1}, minmax(0,1fr))` : '1fr' };
       return (
         <div className="ws-table">
@@ -215,47 +293,122 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
             <div key={k} className="ws-table-row" style={template}>
               <div className="ws-table-label">{r}</div>
               {cols.slice(1).map((_, j) => (
-                <div key={j} className="ws-table-cell" />
+                <div key={j} className="ws-table-cell">
+                  {sol[k]?.[j] && <span className={'ws-answer' + answerClass(solutions)}>{sol[k][j]}</span>}
+                </div>
               ))}
             </div>
           ))}
         </div>
       );
     }
-    case 'match': {
-      const L = lines(p.left);
-      const R = lines(p.right);
-      return (
-        <div className="ws-match">
-          {Array.from({ length: Math.max(L.length, R.length) }, (_, k) => (
-            <div key={k} className="ws-match-row">
-              {L[k] ? (
-                <div className="ws-match-item">
-                  <span>{L[k]}</span>
-                  <span className="ws-dot" />
-                </div>
-              ) : (
-                <div />
-              )}
-              <div />
-              {R[k] ? (
-                <div className="ws-match-item is-right">
-                  <span className="ws-dot" />
-                  <span>{R[k]}</span>
-                </div>
-              ) : (
-                <div />
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    }
+    case 'match':
+      return <MatchBody left={lines(p.left)} right={lines(p.right)} solution={answers ? matchNumbers(p.solution) : []} view={solutions} />;
     case 'draw':
       return <div className={'ws-draw is-' + (str(p.pattern) || 'leer')} style={{ height: num(p.height, 160) }} />;
     default:
       return null;
   }
+}
+
+/** Matching task; on the solution sheet lines connect each right-hand item with its left-hand partner. */
+function MatchBody({ left: L, right: R, solution, view }: { left: string[]; right: string[]; solution: number[]; view: SolutionView }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [paths, setPaths] = useState<string[]>([]);
+  const key = L.join('\n') + '|' + R.join('\n') + '|' + solution.join();
+  // Offsets are in page coordinates, so the lines stay right at any zoom.
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el || solution.length === 0) return setPaths([]);
+    const dots = (side: string) => Array.from(el.querySelectorAll<HTMLElement>(`[data-dot="${side}"]`));
+    const lefts = dots('l');
+    const rights = dots('r');
+    const center = (d: HTMLElement) => {
+      let x = d.offsetWidth / 2;
+      let y = d.offsetHeight / 2;
+      for (let n: HTMLElement | null = d; n && n !== el; n = n.offsetParent as HTMLElement | null) {
+        x += n.offsetLeft;
+        y += n.offsetTop;
+      }
+      return { x, y };
+    };
+    const out: string[] = [];
+    solution.forEach((leftNo, r) => {
+      const a = lefts[leftNo - 1];
+      const b = rights[r];
+      if (!a || !b) return;
+      const p1 = center(a);
+      const p2 = center(b);
+      out.push(`M${p1.x} ${p1.y}L${p2.x} ${p2.y}`);
+    });
+    setPaths(out);
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <div className="ws-match" ref={box}>
+      {Array.from({ length: Math.max(L.length, R.length) }, (_, k) => (
+        <div key={k} className="ws-match-row">
+          {L[k] ? (
+            <div className="ws-match-item">
+              <span>{L[k]}</span>
+              <span className="ws-dot" data-dot="l" />
+            </div>
+          ) : (
+            <div />
+          )}
+          <div />
+          {R[k] ? (
+            <div className="ws-match-item is-right">
+              <span className="ws-dot" data-dot="r" />
+              <span>{R[k]}</span>
+            </div>
+          ) : (
+            <div />
+          )}
+        </div>
+      ))}
+      {paths.length > 0 && (
+        <svg className={'ws-match-lines' + answerClass(view)} aria-hidden="true">
+          {paths.map((d, k) => (
+            <path key={k} d={d} />
+          ))}
+        </svg>
+      )}
+    </div>
+  );
+}
+
+/** Which competence (and level) a task practises: on the solution sheet, and faintly while editing. */
+function CompetenceTag({ id, level }: { id: string; level: string }) {
+  const names = useContext(CompetenceNamesContext);
+  const { solutions } = useContext(SheetModeContext);
+  const name = id && names.get(id);
+  if (!name || solutions === 'hidden') return null;
+  return (
+    <div className={'ws-comp-tag' + answerClass(solutions)}>
+      Kompetenz: {name}
+      {LEVEL_NAMES[level] ? ` · Niveau ${LEVEL_NAMES[level]}` : ''}
+    </div>
+  );
+}
+
+/** Retrieval questions; answers always (teacher page) or only on the solution sheet (student page). */
+function RecallBlock({ title, items, always, titleTarget }: { title: string; items: string[][]; always: boolean; titleTarget: string }) {
+  const { solutions } = useContext(SheetModeContext);
+  const view: SolutionView = always ? 'shown' : solutions;
+  return (
+    <div className="ws-recall">
+      <Editable className="ws-label ws-recall-title" target={titleTarget} value={title} />
+      {items.map(([q = '', a = ''], k) => (
+        <div key={k} className="ws-recall-row">
+          <span className="ws-recall-num">{k + 1}</span>
+          <span>
+            {q}
+            {a && view !== 'hidden' && <span className={'ws-recall-answer' + answerClass(view)}> ({a})</span>}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 /** Dark modules of a QR code as one SVG path. */

@@ -1,5 +1,5 @@
 // One printed A4 page: header band (Kopfband), optional name field, 12-column body grid, footer band (Fußband).
-import type { CSSProperties, MouseEvent, ReactNode, Ref } from 'react';
+import { useContext, type CSSProperties, type MouseEvent, type ReactNode, type Ref } from 'react';
 import { User, Users } from 'lucide-react';
 import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
@@ -7,6 +7,7 @@ import { THEMES, type SheetTheme } from '../model/themes';
 import type { Doc, Page } from '../model/types';
 import { topicIcon } from '../topicIcons';
 import { Editable } from './inlineEdit';
+import { SheetModeContext } from './sheetMode';
 
 export const PAGE_W = 794;
 export const PAGE_H = 1123;
@@ -51,8 +52,9 @@ interface SheetPageProps {
 
 export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderClick, onBodyClick, bodyRef, dropEnd, style, hideForm, children }: SheetPageProps) {
   const t = themeOf(page);
+  const mode = useContext(SheetModeContext);
   return (
-    <div className="ws-page" style={{ ...themeVars(t), ...style }} data-page={index}>
+    <div className={'ws-page' + (mode.bw ? ' is-bw' : '')} style={{ ...themeVars(t), ...style }} data-page={index}>
       <div className={'ws-band' + (headerSelected ? ' is-selected' : '')} onClick={onHeaderClick}>
         <div className="ws-band-icon">
           <Icon icon={topicIcon(doc.icon)} size={26} />
@@ -62,6 +64,7 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
           <Editable as="h1" className="ws-title" target={`page${index}:title`} value={page.title} />
         </div>
         <div className="ws-band-side">
+          {mode.solutions === 'shown' && <div className="ws-solution-pill">Lösung</div>}
           <div className="ws-type-pill">{t.label}</div>
           {!hideForm && (
             <div className="ws-form-pill">

@@ -25,6 +25,8 @@ interface TopBarProps {
   onOpenJson(): void;
   onTogglePreview(): void;
   onPrint(): void;
+  /** In the preview: which version is shown, e.g. "Lösungsfassung · S/W". */
+  modeLabel?: string;
 }
 
 export function TopBar(p: TopBarProps) {
@@ -79,6 +81,7 @@ export function TopBar(p: TopBarProps) {
           { label: 'Daten anzeigen (JSON)', icon: Braces, onClick: p.onOpenJson },
         ]}
       />
+      {p.modeLabel && <span className="topbar-mode">{p.modeLabel}</span>}
       <button type="button" className={'btn btn-secondary ui-btn' + (p.editing ? '' : ' is-on')} onClick={p.onTogglePreview}>
         <Icon icon={Eye} />
         <span className="btn-label">{p.editing ? 'Vorschau' : 'Bearbeiten'}</span>

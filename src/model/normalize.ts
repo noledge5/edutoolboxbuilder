@@ -37,7 +37,9 @@ function normalizeProps(type: Block['type'], raw: unknown): BlockProps {
     } else if (f.kind === 'variant') {
       if (!(String(v) in VARIANTS)) props[f.key] = T.defaults[f.key];
     } else if (f.kind === 'seg') {
-      if (!f.options.some((o) => o.v === v)) props[f.key] = T.defaults[f.key];
+      // Accept 2 for "2" (hand-written or generated files).
+      const o = f.options.find((o) => String(o.v) === String(v));
+      props[f.key] = o ? o.v : T.defaults[f.key];
     } else if (typeof v !== 'string') {
       props[f.key] = v == null ? '' : String(v);
     }

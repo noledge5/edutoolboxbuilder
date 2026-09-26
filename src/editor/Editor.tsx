@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors, type Announcements, type DragStartEvent } from '@dnd-kit/core';
 import { BLOCK_TYPES } from '../model/blockTypes';
@@ -6,6 +6,8 @@ import { historyReducer, initHistory } from '../model/history';
 import * as ops from '../model/ops';
 import type { Doc, DragItem, DropTarget, Selection } from '../model/types';
 import { InlineEditContext, type InlineEdit } from '../sheet/inlineEdit';
+import { SheetModeContext, type SheetMode } from '../sheet/sheetMode';
+import { CompetenceNamesContext } from '../sheet/competences';
 import { PAGE_W } from '../sheet/SheetPage';
 import { backupFileName, createBackup, downloadBlob, readBackup } from '../storage/backup';
 import { storeImageFile } from '../storage/images';
@@ -14,6 +16,7 @@ import { Canvas } from './Canvas';
 import { dropTargetAt, sameDrop } from './drop';
 import { ghostBesideCursor } from './ghostModifier';
 import { JsonDialog } from './JsonDialog';
+import { PrintDialog, type PrintMode } from './PrintDialog';
 import { PropertiesPanel } from './PropertiesPanel';
 import { DragGhost, Toolbox } from './Toolbox';
 import { TopBar } from './TopBar';
@@ -74,9 +77,13 @@ export interface EditorProps {
   place?: string;
   /** The code (Kürzel) comes from grade, module and lesson and cannot be edited here. */
   codeLocked?: boolean;
+  /** The module's competences, for linking tasks. */
+  competences?: { id: string; area: string }[];
 }
 
-export function Editor({ initialDoc, onSave, onBack, place, codeLocked }: EditorProps) {
+const NO_COMPETENCES: { id: string; area: string }[] = [];
+
+export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competences = NO_COMPETENCES }: EditorProps) {
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
   const doc = hist.present;
   const [rawSel, setSel] = useState<Selection>({ kind: 'page', p: 0 });
@@ -92,7 +99,12 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked }: Editor
   const [toolboxOpen, setToolboxOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [inline, setInline] = useState<string | null>(null);
+  const [printMode, setPrintMode] = useState<PrintMode>({ solutions: false, bw: false });
+  const [printOpen, setPrintOpen] = useState(false);
   const editing = !preview;
+  // While editing, stored answers show faintly; the preview and print show the chosen version.
+  const competenceNames = useMemo(() => new Map(competences.map((c) => [c.id, c.area])), [competences]);
+  const sheetMode: SheetMode = editing ? { solutions: 'ghost', bw: false } : { solutions: printMode.solutions ? 'shown' : 'hidden', bw: printMode.bw };
   const canvasRef = useRef<HTMLElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -147,6 +159,7 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked }: Editor
     editing,
     drop,
     codeLocked: !!codeLocked,
+    competences,
     select,
     startEdit: (target, s) => {
       // Render the text field synchronously and focus it inside the tap, or iPadOS will not open the keyboard.
@@ -441,7 +454,17 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked }: Editor
 
   const ghostType = dragItem ? (dragItem.kind === 'new' ? dragItem.type : ops.getBlock(doc, dragItem.id)?.type) : undefined;
 
-  const print = () => {
+  const showPreview = (mode: PrintMode) => {
+    setPrintMode(mode);
+    setPrintOpen(false);
+    setPreview(true);
+    setSel(null);
+    setInline(null);
+    setPanelOpen(false);
+    setToolboxOpen(false);
+  };
+
+  const print = (mode: PrintMode) => {
     const full = fullPages();
     if (full.length > 0) {
       const which = full.length === 1 ? `Seite ${full[0]} ist` : `Die Seiten ${full.join(', ')} sind`;
@@ -449,13 +472,7 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked }: Editor
     }
     // Back to editing once the print dialog closes, if that is where printing started.
     if (!preview) window.addEventListener('afterprint', () => setPreview(false), { once: true });
-    flushSync(() => {
-      setPreview(true);
-      setSel(null);
-      setInline(null);
-      setPanelOpen(false);
-      setToolboxOpen(false);
-    });
+    flushSync(() => showPreview(mode));
     window.print();
   };
 
@@ -498,7 +515,8 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked }: Editor
           onSaveFile={saveFile}
           onOpenJson={() => setJsonOpen(true)}
           onTogglePreview={() => setPreview((p) => !p)}
-          onPrint={print}
+          onPrint={() => setPrintOpen(true)}
+          modeLabel={!editing ? [printMode.solutions ? 'Lösungsfassung' : 'Schülerfassung', printMode.bw ? 'S/W' : 'Farbe'].join(' · ') : undefined}
         />
         <input
           ref={fileInput}
@@ -514,21 +532,26 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked }: Editor
         <div className="workspace">
           {editing && <Toolbox open={!compact || toolboxOpen} compact={compact} onAdd={api.addBlock} onClose={() => setToolboxOpen(false)} />}
           <InlineEditContext.Provider value={editing ? inlineEdit : null}>
-            <Canvas
-              ref={canvasRef}
-              api={api}
-              zoom={zoom}
-              draggingId={dragItem?.kind === 'move' ? dragItem.id : null}
-              onBackgroundClick={() => {
-                select(null);
-                setToolboxOpen(false);
-              }}
-            />
+            <SheetModeContext.Provider value={sheetMode}>
+              <CompetenceNamesContext.Provider value={competenceNames}>
+              <Canvas
+                ref={canvasRef}
+                api={api}
+                zoom={zoom}
+                draggingId={dragItem?.kind === 'move' ? dragItem.id : null}
+                onBackgroundClick={() => {
+                  select(null);
+                  setToolboxOpen(false);
+                }}
+              />
+              </CompetenceNamesContext.Provider>
+            </SheetModeContext.Provider>
           </InlineEditContext.Provider>
           {editing && (
             <PropertiesPanel api={api} open={!compact || (panelOpen && sel !== null && inline === null)} compact={compact} onClose={() => setPanelOpen(false)} />
           )}
         </div>
+        {printOpen && <PrintDialog mode={printMode} onPreview={showPreview} onPrint={print} onClose={() => setPrintOpen(false)} />}
         {jsonOpen && (
           <JsonDialog
             doc={doc}

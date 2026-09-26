@@ -125,6 +125,32 @@ export function ImageField({ label, hasImage, onFile, onRemove }: { label: strin
   );
 }
 
+/** A task's competence from the module's grid. */
+export function CompetenceField({ label, value, competences, onChange }: { label: string; value: string; competences: { id: string; area: string }[]; onChange(v: string): void }) {
+  const id = useId();
+  if (competences.length === 0) {
+    return (
+      <div className="field">
+        <label>{label}</label>
+        <p className="panel-note">Lege im Modul unter „Kompetenzraster“ Kompetenzen an, dann kannst du die Aufgabe hier verknüpfen.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      <select id={id} className="input" value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="">– keine –</option>
+        {competences.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.area || 'Kompetenz ohne Namen'}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 /** Grid of topic icons with a search field (German names and keywords). */
 export function IconPickerField({ label, value, onPick }: { label: string; value: string; onPick(key: string): void }) {
   const id = useId();

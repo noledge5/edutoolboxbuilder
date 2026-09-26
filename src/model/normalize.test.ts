@@ -20,9 +20,10 @@ describe('normalizeDoc', () => {
   });
 
   it('checks task level and points', () => {
-    const [a, b] = normalizeDoc({ pages: [{ blocks: [{ type: 'open', props: { level: '2', points: 4 } }, { type: 'open', props: { level: '7', points: -3 } }] }] }).pages[0].blocks;
+    const [a, b, c] = normalizeDoc({ pages: [{ blocks: [{ type: 'open', props: { level: '2', points: 4 } }, { type: 'open', props: { level: '7', points: -3 } }, { type: 'open', props: { level: 3 } }] }] }).pages[0].blocks;
     expect(a.props).toMatchObject({ level: '2', points: 4 });
     expect(b.props).toMatchObject({ level: '', points: 0 });
+    expect(c.props.level).toBe('3');
   });
 
   it('requires a pages list', () => {

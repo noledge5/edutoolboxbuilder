@@ -5,6 +5,7 @@ import { referencedImages } from '../model/ops';
 import type { Doc } from '../model/types';
 import type { Library } from '../library/types';
 import { getImage, putImageAs } from './db';
+import { readDeleted, readSettings } from './library';
 
 export const BACKUP_FORMAT = 'arbeitsblatt-baukasten';
 export const LIBRARY_FORMAT = 'arbeitsblatt-baukasten-bibliothek';
@@ -104,9 +105,10 @@ export async function createLibraryBackup(library: Library): Promise<LibraryFile
   return { format: LIBRARY_FORMAT, version: BACKUP_VERSION, savedAt: new Date().toISOString(), library, images: await imagesOf(library.lessons.map((l) => l.doc)) };
 }
 
-export const libraryFileName = () => `Arbeitsblatt-Baukasten Sicherung ${new Date().toISOString().slice(0, 10)}.json`;
+/** Always the same name, so saving to iCloud Drive replaces the previous file instead of piling up copies. */
+export const LIBRARY_FILE_NAME = 'Arbeitsblatt-Baukasten Bibliothek.json';
 
-export type OpenedFile = { kind: 'library'; library: Library } | { kind: 'doc'; doc: Doc };
+export type OpenedFile = { kind: 'library'; library: Library; savedAt: number } | { kind: 'doc'; doc: Doc };
 
 /** Reads a library backup, a worksheet backup or a bare document; stores the images it carries. */
 export async function readAnyFile(text: string): Promise<OpenedFile> {
@@ -121,9 +123,11 @@ export async function readAnyFile(text: string): Promise<OpenedFile> {
     if (typeof obj.version === 'number' && obj.version > BACKUP_VERSION) throw new DocFormatError('Die Datei stammt aus einer neueren Version des Baukastens.');
     const lib = obj.library;
     if (!lib || !Array.isArray(lib.modules) || !Array.isArray(lib.lessons)) throw new DocFormatError('Die Sicherung ist unvollständig.');
-    const lessons = lib.lessons.map((l) => ({ ...l, doc: normalizeDoc(l.doc) }));
+    const lessons = lib.lessons.map((l) => ({ ...l, updatedAt: Number(l.updatedAt) || 0, doc: normalizeDoc(l.doc) }));
+    const modules = lib.modules.map((m) => ({ ...m, competences: Array.isArray(m.competences) ? m.competences : [], updatedAt: Number(m.updatedAt) || 0 }));
     for (const [id, url] of Object.entries(obj.images ?? {})) if (typeof url === 'string') await putImageAs(id, dataUrlToBlob(url));
-    return { kind: 'library', library: { settings: { subjects: lib.settings?.subjects ?? [], footerBase: lib.settings?.footerBase ?? '' }, modules: lib.modules, lessons } };
+    const savedAt = Date.parse(obj.savedAt ?? '') || 0;
+    return { kind: 'library', savedAt, library: { settings: readSettings(lib.settings), modules, lessons, deleted: readDeleted(lib.deleted) } };
   }
   return { kind: 'doc', doc: await readBackup(text) };
 }

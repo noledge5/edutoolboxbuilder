@@ -6,14 +6,14 @@ export interface SegOption<V extends string | number | boolean = string | number
 }
 
 export type FieldDef =
-  | { key: string; label: string; kind: 'text' | 'area' | 'variant' | 'image' }
+  | { key: string; label: string; kind: 'text' | 'area' | 'variant' | 'image' | 'competence' }
   | { key: string; label: string; kind: 'number'; min: number; max: number }
   | { key: string; label: string; kind: 'seg'; options: SegOption<string>[] };
 
 export interface BlockTypeDef {
   label: string;
   /** Index into GROUPS. */
-  group: 0 | 1 | 2;
+  group: 0 | 1 | 2 | 3;
   span: number;
   /** Tasks are numbered automatically per page. */
   task?: boolean;
@@ -29,14 +29,18 @@ const TASK_FIELDS: FieldDef[] = [
     kind: 'seg',
     options: [
       { v: '', l: '–' },
-      { v: '1', l: '★' },
-      { v: '2', l: '★★' },
-      { v: '3', l: '★★★' },
+      { v: '1', l: '★ G' },
+      { v: '2', l: '★★ M' },
+      { v: '3', l: '★★★ E' },
     ],
   },
   { key: 'points', label: 'Punkte (0 = keine)', kind: 'number', min: 0, max: 99 },
+  { key: 'competence', label: 'Kompetenz aus dem Kompetenzraster', kind: 'competence' },
 ];
-const TASK_DEFAULTS = { level: '', points: 0 };
+const TASK_DEFAULTS = { level: '', points: 0, competence: '' };
+
+/** Level stars as Niveau of the Bildungsplan: ★ = G, ★★ = M, ★★★ = E. */
+export const LEVEL_NAMES: Record<string, string> = { '1': 'G', '2': 'M', '3': 'E' };
 
 export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
   heading: {
@@ -70,7 +74,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     span: 12,
     defaults: { text: 'Beobachtung + ___ = eine Erklärung, die überzeugt.', variant: 'accent-2' },
     fields: [
-      { key: 'text', label: 'Text (___ = Lücke)', kind: 'area' },
+      { key: 'text', label: 'Text (___ = Lücke, [[Wort]] = Lücke mit Lösung)', kind: 'area' },
       { key: 'variant', label: 'Farbe', kind: 'variant' },
     ],
   },
@@ -124,10 +128,11 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     group: 2,
     task: true,
     span: 12,
-    defaults: { prompt: 'Beschreibe, was du beobachtest.', lines: 3, ...TASK_DEFAULTS },
+    defaults: { prompt: 'Beschreibe, was du beobachtest.', lines: 3, solution: '', ...TASK_DEFAULTS },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
       { key: 'lines', label: 'Anzahl Schreiblinien', kind: 'number', min: 0, max: 20 },
+      { key: 'solution', label: 'Lösung / Erwartung (für die Lösungsfassung)', kind: 'area' },
       ...TASK_FIELDS,
     ],
   },
@@ -139,7 +144,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     defaults: { prompt: 'Kreuze die richtige Antwort an.', options: 'Antwort A\nAntwort B\nAntwort C', ...TASK_DEFAULTS },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
-      { key: 'options', label: 'Antworten (eine je Zeile)', kind: 'area' },
+      { key: 'options', label: 'Antworten (eine je Zeile, richtige mit * davor)', kind: 'area' },
       ...TASK_FIELDS,
     ],
   },
@@ -155,7 +160,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
-      { key: 'text', label: 'Text (___ = Lücke)', kind: 'area' },
+      { key: 'text', label: 'Text (___ = Lücke, [[Wort]] = Lücke mit Lösung)', kind: 'area' },
       ...TASK_FIELDS,
     ],
   },
@@ -164,11 +169,12 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     group: 2,
     task: true,
     span: 12,
-    defaults: { prompt: 'Trage deine Werte ein.', cols: 'Zeit\nWert A\nWert B', rows: '0 min\n3 min\n6 min', ...TASK_DEFAULTS },
+    defaults: { prompt: 'Trage deine Werte ein.', cols: 'Zeit\nWert A\nWert B', rows: '0 min\n3 min\n6 min', solution: '', ...TASK_DEFAULTS },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
       { key: 'cols', label: 'Spalten (eine je Zeile)', kind: 'area' },
       { key: 'rows', label: 'Zeilen (eine je Zeile)', kind: 'area' },
+      { key: 'solution', label: 'Lösungen (eine Zeile je Tabellenzeile, Zellen mit | trennen)', kind: 'area' },
       ...TASK_FIELDS,
     ],
   },
@@ -181,12 +187,14 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       prompt: 'Verbinde, was zusammengehört.',
       left: 'Begriff A\nBegriff B\nBegriff C',
       right: 'Erklärung 2\nErklärung 3\nErklärung 1',
+      solution: '',
       ...TASK_DEFAULTS,
     },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
       { key: 'left', label: 'Linke Spalte', kind: 'area' },
       { key: 'right', label: 'Rechte Spalte', kind: 'area' },
+      { key: 'solution', label: 'Lösung: Nummer der linken Zeile für jede rechte (z. B. 2, 3, 1)', kind: 'text' },
       ...TASK_FIELDS,
     ],
   },
@@ -211,6 +219,68 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
         ],
       },
       ...TASK_FIELDS,
+    ],
+  },
+  plan: {
+    label: 'Stundenverlauf',
+    group: 3,
+    span: 12,
+    defaults: {
+      rows: [
+        '0–5 | Abrufphase | 3 Fragen aus dem Gedächtnis ins Lernjournal, dann Selbstkorrektur. | Einzel | Lernjournal',
+        '5–10 | Einstieg | Leitfrage: Wie genau erwärmt CO₂ die Luft? | Plenum | Tafel',
+        '10–30 | Erarbeitung | Modellversuch in Partnerarbeit, Werte alle 3 Minuten notieren. | Partner | Versuchsprotokoll',
+        '30–45 | Sicherung | Fließschema ins Lernjournal, Merksatz. | Einzel | Arbeitsblatt',
+      ].join('\n'),
+    },
+    fields: [{ key: 'rows', label: 'Phasen (je Zeile: Zeit | Phase | Ablauf | Sozialform | Material)', kind: 'area' }],
+  },
+  goal: {
+    label: 'Ziel & Bildungsplan',
+    group: 3,
+    span: 12,
+    defaults: {
+      goal: 'Die Klasse erarbeitet den Mechanismus des Treibhauseffekts (Modell + Fließschema).',
+      curriculum: '3.2.2.3 (1) · prozessbezogen: Modelle nutzen und kritisch reflektieren.',
+    },
+    fields: [
+      { key: 'goal', label: 'Ziel der Stunde', kind: 'area' },
+      { key: 'curriculum', label: 'Bildungsplan', kind: 'area' },
+    ],
+  },
+  expect: {
+    label: 'Erwartungshorizont',
+    group: 3,
+    span: 12,
+    defaults: {
+      items: [
+        'Falsch | „Treibhausgase heizen die Luft direkt auf.“ | Sie erzeugen keine eigene Energie, sie halten Wärmestrahlung zurück.',
+        'Vorsicht | „Unser Versuch beweist, dass CO₂ die Erde erwärmt.“ | Der Versuch zeigt nur das Prinzip, nicht dass es speziell CO₂ ist.',
+      ].join('\n'),
+    },
+    fields: [{ key: 'items', label: 'Einträge (je Zeile: Richtig/Falsch/Vorsicht | Schüleraussage | Erklärung)', kind: 'area' }],
+  },
+  recall: {
+    label: 'Abruffragen',
+    group: 3,
+    span: 12,
+    defaults: {
+      title: 'Abrufphase — die drei Fragen',
+      items: 'Welche Einheit hat der CO₂-Wert in unserer Kurve? | ppm\nReicht ein zeitlicher Zusammenhang als Beweis? | Nein',
+      answers: 'immer',
+    },
+    fields: [
+      { key: 'title', label: 'Überschrift', kind: 'text' },
+      { key: 'items', label: 'Fragen (je Zeile: Frage | Antwort)', kind: 'area' },
+      {
+        key: 'answers',
+        label: 'Antworten zeigen',
+        kind: 'seg',
+        options: [
+          { v: 'immer', l: 'Immer' },
+          { v: 'loesung', l: 'Nur in der Lösungsfassung' },
+        ],
+      },
     ],
   },
   selfcheck: {
@@ -238,6 +308,7 @@ export const GROUPS = [
   { label: 'Text & Struktur', bg: 'var(--color-neutral-200)', fg: 'var(--color-neutral-800)' },
   { label: 'Grafik & Abbildung', bg: 'var(--color-accent-2-100)', fg: 'var(--color-accent-2-800)' },
   { label: 'Aufgaben', bg: 'var(--color-accent-100)', fg: 'var(--color-accent-800)' },
+  { label: 'Für die Lehrkraft', bg: 'var(--color-neutral-800)', fg: 'var(--color-neutral-100)' },
 ] as const;
 
 export const SPAN_OPTIONS: SegOption<number>[] = [

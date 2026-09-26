@@ -1,5 +1,9 @@
 import {
   AlignLeft,
+  CalendarClock,
+  ClipboardCheck,
+  MessageCircleQuestion,
+  Target,
   ArrowLeftRight,
   Brush,
   Heading,
@@ -34,6 +38,10 @@ export const BLOCK_ICONS: Record<BlockType, LucideIcon> = {
   match: ArrowLeftRight,
   draw: Brush,
   selfcheck: SmilePlus,
+  plan: CalendarClock,
+  goal: Target,
+  expect: ClipboardCheck,
+  recall: MessageCircleQuestion,
 };
 
 /** Lucide icon in the design system's style: stroke 2.75, round caps and joins. */
