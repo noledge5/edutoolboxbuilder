@@ -1,7 +1,11 @@
 /* Editor chrome: toolbox, top bar, properties panel, dialogs. Organic colours, but the neutral
    UI font. Never Caprasimo here (see docs/design/README.md, "Two visual layers"). */
 
-:root { --font-ui: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+:root {
+  --font-ui: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  /* Panels and bars are white instead of the design's cream (--color-bg), as the user asked. */
+  --color-ui: #ffffff;
+}
 
 html, body, #root { height: 100%; }
 body { background: var(--color-neutral-200); }
@@ -47,7 +51,7 @@ body { background: var(--color-neutral-200); }
   padding: 12px 20px;
   padding-left: max(20px, env(safe-area-inset-left));
   padding-right: max(20px, env(safe-area-inset-right));
-  background: var(--color-bg);
+  background: var(--color-ui);
   box-shadow: var(--shadow-sm);
   position: relative;
   z-index: 7;
@@ -88,7 +92,7 @@ body { background: var(--color-neutral-200); }
   min-height: 0;
   overflow: auto;
   padding: 20px 16px 32px;
-  background: var(--color-bg);
+  background: var(--color-ui);
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -153,13 +157,13 @@ body { background: var(--color-neutral-200); }
 .page-warn { padding: 3px 12px; border-radius: 999px; background: var(--color-accent-200); color: var(--color-accent-900); }
 .page-scale { position: relative; flex: none; }
 .page-scale > .ws-page { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
-.add-page { background: var(--color-bg); }
+.add-page { background: var(--color-ui); }
 
 .panel {
   min-height: 0;
   overflow: auto;
   padding: 20px 20px 32px;
-  background: var(--color-bg);
+  background: var(--color-ui);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -272,7 +276,7 @@ body { background: var(--color-neutral-200); }
   gap: 10px;
   padding: 7px 16px 7px 7px;
   border-radius: 999px;
-  background: var(--color-bg);
+  background: var(--color-ui);
   box-shadow: var(--shadow-lg);
   font-family: var(--font-ui);
   font-size: 14px;
@@ -284,6 +288,7 @@ body { background: var(--color-neutral-200); }
 
 /* — Dialog — */
 .dialog-backdrop { z-index: 20; }
+.dialog { background: var(--color-ui); }
 .json-dialog { width: min(680px, 100%); }
 .json-text { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; line-height: 1.45; border-radius: 16px; }
 .dialog .json-text.input { border-radius: 16px; }
