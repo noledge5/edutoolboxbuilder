@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/organic-9cf626e6-1b23-43d1-a757-f05cd8d6d130/styles.css">
+<script src="_ds/organic-9cf626e6-1b23-43d1-a757-f05cd8d6d130/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>body{margin:0} a{color:var(--color-accent-700)} a:hover{color:var(--color-accent-600)} @media print{@page{size:A4;margin:0} body{background:#fff} [data-noprint]{display:none!important} [data-pages]{gap:0!important;padding:0!important;zoom:1!important} [data-page]{box-shadow:none!important;border-radius:0!important} [data-pagelabel]{display:none!important}}</style>
+</helmet>
+<div style="height:{{ rootH }}; display:grid; grid-template-rows:auto minmax(0,1fr); background:var(--color-neutral-200); color:var(--color-text); font-family:'Helvetica Neue', Helvetica, Arial, sans-serif">
+  <header data-noprint="1" style="display:flex; align-items:center; gap:14px; padding:12px 20px; background:var(--color-bg); box-shadow:var(--shadow-sm); position:relative; z-index:5">
+    <div style="width:38px; height:38px; border-radius:50%; display:grid; place-items:center; background:var(--color-accent); color:var(--color-accent-100)">{{ icons.topic }}</div>
+    <div style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:700; font-size:18px; letter-spacing:-0.01em; margin-right:auto; white-space:nowrap">Arbeitsblatt-Baukasten</div>
+    <div style="display:flex; align-items:center; gap:4px; padding:3px; border-radius:999px; background:var(--color-surface)">
+      <button class="btn btn-ghost btn-icon" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:600; font-size:13.5px; white-space:nowrap; width:32px; height:32px; color:var(--color-text)" onClick="{{ zoomOut }}">{{ icons.minus }}</button>
+      <span style="min-width:48px; text-align:center; font-size:13px; font-weight:700">{{ zoomLabel }}</span>
+      <button class="btn btn-ghost btn-icon" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:600; font-size:13.5px; white-space:nowrap; width:32px; height:32px; color:var(--color-text)" onClick="{{ zoomIn }}">{{ icons.plus }}</button>
+    </div>
+        <button class="btn btn-secondary" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:600; font-size:13.5px; white-space:nowrap; " onClick="{{ openJson }}">{{ icons.braces }}Daten</button>
+    <button class="btn btn-secondary" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:600; font-size:13.5px; white-space:nowrap; background:{{ previewBtnBg }}" onClick="{{ togglePreview }}">{{ icons.eye }}{{ previewLabel }}</button>
+    <button class="btn btn-primary" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:600; font-size:13.5px; white-space:nowrap; white-space:nowrap" onClick="{{ doPrint }}">{{ icons.printer }}Drucken / PDF</button>
+  </header>
+  <div style="min-height:0; display:grid; grid-template-columns:{{ cols }}">
+    <sc-if value="{{ editing }}" hint-placeholder-val="{{ true }}">
+      <aside data-noprint="1" style="min-height:0; overflow:auto; padding:20px 16px 32px; background:var(--color-bg); display:flex; flex-direction:column; gap:22px; border-right:1px solid var(--color-divider)">
+        <div style="display:flex; flex-direction:column; gap:2px; padding:0 6px">
+          <div style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:700; font-size:16px; letter-spacing:-0.01em">Toolbox</div>
+          <div style="font-size:12.5px; color:var(--color-neutral-700)">Auf die Seite ziehen oder anklicken.</div>
+        </div>
+        <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+          <div style="display:flex; flex-direction:column; gap:6px">
+            <div style="padding:0 6px; font-size:10.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-neutral-700)">{{ g.label }}</div>
+            <sc-for list="{{ g.items }}" as="t" hint-placeholder-count="4">
+              <div draggable="true" onDragStart="{{ t.onDragStart }}" onDragEnd="{{ endDrag }}" onClick="{{ t.onAdd }}" style="display:flex; align-items:center; gap:10px; padding:7px 12px 7px 7px; border-radius:999px; cursor:grab; user-select:none; font-size:14px; font-weight:600" style-hover="background:var(--color-accent-100)">
+                <div style="width:32px; height:32px; flex:none; border-radius:50%; display:grid; place-items:center; background:{{ g.bg }}; color:{{ g.fg }}">{{ t.icon }}</div>
+                <span style="flex:1">{{ t.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </aside>
+    </sc-if>
+    <main onClick="{{ clearSel }}" style="min-height:0; overflow:auto; padding:28px 32px 80px">
+      <div data-pages="1" style="display:flex; flex-direction:column; align-items:safe center; gap:28px; min-width:max-content; zoom:{{ zoom }}">
+        <sc-for list="{{ pages }}" as="pg" hint-placeholder-count="1">
+          <div style="display:flex; flex-direction:column; gap:10px">
+            <div data-pagelabel="1" style="display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700; color:var(--color-neutral-700)">
+              <span>Seite {{ pg.num }}</span>
+              <sc-if value="{{ pg.over }}"><span style="padding:3px 12px; border-radius:999px; background:var(--color-accent-200); color:var(--color-accent-900)">Seite ist voll: Inhalt wird unten abgeschnitten</span></sc-if>
+            </div>
+            <div data-page="1" style="width:794px; height:1123px; flex:none; box-sizing:border-box; display:flex; flex-direction:column; gap:16px; padding:30px 36px 24px; background:var(--color-bg); border-radius:8px; box-shadow:var(--shadow-md); overflow:hidden; break-after:page; font-family:var(--font-body); font-size:14px; line-height:1.55">
+              <div onClick="{{ pg.onSelect }}" style="display:flex; align-items:center; gap:16px; padding:16px 20px; border-radius:28px; background:{{ pg.t.band }}; outline:{{ pg.bandOutline }}; outline-offset:4px; cursor:pointer">
+                <div style="width:52px; height:52px; flex:none; border-radius:50%; display:grid; place-items:center; background:{{ pg.t.circle }}; color:{{ pg.t.circleFg }}">{{ icons.topicLg }}</div>
+                <div style="flex:1; min-width:0">
+                  <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{{ pg.t.kicker }}">{{ pg.kicker }}</div>
+                  <h1 style="font-size:28px; margin:2px 0 0">{{ pg.title }}</h1>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px">
+                  <div style="padding:5px 14px; border-radius:999px; background:{{ pg.t.pill }}; color:{{ pg.t.pillFg }}; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap">{{ pg.t.label }}</div>
+                  <div style="display:flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; background:var(--color-bg); font-size:12px; font-weight:600; color:{{ pg.t.kicker }}">{{ pg.formIcon }}{{ pg.form }}</div>
+                </div>
+              </div>
+              <sc-if value="{{ pg.nameField }}">
+                <div style="display:flex; align-items:flex-end; gap:12px; padding:0 6px"><span style="font-weight:700">Name:</span><div style="flex:1; height:22px; border-bottom:2px solid var(--color-neutral-400)"></div><span style="font-weight:700">Datum:</span><div style="width:130px; height:22px; border-bottom:2px solid var(--color-neutral-400)"></div></div>
+              </sc-if>
+              <div ref="{{ pg.bodyRef }}" onDragOver="{{ pg.onBodyDragOver }}" onDrop="{{ pg.onBodyDrop }}" onClick="{{ pg.onSelect }}" style="flex:1; min-height:0; position:relative; display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); column-gap:16px; row-gap:18px; align-content:start; overflow:hidden; padding-top:6px">
+                <sc-if value="{{ showGrid }}">
+                  <div style="position:absolute; inset:0; display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); column-gap:16px; pointer-events:none">
+                    <sc-for list="{{ gridCols }}" as="c"><div style="background:var(--color-accent-100); opacity:0.75; border-radius:6px"></div></sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ pg.empty }}">
+                  <div style="grid-column:1 / -1; position:relative; display:grid; place-items:center; height:220px; border-radius:28px; border:2px dashed var(--color-neutral-400); color:var(--color-neutral-700); font-weight:600">Element aus der Toolbox hierher ziehen</div>
+                </sc-if>
+                <sc-for list="{{ pg.blocks }}" as="b" hint-placeholder-count="4">
+                  <div draggable="{{ b.draggable }}" onDragStart="{{ b.onDragStart }}" onDragOver="{{ b.onDragOver }}" onDrop="{{ b.onDrop }}" onDragEnd="{{ endDrag }}" onClick="{{ b.onClick }}" onMouseEnter="{{ b.onEnter }}" onMouseLeave="{{ b.onLeave }}" style="grid-column:span {{ b.span }}; position:relative; min-width:0; border-radius:14px; outline:{{ b.outline }}; outline-offset:5px; cursor:{{ b.cursor }}">
+                    <sc-if value="{{ b.barLeft }}"><div style="position:absolute; top:0; bottom:0; left:-11px; width:4px; border-radius:4px; background:var(--color-accent)"></div></sc-if>
+                    <sc-if value="{{ b.barRight }}"><div style="position:absolute; top:0; bottom:0; right:-11px; width:4px; border-radius:4px; background:var(--color-accent)"></div></sc-if>
+                    <sc-if value="{{ b.barTop }}"><div style="position:absolute; left:0; right:0; top:-11px; height:4px; border-radius:4px; background:var(--color-accent)"></div></sc-if>
+                    <sc-if value="{{ b.barBottom }}"><div style="position:absolute; left:0; right:0; bottom:-11px; height:4px; border-radius:4px; background:var(--color-accent)"></div></sc-if>
+                    <sc-if value="{{ b.is.heading }}"><h3 style="margin:0; font-size:21px">{{ b.p.text }}</h3></sc-if>
+                    <sc-if value="{{ b.is.text }}"><p style="margin:0; white-space:pre-wrap; text-wrap:pretty">{{ b.p.text }}</p></sc-if>
+                    <sc-if value="{{ b.is.hint }}">
+                      <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 18px; border-radius:22px; background:{{ b.v.bg }}">
+                        <div style="width:30px; height:30px; flex:none; border-radius:50%; display:grid; place-items:center; background:{{ b.v.circle }}; color:{{ b.v.circleFg }}">{{ icons.info }}</div>
+                        <div style="font-size:13.5px; white-space:pre-wrap"><div style="font-weight:700; color:{{ b.v.title }}">{{ b.p.title }}</div>{{ b.p.text }}</div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ b.is.merksatz }}">
+                      <div style="display:flex; gap:16px; align-items:center; padding:18px 22px; border-radius:28px; background:{{ b.v.solid }}; color:{{ b.v.solidFg }}">
+                        <div style="width:40px; height:40px; flex:none; border-radius:50%; display:grid; place-items:center; background:{{ b.v.solidFg }}; color:{{ b.v.solid }}">{{ icons.bulb }}</div>
+                        <div><div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase">Merksatz</div><div style="font-weight:700; font-size:18px; line-height:1.7"><sc-for list="{{ b.segs }}" as="s"><sc-if value="{{ s.blank }}"><span style="display:inline-block; width:150px; margin:0 4px; border-bottom:2px solid currentColor"></span></sc-if><sc-if value="{{ s.text }}"><span>{{ s.t }}</span></sc-if></sc-for></div></div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ b.is.wordbank }}">
+                      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px">
+                        <span style="margin-right:4px; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-neutral-700)">Wortspeicher</span>
+                        <sc-for list="{{ b.words }}" as="w"><span style="padding:5px 14px; border-radius:999px; background:var(--color-surface); font-weight:600">{{ w.t }}</span></sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ b.is.image }}">
+                      <div style="display:flex; flex-direction:column; gap:6px">
+                        <div style="height:{{ b.h }}px; border-radius:18px; overflow:hidden; background:var(--color-surface)"><image-slot id="{{ b.slotId }}" shape="rounded" radius="18" placeholder="Abbildung hierher ziehen"></image-slot></div>
+                        <div style="font-size:11.5px; color:var(--color-neutral-700)">{{ b.p.caption }}</div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ b.is.flow }}">
+                      <div style="display:flex; align-items:stretch; gap:6px; padding:18px; border-radius:24px; border:2px solid var(--color-neutral-300)">
+                        <sc-for list="{{ b.steps }}" as="s">
+                          <div style="flex:1; min-width:0; display:grid; align-content:center; padding:12px 8px; border-radius:18px; background:{{ s.bg }}; text-align:center"><div style="font-weight:700; font-size:13.5px">{{ s.t }}</div><sc-if value="{{ s.hasS }}"><div style="font-size:12px; color:{{ s.fg }}">{{ s.s }}</div></sc-if></div>
+                          <sc-if value="{{ s.arrow }}"><div style="display:grid; place-items:center; font-weight:700; color:var(--color-neutral-600)">→</div></sc-if>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ b.isTask }}">
+                      <div style="display:flex; gap:12px">
+                        <div style="width:30px; height:30px; flex:none; border-radius:50%; display:grid; place-items:center; background:{{ b.t.num }}; color:{{ b.t.numFg }}; font-family:var(--font-heading); font-size:15px">{{ b.num }}</div>
+                        <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:10px">
+                          <div style="padding-top:3px; font-weight:600; white-space:pre-wrap; text-wrap:pretty">{{ b.p.prompt }}</div>
+                          <sc-if value="{{ b.is.open }}"><div style="display:flex; flex-direction:column"><sc-for list="{{ b.lineList }}" as="l"><div style="height:28px; border-bottom:1.5px solid var(--color-neutral-400)"></div></sc-for></div></sc-if>
+                          <sc-if value="{{ b.is.mc }}"><div style="display:flex; flex-wrap:wrap; gap:10px"><sc-for list="{{ b.options }}" as="o"><div style="display:flex; align-items:center; gap:9px; padding:6px 16px 6px 9px; border-radius:999px; background:var(--color-surface); font-weight:600"><span style="width:17px; height:17px; flex:none; border-radius:50%; border:2px solid {{ b.t.num }}; background:var(--color-bg)"></span>{{ o.t }}</div></sc-for></div></sc-if>
+                          <sc-if value="{{ b.is.gap }}"><div style="line-height:2.2; white-space:pre-wrap"><sc-for list="{{ b.segs }}" as="s"><sc-if value="{{ s.blank }}"><span style="display:inline-block; width:90px; margin:0 3px; border-bottom:2px solid var(--color-neutral-500)"></span></sc-if><sc-if value="{{ s.text }}"><span>{{ s.t }}</span></sc-if></sc-for></div></sc-if>
+                          <sc-if value="{{ b.is.table }}">
+                            <div style="border-radius:18px; overflow:hidden; border:2px solid var(--color-neutral-300)">
+                              <div style="display:grid; grid-template-columns:{{ b.colTemplate }}; background:var(--color-surface); font-size:12px; font-weight:700"><sc-for list="{{ b.cols }}" as="c"><div style="padding:8px 12px">{{ c.t }}</div></sc-for></div>
+                              <sc-for list="{{ b.rows }}" as="r"><div style="display:grid; grid-template-columns:{{ b.colTemplate }}; min-height:34px; border-top:1.5px solid var(--color-neutral-300)"><div style="padding:6px 12px; font-size:13px; font-weight:600">{{ r.t }}</div><sc-for list="{{ r.cells }}" as="x"><div style="border-left:1.5px solid var(--color-neutral-300)"></div></sc-for></div></sc-for>
+                            </div>
+                          </sc-if>
+                          <sc-if value="{{ b.is.match }}">
+                            <div style="display:flex; flex-direction:column; gap:8px">
+                              <sc-for list="{{ b.pairs }}" as="m">
+                                <div style="display:grid; grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr); align-items:center">
+                                  <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 9px 6px 14px; border-radius:999px; background:var(--color-surface); font-weight:600"><span>{{ m.l }}</span><span style="width:12px; height:12px; flex:none; border-radius:50%; background:{{ b.t.num }}"></span></div>
+                                  <div></div>
+                                  <div style="display:flex; align-items:center; gap:8px; padding:6px 14px 6px 9px; border-radius:999px; background:var(--color-surface); font-weight:600"><span style="width:12px; height:12px; flex:none; border-radius:50%; background:{{ b.t.num }}"></span><span>{{ m.r }}</span></div>
+                                </div>
+                              </sc-for>
+                            </div>
+                          </sc-if>
+                          <sc-if value="{{ b.is.draw }}"><div style="height:{{ b.h }}px; border-radius:20px; border:2px dashed var(--color-neutral-400)"></div></sc-if>
+                        </div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ b.selected }}">
+                      <div data-noprint="1" style="position:absolute; top:-46px; right:-6px; z-index:3; display:flex; gap:2px; padding:3px; border-radius:999px; background:var(--color-text); color:var(--color-bg); box-shadow:var(--shadow-md)">
+                        <button title="Nach oben" onClick="{{ b.onUp }}" style="width:30px; height:30px; display:grid; place-items:center; border:0; border-radius:50%; background:transparent; color:inherit; cursor:pointer" style-hover="background:var(--color-neutral-800)">{{ icons.up }}</button>
+                        <button title="Nach unten" onClick="{{ b.onDown }}" style="width:30px; height:30px; display:grid; place-items:center; border:0; border-radius:50%; background:transparent; color:inherit; cursor:pointer" style-hover="background:var(--color-neutral-800)">{{ icons.down }}</button>
+                        <button title="Duplizieren" onClick="{{ b.onDup }}" style="width:30px; height:30px; display:grid; place-items:center; border:0; border-radius:50%; background:transparent; color:inherit; cursor:pointer" style-hover="background:var(--color-neutral-800)">{{ icons.copy }}</button>
+                        <button title="Löschen" onClick="{{ b.onDel }}" style="width:30px; height:30px; display:grid; place-items:center; border:0; border-radius:50%; background:transparent; color:var(--color-accent-300); cursor:pointer" style-hover="background:var(--color-neutral-800)">{{ icons.trash }}</button>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ pg.dropEnd }}"><div style="grid-column:1 / -1; position:relative; height:4px; border-radius:4px; background:var(--color-accent)"></div></sc-if>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px; padding:8px 8px 8px 18px; border-radius:999px; background:var(--color-neutral-200); font-size:11px; color:var(--color-neutral-800)">
+                <span style="flex:1">{{ doc.footer }}</span><span style="font-weight:700; letter-spacing:0.06em">{{ doc.code }}</span><span style="padding:3px 12px; border-radius:999px; background:var(--color-bg); font-weight:700">Seite {{ pg.num }}</span>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ editing }}" hint-placeholder-val="{{ true }}">
+          <button data-noprint="1" class="btn btn-secondary" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:600; font-size:13.5px; white-space:nowrap; background:var(--color-bg)" onClick="{{ addPage }}">{{ icons.plus }}Seite hinzufügen</button>
+        </sc-if>
+      </div>
+    </main>
+    <sc-if value="{{ editing }}" hint-placeholder-val="{{ true }}">
+      <aside data-noprint="1" style="min-height:0; overflow:auto; padding:20px 20px 32px; background:var(--color-bg); display:flex; flex-direction:column; gap:18px; border-left:1px solid var(--color-divider)">
+        <sc-if value="{{ insp.none }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; flex-direction:column; gap:8px">
+            <div style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:700; font-size:16px; letter-spacing:-0.01em">Eigenschaften</div>
+            <p style="margin:0; font-size:13.5px; color:var(--color-neutral-800); text-wrap:pretty">Wähle ein Element auf der Seite aus, um Inhalt und Breite zu ändern. Ein Klick auf den Kopf der Seite öffnet Titel, Blatt-Typ und Fußzeile.</p>
+            <p style="margin:0; font-size:13.5px; color:var(--color-neutral-800)">Entf löscht das ausgewählte Element, Esc hebt die Auswahl auf.</p>
+          </div>
+        </sc-if>
+        <sc-if value="{{ insp.some }}">
+          <div style="display:flex; align-items:center; gap:10px">
+            <div style="width:36px; height:36px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent-100); color:var(--color-accent-800)">{{ insp.icon }}</div>
+            <div style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:700; font-size:16px; letter-spacing:-0.01em">{{ insp.title }}</div>
+          </div>
+          <sc-for list="{{ insp.sections }}" as="sec">
+            <div style="display:flex; flex-direction:column; gap:14px">
+              <sc-if value="{{ sec.hasLabel }}"><div style="font-size:10.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-neutral-700)">{{ sec.label }}</div></sc-if>
+              <sc-for list="{{ sec.fields }}" as="f">
+                <div class="field">
+                  <label>{{ f.label }}</label>
+                  <sc-if value="{{ f.isText }}"><input class="input" value="{{ f.value }}" onChange="{{ f.onChange }}"></sc-if>
+                  <sc-if value="{{ f.isNumber }}"><input class="input" type="number" value="{{ f.value }}" onChange="{{ f.onChange }}"></sc-if>
+                  <sc-if value="{{ f.isArea }}"><textarea class="input" rows="4" style="border-radius:16px; line-height:1.45" value="{{ f.value }}" onChange="{{ f.onChange }}"></textarea></sc-if>
+                  <sc-if value="{{ f.isSeg }}">
+                    <div style="display:flex; flex-wrap:wrap; gap:6px">
+                      <sc-for list="{{ f.opts }}" as="o"><button onClick="{{ o.onPick }}" style="padding:6px 13px; border-radius:999px; border:1px solid {{ o.border }}; background:{{ o.bg }}; color:{{ o.fg }}; font:inherit; font-size:13px; font-weight:600; cursor:pointer">{{ o.l }}</button></sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px">
+            <sc-if value="{{ insp.isBlock }}"><button class="btn btn-secondary" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:600; font-size:13.5px; white-space:nowrap; " onClick="{{ insp.onDup }}">{{ icons.copy }}Duplizieren</button></sc-if>
+            <sc-if value="{{ insp.canDelete }}"><button class="btn btn-secondary" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:600; font-size:13.5px; white-space:nowrap; color:var(--color-accent-700)" onClick="{{ insp.onDel }}">{{ icons.trash }}{{ insp.delLabel }}</button></sc-if>
+          </div>
+        </sc-if>
+      </aside>
+    </sc-if>
+  </div>
+  <sc-if value="{{ jsonOpen }}">
+    <div class="dialog-backdrop" data-noprint="1" onClick="{{ closeJson }}" style="z-index:20">
+      <div class="dialog" onClick="{{ stop }}" style="width:min(680px, 100%)">
+        <div class="dialog-title" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:700">Arbeitsblatt als Daten</div>
+        <div class="dialog-body">Kopiere die Daten, um das Blatt zu speichern, oder füge neue Daten ein, z.&nbsp;B. von Claude aus einem PDF erzeugt.</div>
+        <textarea class="input" rows="16" style="border-radius:16px; font-family:ui-monospace, monospace; font-size:12px; line-height:1.45" value="{{ jsonText }}" onChange="{{ onJsonChange }}"></textarea>
+        <sc-if value="{{ jsonErr }}"><div style="font-size:13px; font-weight:600; color:var(--color-accent-700)">{{ jsonErr }}</div></sc-if>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:600; font-size:13.5px; white-space:nowrap; " onClick="{{ closeJson }}">Abbrechen</button>
+          <button class="btn btn-primary" style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif; font-weight:600; font-size:13.5px; white-space:nowrap; " onClick="{{ applyJson }}">Übernehmen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  static P = {
+    heading: ['M6 12h12', 'M6 20V4', 'M18 20V4'],
+    text: ['M15 18H3', 'M17 6H3', 'M21 12H3'],
+    hint: ['M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z', 'M12 16v-4', 'M12 8h.01'],
+    merksatz: ['M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5', 'M9 18h6', 'M10 22h4'],
+    wordbank: ['M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z', 'M7.5 8.5h.01'],
+    image: ['M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z', 'M9 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z', 'm21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21'],
+    flow: ['M5 3h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z', 'M7 11v4a2 2 0 0 0 2 2h4', 'M15 13h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2z'],
+    open: ['M12 20h9', 'M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z'],
+    mc: ['m3 17 2 2 4-4', 'm3 7 2 2 4-4', 'M13 6h8', 'M13 12h8', 'M13 18h8'],
+    gap: ['M5 4h1a3 3 0 0 1 3 3 3 3 0 0 1 3-3h1', 'M13 20h-1a3 3 0 0 1-3-3 3 3 0 0 1-3 3H5', 'M5 16H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1', 'M13 8h7a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-7', 'M9 7v10'],
+    table: ['M12 3v18', 'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z', 'M3 9h18', 'M3 15h18'],
+    match: ['m16 3 4 4-4 4', 'M20 7H4', 'm8 21-4-4 4-4', 'M4 17h16'],
+    draw: ['m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08', 'M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z'],
+    topic: ['M12 9a4 4 0 0 0-2 7.5', 'M12 3v2', 'm6.6 18.4-1.4 1.4', 'M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z', 'M4 13H2', 'M6.34 7.34 4.93 5.93'],
+    trash: ['M3 6h18', 'M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6', 'M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2'],
+    copy: ['M10 8h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z', 'M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'],
+    up: ['m18 15-6-6-6 6'], down: ['m6 9 6 6 6-6'], plus: ['M5 12h14', 'M12 5v14'], minus: ['M5 12h14'],
+    printer: ['M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2', 'M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6', 'M6 14h12v8H6z'],
+    braces: ['M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1', 'M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1'],
+    grid: ['M3 3h7v7H3z', 'M14 3h7v7h-7z', 'M14 14h7v7h-7z', 'M3 14h7v7H3z'],
+    eye: ['M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0', 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z'],
+    user: ['M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2', 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'],
+    users: ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M22 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75'],
+    page: ['M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z', 'M14 2v4a2 2 0 0 0 2 2h4']
+  };
+  static TYPES = {
+    heading: { label: 'Überschrift', group: 0, span: 12, def: { text: 'Neue Überschrift' }, fields: [['text', 'Text', 'text']] },
+    text: { label: 'Textblock', group: 0, span: 12, def: { text: 'Hier steht ein kurzer Informationstext für die Klasse.' }, fields: [['text', 'Text', 'area']] },
+    hint: { label: 'Hinweis-Box', group: 0, span: 12, def: { title: 'Wichtiger Hinweis', text: 'Kurzer Hinweis oder Tipp.', variant: 'accent-2' }, fields: [['title', 'Titel', 'text'], ['text', 'Text', 'area'], ['variant', 'Farbe', 'variant']] },
+    merksatz: { label: 'Merksatz', group: 0, span: 12, def: { text: 'Beobachtung + ___ = eine Erklärung, die überzeugt.', variant: 'accent-2' }, fields: [['text', 'Text (___ = Lücke)', 'area'], ['variant', 'Farbe', 'variant']] },
+    wordbank: { label: 'Wortspeicher', group: 0, span: 12, def: { words: 'Begriff 1\nBegriff 2\nBegriff 3' }, fields: [['words', 'Wörter (eins je Zeile)', 'area']] },
+    image: { label: 'Abbildung', group: 1, span: 6, def: { caption: 'Abb. 1: Bildunterschrift', height: 200 }, fields: [['caption', 'Bildunterschrift', 'text'], ['height', 'Höhe in px', 'number']] },
+    flow: { label: 'Fließschema', group: 1, span: 12, def: { steps: 'Schritt 1 | Zusatz\nSchritt 2\nSchritt 3' }, fields: [['steps', 'Schritte (Titel | Zusatz, eine Zeile je Schritt)', 'area']] },
+    open: { label: 'Offene Frage', group: 2, task: true, span: 12, def: { prompt: 'Beschreibe, was du beobachtest.', lines: 3 }, fields: [['prompt', 'Aufgabe', 'area'], ['lines', 'Anzahl Schreiblinien', 'number']] },
+    mc: { label: 'Ankreuzen', group: 2, task: true, span: 12, def: { prompt: 'Kreuze die richtige Antwort an.', options: 'Antwort A\nAntwort B\nAntwort C' }, fields: [['prompt', 'Aufgabe', 'area'], ['options', 'Antworten (eine je Zeile)', 'area']] },
+    gap: { label: 'Lückentext', group: 2, task: true, span: 12, def: { prompt: 'Ergänze die Lücken.', text: 'Der Treibhauseffekt ist ___ und wird durch ___ verstärkt.' }, fields: [['prompt', 'Aufgabe', 'area'], ['text', 'Text (___ = Lücke)', 'area']] },
+    table: { label: 'Tabelle', group: 2, task: true, span: 12, def: { prompt: 'Trage deine Werte ein.', cols: 'Zeit\nWert A\nWert B', rows: '0 min\n3 min\n6 min' }, fields: [['prompt', 'Aufgabe', 'area'], ['cols', 'Spalten (eine je Zeile)', 'area'], ['rows', 'Zeilen (eine je Zeile)', 'area']] },
+    match: { label: 'Zuordnen', group: 2, task: true, span: 12, def: { prompt: 'Verbinde, was zusammengehört.', left: 'Begriff A\nBegriff B\nBegriff C', right: 'Erklärung 2\nErklärung 3\nErklärung 1' }, fields: [['prompt', 'Aufgabe', 'area'], ['left', 'Linke Spalte', 'area'], ['right', 'Rechte Spalte', 'area']] },
+    draw: { label: 'Zeichenfeld', group: 2, task: true, span: 12, def: { prompt: 'Zeichne eine Skizze.', height: 160 }, fields: [['prompt', 'Aufgabe', 'area'], ['height', 'Höhe in px', 'number']] }
+  };
+  static GROUPS = [
+    { label: 'Text & Struktur', bg: 'var(--color-neutral-200)', fg: 'var(--color-neutral-800)' },
+    { label: 'Grafik & Abbildung', bg: 'var(--color-accent-2-100)', fg: 'var(--color-accent-2-800)' },
+    { label: 'Aufgaben', bg: 'var(--color-accent-100)', fg: 'var(--color-accent-800)' }
+  ];
+  static THEMES = {
+    uebung: { label: 'Übung', band: 'var(--color-surface)', circle: 'var(--color-accent-700)', circleFg: 'var(--color-accent-100)', pill: 'var(--color-accent-800)', pillFg: 'var(--color-accent-100)', kicker: 'var(--color-accent-800)', num: 'var(--color-accent-700)', numFg: 'var(--color-accent-100)' },
+    versuch: { label: 'Versuch', band: 'var(--color-accent-100)', circle: 'var(--color-accent)', circleFg: 'var(--color-accent-100)', pill: 'var(--color-accent-700)', pillFg: 'var(--color-accent-100)', kicker: 'var(--color-accent-700)', num: 'var(--color-accent)', numFg: 'var(--color-accent-100)' },
+    sicherung: { label: 'Sicherung', band: 'var(--color-accent-2-100)', circle: 'var(--color-accent-2-600)', circleFg: 'var(--color-accent-2-100)', pill: 'var(--color-accent-2-700)', pillFg: 'var(--color-accent-2-100)', kicker: 'var(--color-accent-2-800)', num: 'var(--color-accent-2-600)', numFg: 'var(--color-accent-2-100)' },
+    lehrkraft: { label: 'Für die Lehrkraft', band: 'var(--color-neutral-200)', circle: 'var(--color-neutral-800)', circleFg: 'var(--color-neutral-100)', pill: 'var(--color-neutral-800)', pillFg: 'var(--color-neutral-100)', kicker: 'var(--color-neutral-700)', num: 'var(--color-neutral-800)', numFg: 'var(--color-neutral-100)' }
+  };
+  static VARS = {
+    'accent-2': { bg: 'var(--color-accent-2-100)', circle: 'var(--color-accent-2-600)', circleFg: 'var(--color-accent-2-100)', title: 'var(--color-accent-2-800)', solid: 'var(--color-accent-2-600)', solidFg: 'var(--color-accent-2-100)' },
+    accent: { bg: 'var(--color-accent-100)', circle: 'var(--color-accent)', circleFg: 'var(--color-accent-100)', title: 'var(--color-accent-800)', solid: 'var(--color-accent-700)', solidFg: 'var(--color-accent-100)' },
+    neutral: { bg: 'var(--color-neutral-200)', circle: 'var(--color-neutral-800)', circleFg: 'var(--color-neutral-100)', title: 'var(--color-neutral-800)', solid: 'var(--color-neutral-800)', solidFg: 'var(--color-neutral-100)' }
+  };
+  static FLOWC = [['var(--color-accent-200)', 'var(--color-accent-800)'], ['var(--color-accent-2-200)', 'var(--color-accent-2-800)'], ['var(--color-accent-300)', 'var(--color-accent-800)'], ['var(--color-neutral-300)', 'var(--color-neutral-800)']];
+  static KEY = 'arbeitsblatt-baukasten-v2';
+
+  static uid() { return 'b' + Math.random().toString(36).slice(2, 9); }
+  static blk(type, props, span) { const T = Component.TYPES[type]; return { id: Component.uid(), type, span: span || T.span, props: { ...T.def, ...props } }; }
+  static seed() {
+    const b = Component.blk;
+    return {
+      footer: 'Kuhl · Grafen-von-Zimmern-Realschule · Geographie', code: 'K9 · M1 · S2',
+      pages: [
+        { title: 'Versuchsprotokoll: Wärme einfangen', kicker: 'Klasse 9 · Modellversuch zum Treibhauseffekt', type: 'versuch', form: 'zu zweit', nameField: true, blocks: [
+          b('heading', { text: 'Aufbau' }),
+          b('text', { text: 'Zwei gleiche Gläser, je ein Thermometer. Glas A bleibt offen. Glas B wird mit Klarsichtfolie verschlossen. Beide stehen gleich weit von der Lampe entfernt.' }, 7),
+          b('image', { caption: 'Abb. 1: Versuchsaufbau', height: 90 }, 5),
+          b('mc', { prompt: 'Unsere Vorhersage: Welches Glas wird nach 15 Minuten wärmer sein?', options: 'Glas A\nGlas B\ngleich' }),
+          b('table', { prompt: 'Messwerte', cols: 'Zeit\nGlas A (offen)\nGlas B (Folie)\nUnterschied', rows: '0 min (Start)\n3 min\n6 min\n9 min\n12 min\n15 min' }),
+          b('open', { prompt: 'Welches Glas war am Ende wärmer, und um wie viel?', lines: 1 }),
+          b('open', { prompt: 'Warum, glaubt ihr, war das so?', lines: 2 }),
+          b('hint', { title: 'Wichtiger Hinweis', text: 'Dieser Versuch zeigt nur das allgemeine Prinzip — eine Barriere hält Wärmestrahlung zurück. Er beweist nicht, dass genau CO₂ das tut.' })
+        ] },
+        { title: 'Fließschema: Der Treibhauseffekt', kicker: 'Klasse 9 · Sicherung fürs Lernjournal', type: 'sicherung', form: 'allein', nameField: true, blocks: [
+          b('flow', { steps: 'Sonnenstrahlung | (kurzwellig)\nErdoberfläche | erwärmt sich\nWärmestrahlung | (langwellig)\nTreibhausgase | CO₂, Methan, Wasserdampf' }),
+          b('draw', { prompt: 'Von den Treibhausgasen aus geht es in zwei Richtungen weiter. Zeichnet beide Pfeile ein: ein Teil entweicht … ein Teil wird zurückgestrahlt zur …', height: 130 }),
+          b('wordbank', { words: 'Weltall\nErdoberfläche\nzusätzliche Erwärmung' }),
+          b('heading', { text: 'Zwei Begriffe, ein Unterschied' }),
+          b('gap', { prompt: 'natürlicher Treibhauseffekt', text: 'notwendig — ohne ihn läge die Erde bei etwa ___ °C.' }, 6),
+          b('gap', { prompt: 'zusätzlicher Treibhauseffekt', text: 'von Menschen verursacht — seit etwa ___ messbar.' }, 6),
+          b('merksatz', { text: 'Beobachtung + ___ = eine Erklärung, die überzeugt.' })
+        ] }
+      ]
+    };
+  }
+  static load() { try { const s = localStorage.getItem(Component.KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+
+  state = { doc: Component.load() || Component.seed(), sel: { kind: 'page', p: 0 }, drop: null, hover: null, zoom: 0.8, grid: false, preview: false, over: [], jsonOpen: false, jsonText: '', jsonErr: '' };
+  bodies = {};
+  drag = null;
+
+  componentDidMount() {
+    this.onKey = e => {
+      const tag = (document.activeElement || {}).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || this.state.jsonOpen) return;
+      const s = this.state.sel;
+      if ((e.key === 'Delete' || e.key === 'Backspace') && s && s.kind === 'block') { e.preventDefault(); this.delBlock(s.p, s.i); }
+      if (e.key === 'Escape') this.setState({ sel: null });
+    };
+    window.addEventListener('keydown', this.onKey);
+    this.checkOver();
+    if (document.fonts) document.fonts.ready.then(() => this.checkOver());
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onKey); }
+  componentDidUpdate(pp, ps) {
+    if (ps.doc !== this.state.doc) { try { localStorage.setItem(Component.KEY, JSON.stringify(this.state.doc)); } catch (e) {} }
+    this.checkOver();
+  }
+  checkOver() {
+    const over = this.state.doc.pages.map((_, p) => { const el = this.bodies[p]; return !!el && el.scrollHeight > el.clientHeight + 2; });
+    if (over.join() !== this.state.over.join()) this.setState({ over });
+  }
+
+  clone() { return JSON.parse(JSON.stringify(this.state.doc)); }
+  setDoc(fn, extra) { const doc = this.clone(); fn(doc); this.setState({ doc, ...(extra || {}) }); }
+  updBlock(p, i, patch) { this.setDoc(d => { Object.assign(d.pages[p].blocks[i].props, patch); }); }
+  delBlock(p, i) { this.setDoc(d => { d.pages[p].blocks.splice(i, 1); }, { sel: { kind: 'page', p } }); }
+  dupBlock(p, i) { this.setDoc(d => { const c = JSON.parse(JSON.stringify(d.pages[p].blocks[i])); c.id = Component.uid(); d.pages[p].blocks.splice(i + 1, 0, c); }, { sel: { kind: 'block', p, i: i + 1 } }); }
+  moveBlock(p, i, dir) {
+    const n = this.state.doc.pages[p].blocks.length, j = i + dir;
+    if (j < 0 || j >= n) return;
+    this.setDoc(d => { const a = d.pages[p].blocks; [a[i], a[j]] = [a[j], a[i]]; }, { sel: { kind: 'block', p, i: j } });
+  }
+  addBlock(type) {
+    const s = this.state.sel, p = s ? s.p : 0;
+    let at = this.state.doc.pages[p].blocks.length;
+    if (s && s.kind === 'block') at = s.i + 1;
+    this.setDoc(d => { d.pages[p].blocks.splice(at, 0, Component.blk(type)); }, { sel: { kind: 'block', p, i: at } });
+  }
+  setDrop(d) { const o = this.state.drop; if (o && o.p === d.p && o.i === d.i && o.pos === d.pos) return; this.setState({ drop: d }); }
+  endDrag = () => { this.drag = null; if (this.state.drop) this.setState({ drop: null }); };
+  doDrop() {
+    const d = this.state.drop, g = this.drag; this.drag = null;
+    if (!d || !g) { this.setState({ drop: null }); return; }
+    const doc = this.clone(); let ti = d.pos === 'after' ? d.i + 1 : d.i, block;
+    if (g.kind === 'new') block = Component.blk(g.type);
+    else { block = doc.pages[g.p].blocks.splice(g.i, 1)[0]; if (g.p === d.p && g.i < ti) ti--; }
+    doc.pages[d.p].blocks.splice(ti, 0, block);
+    this.setState({ doc, drop: null, sel: { kind: 'block', p: d.p, i: ti } });
+  }
+
+  ic(n, s) { return React.createElement('svg', { width: s || 16, height: s || 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.75, strokeLinecap: 'round', strokeLinejoin: 'round', style: { display: 'block', flex: 'none' } }, Component.P[n].map((d, k) => React.createElement('path', { key: k, d }))); }
+  field(key, label, kind, value, set, opts) {
+    if (kind === 'variant') { kind = 'seg'; opts = [{ v: 'accent-2', l: 'Salbei' }, { v: 'accent', l: 'Terrakotta' }, { v: 'neutral', l: 'Neutral' }]; }
+    return {
+      key, label, value: value == null ? '' : value, isText: kind === 'text', isArea: kind === 'area', isNumber: kind === 'number', isSeg: kind === 'seg',
+      onChange: e => set(kind === 'number' ? Math.max(0, parseInt(e.target.value || '0', 10)) : e.target.value),
+      opts: (opts || []).map(o => { const on = o.v === value; return { l: o.l, onPick: () => set(o.v), bg: on ? 'var(--color-accent)' : 'transparent', fg: on ? 'var(--color-bg)' : 'var(--color-text)', border: on ? 'var(--color-accent)' : 'var(--color-divider)' }; })
+    };
+  }
+
+  blockVals(b, p, i, theme, counter) {
+    const T = Component.TYPES[b.type] || Component.TYPES.text, pr = b.props, s = this.state, preview = s.preview;
+    const sel = !!(s.sel && s.sel.kind === 'block' && s.sel.p === p && s.sel.i === i);
+    const lines = x => String(x || '').split('\n').map(y => y.trim()).filter(Boolean);
+    const segs = x => String(x || '').split(/(_{3,})/).filter(y => y !== '').map(y => { const bl = /^_{3,}$/.test(y); return { t: y, blank: bl, text: !bl }; });
+    const hz = b.span < 12, d = s.drop, here = !!(d && d.p === p && d.i === i);
+    const cols = lines(pr.cols), L = lines(pr.left), R = lines(pr.right);
+    const stop = f => e => { e.stopPropagation(); f(); };
+    return {
+      id: b.id, span: b.span, is: { [b.type]: true }, p: pr, isTask: !!T.task, num: T.task ? ++counter.n : null, t: theme,
+      v: Component.VARS[pr.variant] || Component.VARS['accent-2'],
+      selected: sel && !preview, draggable: preview ? 'false' : 'true', cursor: preview ? 'default' : 'grab',
+      outline: preview ? '2px solid transparent' : sel ? '2px solid var(--color-accent)' : s.hover === b.id ? '2px dashed var(--color-neutral-400)' : '2px solid transparent',
+      barLeft: here && d.pos === 'before' && hz, barRight: here && d.pos === 'after' && hz, barTop: here && d.pos === 'before' && !hz, barBottom: here && d.pos === 'after' && !hz,
+      lineList: Array.from({ length: Math.min(20, +pr.lines || 0) }, (_, k) => k),
+      options: lines(pr.options).map(t => ({ t })), words: lines(pr.words).map(t => ({ t })), segs: segs(pr.text),
+      cols: cols.map(t => ({ t })), rows: lines(pr.rows).map(t => ({ t, cells: cols.slice(1).map((_, k) => k) })),
+      colTemplate: '1.2fr repeat(' + Math.max(1, cols.length - 1) + ', minmax(0,1fr))',
+      steps: lines(pr.steps).map((l, k, a) => { const [x, y] = l.split('|').map(z => z.trim()); const c = Component.FLOWC[k % 4]; return { t: x, s: y || '', hasS: !!y, arrow: k < a.length - 1, bg: c[0], fg: c[1] }; }),
+      pairs: Array.from({ length: Math.max(L.length, R.length) }, (_, k) => ({ l: L[k] || '', r: R[k] || '' })),
+      h: +pr.height || 160, slotId: 'slot-' + b.id,
+      onClick: e => { e.stopPropagation(); this.setState({ sel: { kind: 'block', p, i } }); },
+      onEnter: () => this.setState({ hover: b.id }), onLeave: () => this.setState({ hover: null }),
+      onDragStart: e => { this.drag = { kind: 'move', p, i }; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', 'move'); },
+      onDragOver: e => {
+        if (!this.drag) return; e.preventDefault(); e.stopPropagation();
+        const r = e.currentTarget.getBoundingClientRect();
+        const pos = hz ? (e.clientX < r.left + r.width / 2 ? 'before' : 'after') : (e.clientY < r.top + r.height / 2 ? 'before' : 'after');
+        this.setDrop({ p, i, pos });
+      },
+      onDrop: e => { if (!this.drag) return; e.preventDefault(); e.stopPropagation(); this.doDrop(); },
+      onUp: stop(() => this.moveBlock(p, i, -1)), onDown: stop(() => this.moveBlock(p, i, 1)),
+      onDup: stop(() => this.dupBlock(p, i)), onDel: stop(() => this.delBlock(p, i))
+    };
+  }
+
+  inspector() {
+    const s = this.state, sel = s.sel, doc = s.doc;
+    if (!sel || !doc.pages[sel.p]) return { none: true, some: false };
+    if (sel.kind === 'block') {
+      const b = doc.pages[sel.p].blocks[sel.i];
+      if (!b) return { none: true, some: false };
+      const T = Component.TYPES[b.type], { p, i } = sel;
+      const spanF = this.field('span', 'Breite im 12er-Raster', 'seg', b.span, v => this.setDoc(d => { d.pages[p].blocks[i].span = v; }), [{ v: 12, l: 'Ganz' }, { v: 8, l: '⅔' }, { v: 6, l: '½' }, { v: 4, l: '⅓' }]);
+      const fs = T.fields.map(([k, l, kind]) => this.field(k, l, kind, b.props[k], v => this.updBlock(p, i, { [k]: v })));
+      return { none: false, some: true, isBlock: true, canDelete: true, delLabel: 'Löschen', title: T.label, icon: this.ic(b.type, 18),
+        sections: [{ hasLabel: false, fields: [spanF, ...fs] }], onDup: () => this.dupBlock(p, i), onDel: () => this.delBlock(p, i) };
+    }
+    const p = sel.p, pg = doc.pages[p], up = k => v => this.setDoc(d => { d.pages[p][k] = v; });
+    const pf = [
+      this.field('title', 'Titel', 'text', pg.title, up('title')),
+      this.field('kicker', 'Zeile über dem Titel', 'text', pg.kicker, up('kicker')),
+      this.field('type', 'Blatt-Typ', 'seg', pg.type, up('type'), Object.keys(Component.THEMES).map(k => ({ v: k, l: Component.THEMES[k].label }))),
+      this.field('form', 'Sozialform', 'seg', pg.form, up('form'), ['allein', 'zu zweit', 'Gruppe', 'Plenum'].map(v => ({ v, l: v }))),
+      this.field('nameField', 'Namensfeld', 'seg', !!pg.nameField, up('nameField'), [{ v: true, l: 'Anzeigen' }, { v: false, l: 'Ausblenden' }])
+    ];
+    const df = [
+      this.field('footer', 'Fußzeile', 'text', doc.footer, v => this.setDoc(d => { d.footer = v; })),
+      this.field('code', 'Kürzel', 'text', doc.code, v => this.setDoc(d => { d.code = v; }))
+    ];
+    return { none: false, some: true, isBlock: false, canDelete: doc.pages.length > 1, delLabel: 'Seite löschen', title: 'Seite ' + (p + 1), icon: this.ic('page', 18),
+      sections: [{ hasLabel: true, label: 'Kopfband', fields: pf }, { hasLabel: true, label: 'Fußband · alle Seiten', fields: df }],
+      onDel: () => this.setDoc(d => { d.pages.splice(p, 1); }, { sel: { kind: 'page', p: Math.max(0, p - 1) } }) };
+  }
+
+  renderVals() {
+    const s = this.state, doc = s.doc, editing = !s.preview;
+    const icons = {}; ['topic', 'minus', 'plus', 'grid', 'braces', 'eye', 'printer', 'up', 'down', 'copy', 'trash'].forEach(n => icons[n] = this.ic(n, 16));
+    icons.topicLg = this.ic('topic', 26); icons.info = this.ic('hint', 16); icons.bulb = this.ic('merksatz', 20); icons.topic = this.ic('topic', 20);
+    const groups = Component.GROUPS.map((g, gi) => ({ ...g, items: Object.keys(Component.TYPES).filter(k => Component.TYPES[k].group === gi).map(k => ({
+      label: Component.TYPES[k].label, icon: this.ic(k, 16),
+      onDragStart: e => { this.drag = { kind: 'new', type: k }; e.dataTransfer.effectAllowed = 'copy'; e.dataTransfer.setData('text/plain', k); },
+      onAdd: () => this.addBlock(k)
+    })) }));
+    const pages = doc.pages.map((pg, p) => {
+      const t = Component.THEMES[pg.type] || Component.THEMES.uebung, counter = { n: 0 }, d = s.drop;
+      const selPage = editing && s.sel && s.sel.kind === 'page' && s.sel.p === p;
+      return {
+        num: p + 1, t, title: pg.title, kicker: pg.kicker, form: pg.form, nameField: !!pg.nameField, over: !!s.over[p],
+        formIcon: this.ic(pg.form === 'allein' ? 'user' : 'users', 14),
+        bandOutline: selPage ? '2px solid var(--color-accent)' : '2px solid transparent',
+        blocks: pg.blocks.map((b, i) => this.blockVals(b, p, i, t, counter)), empty: !pg.blocks.length,
+        dropEnd: !!(d && d.p === p && d.pos === 'end'),
+        bodyRef: el => { this.bodies[p] = el; },
+        onSelect: e => { e.stopPropagation(); if (editing) this.setState({ sel: { kind: 'page', p } }); },
+        onBodyDragOver: e => { if (!this.drag) return; e.preventDefault(); this.setDrop({ p, i: pg.blocks.length, pos: 'end' }); },
+        onBodyDrop: e => { if (!this.drag) return; e.preventDefault(); this.doDrop(); }
+      };
+    });
+    return {
+      icons, groups, pages, doc, editing, showGrid: editing, gridCols: Array.from({ length: 12 }, (_, k) => k),
+      rootH: s.preview ? 'auto' : '100vh', cols: editing ? 'clamp(200px, 18vw, 256px) minmax(0,1fr) clamp(260px, 22vw, 320px)' : 'minmax(0,1fr)',
+      zoom: s.zoom, zoomLabel: Math.round(s.zoom * 100) + '%',
+      zoomIn: () => this.setState({ zoom: Math.min(1.5, +(s.zoom + 0.1).toFixed(2)) }),
+      zoomOut: () => this.setState({ zoom: Math.max(0.4, +(s.zoom - 0.1).toFixed(2)) }),
+      gridBtnBg: s.grid ? 'var(--color-accent-100)' : 'transparent', toggleGrid: () => this.setState({ grid: !s.grid }),
+      previewBtnBg: s.preview ? 'var(--color-accent-100)' : 'transparent', previewLabel: s.preview ? 'Bearbeiten' : 'Vorschau',
+      togglePreview: () => this.setState({ preview: !s.preview, hover: null }),
+      doPrint: () => { const z = s.zoom; this.setState({ preview: true, sel: null, zoom: 1 }, () => setTimeout(() => { window.print(); this.setState({ zoom: z }); }, 300)); },
+      clearSel: () => this.setState({ sel: null }), endDrag: this.endDrag,
+      addPage: () => this.setDoc(d => { d.pages.push({ title: 'Neues Arbeitsblatt', kicker: 'Klasse · Thema', type: 'uebung', form: 'allein', nameField: true, blocks: [] }); }, { sel: { kind: 'page', p: doc.pages.length } }),
+      insp: this.inspector(),
+      jsonOpen: s.jsonOpen, jsonText: s.jsonText, jsonErr: s.jsonErr,
+      openJson: () => this.setState({ jsonOpen: true, jsonErr: '', jsonText: JSON.stringify(doc, null, 2) }),
+      closeJson: () => this.setState({ jsonOpen: false }), stop: e => e.stopPropagation(),
+      onJsonChange: e => this.setState({ jsonText: e.target.value }),
+      applyJson: () => {
+        try {
+          const d = JSON.parse(s.jsonText);
+          if (!d || !Array.isArray(d.pages)) throw new Error('Es fehlt die Liste "pages".');
+          d.pages.forEach(pg => { pg.blocks = (pg.blocks || []).filter(b => Component.TYPES[b.type]).map(b => ({ id: b.id || Component.uid(), type: b.type, span: b.span || Component.TYPES[b.type].span, props: { ...Component.TYPES[b.type].def, ...(b.props || {}) } })); });
+          this.setState({ doc: d, jsonOpen: false, sel: { kind: 'page', p: 0 } });
+        } catch (err) { this.setState({ jsonErr: 'Die Daten konnten nicht gelesen werden: ' + err.message }); }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

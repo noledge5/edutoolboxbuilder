@@ -1,0 +1,32 @@
+/* Print / PDF: one A4 page per sheet, no editor chrome, backgrounds kept.
+   The print viewport is only one A4 page wide, so screen-layout rules (including the narrow-screen
+   ones) must not leak in: the resets below use !important on purpose. */
+@media print {
+  @page { size: A4; margin: 0; }
+  html, body, #root { height: auto !important; background: #fff !important; margin: 0 !important; }
+  [data-noprint] { display: none !important; }
+
+  .app, .workspace, .canvas, .pages, .page-frame, .page-scale {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    background: none !important;
+  }
+  .page-scale > .ws-page {
+    position: static !important;
+    transform: none !important;
+    width: 210mm;
+    height: 297mm;
+    border-radius: 0;
+    box-shadow: none;
+    break-after: page;
+  }
+  .page-frame:last-of-type .ws-page { break-after: auto; }
+
+  .ws-grid, .ws-empty, .ws-drop-end, .ed-bar, .ed-toolbar { display: none !important; }
+  .ed-block, .ws-band { outline: none !important; }
+}

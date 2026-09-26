@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/organic-9cf626e6-1b23-43d1-a757-f05cd8d6d130/styles.css">
+<script src="_ds/organic-9cf626e6-1b23-43d1-a757-f05cd8d6d130/_ds_bundle.js"></script>
+<script src="./doc-page.js"></script>
+<style>doc-page:not(:defined){visibility:hidden} a{color:var(--color-accent-700)} a:hover{color:var(--color-accent-600)}</style>
+</helmet>
+<doc-page size="a4">
+<sc-if value="{{ showTeacher }}" hint-placeholder-val="{{ true }}">
+<section class="page" data-screen-label="01 Stundenskizze">
+<div style="height:100cqh; display:flex; flex-direction:column; gap:12px; padding:30px 36px 24px; background:var(--paper, var(--color-bg)); color:var(--color-text); font-family:var(--font-body); font-size:12.5px; line-height:1.5">
+  <div style="display:flex; align-items:center; gap:16px; padding:16px 20px; border-radius:28px; background:var(--color-neutral-200)">
+    <div style="width:52px; height:52px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-neutral-800); color:var(--color-neutral-100)"><svg width="26" height="26" viewBox="0 0 24 24" style="fill:none; stroke:currentColor; stroke-width:2.75; stroke-linecap:round; stroke-linejoin:round"><path d="M12 9a4 4 0 0 0-2 7.5"></path><path d="M12 3v2"></path><path d="m6.6 18.4-1.4 1.4"></path><path d="M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path><path d="M4 13H2"></path><path d="M6.34 7.34 4.93 5.93"></path></svg></div>
+    <div style="flex:1; min-width:0">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-neutral-700)">Klasse 9 · Modul 1: Das Klima kippt · Stunde 2 · Typ B (Input)</div>
+      <h1 style="font-size:30px; margin:2px 0 0">Stundenskizze · Der Treibhauseffekt</h1>
+    </div>
+    <div style="padding:6px 14px; border-radius:999px; background:var(--color-neutral-800); color:var(--color-neutral-100); font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap">Für die Lehrkraft</div>
+  </div>
+  <div style="display:grid; grid-template-columns:minmax(0,1fr) 210px; gap:14px">
+    <div style="padding:14px 18px; border-radius:20px; background:var(--color-surface)">
+      <div style="font-family:var(--font-body); font-weight:700; font-size:16px; margin-bottom:4px">Ziel</div>
+      <p style="margin:0; text-wrap:pretty">Die Klasse erarbeitet den Mechanismus des Treibhauseffekts (Modell + Fließschema) und beantwortet damit die in Stunde 1 offen gelassene Frage: <strong>Wie genau hängen CO₂ und Temperatur zusammen?</strong></p>
+    </div>
+    <div style="padding:14px 18px; border-radius:20px; border:1.5px solid var(--color-neutral-300)">
+      <div style="font-family:var(--font-body); font-weight:700; font-size:16px; margin-bottom:4px">Bildungsplan</div>
+      <p style="margin:0">3.2.2.3 (1) · prozessbezogen: Modelle nutzen und kritisch reflektieren.</p>
+    </div>
+  </div>
+  <div style="display:flex; flex-direction:column">
+    <div style="display:grid; grid-template-columns:62px minmax(0,1fr) 104px 150px; gap:12px; padding:0 12px 6px; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-neutral-700)"><div>Zeit</div><div>Phase und Ablauf</div><div>Sozialform</div><div>Material</div></div>
+    <sc-for list="{{ phases }}" as="p" hint-placeholder-count="7">
+      <div style="display:grid; grid-template-columns:62px minmax(0,1fr) 104px 150px; gap:12px; align-items:start; padding:6px 12px; border-top:1px solid var(--color-divider)">
+        <div style="justify-self:start; padding:2px 9px; border-radius:999px; background:var(--color-accent-100); color:var(--color-accent-800); font-weight:700; font-size:12px; white-space:nowrap">{{ p.t }}</div>
+        <div><div style="font-weight:700">{{ p.phase }}</div><div style="text-wrap:pretty">{{ p.text }}</div></div>
+        <div style="color:var(--color-neutral-800)">{{ p.form }}</div>
+        <div style="color:var(--color-neutral-800)">{{ p.mat }}</div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:grid; grid-template-columns:minmax(0,1fr) 210px; gap:14px">
+    <div style="padding:16px 18px; border-radius:20px; background:var(--color-accent-2-100)">
+      <div style="font-family:var(--font-body); font-weight:700; font-size:16px; margin-bottom:8px">Abrufphase — die drei Fragen</div>
+      <div style="display:flex; flex-direction:column; gap:7px">
+        <div style="display:flex; gap:10px; align-items:baseline"><span style="width:22px; height:22px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent-2-600); color:var(--color-accent-2-100); font-weight:700; font-size:11px">1</span><span>Welche Einheit hat der CO₂-Wert in unserer ersten Kurve? <span style="color:var(--color-accent-2-800); font-weight:600">(ppm)</span></span></div>
+        <div style="display:flex; gap:10px; align-items:baseline"><span style="width:22px; height:22px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent-2-600); color:var(--color-accent-2-100); font-weight:700; font-size:11px">2</span><span>Reicht ein zeitlicher Zusammenhang aus, um eine Ursache zu beweisen? <span style="color:var(--color-accent-2-800); font-weight:600">(Nein)</span></span></div>
+        <div style="display:flex; gap:10px; align-items:baseline"><span style="width:22px; height:22px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent-2-600); color:var(--color-accent-2-100); font-weight:700; font-size:11px">3</span><span>Aus Klasse 8: Was entsteht, wenn zwei Platten auseinanderdriften? <span style="color:var(--color-accent-2-800); font-weight:600">(neue Kruste / Mittelozeanischer Rücken)</span></span></div>
+      </div>
+    </div>
+    <div style="padding:16px 18px; border-radius:20px; border:1.5px solid var(--color-neutral-300)">
+      <div style="font-family:var(--font-body); font-weight:700; font-size:16px; margin-bottom:6px">Kopierbedarf</div>
+      <p style="margin:0">Versuchsprotokoll und Fließschema-Arbeitsblatt: Klassensatz.</p>
+    </div>
+  </div>
+  <div style="margin-top:auto; display:flex; align-items:center; gap:12px; padding:8px 8px 8px 18px; border-radius:999px; background:var(--color-neutral-200); font-size:11px; color:var(--color-neutral-800)">
+    <span style="flex:1">Kuhl · Grafen-von-Zimmern-Realschule · Geographie</span><span style="font-weight:700; letter-spacing:0.06em">K9 · M1 · S2</span><span style="padding:3px 12px; border-radius:999px; background:var(--paper, var(--color-bg)); font-weight:700">Seite 1</span>
+  </div>
+</div>
+</section>
+<section class="page" data-screen-label="02 Tafelbild">
+<div style="height:100cqh; display:flex; flex-direction:column; gap:20px; padding:34px 38px 26px; background:var(--paper, var(--color-bg)); color:var(--color-text); font-family:var(--font-body); font-size:13px; line-height:1.5">
+  <div style="display:flex; align-items:center; gap:16px; padding:16px 20px; border-radius:28px; background:var(--color-neutral-200)">
+    <div style="width:52px; height:52px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-neutral-800); color:var(--color-neutral-100)"><svg width="26" height="26" viewBox="0 0 24 24" style="fill:none; stroke:currentColor; stroke-width:2.75; stroke-linecap:round; stroke-linejoin:round"><path d="M12 9a4 4 0 0 0-2 7.5"></path><path d="M12 3v2"></path><path d="m6.6 18.4-1.4 1.4"></path><path d="M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path><path d="M4 13H2"></path><path d="M6.34 7.34 4.93 5.93"></path></svg></div>
+    <div style="flex:1; min-width:0">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-neutral-700)">Der Mechanismus, den Stunde 1 offengelassen hat</div>
+      <h1 style="font-size:30px; margin:2px 0 0">Tafelbild und Erwartungshorizont</h1>
+    </div>
+    <div style="padding:6px 14px; border-radius:999px; background:var(--color-neutral-800); color:var(--color-neutral-100); font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap">Für die Lehrkraft</div>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:14px; padding:22px; border-radius:28px; border:2px solid var(--color-neutral-300)">
+    <h2 style="font-size:22px; margin:0">Wie erwärmt CO₂ die Luft?</h2>
+    <div style="display:grid; grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr) 18px minmax(0,1fr) 18px minmax(0,1fr); align-items:center; gap:6px">
+      <div style="padding:12px; border-radius:18px; background:var(--color-accent-200); text-align:center"><div style="font-weight:700">Sonnenstrahlung</div><div style="font-size:12px; color:var(--color-accent-800)">kurzwellig</div></div>
+      <div style="text-align:center; font-weight:700; color:var(--color-neutral-600)">→</div>
+      <div style="padding:12px; border-radius:18px; background:var(--color-accent-2-200); text-align:center"><div style="font-weight:700">Erdoberfläche</div><div style="font-size:12px; color:var(--color-accent-2-800)">erwärmt sich</div></div>
+      <div style="text-align:center; font-weight:700; color:var(--color-neutral-600)">→</div>
+      <div style="padding:12px; border-radius:18px; background:var(--color-accent-300); text-align:center"><div style="font-weight:700">Wärmestrahlung</div><div style="font-size:12px; color:var(--color-accent-800)">langwellig</div></div>
+      <div style="text-align:center; font-weight:700; color:var(--color-neutral-600)">→</div>
+      <div style="padding:12px; border-radius:18px; background:var(--color-neutral-300); text-align:center"><div style="font-weight:700">Treibhausgase</div><div style="font-size:12px; color:var(--color-neutral-800)">CO₂, Methan, Wasserdampf</div></div>
+    </div>
+    <div style="display:flex; justify-content:flex-end; flex-wrap:wrap; gap:10px">
+      <div style="padding:7px 14px; border-radius:999px; background:var(--color-neutral-200)">→ ein Teil entweicht ins All</div>
+      <div style="padding:7px 14px; border-radius:999px; background:var(--color-accent-100); color:var(--color-accent-800)">↺ ein Teil zurück <strong>→ zusätzliche Erwärmung</strong></div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px">
+      <div style="padding:10px 14px; border-radius:16px; background:var(--color-accent-2-100)"><strong>natürlich:</strong> notwendig, ohne ihn läge die Erde bei rund −18 °C</div>
+      <div style="padding:10px 14px; border-radius:16px; background:var(--color-accent-100)"><strong>zusätzlich:</strong> durch uns verstärkt, seit ca. 1850 messbar</div>
+    </div>
+  </div>
+  <h2 style="font-size:22px; margin:6px 0 0">Erwartungshorizont</h2>
+  <sc-for list="{{ misconceptions }}" as="m" hint-placeholder-count="3">
+    <div style="display:grid; grid-template-columns:92px minmax(0,1fr); gap:14px; padding:16px 18px; border-radius:22px; background:var(--color-surface)">
+      <div style="align-self:start; justify-self:start; padding:4px 12px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; background:{{ m.bg }}; color:{{ m.fg }}">{{ m.verdict }}</div>
+      <div><div style="font-family:var(--font-body); font-weight:700; font-size:16px; margin-bottom:4px">{{ m.quote }}</div><div style="text-wrap:pretty">{{ m.text }}</div></div>
+    </div>
+  </sc-for>
+  <div style="margin-top:auto; display:flex; align-items:center; gap:12px; padding:8px 8px 8px 18px; border-radius:999px; background:var(--color-neutral-200); font-size:11px; color:var(--color-neutral-800)">
+    <span style="flex:1">Kuhl · Grafen-von-Zimmern-Realschule · Geographie</span><span style="font-weight:700; letter-spacing:0.06em">K9 · M1 · S2</span><span style="padding:3px 12px; border-radius:999px; background:var(--paper, var(--color-bg)); font-weight:700">Seite 2</span>
+  </div>
+</div>
+</section>
+</sc-if>
+<section class="page" data-screen-label="03 Versuchsprotokoll">
+<div style="height:100cqh; display:flex; flex-direction:column; gap:13px; padding:30px 36px 24px; background:var(--paper, var(--color-bg)); color:var(--color-text); font-family:var(--font-body); font-size:14.5px; line-height:1.55">
+  <div style="display:flex; align-items:center; gap:16px; padding:16px 20px; border-radius:28px; background:var(--color-accent-100)">
+    <div style="width:52px; height:52px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent); color:var(--color-accent-100)"><svg width="26" height="26" viewBox="0 0 24 24" style="fill:none; stroke:currentColor; stroke-width:2.75; stroke-linecap:round; stroke-linejoin:round"><path d="M12 9a4 4 0 0 0-2 7.5"></path><path d="M12 3v2"></path><path d="m6.6 18.4-1.4 1.4"></path><path d="M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path><path d="M4 13H2"></path><path d="M6.34 7.34 4.93 5.93"></path></svg></div>
+    <div style="flex:1; min-width:0">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-accent-700)">Klasse 9 · Modellversuch zum Treibhauseffekt</div>
+      <h1 style="font-size:30px; margin:2px 0 0">Versuchsprotokoll: Wärme einfangen</h1>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px">
+      <div style="padding:5px 14px; border-radius:999px; background:var(--color-accent-700); color:var(--color-accent-100); font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase">Versuch</div>
+      <div style="display:flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; background:var(--paper, var(--color-bg)); font-size:12px; font-weight:600; color:var(--color-accent-800)"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none; stroke:currentColor; stroke-width:2.75; stroke-linecap:round; stroke-linejoin:round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>zu zweit</div>
+    </div>
+  </div>
+  <div style="display:flex; align-items:flex-end; gap:12px; padding:0 6px">
+    <span style="font-weight:700">Namen:</span><div style="flex:1; border-bottom:2px solid var(--color-neutral-400); height:24px"></div>
+  </div>
+  <div style="display:flex; gap:14px">
+    <div style="width:34px; height:34px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent); color:var(--color-accent-100); font-family:var(--font-body); font-weight:700; font-size:17px">1</div>
+    <div style="flex:1; min-width:0"><h3 style="font-size:20px; margin:4px 0 4px">Aufbau</h3><p style="margin:0; text-wrap:pretty">Zwei gleiche Gläser, je ein Thermometer. Glas A bleibt offen. Glas B wird mit Klarsichtfolie verschlossen. Beide stehen gleich weit von der Lampe entfernt.</p></div>
+  </div>
+  <div style="display:flex; gap:14px">
+    <div style="width:34px; height:34px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent); color:var(--color-accent-100); font-family:var(--font-body); font-weight:700; font-size:17px">2</div>
+    <div style="flex:1; min-width:0"><h3 style="font-size:20px; margin:4px 0 4px">Unsere Vorhersage</h3><p style="margin:0 0 10px">Welches Glas wird nach 15 Minuten wärmer sein?</p>
+      <div style="display:flex; flex-wrap:wrap; gap:10px">
+        <div style="display:flex; align-items:center; gap:9px; padding:7px 18px 7px 10px; border-radius:999px; background:var(--color-surface); font-weight:600"><span style="width:18px; height:18px; border-radius:50%; border:2px solid var(--color-accent-600); background:var(--paper, var(--color-bg))"></span>Glas A</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:7px 18px 7px 10px; border-radius:999px; background:var(--color-surface); font-weight:600"><span style="width:18px; height:18px; border-radius:50%; border:2px solid var(--color-accent-600); background:var(--paper, var(--color-bg))"></span>Glas B</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:7px 18px 7px 10px; border-radius:999px; background:var(--color-surface); font-weight:600"><span style="width:18px; height:18px; border-radius:50%; border:2px solid var(--color-accent-600); background:var(--paper, var(--color-bg))"></span>gleich</div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex; gap:14px">
+    <div style="width:34px; height:34px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent); color:var(--color-accent-100); font-family:var(--font-body); font-weight:700; font-size:17px">3</div>
+    <div style="flex:1; min-width:0"><h3 style="font-size:20px; margin:4px 0 10px">Messwerte</h3>
+      <div style="border-radius:20px; overflow:hidden; border:2px solid var(--color-neutral-300)">
+        <div style="display:grid; grid-template-columns:1.1fr 1fr 1fr 1fr; background:var(--color-surface); font-size:12px; font-weight:700; letter-spacing:0.04em"><div style="padding:9px 14px">Zeit</div><div style="padding:9px 14px">Glas A (offen)</div><div style="padding:9px 14px">Glas B (Folie)</div><div style="padding:9px 14px">Unterschied</div></div>
+        <sc-for list="{{ times }}" as="t" hint-placeholder-count="6">
+          <div style="display:grid; grid-template-columns:1.1fr 1fr 1fr 1fr; border-top:1.5px solid var(--color-neutral-300)"><div style="padding:7px 14px; font-weight:600">{{ t }}</div><div style="border-left:1.5px solid var(--color-neutral-300)"></div><div style="border-left:1.5px solid var(--color-neutral-300)"></div><div style="border-left:1.5px solid var(--color-neutral-300)"></div></div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex; gap:14px">
+    <div style="width:34px; height:34px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent); color:var(--color-accent-100); font-family:var(--font-body); font-weight:700; font-size:17px">4</div>
+    <div style="flex:1; min-width:0; display:flex; flex-direction:column"><h3 style="font-size:20px; margin:4px 0 4px">Deutung</h3>
+      <p style="margin:6px 0 0">Welches Glas war am Ende wärmer, und um wie viel?</p>
+      <div style="height:27px; border-bottom:1.5px solid var(--color-neutral-400)"></div>
+      <div style="height:27px; border-bottom:1.5px solid var(--color-neutral-400)"></div>
+      <p style="margin:14px 0 0">Warum, glaubt ihr, war das so?</p>
+      <div style="height:27px; border-bottom:1.5px solid var(--color-neutral-400)"></div>
+      <div style="height:27px; border-bottom:1.5px solid var(--color-neutral-400)"></div>
+      <div style="height:27px; border-bottom:1.5px solid var(--color-neutral-400)"></div>
+    </div>
+  </div>
+  <div style="display:flex; gap:14px; align-items:flex-start; padding:14px 18px; border-radius:22px; background:var(--color-accent-2-100)">
+    <div style="width:30px; height:30px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent-2-600); color:var(--color-accent-2-100)"><svg width="16" height="16" viewBox="0 0 24 24" style="fill:none; stroke:currentColor; stroke-width:2.75; stroke-linecap:round; stroke-linejoin:round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg></div>
+    <div style="font-size:13.5px"><div style="font-weight:700; color:var(--color-accent-2-800)">Wichtiger Hinweis</div>Dieser Versuch zeigt nur das allgemeine Prinzip — eine Barriere hält Wärmestrahlung zurück. Er beweist nicht, dass genau CO₂ das tut.</div>
+  </div>
+  <div style="margin-top:auto; display:flex; align-items:center; gap:12px; padding:8px 8px 8px 18px; border-radius:999px; background:var(--color-neutral-200); font-size:11px; color:var(--color-neutral-800)">
+    <span style="flex:1">Kuhl · Grafen-von-Zimmern-Realschule · Geographie</span><span style="font-weight:700; letter-spacing:0.06em">K9 · M1 · S2</span><span style="padding:3px 12px; border-radius:999px; background:var(--paper, var(--color-bg)); font-weight:700">Seite 3</span>
+  </div>
+</div>
+</section>
+<section class="page" data-screen-label="04 Fließschema">
+<div style="height:100cqh; display:flex; flex-direction:column; gap:20px; padding:34px 38px 26px; background:var(--paper, var(--color-bg)); color:var(--color-text); font-family:var(--font-body); font-size:14.5px; line-height:1.55">
+  <div style="display:flex; align-items:center; gap:16px; padding:16px 20px; border-radius:28px; background:var(--color-accent-2-100)">
+    <div style="width:52px; height:52px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent-2-600); color:var(--color-accent-2-100)"><svg width="26" height="26" viewBox="0 0 24 24" style="fill:none; stroke:currentColor; stroke-width:2.75; stroke-linecap:round; stroke-linejoin:round"><path d="M12 9a4 4 0 0 0-2 7.5"></path><path d="M12 3v2"></path><path d="m6.6 18.4-1.4 1.4"></path><path d="M20 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path><path d="M4 13H2"></path><path d="M6.34 7.34 4.93 5.93"></path></svg></div>
+    <div style="flex:1; min-width:0">
+      <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-accent-2-800)">Klasse 9 · Sicherung fürs Lernjournal</div>
+      <h1 style="font-size:30px; margin:2px 0 0">Fließschema: Der Treibhauseffekt</h1>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px">
+      <div style="padding:5px 14px; border-radius:999px; background:var(--color-accent-2-700); color:var(--color-accent-2-100); font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase">Sicherung</div>
+      <div style="display:flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; background:var(--paper, var(--color-bg)); font-size:12px; font-weight:600; color:var(--color-accent-2-800)"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none; stroke:currentColor; stroke-width:2.75; stroke-linecap:round; stroke-linejoin:round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>allein</div>
+    </div>
+  </div>
+  <div style="display:flex; align-items:flex-end; gap:12px; padding:0 6px">
+    <span style="font-weight:700">Name:</span><div style="flex:1; border-bottom:2px solid var(--color-neutral-400); height:24px"></div>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:16px; padding:22px; border-radius:28px; border:2px solid var(--color-neutral-300)">
+    <div style="display:grid; grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr) 18px minmax(0,1fr) 18px minmax(0,1fr); align-items:stretch; gap:6px">
+      <div style="padding:14px 10px; border-radius:18px; background:var(--color-accent-200); text-align:center; display:grid; align-content:center"><div style="font-weight:700">Sonnenstrahlung</div><div style="font-size:12.5px; color:var(--color-accent-800)">(kurzwellig)</div></div>
+      <div style="display:grid; place-items:center; font-weight:700; color:var(--color-neutral-600)">→</div>
+      <div style="padding:14px 10px; border-radius:18px; background:var(--color-accent-2-200); text-align:center; display:grid; align-content:center"><div style="font-weight:700">Erdoberfläche</div><div style="font-size:12.5px; color:var(--color-accent-2-800)">erwärmt sich</div></div>
+      <div style="display:grid; place-items:center; font-weight:700; color:var(--color-neutral-600)">→</div>
+      <div style="padding:14px 10px; border-radius:18px; background:var(--color-accent-300); text-align:center; display:grid; align-content:center"><div style="font-weight:700">Wärmestrahlung</div><div style="font-size:12.5px; color:var(--color-accent-800)">(langwellig)</div></div>
+      <div style="display:grid; place-items:center; font-weight:700; color:var(--color-neutral-600)">→</div>
+      <div style="padding:14px 10px; border-radius:18px; background:var(--color-neutral-300); text-align:center; display:grid; align-content:center"><div style="font-weight:700">Treibhausgase</div><div style="font-size:12.5px; color:var(--color-neutral-800)">CO₂, Methan, Wasserdampf</div></div>
+    </div>
+    <p style="margin:0; text-wrap:pretty">Von den Treibhausgasen aus geht es in zwei Richtungen weiter. <strong>Zeichnet beide Pfeile ein:</strong></p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px">
+      <div style="height:120px; display:flex; flex-direction:column; justify-content:space-between; padding:14px 16px; border-radius:20px; border:2px dashed var(--color-neutral-400)"><span style="font-weight:600">ein Teil entweicht …</span><div style="border-bottom:1.5px solid var(--color-neutral-400)"></div></div>
+      <div style="height:120px; display:flex; flex-direction:column; justify-content:space-between; padding:14px 16px; border-radius:20px; border:2px dashed var(--color-neutral-400)"><span style="font-weight:600">ein Teil wird zurückgestrahlt zur …</span><div style="border-bottom:1.5px solid var(--color-neutral-400)"></div></div>
+    </div>
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px">
+      <span style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--color-neutral-700); margin-right:4px">Wortspeicher</span>
+      <span style="padding:5px 14px; border-radius:999px; background:var(--color-surface); font-weight:600">Weltall</span>
+      <span style="padding:5px 14px; border-radius:999px; background:var(--color-surface); font-weight:600">Erdoberfläche</span>
+      <span style="padding:5px 14px; border-radius:999px; background:var(--color-surface); font-weight:600">zusätzliche Erwärmung</span>
+    </div>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:12px">
+    <h2 style="font-size:22px; margin:0">Zwei Begriffe, ein Unterschied</h2>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px">
+      <div style="padding:16px 18px; border-radius:22px; background:var(--color-accent-2-100)"><div style="font-family:var(--font-body); font-weight:700; font-size:17px; margin-bottom:6px; color:var(--color-accent-2-800)">natürlicher Treibhauseffekt</div><div style="line-height:2">notwendig — ohne ihn läge die Erde bei etwa <span style="display:inline-block; width:64px; border-bottom:2px solid var(--color-accent-2-600)"></span> °C.</div></div>
+      <div style="padding:16px 18px; border-radius:22px; background:var(--color-accent-100)"><div style="font-family:var(--font-body); font-weight:700; font-size:17px; margin-bottom:6px; color:var(--color-accent-800)">zusätzlicher Treibhauseffekt</div><div style="line-height:2">von Menschen verursacht — seit etwa <span style="display:inline-block; width:64px; border-bottom:2px solid var(--color-accent-600)"></span> messbar.</div></div>
+    </div>
+  </div>
+  <div style="display:flex; gap:16px; align-items:center; padding:20px 22px; border-radius:28px; background:var(--color-accent-2-600); color:var(--color-accent-2-100)">
+    <div style="width:44px; height:44px; flex:none; border-radius:50%; display:grid; place-items:center; background:var(--color-accent-2-100); color:var(--color-accent-2-700)"><svg width="22" height="22" viewBox="0 0 24 24" style="fill:none; stroke:currentColor; stroke-width:2.75; stroke-linecap:round; stroke-linejoin:round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg></div>
+    <div><div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase">Merksatz</div><div style="font-family:var(--font-body); font-weight:700; font-size:20px; line-height:1.5">Beobachtung + <span style="display:inline-block; width:190px; border-bottom:2px solid var(--color-accent-2-100)"></span> = eine Erklärung, die überzeugt.</div></div>
+  </div>
+  <div style="margin-top:auto; display:flex; align-items:center; gap:12px; padding:8px 8px 8px 18px; border-radius:999px; background:var(--color-neutral-200); font-size:11px; color:var(--color-neutral-800)">
+    <span style="flex:1">Kuhl · Grafen-von-Zimmern-Realschule · Geographie</span><span style="font-weight:700; letter-spacing:0.06em">K9 · M1 · S2</span><span style="padding:3px 12px; border-radius:999px; background:var(--paper, var(--color-bg)); font-weight:700">Seite 4</span>
+  </div>
+</div>
+</section>
+</doc-page>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;paper&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Creme&quot;,&quot;Weiß&quot;],&quot;default&quot;:&quot;Creme&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Druck&quot;},&quot;showTeacher&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Druck&quot;}}">
+class Component extends DCLogic {
+  applyPaper() {
+    const white = (this.props.paper ?? 'Creme') === 'Weiß';
+    document.documentElement.style.setProperty('--paper', white ? '#ffffff' : 'var(--color-bg)');
+    const remeasure = () => customElements.whenDefined('doc-page').then(() => document.querySelectorAll('doc-page').forEach(d => d._measure && d._measure()));
+    remeasure(); setTimeout(remeasure, 300); setTimeout(remeasure, 1200);
+  }
+  componentDidMount() { this.applyPaper(); }
+  componentDidUpdate() { this.applyPaper(); }
+  renderVals() {
+    return {
+      showTeacher: this.props.showTeacher ?? true,
+      phases: [
+        { t: '0–5', phase: 'Abrufphase', text: '3 Fragen, aus dem Gedächtnis ins Lernjournal, dann Selbstkorrektur (Fragen siehe unten).', form: 'Einzel', mat: 'Lernjournal' },
+        { t: '5–10', phase: 'Einstieg', text: 'Die Whiteboard-Antworten aus Stunde 1 kurz zeigen: „Was müsste man wissen, damit der Zusammenhang belegt ist?“ Leitfrage: Wie genau erwärmt CO₂ die Luft?', form: 'Plenum', mat: 'Whiteboards aus Std. 1' },
+        { t: '10–15', phase: 'Versuchsaufbau', text: 'Zwei gleiche Gläser mit Thermometer, eines mit Klarsichtfolie abgedeckt, beide unter der Lampe. Vorhersage aufschreiben: Welches Glas wird wärmer?', form: 'Partner', mat: '2 Gläser, Folie, 2 Thermometer, Lampe' },
+        { t: '15–30', phase: 'Versuch läuft', text: 'Alle 3 Minuten Temperatur ablesen und notieren. Während der Wartezeit: Fließschema Teil 1 gemeinsam entwickeln (Sonnenstrahlung trifft Erdoberfläche).', form: 'Partner + Plenum', mat: 'Versuchsprotokoll, Tafel' },
+        { t: '30–38', phase: 'Messwerte & Deutung', text: 'Werte vergleichen. Deutung: Die Folie hält Wärmestrahlung zurück — genau das tun Treibhausgase in der Atmosphäre, nur ohne Folie.', form: 'Plenum', mat: 'Versuchsprotokoll' },
+        { t: '38–42', phase: 'Sicherung', text: 'Fließschema fertig ins Lernjournal. Begriffe: natürlicher und zusätzlicher Treibhauseffekt.', form: 'Einzel', mat: 'Fließschema-Arbeitsblatt' },
+        { t: '42–45', phase: 'Exit', text: 'Rückbezug Stunde 1: Jetzt gibt es einen Mechanismus. Merksatz: Beobachtung + Mechanismus = Erklärung.', form: 'Plenum', mat: 'Lernjournal' }
+      ],
+      misconceptions: [
+        { verdict: 'Falsch', bg: 'var(--color-accent-200)', fg: 'var(--color-accent-900)', quote: '„Treibhausgase heizen die Luft direkt auf, wie eine Herdplatte.“', text: 'Falsch — sie erzeugen keine eigene Energie. Sie halten Wärmestrahlung zurück, die von der erwärmten Erdoberfläche kommt, und schicken einen Teil davon zurück.' },
+        { verdict: 'Falsch', bg: 'var(--color-accent-200)', fg: 'var(--color-accent-900)', quote: '„Ohne Treibhauseffekt wäre es angenehmer.“', text: 'Falsch — ohne den natürlichen Treibhauseffekt läge die Durchschnittstemperatur bei etwa −18 °C statt heute rund +15 °C. Er ist lebensnotwendig. Das Problem ist der zusätzliche, von Menschen verursachte Anteil.' },
+        { verdict: 'Vorsicht', bg: 'var(--color-accent-2-200)', fg: 'var(--color-accent-2-900)', quote: '„Unser Versuch beweist, dass CO₂ die Erde erwärmt.“', text: 'Vorsicht — der Versuch zeigt nur das allgemeine Prinzip (eine Barriere hält Wärmestrahlung zurück), nicht dass es speziell CO₂ ist. Diese Unterscheidung ist selbst ein Lernziel: Was zeigt das Modell, was zeigt es nicht?' }
+      ],
+      times: ['0 min (Start)', '3 min', '6 min', '9 min', '12 min', '15 min']
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+// One printed A4 page: header band (Kopfband), optional name field, 12-column body grid, footer band (Fußband).
+import type { CSSProperties, MouseEvent, ReactNode, Ref } from 'react';
+import { User, Users } from 'lucide-react';
+import { Icon, TOPIC_ICON } from '../icons';
+import { BLOCK_TYPES } from '../model/blockTypes';
+import { THEMES, type SheetTheme } from '../model/themes';
+import type { Doc, Page } from '../model/types';
+
+export const PAGE_W = 794;
+export const PAGE_H = 1123;
+
+export const themeOf = (page: Page): SheetTheme => THEMES[page.type] ?? THEMES.uebung;
+
+/** Task number (1, 2, 3 …) of each block on the page, or null for non-task blocks. */
+export function taskNumbers(page: Page): (number | null)[] {
+  let n = 0;
+  return page.blocks.map((b) => (BLOCK_TYPES[b.type]?.task ? ++n : null));
+}
+
+export const themeVars = (t: SheetTheme): CSSProperties =>
+  ({
+    '--t-band': t.band,
+    '--t-circle': t.circle,
+    '--t-circle-fg': t.circleFg,
+    '--t-pill': t.pill,
+    '--t-pill-fg': t.pillFg,
+    '--t-kicker': t.kicker,
+    '--t-num': t.num,
+    '--t-num-fg': t.numFg,
+  }) as CSSProperties;
+
+interface SheetPageProps {
+  doc: Doc;
+  page: Page;
+  index: number;
+  editing: boolean;
+  headerSelected?: boolean;
+  onHeaderClick?: (e: MouseEvent) => void;
+  onBodyClick?: (e: MouseEvent) => void;
+  bodyRef?: Ref<HTMLDivElement>;
+  /** Show the drop bar at the end of the body. */
+  dropEnd?: boolean;
+  style?: CSSProperties;
+  /** The page's blocks, already wrapped by the caller. */
+  children?: ReactNode;
+}
+
+export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderClick, onBodyClick, bodyRef, dropEnd, style, children }: SheetPageProps) {
+  const t = themeOf(page);
+  return (
+    <div className="ws-page" style={{ ...themeVars(t), ...style }}>
+      <div className={'ws-band' + (headerSelected ? ' is-selected' : '')} onClick={onHeaderClick}>
+        <div className="ws-band-icon">
+          <Icon icon={TOPIC_ICON} size={26} />
+        </div>
+        <div className="ws-band-text">
+          <div className="ws-kicker">{page.kicker}</div>
+          <h1 className="ws-title">{page.title}</h1>
+        </div>
+        <div className="ws-band-side">
+          <div className="ws-type-pill">{t.label}</div>
+          <div className="ws-form-pill">
+            <Icon icon={page.form === 'allein' ? User : Users} size={14} />
+            {page.form}
+          </div>
+        </div>
+      </div>
+      {page.nameField && (
+        <div className="ws-names">
+          <b>Name:</b>
+          <div className="ws-line" />
+          <b>Datum:</b>
+          <div className="ws-line is-date" />
+        </div>
+      )}
+      <div className="ws-body" ref={bodyRef} onClick={onBodyClick} data-page-body={index}>
+        {editing && (
+          <div className="ws-grid" aria-hidden="true">
+            {Array.from({ length: 12 }, (_, k) => (
+              <div key={k} />
+            ))}
+          </div>
+        )}
+        {editing && page.blocks.length === 0 && <div className="ws-empty">Element aus der Toolbox hierher ziehen</div>}
+        {children}
+        {dropEnd && <div className="ws-drop-end" />}
+      </div>
+      <div className="ws-foot">
+        <span className="ws-foot-text">{doc.footer}</span>
+        <span className="ws-foot-code">{doc.code}</span>
+        <span className="ws-foot-page">Seite {index + 1}</span>
+      </div>
+    </div>
+  );
+}
