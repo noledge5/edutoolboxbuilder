@@ -1,11 +1,13 @@
 // Start page: choose subject and grade, then a module; recently edited lessons for quick access.
 import { useState, type DragEvent } from 'react';
-import { Blocks, FolderSync, Plus, Settings as SettingsIcon, Sparkles, X } from 'lucide-react';
+import { Blocks, CalendarRange, FolderSync, Plus, Settings as SettingsIcon, Sparkles, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
 import { ClaudeDialog } from './ClaudeDialog';
 import { lastChange, lessonsOf, modulesOf, subjectsOf } from './model';
-import type { Lesson, Library, Module, Settings } from './types';
+import type { Lesson, Library, Module, SchoolYear, Settings } from './types';
+import { readSchoolYear } from './read';
+import { BW_2026_27, holidaysText } from './yearplan';
 import { GRADES } from './types';
 
 interface OverviewProps {
@@ -24,6 +26,7 @@ interface OverviewProps {
   onSync(): void;
   /** A file opened or dropped here: Stundenpaket, library backup or worksheet. */
   onOpenFile(file: File): void;
+  onOpenPlan(subject: string, grade: number): void;
 }
 
 export function Overview(p: OverviewProps) {
@@ -180,9 +183,15 @@ export function Overview(p: OverviewProps) {
 
         {subject ? (
           <section className="lib-section">
-            <h2 className="lib-h2">
-              Module · {subject} · Klasse {grade}
-            </h2>
+            <div className="lib-h2-row">
+              <h2 className="lib-h2">
+                Module · {subject} · Klasse {grade}
+              </h2>
+              <button type="button" className="btn btn-secondary ui-btn" onClick={() => p.onOpenPlan(subject, grade)}>
+                <Icon icon={CalendarRange} />
+                Jahresplan
+              </button>
+            </div>
             <div className="lib-grid">
               {modules.map((m) => {
                 const lessons = lessonsOf(lib, m.id);
@@ -229,15 +238,66 @@ export function Overview(p: OverviewProps) {
   );
 }
 
-function SettingsDialog({ settings, onSave, onClose }: { settings: Settings; onSave(s: Settings): void; onClose(): void }) {
+export function SettingsDialog({ settings, onSave, onClose }: { settings: Settings; onSave(s: Settings): void; onClose(): void }) {
   const [footerBase, setFooterBase] = useState(settings.footerBase);
+  const y = settings.schoolYear;
+  const [yearName, setYearName] = useState(y?.name ?? '');
+  const [start, setStart] = useState(y?.start ?? '');
+  const [end, setEnd] = useState(y?.end ?? '');
+  const [holidays, setHolidays] = useState(y ? holidaysText(y.holidays) : '');
+  const fill = (v: SchoolYear) => {
+    setYearName(v.name);
+    setStart(v.start);
+    setEnd(v.end);
+    setHolidays(holidaysText(v.holidays));
+  };
+  const schoolYear = (): SchoolYear | null =>
+    readSchoolYear({
+      name: yearName.trim(),
+      start,
+      end,
+      holidays: holidays
+        .split('\n')
+        .map((l) => l.split('|').map((x) => x.trim()))
+        .filter(([name]) => name)
+        .map(([name, from = '', to = '']) => ({ name, from, to })),
+    });
+  const incomplete = (start || end) && !schoolYear();
   return (
     <div className="dialog-backdrop" onClick={onClose}>
-      <div className="dialog" role="dialog" aria-modal="true" aria-label="Einstellungen" onClick={(e) => e.stopPropagation()}>
+      <div className="dialog sync-dialog" role="dialog" aria-modal="true" aria-label="Einstellungen" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-title">Einstellungen</div>
         <div className="field">
           <label htmlFor="footer-base">Fußzeile neuer Arbeitsblätter (das Fach wird angehängt)</label>
           <input id="footer-base" className="input" value={footerBase} placeholder="Name · Schule" onChange={(e) => setFooterBase(e.target.value)} />
+        </div>
+        <div className="settings-year">
+          <div className="panel-section-label">Schuljahr für den Jahresplan</div>
+          <div className="settings-year-row">
+            <div className="field">
+              <label htmlFor="sy-name">Schuljahr</label>
+              <input id="sy-name" className="input" value={yearName} placeholder="2026/27" onChange={(e) => setYearName(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="sy-start">Erster Schultag</label>
+              <input id="sy-start" className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="sy-end">Letzter Schultag</label>
+              <input id="sy-end" className="input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="sy-holidays">Ferien und freie Tage (je Zeile: Name | von | bis, z. B. Herbstferien | 26.10.2026 | 31.10.2026)</label>
+            <textarea id="sy-holidays" className="input" rows={6} value={holidays} onChange={(e) => setHolidays(e.target.value)} />
+          </div>
+          <div className="panel-row">
+            <button type="button" className="btn btn-secondary ui-btn" onClick={() => fill(BW_2026_27)}>
+              Baden-Württemberg {BW_2026_27.name} eintragen
+            </button>
+          </div>
+          <p className="sync-tip">Bewegliche Ferientage legt jede Schule selbst fest: Trage sie als eigene Zeile ein.</p>
+          {incomplete && <p className="json-err">Erster und letzter Schultag fehlen oder passen nicht zusammen.</p>}
         </div>
         <div className="dialog-actions">
           <button type="button" className="btn btn-secondary ui-btn" onClick={onClose}>
@@ -246,8 +306,9 @@ function SettingsDialog({ settings, onSave, onClose }: { settings: Settings; onS
           <button
             type="button"
             className="btn btn-primary ui-btn"
+            disabled={!!incomplete}
             onClick={() => {
-              onSave({ ...settings, footerBase: footerBase.trim(), updatedAt: Date.now() });
+              onSave({ ...settings, footerBase: footerBase.trim(), schoolYear: schoolYear(), updatedAt: Date.now() });
               onClose();
             }}
           >

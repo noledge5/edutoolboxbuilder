@@ -1,13 +1,14 @@
 // One printed A4 page: header band (Kopfband), optional name field, 12-column body grid, footer band (Fußband).
-import { useContext, type CSSProperties, type MouseEvent, type ReactNode, type Ref } from 'react';
+import { useContext, useMemo, type CSSProperties, type MouseEvent, type ReactNode, type Ref } from 'react';
 import { User, Users } from 'lucide-react';
 import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
-import { THEMES, type SheetTheme } from '../model/themes';
+import { THEMES, WORK_FORMS_EN, type SheetTheme } from '../model/themes';
 import type { Doc, Page } from '../model/types';
 import { topicIcon } from '../topicIcons';
 import { Editable } from './inlineEdit';
 import { SheetModeContext } from './sheetMode';
+import { SHEET_TEXT, SheetDocContext } from './lang';
 
 export const PAGE_W = 794;
 export const PAGE_H = 1123;
@@ -55,58 +56,65 @@ interface SheetPageProps {
 export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderClick, onBodyClick, bodyRef, dropEnd, style, hideForm, children, number = index + 1 }: SheetPageProps) {
   const t = themeOf(page);
   const mode = useContext(SheetModeContext);
+  // Pages for the teacher stay German, also in English modules.
+  const lang = page.type === 'lehrkraft' ? 'de' : doc.lang;
+  const sheetDoc = useMemo(() => (lang === doc.lang ? doc : { ...doc, lang }), [doc, lang]);
+  const en = lang === 'en';
+  const txt = SHEET_TEXT[lang];
   return (
-    <div className={'ws-page' + (mode.bw ? ' is-bw' : '')} style={{ ...themeVars(t), ...style }} data-page={index}>
-      <div className={'ws-band' + (headerSelected ? ' is-selected' : '')} onClick={onHeaderClick}>
-        <div className="ws-band-icon">
-          <Icon icon={topicIcon(doc.icon)} size={26} />
+    <SheetDocContext.Provider value={sheetDoc}>
+      <div className={'ws-page' + (mode.bw ? ' is-bw' : '')} style={{ ...themeVars(t), ...style }} data-page={index} lang={lang}>
+        <div className={'ws-band' + (headerSelected ? ' is-selected' : '')} onClick={onHeaderClick}>
+          <div className="ws-band-icon">
+            <Icon icon={topicIcon(doc.icon)} size={26} />
+          </div>
+          <div className="ws-band-text">
+            <Editable className="ws-kicker" target={`page${index}:kicker`} value={page.kicker} />
+            <Editable as="h1" className="ws-title" target={`page${index}:title`} value={page.title} />
+          </div>
+          <div className="ws-band-side">
+            {mode.solutions === 'shown' && <div className="ws-solution-pill">{txt.solution}</div>}
+            <div className="ws-type-pill">{en ? t.labelEn : t.label}</div>
+            {!hideForm && (
+              <div className="ws-form-pill">
+                <Icon icon={page.form === 'allein' ? User : Users} size={14} />
+                {en ? WORK_FORMS_EN[page.form] : page.form}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="ws-band-text">
-          <Editable className="ws-kicker" target={`page${index}:kicker`} value={page.kicker} />
-          <Editable as="h1" className="ws-title" target={`page${index}:title`} value={page.title} />
-        </div>
-        <div className="ws-band-side">
-          {mode.solutions === 'shown' && <div className="ws-solution-pill">Lösung</div>}
-          <div className="ws-type-pill">{t.label}</div>
-          {!hideForm && (
-            <div className="ws-form-pill">
-              <Icon icon={page.form === 'allein' ? User : Users} size={14} />
-              {page.form}
-            </div>
-          )}
-        </div>
-      </div>
-      {page.nameField !== 'aus' && (
-        <div className="ws-names">
-          <b>{page.nameField === 'namen' ? 'Namen:' : 'Name:'}</b>
-          <div className="ws-line" />
-          {page.nameField === 'klasse' && (
-            <>
-              <b>Klasse:</b>
-              <div className="ws-line is-short" />
-            </>
-          )}
-          <b>Datum:</b>
-          <div className="ws-line is-date" />
-        </div>
-      )}
-      <div className="ws-body" ref={bodyRef} onClick={onBodyClick} data-page-body={index}>
-        {editing && (
-          <div className="ws-grid" aria-hidden="true">
-            {Array.from({ length: 12 }, (_, k) => (
-              <div key={k} />
-            ))}
+        {page.nameField !== 'aus' && (
+          <div className="ws-names">
+            <b>{page.nameField === 'namen' ? txt.names : txt.name}</b>
+            <div className="ws-line" />
+            {page.nameField === 'klasse' && (
+              <>
+                <b>{txt.klasse}</b>
+                <div className="ws-line is-short" />
+              </>
+            )}
+            <b>{txt.date}</b>
+            <div className="ws-line is-date" />
           </div>
         )}
-        {editing && page.blocks.length === 0 && <div className="ws-empty">Element aus der Toolbox hierher ziehen</div>}
-        {children}
-        {dropEnd && <div className="ws-drop-end" />}
+        <div className="ws-body" ref={bodyRef} onClick={onBodyClick} data-page-body={index}>
+          {editing && (
+            <div className="ws-grid" aria-hidden="true">
+              {Array.from({ length: 12 }, (_, k) => (
+                <div key={k} />
+              ))}
+            </div>
+          )}
+          {editing && page.blocks.length === 0 && <div className="ws-empty">Element aus der Toolbox hierher ziehen</div>}
+          {children}
+          {dropEnd && <div className="ws-drop-end" />}
+        </div>
+        <div className="ws-foot">
+          <span className="ws-foot-text">{doc.footer}</span>
+          <span className="ws-foot-code">{doc.code}</span>
+          <span className="ws-foot-page">{number === null ? 'Lehrkraft' : txt.page(number)}</span>
+        </div>
       </div>
-      <div className="ws-foot">
-        <span className="ws-foot-text">{doc.footer}</span>
-        <span className="ws-foot-code">{doc.code}</span>
-        <span className="ws-foot-page">{number === null ? 'Lehrkraft' : `Seite ${number}`}</span>
-      </div>
-    </div>
+    </SheetDocContext.Provider>
   );
 }

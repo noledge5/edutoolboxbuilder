@@ -5,9 +5,9 @@ import { BLOCK_TYPES, SPAN_OPTIONS, type FieldDef } from '../model/blockTypes';
 import { getBlock, pageLabel } from '../model/ops';
 import { num, str } from '../model/text';
 import { SHEET_TYPES, THEMES, VARIANT_OPTIONS, WORK_FORMS } from '../model/themes';
-import type { Block, NameField, SheetType, WorkForm } from '../model/types';
+import type { Block, Lang, NameField, SheetType, WorkForm } from '../model/types';
 import type { EditorApi } from './api';
-import { AreaField, CompetenceField, IconPickerField, ImageField, NumberField, SegField, TextField } from './fields';
+import { AreaField, CompetenceField, IconPickerField, ImageField, IpaAreaField, NumberField, PicsField, PresetField, SegField, TextField } from './fields';
 
 interface PanelProps {
   api: EditorApi;
@@ -60,6 +60,7 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
   const T = BLOCK_TYPES[block.type];
   const set = (key: string) => (v: string | number) => api.setProp(block.id, key, v);
   const field = (f: FieldDef) => {
+    if (f.when === 'en' && api.doc.lang !== 'en') return null;
     const v = block.props[f.key];
     switch (f.kind) {
       case 'text':
@@ -76,6 +77,27 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         return <ImageField key={f.key} label={f.label} hasImage={!!str(v)} onFile={(file) => api.setImage(block.id, file)} onRemove={() => set(f.key)('')} />;
       case 'competence':
         return api.codeLocked ? <CompetenceField key={f.key} label={f.label} value={str(v)} competences={api.competences} onChange={set(f.key)} /> : null;
+      case 'ipa':
+        return <IpaAreaField key={f.key} label={f.label} value={str(v)} onChange={set(f.key)} />;
+      case 'pics': {
+        const ids = str(v).split('\n');
+        const names = str(block.props[f.of])
+          .split('\n')
+          .filter((l) => l.trim())
+          .map((l) => l.split('|').map((x) => x.trim()).filter(Boolean).join(' · '));
+        return (
+          <PicsField
+            key={f.key}
+            label={f.label}
+            names={names}
+            ids={ids}
+            onFile={(i, file) => api.setPic(block.id, i, file)}
+            onRemove={(i) => set(f.key)(ids.map((x, k) => (k === i ? '' : x)).join('\n'))}
+          />
+        );
+      }
+      case 'preset':
+        return <PresetField key={f.key} label={f.label} presets={f.presets} onPick={(i) => api.setProps(block.id, f.presets[i].props)} />;
     }
   };
 
@@ -111,6 +133,7 @@ function PageProperties({ api, p, close }: { api: EditorApi; p: number; close: R
         <TextField label="Titel" value={pg.title} onChange={(title) => api.setPage(p, { title })} />
         <TextField label="Zeile über dem Titel" value={pg.kicker} onChange={(kicker) => api.setPage(p, { kicker })} />
         <SegField<SheetType> label="Blatt-Typ" value={pg.type} options={SHEET_TYPES.map((k) => ({ v: k, l: THEMES[k].label }))} onPick={(type) => api.setPage(p, { type })} />
+        {pg.type === 'lehrkraft' && <p className="panel-note">Seiten für die Lehrkraft haben keine Seitenzahl und werden nur mit der Lösungsfassung gedruckt.</p>}
         <SegField<WorkForm> label="Sozialform" value={pg.form} options={WORK_FORMS.map((v) => ({ v, l: v }))} onPick={(form) => api.setPage(p, { form })} />
         <SegField<NameField>
           label="Namensfeld"
@@ -123,6 +146,30 @@ function PageProperties({ api, p, close }: { api: EditorApi; p: number; close: R
           ]}
           onPick={(nameField) => api.setPage(p, { nameField })}
         />
+      </div>
+      <div className="panel-section">
+        <div className="panel-section-label">{api.codeLocked ? 'Sprache · ganzes Modul' : 'Sprache · alle Seiten'}</div>
+        <SegField<Lang>
+          label="Sprache der Arbeitsblätter"
+          value={doc.lang}
+          options={[
+            { v: 'de', l: 'Deutsch' },
+            { v: 'en', l: 'Englisch' },
+          ]}
+          onPick={(lang) => api.setMeta({ lang })}
+        />
+        {doc.lang === 'en' && (
+          <SegField<boolean>
+            label="Deutsche Hilfe unter den Arbeitsaufträgen"
+            value={doc.help}
+            options={[
+              { v: true, l: 'Zeigen' },
+              { v: false, l: 'Ausblenden' },
+            ]}
+            onPick={(help) => api.setMeta({ help })}
+          />
+        )}
+        <p className="panel-note">Englisch: Kopfzeile „Name · Date“, englische Anführungszeichen, Rechtschreibprüfung und Silbentrennung auf Englisch.</p>
       </div>
       <div className="panel-section">
         <div className="panel-section-label">{api.codeLocked ? 'Symbol · ganzes Modul' : 'Symbol · alle Seiten'}</div>

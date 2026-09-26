@@ -15,6 +15,7 @@ Browser tool for a German Realschule teacher to build printable A4 worksheets fr
 - Instructions for Claude (`src/claude/`): `anleitung.md` plus generated block reference, icon list and example. After changing blocks, fields or icons run `npm run anleitung` to update `docs/claude/anleitung-fuer-claude.md` (a test fails otherwise).
 - Sheet modes (`src/sheet/sheetMode.ts`): answers hidden (student sheet), ghost (editing) or shown (solution sheet); `bw` for the black-and-white copy master. Teacher pages (`type: 'lehrkraft'`) have no page number and print only with the solution sheet.
 - PWA: `public/manifest.webmanifest`, `public/sw.js` (registered in production only).
+- Readers for stored and imported library data: `src/library/read.ts` (defaults for fields added later). Year plan maths: `src/library/yearplan.ts`. Vocabulary, points, grade scale, tips: `src/model/language.ts`.
 
 ## Rules
 - UI text is German and follows the labels in the design spec exactly. Code, identifiers and comments are English.
@@ -23,7 +24,9 @@ Browser tool for a German Realschule teacher to build printable A4 worksheets fr
 - The document (`Doc` in `src/model/types.ts`) is also the JSON import/export format. Any change to it must keep `normalizeDoc` in `src/model/normalize.ts` accepting older data.
 - Document changes go through the pure functions in `src/model/ops.ts` (immer), so undo/redo keeps working.
 - Topic icons for the header band are a curated list in `src/topicIcons.ts` (German labels and search words); add new ones there, not by importing all of Lucide.
-- New block type: add it to `BLOCK_TYPES` (`src/model/blockTypes.ts`), render it in `src/sheet/BlockContent.tsx` with styles in `src/sheet/sheet.css`, give it an icon in `src/icons.tsx` and a line in `BLOCK_USE` (`src/claude/instructions.ts`), then run `npm run anleitung`.
+- New block type: add it to `BLOCK_TYPES` (`src/model/blockTypes.ts`), render it in `src/sheet/BlockContent.tsx` (language, test and whole-sheet blocks in `src/sheet/LanguageBlocks.tsx`, listed in `LANGUAGE_BLOCKS`) with styles in `src/sheet/sheet.css`, give it an icon in `src/icons.tsx` and a line in `BLOCK_USE` (`src/claude/instructions.ts`), then run `npm run anleitung`. Tasks get the common task fields through `taskFields()`.
+- Sheet language: the worksheet's `lang` comes from the module. Fixed texts on the sheet go through `SHEET_TEXT` (`src/sheet/lang.ts`), quotation marks through `typo()`. Teacher pages stay German.
+- Colours beyond the design handoff: the ramps `--color-accent-3` … `--color-accent-7` in `tokens.css` (sheet types, box variants, toolbox groups).
 - Everything must work with touch on an iPad (dnd-kit TouchSensor, long-press to drag) and in print (`src/styles/print.css`: one A4 page per sheet).
 
 ## Commands

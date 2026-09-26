@@ -66,6 +66,8 @@ describe('library model', () => {
     const r = syncLibrary(here, file);
     expect(r.library.lessons.map((x) => x.id)).toEqual(['s2']);
     expect(r.removed).toBe(1);
+    // s1 was changed here but deleted there later: removed, not "newer here". s2 is newer here.
+    expect(r.keptHere).toBe(1);
     expect(r.library.deleted).toEqual({ s1: 20, s2: 30 });
   });
 

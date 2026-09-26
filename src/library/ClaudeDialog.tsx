@@ -48,9 +48,9 @@ export function ClaudeDialog({ onOpenFile, onClose }: ClaudeDialogProps) {
         <div className="sync-step">
           <div className="sync-step-num">2</div>
           <div className="sync-step-text">
-            <b>In Claude einrichten.</b> Lege auf claude.ai ein Projekt „Arbeitsblätter“ an und lade die Anleitung dort unter „Projektwissen“ hoch. Dann im Projekt z. B. schreiben:
-            „Erstelle ein Stundenpaket für Geographie Klasse 9 zum Treibhauseffekt, drei Stunden.“ Du kannst PDFs, Fotos alter Arbeitsblätter oder ein Stundenpaket aus dem
-            Baukasten anhängen.
+            <b>In Claude einrichten.</b> Lege auf claude.ai ein Projekt „Arbeitsblätter“ an und lade die Anleitung dort unter „Projektwissen“ hoch. Dann im Projekt z. B. schreiben: „Erstelle ein
+            Stundenpaket für Englisch Klasse 5, Green Line Unit 1, drei Stunden.“ oder „Erstelle den Jahresplan für Englisch Klasse 5.“ Du kannst PDFs, Fotos alter Arbeitsblätter, Lehrwerksseiten oder
+            ein Stundenpaket aus dem Baukasten anhängen. Hast du die Anleitung früher schon hochgeladen, ersetze sie durch die neue.
           </div>
         </div>
 
@@ -90,7 +90,9 @@ export function ClaudeDialog({ onOpenFile, onClose }: ClaudeDialogProps) {
           </button>
         </div>
 
-        <p className="sync-tip">Ein vorhandenes Modul gibst du Claude zum Überarbeiten über „Modul“ → „Als Stundenpaket sichern“.</p>
+        <p className="sync-tip">
+          Ein vorhandenes Modul gibst du Claude zum Überarbeiten über „Modul“ → „Als Stundenpaket sichern“, einen ganzen Jahrgang über „Jahresplan“ → „Als Stundenpaket sichern“.
+        </p>
         <div className="dialog-actions">
           <button type="button" className="btn btn-secondary ui-btn" onClick={onClose}>
             Schließen

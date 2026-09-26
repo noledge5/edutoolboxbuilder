@@ -204,7 +204,13 @@ function BlockFrame({ api, block, p, i, taskNum, dragging }: BlockFrameProps) {
       }}
     >
       {bar && <div className={'ed-bar ' + bar} />}
-      <BlockContent block={block} taskNum={taskNum} editing={editing} onImageFile={block.type === 'image' ? (f) => api.setImage(block.id, f) : undefined} />
+      <BlockContent
+        block={block}
+        taskNum={taskNum}
+        editing={editing}
+        onImageFile={block.type === 'image' ? (f) => api.setImage(block.id, f) : undefined}
+        onPicFile={block.type === 'picvocab' ? (i, f) => api.setPic(block.id, i, f) : undefined}
+      />
       {selected && (
         <div
           className={'ed-toolbar' + (toolbarBelow ? ' is-below' : '')}

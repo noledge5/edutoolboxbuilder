@@ -1,11 +1,14 @@
 // Data model of a worksheet document. The same shape is the JSON import/export format
 // (see docs/design/README.md, "State Management").
 
-export type SheetType = 'uebung' | 'versuch' | 'sicherung' | 'lehrkraft';
+export type SheetType = 'uebung' | 'versuch' | 'sicherung' | 'lehrkraft' | 'vocab' | 'grammar' | 'listening' | 'speaking' | 'test';
+
+/** Language of a worksheet: labels on the sheet, quotation marks, hyphenation and spell check. */
+export type Lang = 'de' | 'en';
 
 export type WorkForm = 'allein' | 'zu zweit' | 'Gruppe' | 'Plenum';
 
-export type Variant = 'accent-2' | 'accent' | 'neutral';
+export type Variant = 'accent-2' | 'accent' | 'neutral' | 'accent-3' | 'accent-4' | 'accent-5' | 'accent-6' | 'accent-7';
 
 /** Name line under the header band: Name + Datum, Namen (pairs/groups) + Datum, Name + Klasse + Datum, or none. */
 export type NameField = 'name' | 'namen' | 'klasse' | 'aus';
@@ -29,7 +32,26 @@ export type BlockType =
   | 'plan'
   | 'goal'
   | 'expect'
-  | 'recall';
+  | 'recall'
+  | 'vocab'
+  | 'foldtest'
+  | 'picvocab'
+  | 'wordweb'
+  | 'grammar'
+  | 'forms'
+  | 'jumble'
+  | 'transform'
+  | 'syntax'
+  | 'listening'
+  | 'reading'
+  | 'truefalse'
+  | 'phrases'
+  | 'rolecards'
+  | 'bingo'
+  | 'writing'
+  | 'mediation'
+  | 'gradescale'
+  | 'tipcards';
 
 export type PropValue = string | number;
 
@@ -55,6 +77,10 @@ export interface Page {
 export interface Doc {
   /** Topic icon in the header band, shared by all pages (a key from src/topicIcons.ts). */
   icon: string;
+  /** Language of the sheets (from the module). */
+  lang: Lang;
+  /** Show the German help under task instructions (from the module). */
+  help: boolean;
   /** Footer text, shared by all pages. */
   footer: string;
   /** Short code such as "K9 · M1 · S2", shared by all pages. */

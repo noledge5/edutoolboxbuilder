@@ -36,7 +36,8 @@ interface ModulePagesProps {
 
 /** The A4 pages (as SheetPages) for one kind of module print. */
 export function ModulePages({ kind, module: m, lessons, settings }: ModulePagesProps) {
-  const doc: Doc = { icon: m.icon, footer: footerFor(settings, m.subject), code: moduleCode(m), pages: [] };
+  // Module prints are for the teacher and the German competence grid: always German labels.
+  const doc: Doc = { icon: m.icon, lang: 'de', help: false, footer: footerFor(settings, m.subject), code: moduleCode(m), pages: [] };
   const kicker = `Klasse ${m.grade} · ${m.subject} · Modul ${m.number}`;
   const links = competenceLinks(lessons);
 
@@ -50,6 +51,11 @@ export function ModulePages({ kind, module: m, lessons, settings }: ModulePagesP
             <SheetPage doc={doc} page={page} index={i} editing={false} hideForm>
               <div className="ws-full">
                 {i === 0 && m.description.trim() && <p className="ws-text ov-intro">{m.description}</p>}
+                {i === 0 && m.textbook.trim() && (
+                  <p className="ws-text ov-book">
+                    <b>Lehrwerk:</b> {m.textbook}
+                  </p>
+                )}
                 <div className="ov-table">
                   <div className="ov-row is-head">
                     <div>Stunde</div>
@@ -59,7 +65,10 @@ export function ModulePages({ kind, module: m, lessons, settings }: ModulePagesP
                   {rows.map((l) => (
                     <div key={l.id} className="ov-row">
                       <div className="ov-num">{l.number}</div>
-                      <div className="ov-title">{l.title}</div>
+                      <div className="ov-title">
+                        {l.title}
+                        {l.textbook.trim() && <span className="ov-lesson-book">{l.textbook}</span>}
+                      </div>
                       <div className="ov-pages">
                         {l.doc.pages.map((pg, k) => (
                           <span key={k} className="ov-page" style={{ background: THEMES[pg.type].band }}>
@@ -114,6 +123,7 @@ export function ModulePages({ kind, module: m, lessons, settings }: ModulePagesP
                 {rows.map((c) => (
                   <div key={c.id} className="kr-row">
                     <div className="kr-area">
+                      {c.domain.trim() && <span className="kr-domain">{c.domain}</span>}
                       {c.area}
                       {competenceLessons(c, links.get(c.id)) && <span className="kr-lessons">Stunde {competenceLessons(c, links.get(c.id))}</span>}
                     </div>
@@ -136,7 +146,7 @@ export function ModulePages({ kind, module: m, lessons, settings }: ModulePagesP
 }
 
 /** Same frame as the editor's pages, so print.css prints exactly one A4 page per sheet. */
-function PrintFrame({ children }: { children: ReactNode }) {
+export function PrintFrame({ children }: { children: ReactNode }) {
   return (
     <div className="page-frame">
       <div className="page-scale" style={{ width: PAGE_W, height: PAGE_H }}>

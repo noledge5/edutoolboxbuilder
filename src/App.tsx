@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Editor, errorText } from './editor/Editor';
-import { changedSince, docForLesson, duplicateLesson, lessonFromDoc, lessonsOf, newLesson, newModule, subjectsOf, syncLibrary } from './library/model';
+import { changedSince, docForLesson, duplicateLesson, lessonFromDoc, lessonsOf, modulesOf, newLesson, newModule, subjectsOf, syncLibrary, vocabTestLesson } from './library/model';
 import { ModuleView } from './library/ModuleView';
 import { Overview } from './library/Overview';
 import { SyncDialog } from './library/SyncDialog';
@@ -8,7 +8,10 @@ import { go, useRoute } from './library/router';
 import { addPackage, type ParsedPackage } from './library/package';
 import type { Lesson, Library, Module, Settings } from './library/types';
 import type { Doc } from './model/types';
-import { createPackageFile, downloadBlob, packageFileName, readAnyFile, type OpenedFile } from './storage/backup';
+import { createPackageFile, createPlanFile, downloadBlob, packageFileName, readAnyFile, safeFileName, type OpenedFile } from './storage/backup';
+import { YearPlanView } from './library/YearPlanView';
+import { BW_2026_27 } from './library/yearplan';
+import { vocabCsv, vocabOf, vocabTestRows } from './model/language';
 import { requestPersistentStorage } from './storage/db';
 import * as store from './storage/library';
 
@@ -99,7 +102,8 @@ export function App() {
       const lesson = l?.lessons.find((x) => x.id === lessonId);
       const m = lesson && l?.modules.find((x) => x.id === lesson.moduleId);
       if (!lesson || !m) return;
-      if (doc.icon !== m.icon) putModule({ ...m, icon: doc.icon, updatedAt: Date.now() });
+      // Icon, language and the help switch belong to the module: set in one worksheet, they apply to all.
+      if (doc.icon !== m.icon || doc.lang !== m.lang || doc.help !== m.help) putModule({ ...m, icon: doc.icon, lang: doc.lang, help: doc.help, updatedAt: Date.now() });
       await putLesson({ ...lesson, doc, updatedAt: Date.now() });
     },
     [putLesson, putModule],
@@ -126,15 +130,27 @@ export function App() {
     );
   };
 
-  // A Stundenpaket (e.g. made by Claude) becomes a new module.
+  // A Stundenpaket (e.g. made by Claude) becomes new modules; a year plan may also bring the school year.
   const importPackage = async (pkg: ParsedPackage) => {
-    const r = addPackage(libRef.current!, pkg);
-    putModule(r.module);
+    const lib = libRef.current!;
+    const r = addPackage(lib, pkg);
+    for (const m of r.modules) putModule(m);
     for (const l of r.lessons) await putLesson(l);
+    const year = pkg.schoolYear;
+    if (year && JSON.stringify(year) !== JSON.stringify(lib.settings.schoolYear)) {
+      const replace = !lib.settings.schoolYear || window.confirm(`Das Paket enthält das Schuljahr ${year.name || ''} mit ${year.holidays.length} Ferienzeiten. Soll es das eingetragene Schuljahr ${lib.settings.schoolYear.name} ersetzen?`);
+      if (replace) putSettings({ ...lib.settings, schoolYear: year });
+    }
     setSyncOpen(false);
-    go({ view: 'module', id: r.module.id });
-    const n = r.lessons.length;
-    setNotice(`Stundenpaket importiert: „${r.module.title}“ ist jetzt Modul ${r.module.number} mit ${n} ${n === 1 ? 'Stunde' : 'Stunden'}.`);
+    const n = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
+    const [first] = r.modules;
+    if (r.modules.length === 1) {
+      go({ view: 'module', id: first.id });
+      setNotice(`Stundenpaket importiert: „${first.title}“ ist jetzt Modul ${first.number} mit ${n(r.lessons.length, 'Stunde', 'Stunden')}.`);
+    } else {
+      go({ view: 'overview', subject: first.subject, grade: first.grade });
+      setNotice(`Stundenpaket importiert: ${n(r.modules.length, 'Modul', 'Module')} mit ${n(r.lessons.length, 'Stunde', 'Stunden')}.`);
+    }
     if (r.notes.length) {
       const shown = r.notes.slice(0, 12);
       const more = r.notes.length - shown.length;
@@ -197,6 +213,29 @@ export function App() {
         competences={m.competences}
       />
     );
+  } else if (route.view === 'plan') {
+    const { subject, grade } = route;
+    view = (
+      <YearPlanView
+        lib={lib}
+        subject={subject}
+        grade={grade}
+        onBack={() => go({ view: 'overview', subject, grade })}
+        onChangeModule={putModule}
+        onOpenModule={(m) => go({ view: 'module', id: m.id })}
+        onSetSchoolYear={() => putSettings({ ...lib.settings, schoolYear: BW_2026_27 })}
+        onSaveSettings={putSettings}
+        onExport={async () => {
+          try {
+            const entries = modulesOf(lib, subject, grade).map((m) => ({ module: m, lessons: lessonsOf(lib, m.id) }));
+            const file = await createPlanFile(entries, lib.settings.schoolYear);
+            downloadBlob(new Blob([JSON.stringify(file, null, 1)], { type: 'application/json' }), `${safeFileName(`Jahresplan ${subject} Klasse ${grade}`)}.json`);
+          } catch (e) {
+            window.alert('Der Jahresplan konnte nicht gesichert werden: ' + errorText(e));
+          }
+        }}
+      />
+    );
   } else if (route.view === 'module') {
     const m = lib.modules.find((x) => x.id === route.id);
     if (!m) return <ToOverview />;
@@ -230,6 +269,16 @@ export function App() {
           remove([], [l.id]);
         }}
         onImportFile={(file) => openFile(file, m)}
+        onExportVocab={() => {
+          const csv = vocabCsv(vocabOf(lessons.map((l) => l.doc)));
+          downloadBlob(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }), `${safeFileName(`Vokabeln K${m.grade} M${m.number} ${m.title}`)}.csv`);
+        }}
+        onVocabTest={(o) => {
+          const rows = vocabTestRows(vocabOf(lessons.map((l) => l.doc)), o.count, o.direction, Math.random);
+          const l = vocabTestLesson(lib, m, rows, o.fold, o.gradeScale, o.direction === 'mixed' ? null : o.direction === 'de-en');
+          putLesson(l).catch(failed);
+          go({ view: 'lesson', id: l.id });
+        }}
         onExportPackage={async () => {
           try {
             const pkg = await createPackageFile(m, lessons);
@@ -260,6 +309,7 @@ export function App() {
         pending={changedSince(lib, inSyncUntil)}
         onSync={() => setSyncOpen(true)}
         onOpenFile={(file) => openFile(file)}
+        onOpenPlan={(subject, grade) => go({ view: 'plan', subject, grade })}
       />
     );
   }

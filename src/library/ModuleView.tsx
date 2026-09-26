@@ -1,6 +1,8 @@
 // One module: its data, the lessons (content overview) and the competence grid, with A4 prints of both.
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowLeft, ArrowUp, Copy, FileInput, ListChecks, PackageOpen, Plus, Printer, SquarePen, Table, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, BookA, Copy, Download, FileInput, ListChecks, PackageOpen, Plus, Printer, Shuffle, SquarePen, Table, Trash2 } from 'lucide-react';
+import { vocabOf } from '../model/language';
+import { VocabTestDialog, type VocabTestOptions } from './VocabTestDialog';
 import { IconPickerField, NumberField } from '../editor/fields';
 import { Menu } from '../editor/TopBar';
 import { Icon } from '../icons';
@@ -8,6 +10,7 @@ import { THEMES } from '../model/themes';
 import { topicIcon } from '../topicIcons';
 import { ModulePrint, type PrintKind } from './ModulePrint';
 import { competenceLessons, competenceLinks, linkLabel, newCompetence, type CompetenceLink } from './model';
+import { domainsFor } from './curriculum';
 import type { Competence, Lesson, Module, Settings } from './types';
 import { GRADES } from './types';
 
@@ -27,6 +30,9 @@ interface ModuleViewProps {
   onImportFile(file: File): void;
   /** Saves the module with all lessons as a Stundenpaket file. */
   onExportPackage(): void;
+  /** Saves the words of the module's vocabulary lists as CSV. */
+  onExportVocab(): void;
+  onVocabTest(o: VocabTestOptions): void;
 }
 
 type Tab = 'inhalt' | 'raster';
@@ -39,6 +45,9 @@ export function ModuleView(p: ModuleViewProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   const set = (patch: Partial<Module>) => p.onChange({ ...m, ...patch, updatedAt: Date.now() });
 
+  const [testOpen, setTestOpen] = useState(false);
+  const vocabCount = vocabOf(p.lessons.map((l) => l.doc)).length;
+  const noVocab = () => window.alert('In diesem Modul gibt es noch keine Vokabelliste. Lege in einer Stunde den Baustein „Vokabelliste“ an (Toolbox: Wortschatz & Grammatik).');
   if (printing) return <ModulePrint kind={printing} module={m} lessons={p.lessons} settings={p.settings} onClose={() => setPrinting(null)} />;
 
   return (
@@ -66,6 +75,16 @@ export function ModuleView(p: ModuleViewProps) {
             { label: 'Kompetenzraster', icon: Table, onClick: () => setPrinting('raster') },
           ]}
         />
+        {(m.lang === 'en' || vocabCount > 0) && (
+          <Menu
+            label="Vokabeln"
+            icon={BookA}
+            items={[
+              { label: 'Vokabeltest erstellen …', icon: Shuffle, onClick: () => (vocabCount ? setTestOpen(true) : noVocab()) },
+              { label: 'Vokabeln als CSV (Anki, Quizlet)', icon: Download, onClick: () => (vocabCount ? p.onExportVocab() : noVocab()) },
+            ]}
+          />
+        )}
         <Menu
           label="Modul"
           icon={SquarePen}
@@ -117,6 +136,31 @@ export function ModuleView(p: ModuleViewProps) {
                 ))}
               </select>
             </div>
+            <div className="field">
+              <label htmlFor="m-lang">Sprache der Blätter</label>
+              <select id="m-lang" className="input" value={m.lang} onChange={(e) => set({ lang: e.target.value === 'en' ? 'en' : 'de' })}>
+                <option value="de">Deutsch</option>
+                <option value="en">Englisch</option>
+              </select>
+            </div>
+            {m.lang === 'en' && (
+              <div className="field">
+                <label htmlFor="m-help">Deutsche Hilfe unter Aufträgen</label>
+                <select id="m-help" className="input" value={m.help ? 'ja' : 'nein'} onChange={(e) => set({ help: e.target.value === 'ja' })}>
+                  <option value="ja">zeigen</option>
+                  <option value="nein">ausblenden</option>
+                </select>
+              </div>
+            )}
+            <div className="field is-wide">
+              <label htmlFor="m-book">Lehrwerk (z. B. Green Line 1, Unit 2, S. 34–51)</label>
+              <input id="m-book" className="input" value={m.textbook} onChange={(e) => set({ textbook: e.target.value })} />
+            </div>
+            <NumberField label="Dauer in Schulwochen" value={m.weeks} min={0} max={40} onChange={(weeks) => set({ weeks })} />
+            <div className="field">
+              <label htmlFor="m-start">Beginn (leer = nach dem vorigen Modul)</label>
+              <input id="m-start" className="input" type="date" value={m.start} onChange={(e) => set({ start: e.target.value })} />
+            </div>
             <div className="field is-wide">
               <label htmlFor="m-desc">Kurzbeschreibung (erscheint in der Inhaltsübersicht)</label>
               <textarea id="m-desc" className="input" rows={2} value={m.description} onChange={(e) => set({ description: e.target.value })} />
@@ -140,8 +184,22 @@ export function ModuleView(p: ModuleViewProps) {
           </button>
         </div>
 
-        {tab === 'inhalt' ? <LessonList {...p} /> : <CompetenceGrid competences={m.competences} links={competenceLinks(p.lessons)} onChange={(competences) => set({ competences })} />}
+        {tab === 'inhalt' ? (
+          <LessonList {...p} />
+        ) : (
+          <CompetenceGrid competences={m.competences} domains={domainsFor(m.subject, m.lang)} links={competenceLinks(p.lessons)} onChange={(competences) => set({ competences })} />
+        )}
       </main>
+      {testOpen && (
+        <VocabTestDialog
+          available={vocabCount}
+          onCreate={(o) => {
+            setTestOpen(false);
+            p.onVocabTest(o);
+          }}
+          onClose={() => setTestOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -156,7 +214,16 @@ function LessonList(p: ModuleViewProps) {
               <NumberField label="Stunde" value={l.number} min={1} max={99} onChange={(number) => p.onChangeLesson({ ...l, number, updatedAt: Date.now() })} />
             </div>
             <div className="lib-lesson-main">
-              <input className="input lib-lesson-title" aria-label="Thema der Stunde" value={l.title} onChange={(e) => p.onChangeLesson({ ...l, title: e.target.value, updatedAt: Date.now() })} />
+              <div className="lib-lesson-titles">
+                <input className="input lib-lesson-title" aria-label="Thema der Stunde" value={l.title} onChange={(e) => p.onChangeLesson({ ...l, title: e.target.value, updatedAt: Date.now() })} />
+                <input
+                  className="input lib-lesson-book"
+                  aria-label="Seiten im Lehrwerk"
+                  placeholder="Lehrwerk, z. B. SB S. 36"
+                  value={l.textbook}
+                  onChange={(e) => p.onChangeLesson({ ...l, textbook: e.target.value, updatedAt: Date.now() })}
+                />
+              </div>
               <div className="lib-lesson-pages">
                 {l.doc.pages.map((pg, k) => (
                   <span key={k} className="lib-page-chip">
@@ -190,7 +257,15 @@ function LessonList(p: ModuleViewProps) {
   );
 }
 
-function CompetenceGrid({ competences, links, onChange }: { competences: Competence[]; links: Map<string, CompetenceLink[]>; onChange(c: Competence[]): void }) {
+interface CompetenceGridProps {
+  competences: Competence[];
+  /** Areas of the Bildungsplan to choose from (empty: free text). */
+  domains: readonly string[];
+  links: Map<string, CompetenceLink[]>;
+  onChange(c: Competence[]): void;
+}
+
+function CompetenceGrid({ competences, domains, links, onChange }: CompetenceGridProps) {
   const update = (i: number, patch: Partial<Competence>) => onChange(competences.map((c, k) => (k === i ? { ...c, ...patch } : c)));
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
@@ -208,6 +283,10 @@ function CompetenceGrid({ competences, links, onChange }: { competences: Compete
         {competences.map((c, i) => (
           <div key={c.id} className="lib-comp">
             <div className="lib-comp-head">
+              <div className="field lib-comp-domain">
+                <label htmlFor={'d' + c.id}>Bereich</label>
+                <input id={'d' + c.id} className="input" list={domains.length ? 'comp-domains' : undefined} value={c.domain} placeholder={domains[0] ?? 'z. B. Erkenntnisgewinnung'} onChange={(e) => update(i, { domain: e.target.value })} />
+              </div>
               <div className="field is-wide">
                 <label htmlFor={'a' + c.id}>Kompetenz</label>
                 <input id={'a' + c.id} className="input" value={c.area} placeholder="z. B. Den Treibhauseffekt erklären" onChange={(e) => update(i, { area: e.target.value })} />
@@ -247,10 +326,38 @@ function CompetenceGrid({ competences, links, onChange }: { competences: Compete
         ))}
         {competences.length === 0 && <p className="lib-empty">Noch keine Kompetenzen.</p>}
       </div>
-      <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={() => onChange([...competences, newCompetence()])}>
-        <Icon icon={Plus} />
-        Kompetenz
-      </button>
+      {domains.length > 0 && (
+        <datalist id="comp-domains">
+          {domains.map((d) => (
+            <option key={d} value={d} />
+          ))}
+        </datalist>
+      )}
+      <div className="lib-comp-add">
+        <button type="button" className="btn btn-secondary ui-btn" onClick={() => onChange([...competences, newCompetence(competences.at(-1)?.domain ?? '')])}>
+          <Icon icon={Plus} />
+          Kompetenz
+        </button>
+        {domains.length > 0 && (
+          <select
+            className="input lib-comp-template"
+            value=""
+            aria-label="Kompetenz für einen Bereich des Bildungsplans hinzufügen"
+            onChange={(e) => {
+              if (e.target.value === '*') onChange([...competences, ...domains.map((d) => newCompetence(d))]);
+              else if (e.target.value) onChange([...competences, newCompetence(e.target.value)]);
+            }}
+          >
+            <option value="">Bereich aus dem Bildungsplan hinzufügen …</option>
+            {domains.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+            <option value="*">Alle Bereiche auf einmal</option>
+          </select>
+        )}
+      </div>
     </section>
   );
 }

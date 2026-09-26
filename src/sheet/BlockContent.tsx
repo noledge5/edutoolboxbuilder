@@ -1,16 +1,41 @@
 // Printed content of one block. Pure rendering: editor chrome (selection, drag, toolbar) lives in the editor.
-import { useContext, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { Frown, Image as ImageIcon, Meh, Smile, Star } from 'lucide-react';
-import { encode } from 'uqr';
+import { useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Frown, Lightbulb, Meh, Smile, Star } from 'lucide-react';
 import { Icon, BLOCK_ICONS } from '../icons';
-import { FLOW_COLORS, VARIANTS } from '../model/themes';
-import { cellRows, choices, flowSteps, lines, matchNumbers, num, rows, segments, str, type Segment } from '../model/text';
+import { FLOW_COLORS } from '../model/themes';
+import { cellRows, choices, flowSteps, lines, matchNumbers, num, rows, str } from '../model/text';
 import type { Block, Variant } from '../model/types';
-import { useImageUrl } from '../storage/images';
 import { Editable } from './inlineEdit';
+import { answerClass, GapText, ImageBox, Marked, qrCode, variantVars } from './parts';
 import { SheetModeContext, type SolutionView } from './sheetMode';
 import { CompetenceNamesContext } from './competences';
-import { LEVEL_NAMES } from '../model/blockTypes';
+import { BLOCK_TYPES, LEVEL_NAMES } from '../model/blockTypes';
+import type { BlockType } from '../model/types';
+import { typo, useSheetDoc, useSheetLang, useSheetText } from './lang';
+import { LanguageBlock, LanguageTaskBody } from './LanguageBlocks';
+
+/** Block types drawn by LanguageBlocks.tsx. */
+const LANGUAGE_BLOCKS = new Set<BlockType>([
+  'vocab',
+  'foldtest',
+  'picvocab',
+  'wordweb',
+  'grammar',
+  'forms',
+  'jumble',
+  'transform',
+  'syntax',
+  'listening',
+  'reading',
+  'truefalse',
+  'phrases',
+  'rolecards',
+  'bingo',
+  'writing',
+  'mediation',
+  'gradescale',
+  'tipcards',
+]);
 
 interface BlockContentProps {
   block: Block;
@@ -19,52 +44,26 @@ interface BlockContentProps {
   editing: boolean;
   /** Called with an image file picked or dropped onto an image block (editor only). */
   onImageFile?: (file: File) => void;
+  /** Called with an image for one picture of a picture grid (editor only). */
+  onPicFile?: (index: number, file: File) => void;
 }
 
-const variantVars = (v: Variant): CSSProperties => {
-  const c = VARIANTS[v] ?? VARIANTS['accent-2'];
-  return {
-    '--v-bg': c.bg,
-    '--v-circle': c.circle,
-    '--v-circle-fg': c.circleFg,
-    '--v-title': c.title,
-    '--v-solid': c.solid,
-    '--v-solid-fg': c.solidFg,
-  } as CSSProperties;
-};
-
-/** Class for an answer: clear on the solution sheet, faint while editing. */
-const answerClass = (view: SolutionView) => (view === 'ghost' ? ' is-ghost' : '');
-
-/** A gap to write in; wide enough for its answer, which shows on the solution sheet. */
-function Blank({ seg, cls, view }: { seg: Segment; cls: string; view: SolutionView }) {
-  const answer = seg.solution;
-  const show = !!answer && view !== 'hidden';
-  const style = answer ? ({ '--w': `${answer.length * 0.6 + 1.4}em` } as CSSProperties) : undefined;
-  return (
-    <span className={cls + (show ? ' has-answer' + answerClass(view) : '')} style={style}>
-      {show ? answer : null}
-    </span>
-  );
-}
-
-function GapText({ text, blankClass }: { text: string; blankClass: string }) {
-  const { solutions } = useContext(SheetModeContext);
-  return (
-    <>
-      {segments(text).map((s, k) => (s.blank ? <Blank key={k} seg={s} cls={blankClass} view={solutions} /> : <span key={k}>{s.text}</span>))}
-    </>
-  );
-}
-
-export function BlockContent({ block, taskNum, editing, onImageFile }: BlockContentProps) {
+export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }: BlockContentProps) {
   const p = block.props;
   const t = (key: string) => `${block.id}:${key}`;
+  const txt = useSheetText();
+  const lang = useSheetLang();
+  const doc = useSheetDoc();
+  if (!BLOCK_TYPES[block.type].task && LANGUAGE_BLOCKS.has(block.type)) return <LanguageBlock block={block} target={t} editing={editing} />;
   switch (block.type) {
     case 'heading':
       return <Editable as="h3" className="ws-h3" target={t('text')} value={str(p.text)} />;
     case 'text':
-      return <Editable as="p" className="ws-text" target={t('text')} value={str(p.text)} multiline />;
+      return (
+        <Editable as="p" className="ws-text" target={t('text')} value={str(p.text)} multiline>
+          <Marked text={typo(str(p.text), lang)} />
+        </Editable>
+      );
     case 'hint':
       return (
         <div className="ws-hint" style={variantVars(str(p.variant) as Variant)}>
@@ -73,7 +72,9 @@ export function BlockContent({ block, taskNum, editing, onImageFile }: BlockCont
           </div>
           <div className="ws-hint-body">
             <Editable className="ws-hint-title" target={t('title')} value={str(p.title)} />
-            <Editable target={t('text')} value={str(p.text)} multiline />
+            <Editable target={t('text')} value={str(p.text)} multiline>
+              <Marked text={typo(str(p.text), lang)} />
+            </Editable>
           </div>
         </div>
       );
@@ -84,7 +85,7 @@ export function BlockContent({ block, taskNum, editing, onImageFile }: BlockCont
             <Icon icon={BLOCK_ICONS.merksatz} size={20} />
           </div>
           <div>
-            <div className="ws-label">Merksatz</div>
+            <div className="ws-label">{txt.merksatz}</div>
             <Editable className="ws-merksatz-text" target={t('text')} value={str(p.text)} multiline>
               <GapText text={str(p.text)} blankClass="ws-blank-lg" />
             </Editable>
@@ -94,10 +95,10 @@ export function BlockContent({ block, taskNum, editing, onImageFile }: BlockCont
     case 'wordbank':
       return (
         <div className="ws-wordbank">
-          <span className="ws-label">Wortspeicher</span>
+          <span className="ws-label">{txt.wordbank}</span>
           {lines(p.words).map((w, k) => (
             <span key={k} className="ws-word">
-              {w}
+              {typo(w, lang)}
             </span>
           ))}
         </div>
@@ -107,7 +108,11 @@ export function BlockContent({ block, taskNum, editing, onImageFile }: BlockCont
         <div className="ws-figure">
           <ImageBox id={str(p.image)} height={num(p.height, 200)} fit={str(p.fit) === 'contain' ? 'contain' : 'cover'} editing={editing} onImageFile={onImageFile} />
           <Editable className="ws-caption" target={t('caption')} value={str(p.caption)} />
-          {str(p.source).trim() && <div className="ws-source">Quelle: {str(p.source)}</div>}
+          {str(p.source).trim() && (
+            <div className="ws-source">
+              {txt.imageSource}: {str(p.source)}
+            </div>
+          )}
         </div>
       );
     case 'qr':
@@ -217,9 +222,18 @@ export function BlockContent({ block, taskNum, editing, onImageFile }: BlockCont
     default: {
       const level = num(p.level, 0);
       const points = num(p.points, 0);
+      const langPoints = num(p.langPoints, 0);
+      const help = str(p.help).trim();
       return (
         <div className="ws-task">
-          <div className="ws-num">{taskNum}</div>
+          <div className="ws-num">
+            {taskNum}
+            {str(p.tip).trim() && (
+              <span className="ws-tip-badge" title="Dazu gibt es eine Tippkarte">
+                <Icon icon={Lightbulb} size={10} />
+              </span>
+            )}
+          </div>
           <div className="ws-task-main">
             <div className="ws-task-head">
               {level > 0 && (
@@ -230,13 +244,28 @@ export function BlockContent({ block, taskNum, editing, onImageFile }: BlockCont
                 </span>
               )}
               <Editable className="ws-prompt" target={t('prompt')} value={str(p.prompt)} multiline />
-              {points > 0 && (
+              {points > 0 && langPoints === 0 && (
                 <span className="ws-points">
-                  <span className="ws-points-blank" />/ {points} P.
+                  <span className="ws-points-blank" />/ {points} {txt.points}
+                </span>
+              )}
+              {langPoints > 0 && (
+                <span className="ws-points is-split">
+                  <span>
+                    {txt.content} <span className="ws-points-blank" />/ {points}
+                  </span>
+                  <span>
+                    {txt.language} <span className="ws-points-blank" />/ {langPoints}
+                  </span>
                 </span>
               )}
             </div>
-            <TaskBody block={block} target={t} />
+            {help && doc?.help !== false && (
+              <div className="ws-help" lang="de">
+                {typo(help, 'de')}
+              </div>
+            )}
+            {LANGUAGE_BLOCKS.has(block.type) ? <LanguageTaskBody block={block} target={t} editing={editing} onPicFile={onPicFile} /> : <TaskBody block={block} target={t} />}
             <CompetenceTag id={str(p.competence)} level={str(p.level)} />
           </div>
         </div>
@@ -411,24 +440,9 @@ function RecallBlock({ title, items, always, titleTarget }: { title: string; ite
   );
 }
 
-/** Dark modules of a QR code as one SVG path. */
-function qrPath(data: boolean[][]): string {
-  let d = '';
-  data.forEach((row, y) => row.forEach((on, x) => on && (d += `M${x} ${y}h1v1h-1z`)));
-  return d;
-}
-
 function QrBlock({ url, caption, editing, captionTarget }: { url: string; caption: string; editing: boolean; captionTarget: string }) {
   const link = url.trim();
-  const qr = useMemo(() => {
-    if (!link || link === 'https://') return null;
-    try {
-      const r = encode(link, { ecc: 'M', border: 0 });
-      return { size: r.size, d: qrPath(r.data) };
-    } catch {
-      return 'error' as const;
-    }
-  }, [link]);
+  const qr = useMemo(() => qrCode(link), [link]);
   return (
     <div className="ws-qr">
       <div className="ws-qr-code">
@@ -448,80 +462,6 @@ function QrBlock({ url, caption, editing, captionTarget }: { url: string; captio
         <Editable className="ws-qr-caption" target={captionTarget} value={caption} />
         {qr && qr !== 'error' && <div className="ws-qr-url">{link.replace(/^https?:\/\//, '')}</div>}
       </div>
-    </div>
-  );
-}
-
-interface ImageBoxProps {
-  id: string;
-  height: number;
-  fit: 'cover' | 'contain';
-  editing: boolean;
-  onImageFile?: (file: File) => void;
-}
-
-function ImageBox({ id, height, fit, editing, onImageFile }: ImageBoxProps) {
-  const img = useImageUrl(id);
-  const input = useRef<HTMLInputElement>(null);
-  const [over, setOver] = useState(false);
-  const canEdit = editing && !!onImageFile;
-  const fileOf = (dt: DataTransfer | null) => Array.from(dt?.files ?? []).find((f) => f.type.startsWith('image/'));
-
-  return (
-    <div
-      className={'ws-image' + (over ? ' is-dragover' : '')}
-      style={{ height }}
-      onDragOver={
-        canEdit
-          ? (e) => {
-              if (!e.dataTransfer.types.includes('Files')) return;
-              e.preventDefault();
-              setOver(true);
-            }
-          : undefined
-      }
-      onDragLeave={canEdit ? () => setOver(false) : undefined}
-      onDrop={
-        canEdit
-          ? (e) => {
-              e.preventDefault();
-              setOver(false);
-              const f = fileOf(e.dataTransfer);
-              if (f) onImageFile!(f);
-            }
-          : undefined
-      }
-    >
-      {img.status === 'ready' && <img src={img.url} alt="" style={{ objectFit: fit }} draggable={false} />}
-      {canEdit && img.status !== 'ready' && img.status !== 'loading' && (
-        <div className="ws-image-empty" data-noprint="1">
-          <Icon icon={ImageIcon} size={20} />
-          <span>{img.status === 'missing' ? 'Bild fehlt auf diesem Gerät' : 'Abbildung hierher ziehen'}</span>
-          <button
-            type="button"
-            className="ws-image-pick"
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              input.current?.click();
-            }}
-          >
-            Bild wählen
-          </button>
-          <input
-            ref={input}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              e.target.value = '';
-              if (f) onImageFile!(f);
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 }

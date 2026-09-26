@@ -1,4 +1,4 @@
-import type { BlockType, Doc, DropTarget, Page, PropValue, Selection } from '../model/types';
+import type { BlockProps, BlockType, Doc, DropTarget, Page, PropValue, Selection } from '../model/types';
 
 /** State and actions the editor hands to its parts (canvas, panel, toolbox). */
 export interface EditorApi {
@@ -20,8 +20,12 @@ export interface EditorApi {
   setSpan(id: string, span: number): void;
   setProp(id: string, key: string, value: PropValue): void;
   setImage(id: string, file: File): void;
+  /** Sets several props at once (one undo step). */
+  setProps(id: string, props: BlockProps): void;
+  /** Stores an image as picture `index` of a picture grid (prop "pics", one id per line). */
+  setPic(id: string, index: number, file: File): void;
   setPage(p: number, patch: Partial<Omit<Page, 'blocks'>>): void;
-  setMeta(patch: { icon?: string; footer?: string; code?: string }): void;
+  setMeta(patch: Partial<Pick<Doc, 'icon' | 'footer' | 'code' | 'lang' | 'help'>>): void;
   addPage(): void;
   deletePage(p: number): void;
   /** Moves blocks `i`… of page `p` to a new page right after it. */

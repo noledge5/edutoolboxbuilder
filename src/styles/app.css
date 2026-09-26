@@ -105,13 +105,38 @@ body { background: var(--color-neutral-200); }
 .tb-help { font-size: 12.5px; color: var(--color-neutral-700); }
 .tb-group { display: flex; flex-direction: column; gap: 6px; }
 .tb-group-label {
-  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 6px;
+  border: 0;
+  background: none;
+  font: inherit;
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.1em;
+  text-align: left;
   text-transform: uppercase;
   color: var(--color-neutral-700);
+  cursor: pointer;
 }
+.tb-group-label:hover { color: var(--color-text); }
+.tb-group.is-closed .tb-group-label svg { transform: rotate(-90deg); }
+
+/* Properties panel: IPA keys, picture slots */
+.ipa-keys { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.ipa-key {
+  min-width: 34px; height: 30px; padding: 0 6px;
+  border: 1px solid var(--color-divider); border-radius: 999px; background: var(--color-ui);
+  font-family: "Noto Sans", var(--font-body); font-size: 14px; color: var(--color-text); cursor: pointer;
+}
+.ipa-key:hover { background: var(--color-accent-100); }
+.pics-list { display: flex; flex-direction: column; gap: 6px; }
+.pics-item { display: flex; align-items: center; gap: 8px; }
+.pics-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.ui-btn.is-small { padding: 4px 10px; min-height: 30px; font-size: 12.5px; }
 .tb-item {
   display: flex;
   align-items: center;

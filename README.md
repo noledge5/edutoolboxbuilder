@@ -1,6 +1,6 @@
 # Arbeitsblatt-Baukasten
 
-Ein Browser-Werkzeug für Lehrkräfte (Realschule, Klasse 5–10): Arbeitsblätter aus fertigen Bausteinen auf A4-Seiten zusammensetzen, nach Fach, Jahrgang und Modul ordnen und drucken oder als PDF speichern. Jede Seite hat ein festes Kopfband und Fußband, damit alle Blätter einheitlich aussehen.
+Ein Browser-Werkzeug für Lehrkräfte (Realschule, Klasse 5–10): Arbeitsblätter aus fertigen Bausteinen auf A4-Seiten zusammensetzen, nach Fach, Jahrgang und Modul ordnen, übers Schuljahr planen und drucken oder als PDF speichern. Jede Seite hat ein festes Kopfband und Fußband, damit alle Blätter einheitlich aussehen. Für Englisch gibt es eigene Bausteine, Blatt-Typen und englische Beschriftungen.
 
 Online: **https://noledge5.github.io/edutoolboxbuilder/** · Stand und Pläne: [docs/roadmap.md](docs/roadmap.md)
 
@@ -12,6 +12,10 @@ Online: **https://noledge5.github.io/edutoolboxbuilder/** · Stand und Pläne: [
   - **Inhalt:** die Stunden des Moduls mit ihren Seiten. Stunde anlegen, umnummerieren, umbenennen, öffnen, duplizieren, löschen.
   - **Kompetenzraster:** je Kompetenz „Ich kann …“-Sätze für die Niveaus G (grundlegend), M (mittel) und E (erweitert). Darunter stehen die Aufgaben, die mit der Kompetenz verknüpft sind („Std. 2 · S. 1 · Nr. 3 (M)“). Die Stunden trägt der Baukasten daraus selbst ein, wenn das Feld „Stunde(n)“ leer bleibt.
 - **Drucken** (im Modul): Inhaltsübersicht für die Lehrkraft und Kompetenzraster zum Ankreuzen für die Klasse, im selben A4-Stil wie die Arbeitsblätter.
+- **Modul:** außerdem Sprache der Blätter (Deutsch/Englisch), deutsche Hilfe unter englischen Aufträgen, Lehrwerksbezug, Dauer in Schulwochen und Beginn für den Jahresplan. Jede Stunde hat ein Feld für die Seiten im Lehrwerk.
+- **Kompetenzraster:** jede Kompetenz mit Bereich; für Englisch und andere Fremdsprachen lassen sich die Bereiche des Bildungsplans BW einzeln oder alle auf einmal hinzufügen (Hör-/Hörsehverstehen, Leseverstehen, Sprechen, Schreiben, Sprachmittlung, sprachliche Mittel, interkulturelle sowie Text- und Medienkompetenz).
+- **Jahresplan** (in der Übersicht neben den Modulen): alle Module des Jahrgangs auf den Schulwochen, Ferienwochen übersprungen, mit Kalenderwochen und Daten. Das Schuljahr 2026/27 für Baden-Württemberg ist mit einem Klick eingetragen; Schuljahr und Ferien lassen sich unter „Einstellungen“ ändern. Druckbar auf einer A4-Seite, und als Stundenpaket für Claude sicherbar.
+- **Vokabeln** (im Modul, bei Englisch): „Vokabeltest erstellen …“ wählt zufällig Wörter aus den Vokabellisten des Moduls und legt eine Stunde mit dem Test (und Notenschlüssel) an; „Vokabeln als CSV“ für Anki, Quizlet oder LearningApps.
 - **Modul → Als Stundenpaket sichern:** das ganze Modul mit allen Stunden und Bildern als eine Datei, z. B. für Kolleginnen und Kollegen oder als Vorlage für Claude.
 - **Zuletzt bearbeitet:** die letzten Stunden für den schnellen Einstieg.
 - Das Kürzel im Fußband (z. B. „K9 · M1 · S2“) und das Themen-Symbol kommen automatisch aus Klasse, Modul und Stunde.
@@ -21,6 +25,9 @@ Online: **https://noledge5.github.io/edutoolboxbuilder/** · Stand und Pläne: [
 - **Text direkt auf der Seite ändern:** Doppelklick, oder ein ausgewähltes Element noch einmal anklicken bzw. antippen. Esc oder Klick daneben beendet.
 - **Panel rechts:** alle Inhalte und die Breite (Ganz · ⅔ · ½ · ⅓). Bei Aufgaben außerdem **Niveau** (★ G · ★★ M · ★★★ E), **Punkte** (druckt „__ / 3 P.“) und die **Kompetenz** aus dem Kompetenzraster des Moduls. Klick auf das Kopfband öffnet Titel, Blatt-Typ, Sozialform, Namensfeld (Name · Namen · Name + Klasse · aus), Symbol und Fußzeile.
 - **Lösungen hinterlegen:** in Lücken `[[Wort]]` statt `___`, beim Ankreuzen `*` vor die richtige Antwort, bei Offener Frage, Tabelle und Zuordnen im Feld „Lösung“. Beim Bearbeiten erscheinen sie blass, in der Lösungsfassung deutlich, in der Schülerfassung gar nicht.
+- **Englisch:** Ist das Modul englisch, stehen auf den Blättern „Name · Class · Date“, englische Blatt-Typen und Sozialformen und englische Anführungszeichen; Rechtschreibprüfung und Silbentrennung laufen auf Englisch. Jede Aufgabe kann eine **deutsche Hilfe** haben, die klein unter dem Auftrag steht und sich pro Modul ausblenden lässt. Lehrkraft-Seiten bleiben deutsch.
+- **Bausteine für Sprachen:** Vokabelliste mit Lautschrift (mit Zeichenleiste für ə, θ, ʃ …), Knick-Vokabeltest, Bild-Vokabeln (Emoji oder eigene Bilder), Wortnetz, Grammatik-Box (`{{s}}` markiert Endungen farbig), Formentabelle mit Vorlagen (to be, have got, simple present, can, present progressive), Wörter ordnen, Umformen, Satzbaustellen, Hörverstehen (Track, QR-Code zur Audiodatei, Transkript nur in der Lösungsfassung), Lesetext mit Zeilennummern und Worterklärungen, Richtig/Falsch/Not in the text, Redemittel, Rollenkarten zum Ausschneiden, Bingo und „Find someone who“, Schreibrahmen mit Checkliste, Sprachmittlung. Die Sprach-Gruppen der Toolbox sind in deutschen Modulen zugeklappt.
+- **Tests und Differenzierung:** Blatt-Typ „Test“; Punkte je Aufgabe, auf Wunsch getrennt nach Inhalt und Sprache; Notenschlüssel, der die Punkte des Arbeitsblatts zählt (Prozentgrenzen einstellbar, halbe Punkte); Tipps an Aufgaben, die der Baustein „Tippkarten“ als Karten zum Ausschneiden sammelt.
 - **Bausteine für die Lehrkraft:** Stundenverlauf, Ziel & Bildungsplan, Erwartungshorizont (Richtig/Falsch/Vorsicht) und Abruffragen. Sie gehören auf eine Seite vom Blatt-Typ „Für die Lehrkraft“; solche Seiten haben keine Seitenzahl und werden nur mit der Lösungsfassung gedruckt.
 - **Seite ist voll:** Der Knopf „Überlauf auf neue Seite“ verschiebt, was unten abgeschnitten wird, auf eine neue Folgeseite. „Seite hinzufügen“ übernimmt Blatt-Typ, Zeile über dem Titel, Sozialform und Namensfeld der aktuellen Seite.
 - **Verschieben:** ziehen (auch auf andere Seiten) oder die Pfeile in der schwarzen Leiste über dem Element; am Seitenrand wandert das Element auf die vorige bzw. nächste Seite.
@@ -40,9 +47,9 @@ Der Punkt am Knopf „Abgleich Mac/iPad“ ist orange, solange es Änderungen gi
 
 ### Mit Claude erstellen
 **Übersicht → Mit Claude** führt durch drei Schritte:
-1. **Anleitung für Claude laden.** Die Datei beschreibt Claude das Format „Stundenpaket“, alle Bausteine mit ihren Feldern, die Themen-Symbole, wie viel auf eine Seite passt, und enthält ein vollständiges Beispiel. Dieselbe Anleitung liegt in [docs/claude/anleitung-fuer-claude.md](docs/claude/anleitung-fuer-claude.md).
-2. **In Claude einrichten:** auf claude.ai ein Projekt anlegen und die Anleitung unter „Projektwissen“ hochladen. Dann z. B. schreiben: „Erstelle ein Stundenpaket für Geographie Klasse 9 zum Treibhauseffekt, drei Stunden.“ PDFs, Fotos alter Arbeitsblätter oder ein Stundenpaket aus dem Baukasten können angehängt werden.
-3. **Paket öffnen:** die Datei von Claude über „Stundenpaket öffnen …“ wählen, auf die Übersicht ziehen oder den JSON-Text aus dem Chat einfügen. Daraus wird ein neues Modul mit Kompetenzraster und Stunden. Was der Baukasten reparieren musste (unbekannte Bausteine oder Felder, fehlende Kompetenzen), zeigt er danach an.
+1. **Anleitung für Claude laden.** Die Datei beschreibt Claude das Format „Stundenpaket“ (auch mit mehreren Modulen für einen Jahresplan), alle Bausteine mit ihren Feldern, Blatt-Typen, Bereiche des Bildungsplans, die Ferien 2026/27, die Themen-Symbole, wie viel auf eine Seite passt, was bei Englisch gilt, und enthält drei vollständige Beispiele (Englisch Klasse 5, Jahresplan, Geographie). Dieselbe Anleitung liegt in [docs/claude/anleitung-fuer-claude.md](docs/claude/anleitung-fuer-claude.md).
+2. **In Claude einrichten:** auf claude.ai ein Projekt anlegen und die Anleitung unter „Projektwissen“ hochladen (eine ältere Fassung ersetzen). Dann z. B. schreiben: „Erstelle ein Stundenpaket für Englisch Klasse 5, Unit 1, drei Stunden.“ oder „Erstelle den Jahresplan für Englisch Klasse 5 nach Green Line 1.“ PDFs, Fotos alter Arbeitsblätter, Lehrwerksseiten oder ein Stundenpaket aus dem Baukasten können angehängt werden.
+3. **Paket öffnen:** die Datei von Claude über „Stundenpaket öffnen …“ wählen, auf die Übersicht ziehen oder den JSON-Text aus dem Chat einfügen. Daraus werden neue Module mit Kompetenzraster und Stunden; ein Jahresplan bringt auch das Schuljahr mit. Was der Baukasten reparieren musste (unbekannte Bausteine oder Felder, fehlende Kompetenzen), zeigt er danach an.
 
 ### Weitere Dateien
 - **Arbeitsblatt → Datei → Als Datei sichern / Öffnen …:** ein einzelnes Arbeitsblatt mit Bildern. Im Modul über „Modul → Arbeitsblatt-Datei als Stunde importieren …“ wird daraus eine neue Stunde.
@@ -77,8 +84,8 @@ Jeder Push auf `main` baut die App und veröffentlicht sie (`.github/workflows/d
 src/
   App.tsx     lädt die Bibliothek und zeigt je nach Adresse Übersicht, Modul oder Editor
   library/    Übersicht, Modulseite, Kompetenzraster, Druck von Inhaltsübersicht/Kompetenzraster, Routen,
-              Abgleich Mac/iPad, Stundenpaket (Import/Export)
-  claude/     Anleitung für Claude: Text (anleitung.md) plus Bausteinliste, Symbole und Beispiel aus dem Code
+              Abgleich Mac/iPad, Stundenpaket (Import/Export), Jahresplan, Vokabeltest
+  claude/     Anleitung für Claude: Text (anleitung.md) plus Bausteinliste, Symbole, Bereiche, Ferien und Beispiele aus dem Code
   model/      Datenmodell eines Arbeitsblatts: Typen, Blocktypen, Blatt-Typen, Operationen, JSON-Prüfung, Undo
   sheet/      die gedruckte A4-Seite (Kopfband, Raster, Fußband, alle Blocktypen, Bearbeiten auf der Seite)
   editor/     Editor-Oberfläche: Toolbox, Canvas, Eigenschaften, Datei-Menü, Drag-and-Drop

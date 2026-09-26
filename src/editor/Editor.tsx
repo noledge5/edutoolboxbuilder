@@ -194,6 +194,20 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
         .then((imageId) => commit(ops.updateBlock(latest.current.doc, id, { props: { image: imageId } })))
         .catch((e) => window.alert('Das Bild konnte nicht gespeichert werden: ' + errorText(e)));
     },
+    setProps: (id, props) => commit(ops.updateBlock(doc, id, { props })),
+    setPic: (id, index, file) => {
+      storeImageFile(file)
+        .then((imageId) => {
+          const d = latest.current.doc;
+          const b = ops.getBlock(d, id);
+          if (!b) return;
+          const pics = String(b.props.pics ?? '').split('\n');
+          while (pics.length <= index) pics.push('');
+          pics[index] = imageId;
+          commit(ops.updateBlock(d, id, { props: { pics: pics.join('\n') } }));
+        })
+        .catch((e) => window.alert('Das Bild konnte nicht gespeichert werden: ' + errorText(e)));
+    },
     setPage: (p, patch) => commit(ops.updatePage(doc, p, patch), { mergeKey: `page${p}.${Object.keys(patch).join()}` }),
     setMeta: (patch) => commit(ops.updateDocMeta(doc, patch), { mergeKey: `meta.${Object.keys(patch).join()}` }),
     addPage: () => {
@@ -531,7 +545,7 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
           }}
         />
         <div className="workspace">
-          {editing && <Toolbox open={!compact || toolboxOpen} compact={compact} onAdd={api.addBlock} onClose={() => setToolboxOpen(false)} />}
+          {editing && <Toolbox open={!compact || toolboxOpen} compact={compact} lang={doc.lang} onAdd={api.addBlock} onClose={() => setToolboxOpen(false)} />}
           <InlineEditContext.Provider value={editing ? inlineEdit : null}>
             <SheetModeContext.Provider value={sheetMode}>
               <CompetenceNamesContext.Provider value={competenceNames}>

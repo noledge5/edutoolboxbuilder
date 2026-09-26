@@ -1,8 +1,8 @@
 // Pure library helpers: codes, new modules and lessons, migration of the old single worksheet, sample data.
 import { BLOCK_TYPES, LEVEL_NAMES } from '../model/blockTypes';
-import { createPage, sheetNumbers, uid } from '../model/ops';
+import { createBlock, createPage, sheetNumbers, uid } from '../model/ops';
 import { seedDoc } from '../model/seed';
-import type { Doc } from '../model/types';
+import type { Doc, Lang } from '../model/types';
 import { DEFAULT_TOPIC_ICON } from '../topicIcons';
 import type { Competence, Lesson, Library, Module, Settings } from './types';
 
@@ -17,8 +17,14 @@ export const modulePlace = (m: Module) => `${m.subject} · Klasse ${m.grade} · 
 
 export const footerFor = (settings: Settings, subject: string) => [settings.footerBase.trim(), subject].filter(Boolean).join(' · ');
 
-/** The lesson's document with icon and code taken from its module, so they are always consistent. */
-export const docForLesson = (m: Module, l: Lesson): Doc => ({ ...l.doc, icon: m.icon, code: lessonCode(m, l.number) });
+/** The lesson's document with icon, code, language and help switch taken from its module, so they are always consistent. */
+export const docForLesson = (m: Module, l: Lesson): Doc => ({ ...l.doc, icon: m.icon, lang: m.lang, help: m.help, code: lessonCode(m, l.number) });
+
+/** English modules get English worksheets by default. */
+export const defaultLang = (subject: string): Lang => (/englisch|english/i.test(subject) ? 'en' : 'de');
+
+/** "Klasse 9" on German sheets, "Class 9" on English ones. */
+export const gradeLabel = (m: Pick<Module, 'grade' | 'lang'>) => `${m.lang === 'en' ? 'Class' : 'Klasse'} ${m.grade}`;
 
 export const modulesOf = (lib: Library, subject: string, grade: number) =>
   lib.modules.filter((m) => m.subject === subject && m.grade === grade).sort((a, b) => a.number - b.number || a.title.localeCompare(b.title));
@@ -70,7 +76,7 @@ export function subjectsOf(lib: Library): string[] {
   return all;
 }
 
-export const newCompetence = (): Competence => ({ id: uid(), area: '', g: 'Ich kann …', m: 'Ich kann …', e: 'Ich kann …', lessons: '' });
+export const newCompetence = (domain = ''): Competence => ({ id: uid(), area: '', g: 'Ich kann …', m: 'Ich kann …', e: 'Ich kann …', lessons: '', domain });
 
 export function newModule(lib: Library, subject: string, grade: number): Module {
   const taken = modulesOf(lib, subject, grade).map((m) => m.number);
@@ -83,6 +89,11 @@ export function newModule(lib: Library, subject: string, grade: number): Module 
     icon: DEFAULT_TOPIC_ICON,
     description: '',
     competences: [],
+    lang: defaultLang(subject),
+    help: true,
+    textbook: '',
+    weeks: 0,
+    start: '',
     updatedAt: Date.now(),
   };
 }
@@ -90,21 +101,43 @@ export function newModule(lib: Library, subject: string, grade: number): Module 
 export function newLesson(lib: Library, m: Module): Lesson {
   const taken = lessonsOf(lib, m.id).map((l) => l.number);
   const number = taken.length ? Math.max(...taken) + 1 : 1;
-  const page = { ...createPage(), kicker: `Klasse ${m.grade} · ${m.title}` };
+  const page = { ...createPage(), kicker: `${gradeLabel(m)} · ${m.title}` };
   return {
     id: uid(),
     moduleId: m.id,
     number,
     title: 'Neue Stunde',
-    doc: { icon: m.icon, footer: footerFor(lib.settings, m.subject), code: lessonCode(m, number), pages: [page] },
+    textbook: '',
+    doc: { icon: m.icon, lang: m.lang, help: m.help, footer: footerFor(lib.settings, m.subject), code: lessonCode(m, number), pages: [page] },
     updatedAt: Date.now(),
   };
+}
+
+/**
+ * A new lesson with a vocabulary test: `rows` are "given | answer" lines (see vocabTestRows), one point each.
+ * `fold` makes it a fold test for practice; `gradeScale` adds the grade scale below.
+ */
+export function vocabTestLesson(lib: Library, m: Module, rows: string, fold: boolean, gradeScale: boolean, toEnglish: boolean | null): Lesson {
+  const l = newLesson(lib, m);
+  const en = m.lang === 'en';
+  const count = rows.split('\n').filter(Boolean).length;
+  const prompt = toEnglish === null ? (en ? 'Translate the words.' : 'Übersetze die Wörter.') : toEnglish ? (en ? 'Translate into English.' : 'Übersetze ins Englische.') : en ? 'Translate into German.' : 'Übersetze ins Deutsche.';
+  const title = en ? 'Vocabulary test' : 'Vokabeltest';
+  const page = {
+    ...l.doc.pages[0],
+    title: `${title}: ${m.title}`,
+    type: 'test' as const,
+    form: 'allein' as const,
+    nameField: 'klasse' as const,
+    blocks: [createBlock('foldtest', { prompt, rows, mode: fold ? 'knick' : 'test', points: fold ? 0 : count }), ...(gradeScale && !fold ? [createBlock('gradescale')] : [])],
+  };
+  return { ...l, title, doc: { ...l.doc, pages: [page] } };
 }
 
 /** A lesson made from an imported worksheet file. */
 export function lessonFromDoc(lib: Library, m: Module, doc: Doc): Lesson {
   const l = newLesson(lib, m);
-  return { ...l, title: doc.pages[0]?.title || l.title, doc: { ...doc, icon: m.icon, code: l.doc.code } };
+  return { ...l, title: doc.pages[0]?.title || l.title, doc: { ...doc, icon: m.icon, lang: m.lang, help: m.help, code: l.doc.code } };
 }
 
 /**
@@ -115,7 +148,7 @@ export function libraryFromOldDoc(doc: Doc): Library {
   const code = /K\s*(\d+)\s*·\s*M\s*(\d+)\s*·\s*S\s*(\d+)/.exec(doc.code);
   const parts = doc.footer.split('·').map((s) => s.trim()).filter(Boolean);
   const subject = parts.length > 1 ? parts[parts.length - 1] : 'Allgemein';
-  const settings: Settings = { subjects: [subject], footerBase: parts.slice(0, -1).join(' · '), updatedAt: Date.now() };
+  const settings: Settings = { subjects: [subject], footerBase: parts.slice(0, -1).join(' · '), schoolYear: null, updatedAt: Date.now() };
   const grade = code ? Math.min(10, Math.max(5, Number(code[1]))) : 9;
   const module: Module = {
     id: uid(),
@@ -126,9 +159,14 @@ export function libraryFromOldDoc(doc: Doc): Library {
     icon: doc.icon,
     description: '',
     competences: [],
+    lang: doc.lang,
+    help: doc.help,
+    textbook: '',
+    weeks: 0,
+    start: '',
     updatedAt: Date.now(),
   };
-  const lesson: Lesson = { id: uid(), moduleId: module.id, number: code ? Number(code[3]) : 1, title: doc.pages[0]?.title || 'Stunde', doc, updatedAt: Date.now() };
+  const lesson: Lesson = { id: uid(), moduleId: module.id, number: code ? Number(code[3]) : 1, title: doc.pages[0]?.title || 'Stunde', textbook: '', doc, updatedAt: Date.now() };
   return { settings, modules: [module], lessons: [lesson], deleted: {} };
 }
 
@@ -138,7 +176,7 @@ export function libraryFromOldDoc(doc: Doc): Library {
  * duplicate it, and any real edit is newer.
  */
 export function seedLibrary(): Library {
-  const settings: Settings = { subjects: ['Geographie'], footerBase: 'Kuhl · Grafen-von-Zimmern-Realschule', updatedAt: 0 };
+  const settings: Settings = { subjects: ['Geographie'], footerBase: 'Kuhl · Grafen-von-Zimmern-Realschule', schoolYear: null, updatedAt: 0 };
   const module: Module = {
     id: 'beispiel-modul',
     subject: 'Geographie',
@@ -155,6 +193,7 @@ export function seedLibrary(): Library {
         m: 'Ich kann beschreiben, wie sich CO₂ und Temperatur entwickeln.',
         e: 'Ich kann begründen, warum ein zeitlicher Zusammenhang noch keine Ursache beweist.',
         lessons: '1',
+        domain: '',
       },
       {
         id: 'beispiel-k2',
@@ -163,6 +202,7 @@ export function seedLibrary(): Library {
         m: 'Ich kann den Treibhauseffekt mit dem Fließschema erklären.',
         e: 'Ich kann natürlichen und zusätzlichen Treibhauseffekt vergleichen.',
         lessons: '2',
+        domain: '',
       },
       {
         id: 'beispiel-k3',
@@ -171,12 +211,18 @@ export function seedLibrary(): Library {
         m: 'Ich kann das Ergebnis des Versuchs deuten.',
         e: 'Ich kann erklären, was das Modell zeigt und was nicht.',
         lessons: '2',
+        domain: '',
       },
     ],
+    lang: 'de',
+    help: true,
+    textbook: '',
+    weeks: 0,
+    start: '',
     updatedAt: 0,
   };
   const doc = seedDoc();
-  const lesson: Lesson = { id: 'beispiel-stunde', moduleId: module.id, number: 2, title: 'Der Treibhauseffekt', doc, updatedAt: 0 };
+  const lesson: Lesson = { id: 'beispiel-stunde', moduleId: module.id, number: 2, title: 'Der Treibhauseffekt', textbook: '', doc, updatedAt: 0 };
   return { settings, modules: [module], lessons: [lesson], deleted: {} };
 }
 
@@ -204,6 +250,7 @@ export function syncLibrary(here: Library, file: Library): SyncResult {
 
   function pick<T extends { id: string; updatedAt: number }>(mine: T[], theirs: T[]): T[] {
     const out = new Map<string, T>();
+    const newerHere = new Set<string>();
     const theirById = new Map(theirs.map((x) => [x.id, x]));
     for (const x of mine) {
       const other = theirById.get(x.id);
@@ -213,7 +260,7 @@ export function syncLibrary(here: Library, file: Library): SyncResult {
         fromFile++;
       } else {
         out.set(x.id, x);
-        if (!other || x.updatedAt > other.updatedAt) keptHere++;
+        if (!other || x.updatedAt > other.updatedAt) newerHere.add(x.id);
       }
     }
     for (const x of theirs) {
@@ -225,6 +272,8 @@ export function syncLibrary(here: Library, file: Library): SyncResult {
     return [...out.values()].filter((x) => {
       const gone = (deleted[x.id] ?? -1) >= x.updatedAt;
       if (gone && mine.some((m) => m.id === x.id)) removed++;
+      // Changed here but deleted later on the other device: counts as removed, not as newer here.
+      if (!gone && newerHere.has(x.id)) keptHere++;
       return !gone;
     });
   }

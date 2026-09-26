@@ -119,7 +119,7 @@ export function updatePage(doc: Doc, p: number, patch: Partial<Omit<Page, 'block
   });
 }
 
-export function updateDocMeta(doc: Doc, patch: Partial<Pick<Doc, 'icon' | 'footer' | 'code'>>): Doc {
+export function updateDocMeta(doc: Doc, patch: Partial<Pick<Doc, 'icon' | 'footer' | 'code' | 'lang' | 'help'>>): Doc {
   return produce(doc, (d) => {
     Object.assign(d, patch);
   });
@@ -162,7 +162,6 @@ export function insertionPoint(doc: Doc, sel: { kind: 'page'; p: number } | { ki
   return { p, i: doc.pages[p].blocks.length };
 }
 
-/** Image ids referenced by image blocks, for cleaning up unused stored images. */
 /** Printed page numbers: pages for the class count 1, 2, 3 …; teacher pages have none (null). */
 export function sheetNumbers(doc: Doc): (number | null)[] {
   let n = 0;
@@ -177,8 +176,23 @@ export function pageLabel(doc: Doc, p: number): string {
   return teacher > 1 ? `Für die Lehrkraft ${doc.pages.slice(0, p + 1).filter((pg) => pg.type === 'lehrkraft').length}` : 'Für die Lehrkraft';
 }
 
+/** Image ids a block refers to: "image" holds one id, "pics" one id per line (picture grids). */
+export function blockImages(b: Block): string[] {
+  const out: string[] = [];
+  if (b.props.image) out.push(String(b.props.image));
+  if (b.props.pics) out.push(...String(b.props.pics).split('\n').map((x) => x.trim()).filter(Boolean));
+  return out;
+}
+
+/** The block's image ids replaced one by one (ids that map to "" are removed). */
+export function mapBlockImages(b: Block, map: (id: string) => string): void {
+  if (b.props.image) b.props.image = map(String(b.props.image));
+  if (b.props.pics) b.props.pics = String(b.props.pics).split('\n').map((x) => (x.trim() ? map(x.trim()) : '')).join('\n');
+}
+
+/** Image ids referenced anywhere in the document, for cleaning up unused stored images and for backups. */
 export function referencedImages(doc: Doc): Set<string> {
   const ids = new Set<string>();
-  for (const pg of doc.pages) for (const b of pg.blocks) if (b.type === 'image' && b.props.image) ids.add(String(b.props.image));
+  for (const pg of doc.pages) for (const b of pg.blocks) for (const id of blockImages(b)) ids.add(id);
   return ids;
 }

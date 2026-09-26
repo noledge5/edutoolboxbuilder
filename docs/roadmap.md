@@ -16,6 +16,8 @@
 | Mac ↔ iPad | Abgleich über eine Sicherungsdatei in iCloud Drive (immer derselbe Dateiname), kein Server, kein Konto. Je Modul und Stunde gewinnt die neuere Fassung, Löschungen werden mitgenommen. Als App (Home-Bildschirm/Dock) installierbar und offline nutzbar. |
 | Niveaus | Die Sterne einer Aufgabe sind die Niveaus des Kompetenzrasters: ★ = G, ★★ = M, ★★★ = E. |
 | Lehrkraft-Seiten | Blatt-Typ „Für die Lehrkraft“: keine Seitenzahl (Schülerseiten zählen ab 1) und nur in der Lösungsfassung gedruckt. |
+| Englisch | Sprache pro Modul (`lang`): englische Beschriftungen auf den Schülerblättern, Lehrkraft-Seiten bleiben deutsch. Deutsche Hilfe unter englischen Aufträgen, pro Modul abschaltbar. Eigene Blatt-Typen (Wortschatz, Grammatik, Hören, Sprechen, Test) mit zusätzlichen Farbverläufen in der Tonalität des Design-Systems. Lautschrift in Noto Sans, weil Figtree die IPA-Zeichen nicht hat. |
+| Jahresplan | Schuljahr mit Ferien in den Einstellungen (BW 2026/27 laut Kultusministerium als Vorschlag). Module haben Dauer in Schulwochen und optional einen Beginn; sie folgen in der Reihenfolge ihrer Nummer, Ferienwochen (ab 3 freien Tagen) werden übersprungen. Stundenpakete ab Version 2 enthalten mehrere Module und optional das Schuljahr. |
 | Handoff-Format | „Stundenpaket“ (`arbeitsblatt-baukasten-paket`, Version 1): ein Modul mit Kompetenzen und Stunden, die Seiten im selben Format wie ein Arbeitsblatt. Der Import repariert, was geht, und zählt auf, was er geändert hat. Die Anleitung für Claude entsteht aus `src/claude/anleitung.md` plus Bausteinliste, Symbolen und Beispiel aus dem Code. |
 
 ## Phasen
@@ -51,12 +53,21 @@
 - Stundenpaket als Datei: Import (Datei, Ziehen, Einfügen aus dem Chat) mit deutschen Fehlermeldungen und Hinweisen, Export eines Moduls
 - Anleitung für Claude mit allen Bausteinen, Symbolen, Platzregeln und dem Treibhauseffekt-Paket als Beispiel
 
-### Phase 3 – Feinschliff
+### Phase 3 – Englisch und Jahresplan ✅
+- Sprache pro Modul, englische Kopfzeile, typografische Anführungszeichen, deutsche Hilfe unter Aufträgen
+- Blatt-Typen Wortschatz, Grammatik, Hören, Sprechen, Test
+- Bausteine: Vokabelliste (IPA), Knick-Vokabeltest, Bild-Vokabeln, Wortnetz, Grammatik-Box, Formentabelle mit Vorlagen, Wörter ordnen, Umformen, Satzbaustellen, Hörverstehen, Lesetext mit Zeilennummern und Glossar, Richtig/Falsch/Not in the text, Redemittel, Rollenkarten, Bingo/Find someone who, Schreibrahmen, Sprachmittlung, Notenschlüssel, Tippkarten
+- Punkte getrennt nach Inhalt und Sprache, Vokabeltest-Generator, Vokabel-Export als CSV
+- Kompetenzbereiche des Bildungsplans als Vorlage im Kompetenzraster, Lehrwerksbezug je Modul und Stunde
+- Jahresplan mit Schulwochen und Ferien, druckbar, als Stundenpaket (mehrere Module) für Claude
+- Neue Themen-Symbole für Englisch-Units; Claude-Anleitung neu mit drei Beispielen
+
+### Phase 4 – Feinschliff
 - Vorlagen je Blatt-Typ
 - Bilder im Stundenpaket als ZIP statt data-URL (für große Fotos)
 - Test auf echtem iPad und Mac (Safari), Rückmeldungen einarbeiten
 
-### Phase 4 – Folien
+### Phase 5 – Folien
 - 16:9-Folien im Stil von `docs/design/referenz/Präsentation Treibhauseffekt.dc.html`
 - Präsentationsmodus: Vollbild, Pfeiltasten, Sprechernotizen
 - Leichte Textkorrektur in der App

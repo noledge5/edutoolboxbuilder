@@ -1,6 +1,7 @@
 // Editing text right on the page. The editor provides the context; without it (e.g. print) text is plain.
 // A target names one text field: "<blockId>:<prop>" for blocks, "page<p>:<field>" for the header band.
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, type ElementType, type ReactNode } from 'react';
+import { typo, useSheetLang } from './lang';
 
 export interface InlineEdit {
   /** The target being edited, if any. */
@@ -25,28 +26,30 @@ interface EditableProps {
 /** A text on the page that can be edited in place. Marks itself with data-edit so the editor can start editing it. */
 export function Editable({ as: Tag = 'div', className, target, value, multiline, children }: EditableProps) {
   const ctx = useContext(InlineEditContext);
+  const lang = useSheetLang();
   if (ctx && ctx.target === target) {
     return (
       <Tag className={className}>
-        <InlineInput value={value} multiline={!!multiline} onChange={(v) => ctx.change(target, v)} onDone={ctx.done} />
+        <InlineInput value={value} lang={lang} multiline={!!multiline} onChange={(v) => ctx.change(target, v)} onDone={ctx.done} />
       </Tag>
     );
   }
   return (
     <Tag className={className} data-edit={ctx ? target : undefined}>
-      {children ?? value}
+      {children ?? typo(value, lang)}
     </Tag>
   );
 }
 
 interface InlineInputProps {
   value: string;
+  lang: string;
   multiline: boolean;
   onChange(v: string): void;
   onDone(): void;
 }
 
-function InlineInput({ value, multiline, onChange, onDone }: InlineInputProps) {
+function InlineInput({ value, lang, multiline, onChange, onDone }: InlineInputProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
   // Grow with the text so the page layout moves exactly as it will when printed.
   useLayoutEffect(() => {
@@ -69,7 +72,8 @@ function InlineInput({ value, multiline, onChange, onDone }: InlineInputProps) {
       className="ws-inline"
       data-inline-input=""
       rows={1}
-      lang="de"
+      lang={lang}
+      spellCheck
       value={value}
       onChange={(e) => onChange(multiline ? e.target.value : e.target.value.replace(/\n/g, ' '))}
       onKeyDown={(e) => {

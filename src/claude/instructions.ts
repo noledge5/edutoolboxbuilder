@@ -1,12 +1,13 @@
-// The instructions for Claude ("Anleitung für Claude"): a hand-written guide with the block reference,
-// the icon list and a complete example generated from the code, so they always match what the app accepts.
+// The instructions for Claude ("Anleitung für Claude"): a hand-written guide (anleitung.md) with the block reference,
+// the icon list, the Bildungsplan areas, the school year and complete examples generated from the code, so they
+// always match what the app accepts.
 import template from './anleitung.md?raw';
+import { FOREIGN_LANGUAGE_DOMAINS } from '../library/curriculum';
+import { BW_2026_27, dayText, schoolWeekCount, schoolWeeks } from '../library/yearplan';
 import { BLOCK_ORDER, BLOCK_TYPES, GROUPS, type FieldDef } from '../model/blockTypes';
-import { createBlock } from '../model/ops';
-import type { BlockType, Page } from '../model/types';
-import { lessonsOf, seedLibrary } from '../library/model';
-import { packageFromModule, type PackageFile } from '../library/package';
+import type { BlockType } from '../model/types';
 import { TOPIC_ICONS } from '../topicIcons';
+import { englishExample, geographyExample, yearPlanExample } from './examples';
 
 export const APP_URL = 'https://noledge5.github.io/edutoolboxbuilder/';
 export const INSTRUCTIONS_FILE_NAME = 'Arbeitsblatt-Baukasten Anleitung fuer Claude.md';
@@ -32,6 +33,25 @@ const BLOCK_USE: Record<BlockType, string> = {
   goal: 'Nur Lehrkraft-Seite: Ziel der Stunde und Bildungsplanbezug.',
   expect: 'Nur Lehrkraft-Seite: Erwartungshorizont mit typischen Schüleraussagen und ihrer Bewertung.',
   recall: 'Nur Lehrkraft-Seite: Abruffragen mit Antworten, z. B. für den Einstieg.',
+  vocab: 'Vokabelliste mit den Spalten Englisch, Lautschrift (IPA), Deutsch und Beispielsatz. Leere Spalten fallen weg.',
+  foldtest: 'Knick-Vokabeltest: vorgegebenes Wort, Schreiblinie, Faltlinie, Lösung zum Selbstkontrollieren. Als „test“ ohne Lösungsspalte.',
+  picvocab: 'Bilder (Emoji oder eingefügte Bilder) mit Beschriftungslinie („Label the pictures“).',
+  wordweb: 'Wortnetz (Mindmap): Mitte und Äste mit Wörtern, Lücken und Lösungen.',
+  grammar: 'Grammatik-Box mit Regel, Signalwörtern und Beispielsätzen; {{…}} markiert Endungen farbig.',
+  forms: 'Formentabelle (Konjugation), z. B. to be, have got, simple present; auch mit Lücken.',
+  jumble: 'Wörter ordnen: die Wörter eines Satzes erscheinen gemischt, die Lösung ist der Satz.',
+  transform: 'Umformen: Ausgangssatz → Zielform (z. B. negative, question) mit Schreiblinie.',
+  syntax: 'Satzbaustellen-Tabelle mit farbigen Spalten (subject, verb, object, place, time).',
+  listening: 'Hörverstehen: Phase (pre/while/post), Track im Lehrwerk, QR-Code zur Audiodatei, Transkript in der Lösungsfassung.',
+  reading: 'Lesetext mit automatischen Zeilennummern und Worterklärungen als Fußnote (mit Zeilenangabe).',
+  truefalse: 'Richtig/falsch/steht nicht im Text: mehrere Aussagen in einer Tabelle zum Ankreuzen.',
+  phrases: 'Redemittel zweispaltig: Englisch | Deutsch.',
+  rolecards: 'Zwei Rollenkarten A und B zum Ausschneiden, z. B. für Information Gap.',
+  bingo: 'Raster für „Find someone who …“ (mit Namenslinie) oder Bingo.',
+  writing: 'Schreibrahmen: Satzanfänge mit Linien und eine Checkliste für den eigenen Text.',
+  mediation: 'Sprachmittlung: deutsche Vorlage im Kasten, englische Aufgabe, Schreiblinien, Lösung.',
+  gradescale: 'Notenschlüssel: zählt die Punkte aller Aufgaben (Inhalt und Sprache) und zeigt die Punktbereiche der Noten 1–6.',
+  tipcards: 'Tippkarten zum Ausschneiden: sammelt die Tipps aller Aufgaben des Arbeitsblatts.',
 };
 
 const VARIANT_TEXT = '`"accent-2"` (grün), `"accent"` (orange), `"neutral"` (grau)';
@@ -51,7 +71,13 @@ function fieldType(f: FieldDef): string {
     case 'image':
       return 'Bild-ID aus `images`';
     case 'competence':
-      return '`id` aus `module.competences`';
+      return '`id` aus `competences` des Moduls';
+    case 'ipa':
+      return 'Text, mehrzeilig (IPA-Zeichen erlaubt)';
+    case 'pics':
+      return 'Bild-IDs aus `images`, eine je Zeile';
+    case 'preset':
+      return 'keine Eigenschaft: Vorlagen ' + f.presets.map((p) => `„${p.l}“`).join(', ');
   }
 }
 
@@ -87,46 +113,30 @@ function iconList(): string {
   return TOPIC_ICONS.map((i) => `- \`${i.key}\`: ${i.label}${i.words ? ` (${i.words.split(' ').join(', ')})` : ''}`).join('\n');
 }
 
-/** The sample module as a Stundenpaket, with a teacher page and tasks linked to its competences. */
-export function examplePackage(): PackageFile {
-  const lib = seedLibrary();
-  const m = lib.modules[0];
-  const [k1, k2, k3] = m.competences;
-  const lesson = { ...lessonsOf(lib, m.id)[0], number: 1 };
-  const [versuch, sicherung] = lesson.doc.pages;
-  const teacher: Page = {
-    title: 'Der Treibhauseffekt',
-    kicker: 'Klasse 9 · Stundenverlauf',
-    type: 'lehrkraft',
-    form: 'Plenum',
-    nameField: 'aus',
-    blocks: [createBlock('goal'), createBlock('plan'), createBlock('expect'), createBlock('recall')],
-  };
-  const tasks = (p: Page) => p.blocks.filter((b) => BLOCK_TYPES[b.type].task);
-  const link = (p: Page, i: number, competence: string, level: string) => Object.assign(tasks(p)[i].props, { competence, level });
-  link(versuch, 0, k3.id, '1');
-  link(versuch, 1, k3.id, '1');
-  link(versuch, 2, k1.id, '2');
-  link(versuch, 3, k3.id, '3');
-  link(sicherung, 0, k2.id, '2');
-  link(sicherung, 1, k2.id, '1');
-  link(sicherung, 2, k2.id, '3');
-  sicherung.blocks.push(createBlock('selfcheck'));
-  const pkg = packageFromModule(
-    { ...m, competences: m.competences.map((c, i) => ({ ...c, id: `k${i + 1}`, lessons: '' })) },
-    [{ ...lesson, doc: { ...lesson.doc, pages: [teacher, versuch, sicherung] } }],
-  );
-  const ids = new Map(m.competences.map((c, i) => [c.id, `k${i + 1}`]));
-  for (const pg of pkg.lessons[0].pages) for (const b of pg.blocks) if (b.props.competence) b.props.competence = ids.get(String(b.props.competence));
-  delete pkg.savedAt;
-  return pkg;
-}
+const holidayTable = () =>
+  ['| Ferien | von | bis |', '|---|---|---|', ...BW_2026_27.holidays.map((h) => `| ${h.name} | ${dayText(h.from, true)} | ${dayText(h.to, true)} |`)].join('\n') +
+  `\n\nErster Schultag: ${dayText(BW_2026_27.start, true)}, letzter Schultag: ${dayText(BW_2026_27.end, true)}.`;
+
+const json = (x: unknown) => JSON.stringify(x, null, 2);
 
 /** The full instructions as Markdown. */
 export function claudeInstructions(): string {
-  return template
-    .replace('{{APP_URL}}', APP_URL)
-    .replace('{{BAUSTEINE}}', blockReference())
-    .replace('{{SYMBOLE}}', iconList())
-    .replace('{{BEISPIEL}}', JSON.stringify(examplePackage(), null, 2));
+  const fill: Record<string, string> = {
+    APP_URL,
+    BEREICHE: FOREIGN_LANGUAGE_DOMAINS.map((d) => `- ${d}`).join('\n'),
+    SCHULJAHR: BW_2026_27.name,
+    SCHULWOCHEN: String(schoolWeekCount(schoolWeeks(BW_2026_27))),
+    FERIEN: holidayTable(),
+    BAUSTEINE: blockReference(),
+    SYMBOLE: iconList(),
+    BEISPIEL_EN: json(englishExample()),
+    BEISPIEL_PLAN: json(yearPlanExample()),
+    BEISPIEL_GEO: json(geographyExample()),
+  };
+  // Only the known placeholders: {{s}} and the like in the text are examples of the highlight syntax.
+  return template.replace(/\{\{([A-Z_]+)\}\}/g, (all, key: string) => fill[key] ?? all);
 }
+
+/** The placeholders the template must contain (checked by the tests). */
+export const PLACEHOLDERS = ['APP_URL', 'BEREICHE', 'SCHULJAHR', 'SCHULWOCHEN', 'FERIEN', 'BAUSTEINE', 'SYMBOLE', 'BEISPIEL_EN', 'BEISPIEL_PLAN', 'BEISPIEL_GEO'];
+export { template as instructionsTemplate };

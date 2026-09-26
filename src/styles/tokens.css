@@ -1,5 +1,5 @@
 /* Organic design tokens, copied from docs/design/tokens/organic-styles.css (the source of truth).
-   Only change: fonts are self-hosted via @fontsource (see src/main.tsx) instead of the Google Fonts @import,
+   Changes: five extra colour ramps (accent-3 … accent-7, marked below), and fonts are self-hosted via @fontsource (see src/main.tsx) instead of the Google Fonts @import,
    so the app works offline and prints with the right fonts. */
 
 :root {
@@ -41,6 +41,60 @@
   --color-accent-2-700: #56633f;
   --color-accent-2-800: #3d472b;
   --color-accent-2-900: #272e1b;
+
+  /* Extra ramps for the language sheet types (vocabulary, grammar, listening, speaking, test) and their
+     toolbox groups. Not part of the design handoff: generated in OKLCH on the lightness and chroma scale
+     of --color-accent-2, so they sit with the organic palette. */
+  /* blue */
+  --color-accent-3-100: #eef7fe;
+  --color-accent-3-200: #d6ebfe;
+  --color-accent-3-300: #b1d9fd;
+  --color-accent-3-400: #90bde4;
+  --color-accent-3-500: #709ec5;
+  --color-accent-3-600: #547fa3;
+  --color-accent-3-700: #3c6180;
+  --color-accent-3-800: #29465d;
+  --color-accent-3-900: #1a2d3d;
+  /* plum */
+  --color-accent-4-100: #fcf1fe;
+  --color-accent-4-200: #f9ddff;
+  --color-accent-4-300: #ebc4f4;
+  --color-accent-4-400: #d0a6da;
+  --color-accent-4-500: #b186bb;
+  --color-accent-4-600: #91699a;
+  --color-accent-4-700: #704f78;
+  --color-accent-4-800: #513757;
+  --color-accent-4-900: #352339;
+  /* ochre */
+  --color-accent-5-100: #fff5dd;
+  --color-accent-5-200: #fae6b6;
+  --color-accent-5-300: #ead297;
+  --color-accent-5-400: #cfb473;
+  --color-accent-5-500: #b09552;
+  --color-accent-5-600: #907736;
+  --color-accent-5-700: #705a21;
+  --color-accent-5-800: #514013;
+  --color-accent-5-900: #35290b;
+  /* teal */
+  --color-accent-6-100: #dbfefd;
+  --color-accent-6-200: #c3f3f2;
+  --color-accent-6-300: #a6e1e0;
+  --color-accent-6-400: #83c5c5;
+  --color-accent-6-500: #62a6a6;
+  --color-accent-6-600: #468786;
+  --color-accent-6-700: #2f6868;
+  --color-accent-6-800: #1e4b4b;
+  --color-accent-6-900: #123130;
+  /* rose */
+  --color-accent-7-100: #fff2f4;
+  --color-accent-7-200: #fedfe5;
+  --color-accent-7-300: #ffc1cd;
+  --color-accent-7-400: #e8a0b0;
+  --color-accent-7-500: #c88191;
+  --color-accent-7-600: #a56473;
+  --color-accent-7-700: #824a57;
+  --color-accent-7-800: #5f343e;
+  --color-accent-7-900: #3e2128;
 
   --font-heading: "Caprasimo", system-ui, sans-serif;
   --font-heading-weight: 400;

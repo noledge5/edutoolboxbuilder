@@ -1,8 +1,8 @@
 // The library in IndexedDB: one entry per module and per lesson, so saving a worksheet writes only that lesson.
 import { delMany, get, getMany, keys, set, setMany } from 'idb-keyval';
 import { libraryFromOldDoc, seedLibrary } from '../library/model';
+import { readDeleted, readLesson, readModule, readSettings } from '../library/read';
 import type { Lesson, Library, Module, Settings } from '../library/types';
-import { normalizeDoc } from '../model/normalize';
 import { deleteOldDoc, deleteUnusedImages, kv, loadDoc } from './db';
 
 const SETTINGS = 'lib:einstellungen';
@@ -11,35 +11,8 @@ const SYNC = 'lib:abgleich';
 const MOD = 'modul:';
 const LES = 'stunde:';
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null;
-
-function readLesson(raw: unknown): Lesson | null {
-  if (!isObj(raw) || typeof raw.id !== 'string' || typeof raw.moduleId !== 'string') return null;
-  try {
-    return { ...(raw as unknown as Lesson), updatedAt: Number(raw.updatedAt) || 0, doc: normalizeDoc(raw.doc) };
-  } catch {
-    return null;
-  }
-}
-
-const readModule = (raw: unknown): Module | null =>
-  isObj(raw) && typeof raw.id === 'string' ? { ...(raw as unknown as Module), competences: Array.isArray(raw.competences) ? (raw.competences as Module['competences']) : [], updatedAt: Number(raw.updatedAt) || 0 } : null;
-
-/** Settings and deletions of older versions or other devices, completed with defaults. */
-export function readSettings(raw: unknown): Settings {
-  const s = isObj(raw) ? raw : {};
-  return {
-    subjects: Array.isArray(s.subjects) ? s.subjects.filter((x): x is string => typeof x === 'string') : [],
-    footerBase: typeof s.footerBase === 'string' ? s.footerBase : '',
-    updatedAt: Number(s.updatedAt) || 0,
-  };
-}
-
-export function readDeleted(raw: unknown): Record<string, number> {
-  const out: Record<string, number> = {};
-  if (isObj(raw)) for (const [k, v] of Object.entries(raw)) if (typeof v === 'number') out[k] = v;
-  return out;
-}
+// Readers live in src/library/read.ts; re-exported for older imports.
+export { readDeleted, readSettings } from '../library/read';
 
 export async function loadLibrary(): Promise<Library> {
   // Read only the library's own entries: images stay in the store until a page shows them.

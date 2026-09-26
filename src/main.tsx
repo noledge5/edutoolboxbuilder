@@ -4,6 +4,8 @@ import '@fontsource/caprasimo/400.css';
 import '@fontsource/figtree/400.css';
 import '@fontsource/figtree/600.css';
 import '@fontsource/figtree/700.css';
+import '@fontsource/noto-sans/latin-400.css';
+import '@fontsource/noto-sans/latin-ext-400.css';
 import './styles/tokens.css';
 import './sheet/sheet.css';
 import './styles/app.css';

@@ -4,9 +4,10 @@ import { DocFormatError, normalizeDoc } from '../model/normalize';
 import { referencedImages } from '../model/ops';
 import type { Doc } from '../model/types';
 import type { Lesson, Library, Module } from '../library/types';
-import { isPackageFile, packageFromModule, readPackage, type PackageFile, type ParsedPackage } from '../library/package';
+import { isPackageFile, packageFromModules, readPackage, type PackageFile, type ParsedPackage } from '../library/package';
+import type { SchoolYear } from '../library/types';
 import { getImage, putImageAs } from './db';
-import { readDeleted, readSettings } from './library';
+import { readDeleted, readLesson, readModule, readSettings } from '../library/read';
 
 export const BACKUP_FORMAT = 'arbeitsblatt-baukasten';
 export const LIBRARY_FORMAT = 'arbeitsblatt-baukasten-bibliothek';
@@ -111,7 +112,12 @@ export const LIBRARY_FILE_NAME = 'Arbeitsblatt-Baukasten Bibliothek.json';
 
 /** A module with its lessons and images as a Stundenpaket, e.g. to share it or to give Claude as a template. */
 export async function createPackageFile(m: Module, lessons: Lesson[]): Promise<PackageFile> {
-  return { ...packageFromModule(m, lessons), images: await imagesOf(lessons.map((l) => l.doc)) };
+  return createPlanFile([{ module: m, lessons }], null);
+}
+
+/** Several modules (e.g. the year plan of a subject and grade) with the school year as one Stundenpaket. */
+export async function createPlanFile(entries: { module: Module; lessons: Lesson[] }[], schoolYear: SchoolYear | null): Promise<PackageFile> {
+  return { ...packageFromModules(entries, schoolYear), images: await imagesOf(entries.flatMap((e) => e.lessons.map((l) => l.doc))) };
 }
 
 /** "Stundenpaket K9 M1 Das Klima kippt.json" */
@@ -137,8 +143,12 @@ export async function readAnyFile(text: string): Promise<OpenedFile> {
     if (typeof obj.version === 'number' && obj.version > BACKUP_VERSION) throw new DocFormatError('Die Datei stammt aus einer neueren Version des Baukastens.');
     const lib = obj.library;
     if (!lib || !Array.isArray(lib.modules) || !Array.isArray(lib.lessons)) throw new DocFormatError('Die Sicherung ist unvollständig.');
-    const lessons = lib.lessons.map((l) => ({ ...l, updatedAt: Number(l.updatedAt) || 0, doc: normalizeDoc(l.doc) }));
-    const modules = lib.modules.map((m) => ({ ...m, competences: Array.isArray(m.competences) ? m.competences : [], updatedAt: Number(m.updatedAt) || 0 }));
+    const lessons = lib.lessons.map((l) => {
+      const read = readLesson(l);
+      if (!read) throw new DocFormatError('Eine Stunde in der Sicherung ist beschädigt.');
+      return read;
+    });
+    const modules = lib.modules.map(readModule).filter((m): m is Module => m !== null);
     for (const [id, url] of Object.entries(obj.images ?? {})) if (typeof url === 'string') await putImageAs(id, dataUrlToBlob(url));
     const savedAt = Date.parse(obj.savedAt ?? '') || 0;
     return { kind: 'library', savedAt, library: { settings: readSettings(lib.settings), modules, lessons, deleted: readDeleted(lib.deleted) } };

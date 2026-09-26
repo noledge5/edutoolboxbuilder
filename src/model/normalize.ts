@@ -30,6 +30,7 @@ function normalizeProps(type: Block['type'], raw: unknown): BlockProps {
     }
   }
   for (const f of T.fields) {
+    if (f.kind === 'preset') continue;
     const v = props[f.key];
     if (f.kind === 'number') {
       const n = typeof v === 'number' ? v : parseInt(String(v), 10);
@@ -78,6 +79,8 @@ export function normalizeDoc(raw: unknown): Doc {
   const seen = new Set<string>();
   return {
     icon: isTopicIcon(raw.icon) ? raw.icon : DEFAULT_TOPIC_ICON,
+    lang: raw.lang === 'en' ? 'en' : 'de',
+    help: raw.help !== false,
     footer: asStr(raw.footer, ''),
     code: asStr(raw.code, ''),
     pages: raw.pages.map((p, i) => normalizePage(p, i, seen)),

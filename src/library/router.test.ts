@@ -8,6 +8,7 @@ describe('routes', () => {
       { view: 'overview' as const, subject: 'Geographie', grade: 9 },
       { view: 'module' as const, id: 'b12' },
       { view: 'lesson' as const, id: 'b34' },
+      { view: 'plan' as const, subject: 'Englisch', grade: 5 },
     ]) {
       expect(parseRoute(routeHash(r))).toEqual({ ...r, ...(r.view === 'overview' ? { subject: r.subject, grade: r.grade } : {}) });
     }
