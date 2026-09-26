@@ -44,6 +44,8 @@ export interface Page {
 }
 
 export interface Doc {
+  /** Topic icon in the header band, shared by all pages (a key from src/topicIcons.ts). */
+  icon: string;
   /** Footer text, shared by all pages. */
   footer: string;
   /** Short code such as "K9 · M1 · S2", shared by all pages. */

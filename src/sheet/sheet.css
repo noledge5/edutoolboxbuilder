@@ -23,6 +23,7 @@
   font-weight: 400;
   color: var(--color-text);
   text-align: left;
+  overflow-wrap: anywhere;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }

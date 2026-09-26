@@ -20,11 +20,16 @@ export function dropTargetAt(x: number, y: number, doc: Doc, item: DragItem): Dr
     return item.kind === 'move' && isNoop(doc, item.id, target) ? null : target;
   }
 
-  const body = el.closest<HTMLElement>('[data-page-body]');
-  if (body) {
-    const p = Number(body.dataset.pageBody);
-    if (!doc.pages[p]) return null;
-    const target: DropTarget = { p, i: doc.pages[p].blocks.length, pos: 'end' };
+  // Anywhere else on a page: above the body (header band, name field) inserts at the top,
+  // in the body's free space or on the footer band appends at the end.
+  const pageEl = el.closest<HTMLElement>('[data-page]');
+  if (pageEl) {
+    const p = Number(pageEl.dataset.page);
+    const blocks = doc.pages[p]?.blocks;
+    const body = pageEl.querySelector('[data-page-body]');
+    if (!blocks || !body) return null;
+    const atTop = blocks.length > 0 && y < body.getBoundingClientRect().top;
+    const target: DropTarget = atTop ? { p, i: 0, pos: 'before' } : { p, i: blocks.length, pos: 'end' };
     return item.kind === 'move' && isNoop(doc, item.id, target) ? null : target;
   }
   return null;

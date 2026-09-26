@@ -8,10 +8,11 @@ Stand: **Phase 1** (Editor). Was danach kommt, steht in [docs/roadmap.md](docs/r
 
 - **Bausteine einfügen:** aus der Toolbox auf die Seite ziehen oder anklicken. Beim Anklicken landet der Baustein hinter dem ausgewählten Element.
 - **Bearbeiten:** Element anklicken, dann rechts im Panel Inhalt und Breite (Ganz · ⅔ · ½ · ⅓) ändern. Ein Klick auf das Kopfband öffnet Titel, Blatt-Typ, Sozialform und Fußzeile.
-- **Verschieben:** Elemente mit der Maus ziehen, auch auf eine andere Seite. Alternativ geht es mit den Pfeilen in der schwarzen Leiste über dem Element.
+- **Themen-Symbol:** Klick auf das Kopfband, dann unter „Symbol · alle Seiten“ ein Symbol wählen oder suchen (z. B. „Wasser“). Es gilt für alle Seiten.
+- **Verschieben:** Elemente mit der Maus ziehen, auch auf eine andere Seite. Alternativ geht es mit den Pfeilen in der schwarzen Leiste über dem Element; am Seitenanfang bzw. -ende wandert das Element auf die vorige bzw. nächste Seite.
 - **Tastatur:** Entf löscht das ausgewählte Element, Esc hebt die Auswahl auf, Strg/Cmd+Z macht rückgängig, Strg/Cmd+Umschalt+Z stellt wieder her.
 - **iPad:** Zum Ziehen kurz gedrückt halten. Im Hochformat öffnet der Knopf „Toolbox“ die Bausteine, das Panel erscheint beim Antippen eines Elements.
-- **Drucken / PDF:** öffnet den Druckdialog des Browsers. Zum Speichern „Als PDF sichern“ bzw. „Als PDF speichern“ wählen. Die Seiten sind genau A4, der Rand steht auf 0.
+- **Drucken / PDF:** öffnet den Druckdialog des Browsers. Ist eine Seite zu voll, fragt die App vorher nach. Zum Speichern „Als PDF sichern“ bzw. „Als PDF speichern“ wählen. Die Seiten sind genau A4, der Rand steht auf 0.
 - **Daten:** zeigt das ganze Arbeitsblatt als JSON. So lässt es sich sichern oder durch neue Daten ersetzen, z. B. von Claude aus einem PDF erzeugt. „Übernehmen“ kann mit Strg/Cmd+Z rückgängig gemacht werden.
 
 ### Wo werden die Daten gespeichert?

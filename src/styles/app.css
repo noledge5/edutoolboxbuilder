@@ -208,6 +208,22 @@ body { background: var(--color-neutral-200); }
   cursor: pointer;
 }
 .seg-pill:hover:not(.is-on) { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 6px; margin-top: 8px; }
+.icon-pick {
+  aspect-ratio: 1;
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--color-divider);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-neutral-800);
+  cursor: pointer;
+}
+.icon-pick:hover:not(.is-on) { background: var(--color-accent-100); }
+.icon-pick.is-on { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-100); }
+.icon-none { grid-column: 1 / -1; font-size: 13px; color: var(--color-neutral-700); }
 .seg-pill.is-on { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-bg); }
 
 /* — Blocks on the page while editing — */
@@ -265,7 +281,8 @@ body { background: var(--color-neutral-200); }
   color: inherit;
   cursor: pointer;
 }
-.ed-toolbar button:hover { background: var(--color-neutral-800); }
+.ed-toolbar button:hover:not(:disabled) { background: var(--color-neutral-800); }
+.ed-toolbar button:disabled { opacity: 0.35; cursor: default; }
 .ed-toolbar button.is-danger { color: var(--color-accent-300); }
 
 /* — Drag ghost — */

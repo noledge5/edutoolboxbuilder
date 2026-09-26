@@ -11,7 +11,6 @@ import {
   Table,
   Tag,
   TextCursorInput,
-  ThermometerSun,
   Workflow,
   type LucideIcon,
 } from 'lucide-react';
@@ -32,9 +31,6 @@ export const BLOCK_ICONS: Record<BlockType, LucideIcon> = {
   match: ArrowLeftRight,
   draw: Brush,
 };
-
-/** Topic icon of the document. One icon per overarching topic; fixed until the library adds a picker. */
-export const TOPIC_ICON: LucideIcon = ThermometerSun;
 
 /** Lucide icon in the design system's style: stroke 2.75, round caps and joins. */
 export function Icon({ icon: I, size = 16 }: { icon: LucideIcon; size?: number }) {

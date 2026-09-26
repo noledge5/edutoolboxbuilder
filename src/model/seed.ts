@@ -4,6 +4,7 @@ import type { Doc } from './types';
 
 export function seedDoc(): Doc {
   return {
+    icon: 'thermometer-sun',
     footer: 'Kuhl · Grafen-von-Zimmern-Realschule · Geographie',
     code: 'K9 · M1 · S2',
     pages: [

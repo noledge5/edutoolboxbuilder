@@ -1,10 +1,11 @@
 // One printed A4 page: header band (Kopfband), optional name field, 12-column body grid, footer band (Fußband).
 import type { CSSProperties, MouseEvent, ReactNode, Ref } from 'react';
 import { User, Users } from 'lucide-react';
-import { Icon, TOPIC_ICON } from '../icons';
+import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { THEMES, type SheetTheme } from '../model/themes';
 import type { Doc, Page } from '../model/types';
+import { topicIcon } from '../topicIcons';
 
 export const PAGE_W = 794;
 export const PAGE_H = 1123;
@@ -48,10 +49,10 @@ interface SheetPageProps {
 export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderClick, onBodyClick, bodyRef, dropEnd, style, children }: SheetPageProps) {
   const t = themeOf(page);
   return (
-    <div className="ws-page" style={{ ...themeVars(t), ...style }}>
+    <div className="ws-page" style={{ ...themeVars(t), ...style }} data-page={index}>
       <div className={'ws-band' + (headerSelected ? ' is-selected' : '')} onClick={onHeaderClick}>
         <div className="ws-band-icon">
-          <Icon icon={TOPIC_ICON} size={26} />
+          <Icon icon={topicIcon(doc.icon)} size={26} />
         </div>
         <div className="ws-band-text">
           <div className="ws-kicker">{page.kicker}</div>

@@ -22,6 +22,7 @@
 - Drag-and-Drop mit Maus und Touch (auch über Seitengrenzen), Klick zum Einfügen, schwebende Werkzeugleiste
 - Eigenschaften-Panel für Blöcke und Seiten, Zoom, Vorschau, „Seite ist voll“-Warnung
 - Rückgängig/Wiederholen
+- Themen-Symbol im Kopfband wählbar (gilt für alle Seiten, Auswahl mit Suche)
 - JSON-Dialog mit Prüfung
 - Speicherung in IndexedDB, Bilder verkleinert gespeichert
 - Druck/PDF: eine A4-Seite pro Blatt, weißes Papier
@@ -29,7 +30,7 @@
 
 ### Phase 2 – Bibliothek
 - Stundenpakete speichern, öffnen, duplizieren; Ordnung Klasse › Modul › Stunde
-- Themen-Icon-Auswahl pro Modul, Kürzel automatisch
+- Themen-Symbol und Kürzel werden vom Modul übernommen
 - Vorlagen je Blatt-Typ
 - Export/Import eines Pakets als Datei inklusive Bilder (Sicherung, Austausch iPad ↔ Laptop)
 - Installierbar als App auf dem Home-Bildschirm (PWA), offline nutzbar

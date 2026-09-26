@@ -1,7 +1,8 @@
-import { useLayoutEffect, useRef, useState, type MouseEvent, type Ref } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type Ref } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { ChevronDown, ChevronUp, Copy, Plus, Trash2 } from 'lucide-react';
 import { Icon } from '../icons';
+import { canMoveBy } from '../model/ops';
 import type { Block, DragItem, Page } from '../model/types';
 import { BlockContent } from '../sheet/BlockContent';
 import { PAGE_H, PAGE_W, SheetPage, taskNumbers } from '../sheet/SheetPage';
@@ -123,6 +124,11 @@ function BlockFrame({ api, block, p, i, taskNum, dragging }: BlockFrameProps) {
     if (selected && el.current) setToolbarBelow(el.current.offsetTop < 46);
   }, [selected, i, block.span]);
 
+  // A block selected by inserting it (toolbox click, drop, duplicate) may be off-screen.
+  useEffect(() => {
+    if (selected) el.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [selected]);
+
   const here = !!drop && drop.p === p && drop.i === i && drop.pos !== 'end';
   const partial = block.span < 12;
   const bar = here ? (partial ? (drop.pos === 'before' ? 'is-left' : 'is-right') : drop.pos === 'before' ? 'is-top' : 'is-bottom') : null;
@@ -162,10 +168,10 @@ function BlockFrame({ api, block, p, i, taskNum, dragging }: BlockFrameProps) {
           onTouchStart={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
         >
-          <button type="button" title="Nach oben" aria-label="Nach oben" onClick={stop(() => api.moveBlock(block.id, -1))}>
+          <button type="button" title="Nach oben" aria-label="Nach oben" disabled={!canMoveBy(api.doc, block.id, -1)} onClick={stop(() => api.moveBlock(block.id, -1))}>
             <Icon icon={ChevronUp} />
           </button>
-          <button type="button" title="Nach unten" aria-label="Nach unten" onClick={stop(() => api.moveBlock(block.id, 1))}>
+          <button type="button" title="Nach unten" aria-label="Nach unten" disabled={!canMoveBy(api.doc, block.id, 1)} onClick={stop(() => api.moveBlock(block.id, 1))}>
             <Icon icon={ChevronDown} />
           </button>
           <button type="button" title="Duplizieren" aria-label="Duplizieren" onClick={stop(() => api.duplicateBlock(block.id))}>

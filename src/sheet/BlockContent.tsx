@@ -155,7 +155,7 @@ function TaskBody({ block }: { block: Block }) {
       );
     case 'table': {
       const cols = lines(p.cols);
-      const template = { gridTemplateColumns: `1.2fr repeat(${Math.max(1, cols.length - 1)}, minmax(0,1fr))` };
+      const template = { gridTemplateColumns: cols.length > 1 ? `1.2fr repeat(${cols.length - 1}, minmax(0,1fr))` : '1fr' };
       return (
         <div className="ws-table">
           {cols.length > 0 && (

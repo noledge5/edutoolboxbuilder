@@ -16,6 +16,8 @@ export async function loadDoc(): Promise<Doc | null> {
   try {
     return normalizeDoc(raw);
   } catch {
+    // Keep the unreadable data aside instead of overwriting it with the sample on the next save.
+    await set('doc:unlesbar-' + Date.now(), raw, db());
     return null;
   }
 }

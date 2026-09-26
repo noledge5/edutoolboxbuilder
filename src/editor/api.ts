@@ -15,7 +15,7 @@ export interface EditorApi {
   setProp(id: string, key: string, value: PropValue): void;
   setImage(id: string, file: File): void;
   setPage(p: number, patch: Partial<Omit<Page, 'blocks'>>): void;
-  setMeta(patch: { footer?: string; code?: string }): void;
+  setMeta(patch: { icon?: string; footer?: string; code?: string }): void;
   addPage(): void;
   deletePage(p: number): void;
 }

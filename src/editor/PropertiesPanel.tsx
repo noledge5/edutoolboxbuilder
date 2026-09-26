@@ -7,7 +7,7 @@ import { num, str } from '../model/text';
 import { SHEET_TYPES, THEMES, VARIANT_OPTIONS, WORK_FORMS } from '../model/themes';
 import type { Block, SheetType, WorkForm } from '../model/types';
 import type { EditorApi } from './api';
-import { AreaField, ImageField, NumberField, SegField, TextField } from './fields';
+import { AreaField, IconPickerField, ImageField, NumberField, SegField, TextField } from './fields';
 
 interface PanelProps {
   api: EditorApi;
@@ -118,6 +118,10 @@ function PageProperties({ api, p, close }: { api: EditorApi; p: number; close: R
           ]}
           onPick={(nameField) => api.setPage(p, { nameField })}
         />
+      </div>
+      <div className="panel-section">
+        <div className="panel-section-label">Symbol · alle Seiten</div>
+        <IconPickerField label="Themen-Symbol im Kopfband" value={doc.icon} onPick={(icon) => api.setMeta({ icon })} />
       </div>
       <div className="panel-section">
         <div className="panel-section-label">Fußband · alle Seiten</div>

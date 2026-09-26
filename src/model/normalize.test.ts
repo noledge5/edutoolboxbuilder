@@ -8,6 +8,12 @@ describe('normalizeDoc', () => {
     expect(normalizeDoc(JSON.parse(JSON.stringify(doc)))).toEqual(doc);
   });
 
+  it('keeps a known topic icon and falls back for unknown ones', () => {
+    expect(normalizeDoc({ icon: 'leaf', pages: [{}] }).icon).toBe('leaf');
+    expect(normalizeDoc({ icon: 'unbekannt', pages: [{}] }).icon).toBe('thermometer-sun');
+    expect(normalizeDoc({ pages: [{}] }).icon).toBe('thermometer-sun');
+  });
+
   it('requires a pages list', () => {
     expect(() => normalizeDoc({ footer: 'x' })).toThrow('Es fehlt die Liste "pages".');
     expect(() => parseDocJson('{nope')).toThrow(DocFormatError);

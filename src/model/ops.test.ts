@@ -61,11 +61,24 @@ describe('other operations', () => {
     expect(id).not.toBe(src.id);
   });
 
-  it('swaps neighbours and stops at the page edges', () => {
+  it('swaps neighbours and crosses to the neighbouring page at the edges', () => {
     const doc = seedDoc();
     const [a, b] = ids(doc, 0);
     expect(ids(ops.moveBlockBy(doc, a, 1), 0).slice(0, 2)).toEqual([b, a]);
-    expect(ops.moveBlockBy(doc, a, -1)).toBe(doc);
+    const lastOn1 = ids(doc, 0).at(-1)!;
+    const firstOn2 = ids(doc, 1)[0];
+    expect(ids(ops.moveBlockBy(doc, lastOn1, 1), 1)[0]).toBe(lastOn1);
+    expect(ids(ops.moveBlockBy(doc, firstOn2, -1), 0).at(-1)).toBe(firstOn2);
+  });
+
+  it('does not move the first block up or the last block down', () => {
+    const doc = seedDoc();
+    const first = ids(doc, 0)[0];
+    const last = ids(doc, 1).at(-1)!;
+    expect(ops.canMoveBy(doc, first, -1)).toBe(false);
+    expect(ops.moveBlockBy(doc, first, -1)).toBe(doc);
+    expect(ops.canMoveBy(doc, last, 1)).toBe(false);
+    expect(ops.moveBlockBy(doc, last, 1)).toBe(doc);
   });
 
   it('keeps at least one page', () => {

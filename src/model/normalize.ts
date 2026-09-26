@@ -3,6 +3,7 @@
 import { BLOCK_TYPES, isBlockType } from './blockTypes';
 import { uid } from './ops';
 import { THEMES, VARIANTS, WORK_FORMS } from './themes';
+import { DEFAULT_TOPIC_ICON, isTopicIcon } from '../topicIcons';
 import type { Block, BlockProps, Doc, Page, SheetType, WorkForm } from './types';
 
 export class DocFormatError extends Error {}
@@ -66,6 +67,7 @@ export function normalizeDoc(raw: unknown): Doc {
   if (raw.pages.length === 0) throw new DocFormatError('Die Liste "pages" ist leer.');
   const seen = new Set<string>();
   return {
+    icon: isTopicIcon(raw.icon) ? raw.icon : DEFAULT_TOPIC_ICON,
     footer: asStr(raw.footer, ''),
     code: asStr(raw.code, ''),
     pages: raw.pages.map((p, i) => normalizePage(p, i, seen)),

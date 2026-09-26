@@ -55,15 +55,32 @@ export function moveBlockTo(doc: Doc, id: string, target: DropTarget): Doc {
   });
 }
 
-/** Swaps a block with its neighbour on the same page (dir −1 = up, +1 = down). */
-export function moveBlockBy(doc: Doc, id: string, dir: -1 | 1): Doc {
+/** Whether moveBlockBy can move the block: not the very first block up, not the very last one down. */
+export function canMoveBy(doc: Doc, id: string, dir: -1 | 1): boolean {
   const loc = findBlock(doc, id);
-  if (!loc) return doc;
+  if (!loc) return false;
   const j = loc.i + dir;
-  if (j < 0 || j >= doc.pages[loc.p].blocks.length) return doc;
+  return (j >= 0 && j < doc.pages[loc.p].blocks.length) || !!doc.pages[loc.p + dir];
+}
+
+/**
+ * Moves a block one step up (−1) or down (+1): swaps it with its neighbour, or at the edge of a page
+ * moves it to the end of the previous page or the start of the next one.
+ */
+export function moveBlockBy(doc: Doc, id: string, dir: -1 | 1): Doc {
+  if (!canMoveBy(doc, id, dir)) return doc;
+  const loc = findBlock(doc, id)!;
+  const j = loc.i + dir;
   return produce(doc, (d) => {
     const a = d.pages[loc.p].blocks;
-    [a[loc.i], a[j]] = [a[j], a[loc.i]];
+    if (j >= 0 && j < a.length) {
+      [a[loc.i], a[j]] = [a[j], a[loc.i]];
+      return;
+    }
+    const [block] = a.splice(loc.i, 1);
+    const next = d.pages[loc.p + dir].blocks;
+    if (dir < 0) next.push(block);
+    else next.unshift(block);
   });
 }
 
@@ -100,7 +117,7 @@ export function updatePage(doc: Doc, p: number, patch: Partial<Omit<Page, 'block
   });
 }
 
-export function updateDocMeta(doc: Doc, patch: Partial<Pick<Doc, 'footer' | 'code'>>): Doc {
+export function updateDocMeta(doc: Doc, patch: Partial<Pick<Doc, 'icon' | 'footer' | 'code'>>): Doc {
   return produce(doc, (d) => {
     Object.assign(d, patch);
   });

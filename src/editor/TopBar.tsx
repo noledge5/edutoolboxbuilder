@@ -1,7 +1,10 @@
 import { Blocks, Braces, Eye, Minus, Plus, Printer, Redo2, Undo2 } from 'lucide-react';
-import { Icon, TOPIC_ICON } from '../icons';
+import { Icon } from '../icons';
+import { topicIcon } from '../topicIcons';
 
 interface TopBarProps {
+  /** Topic icon key of the open document. */
+  icon: string;
   editing: boolean;
   compact: boolean;
   zoom: number;
@@ -21,7 +24,7 @@ export function TopBar(p: TopBarProps) {
   return (
     <header className="topbar" data-noprint="1">
       <div className="topbar-icon">
-        <Icon icon={TOPIC_ICON} size={20} />
+        <Icon icon={topicIcon(p.icon)} size={20} />
       </div>
       <div className="topbar-title">Arbeitsblatt-Baukasten</div>
       {p.editing && p.compact && (

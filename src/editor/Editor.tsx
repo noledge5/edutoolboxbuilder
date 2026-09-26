@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors, type DragStartEvent } from '@dnd-kit/core';
+import { DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors, type Announcements, type DragStartEvent } from '@dnd-kit/core';
+import { BLOCK_TYPES } from '../model/blockTypes';
 import { historyReducer, initHistory } from '../model/history';
 import * as ops from '../model/ops';
 import type { Doc, DragItem, DropTarget, Selection } from '../model/types';
@@ -29,6 +30,22 @@ function validSelection(doc: Doc, sel: Selection): Selection {
 
 const isTyping = (el: Element | null) =>
   !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || (el as HTMLElement).isContentEditable);
+
+/** Delete/Backspace only act on the page, not while a button in the panel or toolbox has focus. */
+const focusOnCanvas = (el: Element | null) => !el || el === document.body || !!el.closest('.canvas');
+
+/** Numbers of the pages whose content is cut off at the bottom. */
+const fullPages = () =>
+  Array.from(document.querySelectorAll<HTMLElement>('[data-page-body]'))
+    .filter((b) => b.scrollHeight > b.clientHeight + 2)
+    .map((b) => Number(b.dataset.pageBody) + 1);
+
+// Screen-reader messages of dnd-kit, in German.
+const dragLabel = (data: unknown, doc: Doc) => {
+  const item = data as DragItem | undefined;
+  const type = item?.kind === 'new' ? item.type : item?.kind === 'move' ? ops.getBlock(doc, item.id)?.type : undefined;
+  return type ? BLOCK_TYPES[type].label : 'Element';
+};
 
 export function Editor({ initialDoc }: { initialDoc: Doc }) {
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
@@ -106,7 +123,7 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
       } else if (mod && e.key.toLowerCase() === 'y') {
         e.preventDefault();
         dispatch({ type: 'redo' });
-      } else if ((e.key === 'Delete' || e.key === 'Backspace') && editing && sel?.kind === 'block') {
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && editing && sel?.kind === 'block' && focusOnCanvas(document.activeElement)) {
         e.preventDefault();
         const loc = ops.findBlock(doc, sel.id);
         dispatch({ type: 'commit', doc: ops.deleteBlock(doc, sel.id) });
@@ -256,6 +273,13 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
   const ghostType = dragItem ? (dragItem.kind === 'new' ? dragItem.type : ops.getBlock(doc, dragItem.id)?.type) : undefined;
 
   const print = () => {
+    const full = fullPages();
+    if (full.length > 0) {
+      const which = full.length === 1 ? `Seite ${full[0]} ist` : `Die Seiten ${full.join(', ')} sind`;
+      if (!window.confirm(`${which} voll: Inhalt wird unten abgeschnitten. Trotzdem drucken?`)) return;
+    }
+    // Back to editing once the print dialog closes, if that is where printing started.
+    if (!preview) window.addEventListener('afterprint', () => setPreview(false), { once: true });
     flushSync(() => {
       setPreview(true);
       setSel(null);
@@ -265,10 +289,28 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
     window.print();
   };
 
+  const announcements: Announcements = {
+    onDragStart: ({ active }) => `${dragLabel(active.data.current, latest.current.doc)} aufgenommen.`,
+    onDragOver: () => undefined,
+    onDragEnd: ({ active }) => `${dragLabel(active.data.current, latest.current.doc)} abgelegt.`,
+    onDragCancel: ({ active }) => `Ziehen von ${dragLabel(active.data.current, latest.current.doc)} abgebrochen.`,
+  };
+
   return (
-    <DndContext sensors={sensors} autoScroll={false} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={endDrag}>
+    <DndContext
+      sensors={sensors}
+      autoScroll={false}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragCancel={endDrag}
+      accessibility={{
+        announcements,
+        screenReaderInstructions: { draggable: 'Mit der Maus ziehen oder auf dem Tablet gedrückt halten und ziehen. Mit Eingabe auswählen.' },
+      }}
+    >
       <div className={'app ' + (editing ? 'is-editing' : 'is-preview') + (compact ? ' is-compact' : '') + (dragItem ? ' is-dragging' : '')}>
         <TopBar
+          icon={doc.icon}
           editing={editing}
           compact={compact}
           zoom={zoom}

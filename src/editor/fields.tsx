@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { ImageUp, Trash2 } from 'lucide-react';
 import { Icon } from '../icons';
 import type { SegOption } from '../model/blockTypes';
+import { searchTopicIcons } from '../topicIcons';
 
 export function TextField({ label, value, onChange }: { label: string; value: string; onChange(v: string): void }) {
   const id = useId();
@@ -120,6 +121,30 @@ export function ImageField({ label, hasImage, onFile, onRemove }: { label: strin
           if (f) onFile(f);
         }}
       />
+    </div>
+  );
+}
+
+/** Grid of topic icons with a search field (German names and keywords). */
+export function IconPickerField({ label, value, onPick }: { label: string; value: string; onPick(key: string): void }) {
+  const id = useId();
+  const [query, setQuery] = useState('');
+  const icons = searchTopicIcons(query);
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      <input id={id} className="input" type="search" placeholder="Symbol suchen, z. B. Wasser" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <div className="icon-grid" role="radiogroup" aria-label={label}>
+        {icons.map((t) => {
+          const on = t.key === value;
+          return (
+            <button key={t.key} type="button" role="radio" aria-checked={on} aria-label={t.label} title={t.label} className={'icon-pick' + (on ? ' is-on' : '')} onClick={() => onPick(t.key)}>
+              <Icon icon={t.icon} size={18} />
+            </button>
+          );
+        })}
+        {icons.length === 0 && <div className="icon-none">Kein Symbol gefunden.</div>}
+      </div>
     </div>
   );
 }
