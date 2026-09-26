@@ -49,7 +49,7 @@ export function ClaudeDialog({ onOpenFile, onClose }: ClaudeDialogProps) {
           <div className="sync-step-num">2</div>
           <div className="sync-step-text">
             <b>In Claude einrichten.</b> Lege auf claude.ai ein Projekt „Arbeitsblätter“ an und lade die Anleitung dort unter „Projektwissen“ hoch. Dann im Projekt z. B. schreiben: „Erstelle ein
-            Stundenpaket für Englisch Klasse 5, Green Line Unit 1, drei Stunden.“ oder „Erstelle den Jahresplan für Englisch Klasse 5.“ Du kannst PDFs, Fotos alter Arbeitsblätter, Lehrwerksseiten oder
+            Stundenpaket für Englisch Klasse 5 zum Thema My family, drei Stunden, ohne Lehrwerk.“ oder „Erstelle den Jahresplan für Englisch Klasse 5.“ Du kannst PDFs, Fotos alter Arbeitsblätter oder
             ein Stundenpaket aus dem Baukasten anhängen. Hast du die Anleitung früher schon hochgeladen, ersetze sie durch die neue.
           </div>
         </div>

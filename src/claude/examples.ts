@@ -49,9 +49,8 @@ export function englishExample(): PackageFile {
     icon: 'school',
     lang: 'en',
     help: true,
-    textbook: 'Unit 1',
     weeks: 5,
-    description: 'Sich vorstellen, die neue Schule und die Formen von to be.',
+    description: 'Sich vorstellen, die neue Schule · Grammatik: to be, Personalpronomen',
     competences: [
       {
         id: 'k1',
@@ -197,7 +196,8 @@ export function englishExample(): PackageFile {
     blocks: [
       b('phrases', {
         title: 'Useful phrases',
-        items: 'Hi, I’m … What’s your name? | Hallo, ich bin … Wie heißt du?\nHow old are you? | Wie alt bist du?\nThis is my friend … | Das ist mein Freund / meine Freundin …\nNice to meet you. | Schön, dich kennenzulernen.',
+        items:
+          'Hi, I’m … What’s your name? | Hallo, ich bin … Wie heißt du?\nHow old are you? | Wie alt bist du?\nThis is my friend … | Das ist mein Freund / meine Freundin …\nNice to meet you. | Schön, dich kennenzulernen.',
         variant: 'accent-6',
       }),
       b('rolecards', {
@@ -221,20 +221,18 @@ export function englishExample(): PackageFile {
       }),
     ],
   };
-  return clean(packageFromModules([{ module: m, lessons: [lesson(m, 1, 'Hello, I’m …', 'SB Unit 1, Station 1', [teacher, vocab, grammar, speaking])] }]));
+  return clean(packageFromModules([{ module: m, lessons: [lesson(m, 1, 'Hello, I’m …', '', [teacher, vocab, grammar, speaking])] }]));
 }
 
-/** A year plan: the units of Englisch Klasse 5 with textbook and weeks, without lessons yet, and the school year. */
+/** A year plan without a textbook: the units of Englisch Klasse 5 with their focus and weeks, without lessons yet, and the school year. */
 export function yearPlanExample(): PackageFile {
   const units: [string, string, number, string][] = [
-    ['Hello, school!', 'school', 5, 'Unit 1'],
-    ['My family and me', 'home', 6, 'Unit 2'],
-    ['A day in my life', 'clock', 6, 'Unit 3'],
-    ['Birthdays and parties', 'cake', 5, 'Unit 4'],
+    ['Hello, school!', 'school', 5, 'Sich vorstellen, Schule und Klassenzimmer · Grammatik: to be, Personalpronomen'],
+    ['My family and me', 'home', 6, 'Familie, Haustiere, Zuhause · Grammatik: have got, Plural, Possessivbegleiter'],
+    ['A day in my life', 'clock', 6, 'Tagesablauf, Uhrzeit, Schulfächer · Grammatik: simple present'],
+    ['Birthdays and parties', 'cake', 5, 'Geburtstage, Monate, Einladungen · Grammatik: can, Imperativ'],
   ];
-  const modules = units.map(([title, icon, weeks, textbook], i) =>
-    module({ subject: 'Englisch', grade: 5, number: i + 1, title, icon, lang: 'en', weeks, textbook, description: '' }),
-  );
+  const modules = units.map(([title, icon, weeks, description], i) => module({ subject: 'Englisch', grade: 5, number: i + 1, title, icon, lang: 'en', weeks, description }));
   modules[1].competences = [
     {
       id: 'k1',
@@ -246,7 +244,12 @@ export function yearPlanExample(): PackageFile {
       lessons: '',
     },
   ];
-  return clean(packageFromModules(modules.map((m) => ({ module: m, lessons: [] })), BW_2026_27));
+  return clean(
+    packageFromModules(
+      modules.map((m) => ({ module: m, lessons: [] })),
+      BW_2026_27,
+    ),
+  );
 }
 
 /** The Geography sample (Sachfach): teacher page, experiment and summary, tasks linked to the competences. */

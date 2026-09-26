@@ -153,7 +153,7 @@ export function ModuleView(p: ModuleViewProps) {
               </div>
             )}
             <div className="field is-wide">
-              <label htmlFor="m-book">Lehrwerk (z. B. Green Line 1, Unit 2, S. 34–51)</label>
+              <label htmlFor="m-book">Lehrwerk (nur falls genutzt, z. B. Green Line 1, Unit 2)</label>
               <input id="m-book" className="input" value={m.textbook} onChange={(e) => set({ textbook: e.target.value })} />
             </div>
             <NumberField label="Dauer in Schulwochen" value={m.weeks} min={0} max={40} onChange={(weeks) => set({ weeks })} />

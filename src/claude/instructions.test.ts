@@ -60,12 +60,14 @@ describe('Anleitung für Claude', () => {
     expect(p.schoolYear?.name).toBe('2026/27');
     expect(p.modules.map((m) => m.module.weeks)).toEqual([5, 6, 6, 5]);
     const r = addPackage(seedLibrary(), p);
+    // Without a textbook: no textbook reference, the focus is in the description.
     expect(r.modules.map((m) => [m.number, m.lang, m.textbook])).toEqual([
-      [1, 'en', 'Unit 1'],
-      [2, 'en', 'Unit 2'],
-      [3, 'en', 'Unit 3'],
-      [4, 'en', 'Unit 4'],
+      [1, 'en', ''],
+      [2, 'en', ''],
+      [3, 'en', ''],
+      [4, 'en', ''],
     ]);
+    for (const m of r.modules) expect(m.description).toContain('Grammatik:');
   });
 
   // The copy in docs/ is for reading on GitHub; `npm run anleitung` updates it.
