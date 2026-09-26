@@ -12,6 +12,7 @@
 | Folien | Entstehen per Claude im Handoff-Format. Die App zeigt sie an, erlaubt leichte Textkorrekturen und einen Präsentationsmodus. |
 | Papier und Oberfläche | Weiß statt Creme (abweichend vom Design-Handoff, Wunsch vom 26.09.2026): Arbeitsblätter über `--paper` in `src/sheet/sheet.css`, Toolbox, obere Leiste und Panel über `--color-ui` in `src/styles/app.css`. Die Fläche hinter den Seiten bleibt grau-beige, damit sich die weißen Blätter abheben. |
 | Druck | Farbdruck und S/W-Kopiervorlage, Schüler- oder Lösungsfassung. |
+| Übersicht | Startseite: Fach → Jahrgang → Modul (Thema). Je Modul eine Inhaltsübersicht (Stunden) und ein Kompetenzraster mit den Niveaus G/M/E des Bildungsplans BW, beide druckbar. Eine Stunde ist ein Arbeitsblatt-Dokument (mehrere Seiten). |
 
 ## Phasen
 
@@ -28,12 +29,19 @@
 - Druck/PDF: eine A4-Seite pro Blatt, weißes Papier
 - GitHub Pages Deployment, CI
 
-### Phase 2 – Bibliothek
-- Stundenpakete speichern, öffnen, duplizieren; Ordnung Klasse › Modul › Stunde
-- Themen-Symbol und Kürzel werden vom Modul übernommen
+### Phase 1.5 – Ausbau nach dem ersten Audit ✅
+- Übersicht mit Fach, Jahrgang und Modulen; Modulseite mit Stunden, Kompetenzraster (G/M/E) und Druck von Inhaltsübersicht und Kompetenzraster; Kürzel und Symbol kommen aus dem Modul; das bisherige Einzelblatt wurde automatisch übernommen
+- Sichern/Öffnen als Datei: ganze Bibliothek bzw. einzelnes Arbeitsblatt, jeweils mit Bildern; Import einer Datei als neue Stunde
+- Text direkt auf der Seite bearbeiten (Doppelklick oder erneutes Antippen)
+- „Überlauf auf neue Seite“; neue Seiten übernehmen die Kopfband-Einstellungen
+- Aufgaben mit Niveau (★–★★★) und Punkten; Namensfeld-Varianten (Name · Namen · Name + Klasse · aus)
+- Neue Bausteine: QR-Code, „Ich kann …“; Zeichenfeld mit Karo/Linien/Punkten; Quellenangabe unter Bildern
+- Warnung bei zweitem Tab; Zoom merken und „Seite einpassen“; Strg+D, Pfeiltasten, Alt+Pfeiltasten
+
+### Phase 2 – Bibliothek (Rest)
 - Vorlagen je Blatt-Typ
-- Export/Import eines Pakets als Datei inklusive Bilder (Sicherung, Austausch iPad ↔ Laptop)
 - Installierbar als App auf dem Home-Bildschirm (PWA), offline nutzbar
+- Kompetenzen im Arbeitsblatt verknüpfen (Aufgabe ↔ Kompetenz/Niveau)
 
 ### Phase 3 – Lehrkraft-Blöcke, Lösungen, Druckoptionen
 - Blöcke: Stundenverlauf (Zeit · Phase · Sozialform · Material), Ziel/Bildungsplan, Erwartungshorizont (Falsch/Vorsicht), Abruffragen mit Lösung (siehe `docs/design/referenz/Arbeitsblatt Treibhauseffekt.dc.html`, Seiten 1–2)

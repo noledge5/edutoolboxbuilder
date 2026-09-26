@@ -81,6 +81,23 @@ describe('other operations', () => {
     expect(ops.moveBlockBy(doc, last, 1)).toBe(doc);
   });
 
+  it('adds a page with the header settings of a template page', () => {
+    const doc = seedDoc();
+    const next = ops.addPage(doc, 0);
+    expect(next.pages[2]).toMatchObject({ title: 'Neues Arbeitsblatt', kicker: doc.pages[0].kicker, type: 'versuch', form: 'zu zweit', nameField: 'namen', blocks: [] });
+  });
+
+  it('splits a page into a continuation page', () => {
+    const doc = seedDoc();
+    const moved = ids(doc, 0).slice(5);
+    const next = ops.splitPage(doc, 0, 5);
+    expect(next.pages).toHaveLength(3);
+    expect(ids(next, 0)).toHaveLength(5);
+    expect(ids(next, 1)).toEqual(moved);
+    expect(next.pages[1]).toMatchObject({ title: doc.pages[0].title, type: doc.pages[0].type });
+    expect(ops.splitPage(doc, 0, 0)).toBe(doc);
+  });
+
   it('keeps at least one page', () => {
     const one = ops.deletePage(seedDoc(), 1);
     expect(one.pages).toHaveLength(1);

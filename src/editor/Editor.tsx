@@ -5,7 +5,9 @@ import { BLOCK_TYPES } from '../model/blockTypes';
 import { historyReducer, initHistory } from '../model/history';
 import * as ops from '../model/ops';
 import type { Doc, DragItem, DropTarget, Selection } from '../model/types';
-import { saveDoc } from '../storage/db';
+import { InlineEditContext, type InlineEdit } from '../sheet/inlineEdit';
+import { PAGE_W } from '../sheet/SheetPage';
+import { backupFileName, createBackup, downloadBlob, readBackup } from '../storage/backup';
 import { storeImageFile } from '../storage/images';
 import type { EditorApi } from './api';
 import { Canvas } from './Canvas';
@@ -19,7 +21,20 @@ import { useMediaQuery } from './useMediaQuery';
 
 const ZOOM_MIN = 0.4;
 const ZOOM_MAX = 1.5;
+const ZOOM_KEY = 'arbeitsblatt-baukasten:zoom';
 const AUTOSCROLL_EDGE = 60;
+
+const clampZoom = (z: number) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, +z.toFixed(2)));
+
+/** The zoom the teacher used last, on this device (a convenience, so plain localStorage). */
+function storedZoom(): number | null {
+  try {
+    const z = parseFloat(localStorage.getItem(ZOOM_KEY) ?? '');
+    return Number.isFinite(z) ? clampZoom(z) : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Drops a selection that no longer points at anything (after undo, delete, import). */
 function validSelection(doc: Doc, sel: Selection): Selection {
@@ -31,7 +46,7 @@ function validSelection(doc: Doc, sel: Selection): Selection {
 const isTyping = (el: Element | null) =>
   !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || (el as HTMLElement).isContentEditable);
 
-/** Delete/Backspace only act on the page, not while a button in the panel or toolbox has focus. */
+/** Delete/Backspace and the arrow keys only act on the page, not while a button in the panel or toolbox has focus. */
 const focusOnCanvas = (el: Element | null) => !el || el === document.body || !!el.closest('.canvas');
 
 /** Numbers of the pages whose content is cut off at the bottom. */
@@ -47,22 +62,39 @@ const dragLabel = (data: unknown, doc: Doc) => {
   return type ? BLOCK_TYPES[type].label : 'Element';
 };
 
-export function Editor({ initialDoc }: { initialDoc: Doc }) {
+export const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+export interface EditorProps {
+  initialDoc: Doc;
+  /** Persists the document; called shortly after every change. */
+  onSave(doc: Doc): Promise<void>;
+  /** Back to the overview (library). */
+  onBack?(): void;
+  /** Where the worksheet sits, e.g. "Geographie · Klasse 9 · Modul 1", shown in the top bar. */
+  place?: string;
+  /** The code (Kürzel) comes from grade, module and lesson and cannot be edited here. */
+  codeLocked?: boolean;
+}
+
+export function Editor({ initialDoc, onSave, onBack, place, codeLocked }: EditorProps) {
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
   const doc = hist.present;
   const [rawSel, setSel] = useState<Selection>({ kind: 'page', p: 0 });
   const sel = validSelection(doc, rawSel);
-  const [zoom, setZoom] = useState(0.8);
+  const compact = useMediaQuery('screen and (max-width: 1099px)');
+  const [zoom, setZoomState] = useState(() => storedZoom() ?? 0.8);
   const [preview, setPreview] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [drop, setDrop] = useState<DropTarget | null>(null);
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
   const [saveError, setSaveError] = useState(false);
-  const compact = useMediaQuery('screen and (max-width: 1099px)');
+  const [notice, setNotice] = useState<string | null>(null);
   const [toolboxOpen, setToolboxOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [inline, setInline] = useState<string | null>(null);
   const editing = !preview;
   const canvasRef = useRef<HTMLElement>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   // Latest values for listeners registered once.
   const latest = useRef({ doc, sel, drop, dragItem, jsonOpen, editing });
@@ -73,17 +105,61 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
     if (opts && 'select' in opts) setSel(opts.select ?? null);
   }, []);
 
+  const undo = useCallback((redo = false) => {
+    setInline(null);
+    dispatch({ type: redo ? 'redo' : 'undo' });
+  }, []);
+
   const select = useCallback((s: Selection) => {
     setSel(s);
+    setInline(null);
     setPanelOpen(s !== null);
   }, []);
+
+  const setZoom = useCallback((z: number) => {
+    const next = clampZoom(z);
+    setZoomState(next);
+    try {
+      localStorage.setItem(ZOOM_KEY, String(next));
+    } catch {
+      // Not available (private mode): the zoom just is not remembered.
+    }
+  }, []);
+
+  /** Zoom so a page fills the canvas width. */
+  const fitZoom = useCallback(() => {
+    const c = canvasRef.current;
+    if (!c) return;
+    const cs = getComputedStyle(c);
+    const free = c.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    setZoom(Math.floor((free / PAGE_W) * 100) / 100);
+  }, [setZoom]);
+
+  // On a tablet without a remembered zoom, start with the page fitted to the screen.
+  const fitOnStart = useRef(compact && storedZoom() === null);
+  useEffect(() => {
+    if (fitOnStart.current) fitZoom();
+  }, [fitZoom]);
 
   const api: EditorApi = {
     doc,
     sel,
     editing,
     drop,
+    codeLocked: !!codeLocked,
     select,
+    startEdit: (target, s) => {
+      // Render the text field synchronously and focus it inside the tap, or iPadOS will not open the keyboard.
+      flushSync(() => {
+        setSel(s);
+        setInline(target);
+      });
+      const el = document.querySelector<HTMLTextAreaElement>('[data-inline-input]');
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+    },
     addBlock: (type) => {
       const at = ops.insertionPoint(doc, sel);
       const block = ops.createBlock(type);
@@ -103,31 +179,132 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
     setImage: (id, file) => {
       storeImageFile(file)
         .then((imageId) => commit(ops.updateBlock(latest.current.doc, id, { props: { image: imageId } })))
-        .catch((e) => window.alert('Das Bild konnte nicht gespeichert werden: ' + (e instanceof Error ? e.message : String(e))));
+        .catch((e) => window.alert('Das Bild konnte nicht gespeichert werden: ' + errorText(e)));
     },
     setPage: (p, patch) => commit(ops.updatePage(doc, p, patch), { mergeKey: `page${p}.${Object.keys(patch).join()}` }),
     setMeta: (patch) => commit(ops.updateDocMeta(doc, patch), { mergeKey: `meta.${Object.keys(patch).join()}` }),
-    addPage: () => commit(ops.addPage(doc), { select: { kind: 'page', p: doc.pages.length } }),
+    addPage: () => {
+      // The new page takes over the header settings of the selected page (or the last one).
+      const like = sel ? (sel.kind === 'page' ? sel.p : (ops.findBlock(doc, sel.id)?.p ?? doc.pages.length - 1)) : doc.pages.length - 1;
+      commit(ops.addPage(doc, like), { select: { kind: 'page', p: doc.pages.length } });
+    },
     deletePage: (p) => commit(ops.deletePage(doc, p), { select: { kind: 'page', p: Math.max(0, p - 1) } }),
+    splitPage: (p, i) => commit(ops.splitPage(doc, p, i), { select: { kind: 'page', p: p + 1 } }),
   };
 
-  // Keyboard: Entf/Backspace deletes the selected block, Esc clears the selection, Cmd/Ctrl+Z undoes.
+  // Text edited right on the page goes through the same operations as the panel, so undo works.
+  const inlineEdit: InlineEdit = {
+    target: editing ? inline : null,
+    change: (target, value) => {
+      const d = latest.current.doc;
+      const page = /^page(\d+):(\w+)$/.exec(target);
+      if (page) {
+        const p = Number(page[1]);
+        commit(ops.updatePage(d, p, { [page[2]]: value }), { mergeKey: `page${p}.${page[2]}` });
+        return;
+      }
+      const cut = target.lastIndexOf(':');
+      const id = target.slice(0, cut);
+      const key = target.slice(cut + 1);
+      commit(ops.updateBlock(d, id, { props: { [key]: value } }), { mergeKey: `${id}.${key}` });
+    },
+    done: () => setInline(null),
+  };
+
+  // — Files: save the worksheet with its images as one file, and open such a file again. —
+  const saveFile = async () => {
+    try {
+      const file = await createBackup(latest.current.doc);
+      downloadBlob(new Blob([JSON.stringify(file)], { type: 'application/json' }), backupFileName(file.doc));
+    } catch (e) {
+      window.alert('Die Datei konnte nicht erstellt werden: ' + errorText(e));
+    }
+  };
+
+  const openFile = useCallback(
+    async (file: File) => {
+      try {
+        const opened = await readBackup(await file.text());
+        // Keep the place in the library: icon and code stay those of this worksheet.
+        const { icon, code } = latest.current.doc;
+        const next = codeLocked ? { ...opened, icon, code } : opened;
+        commit(next, { select: { kind: 'page', p: 0 } });
+        setNotice(`„${file.name}“ geöffnet. Mit Rückgängig kommst du zum vorherigen Inhalt zurück.`);
+      } catch (e) {
+        window.alert('Die Datei konnte nicht geöffnet werden: ' + errorText(e));
+      }
+    },
+    [commit, codeLocked],
+  );
+
+  // Dropping a file: images are handled by image blocks; a worksheet file dropped anywhere else is opened.
+  // Anything else must not make the browser navigate away from the editor.
+  useEffect(() => {
+    const onDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes('Files')) e.preventDefault();
+    };
+    const onDrop = (e: DragEvent) => {
+      if (!e.dataTransfer?.types.includes('Files') || e.defaultPrevented) return;
+      e.preventDefault();
+      const f = Array.from(e.dataTransfer.files).find((x) => x.name.toLowerCase().endsWith('.json') || x.type === 'application/json');
+      if (f) openFile(f);
+    };
+    window.addEventListener('dragover', onDragOver);
+    window.addEventListener('drop', onDrop);
+    return () => {
+      window.removeEventListener('dragover', onDragOver);
+      window.removeEventListener('drop', onDrop);
+    };
+  }, [openFile]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 6000);
+    return () => clearTimeout(t);
+  }, [notice]);
+
+  // Keyboard: Entf deletes, Esc clears the selection, Cmd/Ctrl+Z undoes, Cmd/Ctrl+D duplicates,
+  // arrow keys select the previous/next block, Alt+arrow keys move it.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const { doc, sel, jsonOpen, editing } = latest.current;
       if (jsonOpen || isTyping(document.activeElement)) return;
       const mod = e.metaKey || e.ctrlKey;
-      if (mod && e.key.toLowerCase() === 'z') {
+      const key = e.key.toLowerCase();
+      const block = sel?.kind === 'block' ? sel.id : null;
+      const onCanvas = focusOnCanvas(document.activeElement);
+      if (mod && key === 'z') {
         e.preventDefault();
-        dispatch({ type: e.shiftKey ? 'redo' : 'undo' });
-      } else if (mod && e.key.toLowerCase() === 'y') {
+        undo(e.shiftKey);
+      } else if (mod && key === 'y') {
         e.preventDefault();
-        dispatch({ type: 'redo' });
-      } else if ((e.key === 'Delete' || e.key === 'Backspace') && editing && sel?.kind === 'block' && focusOnCanvas(document.activeElement)) {
+        undo(true);
+      } else if (mod && key === 'd' && editing && block) {
         e.preventDefault();
-        const loc = ops.findBlock(doc, sel.id);
-        dispatch({ type: 'commit', doc: ops.deleteBlock(doc, sel.id) });
+        const r = ops.duplicateBlock(doc, block);
+        dispatch({ type: 'commit', doc: r.doc });
+        setSel({ kind: 'block', id: r.id });
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && editing && block && onCanvas) {
+        e.preventDefault();
+        const loc = ops.findBlock(doc, block);
+        dispatch({ type: 'commit', doc: ops.deleteBlock(doc, block) });
         setSel(loc ? { kind: 'page', p: loc.p } : null);
+      } else if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && editing && onCanvas && !mod) {
+        const dir = e.key === 'ArrowUp' ? -1 : 1;
+        if (e.altKey && block) {
+          e.preventDefault();
+          dispatch({ type: 'commit', doc: ops.moveBlockBy(doc, block, dir) });
+          return;
+        }
+        const order = ops.allBlockIds(doc);
+        let next: string | undefined;
+        if (block) next = order[order.indexOf(block) + dir];
+        else if (sel?.kind === 'page' && dir > 0) next = doc.pages[sel.p].blocks[0]?.id;
+        if (next) {
+          e.preventDefault();
+          setSel({ kind: 'block', id: next });
+          (document.querySelector(`[data-block-id="${next}"]`) as HTMLElement | null)?.focus({ preventScroll: true });
+        }
       } else if (e.key === 'Escape') {
         setSel(null);
         setPanelOpen(false);
@@ -135,27 +312,16 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
-
-  // Dropping a file somewhere other than an image block must not navigate away from the editor.
-  useEffect(() => {
-    const block = (e: DragEvent) => {
-      if (e.dataTransfer?.types.includes('Files')) e.preventDefault();
-    };
-    window.addEventListener('dragover', block);
-    window.addEventListener('drop', block);
-    return () => {
-      window.removeEventListener('dragover', block);
-      window.removeEventListener('drop', block);
-    };
-  }, []);
+  }, [undo]);
 
   // Persistence: save shortly after every change, and right away when the tab is hidden or closed.
   const saved = useRef(initialDoc);
+  const onSaveRef = useRef(onSave);
+  onSaveRef.current = onSave;
   const save = useCallback((d: Doc) => {
     if (d === saved.current) return;
     saved.current = d;
-    saveDoc(d).then(
+    onSaveRef.current(d).then(
       () => setSaveError(false),
       () => setSaveError(true),
     );
@@ -172,6 +338,8 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pagehide', flush);
+      // Leaving the editor (back to the overview) must not lose the last edits.
+      flush();
     };
   }, [save]);
 
@@ -242,6 +410,7 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
     const pt = 'touches' in ev ? (ev as TouchEvent).touches[0] : (ev as MouseEvent);
     pointer.current = pt ? { x: pt.clientX, y: pt.clientY } : null;
     latest.current.dragItem = item;
+    setInline(null);
     setDragItem(item);
     // On narrow screens the toolbox covers the page: get it out of the way while dragging.
     if (compact) {
@@ -283,6 +452,7 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
     flushSync(() => {
       setPreview(true);
       setSel(null);
+      setInline(null);
       setPanelOpen(false);
       setToolboxOpen(false);
     });
@@ -311,6 +481,8 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
       <div className={'app ' + (editing ? 'is-editing' : 'is-preview') + (compact ? ' is-compact' : '') + (dragItem ? ' is-dragging' : '')}>
         <TopBar
           icon={doc.icon}
+          place={place}
+          onBack={onBack}
           editing={editing}
           compact={compact}
           zoom={zoom}
@@ -318,42 +490,68 @@ export function Editor({ initialDoc }: { initialDoc: Doc }) {
           canRedo={hist.future.length > 0}
           toolboxOpen={toolboxOpen}
           onToggleToolbox={() => setToolboxOpen((o) => !o)}
-          onUndo={() => dispatch({ type: 'undo' })}
-          onRedo={() => dispatch({ type: 'redo' })}
-          onZoom={(dir) => setZoom((z) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, +(z + dir * 0.1).toFixed(2))))}
+          onUndo={() => undo()}
+          onRedo={() => undo(true)}
+          onZoom={(dir) => setZoom(zoom + dir * 0.1)}
+          onFitZoom={fitZoom}
+          onOpenFile={() => fileInput.current?.click()}
+          onSaveFile={saveFile}
           onOpenJson={() => setJsonOpen(true)}
           onTogglePreview={() => setPreview((p) => !p)}
           onPrint={print}
         />
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".json,application/json"
+          hidden
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (f) openFile(f);
+          }}
+        />
         <div className="workspace">
           {editing && <Toolbox open={!compact || toolboxOpen} compact={compact} onAdd={api.addBlock} onClose={() => setToolboxOpen(false)} />}
-          <Canvas
-            ref={canvasRef}
-            api={api}
-            zoom={zoom}
-            draggingId={dragItem?.kind === 'move' ? dragItem.id : null}
-            onBackgroundClick={() => {
-              select(null);
-              setToolboxOpen(false);
-            }}
-          />
-          {editing && <PropertiesPanel api={api} open={!compact || (panelOpen && sel !== null)} compact={compact} onClose={() => setPanelOpen(false)} />}
+          <InlineEditContext.Provider value={editing ? inlineEdit : null}>
+            <Canvas
+              ref={canvasRef}
+              api={api}
+              zoom={zoom}
+              draggingId={dragItem?.kind === 'move' ? dragItem.id : null}
+              onBackgroundClick={() => {
+                select(null);
+                setToolboxOpen(false);
+              }}
+            />
+          </InlineEditContext.Provider>
+          {editing && (
+            <PropertiesPanel api={api} open={!compact || (panelOpen && sel !== null && inline === null)} compact={compact} onClose={() => setPanelOpen(false)} />
+          )}
         </div>
         {jsonOpen && (
           <JsonDialog
             doc={doc}
             onClose={() => setJsonOpen(false)}
             onApply={(next) => {
-              commit(next, { select: { kind: 'page', p: 0 } });
+              const { icon, code } = latest.current.doc;
+              commit(codeLocked ? { ...next, icon, code } : next, { select: { kind: 'page', p: 0 } });
               setJsonOpen(false);
             }}
           />
         )}
-        {saveError && (
-          <div className="save-error" role="alert" data-noprint="1">
-            Speichern im Browser fehlgeschlagen. Sichere deine Arbeit über „Daten“.
-          </div>
-        )}
+        <div className="toasts" data-noprint="1">
+          {saveError && (
+            <div className="toast is-warn" role="alert">
+              <span>Speichern im Browser fehlgeschlagen. Sichere deine Arbeit über „Datei“ → „Als Datei sichern“.</span>
+            </div>
+          )}
+          {notice && (
+            <div className="toast" role="status">
+              <span>{notice}</span>
+            </div>
+          )}
+        </div>
       </div>
       <DragOverlay modifiers={[ghostBesideCursor]} dropAnimation={null} className="drag-overlay">
         {ghostType ? <DragGhost type={ghostType} /> : null}

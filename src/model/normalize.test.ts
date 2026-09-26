@@ -14,6 +14,17 @@ describe('normalizeDoc', () => {
     expect(normalizeDoc({ pages: [{}] }).icon).toBe('thermometer-sun');
   });
 
+  it('reads the old true/false name field and the new variants', () => {
+    const names = normalizeDoc({ pages: [{ nameField: true }, { nameField: false }, { nameField: 'namen' }, { nameField: 'klasse' }, { nameField: 'x' }] }).pages.map((p) => p.nameField);
+    expect(names).toEqual(['name', 'aus', 'namen', 'klasse', 'name']);
+  });
+
+  it('checks task level and points', () => {
+    const [a, b] = normalizeDoc({ pages: [{ blocks: [{ type: 'open', props: { level: '2', points: 4 } }, { type: 'open', props: { level: '7', points: -3 } }] }] }).pages[0].blocks;
+    expect(a.props).toMatchObject({ level: '2', points: 4 });
+    expect(b.props).toMatchObject({ level: '', points: 0 });
+  });
+
   it('requires a pages list', () => {
     expect(() => normalizeDoc({ footer: 'x' })).toThrow('Es fehlt die Liste "pages".');
     expect(() => parseDocJson('{nope')).toThrow(DocFormatError);
@@ -43,7 +54,7 @@ describe('normalizeDoc', () => {
       ],
     });
     const pg = doc.pages[0];
-    expect(pg).toMatchObject({ type: 'uebung', form: 'allein', nameField: true, title: 'Neues Arbeitsblatt' });
+    expect(pg).toMatchObject({ type: 'uebung', form: 'allein', nameField: 'name', title: 'Neues Arbeitsblatt' });
     expect(pg.blocks[0]).toMatchObject({ id: 'x', span: 12, props: { lines: 20 } });
     expect(pg.blocks[1].id).not.toBe('x');
     expect(pg.blocks[1]).toMatchObject({ span: 6, props: { variant: 'accent-2' } });

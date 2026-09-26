@@ -4,7 +4,15 @@ import { BLOCK_TYPES, isBlockType } from './blockTypes';
 import { uid } from './ops';
 import { THEMES, VARIANTS, WORK_FORMS } from './themes';
 import { DEFAULT_TOPIC_ICON, isTopicIcon } from '../topicIcons';
-import type { Block, BlockProps, Doc, Page, SheetType, WorkForm } from './types';
+import type { Block, BlockProps, Doc, NameField, Page, SheetType, WorkForm } from './types';
+
+const NAME_FIELDS: NameField[] = ['name', 'namen', 'klasse', 'aus'];
+
+/** Older documents stored the name field as true/false. */
+function normalizeNameField(x: unknown): NameField {
+  if (x === false) return 'aus';
+  return NAME_FIELDS.includes(x as NameField) ? (x as NameField) : 'name';
+}
 
 export class DocFormatError extends Error {}
 
@@ -57,7 +65,7 @@ function normalizePage(raw: unknown, index: number, seen: Set<string>): Page {
     kicker: asStr(raw.kicker, ''),
     type,
     form,
-    nameField: typeof raw.nameField === 'boolean' ? raw.nameField : true,
+    nameField: normalizeNameField(raw.nameField),
     blocks,
   };
 }

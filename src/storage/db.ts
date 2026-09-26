@@ -10,6 +10,10 @@ const IMG_PREFIX = 'img:';
 let store: UseStore | null = null;
 const db = (): UseStore => (store ??= createStore('arbeitsblatt-baukasten', 'daten'));
 
+/** The shared key-value store (also used by the library, see storage/library.ts). */
+export const kv = db;
+
+/** The worksheet of the first version (before the library). */
 export async function loadDoc(): Promise<Doc | null> {
   const raw = await get<unknown>(DOC_KEY, db());
   if (raw == null) return null;
@@ -26,19 +30,29 @@ export function saveDoc(doc: Doc): Promise<void> {
   return set(DOC_KEY, doc, db());
 }
 
+/** Removes the first version's worksheet once it has moved into the library. */
+export function deleteOldDoc(): Promise<void> {
+  return del(DOC_KEY, db());
+}
+
 export async function putImage(blob: Blob): Promise<string> {
   const id = 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   await set(IMG_PREFIX + id, blob, db());
   return id;
 }
 
+/** Stores an image under a known id (when opening a backup file). */
+export function putImageAs(id: string, blob: Blob): Promise<void> {
+  return set(IMG_PREFIX + id, blob, db());
+}
+
 export function getImage(id: string): Promise<Blob | undefined> {
   return get<Blob>(IMG_PREFIX + id, db());
 }
 
-/** Deletes stored images no block refers to. Run at start-up only, while the undo history is empty. */
-export async function deleteUnusedImages(doc: Doc): Promise<void> {
-  const used = referencedImages(doc);
+/** Deletes stored images no block refers to. Run at start-up only, while no undo history exists. */
+export async function deleteUnusedImages(docs: Doc[]): Promise<void> {
+  const used = new Set(docs.flatMap((d) => [...referencedImages(d)]));
   const all = await keys<string>(db());
   await Promise.all(all.filter((k) => typeof k === 'string' && k.startsWith(IMG_PREFIX) && !used.has(k.slice(IMG_PREFIX.length))).map((k) => del(k, db())));
 }

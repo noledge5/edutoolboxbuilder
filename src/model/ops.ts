@@ -11,8 +11,10 @@ export function createBlock(type: BlockType, props?: BlockProps, span?: number):
   return { id: uid(), type, span: span ?? T.span, props: { ...T.defaults, ...props } };
 }
 
-export function createPage(): Page {
-  return { title: 'Neues Arbeitsblatt', kicker: 'Klasse · Thema', type: 'uebung', form: 'allein', nameField: true, blocks: [] };
+/** A new empty page. With a template page it takes over that page's header settings (not its title). */
+export function createPage(like?: Page): Page {
+  const base: Page = { title: 'Neues Arbeitsblatt', kicker: 'Klasse · Thema', type: 'uebung', form: 'allein', nameField: 'name', blocks: [] };
+  return like ? { ...base, kicker: like.kicker, type: like.type, form: like.form, nameField: like.nameField } : base;
 }
 
 export function findBlock(doc: Doc, id: string): { p: number; i: number } | null {
@@ -123,11 +125,25 @@ export function updateDocMeta(doc: Doc, patch: Partial<Pick<Doc, 'icon' | 'foote
   });
 }
 
-export function addPage(doc: Doc): Doc {
+/** Appends a page that takes over the header settings of page `like` (default: the last page). */
+export function addPage(doc: Doc, like = doc.pages.length - 1): Doc {
   return produce(doc, (d) => {
-    d.pages.push(createPage());
+    d.pages.push(createPage(doc.pages[like]));
   });
 }
+
+/** Moves blocks `i`… of page `p` onto a new page right after it, with the same header (a continuation). */
+export function splitPage(doc: Doc, p: number, i: number): Doc {
+  const page = doc.pages[p];
+  if (!page || i <= 0 || i >= page.blocks.length) return doc;
+  return produce(doc, (d) => {
+    const moved = d.pages[p].blocks.splice(i);
+    d.pages.splice(p + 1, 0, { ...createPage(page), title: page.title, blocks: moved });
+  });
+}
+
+/** All blocks in reading order, for moving the selection with the arrow keys. */
+export const allBlockIds = (doc: Doc): string[] => doc.pages.flatMap((pg) => pg.blocks.map((b) => b.id));
 
 export function deletePage(doc: Doc, p: number): Doc {
   if (doc.pages.length <= 1 || !doc.pages[p]) return doc;

@@ -7,6 +7,9 @@ export type WorkForm = 'allein' | 'zu zweit' | 'Gruppe' | 'Plenum';
 
 export type Variant = 'accent-2' | 'accent' | 'neutral';
 
+/** Name line under the header band: Name + Datum, Namen (pairs/groups) + Datum, Name + Klasse + Datum, or none. */
+export type NameField = 'name' | 'namen' | 'klasse' | 'aus';
+
 export type BlockType =
   | 'heading'
   | 'text'
@@ -15,12 +18,14 @@ export type BlockType =
   | 'wordbank'
   | 'image'
   | 'flow'
+  | 'qr'
   | 'open'
   | 'mc'
   | 'gap'
   | 'table'
   | 'match'
-  | 'draw';
+  | 'draw'
+  | 'selfcheck';
 
 export type PropValue = string | number;
 
@@ -39,7 +44,7 @@ export interface Page {
   kicker: string;
   type: SheetType;
   form: WorkForm;
-  nameField: boolean;
+  nameField: NameField;
   blocks: Block[];
 }
 

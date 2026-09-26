@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type Ref } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { ChevronDown, ChevronUp, Copy, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, FilePlus2, Plus, Trash2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { canMoveBy } from '../model/ops';
 import type { Block, DragItem, Page } from '../model/types';
@@ -50,6 +50,21 @@ interface PageFrameProps {
   draggingId: string | null;
 }
 
+/** The text field under a click, if it is one that can be edited on the page. */
+const editTarget = (e: MouseEvent) => (e.target as Element).closest('[data-edit]')?.getAttribute('data-edit') ?? null;
+
+/**
+ * Index of the first block that does not fit on the page, moved back to the start of its row,
+ * so side-by-side blocks stay together. Null when everything fits or only the first row is too tall.
+ */
+function firstCutBlock(body: HTMLElement): number | null {
+  const blocks = Array.from(body.querySelectorAll<HTMLElement>(':scope > [data-block-id]'));
+  let k = blocks.findIndex((b) => b.offsetTop + b.offsetHeight > body.clientHeight + 1);
+  if (k < 0) return null;
+  while (k > 0 && blocks[k - 1].offsetTop === blocks[k].offsetTop) k--;
+  return k > 0 ? k : null;
+}
+
 function PageFrame({ api, page, p, zoom, draggingId }: PageFrameProps) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const [overflow, setOverflow] = useState(false);
@@ -71,6 +86,20 @@ function PageFrame({ api, page, p, zoom, draggingId }: PageFrameProps) {
     e.stopPropagation();
     if (api.editing) api.select({ kind: 'page', p });
   };
+  const headerSelected = api.editing && api.sel?.kind === 'page' && api.sel.p === p;
+  // Header band: a click on the title or kicker of the selected page edits it right there.
+  const onHeaderClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (!api.editing) return;
+    const target = editTarget(e);
+    if (target && (headerSelected || e.detail > 1)) api.startEdit(target, { kind: 'page', p });
+    else api.select({ kind: 'page', p });
+  };
+  const moveOverflow = () => {
+    const i = bodyRef.current ? firstCutBlock(bodyRef.current) : null;
+    if (i === null) window.alert('Das erste Element ist allein schon zu groß für die Seite. Verkleinere es im Panel.');
+    else api.splitPage(p, i);
+  };
   const nums = taskNumbers(page);
   const drop = api.drop;
 
@@ -79,6 +108,12 @@ function PageFrame({ api, page, p, zoom, draggingId }: PageFrameProps) {
       <div className="page-label" data-noprint="1">
         <span>Seite {p + 1}</span>
         {overflow && <span className="page-warn">Seite ist voll: Inhalt wird unten abgeschnitten</span>}
+        {overflow && api.editing && (
+          <button type="button" className="page-warn-btn" onClick={moveOverflow}>
+            <Icon icon={FilePlus2} size={14} />
+            Überlauf auf neue Seite
+          </button>
+        )}
       </div>
       <div className="page-scale" style={{ width: PAGE_W * zoom, height: PAGE_H * zoom }}>
         <SheetPage
@@ -86,8 +121,8 @@ function PageFrame({ api, page, p, zoom, draggingId }: PageFrameProps) {
           page={page}
           index={p}
           editing={api.editing}
-          headerSelected={api.editing && api.sel?.kind === 'page' && api.sel.p === p}
-          onHeaderClick={selectPage}
+          headerSelected={headerSelected}
+          onHeaderClick={onHeaderClick}
           onBodyClick={selectPage}
           bodyRef={bodyRef}
           dropEnd={!!drop && drop.p === p && drop.pos === 'end'}
@@ -149,7 +184,11 @@ function BlockFrame({ api, block, p, i, taskNum, dragging }: BlockFrameProps) {
       {...(editing ? { ...attributes, ...listeners } : {})}
       onClick={(e) => {
         e.stopPropagation();
-        if (editing) api.select({ kind: 'block', id: block.id });
+        if (!editing) return;
+        // A second click (or tap) on a text of the selected block edits it right on the page.
+        const target = editTarget(e);
+        if (target && (selected || e.detail > 1)) api.startEdit(target, { kind: 'block', id: block.id });
+        else api.select({ kind: 'block', id: block.id });
       }}
       onKeyDown={(e) => {
         if (editing && e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {

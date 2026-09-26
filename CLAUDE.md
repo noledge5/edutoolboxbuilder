@@ -6,6 +6,11 @@ Browser tool for a German Realschule teacher to build printable A4 worksheets fr
 - `docs/design/README.md`: the design spec (layout, colours, every block type, interactions). The prototype `docs/design/Arbeitsblatt-Baukasten.dc.html` (its `<script data-dc-script>` logic class) is the functional spec.
 - `docs/roadmap.md`: decisions made with the user and the phase plan. Stay within the current phase unless asked.
 
+## Structure
+- `src/App.tsx` loads the library and routes by URL hash (`src/library/router.ts`): overview `#/?fach=…&klasse=…`, module `#/modul/<id>`, lesson editor `#/stunde/<id>`.
+- Library model (`src/library/`): subjects and grades hold modules; a module holds lessons (each one worksheet `Doc`) and a competence grid (G/M/E). A lesson's icon and code (`K9 · M1 · S2`) always come from its module (`docForLesson`).
+- Storage (`src/storage/library.ts`): IndexedDB entries `modul:<id>`, `stunde:<id>`, `lib:einstellungen`, images `img:<id>`. Backup files (`src/storage/backup.ts`) carry images as data URLs.
+
 ## Rules
 - UI text is German and follows the labels in the design spec exactly. Code, identifiers and comments are English.
 - Two visual layers: `src/sheet/` is the printed page (Caprasimo headings, Figtree body) and must stay pixel-accurate to the spec. The editor chrome (`src/editor/`, `src/styles/app.css`) uses the Helvetica Neue UI font, never Caprasimo.

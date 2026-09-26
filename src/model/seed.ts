@@ -13,7 +13,7 @@ export function seedDoc(): Doc {
         kicker: 'Klasse 9 · Modellversuch zum Treibhauseffekt',
         type: 'versuch',
         form: 'zu zweit',
-        nameField: true,
+        nameField: 'namen',
         blocks: [
           b('heading', { text: 'Aufbau' }),
           b(
@@ -41,7 +41,7 @@ export function seedDoc(): Doc {
         kicker: 'Klasse 9 · Sicherung fürs Lernjournal',
         type: 'sicherung',
         form: 'allein',
-        nameField: true,
+        nameField: 'name',
         blocks: [
           b('flow', { steps: 'Sonnenstrahlung | (kurzwellig)\nErdoberfläche | erwärmt sich\nWärmestrahlung | (langwellig)\nTreibhausgase | CO₂, Methan, Wasserdampf' }),
           b('draw', {

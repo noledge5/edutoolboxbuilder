@@ -8,6 +8,8 @@ import {
   Lightbulb,
   ListChecks,
   PencilLine,
+  QrCode,
+  SmilePlus,
   Table,
   Tag,
   TextCursorInput,
@@ -24,12 +26,14 @@ export const BLOCK_ICONS: Record<BlockType, LucideIcon> = {
   wordbank: Tag,
   image: Image,
   flow: Workflow,
+  qr: QrCode,
   open: PencilLine,
   mc: ListChecks,
   gap: TextCursorInput,
   table: Table,
   match: ArrowLeftRight,
   draw: Brush,
+  selfcheck: SmilePlus,
 };
 
 /** Lucide icon in the design system's style: stroke 2.75, round caps and joins. */

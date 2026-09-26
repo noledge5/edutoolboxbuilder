@@ -21,6 +21,23 @@ export interface BlockTypeDef {
   fields: FieldDef[];
 }
 
+/** Differentiation fields every task has: level stars and points. */
+const TASK_FIELDS: FieldDef[] = [
+  {
+    key: 'level',
+    label: 'Niveau',
+    kind: 'seg',
+    options: [
+      { v: '', l: '–' },
+      { v: '1', l: '★' },
+      { v: '2', l: '★★' },
+      { v: '3', l: '★★★' },
+    ],
+  },
+  { key: 'points', label: 'Punkte (0 = keine)', kind: 'number', min: 0, max: 99 },
+];
+const TASK_DEFAULTS = { level: '', points: 0 };
+
 export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
   heading: {
     label: 'Überschrift',
@@ -68,10 +85,11 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     label: 'Abbildung',
     group: 1,
     span: 6,
-    defaults: { caption: 'Abb. 1: Bildunterschrift', height: 200, image: '', fit: 'cover' },
+    defaults: { caption: 'Abb. 1: Bildunterschrift', source: '', height: 200, image: '', fit: 'cover' },
     fields: [
       { key: 'image', label: 'Bild', kind: 'image' },
       { key: 'caption', label: 'Bildunterschrift', kind: 'text' },
+      { key: 'source', label: 'Quelle', kind: 'text' },
       { key: 'height', label: 'Höhe in px', kind: 'number', min: 40, max: 900 },
       {
         key: 'fit',
@@ -91,15 +109,26 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     defaults: { steps: 'Schritt 1 | Zusatz\nSchritt 2\nSchritt 3' },
     fields: [{ key: 'steps', label: 'Schritte (Titel | Zusatz, eine Zeile je Schritt)', kind: 'area' }],
   },
+  qr: {
+    label: 'QR-Code',
+    group: 1,
+    span: 4,
+    defaults: { url: 'https://', caption: 'Scanne den Code.' },
+    fields: [
+      { key: 'url', label: 'Link (Adresse)', kind: 'text' },
+      { key: 'caption', label: 'Beschriftung', kind: 'text' },
+    ],
+  },
   open: {
     label: 'Offene Frage',
     group: 2,
     task: true,
     span: 12,
-    defaults: { prompt: 'Beschreibe, was du beobachtest.', lines: 3 },
+    defaults: { prompt: 'Beschreibe, was du beobachtest.', lines: 3, ...TASK_DEFAULTS },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
       { key: 'lines', label: 'Anzahl Schreiblinien', kind: 'number', min: 0, max: 20 },
+      ...TASK_FIELDS,
     ],
   },
   mc: {
@@ -107,10 +136,11 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     group: 2,
     task: true,
     span: 12,
-    defaults: { prompt: 'Kreuze die richtige Antwort an.', options: 'Antwort A\nAntwort B\nAntwort C' },
+    defaults: { prompt: 'Kreuze die richtige Antwort an.', options: 'Antwort A\nAntwort B\nAntwort C', ...TASK_DEFAULTS },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
       { key: 'options', label: 'Antworten (eine je Zeile)', kind: 'area' },
+      ...TASK_FIELDS,
     ],
   },
   gap: {
@@ -121,10 +151,12 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     defaults: {
       prompt: 'Ergänze die Lücken.',
       text: 'Der Treibhauseffekt ist ___ und wird durch ___ verstärkt.',
+      ...TASK_DEFAULTS,
     },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
       { key: 'text', label: 'Text (___ = Lücke)', kind: 'area' },
+      ...TASK_FIELDS,
     ],
   },
   table: {
@@ -132,11 +164,12 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     group: 2,
     task: true,
     span: 12,
-    defaults: { prompt: 'Trage deine Werte ein.', cols: 'Zeit\nWert A\nWert B', rows: '0 min\n3 min\n6 min' },
+    defaults: { prompt: 'Trage deine Werte ein.', cols: 'Zeit\nWert A\nWert B', rows: '0 min\n3 min\n6 min', ...TASK_DEFAULTS },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
       { key: 'cols', label: 'Spalten (eine je Zeile)', kind: 'area' },
       { key: 'rows', label: 'Zeilen (eine je Zeile)', kind: 'area' },
+      ...TASK_FIELDS,
     ],
   },
   match: {
@@ -148,11 +181,13 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       prompt: 'Verbinde, was zusammengehört.',
       left: 'Begriff A\nBegriff B\nBegriff C',
       right: 'Erklärung 2\nErklärung 3\nErklärung 1',
+      ...TASK_DEFAULTS,
     },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
       { key: 'left', label: 'Linke Spalte', kind: 'area' },
       { key: 'right', label: 'Rechte Spalte', kind: 'area' },
+      ...TASK_FIELDS,
     ],
   },
   draw: {
@@ -160,10 +195,35 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     group: 2,
     task: true,
     span: 12,
-    defaults: { prompt: 'Zeichne eine Skizze.', height: 160 },
+    defaults: { prompt: 'Zeichne eine Skizze.', height: 160, pattern: 'leer', ...TASK_DEFAULTS },
     fields: [
       { key: 'prompt', label: 'Aufgabe', kind: 'area' },
       { key: 'height', label: 'Höhe in px', kind: 'number', min: 40, max: 900 },
+      {
+        key: 'pattern',
+        label: 'Hintergrund',
+        kind: 'seg',
+        options: [
+          { v: 'leer', l: 'Leer' },
+          { v: 'karo', l: 'Karo' },
+          { v: 'linien', l: 'Linien' },
+          { v: 'punkte', l: 'Punkte' },
+        ],
+      },
+      ...TASK_FIELDS,
+    ],
+  },
+  selfcheck: {
+    label: 'Ich kann …',
+    group: 2,
+    span: 12,
+    defaults: {
+      title: 'Das kann ich jetzt',
+      items: 'Ich kann den Treibhauseffekt mit eigenen Worten erklären.\nIch kann natürlichen und zusätzlichen Treibhauseffekt unterscheiden.',
+    },
+    fields: [
+      { key: 'title', label: 'Überschrift', kind: 'text' },
+      { key: 'items', label: 'Aussagen (eine je Zeile)', kind: 'area' },
     ],
   },
 };

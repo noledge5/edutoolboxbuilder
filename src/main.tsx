@@ -7,6 +7,7 @@ import '@fontsource/figtree/700.css';
 import './styles/tokens.css';
 import './sheet/sheet.css';
 import './styles/app.css';
+import './library/library.css';
 import './styles/print.css';
 import { App } from './App';
 

@@ -16,7 +16,7 @@ describe('storage', () => {
     const unused = await putImage(new Blob(['b'], { type: 'image/png' }));
     const doc = seedDoc();
     const imageBlock = doc.pages[0].blocks.find((b) => b.type === 'image')!;
-    await deleteUnusedImages(updateBlock(doc, imageBlock.id, { props: { image: used } }));
+    await deleteUnusedImages([updateBlock(doc, imageBlock.id, { props: { image: used } })]);
     expect(await getImage(used)).toBeDefined();
     expect(await getImage(unused)).toBeUndefined();
   });

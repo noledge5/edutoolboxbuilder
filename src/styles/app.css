@@ -15,6 +15,7 @@ body { background: var(--color-neutral-200); }
   height: 100dvh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   background: var(--color-neutral-200);
   color: var(--color-text);
   font-family: var(--font-ui);
@@ -146,6 +147,9 @@ body { background: var(--color-neutral-200); }
 }
 .page-frame { display: flex; flex-direction: column; gap: 10px; }
 .page-label {
+  /* Wraps within the page's width instead of widening the canvas (width 0 + min-width 100%). */
+  width: 0;
+  min-width: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -312,23 +316,8 @@ body { background: var(--color-neutral-200); }
 .json-err { font-size: 13px; font-weight: 600; color: var(--color-accent-700); }
 .json-copy { margin-right: auto; }
 
-.save-error {
-  position: fixed;
-  left: 50%;
-  bottom: 20px;
-  transform: translateX(-50%);
-  z-index: 30;
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: var(--color-accent-900);
-  color: var(--color-accent-100);
-  font-size: 13.5px;
-  font-weight: 600;
-  box-shadow: var(--shadow-lg);
-}
-
 /* — Narrow screens (iPad portrait): toolbox and panel become sheets over the canvas — */
-.is-compact .workspace { grid-template-columns: minmax(0, 1fr); }
+.is-compact .workspace { grid-template-columns: minmax(0, 1fr); overflow: hidden; }
 .is-compact .toolbox,
 .is-compact .panel {
   position: absolute;
@@ -352,4 +341,104 @@ body { background: var(--color-neutral-200); }
 @media (max-width: 560px) {
   .topbar-title { display: none; }
   .topbar-icon { margin-right: auto; }
+}
+
+/* — Top bar additions: back button, place in the library, file menu — */
+.topbar-back { flex: none; }
+.topbar-name { margin-right: auto; min-width: 0; display: flex; flex-direction: column; }
+.topbar-name .topbar-title { margin-right: 0; }
+.topbar-place { font-size: 12px; font-weight: 600; color: var(--color-neutral-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.menu { position: relative; flex: none; }
+.menu-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 230px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: 18px;
+  background: var(--color-ui);
+  box-shadow: var(--shadow-lg);
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.menu-item:hover { background: var(--color-accent-100); }
+
+/* — Page label: move the cut-off content to a new page — */
+.page-warn-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 3px 12px;
+  border: 1px solid var(--color-accent-300);
+  border-radius: 999px;
+  background: var(--color-ui);
+  color: var(--color-accent-800);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.page-warn-btn:hover { background: var(--color-accent-100); }
+
+.panel-readonly { min-height: 36px; padding: 7px 14px; border-radius: 999px; background: var(--color-neutral-100); font-size: 14px; font-weight: 600; }
+.panel-note { margin: 5px 0 0; font-size: 12px; color: var(--color-neutral-700); }
+
+/* — Toasts (notices at the bottom) — */
+.toasts {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(620px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 18px;
+  border-radius: 18px;
+  background: var(--color-neutral-900);
+  color: var(--color-neutral-100);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+}
+.toast.is-warn { background: var(--color-accent-900); color: var(--color-accent-100); }
+.toast span { flex: 1; }
+.toast-btn {
+  flex: none;
+  min-height: 32px;
+  padding: 4px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-accent-100);
+  color: var(--color-accent-900);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }

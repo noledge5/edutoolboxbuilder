@@ -6,6 +6,7 @@ import { BLOCK_TYPES } from '../model/blockTypes';
 import { THEMES, type SheetTheme } from '../model/themes';
 import type { Doc, Page } from '../model/types';
 import { topicIcon } from '../topicIcons';
+import { Editable } from './inlineEdit';
 
 export const PAGE_W = 794;
 export const PAGE_H = 1123;
@@ -42,11 +43,13 @@ interface SheetPageProps {
   /** Show the drop bar at the end of the body. */
   dropEnd?: boolean;
   style?: CSSProperties;
+  /** Overview pages (content overview, competence grid) have no work form. */
+  hideForm?: boolean;
   /** The page's blocks, already wrapped by the caller. */
   children?: ReactNode;
 }
 
-export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderClick, onBodyClick, bodyRef, dropEnd, style, children }: SheetPageProps) {
+export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderClick, onBodyClick, bodyRef, dropEnd, style, hideForm, children }: SheetPageProps) {
   const t = themeOf(page);
   return (
     <div className="ws-page" style={{ ...themeVars(t), ...style }} data-page={index}>
@@ -55,21 +58,29 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
           <Icon icon={topicIcon(doc.icon)} size={26} />
         </div>
         <div className="ws-band-text">
-          <div className="ws-kicker">{page.kicker}</div>
-          <h1 className="ws-title">{page.title}</h1>
+          <Editable className="ws-kicker" target={`page${index}:kicker`} value={page.kicker} />
+          <Editable as="h1" className="ws-title" target={`page${index}:title`} value={page.title} />
         </div>
         <div className="ws-band-side">
           <div className="ws-type-pill">{t.label}</div>
-          <div className="ws-form-pill">
-            <Icon icon={page.form === 'allein' ? User : Users} size={14} />
-            {page.form}
-          </div>
+          {!hideForm && (
+            <div className="ws-form-pill">
+              <Icon icon={page.form === 'allein' ? User : Users} size={14} />
+              {page.form}
+            </div>
+          )}
         </div>
       </div>
-      {page.nameField && (
+      {page.nameField !== 'aus' && (
         <div className="ws-names">
-          <b>Name:</b>
+          <b>{page.nameField === 'namen' ? 'Namen:' : 'Name:'}</b>
           <div className="ws-line" />
+          {page.nameField === 'klasse' && (
+            <>
+              <b>Klasse:</b>
+              <div className="ws-line is-short" />
+            </>
+          )}
           <b>Datum:</b>
           <div className="ws-line is-date" />
         </div>
