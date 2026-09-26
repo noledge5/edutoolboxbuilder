@@ -1,8 +1,9 @@
 // Start page: choose subject and grade, then a module; recently edited lessons for quick access.
-import { useState } from 'react';
-import { Blocks, FolderSync, Plus, Settings as SettingsIcon, X } from 'lucide-react';
+import { useState, type DragEvent } from 'react';
+import { Blocks, FolderSync, Plus, Settings as SettingsIcon, Sparkles, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
+import { ClaudeDialog } from './ClaudeDialog';
 import { lastChange, lessonsOf, modulesOf, subjectsOf } from './model';
 import type { Lesson, Library, Module, Settings } from './types';
 import { GRADES } from './types';
@@ -21,6 +22,8 @@ interface OverviewProps {
   /** Changes not yet in a backup file on this device. */
   pending: number;
   onSync(): void;
+  /** A file opened or dropped here: Stundenpaket, library backup or worksheet. */
+  onOpenFile(file: File): void;
 }
 
 export function Overview(p: OverviewProps) {
@@ -33,6 +36,9 @@ export function Overview(p: OverviewProps) {
   const recent = [...lib.lessons].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 4);
   const moduleOf = (l: Lesson) => lib.modules.find((m) => m.id === l.moduleId);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [claudeOpen, setClaudeOpen] = useState(false);
+  const [dropping, setDropping] = useState(false);
+  const hasFiles = (e: DragEvent) => e.dataTransfer.types.includes('Files');
 
   const addSubject = () => {
     const name = window.prompt('Name des Fachs, z. B. Biologie:')?.trim();
@@ -40,7 +46,25 @@ export function Overview(p: OverviewProps) {
   };
 
   return (
-    <div className="lib">
+    <div
+      className={'lib' + (dropping ? ' is-dropping' : '')}
+      onDragOver={(e) => {
+        if (!hasFiles(e)) return;
+        e.preventDefault();
+        setDropping(true);
+      }}
+      onDragLeave={(e) => e.currentTarget === e.target && setDropping(false)}
+      onDrop={(e) => {
+        if (!hasFiles(e)) return;
+        e.preventDefault();
+        setDropping(false);
+        const f = e.dataTransfer.files[0];
+        if (f) {
+          setClaudeOpen(false);
+          p.onOpenFile(f);
+        }
+      }}
+    >
       <header className="topbar">
         <div className="topbar-icon">
           <Icon icon={Blocks} size={20} />
@@ -54,7 +78,11 @@ export function Overview(p: OverviewProps) {
           <span className="btn-label">Abgleich Mac/iPad</span>
           <span className={'sync-dot' + (p.pending > 0 ? ' is-open' : '')} aria-label={p.pending > 0 ? 'nicht gesichert' : 'gesichert'} />
         </button>
-        <button type="button" className="btn btn-secondary ui-btn" onClick={() => setSettingsOpen(true)}>
+        <button type="button" className="btn btn-secondary ui-btn" title="Mit Claude erstellen" onClick={() => setClaudeOpen(true)}>
+          <Icon icon={Sparkles} />
+          <span className="btn-label">Mit Claude</span>
+        </button>
+        <button type="button" className="btn btn-secondary ui-btn lib-settings-btn" title="Einstellungen" onClick={() => setSettingsOpen(true)}>
           <Icon icon={SettingsIcon} />
           <span className="btn-label">Einstellungen</span>
         </button>
@@ -187,6 +215,15 @@ export function Overview(p: OverviewProps) {
         )}
       </main>
 
+      {claudeOpen && (
+        <ClaudeDialog
+          onOpenFile={(f) => {
+            setClaudeOpen(false);
+            p.onOpenFile(f);
+          }}
+          onClose={() => setClaudeOpen(false)}
+        />
+      )}
       {settingsOpen && <SettingsDialog settings={lib.settings} onSave={p.onSettings} onClose={() => setSettingsOpen(false)} />}
     </div>
   );

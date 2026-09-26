@@ -163,6 +163,20 @@ export function insertionPoint(doc: Doc, sel: { kind: 'page'; p: number } | { ki
 }
 
 /** Image ids referenced by image blocks, for cleaning up unused stored images. */
+/** Printed page numbers: pages for the class count 1, 2, 3 …; teacher pages have none (null). */
+export function sheetNumbers(doc: Doc): (number | null)[] {
+  let n = 0;
+  return doc.pages.map((pg) => (pg.type === 'lehrkraft' ? null : ++n));
+}
+
+/** "Seite 2", or "Für die Lehrkraft" for a teacher page (numbered if there are several). */
+export function pageLabel(doc: Doc, p: number): string {
+  const n = sheetNumbers(doc)[p];
+  if (n !== null) return `Seite ${n}`;
+  const teacher = doc.pages.filter((pg) => pg.type === 'lehrkraft').length;
+  return teacher > 1 ? `Für die Lehrkraft ${doc.pages.slice(0, p + 1).filter((pg) => pg.type === 'lehrkraft').length}` : 'Für die Lehrkraft';
+}
+
 export function referencedImages(doc: Doc): Set<string> {
   const ids = new Set<string>();
   for (const pg of doc.pages) for (const b of pg.blocks) if (b.type === 'image' && b.props.image) ids.add(String(b.props.image));

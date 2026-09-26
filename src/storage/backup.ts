@@ -3,7 +3,8 @@
 import { DocFormatError, normalizeDoc } from '../model/normalize';
 import { referencedImages } from '../model/ops';
 import type { Doc } from '../model/types';
-import type { Library } from '../library/types';
+import type { Lesson, Library, Module } from '../library/types';
+import { isPackageFile, packageFromModule, readPackage, type PackageFile, type ParsedPackage } from '../library/package';
 import { getImage, putImageAs } from './db';
 import { readDeleted, readSettings } from './library';
 
@@ -108,15 +109,28 @@ export async function createLibraryBackup(library: Library): Promise<LibraryFile
 /** Always the same name, so saving to iCloud Drive replaces the previous file instead of piling up copies. */
 export const LIBRARY_FILE_NAME = 'Arbeitsblatt-Baukasten Bibliothek.json';
 
-export type OpenedFile = { kind: 'library'; library: Library; savedAt: number } | { kind: 'doc'; doc: Doc };
+/** A module with its lessons and images as a Stundenpaket, e.g. to share it or to give Claude as a template. */
+export async function createPackageFile(m: Module, lessons: Lesson[]): Promise<PackageFile> {
+  return { ...packageFromModule(m, lessons), images: await imagesOf(lessons.map((l) => l.doc)) };
+}
 
-/** Reads a library backup, a worksheet backup or a bare document; stores the images it carries. */
+/** "Stundenpaket K9 M1 Das Klima kippt.json" */
+export const packageFileName = (m: Module) => `${safeFileName(`Stundenpaket K${m.grade} M${m.number} ${m.title}`).slice(0, 100)}.json`;
+
+export type OpenedFile = { kind: 'library'; library: Library; savedAt: number } | { kind: 'package'; pkg: ParsedPackage } | { kind: 'doc'; doc: Doc };
+
+/** Reads a library backup, a Stundenpaket, a worksheet backup or a bare document; stores the images it carries. */
 export async function readAnyFile(text: string): Promise<OpenedFile> {
   let raw: unknown;
   try {
     raw = JSON.parse(text);
   } catch {
     throw new DocFormatError('Die Datei ist keine gültige Arbeitsblatt-Datei (kein JSON).');
+  }
+  if (isPackageFile(raw)) {
+    const pkg = readPackage(raw);
+    for (const [id, url] of Object.entries(pkg.images)) await putImageAs(id, dataUrlToBlob(url));
+    return { kind: 'package', pkg };
   }
   const obj = raw as Partial<LibraryFile> | null;
   if (obj && obj.format === LIBRARY_FORMAT) {

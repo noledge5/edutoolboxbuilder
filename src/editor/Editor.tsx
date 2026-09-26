@@ -56,7 +56,7 @@ const focusOnCanvas = (el: Element | null) => !el || el === document.body || !!e
 const fullPages = () =>
   Array.from(document.querySelectorAll<HTMLElement>('[data-page-body]'))
     .filter((b) => b.scrollHeight > b.clientHeight + 2)
-    .map((b) => Number(b.dataset.pageBody) + 1);
+    .map((b) => Number(b.dataset.pageBody));
 
 // Screen-reader messages of dnd-kit, in German.
 const dragLabel = (data: unknown, doc: Doc) => {
@@ -465,10 +465,11 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
   };
 
   const print = (mode: PrintMode) => {
-    const full = fullPages();
+    const full = fullPages()
+      .filter((p) => mode.solutions || doc.pages[p]?.type !== 'lehrkraft')
+      .map((p) => ops.pageLabel(doc, p));
     if (full.length > 0) {
-      const which = full.length === 1 ? `Seite ${full[0]} ist` : `Die Seiten ${full.join(', ')} sind`;
-      if (!window.confirm(`${which} voll: Inhalt wird unten abgeschnitten. Trotzdem drucken?`)) return;
+      if (!window.confirm(`${full.join(', ')} ${full.length === 1 ? 'ist' : 'sind'} voll: Inhalt wird unten abgeschnitten. Trotzdem drucken?`)) return;
     }
     // Back to editing once the print dialog closes, if that is where printing started.
     if (!preview) window.addEventListener('afterprint', () => setPreview(false), { once: true });
@@ -551,7 +552,7 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
             <PropertiesPanel api={api} open={!compact || (panelOpen && sel !== null && inline === null)} compact={compact} onClose={() => setPanelOpen(false)} />
           )}
         </div>
-        {printOpen && <PrintDialog mode={printMode} onPreview={showPreview} onPrint={print} onClose={() => setPrintOpen(false)} />}
+        {printOpen && <PrintDialog mode={printMode} hasTeacherPages={doc.pages.some((pg) => pg.type === 'lehrkraft')} onPreview={showPreview} onPrint={print} onClose={() => setPrintOpen(false)} />}
         {jsonOpen && (
           <JsonDialog
             doc={doc}

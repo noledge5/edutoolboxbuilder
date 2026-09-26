@@ -48,9 +48,11 @@ interface SheetPageProps {
   hideForm?: boolean;
   /** The page's blocks, already wrapped by the caller. */
   children?: ReactNode;
+  /** Page number in the footer; teacher pages have none. Defaults to index + 1. */
+  number?: number | null;
 }
 
-export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderClick, onBodyClick, bodyRef, dropEnd, style, hideForm, children }: SheetPageProps) {
+export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderClick, onBodyClick, bodyRef, dropEnd, style, hideForm, children, number = index + 1 }: SheetPageProps) {
   const t = themeOf(page);
   const mode = useContext(SheetModeContext);
   return (
@@ -103,7 +105,7 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
       <div className="ws-foot">
         <span className="ws-foot-text">{doc.footer}</span>
         <span className="ws-foot-code">{doc.code}</span>
-        <span className="ws-foot-page">Seite {index + 1}</span>
+        <span className="ws-foot-page">{number === null ? 'Lehrkraft' : `Seite ${number}`}</span>
       </div>
     </div>
   );

@@ -5,9 +5,10 @@ import { ModuleView } from './library/ModuleView';
 import { Overview } from './library/Overview';
 import { SyncDialog } from './library/SyncDialog';
 import { go, useRoute } from './library/router';
+import { addPackage, type ParsedPackage } from './library/package';
 import type { Lesson, Library, Module, Settings } from './library/types';
 import type { Doc } from './model/types';
-import { readAnyFile } from './storage/backup';
+import { createPackageFile, downloadBlob, packageFileName, readAnyFile, type OpenedFile } from './storage/backup';
 import { requestPersistentStorage } from './storage/db';
 import * as store from './storage/library';
 
@@ -110,25 +111,50 @@ export function App() {
   };
 
   // Sync with the backup file from the other device: newer versions win, deletions are carried over.
-  const syncFromFile = async (file: File) => {
+  const syncWith = async (opened: Extract<OpenedFile, { kind: 'library' }>) => {
+    const r = syncLibrary(libRef.current!, opened.library);
+    await store.replaceWhole(r.library);
+    setLib(r.library);
+    // Nothing here is newer than the file: this device is exactly as saved in it.
+    if (r.keptHere === 0 && opened.savedAt > inSyncUntil) markSaved(opened.savedAt);
+    setSyncOpen(false);
+    const n = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
+    setNotice(
+      r.fromFile + r.removed === 0
+        ? 'Abgeglichen: Auf diesem Gerät war schon alles aktuell.'
+        : `Abgeglichen: ${n(r.fromFile, 'Eintrag', 'Einträge')} übernommen${r.removed ? `, ${n(r.removed, 'gelöscht', 'gelöscht')}` : ''}${r.keptHere ? `, ${n(r.keptHere, 'Eintrag', 'Einträge')} hier neuer (jetzt sichern!)` : ''}.`,
+    );
+  };
+
+  // A Stundenpaket (e.g. made by Claude) becomes a new module.
+  const importPackage = async (pkg: ParsedPackage) => {
+    const r = addPackage(libRef.current!, pkg);
+    putModule(r.module);
+    for (const l of r.lessons) await putLesson(l);
+    setSyncOpen(false);
+    go({ view: 'module', id: r.module.id });
+    const n = r.lessons.length;
+    setNotice(`Stundenpaket importiert: „${r.module.title}“ ist jetzt Modul ${r.module.number} mit ${n} ${n === 1 ? 'Stunde' : 'Stunden'}.`);
+    if (r.notes.length) {
+      const shown = r.notes.slice(0, 12);
+      const more = r.notes.length - shown.length;
+      window.alert(`Das Stundenpaket wurde importiert. Dabei musste einiges angepasst werden:\n\n• ${shown.join('\n• ')}${more ? `\n… und ${more} weitere` : ''}`);
+    }
+  };
+
+  /** Opens any file of the Baukasten: library backup (sync), Stundenpaket (new module) or worksheet (new lesson in `into`). */
+  const openFile = async (file: File, into?: Module) => {
     try {
       const opened = await readAnyFile(await file.text());
-      if (opened.kind !== 'library') {
-        window.alert('Das ist ein einzelnes Arbeitsblatt, keine Sicherung der Bibliothek. Öffne ein Modul und wähle dort „Modul“ → „Arbeitsblatt-Datei als Stunde importieren …“.');
+      if (opened.kind === 'library') return await syncWith(opened);
+      if (opened.kind === 'package') return await importPackage(opened.pkg);
+      if (!into) {
+        window.alert('Das ist ein einzelnes Arbeitsblatt. Öffne das Modul, zu dem es gehört, und wähle dort „Modul“ → „Arbeitsblatt-Datei als Stunde importieren …“.');
         return;
       }
-      const r = syncLibrary(libRef.current!, opened.library);
-      await store.replaceWhole(r.library);
-      setLib(r.library);
-      // Nothing here is newer than the file: this device is exactly as saved in it.
-      if (r.keptHere === 0 && opened.savedAt > inSyncUntil) markSaved(opened.savedAt);
-      setSyncOpen(false);
-      const n = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
-      setNotice(
-        r.fromFile + r.removed === 0
-          ? 'Abgeglichen: Auf diesem Gerät war schon alles aktuell.'
-          : `Abgeglichen: ${n(r.fromFile, 'Eintrag', 'Einträge')} übernommen${r.removed ? `, ${n(r.removed, 'gelöscht', 'gelöscht')}` : ''}${r.keptHere ? `, ${n(r.keptHere, 'Eintrag', 'Einträge')} hier neuer (jetzt sichern!)` : ''}.`,
-      );
+      const l = lessonFromDoc(libRef.current!, into, opened.doc);
+      await putLesson(l);
+      setNotice(`„${file.name}“ als Stunde ${l.number} importiert.`);
     } catch (e) {
       window.alert('Die Datei konnte nicht geöffnet werden: ' + errorText(e));
     }
@@ -138,7 +164,7 @@ export function App() {
   if (!lib) return <div className="app-loading" />;
 
   const toasts = (
-    <div className="toasts">
+    <div className="toasts" data-noprint="1">
       {otherTab && (
         <div className="toast is-warn" role="alert">
           <span>Der Baukasten ist noch in einem anderen Tab oder Fenster offen. Bearbeite nur in einem davon, sonst überschreiben sich die Änderungen.</span>
@@ -203,18 +229,13 @@ export function App() {
           if (!window.confirm(`Stunde ${l.number} „${l.title}“ löschen? Das lässt sich nicht rückgängig machen.`)) return;
           remove([], [l.id]);
         }}
-        onImportFile={async (file) => {
+        onImportFile={(file) => openFile(file, m)}
+        onExportPackage={async () => {
           try {
-            const opened = await readAnyFile(await file.text());
-            if (opened.kind !== 'doc') {
-              window.alert('Das ist eine Sicherung der ganzen Bibliothek. Öffne sie in der Übersicht über „Abgleich Mac/iPad“.');
-              return;
-            }
-            const l = lessonFromDoc(libRef.current!, m, opened.doc);
-            await putLesson(l);
-            setNotice(`„${file.name}“ als Stunde ${l.number} importiert.`);
+            const pkg = await createPackageFile(m, lessons);
+            downloadBlob(new Blob([JSON.stringify(pkg, null, 1)], { type: 'application/json' }), packageFileName(m));
           } catch (e) {
-            window.alert('Die Datei konnte nicht geöffnet werden: ' + errorText(e));
+            window.alert('Das Stundenpaket konnte nicht erstellt werden: ' + errorText(e));
           }
         }}
       />
@@ -238,6 +259,7 @@ export function App() {
         onSettings={putSettings}
         pending={changedSince(lib, inSyncUntil)}
         onSync={() => setSyncOpen(true)}
+        onOpenFile={(file) => openFile(file)}
       />
     );
   }
@@ -253,7 +275,7 @@ export function App() {
             markSaved(t);
             setNotice('Sicherung gespeichert. Auf dem anderen Gerät über „Abgleich Mac/iPad“ öffnen.');
           }}
-          onOpenFile={syncFromFile}
+          onOpenFile={(file) => openFile(file)}
           onClose={() => setSyncOpen(false)}
         />
       )}

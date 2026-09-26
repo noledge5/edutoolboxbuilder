@@ -111,3 +111,14 @@ describe('other operations', () => {
     expect(ops.insertionPoint(doc, null)).toEqual({ p: 0, i: doc.pages[0].blocks.length });
   });
 });
+
+describe('page numbers', () => {
+  it('counts only the pages for the class', () => {
+    const doc = seedDoc();
+    const teacher = { ...ops.createPage(), type: 'lehrkraft' as const };
+    const d: Doc = { ...doc, pages: [teacher, ...doc.pages, teacher] };
+    expect(ops.sheetNumbers(d)).toEqual([null, 1, 2, null]);
+    expect([0, 1, 2, 3].map((p) => ops.pageLabel(d, p))).toEqual(['Für die Lehrkraft 1', 'Seite 1', 'Seite 2', 'Für die Lehrkraft 2']);
+    expect(ops.pageLabel({ ...doc, pages: [teacher, doc.pages[0]] }, 0)).toBe('Für die Lehrkraft');
+  });
+});

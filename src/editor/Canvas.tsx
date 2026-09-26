@@ -1,11 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type Ref } from 'react';
+import { useContext, useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type Ref } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { ChevronDown, ChevronUp, Copy, FilePlus2, Plus, Trash2 } from 'lucide-react';
 import { Icon } from '../icons';
-import { canMoveBy } from '../model/ops';
+import { canMoveBy, pageLabel, sheetNumbers } from '../model/ops';
 import type { Block, DragItem, Page } from '../model/types';
 import { BlockContent } from '../sheet/BlockContent';
 import { PAGE_H, PAGE_W, SheetPage, taskNumbers } from '../sheet/SheetPage';
+import { SheetModeContext } from '../sheet/sheetMode';
 import type { EditorApi } from './api';
 
 interface CanvasProps {
@@ -17,12 +18,16 @@ interface CanvasProps {
 }
 
 export function Canvas({ ref, api, zoom, draggingId, onBackgroundClick }: CanvasProps) {
+  const mode = useContext(SheetModeContext);
   return (
     <main className="canvas" ref={ref} onClick={onBackgroundClick}>
       <div className="pages">
-        {api.doc.pages.map((page, p) => (
-          <PageFrame key={p} api={api} page={page} p={p} zoom={zoom} draggingId={draggingId} />
-        ))}
+        {api.doc.pages.map((page, p) =>
+          // Teacher pages are not part of the student sheets.
+          !api.editing && mode.solutions === 'hidden' && page.type === 'lehrkraft' ? null : (
+            <PageFrame key={p} api={api} page={page} p={p} zoom={zoom} draggingId={draggingId} />
+          ),
+        )}
         {api.editing && (
           <button
             type="button"
@@ -106,7 +111,7 @@ function PageFrame({ api, page, p, zoom, draggingId }: PageFrameProps) {
   return (
     <div className="page-frame">
       <div className="page-label" data-noprint="1">
-        <span>Seite {p + 1}</span>
+        <span>{pageLabel(api.doc, p)}</span>
         {overflow && <span className="page-warn">Seite ist voll: Inhalt wird unten abgeschnitten</span>}
         {overflow && api.editing && (
           <button type="button" className="page-warn-btn" onClick={moveOverflow}>
@@ -120,6 +125,7 @@ function PageFrame({ api, page, p, zoom, draggingId }: PageFrameProps) {
           doc={api.doc}
           page={page}
           index={p}
+          number={sheetNumbers(api.doc)[p]}
           editing={api.editing}
           headerSelected={headerSelected}
           onHeaderClick={onHeaderClick}

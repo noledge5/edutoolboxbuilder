@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Copy, File, Trash2, X } from 'lucide-react';
 import { BLOCK_ICONS, Icon } from '../icons';
 import { BLOCK_TYPES, SPAN_OPTIONS, type FieldDef } from '../model/blockTypes';
-import { getBlock } from '../model/ops';
+import { getBlock, pageLabel } from '../model/ops';
 import { num, str } from '../model/text';
 import { SHEET_TYPES, THEMES, VARIANT_OPTIONS, WORK_FORMS } from '../model/themes';
 import type { Block, NameField, SheetType, WorkForm } from '../model/types';
@@ -105,7 +105,7 @@ function PageProperties({ api, p, close }: { api: EditorApi; p: number; close: R
   const pg = doc.pages[p];
   return (
     <>
-      <PanelHead icon={<Icon icon={File} size={18} />} title={`Seite ${p + 1}`} close={close} />
+      <PanelHead icon={<Icon icon={File} size={18} />} title={pageLabel(doc, p)} close={close} />
       <div className="panel-section">
         <div className="panel-section-label">Kopfband</div>
         <TextField label="Titel" value={pg.title} onChange={(title) => api.setPage(p, { title })} />

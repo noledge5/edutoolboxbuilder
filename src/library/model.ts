@@ -1,6 +1,6 @@
 // Pure library helpers: codes, new modules and lessons, migration of the old single worksheet, sample data.
 import { BLOCK_TYPES, LEVEL_NAMES } from '../model/blockTypes';
-import { createPage, uid } from '../model/ops';
+import { createPage, sheetNumbers, uid } from '../model/ops';
 import { seedDoc } from '../model/seed';
 import type { Doc } from '../model/types';
 import { DEFAULT_TOPIC_ICON } from '../topicIcons';
@@ -25,10 +25,10 @@ export const modulesOf = (lib: Library, subject: string, grade: number) =>
 
 export const lessonsOf = (lib: Library, moduleId: string) => lib.lessons.filter((l) => l.moduleId === moduleId).sort((a, b) => a.number - b.number);
 
-/** A task linked to a competence: lesson number, page (from 1), task number on that page, level key. */
+/** A task linked to a competence: lesson number, printed page number (null on a teacher page), task number on that page, level key. */
 export interface CompetenceLink {
   lesson: number;
-  page: number;
+  page: number | null;
   task: number;
   level: string;
 }
@@ -37,6 +37,7 @@ export interface CompetenceLink {
 export function competenceLinks(lessons: Lesson[]): Map<string, CompetenceLink[]> {
   const links = new Map<string, CompetenceLink[]>();
   for (const l of [...lessons].sort((a, b) => a.number - b.number)) {
+    const pageNums = sheetNumbers(l.doc);
     l.doc.pages.forEach((pg, p) => {
       let task = 0;
       for (const b of pg.blocks) {
@@ -45,7 +46,7 @@ export function competenceLinks(lessons: Lesson[]): Map<string, CompetenceLink[]
         const id = String(b.props.competence ?? '');
         if (!id) continue;
         const list = links.get(id) ?? [];
-        list.push({ lesson: l.number, page: p + 1, task, level: String(b.props.level ?? '') });
+        list.push({ lesson: l.number, page: pageNums[p], task, level: String(b.props.level ?? '') });
         links.set(id, list);
       }
     });
@@ -54,7 +55,7 @@ export function competenceLinks(lessons: Lesson[]): Map<string, CompetenceLink[]
 }
 
 /** "Std. 2 · S. 1 · Nr. 3 (M)" */
-export const linkLabel = (k: CompetenceLink) => `Std. ${k.lesson} · S. ${k.page} · Nr. ${k.task}${LEVEL_NAMES[k.level] ? ` (${LEVEL_NAMES[k.level]})` : ''}`;
+export const linkLabel = (k: CompetenceLink) => `Std. ${k.lesson} · ${k.page === null ? 'Lehrkraft' : `S. ${k.page}`} · Nr. ${k.task}${LEVEL_NAMES[k.level] ? ` (${LEVEL_NAMES[k.level]})` : ''}`;
 
 /** Lessons of a competence as shown in prints: typed by hand, or else taken from the linked tasks ("2, 3"). */
 export function competenceLessons(c: Competence, links: CompetenceLink[] = []): string {

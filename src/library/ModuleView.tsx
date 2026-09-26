@@ -1,6 +1,6 @@
 // One module: its data, the lessons (content overview) and the competence grid, with A4 prints of both.
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowLeft, ArrowUp, Copy, FileInput, ListChecks, Plus, Printer, SquarePen, Table, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, Copy, FileInput, ListChecks, PackageOpen, Plus, Printer, SquarePen, Table, Trash2 } from 'lucide-react';
 import { IconPickerField, NumberField } from '../editor/fields';
 import { Menu } from '../editor/TopBar';
 import { Icon } from '../icons';
@@ -25,6 +25,8 @@ interface ModuleViewProps {
   onDuplicateLesson(l: Lesson): void;
   onDeleteLesson(l: Lesson): void;
   onImportFile(file: File): void;
+  /** Saves the module with all lessons as a Stundenpaket file. */
+  onExportPackage(): void;
 }
 
 type Tab = 'inhalt' | 'raster';
@@ -69,6 +71,7 @@ export function ModuleView(p: ModuleViewProps) {
           icon={SquarePen}
           items={[
             { label: 'Arbeitsblatt-Datei als Stunde importieren …', icon: FileInput, onClick: () => fileInput.current?.click() },
+            { label: 'Als Stundenpaket sichern', icon: PackageOpen, onClick: p.onExportPackage },
             { label: 'Modul löschen', icon: Trash2, onClick: p.onDelete },
           ]}
         />

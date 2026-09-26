@@ -257,3 +257,11 @@ span.lib-chip:not(:has(.lib-chip-x)) { padding-right: 10px; }
 .sync-step-text { font-size: 13.5px; line-height: 1.45; color: var(--color-neutral-900); }
 .sync-step .btn { grid-column: 2; justify-self: start; margin-top: 6px; }
 .sync-tip { margin: 0; font-size: 12.5px; color: var(--color-neutral-700); line-height: 1.45; }
+.lib.is-dropping { outline: 3px dashed var(--color-accent); outline-offset: -8px; }
+.claude-paste textarea { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+.claude-paste .btn { margin-top: 8px; }
+/* Overview and module page have few buttons: keep their labels on an iPad in portrait (the gear needs none). */
+@media (min-width: 740px) and (max-width: 900px) {
+  .lib .topbar .btn-label { display: inline; }
+  .lib .topbar .lib-settings-btn .btn-label { display: none; }
+}

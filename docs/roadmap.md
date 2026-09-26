@@ -13,6 +13,10 @@
 | Papier und Oberfläche | Weiß statt Creme (abweichend vom Design-Handoff, Wunsch vom 26.09.2026): Arbeitsblätter über `--paper` in `src/sheet/sheet.css`, Toolbox, obere Leiste und Panel über `--color-ui` in `src/styles/app.css`. Die Fläche hinter den Seiten bleibt grau-beige, damit sich die weißen Blätter abheben. |
 | Druck | Farbdruck und S/W-Kopiervorlage, Schüler- oder Lösungsfassung. |
 | Übersicht | Startseite: Fach → Jahrgang → Modul (Thema). Je Modul eine Inhaltsübersicht (Stunden) und ein Kompetenzraster mit den Niveaus G/M/E des Bildungsplans BW, beide druckbar. Eine Stunde ist ein Arbeitsblatt-Dokument (mehrere Seiten). |
+| Mac ↔ iPad | Abgleich über eine Sicherungsdatei in iCloud Drive (immer derselbe Dateiname), kein Server, kein Konto. Je Modul und Stunde gewinnt die neuere Fassung, Löschungen werden mitgenommen. Als App (Home-Bildschirm/Dock) installierbar und offline nutzbar. |
+| Niveaus | Die Sterne einer Aufgabe sind die Niveaus des Kompetenzrasters: ★ = G, ★★ = M, ★★★ = E. |
+| Lehrkraft-Seiten | Blatt-Typ „Für die Lehrkraft“: keine Seitenzahl (Schülerseiten zählen ab 1) und nur in der Lösungsfassung gedruckt. |
+| Handoff-Format | „Stundenpaket“ (`arbeitsblatt-baukasten-paket`, Version 1): ein Modul mit Kompetenzen und Stunden, die Seiten im selben Format wie ein Arbeitsblatt. Der Import repariert, was geht, und zählt auf, was er geändert hat. Die Anleitung für Claude entsteht aus `src/claude/anleitung.md` plus Bausteinliste, Symbolen und Beispiel aus dem Code. |
 
 ## Phasen
 
@@ -38,22 +42,21 @@
 - Neue Bausteine: QR-Code, „Ich kann …“; Zeichenfeld mit Karo/Linien/Punkten; Quellenangabe unter Bildern
 - Warnung bei zweitem Tab; Zoom merken und „Seite einpassen“; Strg+D, Pfeiltasten, Alt+Pfeiltasten
 
-### Phase 2 – Bibliothek (Rest)
+### Phase 2 – Bibliothek, Geräte, Lösungen, Claude ✅
+- Abgleich Mac ↔ iPad über eine Datei in iCloud Drive (neuere Fassung gewinnt, Löschungen werden übernommen), Hinweis auf nicht gesicherte Änderungen
+- Installierbar als App (Home-Bildschirm, Dock), offline nutzbar (Service Worker)
+- Aufgaben mit Kompetenzen verknüpfen; das Kompetenzraster zeigt die verknüpften Aufgaben, die Lösungsfassung Kompetenz und Niveau
+- Lehrkraft-Bausteine: Stundenverlauf, Ziel & Bildungsplan, Erwartungshorizont (Richtig/Falsch/Vorsicht), Abruffragen
+- Lösungen in Lücken (`[[−18]]`), Ankreuzen (`*`), Offener Frage, Tabelle und Zuordnen; Druckdialog mit Schüler-/Lösungsfassung und Farbe/S-W-Kopiervorlage
+- Stundenpaket als Datei: Import (Datei, Ziehen, Einfügen aus dem Chat) mit deutschen Fehlermeldungen und Hinweisen, Export eines Moduls
+- Anleitung für Claude mit allen Bausteinen, Symbolen, Platzregeln und dem Treibhauseffekt-Paket als Beispiel
+
+### Phase 3 – Feinschliff
 - Vorlagen je Blatt-Typ
-- Installierbar als App auf dem Home-Bildschirm (PWA), offline nutzbar
-- Kompetenzen im Arbeitsblatt verknüpfen (Aufgabe ↔ Kompetenz/Niveau)
+- Bilder im Stundenpaket als ZIP statt data-URL (für große Fotos)
+- Test auf echtem iPad und Mac (Safari), Rückmeldungen einarbeiten
 
-### Phase 3 – Lehrkraft-Blöcke, Lösungen, Druckoptionen
-- Blöcke: Stundenverlauf (Zeit · Phase · Sozialform · Material), Ziel/Bildungsplan, Erwartungshorizont (Falsch/Vorsicht), Abruffragen mit Lösung (siehe `docs/design/referenz/Arbeitsblatt Treibhauseffekt.dc.html`, Seiten 1–2)
-- Lösungen in Lücken, Ankreuzen, Tabellen und Zuordnen hinterlegen (z. B. `[[−18]]` statt `___`)
-- Druckdialog: Schüler-/Lösungsfassung, Farbe/S-W-Kopiervorlage
-
-### Phase 4 – Handoff-Format und Claude-Anleitung
-- Versioniertes Format (JSON Schema) für Stundenpakete, Prüfung mit verständlichen deutschen Fehlermeldungen
-- Import per Drag-and-Drop einer Datei
-- Skill/Projekt-Anweisung für Claude mit dem Treibhauseffekt-Paket als Musterbeispiel (PDF, Idee oder Design-Handoff → Datei)
-
-### Phase 5 – Folien
+### Phase 4 – Folien
 - 16:9-Folien im Stil von `docs/design/referenz/Präsentation Treibhauseffekt.dc.html`
 - Präsentationsmodus: Vollbild, Pfeiltasten, Sprechernotizen
 - Leichte Textkorrektur in der App
