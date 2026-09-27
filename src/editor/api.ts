@@ -19,7 +19,8 @@ export interface EditorApi {
   moveBlock(id: string, dir: -1 | 1): void;
   setSpan(id: string, span: number): void;
   setProp(id: string, key: string, value: PropValue): void;
-  setImage(id: string, file: File): void;
+  /** Stores the image file and sets it, together with `props` (e.g. the source line), in one step. */
+  setImage(id: string, file: File, props?: Record<string, string>): void;
   /** Sets several props at once (one undo step). */
   setProps(id: string, props: BlockProps): void;
   /** Stores an image as picture `index` of a picture grid (prop "pics", one id per line). */

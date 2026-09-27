@@ -180,7 +180,7 @@ Für ein anderes Schuljahr oder Bundesland gib `schoolYear` mit (nur mit Daten, 
 
 ## Bilder
 
-Du kannst keine Fotos liefern. Setze stattdessen einen Baustein „Abbildung“ mit aussagekräftiger Bildunterschrift (`caption`) und, wenn bekannt, Quelle (`source`); die Lehrkraft zieht das Bild später hinein. In „Bild-Vokabeln“ nimmst du Emojis (`🐶 | dog`), die die Lehrkraft durch eigene Bilder ersetzen kann. Nur wenn du ein Bild wirklich als Datei hast (z. B. eine selbst erstellte SVG-Grafik), trag es unter `"images": { "abb1": "data:image/svg+xml;base64,…" }` ein und setze im Baustein `"image": "abb1"`.
+Du kannst keine Fotos liefern. Setze stattdessen einen Baustein „Abbildung“ mit aussagekräftiger Bildunterschrift (`caption`) und in `search` zwei, drei **englische Suchwörter** für ein passendes freies Bild (z. B. `"search": "volcano eruption"`, `"search": "map united kingdom"`). Die Lehrkraft tippt im Baukasten auf „Im Internet suchen“; die Suche in Openverse und Wikimedia Commons startet mit deinen Wörtern, und Urheber und Lizenz landen automatisch in `source`. Lass `source` deshalb leer, außer du kennst die Quelle eines Bildes aus dem Material der Lehrkraft. In „Bild-Vokabeln“ nimmst du Emojis (`🐶 | dog`), die die Lehrkraft durch eigene Bilder ersetzen kann. Nur wenn du ein Bild wirklich als Datei hast (z. B. eine selbst erstellte SVG-Grafik), trag es unter `"images": { "abb1": "data:image/svg+xml;base64,…" }` ein und setze im Baustein `"image": "abb1"`.
 
 ## Platz auf der Seite
 

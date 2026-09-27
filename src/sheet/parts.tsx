@@ -96,7 +96,7 @@ export function ImageBox({ id, height, fit, editing, onImageFile }: ImageBoxProp
 
   return (
     <div
-      className={'ws-image' + (over ? ' is-dragover' : '')}
+      className={'ws-image' + (over ? ' is-dragover' : '') + (img.status === 'ready' ? ' has-image' : '')}
       style={{ height }}
       onDragOver={
         canEdit

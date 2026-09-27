@@ -159,11 +159,12 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     label: 'Abbildung',
     group: 1,
     span: 6,
-    defaults: { caption: 'Abb. 1: Bildunterschrift', source: '', height: 200, image: '', fit: 'cover' },
+    defaults: { caption: 'Abb. 1: Bildunterschrift', source: '', height: 200, image: '', fit: 'cover', search: '' },
     fields: [
       { key: 'image', label: 'Bild', kind: 'image' },
       { key: 'caption', label: 'Bildunterschrift', kind: 'text' },
       { key: 'source', label: 'Quelle', kind: 'text' },
+      { key: 'search', label: 'Suchwörter für die Bildsuche (englisch findet mehr)', kind: 'text' },
       { key: 'height', label: 'Höhe in px', kind: 'number', min: 40, max: 900 },
       {
         key: 'fit',

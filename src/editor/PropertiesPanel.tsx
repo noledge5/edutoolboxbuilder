@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Copy, File, Trash2, X } from 'lucide-react';
 import { BLOCK_ICONS, Icon } from '../icons';
 import { BLOCK_TYPES, SPAN_OPTIONS, type FieldDef } from '../model/blockTypes';
@@ -8,6 +8,7 @@ import { SHEET_TYPES, THEMES, VARIANT_OPTIONS, WORK_FORMS } from '../model/theme
 import type { Block, Lang, NameField, SheetType, WorkForm } from '../model/types';
 import type { EditorApi } from './api';
 import { AreaField, CompetenceField, IconPickerField, ImageField, IpaAreaField, NumberField, PicsField, PresetField, SegField, TextField } from './fields';
+import { ImageSearchDialog, queryFromCaption } from './ImageSearchDialog';
 
 interface PanelProps {
   api: EditorApi;
@@ -35,9 +36,7 @@ export function PropertiesPanel({ api, open, compact, onClose }: PanelProps) {
       ) : (
         <div className="panel-intro">
           <div className="panel-title">Eigenschaften</div>
-          <p className="panel-help">
-            Wähle ein Element auf der Seite aus, um Inhalt und Breite zu ändern. Ein Klick auf den Kopf der Seite öffnet Titel, Blatt-Typ und Fußzeile.
-          </p>
+          <p className="panel-help">Wähle ein Element auf der Seite aus, um Inhalt und Breite zu ändern. Ein Klick auf den Kopf der Seite öffnet Titel, Blatt-Typ und Fußzeile.</p>
           <p className="panel-help">Texte lassen sich auch direkt auf der Seite ändern: Doppelklick, oder ein ausgewähltes Element noch einmal antippen.</p>
           <p className="panel-help">Entf löscht das ausgewählte Element, Esc hebt die Auswahl auf. Strg+D dupliziert, Pfeiltasten wählen das nächste Element, Alt+Pfeiltasten verschieben es.</p>
         </div>
@@ -56,9 +55,17 @@ function PanelHead({ icon, title, close }: { icon: ReactNode; title: string; clo
   );
 }
 
+interface ImageSearch {
+  query: string;
+  free: boolean;
+  pick(file: File, credit: string): void;
+}
+
 function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; close: ReactNode }) {
   const T = BLOCK_TYPES[block.type];
   const set = (key: string) => (v: string | number) => api.setProp(block.id, key, v);
+  const [search, setSearch] = useState<ImageSearch | null>(null);
+  const hasSource = T.fields.some((f) => f.key === 'source');
   const field = (f: FieldDef) => {
     if (f.when === 'en' && api.doc.lang !== 'en') return null;
     const v = block.props[f.key];
@@ -74,7 +81,23 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
       case 'seg':
         return <SegField key={f.key} label={f.label} value={str(v)} options={f.options} onPick={set(f.key)} />;
       case 'image':
-        return <ImageField key={f.key} label={f.label} hasImage={!!str(v)} onFile={(file) => api.setImage(block.id, file)} onRemove={() => set(f.key)('')} />;
+        return (
+          <ImageField
+            key={f.key}
+            label={f.label}
+            hasImage={!!str(v)}
+            onFile={(file) => api.setImage(block.id, file)}
+            onRemove={() => set(f.key)('')}
+            onSearch={() =>
+              setSearch({
+                query: str(block.props.search).trim() || queryFromCaption(str(block.props.caption)),
+                free: false,
+                // The author and licence go into the source line, in the same step as the picture.
+                pick: (file, credit) => api.setImage(block.id, file, hasSource ? { source: credit } : {}),
+              })
+            }
+          />
+        );
       case 'competence':
         return api.codeLocked ? <CompetenceField key={f.key} label={f.label} value={str(v)} competences={api.competences} onChange={set(f.key)} /> : null;
       case 'ipa':
@@ -84,7 +107,13 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         const names = str(block.props[f.of])
           .split('\n')
           .filter((l) => l.trim())
-          .map((l) => l.split('|').map((x) => x.trim()).filter(Boolean).join(' · '));
+          .map((l) =>
+            l
+              .split('|')
+              .map((x) => x.trim())
+              .filter(Boolean)
+              .join(' · '),
+          );
         return (
           <PicsField
             key={f.key}
@@ -93,6 +122,8 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
             ids={ids}
             onFile={(i, file) => api.setPic(block.id, i, file)}
             onRemove={(i) => set(f.key)(ids.map((x, k) => (k === i ? '' : x)).join('\n'))}
+            // Picture cards have no room for a source line: public domain pictures first.
+            onSearch={(i) => setSearch({ query: names[i]?.split(' · ').pop() ?? '', free: true, pick: (file) => api.setPic(block.id, i, file) })}
           />
         );
       }
@@ -104,6 +135,17 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
   return (
     <>
       <PanelHead icon={<Icon icon={BLOCK_ICONS[block.type]} size={18} />} title={T.label} close={close} />
+      {search && (
+        <ImageSearchDialog
+          initialQuery={search.query}
+          freeOnly={search.free}
+          onPick={(file, credit) => {
+            search.pick(file, credit);
+            setSearch(null);
+          }}
+          onClose={() => setSearch(null)}
+        />
+      )}
       <div className="panel-section">
         <SegField label="Breite im 12er-Raster" value={block.span} options={SPAN_OPTIONS} onPick={(v) => api.setSpan(block.id, v)} />
         {T.fields.map(field)}

@@ -481,3 +481,37 @@ body { background: var(--color-neutral-200); }
 .app.has-note { grid-template-rows: auto auto minmax(0, 1fr); }
 .ed-note { display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 20px; background: var(--color-accent-2-100); color: var(--color-accent-2-900); font-size: 13.5px; border-bottom: 1px solid var(--color-accent-2-200); }
 .ed-note span { flex: 1; min-width: 0; }
+
+/* — Image search (Openverse, Wikimedia Commons) — */
+.img-search { width: min(920px, 100%); max-height: calc(100dvh - 32px); }
+.img-search-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.img-search-bar { display: flex; gap: 8px; }
+.img-search-bar .input { flex: 1; min-width: 0; }
+.img-search-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.img-search-free { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.img-search-free input { width: 18px; height: 18px; accent-color: var(--color-accent); }
+.img-search-results { flex: 1; min-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; -webkit-overflow-scrolling: touch; }
+.img-search-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.img-tile {
+  position: relative; aspect-ratio: 4 / 3; padding: 0; overflow: hidden; cursor: pointer;
+  border: 3px solid transparent; border-radius: 16px; background: var(--color-neutral-100);
+}
+.img-tile img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.img-tile:hover { border-color: var(--color-accent-300); }
+.img-tile.is-on { border-color: var(--color-accent); }
+.img-tile-license {
+  position: absolute; left: 6px; bottom: 6px; max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, var(--color-neutral-900) 72%, transparent); color: #fff;
+  font-size: 10.5px; font-weight: 700;
+}
+.img-tile-license.is-free { background: color-mix(in srgb, var(--color-accent-2-700) 88%, transparent); }
+.img-tile-check { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--color-accent); color: #fff; }
+.img-search-more { align-self: center; }
+.img-search-foot { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; }
+.img-search-foot .dialog-actions { margin-left: auto; }
+.img-search-picked { flex: 1 1 280px; min-width: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.img-search-picked b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.img-search-picked a { display: inline-flex; align-items: center; gap: 3px; color: var(--color-accent-800); font-weight: 600; }
+.img-search-hint { font-size: 12.5px; color: var(--color-neutral-700); }
+.is-spinning { display: inline-flex; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

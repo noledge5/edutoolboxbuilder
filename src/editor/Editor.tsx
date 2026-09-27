@@ -194,9 +194,9 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
     moveBlock: (id, dir) => commit(ops.moveBlockBy(doc, id, dir)),
     setSpan: (id, span) => commit(ops.updateBlock(doc, id, { span })),
     setProp: (id, key, value) => commit(ops.updateBlock(doc, id, { props: { [key]: value } }), { mergeKey: `${id}.${key}` }),
-    setImage: (id, file) => {
+    setImage: (id, file, props = {}) => {
       storeImageFile(file)
-        .then((imageId) => commit(ops.updateBlock(latest.current.doc, id, { props: { image: imageId } })))
+        .then((imageId) => commit(ops.updateBlock(latest.current.doc, id, { props: { ...props, image: imageId } })))
         .catch((e) => window.alert('Das Bild konnte nicht gespeichert werden: ' + errorText(e)));
     },
     setProps: (id, props) => commit(ops.updateBlock(doc, id, { props })),

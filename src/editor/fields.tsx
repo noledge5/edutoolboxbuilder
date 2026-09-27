@@ -1,6 +1,6 @@
 // Form fields of the properties panel (Organic `.field` label + pill `.input`).
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
-import { ImageUp, Trash2 } from 'lucide-react';
+import { Globe, ImageUp, Trash2 } from 'lucide-react';
 import { Icon } from '../icons';
 import type { SegOption } from '../model/blockTypes';
 import { searchTopicIcons, TOPIC_GROUPS, type TopicIcon } from '../topicIcons';
@@ -64,7 +64,21 @@ export function IpaAreaField({ label, value, onChange }: { label: string; value:
 }
 
 /** One picture per line of another field (picture grids): choose, replace or remove each. */
-export function PicsField({ label, names, ids, onFile, onRemove }: { label: string; names: string[]; ids: string[]; onFile(i: number, f: File): void; onRemove(i: number): void }) {
+export function PicsField({
+  label,
+  names,
+  ids,
+  onFile,
+  onRemove,
+  onSearch,
+}: {
+  label: string;
+  names: string[];
+  ids: string[];
+  onFile(i: number, f: File): void;
+  onRemove(i: number): void;
+  onSearch(i: number): void;
+}) {
   const input = useRef<HTMLInputElement>(null);
   const slot = useRef(0);
   return (
@@ -85,6 +99,9 @@ export function PicsField({ label, names, ids, onFile, onRemove }: { label: stri
               <Icon icon={ImageUp} />
               {ids[i] ? 'Ersetzen' : 'Bild'}
             </button>
+            <button type="button" className="iconbtn" title="Bild im Internet suchen" aria-label="Bild im Internet suchen" onClick={() => onSearch(i)}>
+              <Icon icon={Globe} />
+            </button>
             {ids[i] && (
               <button type="button" className="iconbtn is-danger" title="Bild entfernen" aria-label="Bild entfernen" onClick={() => onRemove(i)}>
                 <Icon icon={Trash2} />
@@ -93,7 +110,7 @@ export function PicsField({ label, names, ids, onFile, onRemove }: { label: stri
           </div>
         ))}
       </div>
-      <p className="panel-note">Ohne eigenes Bild zeigt das Feld das Emoji aus der Zeile. Bilder lassen sich auch direkt auf die Felder ziehen.</p>
+      <p className="panel-note">Ohne eigenes Bild zeigt das Feld das Emoji aus der Zeile. Bilder lassen sich auch direkt auf die Felder ziehen; der Globus sucht im Internet.</p>
       <input
         ref={input}
         type="file"
@@ -202,7 +219,7 @@ export function SegField<V extends string | number | boolean>({ label, value, op
   );
 }
 
-export function ImageField({ label, hasImage, onFile, onRemove }: { label: string; hasImage: boolean; onFile(f: File): void; onRemove(): void }) {
+export function ImageField({ label, hasImage, onFile, onRemove, onSearch }: { label: string; hasImage: boolean; onFile(f: File): void; onRemove(): void; onSearch(): void }) {
   const input = useRef<HTMLInputElement>(null);
   return (
     <div className="field">
@@ -211,6 +228,10 @@ export function ImageField({ label, hasImage, onFile, onRemove }: { label: strin
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => input.current?.click()}>
           <Icon icon={ImageUp} />
           {hasImage ? 'Bild ersetzen' : 'Bild wählen'}
+        </button>
+        <button type="button" className="btn btn-secondary ui-btn" onClick={onSearch}>
+          <Icon icon={Globe} />
+          Im Internet suchen
         </button>
         {hasImage && (
           <button type="button" className="btn btn-secondary ui-btn is-danger" onClick={onRemove}>

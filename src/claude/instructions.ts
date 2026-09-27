@@ -19,7 +19,7 @@ const BLOCK_USE: Record<BlockType, string> = {
   hint: 'Kasten mit Titel für Tipps, Sicherheitshinweise oder Einschränkungen.',
   merksatz: 'Hervorgehobener Merksatz zur Sicherung, gern mit Lücken.',
   wordbank: 'Begriffe als Hilfe für Lücken oder Beschriftungen.',
-  image: 'Platz für ein Bild mit Bildunterschrift und Quelle; die Lehrkraft fügt das Bild ein.',
+  image: 'Platz für ein Bild mit Bildunterschrift; in `search` englische Suchwörter für die Bildsuche der Lehrkraft (Openverse, Wikimedia Commons), die Quelle trägt der Baukasten ein.',
   flow: 'Fließschema: Stationen nebeneinander, mit Pfeilen verbunden (bis etwa 5 Schritte).',
   qr: 'QR-Code zu einem Link (Video, Simulation, Karte).',
   open: 'Offene Frage mit Schreiblinien.',
