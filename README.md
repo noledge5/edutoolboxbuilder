@@ -17,6 +17,10 @@ Online: **https://noledge5.github.io/edutoolboxbuilder/** · Stand und Pläne: [
 - **Jahresplan** (in der Übersicht neben den Modulen): alle Module des Jahrgangs auf den Schulwochen, Ferienwochen übersprungen, mit Kalenderwochen und Daten. Das Schuljahr 2026/27 für Baden-Württemberg ist mit einem Klick eingetragen; Schuljahr und Ferien lassen sich unter „Einstellungen“ ändern. Druckbar auf einer A4-Seite, und als Stundenpaket für Claude sicherbar.
 - **Vokabeln** (im Modul, bei Englisch): „Vokabeltest erstellen …“ wählt zufällig Wörter aus den Vokabellisten des Moduls und legt eine Stunde mit dem Test (und Notenschlüssel) an; „Vokabeln als CSV“ für Anki, Quizlet oder LearningApps.
 - **Modul → Als Stundenpaket sichern:** das ganze Modul mit allen Stunden und Bildern als eine Datei, z. B. für Kolleginnen und Kollegen oder als Vorlage für Claude.
+- **Kompetenzraster als Übersicht:** Im Reiter „Kompetenzraster“ zeigt „Übersicht“ das Raster so, wie die Klasse es bekommt (mit Sternen für G/M/E, Bereichen des Bildungsplans und Kästchen zum Ankreuzen); „Für die Klasse drucken“ druckt es, auch über mehrere Seiten. „Bearbeiten“ öffnet die Eingabe.
+- **Jahresplan importieren** (im Jahresplan): von Claude (Datei oder JSON-Text) oder aus der eigenen Planung als Text, eine Zeile pro Modul, darunter die Stunden mit „-“, Wochen, Beginn und Schwerpunkte mit „|“ getrennt (auch Tabellen aus Excel oder Word). Vorab zeigt der Baukasten, welche Module neu sind und welche ergänzt werden. Module mit derselben Nummer werden ergänzt; ausgearbeitete Stunden bleiben, wie sie sind.
+- **Geplant und ausgearbeitet:** Stunden aus dem Jahresplan haben erst nur Titel und Planungsnotiz. Sie erscheinen blass mit „Geplant“ (auch Module, deren Stunden alle erst geplant sind), mit Fortschrittsbalken „2 von 6 Stunden ausgearbeitet“. „Ausarbeiten“ öffnet das leere Arbeitsblatt, die Planungsnotiz steht darüber. Schickt Claude später das ausgearbeitete Modul mit derselben Nummer, füllt es das geplante.
+- **Farbe je Fach:** Knöpfe und Symbole haben die Farbe des Fachs (Englisch blau, Geographie grün …), änderbar unter „Einstellungen → Farbe je Fach“. Die gedruckten Blätter bleiben gleich. In der Toolbox steht oben „Oft in <Fach>“ mit den Bausteinen, die du in diesem Fach am meisten nutzt.
 - **Zuletzt bearbeitet:** die letzten Stunden für den schnellen Einstieg.
 - Das Kürzel im Fußband (z. B. „K9 · M1 · S2“) und das Themen-Symbol kommen automatisch aus Klasse, Modul und Stunde.
 
@@ -29,12 +33,22 @@ Online: **https://noledge5.github.io/edutoolboxbuilder/** · Stand und Pläne: [
 - **Bausteine für Sprachen:** Vokabelliste mit Lautschrift (mit Zeichenleiste für ə, θ, ʃ …), Knick-Vokabeltest, Bild-Vokabeln (Emoji oder eigene Bilder), Wortnetz, Grammatik-Box (`{{s}}` markiert Endungen farbig), Formentabelle mit Vorlagen (to be, have got, simple present, can, present progressive), Wörter ordnen, Umformen, Satzbaustellen, Hörverstehen (Track, QR-Code zur Audiodatei, Transkript nur in der Lösungsfassung), Lesetext mit Zeilennummern und Worterklärungen, Richtig/Falsch/Not in the text, Redemittel, Rollenkarten zum Ausschneiden, Bingo und „Find someone who“, Schreibrahmen mit Checkliste, Sprachmittlung. Die Sprach-Gruppen der Toolbox sind in deutschen Modulen zugeklappt.
 - **Tests und Differenzierung:** Blatt-Typ „Test“; Punkte je Aufgabe, auf Wunsch getrennt nach Inhalt und Sprache; Notenschlüssel, der die Punkte des Arbeitsblatts zählt (Prozentgrenzen einstellbar, halbe Punkte); Tipps an Aufgaben, die der Baustein „Tippkarten“ als Karten zum Ausschneiden sammelt.
 - **Bausteine für die Lehrkraft:** Stundenverlauf, Ziel & Bildungsplan, Erwartungshorizont (Richtig/Falsch/Vorsicht) und Abruffragen. Sie gehören auf eine Seite vom Blatt-Typ „Für die Lehrkraft“; solche Seiten haben keine Seitenzahl und werden nur mit der Lösungsfassung gedruckt.
+- **Bilder aus dem Internet:** Im Panel eines Bildes „Im Internet suchen“ (bei Bild-Vokabeln der Globus je Karte): Suche in Openverse (über 800 Millionen freie Bilder, u. a. Flickr, Wikimedia, Museen) oder Wikimedia Commons (stark bei Karten und Schaubildern), Filter Fotos/Zeichnungen und „nur gemeinfrei“. Urheber und Lizenz landen automatisch als Quelle unter dem Bild. Englische Suchwörter finden meist mehr; die Suche braucht Internet. Passt ein Bild nicht ins Feld („Ganz zeigen“), bleibt der Rand transparent.
+- **Rückseite:** Im Panel der Seite (Klick aufs Kopfband) „Doppelseitiges Blatt → Rückseite von Seite 1“. Die Rückseite hat nur eine schmale Kopfzeile mit Symbol und Titel der Vorderseite und „Rückseite“, kein Namensfeld, und rund 110 px mehr Platz. Beim Drucken „beidseitig“ wählen.
 - **Seite ist voll:** Der Knopf „Überlauf auf neue Seite“ verschiebt, was unten abgeschnitten wird, auf eine neue Folgeseite. „Seite hinzufügen“ übernimmt Blatt-Typ, Zeile über dem Titel, Sozialform und Namensfeld der aktuellen Seite.
 - **Verschieben:** ziehen (auch auf andere Seiten) oder die Pfeile in der schwarzen Leiste über dem Element; am Seitenrand wandert das Element auf die vorige bzw. nächste Seite.
 - **Tastatur:** Entf löscht, Esc hebt die Auswahl auf, Strg/Cmd+Z macht rückgängig (mit Umschalt: wiederholen), Strg/Cmd+D dupliziert, ↑/↓ wählt das vorige/nächste Element, Alt+↑/↓ verschiebt es.
 - **Zoom:** −/+, „Seite einpassen“; der Zoom bleibt beim Neuladen erhalten.
 - **iPad:** Zum Ziehen kurz gedrückt halten. Im Hochformat öffnet „Toolbox“ die Bausteine, das Panel erscheint beim Antippen eines Elements.
 - **Drucken / PDF:** Erst **Schülerfassung** oder **Lösungsfassung** wählen, dann **Farbe** oder **S/W-Kopiervorlage** (Umrisse statt Farbflächen). „Vorschau“ zeigt das Ergebnis, „Drucken“ öffnet den Druckdialog des Browsers: eine A4-Seite pro Blatt, Rand 0. Ist eine Seite zu voll, fragt die App vorher nach.
+
+### Folien
+Jede Stunde hat ein eigenes Abteil für Präsentationsfolien (16:9), im Stil der Arbeitsblätter und der Folien-Vorlage aus dem Design. Öffnen über „Folien“ in der Stundenliste des Moduls oder oben im Arbeitsblatt.
+- **Vorschlagen:** Bei einer Stunde ohne Folien erzeugt „Folien aus dem Arbeitsblatt vorschlagen“ einen ersten Satz: Titel mit Leitfrage, Abruffragen, Aufgaben je Seite, Vokabelkarten, Merksatz als Exit.
+- **Arten:** Titel, Fragen (nummeriert, Antworten erst auf Klick), Zitat + Leitfrage, Aussage mit Hinweis, Vergleich (2–3 Kästen), Fließschema, Wörter (Karten, Bedeutung auf Klick), Bild (mit Bildsuche), Exit/Merksatz. Farbe wie ein Blatt-Typ, Phase, Sozialform und Minuten in der Kopfleiste, Sprechernotizen.
+- **Bearbeiten:** links die Folien, in der Mitte die gewählte, rechts die Felder. „+ Folie“ fügt nach der gewählten ein, Pfeile verschieben, Duplizieren, Löschen, Rückgängig (⌘Z).
+- **Präsentieren:** Vollbild; weiter mit →, Leertaste, Klick oder Wischen nach links, zurück mit ←, Klick ins linke Drittel oder Wischen nach rechts. N zeigt die Sprechernotizen, F Vollbild, Esc beendet. Unten laufen Foliennummer und Zeit mit.
+- **Drucken:** Handout (zwei Folien je A4-Seite), mit Sprechernotizen (drei je Seite, für dich) oder die Folien als PDF im Querformat.
 
 ### Mac und iPad
 Der Baukasten speichert alles im Browser des jeweiligen Geräts. Abgeglichen wird über eine Datei in iCloud Drive, ohne Server und ohne Konto:
@@ -50,6 +64,8 @@ Der Punkt am Knopf „Abgleich Mac/iPad“ ist orange, solange es Änderungen gi
 1. **Anleitung für Claude laden.** Die Datei beschreibt Claude das Format „Stundenpaket“ (auch mit mehreren Modulen für einen Jahresplan), alle Bausteine mit ihren Feldern, Blatt-Typen, Bereiche des Bildungsplans, die Ferien 2026/27, die Themen-Symbole, wie viel auf eine Seite passt, was bei Englisch gilt, und enthält drei vollständige Beispiele (Englisch Klasse 5, Jahresplan, Geographie). Dieselbe Anleitung liegt in [docs/claude/anleitung-fuer-claude.md](docs/claude/anleitung-fuer-claude.md).
 2. **In Claude einrichten:** auf claude.ai ein Projekt anlegen und die Anleitung unter „Projektwissen“ hochladen (eine ältere Fassung ersetzen). Dann z. B. schreiben: „Erstelle ein Stundenpaket für Englisch Klasse 5 zum Thema My family, drei Stunden, ohne Lehrwerk.“ oder „Erstelle den Jahresplan für Englisch Klasse 5.“ Ohne Lehrwerk plant Claude Themen, Grammatikfolge, Lese- und Hörtexte selbst (Hörtexte als Transkript zum Vorlesen). PDFs, Fotos alter Arbeitsblätter oder ein Stundenpaket aus dem Baukasten können angehängt werden.
 3. **Paket öffnen:** die Datei von Claude über „Stundenpaket öffnen …“ wählen, auf die Übersicht ziehen oder den JSON-Text aus dem Chat einfügen. Daraus werden neue Module mit Kompetenzraster und Stunden; ein Jahresplan bringt auch das Schuljahr mit. Was der Baukasten reparieren musste (unbekannte Bausteine oder Felder, fehlende Kompetenzen), zeigt er danach an.
+
+Die Anleitung erklärt auch geplante Stunden (Jahresplan), Rückseiten (`"back": true`), Folien (`"slides"`) und Suchwörter für Bilder, sodass auch andere KIs damit Pakete schreiben können. Folien für eine vorhandene Stunde: Claude schickt das Modul mit derselben Nummer und nur die Stunde mit ihren Folien; der Baukasten hängt sie an.
 
 ### Weitere Dateien
 - **Arbeitsblatt → Datei → Als Datei sichern / Öffnen …:** ein einzelnes Arbeitsblatt mit Bildern. Im Modul über „Modul → Arbeitsblatt-Datei als Stunde importieren …“ wird daraus eine neue Stunde.
@@ -82,14 +98,15 @@ Jeder Push auf `main` baut die App und veröffentlicht sie (`.github/workflows/d
 
 ```
 src/
-  App.tsx     lädt die Bibliothek und zeigt je nach Adresse Übersicht, Modul oder Editor
+  App.tsx     lädt die Bibliothek und zeigt je nach Adresse Übersicht, Modul, Editor oder Folien
   library/    Übersicht, Modulseite, Kompetenzraster, Druck von Inhaltsübersicht/Kompetenzraster, Routen,
-              Abgleich Mac/iPad, Stundenpaket (Import/Export), Jahresplan, Vokabeltest
+              Abgleich Mac/iPad, Stundenpaket (Import/Export), Jahresplan und sein Import, Vokabeltest, Fachfarben
+  slides/     Folien: Darstellung, Editor, Präsentationsmodus, Druck, Vorschlag aus dem Arbeitsblatt
   claude/     Anleitung für Claude: Text (anleitung.md) plus Bausteinliste, Symbole, Bereiche, Ferien und Beispiele aus dem Code
   model/      Datenmodell eines Arbeitsblatts: Typen, Blocktypen, Blatt-Typen, Operationen, JSON-Prüfung, Undo
   sheet/      die gedruckte A4-Seite (Kopfband, Raster, Fußband, alle Blocktypen, Bearbeiten auf der Seite)
   editor/     Editor-Oberfläche: Toolbox, Canvas, Eigenschaften, Datei-Menü, Drag-and-Drop
-  storage/    IndexedDB (Bibliothek, Bilder), Sicherungsdateien
+  storage/    IndexedDB (Bibliothek, Bilder), Sicherungsdateien, Bildsuche (Openverse, Wikimedia Commons)
   styles/     Design-Tokens, Editor-Styles, Druck-Styles
 docs/
   design/     Design-Handoff (Spezifikation, Prototyp, Referenzen, Tokens)

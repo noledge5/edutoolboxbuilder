@@ -62,12 +62,17 @@
 - Jahresplan mit Schulwochen und Ferien, druckbar, als Stundenpaket (mehrere Module) für Claude
 - Neue Themen-Symbole für Englisch-Units; Claude-Anleitung neu mit drei Beispielen
 
-### Phase 4 – Feinschliff
+### Phase 4 – Planung, Bilder, Folien ✅
+- Mehr Themen-Symbole (232, in zehn Gruppen); Kompetenzraster als Übersicht und druckbares Schülerblatt, Seitenumbruch durch Ausmessen
+- Jahresplan importieren (Claude-JSON oder Text/Tabelle), geplante Stunden mit Planungsnotiz, blass bis ausgearbeitet; Pakete ergänzen Module mit derselben Nummer, ohne Ausgearbeitetes zu überschreiben
+- Bildsuche in Openverse und Wikimedia Commons mit automatischer Quellenangabe; Suchwörter im Baustein „Abbildung“; transparenter Rand bei „Ganz zeigen“
+- Rückseiten doppelseitiger Blätter mit schmaler Kopfzeile der Vorderseite
+- Farbe je Fach in der App (die Blätter bleiben orange); Toolbox-Gruppe „Oft in <Fach>“
+- Folien je Stunde (16:9, nach `docs/design/referenz/Präsentation Treibhauseffekt.dc.html`): neun Arten, Editor, Vorschlag aus dem Arbeitsblatt, Präsentationsmodus (Vollbild, Tasten, Wischen, Antworten auf Klick, Sprechernotizen, Zeit), Handout, Notizfassung, PDF quer; Folien im Stundenpaket und in der Claude-Anleitung
+
+### Phase 5 – Feinschliff
+- Referentenansicht in einem zweiten Fenster (Notizen und nächste Folie auf dem Mac, Folie auf dem Beamer)
 - Vorlagen je Blatt-Typ
 - Bilder im Stundenpaket als ZIP statt data-URL (für große Fotos)
 - Test auf echtem iPad und Mac (Safari), Rückmeldungen einarbeiten
-
-### Phase 5 – Folien
-- 16:9-Folien im Stil von `docs/design/referenz/Präsentation Treibhauseffekt.dc.html`
-- Präsentationsmodus: Vollbild, Pfeiltasten, Sprechernotizen
 - Leichte Textkorrektur in der App

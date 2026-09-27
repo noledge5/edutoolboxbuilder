@@ -51,8 +51,9 @@ export function getImage(id: string): Promise<Blob | undefined> {
 }
 
 /** Deletes stored images no block refers to. Run at start-up only, while no undo history exists. */
-export async function deleteUnusedImages(docs: Doc[]): Promise<void> {
-  const used = new Set(docs.flatMap((d) => [...referencedImages(d)]));
+/** Deletes stored images that no block of `docs` uses and that are not in `alsoUsed` (e.g. slide pictures). */
+export async function deleteUnusedImages(docs: Doc[], alsoUsed: string[] = []): Promise<void> {
+  const used = new Set([...docs.flatMap((d) => [...referencedImages(d)]), ...alsoUsed]);
   const all = await keys<string>(db());
   await Promise.all(all.filter((k) => typeof k === 'string' && k.startsWith(IMG_PREFIX) && !used.has(k.slice(IMG_PREFIX.length))).map((k) => del(k, db())));
 }

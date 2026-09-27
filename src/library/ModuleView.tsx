@@ -1,6 +1,6 @@
 // One module: its data, the lessons (content overview) and the competence grid, with A4 prints of both.
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowLeft, ArrowUp, BookA, Copy, Download, FileInput, ListChecks, PackageOpen, Plus, Printer, Shuffle, SquarePen, Table, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, BookA, Copy, Download, FileInput, ListChecks, PackageOpen, Plus, Presentation, Printer, Shuffle, SquarePen, Table, Trash2 } from 'lucide-react';
 import { vocabOf } from '../model/language';
 import { VocabTestDialog, type VocabTestOptions } from './VocabTestDialog';
 import { IconPickerField, NumberField } from '../editor/fields';
@@ -24,6 +24,7 @@ interface ModuleViewProps {
   onDelete(): void;
   onAddLesson(): void;
   onOpenLesson(l: Lesson): void;
+  onOpenSlides(l: Lesson): void;
   onChangeLesson(l: Lesson): void;
   onDuplicateLesson(l: Lesson): void;
   onDeleteLesson(l: Lesson): void;
@@ -307,7 +308,16 @@ function LessonList(p: ModuleViewProps) {
                 <button type="button" className={'btn ui-btn ' + (planned ? 'btn-secondary' : 'btn-primary')} onClick={() => p.onOpenLesson(l)}>
                   {planned ? 'Ausarbeiten' : 'Öffnen'}
                 </button>
-                <button type="button" className="iconbtn" title="Duplizieren" aria-label="Duplizieren" onClick={() => p.onDuplicateLesson(l)}>
+                <button
+                type="button"
+                className={'btn btn-secondary ui-btn lib-slides-btn' + (l.slides.length ? '' : ' is-empty')}
+                onClick={() => p.onOpenSlides(l)}
+                title={l.slides.length ? 'Präsentationsfolien der Stunde' : 'Folien anlegen'}
+              >
+                <Icon icon={Presentation} />
+                <span className="btn-label">Folien{l.slides.length ? ` · ${l.slides.length}` : ''}</span>
+              </button>
+              <button type="button" className="iconbtn" title="Duplizieren" aria-label="Duplizieren" onClick={() => p.onDuplicateLesson(l)}>
                   <Icon icon={Copy} />
                 </button>
                 <button type="button" className="iconbtn is-danger" title="Löschen" aria-label="Löschen" onClick={() => p.onDeleteLesson(l)}>

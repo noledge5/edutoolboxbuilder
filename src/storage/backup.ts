@@ -2,6 +2,7 @@
 // Opening also accepts a bare document (the "Daten" JSON, or one made by Claude).
 import { DocFormatError, normalizeDoc } from '../model/normalize';
 import { referencedImages } from '../model/ops';
+import { slideImages } from '../model/slides';
 import type { Doc } from '../model/types';
 import type { Lesson, Library, Module } from '../library/types';
 import { isPackageFile, packageFromModules, readPackage, type PackageFile, type ParsedPackage } from '../library/package';
@@ -93,9 +94,9 @@ export interface LibraryFile {
   images: Record<string, string>;
 }
 
-async function imagesOf(docs: Doc[]): Promise<Record<string, string>> {
+async function imagesOf(docs: Doc[], alsoUsed: string[] = []): Promise<Record<string, string>> {
   const images: Record<string, string> = {};
-  for (const id of new Set(docs.flatMap((d) => [...referencedImages(d)]))) {
+  for (const id of new Set([...docs.flatMap((d) => [...referencedImages(d)]), ...alsoUsed])) {
     const blob = await getImage(id);
     if (blob) images[id] = await toDataUrl(blob);
   }
@@ -104,7 +105,16 @@ async function imagesOf(docs: Doc[]): Promise<Record<string, string>> {
 
 /** The whole library (all subjects, modules, lessons and images) as one file. */
 export async function createLibraryBackup(library: Library): Promise<LibraryFile> {
-  return { format: LIBRARY_FORMAT, version: BACKUP_VERSION, savedAt: new Date().toISOString(), library, images: await imagesOf(library.lessons.map((l) => l.doc)) };
+  return {
+    format: LIBRARY_FORMAT,
+    version: BACKUP_VERSION,
+    savedAt: new Date().toISOString(),
+    library,
+    images: await imagesOf(
+      library.lessons.map((l) => l.doc),
+      library.lessons.flatMap((l) => slideImages(l.slides)),
+    ),
+  };
 }
 
 /** Always the same name, so saving to iCloud Drive replaces the previous file instead of piling up copies. */
@@ -117,7 +127,14 @@ export async function createPackageFile(m: Module, lessons: Lesson[]): Promise<P
 
 /** Several modules (e.g. the year plan of a subject and grade) with the school year as one Stundenpaket. */
 export async function createPlanFile(entries: { module: Module; lessons: Lesson[] }[], schoolYear: SchoolYear | null): Promise<PackageFile> {
-  return { ...packageFromModules(entries, schoolYear), images: await imagesOf(entries.flatMap((e) => e.lessons.map((l) => l.doc))) };
+  const lessons = entries.flatMap((e) => e.lessons);
+  return {
+    ...packageFromModules(entries, schoolYear),
+    images: await imagesOf(
+      lessons.map((l) => l.doc),
+      lessons.flatMap((l) => slideImages(l.slides)),
+    ),
+  };
 }
 
 /** "Stundenpaket K9 M1 Das Klima kippt.json" */

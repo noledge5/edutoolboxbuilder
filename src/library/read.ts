@@ -1,5 +1,6 @@
 // Reading library entries from storage, backup files and other devices: older data gets defaults for newer fields.
 import { normalizeDoc } from '../model/normalize';
+import { normalizeSlides } from '../model/slides';
 import type { Lang } from '../model/types';
 import { readSubjectColors } from './subjectColor';
 import type { Competence, Holiday, Lesson, Module, SchoolYear, Settings } from './types';
@@ -66,6 +67,7 @@ export function readLesson(raw: unknown): Lesson | null {
       textbook: str(raw.textbook),
       plan: str(raw.plan),
       doc: normalizeDoc(raw.doc),
+      slides: normalizeSlides(raw.slides),
       updatedAt: Number(raw.updatedAt) || 0,
     };
   } catch {

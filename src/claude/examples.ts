@@ -6,6 +6,7 @@ import type { Lesson, Module } from '../library/types';
 import { BW_2026_27 } from '../library/yearplan';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { createBlock as b } from '../model/ops';
+import { SLIDE_DEFAULTS, type Slide, type SlideLayout } from '../model/slides';
 import type { Doc, Page } from '../model/types';
 
 const time = 0;
@@ -31,6 +32,7 @@ const lesson = (m: Module, number: number, title: string, textbook: string, page
   textbook,
   plan: '',
   doc: { icon: m.icon, lang: m.lang, help: m.help, footer: '', code: '', pages } satisfies Doc,
+  slides: [],
   updatedAt: time,
 });
 
@@ -222,7 +224,42 @@ export function englishExample(): PackageFile {
       }),
     ],
   };
-  return clean(packageFromModules([{ module: m, lessons: [lesson(m, 1, 'Hello, I’m …', '', [teacher, vocab, grammar, speaking])] }]));
+  const slide = (id: string, layout: SlideLayout, fields: Partial<Slide>): Slide => ({ ...SLIDE_DEFAULTS, id, layout, ...fields });
+  const slides: Slide[] = [
+    slide('f1', 'title', { type: 'vocab', title: 'Hello, I’m …', text: 'How do we say who we are?', notes: 'Begrüßung auf Englisch, Song „Hello, hello“.' }),
+    slide('f2', 'words', {
+      type: 'vocab',
+      phase: 'Vocabulary',
+      form: 'Plenum',
+      minutes: 10,
+      title: 'My classroom',
+      items: 'board | Tafel\npencil case | Federmäppchen\nrubber | Radiergummi\nschoolbag | Schultasche',
+      reveal: true,
+      notes: 'Bildkarten zeigen, chorisch nachsprechen, dann Bedeutungen aufdecken.',
+    }),
+    slide('f3', 'list', {
+      type: 'grammar',
+      phase: 'Grammar',
+      form: 'zu zweit',
+      minutes: 10,
+      title: 'I am, you are …',
+      text: 'Complete the sentences.',
+      items: 'I ___ Tom. | am\nYou ___ eleven. | are\nShe ___ my friend. | is',
+      reveal: true,
+      notes: 'Regel an der Tafel entdecken lassen, dann Antworten aufdecken.',
+    }),
+    slide('f4', 'exit', {
+      type: 'sicherung',
+      phase: 'Exit',
+      form: 'allein',
+      minutes: 3,
+      text: 'Tell your partner: My name is … I am … years old.',
+      label: 'Remember',
+      title: 'I am · you are · he / she / it is',
+      notes: 'Ich-kann-Satz ankreuzen lassen.',
+    }),
+  ];
+  return clean(packageFromModules([{ module: m, lessons: [{ ...lesson(m, 1, 'Hello, I’m …', '', [teacher, vocab, grammar, speaking]), slides }] }]));
 }
 
 /** A planned lesson of the year plan: title and planning note, no pages yet. */

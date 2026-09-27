@@ -3,6 +3,7 @@ import { delMany, get, getMany, keys, set, setMany } from 'idb-keyval';
 import { libraryFromOldDoc, seedLibrary } from '../library/model';
 import { readDeleted, readLesson, readModule, readSettings } from '../library/read';
 import type { Lesson, Library, Module, Settings } from '../library/types';
+import { slideImages } from '../model/slides';
 import { deleteOldDoc, deleteUnusedImages, kv, loadDoc } from './db';
 
 const SETTINGS = 'lib:einstellungen';
@@ -74,4 +75,8 @@ export async function loadInSyncUntil(): Promise<number> {
 export const saveInSyncUntil = (t: number) => set(SYNC, { inSyncUntil: t }, kv());
 
 /** Removes images that no worksheet in the library uses any more. */
-export const cleanUpImages = (lib: Library) => deleteUnusedImages(lib.lessons.map((l) => l.doc));
+export const cleanUpImages = (lib: Library) =>
+  deleteUnusedImages(
+    lib.lessons.map((l) => l.doc),
+    lib.lessons.flatMap((l) => slideImages(l.slides)),
+  );

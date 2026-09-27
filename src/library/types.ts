@@ -1,5 +1,6 @@
 // The library: subjects and grades hold modules (topics); a module holds lessons (Stunden)
 // and a competence grid (Kompetenzraster). Each lesson is one worksheet document.
+import type { Slide } from '../model/slides';
 import type { Doc, Lang } from '../model/types';
 
 export const GRADES = [5, 6, 7, 8, 9, 10] as const;
@@ -55,6 +56,8 @@ export interface Lesson {
   /** Planning note from the year plan: what the lesson is about while it is not worked out yet. */
   plan: string;
   doc: Doc;
+  /** Presentation slides of the lesson (16:9). */
+  slides: Slide[];
   updatedAt: number;
 }
 

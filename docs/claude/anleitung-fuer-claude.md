@@ -11,6 +11,7 @@ Du erstellst Unterrichtsmaterial für eine Lehrkraft an einer Realschule in Bade
 
 - **Eine Stunde oder ein ganzes Modul** (eine Unit): Kompetenzraster, Lehrkraft-Seite und Schülerblätter für jede Stunde.
 - **Einen Jahresplan**: alle Module (Units) eines Fachs und Jahrgangs mit Thema, Schwerpunkten und Dauer in Schulwochen, dazu die **geplanten Stunden** (nur Titel und Planungsnotiz, noch ohne Arbeitsblätter). Der Baukasten verteilt die Module auf die Schulwochen, überspringt die Ferien und zeigt Geplantes blass, bis es ausgearbeitet ist.
+- **Folien zu einer Stunde** (16:9, für Beamer oder Tafel), wenn die Lehrkraft Folien möchte: im Stil der Arbeitsblätter, mit Sprechernotizen. Siehe „Folien“.
 - **Ein geplantes Modul ausarbeiten**: Gib ihm dieselbe `number` wie im Jahresplan. Der Baukasten füllt dann das geplante Modul und seine geplanten Stunden, statt ein neues Modul anzulegen.
 - **Eine Überarbeitung**: Die Lehrkraft kann ein Modul oder ihren Jahresplan aus dem Baukasten als Stundenpaket sichern und dir geben. Ändere dann nur, was sie möchte, und gib das ganze Paket zurück.
 
@@ -74,7 +75,7 @@ Kürzel („K5 · M1 · S2“), Fußzeile und Symbol der einzelnen Seiten setzt 
 
 ### Stunden und Seiten
 
-Jede Stunde hat `number` (1, 2, 3 …), `title`, nur mit Lehrwerk `textbook` (Seiten im Schülerbuch und Workbook, z. B. „SB S. 36–37, WB S. 20“), optional `plan` (Planungsnotiz: was in der Stunde passiert, ein bis zwei Sätze) und `pages`. Eine **geplante Stunde** hat nur `number`, `title` und `plan`, aber keine `pages`: `{ "number": 2, "title": "My classroom", "plan": "Schulsachen benennen; Hörverstehen: What’s in your school bag?" }`. Eine Seite ist ein A4-Blatt im Hochformat:
+Jede Stunde hat `number` (1, 2, 3 …), `title`, nur mit Lehrwerk `textbook` (Seiten im Schülerbuch und Workbook, z. B. „SB S. 36–37, WB S. 20“), optional `plan` (Planungsnotiz: was in der Stunde passiert, ein bis zwei Sätze), `pages` und optional `slides` (Folien, siehe „Folien“). Eine **geplante Stunde** hat nur `number`, `title` und `plan`, aber keine `pages`: `{ "number": 2, "title": "My classroom", "plan": "Schulsachen benennen; Hörverstehen: What’s in your school bag?" }`. Eine Seite ist ein A4-Blatt im Hochformat:
 
 | Feld | Werte |
 |---|---|
@@ -202,6 +203,44 @@ Für ein anderes Schuljahr oder Bundesland gib `schoolYear` mit (nur mit Daten, 
 
 Du kannst keine Fotos liefern. Setze stattdessen einen Baustein „Abbildung“ mit aussagekräftiger Bildunterschrift (`caption`) und in `search` zwei, drei **englische Suchwörter** für ein passendes freies Bild (z. B. `"search": "volcano eruption"`, `"search": "map united kingdom"`). Die Lehrkraft tippt im Baukasten auf „Im Internet suchen“; die Suche in Openverse und Wikimedia Commons startet mit deinen Wörtern, und Urheber und Lizenz landen automatisch in `source`. Lass `source` deshalb leer, außer du kennst die Quelle eines Bildes aus dem Material der Lehrkraft. In „Bild-Vokabeln“ nimmst du Emojis (`🐶 | dog`), die die Lehrkraft durch eigene Bilder ersetzen kann. Nur wenn du ein Bild wirklich als Datei hast (z. B. eine selbst erstellte SVG-Grafik), trag es unter `"images": { "abb1": "data:image/svg+xml;base64,…" }` ein und setze im Baustein `"image": "abb1"`.
 
+## Folien
+
+Zu jeder Stunde gehören auf Wunsch Präsentationsfolien: `"slides": [ … ]` in der Stunde. Die Lehrkraft zeigt sie im Baukasten mit „Präsentieren“ (Pfeiltasten, Tippen oder Wischen blättern; Antworten erscheinen auf Klick), druckt sie als Handout oder sichert sie als PDF. Kopfleiste (Stunde · Klasse · Nummer), Symbol, Fußzeile und Foliennummer setzt der Baukasten selbst.
+
+| Feld | Bedeutung |
+|---|---|
+| `layout` | Art der Folie (Tabelle unten) |
+| `type` | Farbe wie ein Blatt-Typ: `lehrkraft` ist neutrales Grau (für Einstieg und Abrufphase), sonst `uebung`, `versuch`, `sicherung`, `vocab`, `grammar`, `listening`, `speaking`, `test` |
+| `phase` | Aufschrift der Phase in der Kopfleiste, z. B. „Abrufphase“, „Einstieg“, „Erarbeitung“, „Sicherung“, „Exit“; in Englisch z. B. „Warm-up“, „Vocabulary“, „Grammar“ |
+| `form` | Sozialform wie bei Seiten (`"allein"`, `"zu zweit"`, `"Gruppe"`, `"Plenum"`), weglassen, wenn keine |
+| `minutes` | Dauer der Phase in Minuten, weglassen, wenn keine |
+| `label` | kleine Zeile über der Überschrift (`statement`, `exit`) bzw. im Zitatkasten (`quote`) |
+| `title` | große Überschrift, höchstens etwa 60 Zeichen; bei `quote` die Leitfrage |
+| `text` | je nach Art: Untertitel, Zitat, Hinweis, Satz unter Kästen oder Schema, Text neben dem Bild |
+| `items` | Einträge, einer je Zeile (`\n`), Aufbau je nach Art |
+| `reveal` | `true`: Antworten (`list`) bzw. Bedeutungen (`words`) erscheinen erst auf Klick |
+| `notes` | Sprechernotizen für die Lehrkraft: Zeit, Sozialform, Material, Impulse, erwartete Antworten |
+
+| `layout` | Folie |
+|---|---|
+| `title` | erste Folie: Thema der Stunde (`title`) und Leitfrage (`text`) |
+| `list` | nummerierte Fragen oder Aufträge, `items` als „Frage \| Antwort“ (Antwort optional), höchstens 6 |
+| `quote` | Einstieg: Zitat oder Rückblick im Kasten (`text`, darüber `label`), darunter die Leitfrage (`title`) |
+| `statement` | große Aussage oder Deutung (`title`) mit kleiner Zeile (`label`) und Hinweis im grünen Kasten (`text`) |
+| `compare` | zwei oder drei Kästen nebeneinander, `items` als „Überschrift \| Text“ |
+| `flow` | Fließschema mit Pfeilen, `items` als „Begriff \| Erklärung“, drei bis fünf Schritte |
+| `words` | Wortkarten, `items` als „Wort \| Bedeutung“, bis zwölf |
+| `image` | großes Bild mit Text daneben (`text`); das Bild sucht die Lehrkraft im Baukasten, nenne in `notes`, was darauf zu sehen sein soll |
+| `exit` | letzte Folie auf grünem Grund: Rückbezug (`text`), `label` (z. B. „Merksatz“) und Merksatz (`title`) |
+
+So werden gute Folien:
+- Eine Stunde hat meist sechs bis zehn Folien: Titel, Abrufphase oder Einstieg, je Phase ein bis zwei Folien, Exit.
+- Folien sind knapp: Fragen, Stichworte, Merksätze. Lange Texte und Aufgaben stehen auf dem Arbeitsblatt.
+- Die Farbe (`type`) folgt der Phase: dieselbe wie das Arbeitsblatt, mit dem die Klasse gerade arbeitet.
+- Englische Stunden: Folien auf Englisch, Sprechernotizen auf Deutsch.
+- In `title`, `text` und `items` schreibt `**fett**` fett und `{{…}}` markiert farbig.
+- Folien für eine Stunde, die es im Baukasten schon gibt: ein Paket mit dem Modul (gleiche `number`) und nur dieser Stunde mit `number`, `title` und `slides`, ohne `pages`. Der Baukasten hängt die Folien an und lässt das Arbeitsblatt, wie es ist.
+
 ## Platz auf der Seite
 
 Was nicht auf die Seite passt, wird unten abgeschnitten. Eine Seite hat etwa **840 px** Platz für Bausteine (ohne Namenszeile etwa 880 px, eine Rückseite etwa **950 px**), zwischen zwei Bausteinen liegen 18 px. Rechne mit diesen Höhen (volle Breite; eine Aufgabe braucht 35 px für den Auftrag, mit deutscher Hilfe 18 px mehr):
@@ -268,6 +307,7 @@ Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr.
 - Keine Seite ist voller als etwa 840 px.
 - Geplante Stunden haben `title` und `plan`, aber keine `pages`; ausgearbeitete Stunden haben `pages`.
 - Reicht ein Arbeitsblatt nicht auf eine Seite, mach die zweite Seite zur Rückseite (`"back": true`) statt zu einem neuen Blatt.
+- Folien: `layout` und `type` aus den Listen, höchstens 6 Einträge bei `list`, 5 bei `flow`, 3 bei `compare`, 12 bei `words`.
 
 ## Alle Bausteine
 
@@ -995,7 +1035,7 @@ Schlüssel für `icon`, mit Bedeutung:
 
 ## Beispiel 1: Englisch, Klasse 5 (eine Stunde)
 
-Lehrkraft-Seite, Vokabeln, Grammatik, Sprechen und Schreiben. Felder mit Standardwert sind weggelassen.
+Lehrkraft-Seite, Vokabeln, Grammatik, Sprechen und Schreiben, dazu vier Folien. Felder mit Standardwert sind weggelassen.
 
 ```json
 {
@@ -1216,6 +1256,49 @@ Lehrkraft-Seite, Vokabeln, Grammatik, Sprechen und Schreiben. Felder mit Standar
                 }
               ]
             }
+          ],
+          "slides": [
+            {
+              "layout": "title",
+              "type": "vocab",
+              "title": "Hello, I’m …",
+              "text": "How do we say who we are?",
+              "notes": "Begrüßung auf Englisch, Song „Hello, hello“."
+            },
+            {
+              "layout": "words",
+              "type": "vocab",
+              "phase": "Vocabulary",
+              "form": "Plenum",
+              "minutes": 10,
+              "title": "My classroom",
+              "items": "board | Tafel\npencil case | Federmäppchen\nrubber | Radiergummi\nschoolbag | Schultasche",
+              "reveal": true,
+              "notes": "Bildkarten zeigen, chorisch nachsprechen, dann Bedeutungen aufdecken."
+            },
+            {
+              "layout": "list",
+              "type": "grammar",
+              "phase": "Grammar",
+              "form": "zu zweit",
+              "minutes": 10,
+              "title": "I am, you are …",
+              "text": "Complete the sentences.",
+              "items": "I ___ Tom. | am\nYou ___ eleven. | are\nShe ___ my friend. | is",
+              "reveal": true,
+              "notes": "Regel an der Tafel entdecken lassen, dann Antworten aufdecken."
+            },
+            {
+              "layout": "exit",
+              "type": "sicherung",
+              "phase": "Exit",
+              "form": "allein",
+              "minutes": 3,
+              "label": "Remember",
+              "title": "I am · you are · he / she / it is",
+              "text": "Tell your partner: My name is … I am … years old.",
+              "notes": "Ich-kann-Satz ankreuzen lassen."
+            }
           ]
         }
       ]
@@ -1358,7 +1441,7 @@ Nur die Planung, ohne Lehrwerk: Module mit Themen- und Grammatikschwerpunkt und 
 
 ## Beispiel 3: Geographie, Klasse 9 (Sachfach)
 
-Lehrkraft-Seite, Versuchsprotokoll und Sicherung.
+Lehrkraft-Seite, Versuchsprotokoll und Sicherung, dazu die Folien der Stunde.
 
 ```json
 {
@@ -1585,6 +1668,100 @@ Lehrkraft-Seite, Versuchsprotokoll und Sicherung.
                   "props": {}
                 }
               ]
+            }
+          ],
+          "slides": [
+            {
+              "layout": "title",
+              "type": "versuch",
+              "title": "Der Treibhauseffekt",
+              "text": "Wie genau hängen CO₂ und Temperatur zusammen?",
+              "notes": "Stunde 2 im Modul Das Klima kippt. Ziel: Mechanismus des Treibhauseffekts erarbeiten und die offene Frage aus Stunde 1 beantworten."
+            },
+            {
+              "layout": "list",
+              "type": "lehrkraft",
+              "phase": "Abrufphase",
+              "form": "allein",
+              "minutes": 5,
+              "title": "Aus dem Gedächtnis",
+              "text": "Schreibt eure Antworten ins Lernjournal.",
+              "items": "Welche Einheit hat der CO₂-Wert in unserer ersten Kurve? | ppm\nReicht ein zeitlicher Zusammenhang aus, um eine Ursache zu beweisen? | Nein\nAus Klasse 8: Was entsteht, wenn zwei Platten auseinanderdriften? | neue Kruste / Mittelozeanischer Rücken",
+              "reveal": true,
+              "notes": "0–5 min, Einzel. Drei Fragen aus dem Gedächtnis ins Lernjournal, dann Selbstkorrektur: Antworten mit einem Klick aufdecken."
+            },
+            {
+              "layout": "quote",
+              "type": "lehrkraft",
+              "phase": "Einstieg",
+              "form": "Plenum",
+              "minutes": 5,
+              "label": "Aus Stunde 1",
+              "title": "Wie genau erwärmt CO₂ die Luft?",
+              "text": "„Was müsste man wissen, damit der Zusammenhang belegt ist?“",
+              "notes": "5–10 min, Plenum. Whiteboard-Antworten aus Stunde 1 kurz zeigen, dann die Leitfrage stellen."
+            },
+            {
+              "layout": "compare",
+              "type": "versuch",
+              "phase": "Versuch",
+              "form": "zu zweit",
+              "minutes": 5,
+              "title": "Wärme einfangen",
+              "text": "Je ein Thermometer. Beide stehen gleich weit von der Lampe entfernt. Unsere Vorhersage: Welches Glas wird nach 15 Minuten wärmer sein?",
+              "items": "Glas A | bleibt offen\nGlas B | wird mit Klarsichtfolie verschlossen",
+              "notes": "10–15 min, Partner. Material: 2 Gläser, Folie, 2 Thermometer, Lampe. Vorhersage auf dem Versuchsprotokoll ankreuzen lassen."
+            },
+            {
+              "layout": "list",
+              "type": "versuch",
+              "phase": "Messwerte & Deutung",
+              "form": "Plenum",
+              "minutes": 8,
+              "title": "Was habt ihr gemessen?",
+              "items": "Welches Glas war am Ende wärmer, und um wie viel?\nWarum, glaubt ihr, war das so?",
+              "notes": "30–38 min, Plenum. Werte der Paare vergleichen, dann die Deutung gemeinsam erarbeiten."
+            },
+            {
+              "layout": "statement",
+              "type": "versuch",
+              "phase": "Messwerte & Deutung",
+              "form": "Plenum",
+              "label": "Deutung",
+              "title": "Die Folie hält Wärmestrahlung zurück — genau das tun Treibhausgase in der Atmosphäre, nur ohne Folie.",
+              "text": "**Wichtiger Hinweis:** Dieser Versuch zeigt nur das allgemeine Prinzip — eine Barriere hält Wärmestrahlung zurück. Er beweist nicht, dass genau CO₂ das tut.",
+              "notes": "Wichtig: Der Versuch zeigt das Prinzip, nicht dass es speziell CO₂ ist. Diese Unterscheidung ist selbst ein Lernziel."
+            },
+            {
+              "layout": "flow",
+              "type": "sicherung",
+              "phase": "Sicherung",
+              "form": "allein",
+              "minutes": 4,
+              "title": "Wie erwärmt CO₂ die Luft?",
+              "text": "Ein Teil entweicht ins Weltall — ein Teil wird zur Erdoberfläche zurückgestrahlt.",
+              "items": "Sonnenstrahlung | kurzwellig\nErdoberfläche | erwärmt sich\nWärmestrahlung | langwellig\nTreibhausgase | CO₂, Methan, Wasserdampf",
+              "notes": "38–42 min, Einzel. Fließschema fertig ins Lernjournal übertragen (Fließschema-Arbeitsblatt)."
+            },
+            {
+              "layout": "compare",
+              "type": "sicherung",
+              "phase": "Sicherung",
+              "form": "allein",
+              "title": "Zwei Begriffe, ein Unterschied",
+              "items": "natürlicher Treibhauseffekt | notwendig — ohne ihn läge die Erde bei etwa **−18 °C**.\nzusätzlicher Treibhauseffekt | von Menschen verursacht — seit etwa **1850** messbar.",
+              "notes": "Begriffe natürlicher und zusätzlicher Treibhauseffekt sichern. Fehlvorstellung aufgreifen: Ohne Treibhauseffekt wäre es nicht angenehmer."
+            },
+            {
+              "layout": "exit",
+              "type": "sicherung",
+              "phase": "Exit",
+              "form": "Plenum",
+              "minutes": 3,
+              "label": "Merksatz",
+              "title": "Beobachtung + Mechanismus = Erklärung.",
+              "text": "Rückbezug Stunde 1: Jetzt gibt es einen Mechanismus.",
+              "notes": "42–45 min, Plenum. Rückbezug auf Stunde 1: Jetzt gibt es einen Mechanismus. Merksatz ins Lernjournal."
             }
           ]
         }

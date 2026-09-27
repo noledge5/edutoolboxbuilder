@@ -265,4 +265,28 @@ describe('Stundenpaket', () => {
     expect(file.modules[0].lessons).toEqual([{ number: 1, title: 'Sights', plan: 'Sehenswürdigkeiten' }]);
     expect(readPackage(file).modules[0].lessons[0]).toMatchObject({ title: 'Sights', plan: 'Sehenswürdigkeiten' });
   });
+
+  it('carries slides, with their pictures, and adds slides to worked-out lessons', () => {
+    const lib: Library = { ...seedLibrary(), modules: [], lessons: [] };
+    const raw = v1({ images: { bild: 'data:image/png;base64,AAAA' } });
+    raw.lessons[0] = { ...lesson(), slides: [{ layout: 'image', title: 'Zelle', image: 'bild' }, { layout: 'list', items: 'A? | a', reveal: true }] } as never;
+    const p = readPackage(raw);
+    expect(p.notes).toEqual([]);
+    const [pic, list] = p.modules[0].lessons[0].slides;
+    expect(pic.image).toBe(Object.keys(p.images)[0]);
+    expect(list).toMatchObject({ layout: 'list', reveal: true });
+    const a = addPackage(lib, p);
+    expect(a.lessons[0].slides).toHaveLength(2);
+    // Saved again: slides without the fields that equal the defaults.
+    const file = JSON.parse(JSON.stringify(packageFromModule(a.modules[0], a.lessons)));
+    expect(file.modules[0].lessons[0].slides[1]).toEqual({ layout: 'list', items: 'A? | a', reveal: true });
+    // Claude made new slides for the worked-out lesson: the module is completed, the worksheet stays.
+    const withLesson: Library = { ...lib, modules: a.modules, lessons: a.lessons };
+    const slidesOnly = readPackage({ ...v1(), lessons: [{ number: 1, title: 'Die Zelle', slides: [{ layout: 'title', title: 'Neu' }] }] });
+    const r = addPackage(withLesson, slidesOnly);
+    expect(r.results[0]).toMatchObject({ action: 'ergänzt', changed: 1 });
+    expect(r.lessons[0].id).toBe(a.lessons[0].id);
+    expect(r.lessons[0].doc.pages).toEqual(a.lessons[0].doc.pages);
+    expect(r.lessons[0].slides.map((s) => s.title)).toEqual(['Neu']);
+  });
 });

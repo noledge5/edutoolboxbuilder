@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Editor, errorText } from './editor/Editor';
-import { changedSince, docForLesson, duplicateLesson, favoriteBlocks, lessonFromDoc, lessonsOf, modulesOf, newLesson, newModule, subjectsOf, syncLibrary, vocabTestLesson } from './library/model';
+import { changedSince, docForLesson, duplicateLesson, favoriteBlocks, lessonFromDoc, lessonsOf, modulesOf, newLesson, newModule, slideContext, subjectsOf, syncLibrary, vocabTestLesson } from './library/model';
+import { SlidesView } from './slides/SlidesView';
 import { subjectColor, subjectVars } from './library/subjectColor';
 import { ModuleView } from './library/ModuleView';
 import { Overview } from './library/Overview';
@@ -234,6 +235,28 @@ export function App() {
         competences={m.competences}
         note={lesson.plan}
         favorites={{ label: `Oft in ${m.subject}`, types: favoriteBlocks(lib, m.subject) }}
+        onSlides={() => go({ view: 'slides', id: lesson.id })}
+      />
+    );
+    subject = m.subject;
+  } else if (route.view === 'slides') {
+    const lesson = lib.lessons.find((l) => l.id === route.id);
+    const m = lesson && lib.modules.find((x) => x.id === lesson.moduleId);
+    if (!lesson || !m) return <ToOverview />;
+    view = (
+      <SlidesView
+        key={lesson.id}
+        slides={lesson.slides}
+        ctx={slideContext(m, lesson, lib.settings)}
+        doc={docForLesson(m, lesson)}
+        lessonTitle={lesson.title}
+        place={`${m.subject} · Klasse ${m.grade} · Modul ${m.number} · Stunde ${lesson.number}: ${lesson.title}`}
+        onChange={(slides) => {
+          const current = libRef.current?.lessons.find((l) => l.id === lesson.id) ?? lesson;
+          putLesson({ ...current, slides, updatedAt: Date.now() }).catch(failed);
+        }}
+        onBack={() => go({ view: 'module', id: m.id })}
+        onOpenSheet={() => go({ view: 'lesson', id: lesson.id })}
       />
     );
     subject = m.subject;
@@ -289,6 +312,7 @@ export function App() {
           go({ view: 'lesson', id: l.id });
         }}
         onOpenLesson={(l) => go({ view: 'lesson', id: l.id })}
+        onOpenSlides={(l) => go({ view: 'slides', id: l.id })}
         onChangeLesson={(l) => putLesson(l).catch(failed)}
         onDuplicateLesson={(l) => putLesson(duplicateLesson(lib, m, l)).catch(failed)}
         onDeleteLesson={(l) => {

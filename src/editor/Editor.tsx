@@ -85,11 +85,13 @@ export interface EditorProps {
   note?: string;
   /** The blocks most used in this subject, first in the toolbox. */
   favorites?: { label: string; types: BlockType[] };
+  /** Opens the lesson's slides. */
+  onSlides?(): void;
 }
 
 const NO_COMPETENCES: { id: string; area: string }[] = [];
 
-export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competences = NO_COMPETENCES, note = '', favorites }: EditorProps) {
+export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competences = NO_COMPETENCES, note = '', favorites, onSlides }: EditorProps) {
   const [noteOpen, setNoteOpen] = useState(true);
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
   const doc = hist.present;
@@ -539,6 +541,7 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
           onTogglePreview={() => setPreview((p) => !p)}
           onPrint={() => setPrintOpen(true)}
           modeLabel={!editing ? [printMode.solutions ? 'Lösungsfassung' : 'Schülerfassung', printMode.bw ? 'S/W' : 'Farbe'].join(' · ') : undefined}
+          onSlides={onSlides}
         />
         <input
           ref={fileInput}

@@ -1,0 +1,133 @@
+/* Presentation slides (1920 × 1080), after docs/design/referenz/Präsentation Treibhauseffekt.dc.html.
+   Like the printed page: Caprasimo headings, Figtree text, white paper (the user's choice) and the
+   design's orange accent whatever the subject colour of the app around it. */
+.sl-slide {
+  --color-accent: var(--color-accent-1);
+  --color-accent-100: var(--color-accent-1-100);
+  --color-accent-200: var(--color-accent-1-200);
+  --color-accent-300: var(--color-accent-1-300);
+  --color-accent-400: var(--color-accent-1-400);
+  --color-accent-500: var(--color-accent-1-500);
+  --color-accent-600: var(--color-accent-1-600);
+  --color-accent-700: var(--color-accent-1-700);
+  --color-accent-800: var(--color-accent-1-800);
+  --color-accent-900: var(--color-accent-1-900);
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  flex: none;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  padding: 56px 96px 48px;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 36px;
+  line-height: 1.3;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  text-align: left;
+  transform-origin: top left;
+}
+.sl-slide strong { font-weight: 700; }
+.sl-mark { padding: 0 8px; border-radius: 10px; background: var(--color-accent-200); color: inherit; }
+
+/* Header bar: topic icon, lesson line, phase pill, work form and time */
+.sl-bar { position: relative; display: flex; align-items: center; gap: 24px; padding: 16px; border-radius: 999px; background: var(--t-band); }
+.sl-bar-icon { width: 72px; height: 72px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--t-circle); color: var(--t-circle-fg); }
+.sl-bar-kicker { flex: 1; min-width: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--t-kicker); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sl-phase { padding: 12px 26px; border-radius: 999px; background: var(--t-pill); color: var(--t-pill-fg); font-size: 26px; font-weight: 700; white-space: nowrap; }
+.sl-form { display: flex; align-items: center; gap: 10px; padding: 12px 26px; border-radius: 999px; background: var(--paper); font-size: 26px; font-weight: 700; white-space: nowrap; }
+
+.sl-head { display: flex; flex-direction: column; gap: 20px; }
+.sl-h1 { margin: 0; font-family: var(--font-heading); font-weight: 400; letter-spacing: -0.01em; font-size: 80px; line-height: 1.1; text-wrap: pretty; }
+.sl-h1.is-big { font-size: 110px; line-height: 1.05; }
+.sl-h1.is-statement { font-size: 76px; line-height: 1.15; max-width: 1600px; }
+.sl-sub { font-size: 36px; color: var(--color-neutral-800); text-wrap: pretty; }
+.sl-small { font-size: 26px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-neutral-700); }
+.sl-label { font-size: 30px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--t-kicker); }
+.sl-lead { display: flex; flex-direction: column; gap: 16px; }
+.sl-foot { position: relative; margin-top: auto; display: flex; justify-content: space-between; gap: 40px; font-size: 24px; color: var(--color-neutral-700); }
+
+/* Numbered questions, answers in pills */
+.sl-list { display: flex; flex-direction: column; gap: 28px; }
+.sl-item { display: flex; align-items: center; gap: 32px; }
+.sl-num { width: 80px; height: 80px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--t-num); color: var(--t-num-fg); font-size: 40px; font-weight: 700; }
+.sl-item-text { flex: 1; min-width: 0; font-size: 44px; text-wrap: pretty; }
+.sl-list.is-many { gap: 20px; }
+.sl-list.is-many .sl-num { width: 64px; height: 64px; font-size: 32px; }
+.sl-list.is-many .sl-item-text { font-size: 36px; }
+.sl-answer { flex: none; max-width: 640px; padding: 14px 32px; border-radius: 999px; background: var(--color-accent-2-200); color: var(--color-accent-2-900); font-size: 40px; font-weight: 700; text-align: center; }
+.sl-answer.is-long { border-radius: 40px; font-size: 34px; }
+.sl-answer.is-ghost, .sl-word-meaning.is-ghost { opacity: 0.35; outline: 3px dashed var(--color-accent-2-600); outline-offset: -3px; }
+
+/* Quote box above the key question */
+.sl-quote { display: flex; flex-direction: column; gap: 20px; max-width: 1400px; padding: 44px 56px; border-radius: 48px; background: var(--color-surface); }
+.sl-quote-text { font-size: 48px; line-height: 1.3; text-wrap: pretty; }
+
+/* Statement with a hint */
+.sl-slide.is-statement .sl-lead { gap: 12px; }
+.sl-hint { display: flex; gap: 32px; align-items: flex-start; max-width: 1500px; padding: 40px 48px; border-radius: 48px; background: var(--color-accent-2-100); }
+.sl-hint-icon { width: 72px; height: 72px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--color-accent-2-600); color: var(--color-accent-2-100); }
+.sl-hint-text { font-size: 34px; line-height: 1.4; }
+.sl-hint-text strong { color: var(--color-accent-2-800); }
+
+/* Boxes side by side */
+.sl-compare { display: grid; gap: 40px; }
+.sl-box { display: flex; flex-direction: column; gap: 20px; padding: 48px 56px; border-radius: 56px; }
+.sl-box-head { font-size: 48px; font-weight: 700; line-height: 1.15; }
+.sl-box-text { font-size: 36px; line-height: 1.4; }
+
+/* Flow chart with arrows */
+.sl-flow { display: grid; align-items: stretch; gap: 12px; }
+.sl-step { display: grid; align-content: center; gap: 6px; padding: 36px 24px; border-radius: 40px; text-align: center; }
+.sl-step-head { font-size: 40px; font-weight: 700; line-height: 1.15; }
+.sl-step-text { font-size: 28px; color: var(--color-neutral-800); }
+.sl-flow.is-many .sl-step-head { font-size: 34px; }
+.sl-flow.is-many .sl-step-text { font-size: 24px; }
+.sl-arrow { display: grid; place-items: center; font-size: 52px; font-weight: 700; color: var(--color-neutral-600); }
+
+/* Word cards */
+.sl-words { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.sl-words.is-many { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.sl-word { display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 150px; padding: 28px 36px; border-radius: 40px; background: var(--t-band); }
+.sl-word-main { font-size: 48px; font-weight: 700; line-height: 1.15; }
+.sl-words.is-many .sl-word-main { font-size: 40px; }
+.sl-word-meaning { font-size: 32px; color: var(--color-neutral-800); }
+
+/* A big picture with text beside it */
+.sl-image-row { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+.sl-image-row.has-text { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: center; }
+.sl-figure { margin: 0; min-height: 0; height: 100%; display: flex; flex-direction: column; gap: 12px; }
+.sl-picture { flex: 1; min-height: 0; display: grid; place-items: center; border-radius: 40px; overflow: hidden; background: var(--color-surface); color: var(--color-neutral-600); font-size: 32px; font-weight: 700; }
+.sl-picture.has-image { background: transparent; }
+.sl-picture img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.sl-figure figcaption { font-size: 20px; color: var(--color-neutral-700); }
+.sl-image-text { font-size: 40px; line-height: 1.4; text-wrap: pretty; }
+
+/* Title slide */
+.sl-slide.is-title { justify-content: center; gap: 40px; padding: 96px 120px; }
+.sl-deco { position: absolute; border-radius: 50%; }
+.sl-deco.is-one { right: -160px; top: -120px; width: 820px; height: 820px; background: var(--color-accent-200); }
+.sl-deco.is-two { right: 260px; bottom: -220px; width: 480px; height: 480px; background: var(--color-accent-2-200); }
+.sl-title-icon { position: relative; width: 120px; height: 120px; border-radius: 50%; display: grid; place-items: center; background: var(--color-accent); color: var(--color-accent-100); }
+.sl-title-kicker { position: relative; font-size: 30px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-700); }
+.sl-title-h1 { position: relative; margin: 0; max-width: 1400px; font-family: var(--font-heading); font-weight: 400; letter-spacing: -0.01em; font-size: 150px; line-height: 1; text-wrap: balance; }
+.sl-title-sub { position: relative; max-width: 1000px; font-size: 40px; text-wrap: pretty; }
+
+/* Exit: summary on the green of the Sicherung */
+.sl-slide.is-exit { background: var(--color-accent-2-600); color: var(--color-accent-2-100); }
+.sl-deco.is-exit { right: -200px; bottom: -260px; width: 760px; height: 760px; background: var(--color-accent-2-500); }
+.sl-slide.is-exit .sl-bar { background: var(--color-accent-2-700); }
+.sl-slide.is-exit .sl-bar-icon { background: var(--color-accent-2-100); color: var(--color-accent-2-700); }
+.sl-slide.is-exit .sl-bar-kicker { color: inherit; }
+.sl-slide.is-exit .sl-phase { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
+.sl-slide.is-exit .sl-form { background: var(--color-accent-2-800); color: inherit; }
+.sl-slide.is-exit .sl-foot { color: inherit; }
+.sl-exit-text { position: relative; font-size: 36px; }
+.sl-exit-main { position: relative; display: flex; flex-direction: column; gap: 20px; }
+.sl-exit-label { font-size: 30px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.sl-exit-h1 { margin: 0; max-width: 1600px; font-family: var(--font-heading); font-weight: 400; letter-spacing: -0.01em; font-size: 120px; line-height: 1.05; text-wrap: pretty; }

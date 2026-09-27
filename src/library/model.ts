@@ -1,9 +1,10 @@
 // Pure library helpers: codes, new modules and lessons, migration of the old single worksheet, sample data.
 import { BLOCK_TYPES, LEVEL_NAMES } from '../model/blockTypes';
 import { createBlock, createPage, sheetNumbers, uid } from '../model/ops';
-import { seedDoc } from '../model/seed';
+import { seedDoc, seedSlides } from '../model/seed';
 import type { BlockType, Doc, Lang } from '../model/types';
 import { DEFAULT_TOPIC_ICON } from '../topicIcons';
+import type { SlideContext } from '../slides/SlideView';
 import type { Competence, Lesson, Library, Module, Settings } from './types';
 
 /** Kürzel of a lesson: "K9 · M1 · S2". */
@@ -19,6 +20,19 @@ export const footerFor = (settings: Settings, subject: string) => [settings.foot
 
 /** The lesson's document with icon, code, language and help switch taken from its module, so they are always consistent. */
 export const docForLesson = (m: Module, l: Lesson): Doc => ({ ...l.doc, icon: m.icon, lang: m.lang, help: m.help, code: lessonCode(m, l.number) });
+
+/** What all slides of a lesson show: icon, language, header line, title line and footer. */
+export function slideContext(m: Module, l: Lesson, settings: Settings): SlideContext {
+  const en = m.lang === 'en';
+  const lesson = `${en ? 'Lesson' : 'Stunde'} ${l.number}`;
+  return {
+    icon: m.icon,
+    lang: m.lang,
+    kicker: `${l.title} · ${gradeLabel(m)} · ${lesson}`,
+    titleKicker: `${gradeLabel(m)} · ${en ? 'Unit' : 'Modul'} ${m.number}: ${m.title} · ${lesson}`,
+    footer: footerFor(settings, m.subject),
+  };
+}
 
 /** English modules get English worksheets by default. */
 export const defaultLang = (subject: string): Lang => (/englisch|english/i.test(subject) ? 'en' : 'de');
@@ -154,6 +168,7 @@ export function newLesson(lib: Library, m: Module): Lesson {
     title: 'Neue Stunde',
     textbook: '',
     plan: '',
+    slides: [],
     doc: { icon: m.icon, lang: m.lang, help: m.help, footer: footerFor(lib.settings, m.subject), code: lessonCode(m, number), pages: [page] },
     updatedAt: Date.now(),
   };
@@ -212,7 +227,7 @@ export function libraryFromOldDoc(doc: Doc): Library {
     start: '',
     updatedAt: Date.now(),
   };
-  const lesson: Lesson = { id: uid(), moduleId: module.id, number: code ? Number(code[3]) : 1, title: doc.pages[0]?.title || 'Stunde', textbook: '', plan: '', doc, updatedAt: Date.now() };
+  const lesson: Lesson = { id: uid(), moduleId: module.id, number: code ? Number(code[3]) : 1, title: doc.pages[0]?.title || 'Stunde', textbook: '', plan: '', doc, slides: [], updatedAt: Date.now() };
   return { settings, modules: [module], lessons: [lesson], deleted: {} };
 }
 
@@ -268,7 +283,7 @@ export function seedLibrary(): Library {
     updatedAt: 0,
   };
   const doc = seedDoc();
-  const lesson: Lesson = { id: 'beispiel-stunde', moduleId: module.id, number: 2, title: 'Der Treibhauseffekt', textbook: '', plan: '', doc, updatedAt: 0 };
+  const lesson: Lesson = { id: 'beispiel-stunde', moduleId: module.id, number: 2, title: 'Der Treibhauseffekt', textbook: '', plan: '', doc, slides: seedSlides(), updatedAt: 0 };
   return { settings, modules: [module], lessons: [lesson], deleted: {} };
 }
 
@@ -350,5 +365,5 @@ export const changedSince = (lib: Library, t: number) =>
 /** A copy of a lesson as the next lesson of its module. */
 export function duplicateLesson(lib: Library, m: Module, l: Lesson): Lesson {
   const fresh = newLesson(lib, m);
-  return { ...fresh, title: `${l.title} (Kopie)`, doc: { ...l.doc, code: fresh.doc.code } };
+  return { ...fresh, title: `${l.title} (Kopie)`, plan: l.plan, doc: { ...l.doc, code: fresh.doc.code }, slides: l.slides.map((s) => ({ ...s, id: uid() })) };
 }
