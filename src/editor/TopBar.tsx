@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, Minus, Plus, Presentation, Printer, Redo2, Undo2 } from 'lucide-react';
+import { ArrowLeft, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, Minus, Plus, Presentation, Printer, Redo2, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
 
@@ -29,6 +29,11 @@ interface TopBarProps {
   modeLabel?: string;
   /** Opens the lesson's slides (in the library). */
   onSlides?(): void;
+  /** Number of slides of the lesson. */
+  slideCount?: number;
+  /** New slides from this worksheet, replacing the old ones. */
+  onRegenerateSlides?(): void;
+  onDeleteSlides?(): void;
 }
 
 export function TopBar(p: TopBarProps) {
@@ -84,12 +89,7 @@ export function TopBar(p: TopBarProps) {
         ]}
       />
       {p.modeLabel && <span className="topbar-mode">{p.modeLabel}</span>}
-      {p.onSlides && (
-        <button type="button" className="btn btn-secondary ui-btn" onClick={p.onSlides} title="Präsentationsfolien der Stunde">
-          <Icon icon={Presentation} />
-          <span className="btn-label">Folien</span>
-        </button>
-      )}
+      {p.onSlides && <SlidesMenu count={p.slideCount ?? 0} onOpen={p.onSlides} onRegenerate={p.onRegenerateSlides} onDelete={p.onDeleteSlides} fromSheet="diesem Arbeitsblatt" />}
       <button type="button" className={'btn btn-secondary ui-btn' + (p.editing ? '' : ' is-on')} onClick={p.onTogglePreview}>
         <Icon icon={Eye} />
         <span className="btn-label">{p.editing ? 'Vorschau' : 'Bearbeiten'}</span>
@@ -109,7 +109,7 @@ interface MenuItem {
 }
 
 /** A button with a small drop-down list; closes on outside click, Esc or choosing an item. */
-export function Menu({ label, icon, items }: { label: string; icon: typeof FolderOpen; items: MenuItem[] }) {
+export function Menu({ label, icon, items, className = '' }: { label: string; icon: typeof FolderOpen; items: MenuItem[]; className?: string }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -127,7 +127,7 @@ export function Menu({ label, icon, items }: { label: string; icon: typeof Folde
   }, [open]);
   return (
     <div className="menu" ref={root}>
-      <button type="button" className={'btn btn-secondary ui-btn' + (open ? ' is-on' : '')} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <button type="button" className={'btn btn-secondary ui-btn ' + className + (open ? ' is-on' : '')} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         <Icon icon={icon} />
         <span className="btn-label">{label}</span>
         <Icon icon={ChevronDown} size={14} />
@@ -153,4 +153,26 @@ export function Menu({ label, icon, items }: { label: string; icon: typeof Folde
       )}
     </div>
   );
+}
+
+/** The slides of a lesson: open them, make them anew from the worksheet, or delete them all. */
+export function SlidesMenu({
+  count,
+  onOpen,
+  onRegenerate,
+  onDelete,
+  fromSheet = 'dem Arbeitsblatt',
+  className = '',
+}: {
+  count: number;
+  onOpen(): void;
+  onRegenerate?(): void;
+  onDelete?(): void;
+  fromSheet?: string;
+  className?: string;
+}) {
+  const items: MenuItem[] = [{ label: count ? 'Folien öffnen' : 'Folien öffnen (noch keine)', icon: Presentation, onClick: onOpen }];
+  if (onRegenerate) items.push({ label: count ? `Neu aus ${fromSheet} erzeugen …` : `Aus ${fromSheet} erzeugen`, icon: Sparkles, onClick: onRegenerate });
+  if (onDelete && count) items.push({ label: `Alle ${count} Folien löschen …`, icon: Trash2, onClick: onDelete });
+  return <Menu label={count ? `Folien · ${count}` : 'Folien'} icon={Presentation} items={items} className={className + (count ? '' : ' is-empty')} />;
 }

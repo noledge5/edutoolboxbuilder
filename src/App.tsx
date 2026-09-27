@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Editor, errorText } from './editor/Editor';
 import { changedSince, docForLesson, duplicateLesson, favoriteBlocks, lessonFromDoc, lessonsOf, modulesOf, newLesson, newModule, slideContext, subjectsOf, syncLibrary, vocabTestLesson } from './library/model';
 import { SlidesView } from './slides/SlidesView';
+import { slidesFromDoc } from './slides/fromDoc';
+import type { Slide } from './model/slides';
 import { subjectColor, subjectVars } from './library/subjectColor';
 import { ModuleView } from './library/ModuleView';
 import { Overview } from './library/Overview';
@@ -48,6 +50,8 @@ export function App() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [otherTab, setOtherTab] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  // The last change that can be taken back from a notice ("Rückgängig").
+  const [undo, setUndo] = useState<{ text: string; run(): void } | null>(null);
   const [inSyncUntil, setInSyncUntil] = useState(0);
   const [syncOpen, setSyncOpen] = useState(false);
   const route = useRoute();
@@ -87,6 +91,12 @@ export function App() {
     const t = setTimeout(() => setNotice(null), 6000);
     return () => clearTimeout(t);
   }, [notice]);
+
+  useEffect(() => {
+    if (!undo) return;
+    const t = setTimeout(() => setUndo(null), 12000);
+    return () => clearTimeout(t);
+  }, [undo]);
 
   const failed = (e: unknown) => setNotice('Speichern im Browser fehlgeschlagen: ' + errorText(e));
 
@@ -130,6 +140,49 @@ export function App() {
     },
     [putLesson, putModule],
   );
+
+  /** Replaces a lesson's slides; the notice can bring the old ones back. */
+  const replaceSlides = (lessonId: string, make: (l: Lesson, m: Module) => Slide[] | null, text: (n: number) => string) => {
+    const lib = libRef.current!;
+    const l = lib.lessons.find((x) => x.id === lessonId);
+    const m = l && lib.modules.find((x) => x.id === l.moduleId);
+    if (!l || !m) return;
+    const slides = make(l, m);
+    if (!slides) return;
+    const before = l.slides;
+    putLesson({ ...l, slides, updatedAt: Date.now() }).catch(failed);
+    setUndo({
+      text: text(slides.length),
+      run: () => {
+        const now = libRef.current!.lessons.find((x) => x.id === lessonId);
+        if (now) putLesson({ ...now, slides: before, updatedAt: Date.now() }).catch(failed);
+        setUndo(null);
+      },
+    });
+  };
+
+  /** New slides from the worksheet (`doc`: as it is in the editor right now). */
+  const regenerateSlides = (lessonId: string, doc?: Doc) =>
+    replaceSlides(
+      lessonId,
+      (l, m) => {
+        const n = l.slides.length;
+        if (n && !window.confirm(`Die ${n === 1 ? 'Folie' : `${n} Folien`} von Stunde ${l.number} „${l.title}“ durch neue aus dem Arbeitsblatt ersetzen?`)) return null;
+        return slidesFromDoc(doc ? { ...doc, lang: m.lang } : docForLesson(m, l), l.title);
+      },
+      (n) => `${n} ${n === 1 ? 'Folie' : 'Folien'} aus dem Arbeitsblatt erzeugt.`,
+    );
+
+  const deleteSlides = (lessonId: string) =>
+    replaceSlides(
+      lessonId,
+      (l) => {
+        const n = l.slides.length;
+        if (!n || !window.confirm(`${n === 1 ? 'Die Folie' : `Alle ${n} Folien`} von Stunde ${l.number} „${l.title}“ löschen?`)) return null;
+        return [];
+      },
+      () => 'Alle Folien der Stunde gelöscht.',
+    );
 
   const markSaved = (t: number) => {
     setInSyncUntil(t);
@@ -214,6 +267,14 @@ export function App() {
           <span>{notice}</span>
         </div>
       )}
+      {undo && (
+        <div className="toast" role="status">
+          <span>{undo.text}</span>
+          <button type="button" className="toast-btn" onClick={undo.run}>
+            Rückgängig
+          </button>
+        </div>
+      )}
     </div>
   );
 
@@ -236,6 +297,9 @@ export function App() {
         note={lesson.plan}
         favorites={{ label: `Oft in ${m.subject}`, types: favoriteBlocks(lib, m.subject) }}
         onSlides={() => go({ view: 'slides', id: lesson.id })}
+        slideCount={lesson.slides.length}
+        onRegenerateSlides={(doc) => regenerateSlides(lesson.id, doc)}
+        onDeleteSlides={() => deleteSlides(lesson.id)}
       />
     );
     subject = m.subject;
@@ -313,6 +377,8 @@ export function App() {
         }}
         onOpenLesson={(l) => go({ view: 'lesson', id: l.id })}
         onOpenSlides={(l) => go({ view: 'slides', id: l.id })}
+        onRegenerateSlides={(l) => regenerateSlides(l.id)}
+        onDeleteSlides={(l) => deleteSlides(l.id)}
         onChangeLesson={(l) => putLesson(l).catch(failed)}
         onDuplicateLesson={(l) => putLesson(duplicateLesson(lib, m, l)).catch(failed)}
         onDeleteLesson={(l) => {

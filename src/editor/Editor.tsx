@@ -87,11 +87,15 @@ export interface EditorProps {
   favorites?: { label: string; types: BlockType[] };
   /** Opens the lesson's slides. */
   onSlides?(): void;
+  slideCount?: number;
+  /** Makes the lesson's slides anew from this worksheet as it is now. */
+  onRegenerateSlides?(doc: Doc): void;
+  onDeleteSlides?(): void;
 }
 
 const NO_COMPETENCES: { id: string; area: string }[] = [];
 
-export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competences = NO_COMPETENCES, note = '', favorites, onSlides }: EditorProps) {
+export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competences = NO_COMPETENCES, note = '', favorites, onSlides, slideCount = 0, onRegenerateSlides, onDeleteSlides }: EditorProps) {
   const [noteOpen, setNoteOpen] = useState(true);
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
   const doc = hist.present;
@@ -542,6 +546,9 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
           onPrint={() => setPrintOpen(true)}
           modeLabel={!editing ? [printMode.solutions ? 'Lösungsfassung' : 'Schülerfassung', printMode.bw ? 'S/W' : 'Farbe'].join(' · ') : undefined}
           onSlides={onSlides}
+          slideCount={slideCount}
+          onRegenerateSlides={onRegenerateSlides && (() => onRegenerateSlides(doc))}
+          onDeleteSlides={onDeleteSlides}
         />
         <input
           ref={fileInput}
