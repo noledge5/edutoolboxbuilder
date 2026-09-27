@@ -2,13 +2,16 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
 import { Lightbulb, User, Users } from 'lucide-react';
 import { Icon } from '../icons';
-import { slideItems, type Slide } from '../model/slides';
+import { itemSteps, shownItems, type Slide, type SlideAnim } from '../model/slides';
 import { THEMES, WORK_FORMS_EN } from '../model/themes';
 import type { Lang } from '../model/types';
 import { themeVars } from '../sheet/SheetPage';
-import { typo } from '../sheet/lang';
 import { useImageUrl } from '../storage/images';
 import { topicIcon } from '../topicIcons';
+import { ElementView } from './elements';
+import { Rich } from './Rich';
+
+export { Rich };
 
 export const SLIDE_W = 1920;
 export const SLIDE_H = 1080;
@@ -29,10 +32,17 @@ interface SlideViewProps {
   /** Slide number in the footer. */
   number: number;
   ctx: SlideContext;
-  /** Answers and meanings of a slide with `reveal` are shown. */
-  revealed: boolean;
-  /** Hidden answers are shown pale (editing), instead of not at all (presenting). */
-  ghost?: boolean;
+  /**
+   * Presenting: the clicks so far on this slide; what comes later is hidden, what just came is animated.
+   * null shows everything (editing, printing, thumbnails).
+   */
+  step: number | null;
+  /** Editing: answers that come on a click are pale, entries that come on a click show their click number. */
+  edit?: boolean;
+  /** Presenting: videos play. */
+  live?: boolean;
+  /** Printing: videos become a QR code. */
+  print?: boolean;
   style?: CSSProperties;
 }
 
@@ -40,31 +50,6 @@ const TEXT = {
   de: { question: 'Leitfrage', note: 'Hinweis' },
   en: { question: 'Key question', note: 'Note' },
 };
-
-/** Text with **bold** and {{marked}} parts, typographic quotes and line breaks. */
-export function Rich({ text, lang }: { text: string; lang: Lang }) {
-  const lines = typo(text, lang).split('\n');
-  return (
-    <>
-      {lines.map((line, i) => (
-        <Fragment key={i}>
-          {i > 0 && <br />}
-          {line.split(/(\*\*[^*]+\*\*|\{\{[^}]+\}\})/).map((part, k) =>
-            part.startsWith('**') && part.endsWith('**') ? (
-              <strong key={k}>{part.slice(2, -2)}</strong>
-            ) : part.startsWith('{{') && part.endsWith('}}') ? (
-              <mark key={k} className="sl-mark">
-                {part.slice(2, -2)}
-              </mark>
-            ) : (
-              part
-            ),
-          )}
-        </Fragment>
-      ))}
-    </>
-  );
-}
 
 function Header({ slide, ctx }: { slide: Slide; ctx: SlideContext }) {
   const en = ctx.lang === 'en';
@@ -96,14 +81,20 @@ function Footer({ ctx, number }: { ctx: SlideContext; number: number }) {
   );
 }
 
-function Answer({ text, shown, ghost, lang }: { text: string; shown: boolean; ghost?: boolean; lang: Lang }) {
-  if (!text || (!shown && !ghost)) return null;
+/** Classes of something that appears on click `at`: hidden before, animated when it comes. */
+type Appear = (at: number, anim: SlideAnim) => string;
+
+function Answer({ text, at, appear, ghost, lang }: { text: string; at: number; appear: Appear; ghost: boolean; lang: Lang }) {
+  if (!text) return null;
   return (
-    <div className={'sl-answer' + (text.length > 24 ? ' is-long' : '') + (!shown ? ' is-ghost' : '')}>
+    <div className={'sl-answer' + (text.length > 24 ? ' is-long' : '') + (ghost ? ' is-ghost' : '') + appear(at, 'fade')}>
       <Rich text={text} lang={lang} />
     </div>
   );
 }
+
+/** In the editor: the click on which something appears. */
+const Badge = ({ at, edit }: { at: number; edit: boolean }) => (edit && at > 0 ? <span className="sl-step-badge">{at}</span> : null);
 
 function Picture({ id, source }: { id: string; source: string }) {
   const img = useImageUrl(id);
@@ -120,11 +111,18 @@ function Picture({ id, source }: { id: string; source: string }) {
 const BOX_COLORS = ['var(--color-surface)', 'var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-3-200)'];
 const FLOW_COLORS = ['var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-300)', 'var(--color-neutral-300)', 'var(--color-accent-3-200)', 'var(--color-accent-4-200)'];
 
-export function SlideView({ slide: s, number, ctx, revealed, ghost, style }: SlideViewProps) {
+export function SlideView({ slide: s, number, ctx, step, edit = false, live = false, print = false, style }: SlideViewProps) {
   const lang = ctx.lang;
-  const shown = !s.reveal || revealed;
-  const items = slideItems(s.items);
+  const items = shownItems(s);
+  const steps = itemSteps(s);
   const vars = { ...themeVars(THEMES[s.type] ?? THEMES.uebung), ...style } as CSSProperties;
+  const appear: Appear = (at, anim) => {
+    if (step === null || at === 0) return '';
+    if (at > step) return ' is-later';
+    return anim === 'none' ? '' : ` sl-anim-${anim}`;
+  };
+  // Answers that come after their question are pale while editing.
+  const ghostAnswer = (i: number) => edit && steps[i].answer > steps[i].item;
   const h1 = (cls = '') => (
     <h1 className={'sl-h1' + cls}>
       <Rich text={s.title} lang={lang} />
@@ -139,8 +137,8 @@ export function SlideView({ slide: s, number, ctx, revealed, ghost, style }: Sli
   let body: ReactNode;
   switch (s.layout) {
     case 'title':
-      return (
-        <div className="sl-slide is-title" style={vars} lang={lang}>
+      body = (
+        <>
           <div className="sl-deco is-one" />
           <div className="sl-deco is-two" />
           <div className="sl-title-icon">
@@ -155,11 +153,12 @@ export function SlideView({ slide: s, number, ctx, revealed, ghost, style }: Sli
               <Rich text={s.text} lang={lang} />
             </div>
           )}
-        </div>
+        </>
       );
+      break;
     case 'exit':
-      return (
-        <div className="sl-slide is-exit" style={vars} lang={lang}>
+      body = (
+        <>
           <div className="sl-deco is-exit" />
           <Header slide={s} ctx={ctx} />
           {s.text && (
@@ -174,8 +173,9 @@ export function SlideView({ slide: s, number, ctx, revealed, ghost, style }: Sli
             </h1>
           </div>
           <Footer ctx={ctx} number={number} />
-        </div>
+        </>
       );
+      break;
     case 'list':
       body = (
         <>
@@ -185,12 +185,13 @@ export function SlideView({ slide: s, number, ctx, revealed, ghost, style }: Sli
           </div>
           <div className={'sl-list' + (items.length > 4 ? ' is-many' : '')}>
             {items.map(([q, a], i) => (
-              <div key={i} className="sl-item">
+              <div key={i} className={'sl-item' + appear(steps[i].item, s.itemAnim)}>
+                <Badge at={steps[i].item} edit={edit} />
                 <div className="sl-num">{i + 1}</div>
                 <div className="sl-item-text">
                   <Rich text={q} lang={lang} />
                 </div>
-                <Answer text={a} shown={shown} ghost={ghost} lang={lang} />
+                <Answer text={a} at={steps[i].answer} appear={appear} ghost={ghostAnswer(i)} lang={lang} />
               </div>
             ))}
           </div>
@@ -239,9 +240,10 @@ export function SlideView({ slide: s, number, ctx, revealed, ghost, style }: Sli
       body = (
         <>
           {h1()}
-          <div className="sl-compare" style={{ gridTemplateColumns: `repeat(${Math.min(3, Math.max(1, items.length))}, minmax(0, 1fr))` }}>
-            {items.slice(0, 3).map(([head, text], i) => (
-              <div key={i} className="sl-box" style={{ background: BOX_COLORS[i % BOX_COLORS.length] }}>
+          <div className="sl-compare" style={{ gridTemplateColumns: `repeat(${Math.max(1, items.length)}, minmax(0, 1fr))` }}>
+            {items.map(([head, text], i) => (
+              <div key={i} className={'sl-box' + appear(steps[i].item, s.itemAnim)} style={{ background: BOX_COLORS[i % BOX_COLORS.length] }}>
+                <Badge at={steps[i].item} edit={edit} />
                 <div className="sl-box-head">
                   <Rich text={head} lang={lang} />
                 </div>
@@ -257,16 +259,16 @@ export function SlideView({ slide: s, number, ctx, revealed, ghost, style }: Sli
         </>
       );
       break;
-    case 'flow': {
-      const steps = items.slice(0, 5);
+    case 'flow':
       body = (
         <>
           {h1()}
-          <div className={'sl-flow' + (steps.length > 4 ? ' is-many' : '')} style={{ gridTemplateColumns: steps.map(() => 'minmax(0, 1fr)').join(' 56px ') }}>
-            {steps.map(([head, text], i) => (
+          <div className={'sl-flow' + (items.length > 4 ? ' is-many' : '')} style={{ gridTemplateColumns: items.map(() => 'minmax(0, 1fr)').join(' 56px ') }}>
+            {items.map(([head, text], i) => (
               <Fragment key={i}>
-                {i > 0 && <div className="sl-arrow">→</div>}
-                <div className="sl-step" style={{ background: FLOW_COLORS[i % FLOW_COLORS.length] }}>
+                {i > 0 && <div className={'sl-arrow' + appear(steps[i].item, s.itemAnim === 'none' ? 'none' : 'fade')}>→</div>}
+                <div className={'sl-step' + appear(steps[i].item, s.itemAnim)} style={{ background: FLOW_COLORS[i % FLOW_COLORS.length] }}>
+                  <Badge at={steps[i].item} edit={edit} />
                   <div className="sl-step-head">
                     <Rich text={head} lang={lang} />
                   </div>
@@ -283,7 +285,6 @@ export function SlideView({ slide: s, number, ctx, revealed, ghost, style }: Sli
         </>
       );
       break;
-    }
     case 'words':
       body = (
         <>
@@ -292,13 +293,14 @@ export function SlideView({ slide: s, number, ctx, revealed, ghost, style }: Sli
             {sub}
           </div>
           <div className={'sl-words' + (items.length > 6 ? ' is-many' : '')}>
-            {items.slice(0, 12).map(([word, meaning], i) => (
-              <div key={i} className="sl-word">
+            {items.map(([word, meaning], i) => (
+              <div key={i} className={'sl-word' + appear(steps[i].item, s.itemAnim)}>
+                <Badge at={steps[i].item} edit={edit} />
                 <div className="sl-word-main">
                   <Rich text={word} lang={lang} />
                 </div>
-                {meaning && (shown || ghost) && (
-                  <div className={'sl-word-meaning' + (!shown ? ' is-ghost' : '')}>
+                {meaning && (
+                  <div className={'sl-word-meaning' + (ghostAnswer(i) ? ' is-ghost' : '') + appear(steps[i].answer, 'fade')}>
                     <Rich text={meaning} lang={lang} />
                   </div>
                 )}
@@ -323,23 +325,34 @@ export function SlideView({ slide: s, number, ctx, revealed, ghost, style }: Sli
         </>
       );
       break;
+    case 'blank':
+      body = s.title.trim() ? h1() : null;
+      break;
   }
 
+  const framed = s.layout !== 'title' && s.layout !== 'exit';
   return (
     <div className={'sl-slide is-' + s.layout} style={vars} lang={lang}>
-      <Header slide={s} ctx={ctx} />
+      {framed && <Header slide={s} ctx={ctx} />}
       {body}
-      <Footer ctx={ctx} number={number} />
+      {framed && <Footer ctx={ctx} number={number} />}
+      {s.elements.length > 0 && (
+        <div className="sl-elements">
+          {s.elements.map((e) => (
+            <ElementView key={e.id} e={e} lang={lang} className={appear(e.step, e.anim).trim()} live={live} print={print} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 /** A slide at a given width, scaled from its full size. */
-export function SlideBox({ slide, number, ctx, width, revealed = true, ghost = false }: { slide: Slide; number: number; ctx: SlideContext; width: number; revealed?: boolean; ghost?: boolean }) {
+export function SlideBox({ slide, number, ctx, width, edit = false, print = false }: { slide: Slide; number: number; ctx: SlideContext; width: number; edit?: boolean; print?: boolean }) {
   const scale = width / SLIDE_W;
   return (
     <div className="sl-box-frame" style={{ width, height: SLIDE_H * scale }}>
-      <SlideView slide={slide} number={number} ctx={ctx} revealed={revealed} ghost={ghost} style={{ transform: `scale(${scale})` }} />
+      <SlideView slide={slide} number={number} ctx={ctx} step={null} edit={edit} print={print} style={{ transform: `scale(${scale})` }} />
     </div>
   );
 }

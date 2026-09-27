@@ -69,6 +69,7 @@
 - Rückseiten doppelseitiger Blätter mit schmaler Kopfzeile der Vorderseite
 - Farbe je Fach in der App (die Blätter bleiben orange); Toolbox-Gruppe „Oft in <Fach>“
 - Folien je Stunde (16:9, nach `docs/design/referenz/Präsentation Treibhauseffekt.dc.html`): neun Arten, Editor, Vorschlag aus dem Arbeitsblatt, Präsentationsmodus (Vollbild, Tasten, Wischen, Antworten auf Klick, Sprechernotizen, Zeit), Handout, Notizfassung, PDF quer; Folien im Stundenpaket und in der Claude-Anleitung
+- Folien flexibler: Textfelder, Bilder, Videos (YouTube, Vimeo, MP4) und QR-Codes frei platzieren (ziehen, Größe ändern, auch per Finger), freie Folie „Leer“, Einträge und Elemente schrittweise einblenden, Animationen beim Erscheinen, Übergänge zwischen Folien, Fett/Marker-Knöpfe
 
 ### Phase 5 – Feinschliff
 - Referentenansicht in einem zweiten Fenster (Notizen und nächste Folie auf dem Mac, Folie auf dem Beamer)

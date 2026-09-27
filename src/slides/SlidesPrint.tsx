@@ -71,7 +71,7 @@ export function SlidesPrint({ kind, slides, ctx, title, onClose }: SlidesPrintPr
             {kind === 'slides'
               ? slides.map((s, k) => (
                   <div key={s.id} className="sl-print-land" style={{ width: LAND_W, height: LAND_H }}>
-                    <SlideBox slide={s} number={k + 1} ctx={ctx} width={LAND_W} />
+                    <SlideBox slide={s} number={k + 1} ctx={ctx} width={LAND_W} print />
                   </div>
                 ))
               : pages.map((group, i) => (
@@ -80,7 +80,7 @@ export function SlidesPrint({ kind, slides, ctx, title, onClose }: SlidesPrintPr
                       <div className={'sl-print-list is-' + kind}>
                         {group.map(({ slide, n }) => (
                           <div key={slide.id} className="sl-print-item">
-                            <SlideBox slide={slide} number={n} ctx={ctx} width={kind === 'notes' ? 400 : 722} />
+                            <SlideBox slide={slide} number={n} ctx={ctx} width={kind === 'notes' ? 400 : 722} print />
                             {kind === 'notes' && (
                               <div className="sl-print-notes">
                                 <b>Folie {n}</b>

@@ -8,7 +8,7 @@ import { BLOCK_TYPES, isBlockType } from '../model/blockTypes';
 import { DocFormatError, normalizeDoc } from '../model/normalize';
 import { mapBlockImages, uid } from '../model/ops';
 import { THEMES, WORK_FORMS } from '../model/themes';
-import { leanSlide, normalizeSlides, type Slide } from '../model/slides';
+import { leanSlide, mapSlideImages, normalizeSlides, type Slide } from '../model/slides';
 import type { Block, Doc, Page } from '../model/types';
 import { DEFAULT_TOPIC_ICON, isTopicIcon } from '../topicIcons';
 import { defaultLang, footerFor, isWorkedOut, lessonCode, lessonsOf, modulesOf, plannedDoc } from './model';
@@ -171,15 +171,13 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
     if (!isObj(l)) throw new DocFormatError(`${at} ist kein Objekt.`);
     const pages = Array.isArray(l.pages) ? l.pages : isObj(l.doc) ? l.doc.pages : undefined;
     const plan = text(l.plan).trim();
-    const slides = normalizeSlides(l.slides, (n) => notes.push(`${at}: ${n}`));
-    slides.forEach((s, k) => {
-      if (!s.image) return;
-      if (imageIds.has(s.image)) s.image = imageIds.get(s.image)!;
-      else {
-        notes.push(`${at}, Folie ${k + 1}: Das Bild „${s.image}“ fehlt in "images"; es bleibt ein Platzhalter.`);
-        s.image = '';
-      }
-    });
+    const slides = normalizeSlides(l.slides, (n) => notes.push(`${at}: ${n}`)).map((s, k) =>
+      mapSlideImages(s, (img) => {
+        if (imageIds.has(img)) return imageIds.get(img)!;
+        notes.push(`${at}, Folie ${k + 1}: Das Bild „${img}“ fehlt in "images"; es bleibt ein Platzhalter.`);
+        return '';
+      }),
+    );
     // A planned lesson of the year plan: title and note, the worksheet comes later.
     if ((pages === undefined || (Array.isArray(pages) && pages.length === 0)) && (str(l.title) || plan)) {
       const lessonTitle = str(l.title) || `Stunde ${posInt(l.number) || i + 1}`;

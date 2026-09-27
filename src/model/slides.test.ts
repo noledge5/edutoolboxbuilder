@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { slidesFromDoc } from '../slides/fromDoc';
 import { seedDoc, seedSlides } from './seed';
-import { createSlide, hasReveal, leanSlide, normalizeSlides, SLIDE_LAYOUT_ORDER, slideItems } from './slides';
+import { videoInfo } from '../slides/elements';
+import { createElement, createSlide, hasReveal, itemSteps, leanSlide, mapSlideImages, normalizeSlides, SLIDE_LAYOUT_ORDER, slideImages, slideItems, stepCount } from './slides';
 
 describe('slides', () => {
   it('have example content for every layout', () => {
@@ -47,5 +48,72 @@ describe('slides', () => {
     const s = seedSlides();
     expect(s.map((x) => x.layout)).toEqual(['title', 'list', 'quote', 'compare', 'list', 'statement', 'flow', 'compare', 'exit']);
     expect(normalizeSlides(JSON.parse(JSON.stringify(s)))).toEqual(s);
+  });
+});
+
+describe('slides with elements, steps and animations', () => {
+  it('read elements, clamp them to the slide and fill in defaults', () => {
+    const notes: string[] = [];
+    const [s] = normalizeSlides(
+      [
+        {
+          layout: 'blank',
+          transition: 'push',
+          elements: [{ kind: 'text', text: 'Hi', x: 1900, y: -5, w: 400, h: 100, step: 2, anim: 'zoom' }, { kind: 'sticker' }, { kind: 'video', url: 'https://youtu.be/abcdefghijk' }],
+        },
+      ],
+      (n) => notes.push(n),
+    );
+    expect(s.transition).toBe('push');
+    expect(s.elements).toHaveLength(2);
+    expect(s.elements[0]).toMatchObject({ kind: 'text', x: 1520, y: 0, w: 400, h: 100, step: 2, anim: 'zoom', style: 'box' });
+    expect(s.elements[1]).toMatchObject({ kind: 'video', w: 960, h: 540, step: 0 });
+    expect(notes).toHaveLength(1);
+    // Older slides without the new fields still read.
+    expect(normalizeSlides([{ layout: 'list' }])[0]).toMatchObject({ build: false, itemAnim: 'rise', transition: 'none', elements: [] });
+  });
+
+  it('count the clicks: entries one by one, question and answer taking turns, elements on their click', () => {
+    const list = { ...createSlide('list'), items: 'A? | a\nB? | b\nC?', reveal: true };
+    expect(itemSteps(list)).toEqual([
+      { item: 0, answer: 1 },
+      { item: 0, answer: 1 },
+      { item: 0, answer: 0 },
+    ]);
+    expect(stepCount(list)).toBe(1);
+    const built = { ...list, build: true };
+    expect(itemSteps(built)).toEqual([
+      { item: 1, answer: 2 },
+      { item: 3, answer: 4 },
+      { item: 5, answer: 0 },
+    ]);
+    expect(stepCount(built)).toBe(5);
+    const flow = { ...createSlide('flow'), build: true, elements: [createElement('text', { step: 7 })] };
+    expect(itemSteps(flow).map((x) => x.item)).toEqual([1, 2, 3]);
+    expect(stepCount(flow)).toBe(7);
+    expect(stepCount(createSlide('title'))).toBe(0);
+  });
+
+  it('leave defaults out of files and keep pictures of elements', () => {
+    const s = { ...createSlide('blank'), elements: [createElement('image', { image: 'bild', x: 100 })] };
+    expect(leanSlide(s).elements).toEqual([{ kind: 'image', x: 100, image: 'bild' }]);
+    expect(slideImages([s])).toEqual(['bild']);
+    expect(mapSlideImages(s, (id) => id + '2').elements[0].image).toBe('bild2');
+  });
+});
+
+describe('video links', () => {
+  it('are recognised and embedded without cookies where possible', () => {
+    expect(videoInfo('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1m30s')).toMatchObject({
+      kind: 'youtube',
+      src: expect.stringContaining('youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0'),
+      thumb: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
+    });
+    expect(videoInfo('https://youtu.be/dQw4w9WgXcQ?t=90').src).toContain('&start=90');
+    expect(videoInfo('https://www.youtube.com/shorts/abcdefghijk').kind).toBe('youtube');
+    expect(videoInfo('https://vimeo.com/76979871').src).toBe('https://player.vimeo.com/video/76979871');
+    expect(videoInfo('https://example.org/film.mp4?x=1')).toMatchObject({ kind: 'file' });
+    expect(videoInfo('keine Adresse').kind).toBe('unknown');
+    expect(videoInfo('https://example.org/seite').kind).toBe('unknown');
   });
 });

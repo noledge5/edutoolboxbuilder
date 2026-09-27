@@ -219,6 +219,10 @@ Zu jeder Stunde gehören auf Wunsch Präsentationsfolien: `"slides": [ … ]` in
 | `text` | je nach Art: Untertitel, Zitat, Hinweis, Satz unter Kästen oder Schema, Text neben dem Bild |
 | `items` | Einträge, einer je Zeile (`\n`), Aufbau je nach Art |
 | `reveal` | `true`: Antworten (`list`) bzw. Bedeutungen (`words`) erscheinen erst auf Klick |
+| `build` | `true`: Die Einträge (`list`, `compare`, `flow`, `words`) erscheinen nacheinander, je Klick einer; bei `list` mit `reveal` abwechselnd Frage und Antwort |
+| `itemAnim` | wie die Einträge dabei erscheinen: `"rise"` (von unten, Standard), `"fade"`, `"zoom"`, `"left"`, `"none"` |
+| `transition` | Übergang zu dieser Folie: `"none"` (Standard), `"fade"`, `"push"`, `"zoom"`; sparsam einsetzen |
+| `elements` | frei platzierte Elemente auf der Folie (siehe unten) |
 | `notes` | Sprechernotizen für die Lehrkraft: Zeit, Sozialform, Material, Impulse, erwartete Antworten |
 
 | `layout` | Folie |
@@ -232,9 +236,24 @@ Zu jeder Stunde gehören auf Wunsch Präsentationsfolien: `"slides": [ … ]` in
 | `words` | Wortkarten, `items` als „Wort \| Bedeutung“, bis zwölf |
 | `image` | großes Bild mit Text daneben (`text`); das Bild sucht die Lehrkraft im Baukasten, nenne in `notes`, was darauf zu sehen sein soll |
 | `exit` | letzte Folie auf grünem Grund: Rückbezug (`text`), `label` (z. B. „Merksatz“) und Merksatz (`title`) |
+| `blank` | freie Folie: Kopfleiste, Überschrift (`title`, darf leer sein) und nur `elements` |
+
+**Elemente** (`elements`) liegen frei auf jeder Folie, gemessen in Pixeln einer Folie von 1920 × 1080 (`x`, `y` links oben, `w`, `h`; Kopfleiste bis etwa `y` 170, Fußzeile ab etwa `y` 1000, Rand links und rechts 96):
+
+| `kind` | Felder |
+|---|---|
+| `text` | Textfeld: `text` (`**fett**`, `{{…}}` möglich), `style` `"box"` (Kasten, Standard), `"note"` (Notizzettel), `"plain"`, `"heading"`; `size` Schriftgröße (28, 40, 56, 80, 120; Standard 40), `align` `"left"` oder `"center"` |
+| `image` | Bild: `text` (Bildunterschrift und Suchwort), `source`; das Bild sucht die Lehrkraft im Baukasten |
+| `video` | eingebettetes Video: `url` (YouTube-, Vimeo- oder MP4-Link), `text` (Titel); spielt beim Präsentieren, im Handout steht ein QR-Code |
+| `qr` | QR-Code: `url`, `text` (Beschriftung) |
+
+Jedes Element hat außerdem `step` (0 = mit der Folie, 1, 2 … = beim ersten, zweiten … Klick) und `anim` (wie es dann erscheint: `"fade"`, Standard, `"rise"`, `"zoom"`, `"left"`, `"none"`). Die Klicks zählen für die ganze Folie gemeinsam: Mit `build` belegen die Einträge die ersten Klicks (bei `list` mit `reveal` zwei je Frage); ein Element danach bekommt die nächste Zahl. Beispiel: `{ "kind": "text", "text": "Tipp: Schaut ins Lernjournal!", "style": "note", "x": 1240, "y": 700, "w": 580, "h": 200, "step": 1 }`.
+
+Videos: Schreib nur Links, die die Lehrkraft dir gegeben hat oder die du sicher kennst; sonst ein Textfeld „Video: …“ als Platzhalter und in `notes`, wonach die Lehrkraft suchen soll.
 
 So werden gute Folien:
 - Eine Stunde hat meist sechs bis zehn Folien: Titel, Abrufphase oder Einstieg, je Phase ein bis zwei Folien, Exit.
+- Schrittweise einblenden (`build`, `step`) lohnt sich, wo die Klasse erst nachdenken soll: Abruffragen, Schritte eines Schemas, Vergleiche. Nicht jede Folie braucht Animationen.
 - Folien sind knapp: Fragen, Stichworte, Merksätze. Lange Texte und Aufgaben stehen auf dem Arbeitsblatt.
 - Die Farbe (`type`) folgt der Phase: dieselbe wie das Arbeitsblatt, mit dem die Klasse gerade arbeitet.
 - Englische Stunden: Folien auf Englisch, Sprechernotizen auf Deutsch.
@@ -307,7 +326,7 @@ Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr.
 - Keine Seite ist voller als etwa 840 px.
 - Geplante Stunden haben `title` und `plan`, aber keine `pages`; ausgearbeitete Stunden haben `pages`.
 - Reicht ein Arbeitsblatt nicht auf eine Seite, mach die zweite Seite zur Rückseite (`"back": true`) statt zu einem neuen Blatt.
-- Folien: `layout` und `type` aus den Listen, höchstens 6 Einträge bei `list`, 5 bei `flow`, 3 bei `compare`, 12 bei `words`.
+- Folien: `layout` und `type` aus den Listen, höchstens 6 Einträge bei `list`, 5 bei `flow`, 3 bei `compare`, 12 bei `words`; Elemente liegen ganz auf der Folie (`x + w` ≤ 1920, `y + h` ≤ 1080) und verdecken keinen Text.
 
 ## Alle Bausteine
 
@@ -1286,7 +1305,21 @@ Lehrkraft-Seite, Vokabeln, Grammatik, Sprechen und Schreiben, dazu vier Folien. 
               "text": "Complete the sentences.",
               "items": "I ___ Tom. | am\nYou ___ eleven. | are\nShe ___ my friend. | is",
               "reveal": true,
-              "notes": "Regel an der Tafel entdecken lassen, dann Antworten aufdecken."
+              "build": true,
+              "notes": "Regel an der Tafel entdecken lassen, dann Satz für Satz aufdecken; zum Schluss der Merkzettel.",
+              "elements": [
+                {
+                  "kind": "text",
+                  "x": 1240,
+                  "y": 760,
+                  "w": 580,
+                  "h": 180,
+                  "text": "**he / she / it** → is",
+                  "style": "note",
+                  "step": 7,
+                  "anim": "zoom"
+                }
+              ]
             },
             {
               "layout": "exit",

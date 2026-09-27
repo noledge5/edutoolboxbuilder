@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Maximize, NotebookText, X } from 'lucide-react';
 import { Icon } from '../icons';
-import { hasReveal, type Slide } from '../model/slides';
+import { stepCount, type Slide } from '../model/slides';
 import { SLIDE_H, SLIDE_W, SlideView, type SlideContext } from './SlideView';
 
 interface PresenterProps {
@@ -36,7 +36,10 @@ function leaveFullscreen() {
 
 export function Presenter({ slides, ctx, start, onClose }: PresenterProps) {
   const [k, setK] = useState(Math.min(start, slides.length - 1));
-  const [revealed, setRevealed] = useState(false);
+  // Clicks so far on this slide: entries, answers and elements that come on a click.
+  const [step, setStep] = useState(0);
+  // Direction of the last change, for the "push" transition.
+  const [back, setBack] = useState(false);
   const [notes, setNotes] = useState(false);
   const [idle, setIdle] = useState(false);
   const [size, setSize] = useState({ w: window.innerWidth, h: window.innerHeight });
@@ -50,22 +53,25 @@ export function Presenter({ slides, ctx, start, onClose }: PresenterProps) {
     onClose(k);
   }, [k, onClose]);
 
+  const go = useCallback(
+    (to: number, at: number) => {
+      setBack(to < k);
+      setK(to);
+      setStep(at);
+    },
+    [k],
+  );
+
   const next = useCallback(() => {
-    if (hasReveal(slides[k]) && !revealed) setRevealed(true);
-    else if (k < slides.length - 1) {
-      setK(k + 1);
-      setRevealed(false);
-    }
-  }, [k, revealed, slides]);
+    if (step < stepCount(slides[k])) setStep(step + 1);
+    else if (k < slides.length - 1) go(k + 1, 0);
+  }, [k, step, slides, go]);
 
   const prev = useCallback(() => {
-    if (revealed) setRevealed(false);
-    else if (k > 0) {
-      setK(k - 1);
-      // Going back shows the previous slide as it was left: answers open.
-      setRevealed(hasReveal(slides[k - 1]));
-    }
-  }, [k, revealed, slides]);
+    if (step > 0) setStep(step - 1);
+    // Going back shows the previous slide as it was left: everything open.
+    else if (k > 0) go(k - 1, stepCount(slides[k - 1]));
+  }, [k, step, slides, go]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -73,8 +79,8 @@ export function Presenter({ slides, ctx, start, onClose }: PresenterProps) {
       const key = e.key;
       if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(key)) next();
       else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(key)) prev();
-      else if (key === 'Home') (setK(0), setRevealed(false));
-      else if (key === 'End') (setK(slides.length - 1), setRevealed(false));
+      else if (key === 'Home') go(0, 0);
+      else if (key === 'End') go(slides.length - 1, 0);
       else if (key === 'Escape') close();
       else if (key.toLowerCase() === 'n') setNotes((n) => !n);
       else if (key.toLowerCase() === 'f') document.fullscreenElement ? leaveFullscreen() : enterFullscreen();
@@ -83,7 +89,7 @@ export function Presenter({ slides, ctx, start, onClose }: PresenterProps) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [next, prev, close, slides.length]);
+  }, [next, prev, close, go, slides.length]);
 
   useEffect(() => {
     const onResize = () => setSize({ w: window.innerWidth, h: window.innerHeight });
@@ -100,11 +106,14 @@ export function Presenter({ slides, ctx, start, onClose }: PresenterProps) {
     if (idle) return;
     const t = setTimeout(() => setIdle(true), 2500);
     return () => clearTimeout(t);
-  }, [idle, k, revealed]);
+  }, [idle, k, step]);
 
   if (!slide) return null;
   const scale = Math.min(size.w / SLIDE_W, size.h / SLIDE_H);
   const stop = (e: { stopPropagation(): void }) => e.stopPropagation();
+  const steps = stepCount(slide);
+  // A video takes its own clicks (play, pause), they do not turn the slide.
+  const inVideo = (t: EventTarget) => t instanceof Element && !!t.closest('.sl-el-video');
 
   return (
     <div
@@ -113,6 +122,7 @@ export function Presenter({ slides, ctx, start, onClose }: PresenterProps) {
       aria-label="Präsentation"
       onPointerMove={() => setIdle(false)}
       onClick={(e) => {
+        if (inVideo(e.target)) return;
         // Left third goes back, the rest goes on.
         if (e.clientX < size.w / 3) prev();
         else next();
@@ -121,7 +131,7 @@ export function Presenter({ slides, ctx, start, onClose }: PresenterProps) {
       onTouchEnd={(e) => {
         const t = touch.current;
         touch.current = null;
-        if (!t) return;
+        if (!t || inVideo(e.target)) return;
         const dx = e.changedTouches[0].clientX - t.x;
         if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(e.changedTouches[0].clientY - t.y)) {
           e.preventDefault();
@@ -130,26 +140,35 @@ export function Presenter({ slides, ctx, start, onClose }: PresenterProps) {
         }
       }}
     >
-      <div className="sl-present-frame" style={{ width: SLIDE_W * scale, height: SLIDE_H * scale }}>
-        <SlideView slide={slide} number={k + 1} ctx={ctx} revealed={revealed} style={{ transform: `scale(${scale})` }} />
+      <div key={k} className={`sl-present-frame sl-trans-${slide.transition}${back ? ' is-back' : ''}`} style={{ width: SLIDE_W * scale, height: SLIDE_H * scale }}>
+        <SlideView slide={slide} number={k + 1} ctx={ctx} step={step} live style={{ transform: `scale(${scale})` }} />
       </div>
 
       {notes && (
         <div className="sl-notes" onClick={stop}>
           <b>Notizen zu Folie {k + 1}</b>
           <p>{slide.notes || 'Keine Notizen.'}</p>
-          <span className="sl-notes-tip">Wird der Bildschirm gespiegelt, sieht die Klasse die Notizen mit. N blendet sie aus.</span>
+          <span className="sl-notes-tip">
+            Wird der Bildschirm gespiegelt, sieht die Klasse die Notizen mit. N blendet sie aus. Nach dem Abspielen eines Videos einmal neben das Video klicken, dann blättern die Tasten wieder.
+          </span>
         </div>
       )}
 
       <div className="sl-controls" onClick={stop} onTouchEnd={stop}>
-        <button type="button" className="iconbtn" onClick={prev} disabled={k === 0 && !revealed} title="Zurück (←)" aria-label="Zurück">
+        <button type="button" className="iconbtn" onClick={prev} disabled={k === 0 && step === 0} title="Zurück (←)" aria-label="Zurück">
           <Icon icon={ChevronLeft} size={20} />
         </button>
         <span className="sl-count">
           {k + 1} / {slides.length}
         </span>
-        <button type="button" className="iconbtn" onClick={next} disabled={k === slides.length - 1 && (!hasReveal(slide) || revealed)} title="Weiter (→, Leertaste)" aria-label="Weiter">
+        {steps > 0 && (
+          <span className="sl-dots" title={`Klick ${step} von ${steps} auf dieser Folie`}>
+            {Array.from({ length: steps }, (_, i) => (
+              <i key={i} className={i < step ? 'is-on' : ''} />
+            ))}
+          </span>
+        )}
+        <button type="button" className="iconbtn" onClick={next} disabled={k === slides.length - 1 && step >= steps} title="Weiter (→, Leertaste)" aria-label="Weiter">
           <Icon icon={ChevronRight} size={20} />
         </button>
         <span className="sl-clock" title="Zeit seit Beginn">

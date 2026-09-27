@@ -6,7 +6,7 @@ import type { Lesson, Module } from '../library/types';
 import { BW_2026_27 } from '../library/yearplan';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { createBlock as b } from '../model/ops';
-import { SLIDE_DEFAULTS, type Slide, type SlideLayout } from '../model/slides';
+import { createElement, SLIDE_DEFAULTS, type Slide, type SlideLayout } from '../model/slides';
 import type { Doc, Page } from '../model/types';
 
 const time = 0;
@@ -246,7 +246,9 @@ export function englishExample(): PackageFile {
       text: 'Complete the sentences.',
       items: 'I ___ Tom. | am\nYou ___ eleven. | are\nShe ___ my friend. | is',
       reveal: true,
-      notes: 'Regel an der Tafel entdecken lassen, dann Antworten aufdecken.',
+      build: true,
+      elements: [createElement('text', { id: 'e1', text: '**he / she / it** → is', style: 'note', x: 1240, y: 760, w: 580, h: 180, step: 7, anim: 'zoom' })],
+      notes: 'Regel an der Tafel entdecken lassen, dann Satz für Satz aufdecken; zum Schluss der Merkzettel.',
     }),
     slide('f4', 'exit', {
       type: 'sicherung',

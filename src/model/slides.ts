@@ -6,7 +6,40 @@ import { uid } from './ops';
 import { THEMES, WORK_FORMS } from './themes';
 import type { SheetType, WorkForm } from './types';
 
-export type SlideLayout = 'title' | 'list' | 'quote' | 'statement' | 'compare' | 'flow' | 'words' | 'image' | 'exit';
+export type SlideLayout = 'title' | 'list' | 'quote' | 'statement' | 'compare' | 'flow' | 'words' | 'image' | 'exit' | 'blank';
+
+/** How something appears when its click comes: "none" just appears. */
+export type SlideAnim = 'none' | 'fade' | 'rise' | 'zoom' | 'left';
+/** How a slide comes in while presenting. */
+export type SlideTransition = 'none' | 'fade' | 'push' | 'zoom';
+export type SlideElementKind = 'text' | 'image' | 'video' | 'qr';
+export type TextStyle = 'plain' | 'heading' | 'box' | 'note';
+
+/** Something placed freely on a slide: a text field, a picture, a video or a QR code. */
+export interface SlideElement {
+  id: string;
+  kind: SlideElementKind;
+  /** Position and size in slide pixels (1920 × 1080). */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** Text of a text field; caption of a picture, video or QR code. */
+  text: string;
+  /** Video link (YouTube, Vimeo, MP4) or the link of a QR code. */
+  url: string;
+  /** Picture (image id) and its source line. */
+  image: string;
+  source: string;
+  style: TextStyle;
+  /** Font size of a text field in slide pixels. */
+  size: number;
+  align: 'left' | 'center';
+  fit: 'contain' | 'cover';
+  /** 0: with the slide; n: on the n-th click while presenting. */
+  step: number;
+  anim: SlideAnim;
+}
 
 export interface Slide {
   id: string;
@@ -30,6 +63,14 @@ export interface Slide {
   source: string;
   /** Answers and meanings stay hidden until a click or tap while presenting. */
   reveal: boolean;
+  /** The entries (questions, boxes, steps, cards) appear one after the other, each on a click. */
+  build: boolean;
+  /** How entries that appear on a click come in. */
+  itemAnim: SlideAnim;
+  /** How the slide comes in while presenting. */
+  transition: SlideTransition;
+  /** Text fields, pictures, videos and QR codes placed freely on the slide. */
+  elements: SlideElement[];
   /** Speaker notes, only for the teacher. */
   notes: string;
 }
@@ -74,6 +115,7 @@ export const SLIDE_LAYOUTS: Record<SlideLayout, SlideLayoutInfo> = {
   words: { label: 'Wörter', use: 'Vokabeln oder Fachbegriffe als Karten, Bedeutung auf Klick', items: 'Ein Wort je Zeile: Wort | Bedeutung', text: 'Auftrag unter der Überschrift', labelHint: '' },
   image: { label: 'Bild', use: 'Ein großes Bild mit Text daneben', items: '', text: 'Text neben dem Bild', labelHint: '' },
   exit: { label: 'Exit / Merksatz', use: 'Letzte Folie: Rückbezug und Merksatz auf grünem Grund', items: '', text: 'Rückbezug über dem Merksatz', labelHint: 'Kleine Zeile, z. B. „Merksatz“' },
+  blank: { label: 'Leer', use: 'Freie Folie: nur Kopfleiste und Überschrift, Textfelder, Bilder und Videos frei platzieren', items: '', text: '', labelHint: '' },
 };
 
 export const SLIDE_LAYOUT_ORDER = Object.keys(SLIDE_LAYOUTS) as SlideLayout[];
@@ -96,13 +138,77 @@ const LAYOUT_DEFAULTS: Record<SlideLayout, Partial<Slide>> = {
   words: { type: 'vocab', phase: 'Vocabulary', form: 'Plenum', title: 'New words', items: 'classroom | Klassenzimmer\nteacher | Lehrer/in\nboard | Tafel\npencil case | Federmäppchen', reveal: true },
   image: { type: 'uebung', phase: 'Erarbeitung', form: 'zu zweit', title: 'Was seht ihr?', text: 'Beschreibt das Bild in drei Sätzen.' },
   exit: { type: 'sicherung', phase: 'Exit', form: 'Plenum', minutes: 3, label: 'Merksatz', text: 'Rückbezug auf die Leitfrage.', title: 'Der wichtigste Satz der Stunde.' },
+  blank: { type: 'uebung', phase: 'Erarbeitung', title: 'Überschrift' },
 };
 
-const BASE: Omit<Slide, 'id' | 'layout'> = { type: 'uebung', phase: '', form: '', minutes: 0, label: '', title: '', text: '', items: '', image: '', source: '', reveal: false, notes: '' };
+const BASE: Omit<Slide, 'id' | 'layout'> = {
+  type: 'uebung',
+  phase: '',
+  form: '',
+  minutes: 0,
+  label: '',
+  title: '',
+  text: '',
+  items: '',
+  image: '',
+  source: '',
+  reveal: false,
+  build: false,
+  itemAnim: 'rise',
+  transition: 'none',
+  elements: [],
+  notes: '',
+};
 
 /** A new slide of a layout, with example content that shows how it is meant. */
 export function createSlide(layout: SlideLayout): Slide {
-  return { ...BASE, ...LAYOUT_DEFAULTS[layout], id: uid(), layout };
+  return { ...BASE, ...LAYOUT_DEFAULTS[layout], id: uid(), layout, elements: [] };
+}
+
+export const SLIDE_ANIMS: { v: SlideAnim; l: string }[] = [
+  { v: 'none', l: 'Keine' },
+  { v: 'fade', l: 'Einblenden' },
+  { v: 'rise', l: 'Von unten' },
+  { v: 'zoom', l: 'Zoomen' },
+  { v: 'left', l: 'Von links' },
+];
+
+export const SLIDE_TRANSITIONS: { v: SlideTransition; l: string }[] = [
+  { v: 'none', l: 'Keiner' },
+  { v: 'fade', l: 'Überblenden' },
+  { v: 'push', l: 'Schieben' },
+  { v: 'zoom', l: 'Zoomen' },
+];
+
+export const ELEMENT_LABELS: Record<SlideElementKind, string> = { text: 'Textfeld', image: 'Bild', video: 'Video', qr: 'QR-Code' };
+
+const ELEMENT_BASE: Omit<SlideElement, 'id' | 'kind'> = {
+  x: 660,
+  y: 390,
+  w: 600,
+  h: 300,
+  text: '',
+  url: '',
+  image: '',
+  source: '',
+  style: 'box',
+  size: 40,
+  align: 'left',
+  fit: 'contain',
+  step: 0,
+  anim: 'fade',
+};
+
+const ELEMENT_DEFAULTS: Record<SlideElementKind, Partial<SlideElement>> = {
+  text: { text: 'Text', w: 640, h: 200 },
+  image: { w: 720, h: 480, x: 600, y: 330 },
+  video: { w: 960, h: 540, x: 480, y: 300 },
+  qr: { w: 300, h: 360, x: 1500, y: 560, text: 'Scannen!' },
+};
+
+/** A new element, in the middle of the slide. */
+export function createElement(kind: SlideElementKind, patch: Partial<SlideElement> = {}): SlideElement {
+  return { ...ELEMENT_BASE, ...ELEMENT_DEFAULTS[kind], ...patch, id: uid(), kind };
 }
 
 /** Defaults a slide in a file may leave out. */
@@ -112,6 +218,52 @@ const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object
 const str = (x: unknown): string => (typeof x === 'string' ? x : typeof x === 'number' ? String(x) : Array.isArray(x) ? x.map(str).join('\n') : '');
 
 export const isSlideLayout = (x: unknown): x is SlideLayout => typeof x === 'string' && x in SLIDE_LAYOUTS;
+const pick = <T extends string>(x: unknown, options: readonly { v: T }[], fallback: T): T => (options.some((o) => o.v === x) ? (x as T) : fallback);
+const KINDS = Object.keys(ELEMENT_LABELS) as SlideElementKind[];
+const STYLES: readonly { v: TextStyle }[] = [{ v: 'plain' }, { v: 'heading' }, { v: 'box' }, { v: 'note' }];
+const num = (x: unknown, fallback: number, min: number, max: number) => {
+  const n = Number(x);
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : fallback;
+};
+
+/** Elements of a slide, clamped to the slide. */
+function normalizeElements(raw: unknown, where: string, note: (text: string) => void): SlideElement[] {
+  if (raw === undefined) return [];
+  if (!Array.isArray(raw)) {
+    note(`${where}: "elements" ist keine Liste und wurde übersprungen.`);
+    return [];
+  }
+  const out: SlideElement[] = [];
+  raw.forEach((r, i) => {
+    if (!isObj(r) || !KINDS.includes(r.kind as SlideElementKind)) {
+      note(`${where}, Element ${i + 1}: Die Art „${isObj(r) ? str(r.kind) : ''}“ gibt es nicht (möglich: ${KINDS.join(', ')}); es wurde weggelassen.`);
+      return;
+    }
+    const kind = r.kind as SlideElementKind;
+    const d = { ...ELEMENT_BASE, ...ELEMENT_DEFAULTS[kind] };
+    const w = num(r.w, d.w, 40, 1920);
+    const h = num(r.h, d.h, 40, 1080);
+    out.push({
+      id: typeof r.id === 'string' && r.id ? r.id : uid(),
+      kind,
+      x: num(r.x, d.x, 0, 1920 - w),
+      y: num(r.y, d.y, 0, 1080 - h),
+      w,
+      h,
+      text: str(r.text ?? d.text),
+      url: str(r.url),
+      image: str(r.image),
+      source: str(r.source),
+      style: pick(r.style, STYLES, d.style),
+      size: num(r.size, d.size, 16, 200),
+      align: r.align === 'center' ? 'center' : 'left',
+      fit: r.fit === 'cover' ? 'cover' : 'contain',
+      step: num(r.step, 0, 0, 50),
+      anim: pick(r.anim, SLIDE_ANIMS, d.anim),
+    });
+  });
+  return out;
+}
 
 /**
  * Slides from storage, a backup or a package. Unknown layouts become "statement"; `note` is told
@@ -154,6 +306,10 @@ export function normalizeSlides(raw: unknown, note: (text: string) => void = () 
       image: str(r.image),
       source: str(r.source),
       reveal: r.reveal === true,
+      build: r.build === true,
+      itemAnim: pick(r.itemAnim, SLIDE_ANIMS, BASE.itemAnim),
+      transition: pick(r.transition, SLIDE_TRANSITIONS, BASE.transition),
+      elements: normalizeElements(r.elements, `Folie ${i + 1}`, note),
       notes: str(r.notes),
     });
   });
@@ -172,15 +328,54 @@ export function slideItems(items: string): [string, string][] {
     });
 }
 
-/** Whether a slide has something to uncover while presenting. */
-export const hasReveal = (s: Slide) => s.reveal && (s.layout === 'list' || s.layout === 'words') && slideItems(s.items).some(([, a]) => a);
+/** How many entries each layout shows (the rest are left out). */
+export const ITEM_LIMIT: Partial<Record<SlideLayout, number>> = { list: 8, compare: 3, flow: 5, words: 12 };
+
+/** The entries a slide shows. */
+export const shownItems = (s: Slide) => (ITEM_LIMIT[s.layout] ? slideItems(s.items).slice(0, ITEM_LIMIT[s.layout]) : []);
+
+/** Whether a slide has answers or meanings to uncover while presenting. */
+export const hasReveal = (s: Slide) => s.reveal && (s.layout === 'list' || s.layout === 'words') && shownItems(s).some(([, a]) => a);
+
+/**
+ * On which click each entry and its answer appear (0 = with the slide). Entries one after the other:
+ * with answers to uncover, question and answer take turns; otherwise one entry per click. Without that,
+ * all answers come together on the first click.
+ */
+export function itemSteps(s: Slide): { item: number; answer: number }[] {
+  const reveal = hasReveal(s);
+  return shownItems(s).map(([, a], i) => {
+    if (s.build) return reveal ? { item: 2 * i + 1, answer: a ? 2 * i + 2 : 0 } : { item: i + 1, answer: i + 1 };
+    return { item: 0, answer: reveal && a ? 1 : 0 };
+  });
+}
+
+/** Number of clicks on a slide before the next slide comes. */
+export function stepCount(s: Slide): number {
+  let n = 0;
+  for (const st of itemSteps(s)) n = Math.max(n, st.item, st.answer);
+  for (const e of s.elements) n = Math.max(n, e.step);
+  return n;
+}
 
 /** Image ids the slides use (for backups and cleaning up). */
-export const slideImages = (slides: Slide[]) => slides.map((s) => s.image).filter(Boolean);
+export const slideImages = (slides: Slide[]) => slides.flatMap((s) => [s.image, ...s.elements.map((e) => e.image)]).filter(Boolean);
+
+/** Changes every image id of the slides (packages give pictures fresh ids); '' drops a picture. */
+export function mapSlideImages(s: Slide, map: (id: string) => string): Slide {
+  return { ...s, image: s.image && map(s.image), elements: s.elements.map((e) => (e.image ? { ...e, image: map(e.image) } : e)) };
+}
 
 /** A slide without the fields that equal the defaults, for files. */
-export function leanSlide(s: Slide): Partial<Slide> & { layout: SlideLayout } {
+export function leanSlide(s: Slide): Partial<Omit<Slide, 'elements'>> & { layout: SlideLayout; elements?: Partial<SlideElement>[] } {
   const out: Record<string, unknown> = { layout: s.layout };
-  for (const [k, v] of Object.entries(s)) if (k !== 'id' && k !== 'layout' && v !== (BASE as Record<string, unknown>)[k]) out[k] = v;
-  return out as Partial<Slide> & { layout: SlideLayout };
+  for (const [k, v] of Object.entries(s)) if (k !== 'id' && k !== 'layout' && k !== 'elements' && v !== (BASE as Record<string, unknown>)[k]) out[k] = v;
+  if (s.elements.length)
+    out.elements = s.elements.map((e) => {
+      const d: Record<string, unknown> = { ...ELEMENT_BASE, ...ELEMENT_DEFAULTS[e.kind] };
+      const lean: Record<string, unknown> = { kind: e.kind };
+      for (const [k, v] of Object.entries(e)) if (k !== 'id' && k !== 'kind' && v !== d[k]) lean[k] = v;
+      return lean;
+    });
+  return out as ReturnType<typeof leanSlide>;
 }

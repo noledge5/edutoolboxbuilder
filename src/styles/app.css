@@ -593,3 +593,33 @@ body { background: var(--color-neutral-200); }
   .sl-print-land:last-child { break-after: auto; }
   .sl-present, .sl-controls { display: none !important; }
 }
+
+/* Slides editor: inserting and handling elements */
+.sl-stage { align-content: center; gap: 12px; grid-template-rows: auto auto; }
+.sl-insert { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.sl-insert-preview { margin-left: 12px; }
+.sl-stage-frame { position: relative; }
+.sl-overlay { position: absolute; inset: 0; z-index: 3; touch-action: none; }
+.sl-handle-box { position: absolute; box-sizing: border-box; border: 2px dashed transparent; border-radius: 6px; cursor: move; touch-action: none; }
+.sl-handle-box:hover { border-color: color-mix(in srgb, var(--color-accent) 60%, transparent); }
+.sl-handle-box.is-on { border: 2px solid var(--color-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 25%, transparent); }
+.sl-handle-box .sl-step-badge.is-el { top: -12px; left: -12px; min-width: 24px; height: 24px; padding: 0 6px; font-size: 13px; }
+.sl-resize {
+  position: absolute; right: -11px; bottom: -11px; width: 22px; height: 22px; box-sizing: border-box;
+  border: 3px solid var(--color-ui); border-radius: 50%; background: var(--color-accent); cursor: nwse-resize; touch-action: none;
+}
+@media (pointer: coarse) { .sl-resize { width: 34px; height: 34px; right: -17px; bottom: -17px; } }
+.sl-rich-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.sl-rich-tools { display: flex; gap: 2px; margin-bottom: 2px; }
+.sl-rich-tools .iconbtn { width: 30px; height: 30px; }
+.sl-dots { display: flex; gap: 5px; padding: 0 4px; }
+.sl-dots i { width: 8px; height: 8px; border-radius: 50%; background: color-mix(in srgb, #fff 30%, transparent); }
+.sl-dots i.is-on { background: #fff; }
+
+/* Slide transitions while presenting */
+.sl-trans-fade { animation: sl-fade 0.6s ease both; }
+.sl-trans-zoom { animation: sl-zoom 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.sl-trans-push { animation: sl-push 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.sl-trans-push.is-back { animation-name: sl-push-back; }
+@keyframes sl-push { from { transform: translateX(40%); opacity: 0; } }
+@keyframes sl-push-back { from { transform: translateX(-40%); opacity: 0; } }
