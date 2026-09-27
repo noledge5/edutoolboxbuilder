@@ -3,6 +3,7 @@ import { useContext, useMemo, type CSSProperties, type MouseEvent, type ReactNod
 import { User, Users } from 'lucide-react';
 import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
+import { frontOf } from '../model/ops';
 import { THEMES, WORK_FORMS_EN, type SheetTheme } from '../model/themes';
 import type { Doc, Page } from '../model/types';
 import { topicIcon } from '../topicIcons';
@@ -61,28 +62,47 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
   const sheetDoc = useMemo(() => (lang === doc.lang ? doc : { ...doc, lang }), [doc, lang]);
   const en = lang === 'en';
   const txt = SHEET_TEXT[lang];
+  // A back page shows the front's title in a slim header, so it is clear which sheet it belongs to.
+  const f = frontOf(doc.pages, index);
+  const front = f === null ? null : doc.pages[f];
+  const formPill = !hideForm && (
+    <div className="ws-form-pill">
+      <Icon icon={page.form === 'allein' ? User : Users} size={front ? 12 : 14} />
+      {en ? WORK_FORMS_EN[page.form] : page.form}
+    </div>
+  );
   return (
     <SheetDocContext.Provider value={sheetDoc}>
       <div className={'ws-page' + (mode.bw ? ' is-bw' : '')} style={{ ...themeVars(t), ...style }} data-page={index} lang={lang}>
-        <div className={'ws-band' + (headerSelected ? ' is-selected' : '')} onClick={onHeaderClick}>
-          <div className="ws-band-icon">
-            <Icon icon={topicIcon(doc.icon)} size={26} />
+        {front ? (
+          <div className={'ws-band is-back' + (headerSelected ? ' is-selected' : '')} onClick={onHeaderClick}>
+            <div className="ws-band-icon">
+              <Icon icon={topicIcon(doc.icon)} size={15} />
+            </div>
+            <div className="ws-back-title">{front.title}</div>
+            <div className="ws-band-side">
+              {mode.solutions === 'shown' && <div className="ws-solution-pill">{txt.solution}</div>}
+              {page.type !== front.type && <div className="ws-type-pill">{en ? t.labelEn : t.label}</div>}
+              {formPill}
+              <div className="ws-back-pill">{txt.back}</div>
+            </div>
           </div>
-          <div className="ws-band-text">
-            <Editable className="ws-kicker" target={`page${index}:kicker`} value={page.kicker} />
-            <Editable as="h1" className="ws-title" target={`page${index}:title`} value={page.title} />
+        ) : (
+          <div className={'ws-band' + (headerSelected ? ' is-selected' : '')} onClick={onHeaderClick}>
+            <div className="ws-band-icon">
+              <Icon icon={topicIcon(doc.icon)} size={26} />
+            </div>
+            <div className="ws-band-text">
+              <Editable className="ws-kicker" target={`page${index}:kicker`} value={page.kicker} />
+              <Editable as="h1" className="ws-title" target={`page${index}:title`} value={page.title} />
+            </div>
+            <div className="ws-band-side">
+              {mode.solutions === 'shown' && <div className="ws-solution-pill">{txt.solution}</div>}
+              <div className="ws-type-pill">{en ? t.labelEn : t.label}</div>
+              {formPill}
+            </div>
           </div>
-          <div className="ws-band-side">
-            {mode.solutions === 'shown' && <div className="ws-solution-pill">{txt.solution}</div>}
-            <div className="ws-type-pill">{en ? t.labelEn : t.label}</div>
-            {!hideForm && (
-              <div className="ws-form-pill">
-                <Icon icon={page.form === 'allein' ? User : Users} size={14} />
-                {en ? WORK_FORMS_EN[page.form] : page.form}
-              </div>
-            )}
-          </div>
-        </div>
+        )}
         {page.nameField !== 'aus' && (
           <div className="ws-names">
             <b>{page.nameField === 'namen' ? txt.names : txt.name}</b>

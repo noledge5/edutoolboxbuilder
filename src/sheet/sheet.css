@@ -40,6 +40,14 @@
   outline-offset: 4px;
 }
 .ws-band.is-selected { outline-color: var(--color-accent); }
+/* Back of a double-sided sheet: a slim header with the front's title, clearly the same sheet but quiet. */
+.ws-band.is-back { gap: 10px; padding: 5px 8px 5px 5px; border-radius: 999px; }
+.ws-band.is-back .ws-band-icon { width: 28px; height: 28px; }
+.ws-back-title { flex: 1; min-width: 0; font-family: var(--font-heading); font-size: 15px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text); }
+.ws-band.is-back .ws-band-side { flex-direction: row; align-items: center; gap: 6px; }
+.ws-band.is-back .ws-type-pill, .ws-band.is-back .ws-solution-pill { padding: 2px 10px; font-size: 10px; }
+.ws-band.is-back .ws-form-pill { padding: 2px 10px; font-size: 11px; gap: 4px; }
+.ws-back-pill { padding: 2px 10px; border-radius: 999px; border: 1.5px solid var(--t-kicker); color: var(--t-kicker); font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
 .ws-band-icon {
   width: 52px;
   height: 52px;
@@ -469,6 +477,7 @@
 .is-bw .ws-band { border: 2px solid var(--color-text); }
 .is-bw .ws-band-icon, .is-bw .ws-type-pill { border: 1.5px solid var(--color-text); }
 .is-bw .ws-form-pill { border: 1.5px solid var(--color-neutral-500); }
+.is-bw .ws-band.is-back { border-width: 1.5px; }
 .is-bw .ws-hint,
 .is-bw .ws-merksatz {
   --v-bg: var(--paper) !important;

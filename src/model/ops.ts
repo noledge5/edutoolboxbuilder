@@ -14,7 +14,8 @@ export function createBlock(type: BlockType, props?: BlockProps, span?: number):
 /** A new empty page. With a template page it takes over that page's header settings (not its title). */
 export function createPage(like?: Page): Page {
   const base: Page = { title: 'Neues Arbeitsblatt', kicker: 'Klasse · Thema', type: 'uebung', form: 'allein', nameField: 'name', blocks: [] };
-  return like ? { ...base, kicker: like.kicker, type: like.type, form: like.form, nameField: like.nameField } : base;
+  // A back page has no name field of its own; the page after it starts a new sheet and needs one.
+  return like ? { ...base, kicker: like.kicker, type: like.type, form: like.form, nameField: like.back && like.nameField === 'aus' ? 'name' : like.nameField } : base;
 }
 
 export function findBlock(doc: Doc, id: string): { p: number; i: number } | null {
@@ -168,10 +169,17 @@ export function sheetNumbers(doc: Doc): (number | null)[] {
   return doc.pages.map((pg) => (pg.type === 'lehrkraft' ? null : ++n));
 }
 
-/** "Seite 2", or "Für die Lehrkraft" for a teacher page (numbered if there are several). */
+/** For a back page, the index of its front: the nearest page before it that is not a back page itself. */
+export function frontOf(pages: Page[], p: number): number | null {
+  if (!pages[p]?.back) return null;
+  for (let k = p - 1; k >= 0; k--) if (!pages[k].back) return k;
+  return null;
+}
+
+/** "Seite 2", "Seite 2 · Rückseite", or "Für die Lehrkraft" for a teacher page (numbered if there are several). */
 export function pageLabel(doc: Doc, p: number): string {
   const n = sheetNumbers(doc)[p];
-  if (n !== null) return `Seite ${n}`;
+  if (n !== null) return `Seite ${n}${frontOf(doc.pages, p) !== null ? ' · Rückseite' : ''}`;
   const teacher = doc.pages.filter((pg) => pg.type === 'lehrkraft').length;
   return teacher > 1 ? `Für die Lehrkraft ${doc.pages.slice(0, p + 1).filter((pg) => pg.type === 'lehrkraft').length}` : 'Für die Lehrkraft';
 }

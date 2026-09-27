@@ -62,3 +62,11 @@ describe('normalizeDoc', () => {
     expect(pg.blocks[2].props.words).toBe('Weltall\nErde');
   });
 });
+
+describe('back pages', () => {
+  it('are kept, except on the first page', () => {
+    const page = (back: unknown) => ({ title: 'x', blocks: [], back });
+    const doc = normalizeDoc({ pages: [page(true), page(true), page('ja'), page(false)] });
+    expect(doc.pages.map((p) => p.back)).toEqual([undefined, true, undefined, undefined]);
+  });
+});

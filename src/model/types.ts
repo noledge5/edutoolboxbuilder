@@ -71,6 +71,8 @@ export interface Page {
   type: SheetType;
   form: WorkForm;
   nameField: NameField;
+  /** Back of the page before it (double-sided sheet): a slim header with the front's title instead of the band. */
+  back?: boolean;
   blocks: Block[];
 }
 

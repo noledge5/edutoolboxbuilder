@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Copy, File, Trash2, X } from 'lucide-react';
 import { BLOCK_ICONS, Icon } from '../icons';
 import { BLOCK_TYPES, SPAN_OPTIONS, type FieldDef } from '../model/blockTypes';
-import { getBlock, pageLabel } from '../model/ops';
+import { frontOf, getBlock, pageLabel } from '../model/ops';
 import { num, str } from '../model/text';
 import { SHEET_TYPES, THEMES, VARIANT_OPTIONS, WORK_FORMS } from '../model/themes';
 import type { Block, Lang, NameField, SheetType, WorkForm } from '../model/types';
@@ -167,13 +167,44 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
 function PageProperties({ api, p, close }: { api: EditorApi; p: number; close: ReactNode }) {
   const { doc } = api;
   const pg = doc.pages[p];
+  // The page this one would be the back of.
+  const f = frontOf(
+    doc.pages.map((x, k) => (k === p ? { ...x, back: true } : x)),
+    p,
+  );
+  const front = f === null ? null : doc.pages[f];
+  const setBack = (back: boolean) => {
+    if (back && front)
+      // The back takes over the front's sheet type and work form; the name is already on the front.
+      api.setPage(p, { back: true, type: front.type, form: front.form, nameField: 'aus', ...(pg.title === 'Neues Arbeitsblatt' ? { title: front.title } : {}) });
+    else api.setPage(p, { back: false, ...(pg.nameField === 'aus' && pg.type !== 'lehrkraft' ? { nameField: 'name' as const } : {}) });
+  };
   return (
     <>
       <PanelHead icon={<Icon icon={File} size={18} />} title={pageLabel(doc, p)} close={close} />
       <div className="panel-section">
         <div className="panel-section-label">Kopfband</div>
-        <TextField label="Titel" value={pg.title} onChange={(title) => api.setPage(p, { title })} />
-        <TextField label="Zeile über dem Titel" value={pg.kicker} onChange={(kicker) => api.setPage(p, { kicker })} />
+        {front && f !== null && (
+          <SegField<boolean>
+            label="Doppelseitiges Blatt"
+            value={!!pg.back}
+            options={[
+              { v: false, l: 'Eigenes Blatt' },
+              { v: true, l: `Rückseite von ${pageLabel(doc, f).replace(' · Rückseite', '')}` },
+            ]}
+            onPick={setBack}
+          />
+        )}
+        {pg.back ? (
+          <p className="panel-note">
+            Die Rückseite hat nur eine schmale Kopfzeile mit Symbol und Titel der Vorderseite. So bleibt mehr Platz, und es ist klar, wozu sie gehört. Beim Drucken „beidseitig“ wählen.
+          </p>
+        ) : (
+          <>
+            <TextField label="Titel" value={pg.title} onChange={(title) => api.setPage(p, { title })} />
+            <TextField label="Zeile über dem Titel" value={pg.kicker} onChange={(kicker) => api.setPage(p, { kicker })} />
+          </>
+        )}
         <SegField<SheetType> label="Blatt-Typ" value={pg.type} options={SHEET_TYPES.map((k) => ({ v: k, l: THEMES[k].label }))} onPick={(type) => api.setPage(p, { type })} />
         {pg.type === 'lehrkraft' && <p className="panel-note">Seiten für die Lehrkraft haben keine Seitenzahl und werden nur mit der Lösungsfassung gedruckt.</p>}
         <SegField<WorkForm> label="Sozialform" value={pg.form} options={WORK_FORMS.map((v) => ({ v, l: v }))} onPick={(form) => api.setPage(p, { form })} />

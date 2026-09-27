@@ -122,3 +122,16 @@ describe('page numbers', () => {
     expect(ops.pageLabel({ ...doc, pages: [teacher, doc.pages[0]] }, 0)).toBe('Für die Lehrkraft');
   });
 });
+
+describe('back pages', () => {
+  it('belong to the nearest page before them that is not a back page', () => {
+    const doc = seedDoc();
+    const [a, b] = doc.pages;
+    const d: Doc = { ...doc, pages: [a, { ...b, back: true }, { ...b, back: true }, b] };
+    expect([0, 1, 2, 3].map((p) => ops.frontOf(d.pages, p))).toEqual([null, 0, 0, null]);
+    expect(ops.pageLabel(d, 1)).toBe('Seite 2 · Rückseite');
+    // The page after a back page starts a new sheet with a name field again.
+    expect(ops.createPage({ ...b, back: true, nameField: 'aus' })).toMatchObject({ nameField: 'name' });
+    expect(ops.createPage({ ...b, back: true, nameField: 'aus' }).back).toBeUndefined();
+  });
+});

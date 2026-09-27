@@ -83,6 +83,7 @@ Jede Stunde hat `number` (1, 2, 3 …), `title`, nur mit Lehrwerk `textbook` (Se
 | `type` | Blatt-Typ, bestimmt die Farbe und die Aufschrift im Kopfband (siehe unten) |
 | `form` | Sozialform: `"allein"`, `"zu zweit"`, `"Gruppe"`, `"Plenum"` (auf englischen Blättern gedruckt als „on your own“, „in pairs“, „in groups“, „whole class“) |
 | `nameField` | Zeile unter dem Kopfband: `"name"` (Name + Datum), `"namen"` (für Partner- und Gruppenarbeit), `"klasse"` (Name + Klasse + Datum, gut für Tests), `"aus"` (keine, für Lehrkraft-Seiten) |
+| `back` | optional `true`: Die Seite ist die **Rückseite** der Seite davor (doppelseitiges Arbeitsblatt). Statt des Kopfbands hat sie nur eine schmale Kopfzeile mit Symbol und Titel der Vorderseite und dem Hinweis „Rückseite“; so bleibt mehr Platz, und es ist klar, wozu sie gehört. Gib ihr denselben `type` und `"nameField": "aus"`; `title` und `kicker` werden nicht gedruckt. Die erste Seite einer Stunde kann keine Rückseite sein. |
 | `blocks` | die Bausteine der Seite, von oben nach unten |
 
 Blatt-Typen:
@@ -203,7 +204,7 @@ Du kannst keine Fotos liefern. Setze stattdessen einen Baustein „Abbildung“ 
 
 ## Platz auf der Seite
 
-Was nicht auf die Seite passt, wird unten abgeschnitten. Eine Seite hat etwa **840 px** Platz für Bausteine, zwischen zwei Bausteinen liegen 18 px. Rechne mit diesen Höhen (volle Breite; eine Aufgabe braucht 35 px für den Auftrag, mit deutscher Hilfe 18 px mehr):
+Was nicht auf die Seite passt, wird unten abgeschnitten. Eine Seite hat etwa **840 px** Platz für Bausteine (ohne Namenszeile etwa 880 px, eine Rückseite etwa **950 px**), zwischen zwei Bausteinen liegen 18 px. Rechne mit diesen Höhen (volle Breite; eine Aufgabe braucht 35 px für den Auftrag, mit deutscher Hilfe 18 px mehr):
 
 | Baustein | Höhe etwa |
 |---|---|
@@ -266,6 +267,7 @@ Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr.
 - Englische Module: `"lang": "en"`, Aufträge auf Englisch, in Klasse 5 und 6 mit `help`.
 - Keine Seite ist voller als etwa 840 px.
 - Geplante Stunden haben `title` und `plan`, aber keine `pages`; ausgearbeitete Stunden haben `pages`.
+- Reicht ein Arbeitsblatt nicht auf eine Seite, mach die zweite Seite zur Rückseite (`"back": true`) statt zu einem neuen Blatt.
 
 ## Alle Bausteine
 

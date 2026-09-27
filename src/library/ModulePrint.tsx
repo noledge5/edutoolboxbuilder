@@ -99,20 +99,24 @@ export function ModulePages({ kind, module: m, lessons, settings, scale = 1 }: M
                               {l.plan}
                             </span>
                           )}
-                          {isWorkedOut(l) && l.doc.pages.map((pg, k) => (
-                            <span key={k} className="ov-page" style={{ background: THEMES[pg.type].band }}>
-                              <span
-                                className="ov-page-type"
-                                style={{
-                                  background: THEMES[pg.type].pill,
-                                  color: THEMES[pg.type].pillFg,
-                                }}
-                              >
-                                {THEMES[pg.type].label}
-                              </span>
-                              {pg.title}
-                            </span>
-                          ))}
+                          {isWorkedOut(l) &&
+                            l.doc.pages.map((pg, k) =>
+                              pg.back ? null : (
+                                <span key={k} className="ov-page" style={{ background: THEMES[pg.type].band }}>
+                                  <span
+                                    className="ov-page-type"
+                                    style={{
+                                      background: THEMES[pg.type].pill,
+                                      color: THEMES[pg.type].pillFg,
+                                    }}
+                                  >
+                                    {THEMES[pg.type].label}
+                                  </span>
+                                  {pg.title}
+                                  {l.doc.pages[k + 1]?.back && ' + Rückseite'}
+                                </span>
+                              ),
+                            )}
                         </div>
                       </div>
                     ))}

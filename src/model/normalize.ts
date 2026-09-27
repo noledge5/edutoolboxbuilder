@@ -69,6 +69,8 @@ function normalizePage(raw: unknown, index: number, seen: Set<string>): Page {
     type,
     form,
     nameField: normalizeNameField(raw.nameField),
+    // The first page has nothing to be the back of.
+    ...(raw.back === true && index > 0 ? { back: true } : {}),
     blocks,
   };
 }

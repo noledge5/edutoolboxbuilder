@@ -260,57 +260,61 @@ function LessonList(p: ModuleViewProps) {
         {p.lessons.map((l) => {
           const planned = !isWorkedOut(l);
           return (
-          <div key={l.id} className={'lib-lesson' + (planned ? ' is-planned' : '')}>
-            <div className="lib-lesson-num">
-              <NumberField label="Stunde" value={l.number} min={1} max={99} onChange={(number) => p.onChangeLesson({ ...l, number, updatedAt: Date.now() })} />
-            </div>
-            <div className="lib-lesson-main">
-              <div className="lib-lesson-titles">
-                <input className="input lib-lesson-title" aria-label="Thema der Stunde" value={l.title} onChange={(e) => p.onChangeLesson({ ...l, title: e.target.value, updatedAt: Date.now() })} />
-                <input
-                  className="input lib-lesson-book"
-                  aria-label="Seiten im Lehrwerk"
-                  placeholder="Lehrwerk, z. B. SB S. 36"
-                  value={l.textbook}
-                  onChange={(e) => p.onChangeLesson({ ...l, textbook: e.target.value, updatedAt: Date.now() })}
-                />
+            <div key={l.id} className={'lib-lesson' + (planned ? ' is-planned' : '')}>
+              <div className="lib-lesson-num">
+                <NumberField label="Stunde" value={l.number} min={1} max={99} onChange={(number) => p.onChangeLesson({ ...l, number, updatedAt: Date.now() })} />
               </div>
-              {(planned || l.plan) && (
-                <div className="lib-lesson-plan-row">
-                  {planned && <span className="lib-planned-badge">Geplant</span>}
+              <div className="lib-lesson-main">
+                <div className="lib-lesson-titles">
+                  <input className="input lib-lesson-title" aria-label="Thema der Stunde" value={l.title} onChange={(e) => p.onChangeLesson({ ...l, title: e.target.value, updatedAt: Date.now() })} />
                   <input
-                    className="input lib-lesson-plan"
-                    aria-label="Planung der Stunde"
-                    placeholder="Planung: Was passiert in der Stunde?"
-                    value={l.plan}
-                    onChange={(e) => p.onChangeLesson({ ...l, plan: e.target.value, updatedAt: Date.now() })}
+                    className="input lib-lesson-book"
+                    aria-label="Seiten im Lehrwerk"
+                    placeholder="Lehrwerk, z. B. SB S. 36"
+                    value={l.textbook}
+                    onChange={(e) => p.onChangeLesson({ ...l, textbook: e.target.value, updatedAt: Date.now() })}
                   />
                 </div>
-              )}
-              {!planned && (
-                <div className="lib-lesson-pages">
-                  {l.doc.pages.map((pg, k) => (
-                    <span key={k} className="lib-page-chip">
-                      <span className="lib-page-dot" style={{ background: THEMES[pg.type].circle }} />
-                      {pg.title}
-                      <span className="lib-page-type">{THEMES[pg.type].label}</span>
-                    </span>
-                  ))}
-                </div>
-              )}
+                {(planned || l.plan) && (
+                  <div className="lib-lesson-plan-row">
+                    {planned && <span className="lib-planned-badge">Geplant</span>}
+                    <input
+                      className="input lib-lesson-plan"
+                      aria-label="Planung der Stunde"
+                      placeholder="Planung: Was passiert in der Stunde?"
+                      value={l.plan}
+                      onChange={(e) => p.onChangeLesson({ ...l, plan: e.target.value, updatedAt: Date.now() })}
+                    />
+                  </div>
+                )}
+                {!planned && (
+                  <div className="lib-lesson-pages">
+                    {l.doc.pages.map((pg, k) =>
+                      // A back page belongs to the sheet before it.
+                      pg.back ? null : (
+                        <span key={k} className="lib-page-chip">
+                          <span className="lib-page-dot" style={{ background: THEMES[pg.type].circle }} />
+                          {pg.title}
+                          {l.doc.pages[k + 1]?.back && ' + Rückseite'}
+                          <span className="lib-page-type">{THEMES[pg.type].label}</span>
+                        </span>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="lib-lesson-actions">
+                <button type="button" className={'btn ui-btn ' + (planned ? 'btn-secondary' : 'btn-primary')} onClick={() => p.onOpenLesson(l)}>
+                  {planned ? 'Ausarbeiten' : 'Öffnen'}
+                </button>
+                <button type="button" className="iconbtn" title="Duplizieren" aria-label="Duplizieren" onClick={() => p.onDuplicateLesson(l)}>
+                  <Icon icon={Copy} />
+                </button>
+                <button type="button" className="iconbtn is-danger" title="Löschen" aria-label="Löschen" onClick={() => p.onDeleteLesson(l)}>
+                  <Icon icon={Trash2} />
+                </button>
+              </div>
             </div>
-            <div className="lib-lesson-actions">
-              <button type="button" className={'btn ui-btn ' + (planned ? 'btn-secondary' : 'btn-primary')} onClick={() => p.onOpenLesson(l)}>
-                {planned ? 'Ausarbeiten' : 'Öffnen'}
-              </button>
-              <button type="button" className="iconbtn" title="Duplizieren" aria-label="Duplizieren" onClick={() => p.onDuplicateLesson(l)}>
-                <Icon icon={Copy} />
-              </button>
-              <button type="button" className="iconbtn is-danger" title="Löschen" aria-label="Löschen" onClick={() => p.onDeleteLesson(l)}>
-                <Icon icon={Trash2} />
-              </button>
-            </div>
-          </div>
           );
         })}
         {p.lessons.length === 0 && <p className="lib-empty">Noch keine Stunden. Lege die erste an oder importiere eine Arbeitsblatt-Datei.</p>}
@@ -342,16 +346,21 @@ function CompetenceGrid({ competences, domains, links, onChange }: CompetenceGri
   };
   return (
     <div className="lib-section">
-      <p className="lib-help">
-        Je Zeile eine Kompetenz mit „Ich kann …“-Sätzen für die Niveaus G (grundlegend), M (mittel) und E (erweitert). Gedruckt wird ein Raster zum Ankreuzen für die Klasse.
-      </p>
+      <p className="lib-help">Je Zeile eine Kompetenz mit „Ich kann …“-Sätzen für die Niveaus G (grundlegend), M (mittel) und E (erweitert). Gedruckt wird ein Raster zum Ankreuzen für die Klasse.</p>
       <div className="lib-comps">
         {competences.map((c, i) => (
           <div key={c.id} className="lib-comp">
             <div className="lib-comp-head">
               <div className="field lib-comp-domain">
                 <label htmlFor={'d' + c.id}>Bereich</label>
-                <input id={'d' + c.id} className="input" list={domains.length ? 'comp-domains' : undefined} value={c.domain} placeholder={domains[0] ?? 'z. B. Erkenntnisgewinnung'} onChange={(e) => update(i, { domain: e.target.value })} />
+                <input
+                  id={'d' + c.id}
+                  className="input"
+                  list={domains.length ? 'comp-domains' : undefined}
+                  value={c.domain}
+                  placeholder={domains[0] ?? 'z. B. Erkenntnisgewinnung'}
+                  onChange={(e) => update(i, { domain: e.target.value })}
+                />
               </div>
               <div className="field is-wide">
                 <label htmlFor={'a' + c.id}>Kompetenz</label>
@@ -359,7 +368,13 @@ function CompetenceGrid({ competences, domains, links, onChange }: CompetenceGri
               </div>
               <div className="field lib-comp-lessons">
                 <label htmlFor={'l' + c.id}>Stunde(n)</label>
-                <input id={'l' + c.id} className="input" value={c.lessons} placeholder={competenceLessons({ ...c, lessons: '' }, links.get(c.id)) || '2, 3'} onChange={(e) => update(i, { lessons: e.target.value })} />
+                <input
+                  id={'l' + c.id}
+                  className="input"
+                  value={c.lessons}
+                  placeholder={competenceLessons({ ...c, lessons: '' }, links.get(c.id)) || '2, 3'}
+                  onChange={(e) => update(i, { lessons: e.target.value })}
+                />
               </div>
               <div className="lib-comp-actions">
                 <button type="button" className="iconbtn" title="Nach oben" aria-label="Nach oben" disabled={i === 0} onClick={() => move(i, -1)}>
