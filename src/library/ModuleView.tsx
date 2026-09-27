@@ -8,7 +8,7 @@ import { Menu } from '../editor/TopBar';
 import { Icon } from '../icons';
 import { THEMES } from '../model/themes';
 import { topicIcon } from '../topicIcons';
-import { ModulePrint, type PrintKind } from './ModulePrint';
+import { ModulePages, ModulePrint, usePageFit, type PrintKind } from './ModulePrint';
 import { competenceLessons, competenceLinks, linkLabel, newCompetence, type CompetenceLink } from './model';
 import { domainsFor } from './curriculum';
 import type { Competence, Lesson, Module, Settings } from './types';
@@ -46,6 +46,7 @@ export function ModuleView(p: ModuleViewProps) {
   const set = (patch: Partial<Module>) => p.onChange({ ...m, ...patch, updatedAt: Date.now() });
 
   const [testOpen, setTestOpen] = useState(false);
+  const [gridMode, setGridMode] = useState<'ansicht' | 'bearbeiten'>(m.competences.length ? 'ansicht' : 'bearbeiten');
   const vocabCount = vocabOf(p.lessons.map((l) => l.doc)).length;
   const noVocab = () => window.alert('In diesem Modul gibt es noch keine Vokabelliste. Lege in einer Stunde den Baustein „Vokabelliste“ an (Toolbox: Wortschatz & Grammatik).');
   if (printing) return <ModulePrint kind={printing} module={m} lessons={p.lessons} settings={p.settings} onClose={() => setPrinting(null)} />;
@@ -187,7 +188,26 @@ export function ModuleView(p: ModuleViewProps) {
         {tab === 'inhalt' ? (
           <LessonList {...p} />
         ) : (
-          <CompetenceGrid competences={m.competences} domains={domainsFor(m.subject, m.lang)} links={competenceLinks(p.lessons)} onChange={(competences) => set({ competences })} />
+          <section className="lib-section">
+            <div className="lib-h2-row">
+              <div className="seg-pills" role="tablist" aria-label="Kompetenzraster">
+                {(['ansicht', 'bearbeiten'] as const).map((k) => (
+                  <button key={k} type="button" role="tab" aria-selected={gridMode === k} className={'seg-pill' + (gridMode === k ? ' is-on' : '')} onClick={() => setGridMode(k)}>
+                    {k === 'ansicht' ? 'Übersicht' : 'Bearbeiten'}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="btn btn-secondary ui-btn" onClick={() => setPrinting('raster')}>
+                <Icon icon={Printer} />
+                Für die Klasse drucken
+              </button>
+            </div>
+            {gridMode === 'ansicht' ? (
+              <GridPreview {...p} onEdit={() => setGridMode('bearbeiten')} />
+            ) : (
+              <CompetenceGrid competences={m.competences} domains={domainsFor(m.subject, m.lang)} links={competenceLinks(p.lessons)} onChange={(competences) => set({ competences })} />
+            )}
+          </section>
         )}
       </main>
       {testOpen && (
@@ -200,6 +220,25 @@ export function ModuleView(p: ModuleViewProps) {
           onClose={() => setTestOpen(false)}
         />
       )}
+    </div>
+  );
+}
+
+/** The competence grid as the class gets it: the printed A4 page, scaled to the width of the window. */
+function GridPreview(p: ModuleViewProps & { onEdit(): void }) {
+  const [ref, scale] = usePageFit();
+  if (p.module.competences.length === 0)
+    return (
+      <div className="lib-empty-box">
+        <p className="lib-empty">Noch keine Kompetenzen.</p>
+        <button type="button" className="btn btn-primary ui-btn" onClick={p.onEdit}>
+          Kompetenzen anlegen
+        </button>
+      </div>
+    );
+  return (
+    <div ref={ref} className="lib-grid-preview">
+      <ModulePages kind="raster" module={p.module} lessons={p.lessons} settings={p.settings} scale={scale} />
     </div>
   );
 }
@@ -275,7 +314,7 @@ function CompetenceGrid({ competences, domains, links, onChange }: CompetenceGri
     onChange(next);
   };
   return (
-    <section className="lib-section">
+    <div className="lib-section">
       <p className="lib-help">
         Je Zeile eine Kompetenz mit „Ich kann …“-Sätzen für die Niveaus G (grundlegend), M (mittel) und E (erweitert). Gedruckt wird ein Raster zum Ankreuzen für die Klasse.
       </p>
@@ -358,6 +397,6 @@ function CompetenceGrid({ competences, domains, links, onChange }: CompetenceGri
           </select>
         )}
       </div>
-    </section>
+    </div>
   );
 }

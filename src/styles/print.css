@@ -4,7 +4,7 @@
 @media print {
   @page { size: A4; margin: 0; }
   html, body, #root { height: auto !important; background: #fff !important; margin: 0 !important; }
-  [data-noprint] { display: none !important; }
+  [data-noprint], .measure-page { display: none !important; }
 
   .app, .workspace, .canvas, .pages, .page-frame, .page-scale {
     display: block !important;

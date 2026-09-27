@@ -171,6 +171,8 @@ body { background: var(--color-neutral-200); }
   min-width: max-content;
 }
 .page-frame { display: flex; flex-direction: column; gap: 10px; }
+/* Hidden full-size page in which printed tables are measured before they are split into pages. */
+.measure-page { position: absolute; left: -10000px; top: 0; width: 794px; height: 0; overflow: hidden; visibility: hidden; pointer-events: none; }
 .page-label {
   /* Wraps within the page's width instead of widening the canvas (width 0 + min-width 100%). */
   width: 0;
@@ -186,6 +188,7 @@ body { background: var(--color-neutral-200); }
 .page-warn { padding: 3px 12px; border-radius: 999px; background: var(--color-accent-200); color: var(--color-accent-900); }
 .page-scale { position: relative; flex: none; }
 .page-scale > .ws-page { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+.page-scale.is-fit > .ws-page { transform: scale(var(--fit)); }
 .add-page { background: var(--color-ui); }
 
 .panel {
@@ -237,7 +240,9 @@ body { background: var(--color-neutral-200); }
   cursor: pointer;
 }
 .seg-pill:hover:not(.is-on) { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
-.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 6px; margin-top: 8px; }
+.icon-groups { max-height: 360px; overflow-y: auto; margin-top: 8px; padding-right: 2px; display: flex; flex-direction: column; gap: 10px; }
+.icon-group-label { position: sticky; top: 0; z-index: 1; padding: 2px 0 4px; background: var(--color-ui); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-neutral-700); }
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 6px; }
 .icon-pick {
   aspect-ratio: 1;
   min-height: 36px;
