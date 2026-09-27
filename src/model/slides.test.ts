@@ -2,7 +2,22 @@ import { describe, expect, it } from 'vitest';
 import { slidesFromDoc } from '../slides/fromDoc';
 import { seedDoc, seedSlides } from './seed';
 import { videoInfo } from '../slides/elements';
-import { createElement, createSlide, hasReveal, itemSteps, leanSlide, mapSlideImages, normalizeSlides, SLIDE_LAYOUT_ORDER, slideImages, slideItems, stepCount } from './slides';
+import {
+  createElement,
+  createSlide,
+  hasReveal,
+  itemSteps,
+  leanSlide,
+  mapSlideImages,
+  normalizeSlides,
+  partSteps,
+  SLIDE_LAYOUT_ORDER,
+  slideImages,
+  slideItems,
+  slideParts,
+  stepCount,
+  type Slide,
+} from './slides';
 
 describe('slides', () => {
   it('have example content for every layout', () => {
@@ -30,7 +45,9 @@ describe('slides', () => {
     const list = { ...createSlide('list'), reveal: true };
     expect(hasReveal(list)).toBe(true);
     expect(hasReveal({ ...list, items: 'ohne Antwort' })).toBe(false);
-    expect(hasReveal({ ...createSlide('compare'), reveal: true })).toBe(false);
+    // Box texts of a comparison can come on a click too (solutions); a title slide has nothing to uncover.
+    expect(hasReveal({ ...createSlide('compare'), reveal: true })).toBe(true);
+    expect(hasReveal({ ...createSlide('title'), reveal: true })).toBe(false);
     expect(leanSlide({ ...createSlide('statement'), image: '', notes: '' })).not.toHaveProperty('image');
   });
 
@@ -115,5 +132,44 @@ describe('video links', () => {
     expect(videoInfo('https://example.org/film.mp4?x=1')).toMatchObject({ kind: 'file' });
     expect(videoInfo('keine Adresse').kind).toBe('unknown');
     expect(videoInfo('https://example.org/seite').kind).toBe('unknown');
+  });
+});
+
+describe('single parts of a slide', () => {
+  it('each get their own click and animation, overriding the entries one by one', () => {
+    const s = { ...createSlide('list'), title: 'Fragen', text: 'Auftrag', items: 'A? | a\nB? | b', reveal: true, build: true };
+    expect(slideParts(s).map((p) => [p.key, p.step])).toEqual([
+      ['title', 0],
+      ['text', 0],
+      ['item:0', 1],
+      ['answer:0', 2],
+      ['item:1', 3],
+      ['answer:1', 4],
+    ]);
+    // The heading comes last, zoomed in; the second answer together with the first.
+    const own = { ...s, anims: { title: { step: 5, anim: 'zoom' as const }, 'answer:1': { step: 2, anim: 'fade' as const } } };
+    const parts = partSteps(own);
+    expect(parts.get('title')).toMatchObject({ step: 5, anim: 'zoom' });
+    expect(itemSteps(own)).toEqual([
+      { item: 1, answer: 2 },
+      { item: 3, answer: 2 },
+    ]);
+    expect(stepCount(own)).toBe(5);
+    expect(slideParts(own).find((p) => p.key === 'answer:0')).toMatchObject({ label: 'Antwort 1', answer: true });
+  });
+
+  it('are read from files, unknown parts left out, and written only when set', () => {
+    const [s] = normalizeSlides([{ layout: 'statement', title: 'X', text: 'Hinweis', anims: { text: { step: 1 }, 'item:0': 2, bogus: { step: 3 } } }]);
+    expect(s.anims).toEqual({ text: { step: 1, anim: 'fade' }, 'item:0': { step: 2, anim: 'fade' } });
+    expect(stepCount(s)).toBe(1);
+    expect(leanSlide(s).anims).toEqual(s.anims);
+    expect(leanSlide(createSlide('statement'))).not.toHaveProperty('anims');
+  });
+
+  it('name the parts of every layout', () => {
+    const labels = (s: Slide) => slideParts(s).map((p) => p.label);
+    expect(labels(createSlide('quote'))).toEqual(['Zitat', 'Leitfrage']);
+    expect(labels({ ...createSlide('image') })).toEqual(['Überschrift', 'Bild', 'Text neben dem Bild']);
+    expect(labels(createSlide('compare'))).toEqual(['Überschrift', 'Kasten 1: Erster Begriff', 'Text im Kasten 1', 'Kasten 2: Zweiter Begriff', 'Text im Kasten 2']);
   });
 });

@@ -15,6 +15,12 @@ export type SlideTransition = 'none' | 'fade' | 'push' | 'zoom';
 export type SlideElementKind = 'text' | 'image' | 'video' | 'qr';
 export type TextStyle = 'plain' | 'heading' | 'box' | 'note';
 
+/** When and how a part of a slide appears: on click `step` (0 = with the slide). */
+export interface PartAnim {
+  step: number;
+  anim: SlideAnim;
+}
+
 /** Something placed freely on a slide: a text field, a picture, a video or a QR code. */
 export interface SlideElement {
   id: string;
@@ -71,6 +77,11 @@ export interface Slide {
   transition: SlideTransition;
   /** Text fields, pictures, videos and QR codes placed freely on the slide. */
   elements: SlideElement[];
+  /**
+   * When single parts of the layout appear, overriding `build` and `reveal`: keys "title", "text", "label",
+   * "image", "item:0", "answer:0" … (see `slideParts`).
+   */
+  anims: Record<string, PartAnim>;
   /** Speaker notes, only for the teacher. */
   notes: string;
 }
@@ -157,12 +168,13 @@ const BASE: Omit<Slide, 'id' | 'layout'> = {
   itemAnim: 'rise',
   transition: 'none',
   elements: [],
+  anims: {},
   notes: '',
 };
 
 /** A new slide of a layout, with example content that shows how it is meant. */
 export function createSlide(layout: SlideLayout): Slide {
-  return { ...BASE, ...LAYOUT_DEFAULTS[layout], id: uid(), layout, elements: [] };
+  return { ...BASE, ...LAYOUT_DEFAULTS[layout], id: uid(), layout, elements: [], anims: {} };
 }
 
 export const SLIDE_ANIMS: { v: SlideAnim; l: string }[] = [
@@ -225,6 +237,20 @@ const num = (x: unknown, fallback: number, min: number, max: number) => {
   const n = Number(x);
   return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : fallback;
 };
+
+const PART_KEY = /^(title|text|label|image|item:\d{1,2}|answer:\d{1,2})$/;
+
+/** Part animations; unknown parts are left out. */
+function normalizeAnims(raw: unknown): Record<string, PartAnim> {
+  const out: Record<string, PartAnim> = {};
+  if (isObj(raw))
+    for (const [k, v] of Object.entries(raw)) {
+      if (!PART_KEY.test(k)) continue;
+      const a = isObj(v) ? v : { step: v };
+      out[k] = { step: num(a.step, 0, 0, 50), anim: pick(a.anim, SLIDE_ANIMS, 'fade') };
+    }
+  return out;
+}
 
 /** Elements of a slide, clamped to the slide. */
 function normalizeElements(raw: unknown, where: string, note: (text: string) => void): SlideElement[] {
@@ -310,6 +336,7 @@ export function normalizeSlides(raw: unknown, note: (text: string) => void = () 
       itemAnim: pick(r.itemAnim, SLIDE_ANIMS, BASE.itemAnim),
       transition: pick(r.transition, SLIDE_TRANSITIONS, BASE.transition),
       elements: normalizeElements(r.elements, `Folie ${i + 1}`, note),
+      anims: normalizeAnims(r.anims),
       notes: str(r.notes),
     });
   });
@@ -334,15 +361,18 @@ export const ITEM_LIMIT: Partial<Record<SlideLayout, number>> = { list: 8, compa
 /** The entries a slide shows. */
 export const shownItems = (s: Slide) => (ITEM_LIMIT[s.layout] ? slideItems(s.items).slice(0, ITEM_LIMIT[s.layout]) : []);
 
-/** Whether a slide has answers or meanings to uncover while presenting. */
-export const hasReveal = (s: Slide) => s.reveal && (s.layout === 'list' || s.layout === 'words') && shownItems(s).some(([, a]) => a);
+/** Layouts whose entries have a second part (answer, text of a box, detail of a step, meaning) that can come on a click. */
+const TWO_PART: SlideLayout[] = ['list', 'words', 'compare', 'flow'];
+
+/** Whether a slide has answers, box texts or meanings to uncover while presenting. */
+export const hasReveal = (s: Slide) => s.reveal && TWO_PART.includes(s.layout) && shownItems(s).some(([, a]) => a);
 
 /**
- * On which click each entry and its answer appear (0 = with the slide). Entries one after the other:
- * with answers to uncover, question and answer take turns; otherwise one entry per click. Without that,
- * all answers come together on the first click.
+ * On which click each entry and its second part appear by default (0 = with the slide). Entries one after
+ * the other: with answers to uncover, question and answer take turns; otherwise one entry per click.
+ * Without that, all answers come together on the first click.
  */
-export function itemSteps(s: Slide): { item: number; answer: number }[] {
+function defaultItemSteps(s: Slide): { item: number; answer: number }[] {
   const reveal = hasReveal(s);
   return shownItems(s).map(([, a], i) => {
     if (s.build) return reveal ? { item: 2 * i + 1, answer: a ? 2 * i + 2 : 0 } : { item: i + 1, answer: i + 1 };
@@ -350,10 +380,68 @@ export function itemSteps(s: Slide): { item: number; answer: number }[] {
   });
 }
 
+/** A part of a slide's layout that can appear on its own click. */
+export interface SlidePart {
+  key: string;
+  /** German name for the editor: "Überschrift", "Frage 2", "Antwort 2" … */
+  label: string;
+  step: number;
+  anim: SlideAnim;
+  /** Answers, box texts and meanings: shown pale in the editor while they come later than their entry. */
+  answer: boolean;
+}
+
+const SECOND: Partial<Record<SlideLayout, [string, string]>> = {
+  list: ['Frage', 'Antwort'],
+  words: ['Wort', 'Bedeutung'],
+  compare: ['Kasten', 'Text im Kasten'],
+  flow: ['Schritt', 'Erklärung im Schritt'],
+};
+
+const clip = (t: string) => (t.length > 28 ? t.slice(0, 26).trimEnd() + ' …' : t);
+
+/** The parts of a slide in reading order, with when and how they appear. */
+export function slideParts(s: Slide): SlidePart[] {
+  const parts: { key: string; label: string; answer?: boolean; step?: number; anim?: SlideAnim }[] = [];
+  const t = !!s.text.trim();
+  const titleLabel = s.layout === 'quote' ? 'Leitfrage' : s.layout === 'exit' ? 'Merksatz' : 'Überschrift';
+  const textLabel: Partial<Record<SlideLayout, string>> = { title: 'Untertitel', quote: 'Zitat', statement: 'Hinweis', image: 'Text neben dem Bild', exit: 'Rückbezug' };
+  if (s.layout === 'quote' || s.layout === 'exit') {
+    if (t) parts.push({ key: 'text', label: textLabel[s.layout]! });
+    if (s.title.trim()) parts.push({ key: 'title', label: titleLabel });
+  } else {
+    if (s.title.trim()) parts.push({ key: 'title', label: titleLabel });
+    if (t && (s.layout === 'title' || s.layout === 'statement' || s.layout === 'list' || s.layout === 'words')) parts.push({ key: 'text', label: textLabel[s.layout] ?? 'Auftrag' });
+  }
+  if (s.layout === 'image') parts.push({ key: 'image', label: 'Bild' });
+  const names = SECOND[s.layout];
+  if (names) {
+    const defaults = defaultItemSteps(s);
+    shownItems(s).forEach(([head, second], i) => {
+      parts.push({ key: `item:${i}`, label: `${names[0]} ${i + 1}: ${clip(head)}`, step: defaults[i].item, anim: s.itemAnim });
+      if (second) parts.push({ key: `answer:${i}`, label: `${names[1]} ${i + 1}`, answer: true, step: defaults[i].answer, anim: 'fade' });
+    });
+  }
+  if (t && (s.layout === 'compare' || s.layout === 'flow' || s.layout === 'image')) parts.push({ key: 'text', label: textLabel[s.layout] ?? 'Satz darunter' });
+  return parts.map((p) => {
+    const own = s.anims[p.key];
+    return { key: p.key, label: p.label, answer: !!p.answer, step: own ? own.step : (p.step ?? 0), anim: own ? own.anim : (p.anim ?? 'fade') };
+  });
+}
+
+/** When and how each part appears, by key. */
+export const partSteps = (s: Slide): Map<string, SlidePart> => new Map(slideParts(s).map((p) => [p.key, p]));
+
+/** On which click each entry and its second part appear (0 = with the slide). */
+export function itemSteps(s: Slide): { item: number; answer: number }[] {
+  const parts = partSteps(s);
+  return shownItems(s).map((_, i) => ({ item: parts.get(`item:${i}`)?.step ?? 0, answer: parts.get(`answer:${i}`)?.step ?? 0 }));
+}
+
 /** Number of clicks on a slide before the next slide comes. */
 export function stepCount(s: Slide): number {
   let n = 0;
-  for (const st of itemSteps(s)) n = Math.max(n, st.item, st.answer);
+  for (const p of slideParts(s)) n = Math.max(n, p.step);
   for (const e of s.elements) n = Math.max(n, e.step);
   return n;
 }
@@ -369,7 +457,8 @@ export function mapSlideImages(s: Slide, map: (id: string) => string): Slide {
 /** A slide without the fields that equal the defaults, for files. */
 export function leanSlide(s: Slide): Partial<Omit<Slide, 'elements'>> & { layout: SlideLayout; elements?: Partial<SlideElement>[] } {
   const out: Record<string, unknown> = { layout: s.layout };
-  for (const [k, v] of Object.entries(s)) if (k !== 'id' && k !== 'layout' && k !== 'elements' && v !== (BASE as Record<string, unknown>)[k]) out[k] = v;
+  for (const [k, v] of Object.entries(s)) if (k !== 'id' && k !== 'layout' && k !== 'elements' && k !== 'anims' && v !== (BASE as Record<string, unknown>)[k]) out[k] = v;
+  if (Object.keys(s.anims).length) out.anims = s.anims;
   if (s.elements.length)
     out.elements = s.elements.map((e) => {
       const d: Record<string, unknown> = { ...ELEMENT_BASE, ...ELEMENT_DEFAULTS[e.kind] };

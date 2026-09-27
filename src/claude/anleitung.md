@@ -199,11 +199,12 @@ Zu jeder Stunde gehören auf Wunsch Präsentationsfolien: `"slides": [ … ]` in
 | `title` | große Überschrift, höchstens etwa 60 Zeichen; bei `quote` die Leitfrage |
 | `text` | je nach Art: Untertitel, Zitat, Hinweis, Satz unter Kästen oder Schema, Text neben dem Bild |
 | `items` | Einträge, einer je Zeile (`\n`), Aufbau je nach Art |
-| `reveal` | `true`: Antworten (`list`) bzw. Bedeutungen (`words`) erscheinen erst auf Klick |
+| `reveal` | `true`: Lösungen erscheinen erst auf Klick: Antworten (`list`), Bedeutungen (`words`), Text in den Kästen (`compare`), Erklärungen in den Schritten (`flow`) |
 | `build` | `true`: Die Einträge (`list`, `compare`, `flow`, `words`) erscheinen nacheinander, je Klick einer; bei `list` mit `reveal` abwechselnd Frage und Antwort |
 | `itemAnim` | wie die Einträge dabei erscheinen: `"rise"` (von unten, Standard), `"fade"`, `"zoom"`, `"left"`, `"none"` |
 | `transition` | Übergang zu dieser Folie: `"none"` (Standard), `"fade"`, `"push"`, `"zoom"`; sparsam einsetzen |
 | `elements` | frei platzierte Elemente auf der Folie (siehe unten) |
+| `anims` | optional: einzelne Teile der Folie auf einem eigenen Klick, z. B. `{ "text": { "step": 1, "anim": "zoom" } }` (siehe unten) |
 | `notes` | Sprechernotizen für die Lehrkraft: Zeit, Sozialform, Material, Impulse, erwartete Antworten |
 
 | `layout` | Folie |
@@ -229,6 +230,8 @@ Zu jeder Stunde gehören auf Wunsch Präsentationsfolien: `"slides": [ … ]` in
 | `qr` | QR-Code: `url`, `text` (Beschriftung) |
 
 Jedes Element hat außerdem `step` (0 = mit der Folie, 1, 2 … = beim ersten, zweiten … Klick) und `anim` (wie es dann erscheint: `"fade"`, Standard, `"rise"`, `"zoom"`, `"left"`, `"none"`). Die Klicks zählen für die ganze Folie gemeinsam: Mit `build` belegen die Einträge die ersten Klicks (bei `list` mit `reveal` zwei je Frage); ein Element danach bekommt die nächste Zahl. Beispiel: `{ "kind": "text", "text": "Tipp: Schaut ins Lernjournal!", "style": "note", "x": 1240, "y": 700, "w": 580, "h": 200, "step": 1 }`.
+
+**Einzelne Teile auf Klick** (`anims`): Jeder Teil einer Folie kann auf einem eigenen Klick erscheinen, mit `step` (Klick-Nummer, 0 = mit der Folie) und `anim`. Schlüssel: `title` (Überschrift, Leitfrage, Merksatz), `text` (Untertitel, Zitat, Hinweis, Satz darunter, Rückbezug), `image` (Bild der Art `image`), `item:0`, `item:1` … (Einträge, gezählt ab 0) und `answer:0`, `answer:1` … (die Lösung bzw. der zweite Teil des Eintrags). `anims` gilt vor `build` und `reveal`. Beispiel für eine Deutung, deren Hinweis erst nach einer Diskussion kommt: `"layout": "statement", "anims": { "text": { "step": 1, "anim": "zoom" } }`.
 
 Videos: Schreib nur Links, die die Lehrkraft dir gegeben hat oder die du sicher kennst; sonst ein Textfeld „Video: …“ als Platzhalter und in `notes`, wonach die Lehrkraft suchen soll.
 

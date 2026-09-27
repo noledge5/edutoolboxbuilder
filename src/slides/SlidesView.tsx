@@ -1,7 +1,6 @@
 // The slides of a lesson: thumbnails on the left, the chosen slide in the middle, its fields on the right.
 // Presenting and printing (handout, PDF) start from the top bar.
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useId } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import {
   ArrowDown,
   ArrowLeft,
@@ -13,6 +12,7 @@ import {
   FileText,
   Highlighter,
   ImagePlus,
+  Layers,
   Play,
   Plus,
   Printer,
@@ -39,7 +39,10 @@ import {
   SLIDE_LAYOUT_ORDER,
   SLIDE_LAYOUTS,
   SLIDE_TRANSITIONS,
+  slideParts,
   stepCount,
+  type PartAnim,
+  type SlidePart,
   type Slide,
   type SlideAnim,
   type SlideElement,
@@ -122,6 +125,13 @@ const TEXT_STYLES: { v: TextStyle; l: string }[] = [
   { v: 'heading', l: 'Überschrift' },
 ];
 
+const REVEAL_LABEL: Partial<Record<SlideLayout, string>> = {
+  list: 'Antworten (Lösungen) beim Präsentieren',
+  words: 'Bedeutungen beim Präsentieren',
+  compare: 'Text in den Kästen beim Präsentieren',
+  flow: 'Erklärungen in den Schritten beim Präsentieren',
+};
+
 const TEXT_SIZES = [
   { v: 28, l: 'S' },
   { v: 40, l: 'M' },
@@ -140,6 +150,7 @@ export function SlidesView(p: SlidesViewProps) {
   const [picker, setPicker] = useState(false);
   const [searching, setSearching] = useState<'slide' | 'element' | null>(null);
   const [selEl, setSelEl] = useState<string | null>(null);
+  const [selPart, setSelPart] = useState<string | null>(null);
   const elText = useRef<HTMLTextAreaElement>(null);
   const slides = p.slides;
   // For changes that arrive later (a stored picture): the slides as they are then.
@@ -148,9 +159,20 @@ export function SlidesView(p: SlidesViewProps) {
   const i = Math.min(sel, Math.max(0, slides.length - 1));
   const slide = slides[i] as Slide | undefined;
   const el = slide?.elements.find((e) => e.id === selEl) ?? null;
+  const partInfo = slide && selPart ? (slideParts(slide).find((x) => x.key === selPart) ?? null) : null;
+  /** When a part of the layout appears: its own click and animation, or back to what build/reveal give. */
+  const setPartAnim = (key: string, a: PartAnim | null) => {
+    if (!slide) return;
+    const anims = { ...slide.anims };
+    if (a) anims[key] = a;
+    else delete anims[key];
+    set({ anims }, `anim.${key}`);
+  };
+  const clearSteps = () => slide && set({ anims: {}, build: false, reveal: false, elements: slide.elements.map((e) => ({ ...e, step: 0 })) });
   const pick = (k: number) => {
     setSel(k);
     setSelEl(null);
+    setSelPart(null);
   };
 
   /** Every change goes through here; edits of the same field one after another make one undo step. */
@@ -254,13 +276,22 @@ export function SlidesView(p: SlidesViewProps) {
     commit([...slides.slice(0, i + 1), { ...slide, id: uid(), elements: slide.elements.map((e) => ({ ...e, id: uid() })) }, ...slides.slice(i + 1)]);
     pick(i + 1);
   };
-  const remove = () => {
-    commit(slides.filter((_, k) => k !== i));
-    pick(Math.max(0, i - 1));
+  const remove = (at = i) => {
+    commit(slides.filter((_, k) => k !== at));
+    pick(Math.max(0, Math.min(at, slides.length - 2)));
+  };
+  const removeAll = () => {
+    if (!slides.length || !window.confirm(`Alle ${slides.length} Folien dieser Stunde löschen? Mit „Rückgängig“ (⌘Z) holst du sie zurück, solange die Folien offen sind.`)) return;
+    commit([]);
+    pick(0);
   };
   const suggest = () => {
     commit(slidesFromDoc(p.doc, p.lessonTitle));
     pick(0);
+  };
+  const resuggest = () => {
+    if (slides.length && !window.confirm('Die Folien durch neue Vorschläge aus dem Arbeitsblatt ersetzen? Mit „Rückgängig“ (⌘Z) holst du die alten zurück.')) return;
+    suggest();
   };
 
   // Keyboard: undo/redo, arrows move between slides (not while typing).
@@ -287,7 +318,8 @@ export function SlidesView(p: SlidesViewProps) {
         e.preventDefault();
         return;
       }
-      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') pick(Math.min(slides.length - 1, i + 1));
+      if (e.key === 'Escape' && selPart) setSelPart(null);
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') pick(Math.min(slides.length - 1, i + 1));
       else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') pick(Math.max(0, i - 1));
     };
     window.addEventListener('keydown', onKey);
@@ -337,6 +369,15 @@ export function SlidesView(p: SlidesViewProps) {
           <span className="btn-label">Arbeitsblatt</span>
         </button>
         <Menu
+          label="Folien"
+          icon={Layers}
+          items={[
+            { label: 'Folie löschen', icon: Trash2, onClick: () => slides.length && remove() },
+            { label: 'Alle Folien löschen …', icon: Trash2, onClick: removeAll },
+            { label: 'Neu aus dem Arbeitsblatt vorschlagen …', icon: Sparkles, onClick: resuggest },
+          ]}
+        />
+        <Menu
           label="Drucken"
           icon={Printer}
           items={[
@@ -362,10 +403,28 @@ export function SlidesView(p: SlidesViewProps) {
       <div className="sl-work">
         <nav className="sl-thumbs" aria-label="Folien">
           {slides.map((s, k) => (
-            <button key={s.id} type="button" className={'sl-thumb' + (k === i ? ' is-on' : '')} aria-current={k === i} onClick={() => pick(k)}>
-              <span className="sl-thumb-num">{k + 1}</span>
-              <SlideBox slide={s} number={k + 1} ctx={p.ctx} width={176} />
-            </button>
+            <div key={s.id} className={'sl-thumb-wrap' + (k === i ? ' is-on' : '')}>
+              <button
+                type="button"
+                className={'sl-thumb' + (k === i ? ' is-on' : '')}
+                aria-current={k === i}
+                onClick={() => pick(k)}
+                onKeyDown={(e) => {
+                  // Delete or Backspace on a chosen slide removes it (⌘Z brings it back).
+                  if (e.key === 'Delete' || e.key === 'Backspace') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    remove(k);
+                  }
+                }}
+              >
+                <span className="sl-thumb-num">{k + 1}</span>
+                <SlideBox slide={s} number={k + 1} ctx={p.ctx} width={176} />
+              </button>
+              <button type="button" className="iconbtn sl-thumb-del" title={`Folie ${k + 1} löschen`} aria-label={`Folie ${k + 1} löschen`} onClick={() => remove(k)}>
+                <Icon icon={Trash2} size={15} />
+              </button>
+            </div>
           ))}
           <div className="sl-add">
             <button type="button" className="btn btn-secondary ui-btn" onClick={() => setPicker((o) => !o)} aria-expanded={picker}>
@@ -406,6 +465,8 @@ export function SlidesView(p: SlidesViewProps) {
               width={stageW}
               selected={selEl}
               onSelect={setSelEl}
+              selectedPart={selPart}
+              onPart={setSelPart}
               onBox={(id, box) => setElements(slide.elements.map((e) => (e.id === id ? { ...e, ...box } : e)))}
               onOpen={(id) => {
                 setSelEl(id);
@@ -458,6 +519,8 @@ export function SlidesView(p: SlidesViewProps) {
               onPicture={(file) => setElPicture(slide.id, el.id, file)}
               onSearch={() => setSearching('element')}
             />
+          ) : slide && partInfo ? (
+            <PartPanel part={partInfo} own={!!slide.anims[partInfo.key]} nextStep={stepCount(slide) + 1} onChange={(a) => setPartAnim(partInfo.key, a)} onBack={() => setSelPart(null)} />
           ) : slide && info ? (
             <>
               <div className="panel-head">
@@ -494,9 +557,9 @@ export function SlidesView(p: SlidesViewProps) {
                 <RichArea label={slide.layout === 'quote' ? 'Leitfrage' : 'Überschrift'} rows={2} value={slide.title} onChange={(title) => set({ title }, 'title')} />
                 {info.text && <RichArea label={info.text} value={slide.text} onChange={(text) => set({ text }, 'text')} />}
                 {info.items && <RichArea label={info.items} rows={5} value={slide.items} onChange={(items) => set({ items }, 'items')} />}
-                {(slide.layout === 'list' || slide.layout === 'words') && (
+                {REVEAL_LABEL[slide.layout] && (
                   <SegField<boolean>
-                    label={slide.layout === 'list' ? 'Antworten beim Präsentieren' : 'Bedeutungen beim Präsentieren'}
+                    label={REVEAL_LABEL[slide.layout]!}
                     value={slide.reveal}
                     options={[
                       { v: true, l: 'erst auf Klick' },
@@ -536,10 +599,19 @@ export function SlidesView(p: SlidesViewProps) {
                   </>
                 )}
                 <SegField<SlideTransition> label="Übergang zu dieser Folie" value={slide.transition} options={SLIDE_TRANSITIONS} onPick={(transition) => set({ transition })} />
-                <p className="panel-note">
-                  {stepCount(slide) ? `Diese Folie braucht ${stepCount(slide)} ${stepCount(slide) === 1 ? 'Klick' : 'Klicks'}, bis alles zu sehen ist.` : 'Alles erscheint gleich mit der Folie.'}{' '}
-                  Elemente (Textfeld, Bild, Video, QR-Code) fügst du über der Folie ein; jedes kann auf einen eigenen Klick erscheinen.
-                </p>
+                <Sequence
+                  slide={slide}
+                  onPart={(key) => {
+                    setSelEl(null);
+                    setSelPart(key);
+                  }}
+                  onElement={(id) => {
+                    setSelPart(null);
+                    setSelEl(id);
+                  }}
+                  onClear={clearSteps}
+                />
+                <p className="panel-note">Tippe auf der Folie auf einen Teil (Überschrift, Frage, Antwort, Kasten …) oder ein eingefügtes Element, um festzulegen, auf welchem Klick er erscheint.</p>
               </div>
               <div className="panel-section">
                 <RichArea label="Sprechernotizen (nur für dich, Taste N beim Präsentieren)" rows={4} value={slide.notes} onChange={(notes) => set({ notes }, 'notes')} />
@@ -555,7 +627,7 @@ export function SlidesView(p: SlidesViewProps) {
                   <Icon icon={Copy} />
                   Duplizieren
                 </button>
-                <button type="button" className="btn btn-secondary ui-btn is-danger" onClick={remove}>
+                <button type="button" className="btn btn-secondary ui-btn is-danger" onClick={() => remove()}>
                   <Icon icon={Trash2} />
                   Löschen
                 </button>
@@ -714,6 +786,85 @@ function ElementPanel({ el, slide, textRef, onChange, onBack, onDuplicate, onRem
           <Icon icon={Trash2} />
           Löschen
         </button>
+      </div>
+    </>
+  );
+}
+
+/** The slide's clicks while presenting: what appears on click 1, 2, 3 … Each entry opens its settings. */
+function Sequence({ slide, onPart, onElement, onClear }: { slide: Slide; onPart(key: string): void; onElement(id: string): void; onClear(): void }) {
+  const n = stepCount(slide);
+  if (!n) return <p className="panel-note">Alles erscheint gleich mit der Folie.</p>;
+  const parts = slideParts(slide);
+  const elementName = (e: SlideElement) => `${ELEMENT_LABELS[e.kind]}${e.text ? `: ${e.text.replace(/[*{}]/g, '').slice(0, 20)}` : ''}`;
+  return (
+    <div className="field">
+      <label>Ablauf beim Präsentieren</label>
+      <ol className="sl-sequence">
+        {Array.from({ length: n }, (_, k) => k + 1).map((click) => {
+          const ps = parts.filter((x) => x.step === click);
+          const es = slide.elements.filter((e) => e.step === click);
+          return (
+            <li key={click}>
+              <span className="sl-seq-num">Klick {click}</span>
+              <span className="sl-seq-items">
+                {ps.map((x) => (
+                  <button key={x.key} type="button" className={'sl-seq-chip' + (x.answer ? ' is-answer' : '')} onClick={() => onPart(x.key)}>
+                    {x.label}
+                  </button>
+                ))}
+                {es.map((e) => (
+                  <button key={e.id} type="button" className="sl-seq-chip is-element" onClick={() => onElement(e.id)}>
+                    {elementName(e)}
+                  </button>
+                ))}
+                {!ps.length && !es.length && <span className="sl-seq-empty">nichts (leerer Klick)</span>}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+      <button type="button" className="btn btn-secondary ui-btn sl-seq-clear" onClick={onClear}>
+        Alles gleich zeigen
+      </button>
+    </div>
+  );
+}
+
+/** When and how one part of the layout appears. */
+function PartPanel({ part, own, nextStep, onChange, onBack }: { part: SlidePart; own: boolean; nextStep: number; onChange(a: PartAnim | null): void; onBack(): void }) {
+  return (
+    <>
+      <div className="panel-head">
+        <button type="button" className="iconbtn" onClick={onBack} title="Zurück zur Folie" aria-label="Zurück zur Folie">
+          <Icon icon={ArrowLeft} />
+        </button>
+        <div className="panel-title">{part.label}</div>
+      </div>
+      <div className="panel-section">
+        <div className="panel-section-label">Erscheinen</div>
+        <SegField<boolean>
+          label="Wann"
+          value={part.step > 0}
+          options={[
+            { v: false, l: 'mit der Folie' },
+            { v: true, l: 'auf Klick' },
+          ]}
+          onPick={(later) => onChange({ step: later ? part.step || nextStep : 0, anim: part.anim })}
+        />
+        {part.step > 0 && (
+          <>
+            <NumberField label="Beim wievielten Klick" value={part.step} min={1} max={30} onChange={(step) => onChange({ step, anim: part.anim })} />
+            <SegField<SlideAnim> label="Wie" value={part.anim} options={SLIDE_ANIMS} onPick={(anim) => onChange({ step: part.step, anim })} />
+          </>
+        )}
+        {part.answer && <p className="panel-note">Lösungen, die auf einen Klick kommen, stehen im Editor blass da; beim Präsentieren erscheinen sie erst mit ihrem Klick.</p>}
+        {own && (
+          <button type="button" className="btn btn-secondary ui-btn" onClick={() => onChange(null)}>
+            Wie die übrigen Einträge
+          </button>
+        )}
+        <p className="panel-note">Mehrere Teile mit derselben Klick-Nummer erscheinen zusammen. Den Text änderst du unter „Zurück zur Folie“.</p>
       </div>
     </>
   );

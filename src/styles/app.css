@@ -623,3 +623,20 @@ body { background: var(--color-neutral-200); }
 .sl-trans-push.is-back { animation-name: sl-push-back; }
 @keyframes sl-push { from { transform: translateX(40%); opacity: 0; } }
 @keyframes sl-push-back { from { transform: translateX(-40%); opacity: 0; } }
+
+/* Slides editor: chosen part, the clicks of a slide, deleting slides */
+.sl-part-box { position: absolute; box-sizing: border-box; border: 2px solid var(--color-accent); border-radius: 8px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 25%, transparent); pointer-events: none; }
+.sl-sequence { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.sl-sequence li { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 8px; align-items: start; }
+.sl-seq-num { padding-top: 5px; font-size: 12px; font-weight: 700; color: var(--color-neutral-700); }
+.sl-seq-items { display: flex; flex-wrap: wrap; gap: 4px; }
+.sl-seq-chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 4px 10px; border: 1px solid var(--color-divider); border-radius: 999px; background: var(--color-ui); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.sl-seq-chip:hover { border-color: var(--color-accent); }
+.sl-seq-chip.is-answer { background: var(--color-accent-2-100); }
+.sl-seq-chip.is-element { background: var(--color-accent-100); }
+.sl-seq-empty { padding-top: 4px; font-size: 12.5px; color: var(--color-neutral-600); }
+.sl-seq-clear { margin-top: 8px; align-self: flex-start; }
+.sl-thumb-wrap { position: relative; flex: none; }
+.sl-thumb-del { position: absolute; top: 0; right: 0; width: 30px; height: 30px; background: var(--color-ui); box-shadow: var(--shadow-sm); opacity: 0; transition: opacity 0.15s; }
+.sl-thumb-wrap:hover .sl-thumb-del, .sl-thumb-wrap.is-on .sl-thumb-del, .sl-thumb-del:focus-visible { opacity: 1; }
+@media (pointer: coarse) { .sl-thumb-wrap.is-on .sl-thumb-del { opacity: 1; } }

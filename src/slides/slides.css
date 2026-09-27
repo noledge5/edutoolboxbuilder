@@ -62,7 +62,9 @@
 .sl-list.is-many .sl-item-text { font-size: 36px; }
 .sl-answer { flex: none; max-width: 640px; padding: 14px 32px; border-radius: 999px; background: var(--color-accent-2-200); color: var(--color-accent-2-900); font-size: 40px; font-weight: 700; text-align: center; }
 .sl-answer.is-long { border-radius: 40px; font-size: 34px; }
-.sl-answer.is-ghost, .sl-word-meaning.is-ghost { opacity: 0.35; outline: 3px dashed var(--color-accent-2-600); outline-offset: -3px; }
+/* Solutions that come on a click: pale while editing. */
+.sl-slide .is-ghost { opacity: 0.4; outline: 3px dashed var(--color-accent-2-600); outline-offset: 2px; border-radius: 12px; }
+.sl-answer.is-ghost { outline-offset: -3px; border-radius: 999px; }
 
 /* Quote box above the key question */
 .sl-quote { display: flex; flex-direction: column; gap: 20px; max-width: 1400px; padding: 44px 56px; border-radius: 48px; background: var(--color-surface); }
@@ -182,3 +184,6 @@
   position: absolute; top: -14px; left: -14px; z-index: 3; display: grid; place-items: center; min-width: 40px; height: 40px; padding: 0 8px; box-sizing: border-box;
   border-radius: 999px; background: var(--color-neutral-900); color: #fff; font-family: var(--font-ui, system-ui); font-size: 22px; font-weight: 700; line-height: 1;
 }
+.sl-slide [data-part] { position: relative; }
+.sl-figure-wrap { position: relative; min-height: 0; height: 100%; display: flex; }
+.sl-figure-wrap > .sl-figure { flex: 1; min-width: 0; }
