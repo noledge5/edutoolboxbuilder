@@ -65,6 +65,8 @@ export interface Settings {
   footerBase: string;
   /** School year with holidays, for the year plan. */
   schoolYear: SchoolYear | null;
+  /** Colour of each subject in the app, a token ramp ("accent-3"); subjects without one get a default. */
+  subjectColors: Record<string, string>;
   /** When the settings last changed (for the Mac ↔ iPad sync); 0 = never. */
   updatedAt: number;
 }

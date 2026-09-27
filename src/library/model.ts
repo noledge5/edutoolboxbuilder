@@ -2,7 +2,7 @@
 import { BLOCK_TYPES, LEVEL_NAMES } from '../model/blockTypes';
 import { createBlock, createPage, sheetNumbers, uid } from '../model/ops';
 import { seedDoc } from '../model/seed';
-import type { Doc, Lang } from '../model/types';
+import type { BlockType, Doc, Lang } from '../model/types';
 import { DEFAULT_TOPIC_ICON } from '../topicIcons';
 import type { Competence, Lesson, Library, Module, Settings } from './types';
 
@@ -30,6 +30,31 @@ export const modulesOf = (lib: Library, subject: string, grade: number) =>
   lib.modules.filter((m) => m.subject === subject && m.grade === grade).sort((a, b) => a.number - b.number || a.title.localeCompare(b.title));
 
 export const lessonsOf = (lib: Library, moduleId: string) => lib.lessons.filter((l) => l.moduleId === moduleId).sort((a, b) => a.number - b.number);
+
+/**
+ * The block types most used in a subject: those in at least two of its lessons, the most widely used first.
+ * They make up the toolbox group "Oft in <Fach>".
+ */
+export function favoriteBlocks(lib: Library, subject: string, max = 6): BlockType[] {
+  const modules = new Set(lib.modules.filter((m) => m.subject === subject).map((m) => m.id));
+  const lessons = new Map<BlockType, number>();
+  const total = new Map<BlockType, number>();
+  for (const l of lib.lessons) {
+    if (!modules.has(l.moduleId)) continue;
+    const used = new Set<BlockType>();
+    for (const pg of l.doc.pages)
+      for (const b of pg.blocks) {
+        used.add(b.type);
+        total.set(b.type, (total.get(b.type) ?? 0) + 1);
+      }
+    for (const t of used) lessons.set(t, (lessons.get(t) ?? 0) + 1);
+  }
+  return [...lessons]
+    .filter(([, n]) => n >= 2)
+    .sort((a, b) => b[1] - a[1] || total.get(b[0])! - total.get(a[0])!)
+    .slice(0, max)
+    .map(([t]) => t);
+}
 
 /** A lesson is worked out once one of its pages has content; before that it is only planned (from the year plan). */
 export const isWorkedOut = (l: Lesson) => l.doc.pages.some((p) => p.blocks.length > 0);
@@ -169,7 +194,7 @@ export function libraryFromOldDoc(doc: Doc): Library {
   const code = /K\s*(\d+)\s*·\s*M\s*(\d+)\s*·\s*S\s*(\d+)/.exec(doc.code);
   const parts = doc.footer.split('·').map((s) => s.trim()).filter(Boolean);
   const subject = parts.length > 1 ? parts[parts.length - 1] : 'Allgemein';
-  const settings: Settings = { subjects: [subject], footerBase: parts.slice(0, -1).join(' · '), schoolYear: null, updatedAt: Date.now() };
+  const settings: Settings = { subjects: [subject], footerBase: parts.slice(0, -1).join(' · '), schoolYear: null, subjectColors: {}, updatedAt: Date.now() };
   const grade = code ? Math.min(10, Math.max(5, Number(code[1]))) : 9;
   const module: Module = {
     id: uid(),
@@ -197,7 +222,7 @@ export function libraryFromOldDoc(doc: Doc): Library {
  * duplicate it, and any real edit is newer.
  */
 export function seedLibrary(): Library {
-  const settings: Settings = { subjects: ['Geographie'], footerBase: 'Kuhl · Grafen-von-Zimmern-Realschule', schoolYear: null, updatedAt: 0 };
+  const settings: Settings = { subjects: ['Geographie'], footerBase: 'Kuhl · Grafen-von-Zimmern-Realschule', schoolYear: null, subjectColors: {}, updatedAt: 0 };
   const module: Module = {
     id: 'beispiel-modul',
     subject: 'Geographie',

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Editor, errorText } from './editor/Editor';
-import { changedSince, docForLesson, duplicateLesson, lessonFromDoc, lessonsOf, modulesOf, newLesson, newModule, subjectsOf, syncLibrary, vocabTestLesson } from './library/model';
+import { changedSince, docForLesson, duplicateLesson, favoriteBlocks, lessonFromDoc, lessonsOf, modulesOf, newLesson, newModule, subjectsOf, syncLibrary, vocabTestLesson } from './library/model';
+import { subjectColor, subjectVars } from './library/subjectColor';
 import { ModuleView } from './library/ModuleView';
 import { Overview } from './library/Overview';
 import { SyncDialog } from './library/SyncDialog';
@@ -216,6 +217,8 @@ export function App() {
   );
 
   let view;
+  // The app takes the colour of the subject in view (the printed pages keep theirs).
+  let subject = '';
   if (route.view === 'lesson') {
     const lesson = lib.lessons.find((l) => l.id === route.id);
     const m = lesson && lib.modules.find((x) => x.id === lesson.moduleId);
@@ -230,10 +233,13 @@ export function App() {
         codeLocked
         competences={m.competences}
         note={lesson.plan}
+        favorites={{ label: `Oft in ${m.subject}`, types: favoriteBlocks(lib, m.subject) }}
       />
     );
+    subject = m.subject;
   } else if (route.view === 'plan') {
-    const { subject, grade } = route;
+    const { grade } = route;
+    subject = route.subject;
     view = (
       <YearPlanView
         lib={lib}
@@ -259,6 +265,7 @@ export function App() {
   } else if (route.view === 'module') {
     const m = lib.modules.find((x) => x.id === route.id);
     if (!m) return <ToOverview />;
+    subject = m.subject;
     const lessons = lessonsOf(lib, m.id);
     view = (
       <ModuleView
@@ -310,6 +317,8 @@ export function App() {
       />
     );
   } else {
+    const subjects = subjectsOf(lib);
+    subject = route.subject && subjects.includes(route.subject) ? route.subject : (subjects[0] ?? '');
     view = (
       <Overview
         lib={lib}
@@ -336,7 +345,9 @@ export function App() {
 
   return (
     <>
-      {view}
+      <div className="subject-scope" style={subject ? subjectVars(subjectColor(lib.settings, subject)) : undefined}>
+        {view}
+      </div>
       {syncOpen && (
         <SyncDialog
           lib={lib}

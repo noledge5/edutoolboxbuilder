@@ -1,6 +1,7 @@
 // Reading library entries from storage, backup files and other devices: older data gets defaults for newer fields.
 import { normalizeDoc } from '../model/normalize';
 import type { Lang } from '../model/types';
+import { readSubjectColors } from './subjectColor';
 import type { Competence, Holiday, Lesson, Module, SchoolYear, Settings } from './types';
 
 const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
@@ -95,6 +96,7 @@ export function readSettings(raw: unknown): Settings {
     subjects: Array.isArray(s.subjects) ? s.subjects.filter((x): x is string => typeof x === 'string') : [],
     footerBase: typeof s.footerBase === 'string' ? s.footerBase : '',
     schoolYear: readSchoolYear(s.schoolYear),
+    subjectColors: readSubjectColors(s.subjectColors),
     updatedAt: Number(s.updatedAt) || 0,
   };
 }

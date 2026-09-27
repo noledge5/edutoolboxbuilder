@@ -7,6 +7,7 @@ import { ClaudeDialog } from './ClaudeDialog';
 import { isWorkedOut, lastChange, lessonsOf, modulesOf, progressOf, progressText, subjectsOf } from './model';
 import type { Lesson, Library, Module, SchoolYear, Settings } from './types';
 import { readSchoolYear } from './read';
+import { SUBJECT_COLORS, subjectColor, subjectVars, swatch } from './subjectColor';
 import { BW_2026_27, holidaysText } from './yearplan';
 import { GRADES } from './types';
 
@@ -124,7 +125,7 @@ export function Overview(p: OverviewProps) {
                 const m = moduleOf(l);
                 if (!m) return null;
                 return (
-                  <button key={l.id} type="button" className="lib-recent-item" onClick={() => p.onOpenLesson(l)}>
+                  <button key={l.id} type="button" className="lib-recent-item" style={subjectVars(subjectColor(lib.settings, m.subject))} onClick={() => p.onOpenLesson(l)}>
                     <span className="lib-icon is-small">
                       <Icon icon={topicIcon(m.icon)} size={16} />
                     </span>
@@ -151,6 +152,7 @@ export function Overview(p: OverviewProps) {
               return (
                 <span key={s} className={'lib-chip' + (s === subject ? ' is-on' : '')}>
                   <button type="button" onClick={() => p.onPick(s, grade)}>
+                    <span className="lib-chip-dot" style={{ background: swatch(subjectColor(lib.settings, s)) }} />
                     {s}
                   </button>
                   {empty && (
@@ -247,13 +249,14 @@ export function Overview(p: OverviewProps) {
           onClose={() => setClaudeOpen(false)}
         />
       )}
-      {settingsOpen && <SettingsDialog settings={lib.settings} onSave={p.onSettings} onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <SettingsDialog settings={lib.settings} subjects={subjects} onSave={p.onSettings} onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }
 
-export function SettingsDialog({ settings, onSave, onClose }: { settings: Settings; onSave(s: Settings): void; onClose(): void }) {
+export function SettingsDialog({ settings, subjects, onSave, onClose }: { settings: Settings; subjects: string[]; onSave(s: Settings): void; onClose(): void }) {
   const [footerBase, setFooterBase] = useState(settings.footerBase);
+  const [colors, setColors] = useState(settings.subjectColors);
   const y = settings.schoolYear;
   const [yearName, setYearName] = useState(y?.name ?? '');
   const [start, setStart] = useState(y?.start ?? '');
@@ -279,12 +282,41 @@ export function SettingsDialog({ settings, onSave, onClose }: { settings: Settin
   const incomplete = (start || end) && !schoolYear();
   return (
     <div className="dialog-backdrop" onClick={onClose}>
-      <div className="dialog sync-dialog" role="dialog" aria-modal="true" aria-label="Einstellungen" onClick={(e) => e.stopPropagation()}>
+      <div className="dialog sync-dialog settings-dialog" role="dialog" aria-modal="true" aria-label="Einstellungen" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-title">Einstellungen</div>
         <div className="field">
           <label htmlFor="footer-base">Fußzeile neuer Arbeitsblätter (das Fach wird angehängt)</label>
           <input id="footer-base" className="input" value={footerBase} placeholder="Name · Schule" onChange={(e) => setFooterBase(e.target.value)} />
         </div>
+        {subjects.length > 0 && (
+          <div className="settings-colors">
+            <div className="panel-section-label">Farbe je Fach</div>
+            {subjects.map((s) => {
+              const current = subjectColor({ ...settings, subjectColors: colors }, s);
+              return (
+                <div key={s} className="settings-color-row">
+                  <span className="settings-color-name">{s}</span>
+                  <div className="swatches" role="radiogroup" aria-label={`Farbe für ${s}`}>
+                    {SUBJECT_COLORS.map((c) => (
+                      <button
+                        key={c.key}
+                        type="button"
+                        role="radio"
+                        aria-checked={current === c.key}
+                        className={'swatch' + (current === c.key ? ' is-on' : '')}
+                        style={{ background: swatch(c.key) }}
+                        title={c.label}
+                        aria-label={c.label}
+                        onClick={() => setColors({ ...colors, [s]: c.key })}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            <p className="sync-tip">Die Farbe gilt für Knöpfe und Symbole im Baukasten, damit du die Fächer auseinanderhältst. Die gedruckten Blätter bleiben, wie sie sind.</p>
+          </div>
+        )}
         <div className="settings-year">
           <div className="panel-section-label">Schuljahr für den Jahresplan</div>
           <div className="settings-year-row">
@@ -322,7 +354,7 @@ export function SettingsDialog({ settings, onSave, onClose }: { settings: Settin
             className="btn btn-primary ui-btn"
             disabled={!!incomplete}
             onClick={() => {
-              onSave({ ...settings, footerBase: footerBase.trim(), schoolYear: schoolYear(), updatedAt: Date.now() });
+              onSave({ ...settings, footerBase: footerBase.trim(), schoolYear: schoolYear(), subjectColors: colors, updatedAt: Date.now() });
               onClose();
             }}
           >

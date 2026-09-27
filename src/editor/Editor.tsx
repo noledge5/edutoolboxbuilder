@@ -6,7 +6,7 @@ import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { historyReducer, initHistory } from '../model/history';
 import * as ops from '../model/ops';
-import type { Doc, DragItem, DropTarget, Selection } from '../model/types';
+import type { BlockType, Doc, DragItem, DropTarget, Selection } from '../model/types';
 import { InlineEditContext, type InlineEdit } from '../sheet/inlineEdit';
 import { SheetModeContext, type SheetMode } from '../sheet/sheetMode';
 import { CompetenceNamesContext } from '../sheet/competences';
@@ -83,11 +83,13 @@ export interface EditorProps {
   competences?: { id: string; area: string }[];
   /** Planning note of the lesson from the year plan, shown above the page. */
   note?: string;
+  /** The blocks most used in this subject, first in the toolbox. */
+  favorites?: { label: string; types: BlockType[] };
 }
 
 const NO_COMPETENCES: { id: string; area: string }[] = [];
 
-export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competences = NO_COMPETENCES, note = '' }: EditorProps) {
+export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competences = NO_COMPETENCES, note = '', favorites }: EditorProps) {
   const [noteOpen, setNoteOpen] = useState(true);
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
   const doc = hist.present;
@@ -560,7 +562,7 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
           </div>
         )}
         <div className="workspace">
-          {editing && <Toolbox open={!compact || toolboxOpen} compact={compact} lang={doc.lang} onAdd={api.addBlock} onClose={() => setToolboxOpen(false)} />}
+          {editing && <Toolbox open={!compact || toolboxOpen} compact={compact} lang={doc.lang} favorites={favorites} onAdd={api.addBlock} onClose={() => setToolboxOpen(false)} />}
           <InlineEditContext.Provider value={editing ? inlineEdit : null}>
             <SheetModeContext.Provider value={sheetMode}>
               <CompetenceNamesContext.Provider value={competenceNames}>

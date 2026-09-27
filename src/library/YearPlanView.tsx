@@ -7,7 +7,7 @@ import type { Doc, Page } from '../model/types';
 import { SheetPage } from '../sheet/SheetPage';
 import { topicIcon } from '../topicIcons';
 import { PrintFrame } from './ModulePrint';
-import { footerFor, lessonsOf, modulesOf, progressOf, progressText } from './model';
+import { footerFor, lessonsOf, modulesOf, progressOf, progressText, subjectsOf } from './model';
 import type { ParsedPackage } from './package';
 import { PlanImportDialog } from './PlanImportDialog';
 import { SettingsDialog } from './Overview';
@@ -193,7 +193,7 @@ export function YearPlanView(p: YearPlanViewProps) {
           </section>
         )}
       </main>
-      {settingsOpen && <SettingsDialog settings={p.lib.settings} onSave={p.onSaveSettings} onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <SettingsDialog settings={p.lib.settings} subjects={subjectsOf(p.lib)} onSave={p.onSaveSettings} onClose={() => setSettingsOpen(false)} />}
       {importOpen && (
         <PlanImportDialog
           lib={p.lib}

@@ -6,6 +6,8 @@ import { BLOCK_ORDER, BLOCK_TYPES, GROUPS } from '../model/blockTypes';
 import type { BlockType, DragItem, Lang } from '../model/types';
 
 const CLOSED_KEY = 'arbeitsblatt-baukasten:toolbox-zu';
+/** Key of the favourites group in the stored open/closed state (its label changes with the subject). */
+const FAVORITES = 'oft';
 
 function readClosed(): Record<string, boolean> {
   try {
@@ -20,14 +22,16 @@ interface ToolboxProps {
   compact: boolean;
   /** Language groups start closed on German worksheets. */
   lang: Lang;
+  /** The blocks most used in this subject, shown first: "Oft in Englisch". */
+  favorites?: { label: string; types: BlockType[] };
   onAdd(type: BlockType): void;
   onClose(): void;
 }
 
-export function Toolbox({ open, compact, lang, onAdd, onClose }: ToolboxProps) {
+export function Toolbox({ open, compact, lang, favorites, onAdd, onClose }: ToolboxProps) {
   const [closed, setClosed] = useState(readClosed);
-  const isClosed = (g: (typeof GROUPS)[number]) => closed[g.label] ?? ('lang' in g && lang !== 'en');
-  const toggle = (g: (typeof GROUPS)[number]) => {
+  const isClosed = (g: { label: string; lang?: boolean }) => closed[g.label] ?? (!!g.lang && lang !== 'en');
+  const toggle = (g: { label: string; lang?: boolean }) => {
     const next = { ...closed, [g.label]: !isClosed(g) };
     setClosed(next);
     try {
@@ -49,6 +53,15 @@ export function Toolbox({ open, compact, lang, onAdd, onClose }: ToolboxProps) {
         </div>
         <div className="tb-help">Auf die Seite ziehen oder anklicken.</div>
       </div>
+      {favorites && favorites.types.length > 0 && (
+        <div className={'tb-group is-favorites' + (closed[FAVORITES] ? ' is-closed' : '')}>
+          <button type="button" className="tb-group-label" aria-expanded={!closed[FAVORITES]} onClick={() => toggle({ label: FAVORITES })}>
+            {favorites.label}
+            <Icon icon={ChevronDown} size={14} />
+          </button>
+          {!closed[FAVORITES] && favorites.types.map((t) => <ToolboxItem key={t} type={t} onAdd={onAdd} favorite />)}
+        </div>
+      )}
       {GROUPS.map((g, gi) => (
         <div className={'tb-group' + (isClosed(g) ? ' is-closed' : '')} key={g.label}>
           <button type="button" className="tb-group-label" aria-expanded={!isClosed(g)} onClick={() => toggle(g)}>
@@ -62,9 +75,10 @@ export function Toolbox({ open, compact, lang, onAdd, onClose }: ToolboxProps) {
   );
 }
 
-function ToolboxItem({ type, onAdd }: { type: BlockType; onAdd(type: BlockType): void }) {
+function ToolboxItem({ type, onAdd, favorite }: { type: BlockType; onAdd(type: BlockType): void; favorite?: boolean }) {
   const data: DragItem = { kind: 'new', type };
-  const { setNodeRef, listeners, attributes } = useDraggable({ id: 'new:' + type, data });
+  // The same block can also stand in the favourites group: each draggable needs its own id.
+  const { setNodeRef, listeners, attributes } = useDraggable({ id: 'new:' + type + (favorite ? ':oft' : ''), data });
   return (
     <div
       ref={setNodeRef}

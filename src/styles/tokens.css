@@ -1,12 +1,12 @@
 /* Organic design tokens, copied from docs/design/tokens/organic-styles.css (the source of truth).
-   Changes: five extra colour ramps (accent-3 … accent-7, marked below), and fonts are self-hosted via @fontsource (see src/main.tsx) instead of the Google Fonts @import,
+   Changes: the orange ramp is also named accent-1 (so the app can take another ramp per subject), five extra colour ramps (accent-3 … accent-7, marked below), and fonts are self-hosted via @fontsource (see src/main.tsx) instead of the Google Fonts @import,
    so the app works offline and prints with the right fonts. */
 
 :root {
   --color-bg: #f5ead8;
   --color-surface: #ebddc5;
   --color-text: #201e1d;
-  --color-accent: #c67139;
+  --color-accent: var(--color-accent-1);
   --color-accent-2: #7a8a5e;
   --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
 
@@ -22,15 +22,27 @@
   --color-neutral-800: #474238;
   --color-neutral-900: #2e2b25;
 
-  --color-accent-100: #fff2eb;
-  --color-accent-200: #ffe1d0;
-  --color-accent-300: #ffc6a5;
-  --color-accent-400: #f6a06b;
-  --color-accent-500: #d67f48;
-  --color-accent-600: #b2622d;
-  --color-accent-700: #8c491a;
-  --color-accent-800: #643312;
-  --color-accent-900: #402310;
+  /* The accent ramp is the design's orange (accent-1). The app's chrome may take another ramp per subject
+     (see src/library/subjectColor.ts); the printed page always resets to accent-1 (sheet.css). */
+  --color-accent-1: #c67139;
+  --color-accent-1-100: #fff2eb;
+  --color-accent-1-200: #ffe1d0;
+  --color-accent-1-300: #ffc6a5;
+  --color-accent-1-400: #f6a06b;
+  --color-accent-1-500: #d67f48;
+  --color-accent-1-600: #b2622d;
+  --color-accent-1-700: #8c491a;
+  --color-accent-1-800: #643312;
+  --color-accent-1-900: #402310;
+  --color-accent-100: var(--color-accent-1-100);
+  --color-accent-200: var(--color-accent-1-200);
+  --color-accent-300: var(--color-accent-1-300);
+  --color-accent-400: var(--color-accent-1-400);
+  --color-accent-500: var(--color-accent-1-500);
+  --color-accent-600: var(--color-accent-1-600);
+  --color-accent-700: var(--color-accent-1-700);
+  --color-accent-800: var(--color-accent-1-800);
+  --color-accent-900: var(--color-accent-1-900);
 
   --color-accent-2-100: #f0fae1;
   --color-accent-2-200: #e1eecc;
