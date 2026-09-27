@@ -63,6 +63,7 @@ export function readLesson(raw: unknown): Lesson | null {
       number: int(raw.number, 1),
       title: str(raw.title),
       textbook: str(raw.textbook),
+      plan: str(raw.plan),
       doc: normalizeDoc(raw.doc),
       updatedAt: Number(raw.updatedAt) || 0,
     };

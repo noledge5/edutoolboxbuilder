@@ -52,6 +52,8 @@ export interface Lesson {
   title: string;
   /** Pages in the textbook and workbook, e.g. "SB S. 36–37, WB S. 20". */
   textbook: string;
+  /** Planning note from the year plan: what the lesson is about while it is not worked out yet. */
+  plan: string;
   doc: Doc;
   updatedAt: number;
 }

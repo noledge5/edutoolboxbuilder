@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DocFormatError } from '../model/normalize';
-import { lessonsOf, seedLibrary } from './model';
+import { isWorkedOut, lessonsOf, seedLibrary } from './model';
+import type { Library } from './types';
 import { addPackage, packageFromModule, packageFromModules, readPackage, PACKAGE_FORMAT } from './package';
 
 const lesson = () => ({
@@ -72,7 +73,7 @@ describe('Stundenpaket', () => {
     expect(bad({ module: { grade: 7, title: 'x' } })).toThrow('Fach');
     expect(bad({ module: { subject: 'Bio', grade: 12 } })).toThrow('Klasse ("grade") muss eine Zahl von 5 bis 10 sein');
     expect(bad({ lessons: [] })).toThrow('keine Stunden');
-    expect(bad({ lessons: [{ title: 'x', pages: [] }] })).toThrow('Stunde 1 hat keine Seiten');
+    expect(bad({ lessons: [{ number: 1, pages: [] }] })).toThrow('Stunde 1 hat keine Seiten');
     expect(bad({ version: 3 })).toThrow('neueren Version');
     expect(() => readPackage({ ...v2(), modules: [] })).toThrow('keine Module');
     const two = v2();
@@ -165,5 +166,103 @@ describe('Stundenpaket', () => {
     const file = packageFromModules([{ module: lib.modules[0], lessons: lessonsOf(lib, lib.modules[0].id) }], year);
     expect(file.schoolYear).toEqual(year);
     expect(readPackage(JSON.parse(JSON.stringify(file))).schoolYear).toEqual(year);
+  });
+
+  it('reads planned lessons: title and planning note, no pages yet', () => {
+    const plan = v2();
+    (plan.modules[1] as Record<string, unknown>).lessons = [
+      { number: 1, title: 'This is my family', plan: ['Familienwörter', 'Stammbaum'] },
+      { number: 2, title: 'Pets', pages: [] },
+    ];
+    const p = readPackage(plan);
+    expect(p.notes).toEqual([]);
+    const [one, two] = p.modules[1].lessons;
+    expect(one).toMatchObject({ number: 1, title: 'This is my family', plan: 'Familienwörter\nStammbaum' });
+    expect(one.doc.pages).toHaveLength(1);
+    expect(one.doc.pages[0]).toMatchObject({ title: 'This is my family', kicker: 'Class 5 · My family', blocks: [] });
+    expect(two.doc.pages[0].blocks).toEqual([]);
+  });
+
+  it('merges a year plan into the modules that exist, without touching worked-out lessons', () => {
+    const lib: Library = { ...seedLibrary(), modules: [], lessons: [] };
+    const first = addPackage(lib, readPackage(v2()));
+    const withUnit: Library = { ...lib, modules: first.modules, lessons: first.lessons };
+    const [unit1] = first.modules;
+    const worked = first.lessons[0];
+
+    // The year plan from Claude: unit 1 with three planned lessons, unit 2 and a new unit 3.
+    const plan = {
+      format: PACKAGE_FORMAT,
+      version: 2,
+      modules: [
+        {
+          subject: 'Englisch',
+          grade: 5,
+          number: 1,
+          title: 'Hello, school!',
+          weeks: 6,
+          description: 'Sich vorstellen',
+          lessons: [
+            { number: 1, title: 'Hello', plan: 'Begrüßen' },
+            { number: 2, title: 'My classroom', plan: 'Schulsachen' },
+            { number: 3, title: 'To be' },
+          ],
+        },
+        { subject: 'Englisch', grade: 5, number: 2, title: 'My family and me', lessons: [{ number: 1, title: 'This is my family', plan: 'Stammbaum' }] },
+        { subject: 'Englisch', grade: 5, number: 3, title: 'A day in my life', weeks: 6 },
+      ],
+    };
+    const r = addPackage(withUnit, readPackage(plan));
+    expect(r.results.map((x) => [x.module.number, x.action, x.added, x.changed, x.planned])).toEqual([
+      [1, 'ergänzt', 2, 1, 2],
+      [2, 'ergänzt', 1, 0, 1],
+      [3, 'neu', 0, 0, 0],
+    ]);
+    // Unit 1 is in progress: same id, title and weeks stay, the empty description is filled.
+    expect(r.modules[0]).toMatchObject({ id: unit1.id, title: 'Hello!', weeks: 5, description: 'Sich vorstellen' });
+    // Its worked-out lesson 1 keeps its worksheet and only gets the planning note.
+    const one = r.lessons.find((l) => l.id === worked.id)!;
+    expect(one.doc.pages).toEqual(worked.doc.pages);
+    expect(one).toMatchObject({ title: 'Die Zelle', plan: 'Begrüßen' });
+    const added = r.lessons.filter((l) => l.moduleId === unit1.id && l.id !== worked.id);
+    expect(added.map((l) => [l.number, l.title, isWorkedOut(l), l.doc.code])).toEqual([
+      [2, 'My classroom', false, 'K5 · M1 · S2'],
+      [3, 'To be', false, 'K5 · M1 · S3'],
+    ]);
+    // Unit 2 was only planned (no lessons): it takes the plan's title.
+    expect(r.modules[1]).toMatchObject({ id: first.modules[1].id, title: 'My family and me', weeks: 4 });
+  });
+
+  it('fills a planned module with the worked-out lessons from Claude', () => {
+    const lib: Library = { ...seedLibrary(), modules: [], lessons: [] };
+    const planned = readPackage({
+      format: PACKAGE_FORMAT,
+      version: 2,
+      modules: [{ subject: 'Biologie', grade: 7, number: 2, title: 'Zellen', lessons: [{ number: 1, title: 'Die Zelle', plan: 'Mikroskopieren' }, { number: 2, title: 'Zellteilung' }] }],
+    });
+    const a = addPackage(lib, planned);
+    const planLib: Library = { ...lib, modules: a.modules, lessons: a.lessons };
+    const r = addPackage(planLib, readPackage(v1()));
+    expect(r.results[0]).toMatchObject({ action: 'ergänzt', added: 0, changed: 1, planned: 0 });
+    expect(r.modules[0].id).toBe(a.modules[0].id);
+    expect(r.modules[0].competences.map((c) => c.area)).toEqual(['Zellen mikroskopieren']);
+    const [lesson1] = r.lessons;
+    expect(lesson1.id).toBe(a.lessons[0].id);
+    expect(isWorkedOut(lesson1)).toBe(true);
+    expect(lesson1).toMatchObject({ plan: 'Mikroskopieren', textbook: 'SB S. 12' });
+    expect(lesson1.doc.pages[0].blocks[0].props.competence).toBe(r.modules[0].competences[0].id);
+    // Worked out on both sides: nothing is overwritten, the package becomes a new module.
+    const done: Library = { ...planLib, modules: r.modules, lessons: [...planLib.lessons.filter((l) => l.id !== lesson1.id), lesson1] };
+    const again = addPackage(done, readPackage(v1()));
+    expect(again.results[0]).toMatchObject({ action: 'neu' });
+    expect(again.modules[0].number).toBe(3);
+  });
+
+  it('saves planned lessons without pages', () => {
+    const lib: Library = { ...seedLibrary(), modules: [], lessons: [] };
+    const a = addPackage(lib, readPackage({ format: PACKAGE_FORMAT, version: 2, modules: [{ subject: 'Englisch', grade: 6, number: 1, title: 'London', lessons: [{ number: 1, title: 'Sights', plan: 'Sehenswürdigkeiten' }] }] }));
+    const file = JSON.parse(JSON.stringify(packageFromModule(a.modules[0], a.lessons)));
+    expect(file.modules[0].lessons).toEqual([{ number: 1, title: 'Sights', plan: 'Sehenswürdigkeiten' }]);
+    expect(readPackage(file).modules[0].lessons[0]).toMatchObject({ title: 'Sights', plan: 'Sehenswürdigkeiten' });
   });
 });

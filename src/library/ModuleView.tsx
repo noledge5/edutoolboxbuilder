@@ -9,7 +9,7 @@ import { Icon } from '../icons';
 import { THEMES } from '../model/themes';
 import { topicIcon } from '../topicIcons';
 import { ModulePages, ModulePrint, usePageFit, type PrintKind } from './ModulePrint';
-import { competenceLessons, competenceLinks, linkLabel, newCompetence, type CompetenceLink } from './model';
+import { competenceLessons, competenceLinks, isWorkedOut, linkLabel, newCompetence, progressOf, type CompetenceLink } from './model';
 import { domainsFor } from './curriculum';
 import type { Competence, Lesson, Module, Settings } from './types';
 import { GRADES } from './types';
@@ -178,6 +178,7 @@ export function ModuleView(p: ModuleViewProps) {
           <button type="button" role="tab" aria-selected={tab === 'inhalt'} className={'lib-tab' + (tab === 'inhalt' ? ' is-on' : '')} onClick={() => setTab('inhalt')}>
             <Icon icon={ListChecks} />
             Inhalt · {p.lessons.length} {p.lessons.length === 1 ? 'Stunde' : 'Stunden'}
+            {p.lessons.some((l) => !isWorkedOut(l)) && ` · ${p.lessons.filter((l) => !isWorkedOut(l)).length} geplant`}
           </button>
           <button type="button" role="tab" aria-selected={tab === 'raster'} className={'lib-tab' + (tab === 'raster' ? ' is-on' : '')} onClick={() => setTab('raster')}>
             <Icon icon={Table} />
@@ -244,11 +245,22 @@ function GridPreview(p: ModuleViewProps & { onEdit(): void }) {
 }
 
 function LessonList(p: ModuleViewProps) {
+  const progress = progressOf(p.lessons);
   return (
     <section className="lib-section">
+      {progress.done < progress.total && (
+        <div className="lib-progress">
+          <span className="lib-progress-bar" aria-hidden="true">
+            <span style={{ width: `${(100 * progress.done) / progress.total}%` }} />
+          </span>
+          {progress.done} von {progress.total} Stunden ausgearbeitet · geplante Stunden sind blass, „Ausarbeiten“ öffnet das leere Arbeitsblatt
+        </div>
+      )}
       <div className="lib-lessons">
-        {p.lessons.map((l) => (
-          <div key={l.id} className="lib-lesson">
+        {p.lessons.map((l) => {
+          const planned = !isWorkedOut(l);
+          return (
+          <div key={l.id} className={'lib-lesson' + (planned ? ' is-planned' : '')}>
             <div className="lib-lesson-num">
               <NumberField label="Stunde" value={l.number} min={1} max={99} onChange={(number) => p.onChangeLesson({ ...l, number, updatedAt: Date.now() })} />
             </div>
@@ -263,19 +275,33 @@ function LessonList(p: ModuleViewProps) {
                   onChange={(e) => p.onChangeLesson({ ...l, textbook: e.target.value, updatedAt: Date.now() })}
                 />
               </div>
-              <div className="lib-lesson-pages">
-                {l.doc.pages.map((pg, k) => (
-                  <span key={k} className="lib-page-chip">
-                    <span className="lib-page-dot" style={{ background: THEMES[pg.type].circle }} />
-                    {pg.title}
-                    <span className="lib-page-type">{THEMES[pg.type].label}</span>
-                  </span>
-                ))}
-              </div>
+              {(planned || l.plan) && (
+                <div className="lib-lesson-plan-row">
+                  {planned && <span className="lib-planned-badge">Geplant</span>}
+                  <input
+                    className="input lib-lesson-plan"
+                    aria-label="Planung der Stunde"
+                    placeholder="Planung: Was passiert in der Stunde?"
+                    value={l.plan}
+                    onChange={(e) => p.onChangeLesson({ ...l, plan: e.target.value, updatedAt: Date.now() })}
+                  />
+                </div>
+              )}
+              {!planned && (
+                <div className="lib-lesson-pages">
+                  {l.doc.pages.map((pg, k) => (
+                    <span key={k} className="lib-page-chip">
+                      <span className="lib-page-dot" style={{ background: THEMES[pg.type].circle }} />
+                      {pg.title}
+                      <span className="lib-page-type">{THEMES[pg.type].label}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="lib-lesson-actions">
-              <button type="button" className="btn btn-primary ui-btn" onClick={() => p.onOpenLesson(l)}>
-                Öffnen
+              <button type="button" className={'btn ui-btn ' + (planned ? 'btn-secondary' : 'btn-primary')} onClick={() => p.onOpenLesson(l)}>
+                {planned ? 'Ausarbeiten' : 'Öffnen'}
               </button>
               <button type="button" className="iconbtn" title="Duplizieren" aria-label="Duplizieren" onClick={() => p.onDuplicateLesson(l)}>
                 <Icon icon={Copy} />
@@ -285,7 +311,8 @@ function LessonList(p: ModuleViewProps) {
               </button>
             </div>
           </div>
-        ))}
+          );
+        })}
         {p.lessons.length === 0 && <p className="lib-empty">Noch keine Stunden. Lege die erste an oder importiere eine Arbeitsblatt-Datei.</p>}
       </div>
       <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onAddLesson}>

@@ -1,18 +1,18 @@
 // Year plan of a subject and grade: the modules (units) laid out on the school weeks, with holidays; printable on A4.
 import { useState, type CSSProperties } from 'react';
-import { ArrowLeft, CalendarRange, PackageOpen, Printer } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CalendarRange, PackageOpen, Printer } from 'lucide-react';
 import { NumberField } from '../editor/fields';
 import { Icon } from '../icons';
 import type { Doc, Page } from '../model/types';
 import { SheetPage } from '../sheet/SheetPage';
 import { topicIcon } from '../topicIcons';
 import { PrintFrame } from './ModulePrint';
-import { footerFor, lessonsOf, modulesOf } from './model';
+import { footerFor, lessonsOf, modulesOf, progressOf, progressText } from './model';
+import type { ParsedPackage } from './package';
+import { PlanImportDialog } from './PlanImportDialog';
 import { SettingsDialog } from './Overview';
 import type { Library, Module, Settings } from './types';
 import { BW_2026_27, dayText, planModules, schoolWeekCount, schoolWeeks, type PlannedModule, type PlanWeek } from './yearplan';
-
-const lessonCount = (n: number) => `${n} ${n === 1 ? 'Stunde' : 'Stunden'}`;
 
 const MODULE_COLORS = ['accent-3', 'accent', 'accent-2', 'accent-4', 'accent-5', 'accent-6', 'accent-7'];
 const moduleVars = (k: number) => {
@@ -30,6 +30,7 @@ interface YearPlanViewProps {
   onSetSchoolYear(): void;
   onSaveSettings(s: Settings): void;
   onExport(): void;
+  onImport(pkg: ParsedPackage): void;
 }
 
 /** Which planned modules cover a week. */
@@ -48,6 +49,7 @@ const addFriday = (monday: string) => {
 export function YearPlanView(p: YearPlanViewProps) {
   const [printing, setPrinting] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const year = p.lib.settings.schoolYear;
   const modules = modulesOf(p.lib, p.subject, p.grade);
   const weeks = year ? schoolWeeks(year) : [];
@@ -56,8 +58,10 @@ export function YearPlanView(p: YearPlanViewProps) {
   const total = schoolWeekCount(weeks);
   const used = modules.reduce((n, m) => n + m.weeks, 0);
   const planCount = modules.filter((m) => m.weeks > 0).length;
+  const progress = new Map(modules.map((m) => [m.id, progressOf(lessonsOf(p.lib, m.id))]));
+  const onlyPlanned = (m: Module) => progress.get(m.id)!.done === 0;
 
-  if (printing && year) return <YearPlanPrint {...p} weeks={weeks} planned={planned} colorOf={colorOf} onClose={() => setPrinting(false)} />;
+  if (printing && year) return <YearPlanPrint {...p} weeks={weeks} planned={planned} colorOf={colorOf} onlyPlanned={onlyPlanned} onClose={() => setPrinting(false)} />;
 
   return (
     <div className="lib">
@@ -75,6 +79,10 @@ export function YearPlanView(p: YearPlanViewProps) {
             {year ? ` · Schuljahr ${year.name}` : ''}
           </div>
         </div>
+        <button type="button" className="btn btn-secondary ui-btn" onClick={() => setImportOpen(true)} title="Jahresplan von Claude oder aus Word, Excel, Notizen übernehmen">
+          <Icon icon={CalendarPlus} />
+          <span className="btn-label">Importieren</span>
+        </button>
         <button type="button" className="btn btn-secondary ui-btn" onClick={p.onExport} title="Alle Module dieses Jahrgangs mit Schuljahr als Stundenpaket, z. B. für Claude">
           <Icon icon={PackageOpen} />
           <span className="btn-label">Als Stundenpaket sichern</span>
@@ -110,13 +118,13 @@ export function YearPlanView(p: YearPlanViewProps) {
           <h2 className="lib-h2">Module</h2>
           <p className="lib-help">
             Trage für jedes Modul die Dauer in Schulwochen ein. Die Module folgen in der Reihenfolge ihrer Nummer aufeinander; Ferienwochen werden übersprungen. Ein Beginn legt fest, ab wann ein Modul
-            läuft.
+            läuft. Module, die erst geplant und noch nicht ausgearbeitet sind, erscheinen blasser.
           </p>
           <div className="yp-modules">
             {modules.map((m) => {
               const pl = planned.find((x) => x.module.id === m.id);
               return (
-                <div key={m.id} className="yp-module" style={moduleVars(colorOf.get(m.id) ?? 0)}>
+                <div key={m.id} className={'yp-module' + (onlyPlanned(m) ? ' is-planned' : '')} style={moduleVars(colorOf.get(m.id) ?? 0)}>
                   <span className="lib-icon is-small yp-dot">
                     <Icon icon={topicIcon(m.icon)} size={16} />
                   </span>
@@ -127,7 +135,7 @@ export function YearPlanView(p: YearPlanViewProps) {
                     <div className="yp-module-meta">
                       {[
                         m.textbook,
-                        lessonCount(lessonsOf(p.lib, m.id).length),
+                        progressText(progress.get(m.id)!),
                         pl && weeks.length ? period(pl, weeks) + (pl.short ? ' · passt nicht mehr ganz ins Schuljahr' : '') : m.weeks ? '' : 'nicht eingeplant',
                       ]
                         .filter(Boolean)
@@ -142,7 +150,15 @@ export function YearPlanView(p: YearPlanViewProps) {
                 </div>
               );
             })}
-            {modules.length === 0 && <p className="lib-empty">In diesem Jahrgang gibt es noch keine Module.</p>}
+            {modules.length === 0 && (
+              <div className="lib-empty-box">
+                <p className="lib-empty">In diesem Jahrgang gibt es noch keine Module.</p>
+                <button type="button" className="btn btn-primary ui-btn" onClick={() => setImportOpen(true)}>
+                  <Icon icon={CalendarPlus} />
+                  Jahresplan importieren
+                </button>
+              </div>
+            )}
           </div>
         </section>
 
@@ -163,7 +179,7 @@ export function YearPlanView(p: YearPlanViewProps) {
                         <span className="yp-holiday">{w.holiday}</span>
                       ) : (
                         here.map((x) => (
-                          <span key={x.module.id} className="yp-chip" style={moduleVars(colorOf.get(x.module.id) ?? 0)}>
+                          <span key={x.module.id} className={'yp-chip' + (onlyPlanned(x.module) ? ' is-planned' : '')} style={moduleVars(colorOf.get(x.module.id) ?? 0)}>
                             Modul {x.module.number}: {x.module.title}
                           </span>
                         ))
@@ -178,6 +194,18 @@ export function YearPlanView(p: YearPlanViewProps) {
         )}
       </main>
       {settingsOpen && <SettingsDialog settings={p.lib.settings} onSave={p.onSaveSettings} onClose={() => setSettingsOpen(false)} />}
+      {importOpen && (
+        <PlanImportDialog
+          lib={p.lib}
+          subject={p.subject}
+          grade={p.grade}
+          onImport={(pkg) => {
+            setImportOpen(false);
+            p.onImport(pkg);
+          }}
+          onClose={() => setImportOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -185,7 +213,7 @@ export function YearPlanView(p: YearPlanViewProps) {
 // One school year (about 46 weeks) fits on one A4 page.
 const WEEKS_PER_PAGE = 48;
 
-function YearPlanPrint(p: YearPlanViewProps & { weeks: PlanWeek[]; planned: PlannedModule[]; colorOf: Map<string, number>; onClose(): void }) {
+function YearPlanPrint(p: YearPlanViewProps & { weeks: PlanWeek[]; planned: PlannedModule[]; colorOf: Map<string, number>; onlyPlanned(m: Module): boolean; onClose(): void }) {
   const year = p.lib.settings.schoolYear!;
   const doc: Doc = { icon: 'calendar', lang: 'de', help: false, footer: footerFor(p.lib.settings, p.subject), code: `K${p.grade} · Jahresplan`, pages: [] };
   const page: Page = { title: `Jahresplan ${p.subject}`, kicker: `Klasse ${p.grade} · Schuljahr ${year.name}`, type: 'lehrkraft', form: 'allein', nameField: 'aus', blocks: [] };
@@ -232,7 +260,7 @@ function YearPlanPrint(p: YearPlanViewProps & { weeks: PlanWeek[]; planned: Plan
                               <span className="yp-holiday">{w.holiday}</span>
                             ) : (
                               here.map((x) => (
-                                <span key={x.module.id} className="yp-chip" style={moduleVars(p.colorOf.get(x.module.id) ?? 0)}>
+                                <span key={x.module.id} className={'yp-chip' + (p.onlyPlanned(x.module) ? ' is-planned' : '')} style={moduleVars(p.colorOf.get(x.module.id) ?? 0)}>
                                   {x.first === i ? `Modul ${x.module.number}: ${x.module.title}${x.module.textbook ? ` · ${x.module.textbook}` : ''}` : `Modul ${x.module.number}`}
                                 </span>
                               ))

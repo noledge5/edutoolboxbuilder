@@ -320,3 +320,43 @@ span.lib-chip:not(:has(.lib-chip-x)) { padding-right: 10px; }
 .lib-grid-preview { display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 0; }
 .lib-grid-preview .page-frame { margin: 0; }
 .lib-empty-box { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+
+/* Planned, not yet worked out (year plan): pale and dashed, clearly unfinished. */
+.lib-planned-badge {
+  display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; vertical-align: 1px;
+  background: var(--color-neutral-200); color: var(--color-neutral-700);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.lib-card.is-planned { background: var(--color-neutral-100); border: 2px dashed var(--color-neutral-400); box-shadow: none; }
+.lib-card.is-planned .lib-icon { background: var(--color-neutral-300); color: var(--color-neutral-800); }
+.lib-card.is-planned .lib-card-kicker { color: var(--color-neutral-700); }
+.lib-card.is-planned .lib-card-title { color: var(--color-neutral-800); }
+.lib-lesson.is-planned { background: var(--color-neutral-100); border: 2px dashed var(--color-neutral-300); box-shadow: none; }
+.lib-lesson.is-planned .lib-lesson-title { color: var(--color-neutral-800); }
+.lib-lesson-plan-row { display: flex; align-items: center; gap: 8px; }
+.lib-lesson-plan-row .lib-planned-badge { margin-left: 0; flex: none; }
+.lib-lesson-plan { flex: 1; min-width: 0; font-size: 13px; }
+.lib-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 13px; color: var(--color-neutral-800); }
+.lib-progress-bar { flex: none; width: 120px; height: 8px; border-radius: 999px; background: var(--color-neutral-300); overflow: hidden; }
+.lib-progress-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--color-accent-2-600); }
+.lib-progress-bar.is-card { width: 100%; margin-top: 6px; height: 6px; }
+.yp-module.is-planned { background: var(--color-neutral-100); box-shadow: none; border-left-color: var(--m-bg); }
+.yp-module.is-planned .yp-module-title { color: var(--color-neutral-800); }
+.yp-chip.is-planned { background: transparent; box-shadow: inset 0 0 0 1.5px var(--m-dot); color: var(--color-neutral-800); font-weight: 600; }
+.ov-row.is-planned .ov-num, .ov-row.is-planned .ov-title { color: var(--color-neutral-700); }
+.ov-plan { font-size: 12px; color: var(--color-neutral-700); line-height: 1.4; }
+.ov-planned {
+  display: inline-block; margin-right: 6px; padding: 0 7px; border-radius: 999px; border: 1.5px dashed var(--color-neutral-400);
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+}
+
+/* Year plan import */
+.plan-dialog { width: min(620px, 100%); }
+.plan-open { justify-self: start; align-self: flex-start; }
+.plan-text { font-size: 13px; line-height: 1.45; border-radius: 16px; }
+.plan-preview { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+.plan-row { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 2px 10px; padding: 8px 12px; border-radius: 14px; background: var(--color-accent-2-100); }
+.plan-row.is-merge { background: var(--color-accent-3-100); }
+.plan-action { grid-row: span 2; align-self: center; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-neutral-800); }
+.plan-title { font-weight: 700; font-size: 13.5px; }
+.plan-meta { font-size: 12px; color: var(--color-neutral-700); }

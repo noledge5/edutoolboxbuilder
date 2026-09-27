@@ -31,6 +31,26 @@ export const modulesOf = (lib: Library, subject: string, grade: number) =>
 
 export const lessonsOf = (lib: Library, moduleId: string) => lib.lessons.filter((l) => l.moduleId === moduleId).sort((a, b) => a.number - b.number);
 
+/** A lesson is worked out once one of its pages has content; before that it is only planned (from the year plan). */
+export const isWorkedOut = (l: Lesson) => l.doc.pages.some((p) => p.blocks.length > 0);
+
+/** How many of a module's lessons are worked out. */
+export const progressOf = (lessons: Lesson[]) => ({ done: lessons.filter(isWorkedOut).length, total: lessons.length });
+
+/** "3 von 8 Stunden ausgearbeitet", "8 Stunden geplant", "8 Stunden", "noch keine Stunden" */
+export function progressText(p: { done: number; total: number }): string {
+  const lessons = (n: number) => `${n} ${n === 1 ? 'Stunde' : 'Stunden'}`;
+  if (p.total === 0) return 'noch keine Stunden';
+  if (p.done === p.total) return lessons(p.total);
+  if (p.done === 0) return `${lessons(p.total)} geplant`;
+  return `${p.done} von ${lessons(p.total)} ausgearbeitet`;
+}
+
+/** The empty worksheet of a planned lesson: one page with the lesson's title. */
+export function plannedDoc(m: Pick<Module, 'grade' | 'lang' | 'title' | 'icon' | 'help'>, title: string): Doc {
+  return { icon: m.icon, lang: m.lang, help: m.help, footer: '', code: '', pages: [{ ...createPage(), title, kicker: `${gradeLabel(m)} · ${m.title}` }] };
+}
+
 /** A task linked to a competence: lesson number, printed page number (null on a teacher page), task number on that page, level key. */
 export interface CompetenceLink {
   lesson: number;
@@ -108,6 +128,7 @@ export function newLesson(lib: Library, m: Module): Lesson {
     number,
     title: 'Neue Stunde',
     textbook: '',
+    plan: '',
     doc: { icon: m.icon, lang: m.lang, help: m.help, footer: footerFor(lib.settings, m.subject), code: lessonCode(m, number), pages: [page] },
     updatedAt: Date.now(),
   };
@@ -166,7 +187,7 @@ export function libraryFromOldDoc(doc: Doc): Library {
     start: '',
     updatedAt: Date.now(),
   };
-  const lesson: Lesson = { id: uid(), moduleId: module.id, number: code ? Number(code[3]) : 1, title: doc.pages[0]?.title || 'Stunde', textbook: '', doc, updatedAt: Date.now() };
+  const lesson: Lesson = { id: uid(), moduleId: module.id, number: code ? Number(code[3]) : 1, title: doc.pages[0]?.title || 'Stunde', textbook: '', plan: '', doc, updatedAt: Date.now() };
   return { settings, modules: [module], lessons: [lesson], deleted: {} };
 }
 
@@ -222,7 +243,7 @@ export function seedLibrary(): Library {
     updatedAt: 0,
   };
   const doc = seedDoc();
-  const lesson: Lesson = { id: 'beispiel-stunde', moduleId: module.id, number: 2, title: 'Der Treibhauseffekt', textbook: '', doc, updatedAt: 0 };
+  const lesson: Lesson = { id: 'beispiel-stunde', moduleId: module.id, number: 2, title: 'Der Treibhauseffekt', textbook: '', plan: '', doc, updatedAt: 0 };
   return { settings, modules: [module], lessons: [lesson], deleted: {} };
 }
 

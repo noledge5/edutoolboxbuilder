@@ -10,7 +10,7 @@ import { mapBlockImages, uid } from '../model/ops';
 import { THEMES, WORK_FORMS } from '../model/themes';
 import type { Block, Doc, Page } from '../model/types';
 import { DEFAULT_TOPIC_ICON, isTopicIcon } from '../topicIcons';
-import { defaultLang, footerFor, lessonCode, modulesOf } from './model';
+import { defaultLang, footerFor, isWorkedOut, lessonCode, lessonsOf, modulesOf, plannedDoc } from './model';
 import { readDay, readSchoolYear } from './read';
 import { GRADES, type Competence, type Lesson, type Library, type Module, type SchoolYear } from './types';
 
@@ -33,7 +33,8 @@ export interface PackageModule {
   weeks: number;
   start?: string;
   competences: (Omit<Competence, 'lessons' | 'domain'> & { lessons?: string; domain?: string })[];
-  lessons: { number: number; title: string; textbook?: string; pages: PackagePage[] }[];
+  /** Lessons; a planned lesson (year plan) has a title and a planning note but no pages yet. */
+  lessons: { number: number; title: string; textbook?: string; plan?: string; pages?: PackagePage[] }[];
 }
 
 export interface PackageFile {
@@ -46,9 +47,17 @@ export interface PackageFile {
   images?: Record<string, string>;
 }
 
+export interface ParsedLesson {
+  number: number;
+  title: string;
+  textbook: string;
+  plan: string;
+  doc: Doc;
+}
+
 export interface ParsedModule {
   module: Omit<Module, 'id' | 'updatedAt'>;
-  lessons: { number: number; title: string; textbook: string; doc: Doc }[];
+  lessons: ParsedLesson[];
 }
 
 /** A package read from a file: modules and lesson documents with fresh ids, plus notes about what was repaired. */
@@ -152,12 +161,19 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
     });
   }
 
+  const help = m.help !== false;
   const rawLessons = m.lessons === undefined ? [] : m.lessons;
   if (!Array.isArray(rawLessons)) throw new DocFormatError(within('"lessons" ist keine Liste.'));
-  const lessons = rawLessons.map((l, i) => {
+  const lessons = rawLessons.map((l, i): ParsedLesson => {
     const at = within(`Stunde ${i + 1}`);
     if (!isObj(l)) throw new DocFormatError(`${at} ist kein Objekt.`);
     const pages = Array.isArray(l.pages) ? l.pages : isObj(l.doc) ? l.doc.pages : undefined;
+    const plan = text(l.plan).trim();
+    // A planned lesson of the year plan: title and note, the worksheet comes later.
+    if ((pages === undefined || (Array.isArray(pages) && pages.length === 0)) && (str(l.title) || plan)) {
+      const lessonTitle = str(l.title) || `Stunde ${posInt(l.number) || i + 1}`;
+      return { number: posInt(l.number), title: lessonTitle, textbook: str(l.textbook), plan, doc: plannedDoc({ grade, lang, title, icon, help }, lessonTitle) };
+    }
     if (!Array.isArray(pages) || pages.length === 0) throw new DocFormatError(`${at} hat keine Seiten ("pages").`);
     checkPages(pages, at, notes);
     let doc: Doc;
@@ -185,7 +201,7 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
         });
       }),
     );
-    return { number: posInt(l.number), title: str(l.title) || doc.pages[0].title, textbook: str(l.textbook), doc };
+    return { number: posInt(l.number), title: str(l.title) || doc.pages[0].title, textbook: str(l.textbook), plan, doc };
   });
 
   // Keep the lesson numbers from the file if they are usable, else number them in order.
@@ -207,7 +223,7 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
       description: text(m.description).trim(),
       competences,
       lang,
-      help: m.help !== false,
+      help,
       textbook: str(m.textbook),
       weeks: posInt(m.weeks),
       start,
@@ -238,14 +254,69 @@ function checkPages(pages: unknown[], where: string, notes: string[]) {
   });
 }
 
-/** Adds a read package to the library as new modules. Each keeps its module number if that is still free, else takes the next one. */
-export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[]; lessons: Lesson[]; notes: string[] } {
+/** What importing a package did with one of its modules. */
+export interface ImportResult {
+  module: Module;
+  /** New module, or an existing one with the same number that was filled in (a planned module, or a year plan for a module in progress). */
+  action: 'neu' | 'ergänzt';
+  /** Lessons added and lessons of the module that were replaced or completed. */
+  added: number;
+  changed: number;
+  /** Of the added and changed lessons, how many are only planned. */
+  planned: number;
+}
+
+const workedOut = (l: ParsedLesson) => l.doc.pages.some((p) => p.blocks.length > 0);
+
+/**
+ * Adds a read package to the library. A module whose number is already taken in its subject and grade
+ * is merged into the existing module when nothing worked out gets lost: a year plan completes a module
+ * (missing lessons are added as planned), and worked-out lessons fill a module that is only planned.
+ * Otherwise the package becomes a new module with the next free number.
+ * Returns the new and changed modules and lessons.
+ */
+export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[]; lessons: Lesson[]; notes: string[]; results: ImportResult[] } {
   const now = Date.now();
   const modules: Module[] = [];
   const lessons: Lesson[] = [];
+  const results: ImportResult[] = [];
+  const used = new Set<string>();
   for (const pm of p.modules) {
     const same = (m: Module) => m.subject === pm.module.subject && m.grade === pm.module.grade;
-    const taken = [...modulesOf(lib, pm.module.subject, pm.module.grade), ...modules.filter(same)].map((m) => m.number);
+    const existing = modulesOf(lib, pm.module.subject, pm.module.grade);
+    const incomingDone = pm.lessons.some(workedOut);
+    const target = existing.find((m) => m.number === pm.module.number && !used.has(m.id));
+    const targetLessons = target ? lessonsOf(lib, target.id) : [];
+    const targetDone = targetLessons.some(isWorkedOut);
+
+    if (target && pm.module.number && !(incomingDone && targetDone)) {
+      used.add(target.id);
+      const module = mergeModule(target, pm.module, targetDone, now);
+      modules.push(module);
+      const r: ImportResult = { module, action: 'ergänzt', added: 0, changed: 0, planned: 0 };
+      const footer = footerFor(lib.settings, module.subject);
+      for (const l of pm.lessons) {
+        const doc = { ...l.doc, icon: module.icon, lang: module.lang, help: module.help, footer, code: lessonCode(module, l.number) };
+        const old = targetLessons.find((x) => x.number === l.number);
+        if (!old) {
+          lessons.push({ id: uid(), moduleId: module.id, number: l.number, title: l.title, textbook: l.textbook, plan: l.plan, doc, updatedAt: now });
+          r.added++;
+          if (!workedOut(l)) r.planned++;
+        } else if (!isWorkedOut(old)) {
+          // Only planned so far: the package's version replaces it, keeping what the package leaves empty.
+          lessons.push({ ...old, title: l.title || old.title, textbook: l.textbook || old.textbook, plan: l.plan || old.plan, doc, updatedAt: now });
+          r.changed++;
+          if (!workedOut(l)) r.planned++;
+        } else if (l.plan && !old.plan) {
+          lessons.push({ ...old, plan: l.plan, updatedAt: now });
+          r.changed++;
+        }
+      }
+      results.push(r);
+      continue;
+    }
+
+    const taken = [...existing, ...modules.filter((m) => same(m) && !existing.includes(m))].map((m) => m.number);
     const wanted = pm.module.number;
     const number = wanted && !taken.includes(wanted) ? wanted : taken.length ? Math.max(...taken) + 1 : 1;
     const module: Module = { ...pm.module, id: uid(), number, updatedAt: now };
@@ -258,12 +329,42 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
         number: l.number,
         title: l.title,
         textbook: l.textbook,
+        plan: l.plan,
         doc: { ...l.doc, icon: module.icon, lang: module.lang, help: module.help, footer, code: lessonCode(module, l.number) },
         updatedAt: now,
       });
     }
+    results.push({ module, action: 'neu', added: pm.lessons.length, changed: 0, planned: pm.lessons.filter((l) => !workedOut(l)).length });
   }
-  return { modules, lessons, notes: p.notes };
+  return { modules, lessons, notes: p.notes, results };
+}
+
+/**
+ * The existing module with the package's data. A module in progress keeps its data and only gets
+ * what is still empty; a module that is only planned takes the package's data where it has any.
+ */
+function mergeModule(old: Module, pm: ParsedModule['module'], inProgress: boolean, now: number): Module {
+  const fill = {
+    description: old.description || pm.description,
+    textbook: old.textbook || pm.textbook,
+    weeks: old.weeks || pm.weeks,
+    start: old.start || pm.start,
+    competences: old.competences.length ? old.competences : pm.competences,
+  };
+  if (inProgress) return { ...old, ...fill, updatedAt: now };
+  return {
+    ...old,
+    title: pm.title || old.title,
+    icon: pm.icon === DEFAULT_TOPIC_ICON ? old.icon : pm.icon,
+    description: pm.description || old.description,
+    textbook: pm.textbook || old.textbook,
+    weeks: pm.weeks || old.weeks,
+    start: pm.start || old.start,
+    competences: pm.competences.length ? pm.competences : old.competences,
+    lang: pm.lang,
+    help: pm.help,
+    updatedAt: now,
+  };
 }
 
 function packageModule(m: Module, lessons: Lesson[]): PackageModule {
@@ -282,7 +383,14 @@ function packageModule(m: Module, lessons: Lesson[]): PackageModule {
     competences: m.competences.map(({ id, area, g, m: mid, e, lessons: ls, domain }) => ({ id, ...(domain ? { domain } : {}), area, g, m: mid, e, ...(ls.trim() ? { lessons: ls } : {}) })),
     lessons: [...lessons]
       .sort((a, b) => a.number - b.number)
-      .map((l) => ({ number: l.number, title: l.title, ...(l.textbook ? { textbook: l.textbook } : {}), pages: l.doc.pages.map((pg) => ({ ...pg, blocks: pg.blocks.map(leanBlock) })) })),
+      .map((l) => ({
+        number: l.number,
+        title: l.title,
+        ...(l.textbook ? { textbook: l.textbook } : {}),
+        ...(l.plan ? { plan: l.plan } : {}),
+        // A planned lesson goes without its empty page, so Claude sees it as planned.
+        ...(isWorkedOut(l) ? { pages: l.doc.pages.map((pg) => ({ ...pg, blocks: pg.blocks.map(leanBlock) })) } : {}),
+      })),
   };
 }
 

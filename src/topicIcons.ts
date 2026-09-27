@@ -551,3 +551,21 @@ export function searchTopicIcons(query: string): TopicIcon[] {
   if (!q) return TOPIC_ICONS;
   return TOPIC_ICONS.filter((t) => `${t.label} ${t.words ?? ''}`.toLowerCase().includes(q));
 }
+
+/** An icon that fits a title ("My family and me" → home), found by its words; else `fallback`. */
+export function guessTopicIcon(title: string, fallback = 'book-open'): string {
+  const words = title
+    .toLowerCase()
+    .split(/[^\p{L}]+/u)
+    .filter((w) => w.length >= 4);
+  for (const w of words) {
+    const hit = TOPIC_ICONS.find((t) =>
+      `${t.label} ${t.words ?? ''}`
+        .toLowerCase()
+        .split(/[^\p{L}]+/u)
+        .some((term) => term.length >= 4 && (term === w || w.startsWith(term) || term.startsWith(w))),
+    );
+    if (hit) return hit.key;
+  }
+  return fallback;
+}

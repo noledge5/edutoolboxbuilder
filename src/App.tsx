@@ -5,7 +5,7 @@ import { ModuleView } from './library/ModuleView';
 import { Overview } from './library/Overview';
 import { SyncDialog } from './library/SyncDialog';
 import { go, useRoute } from './library/router';
-import { addPackage, type ParsedPackage } from './library/package';
+import { addPackage, type ImportResult, type ParsedPackage } from './library/package';
 import type { Lesson, Library, Module, Settings } from './library/types';
 import type { Doc } from './model/types';
 import { createPackageFile, createPlanFile, downloadBlob, packageFileName, readAnyFile, safeFileName, type OpenedFile } from './storage/backup';
@@ -14,6 +14,26 @@ import { BW_2026_27 } from './library/yearplan';
 import { vocabCsv, vocabOf, vocabTestRows } from './model/language';
 import { requestPersistentStorage } from './storage/db';
 import * as store from './storage/library';
+
+const count = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
+
+/** What an import did, in one line: "„Hello“ ist jetzt Modul 1 mit 3 Stunden." or "2 Module neu, 1 ergänzt · 12 Stunden neu (10 geplant)." */
+function importNotice(results: ImportResult[]): string {
+  const added = results.reduce((k, r) => k + r.added, 0);
+  const changed = results.reduce((k, r) => k + r.changed, 0);
+  const planned = results.reduce((k, r) => k + r.planned, 0);
+  const lessons = [added ? count(added, 'Stunde neu', 'Stunden neu') : '', changed ? count(changed, 'Stunde ergänzt', 'Stunden ergänzt') : ''].filter(Boolean).join(', ');
+  const plannedText = planned ? ` (${planned} davon geplant)` : '';
+  if (results.length === 1) {
+    const [r] = results;
+    if (r.action === 'neu') return `Importiert: „${r.module.title}“ ist jetzt Modul ${r.module.number} mit ${count(r.added, 'Stunde', 'Stunden')}${plannedText}.`;
+    return `Modul ${r.module.number} „${r.module.title}“ ergänzt${lessons ? `: ${lessons}` : ''}${plannedText}.`;
+  }
+  const fresh = results.filter((r) => r.action === 'neu').length;
+  const merged = results.length - fresh;
+  const mods = [fresh ? count(fresh, 'Modul neu', 'Module neu') : '', merged ? `${merged} ergänzt` : ''].filter(Boolean).join(', ');
+  return `Importiert: ${mods}${lessons ? ` · ${lessons}` : ''}${plannedText}.`;
+}
 
 /** Replaces an unknown address (deleted module or lesson) with the overview. */
 function ToOverview() {
@@ -130,8 +150,9 @@ export function App() {
     );
   };
 
-  // A Stundenpaket (e.g. made by Claude) becomes new modules; a year plan may also bring the school year.
-  const importPackage = async (pkg: ParsedPackage) => {
+  // A Stundenpaket (e.g. made by Claude) becomes new modules or completes existing ones; a year plan may also bring the school year.
+  // `stay`: imported from the year plan, which stays open.
+  const importPackage = async (pkg: ParsedPackage, stay = false) => {
     const lib = libRef.current!;
     const r = addPackage(lib, pkg);
     for (const m of r.modules) putModule(m);
@@ -142,14 +163,11 @@ export function App() {
       if (replace) putSettings({ ...lib.settings, schoolYear: year });
     }
     setSyncOpen(false);
-    const n = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
-    const [first] = r.modules;
-    if (r.modules.length === 1) {
-      go({ view: 'module', id: first.id });
-      setNotice(`Stundenpaket importiert: „${first.title}“ ist jetzt Modul ${first.number} mit ${n(r.lessons.length, 'Stunde', 'Stunden')}.`);
-    } else {
-      go({ view: 'overview', subject: first.subject, grade: first.grade });
-      setNotice(`Stundenpaket importiert: ${n(r.modules.length, 'Modul', 'Module')} mit ${n(r.lessons.length, 'Stunde', 'Stunden')}.`);
+    setNotice(importNotice(r.results));
+    const [first] = r.results.map((x) => x.module);
+    if (!stay && first) {
+      if (r.results.length === 1) go({ view: 'module', id: first.id });
+      else go({ view: 'overview', subject: first.subject, grade: first.grade });
     }
     if (r.notes.length) {
       const shown = r.notes.slice(0, 12);
@@ -211,6 +229,7 @@ export function App() {
         place={`${m.subject} · Klasse ${m.grade} · Modul ${m.number} · Stunde ${lesson.number}: ${lesson.title}`}
         codeLocked
         competences={m.competences}
+        note={lesson.plan}
       />
     );
   } else if (route.view === 'plan') {
@@ -225,6 +244,7 @@ export function App() {
         onOpenModule={(m) => go({ view: 'module', id: m.id })}
         onSetSchoolYear={() => putSettings({ ...lib.settings, schoolYear: BW_2026_27 })}
         onSaveSettings={putSettings}
+        onImport={(pkg) => importPackage(pkg, true)}
         onExport={async () => {
           try {
             const entries = modulesOf(lib, subject, grade).map((m) => ({ module: m, lessons: lessonsOf(lib, m.id) }));

@@ -4,7 +4,7 @@ import { Blocks, CalendarRange, FolderSync, Plus, Settings as SettingsIcon, Spar
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
 import { ClaudeDialog } from './ClaudeDialog';
-import { lastChange, lessonsOf, modulesOf, subjectsOf } from './model';
+import { isWorkedOut, lastChange, lessonsOf, modulesOf, progressOf, progressText, subjectsOf } from './model';
 import type { Lesson, Library, Module, SchoolYear, Settings } from './types';
 import { readSchoolYear } from './read';
 import { BW_2026_27, holidaysText } from './yearplan';
@@ -36,7 +36,11 @@ export function Overview(p: OverviewProps) {
   const gradesWithModules = GRADES.filter((g) => subject && modulesOf(lib, subject, g).length > 0);
   const grade = p.grade && (GRADES as readonly number[]).includes(p.grade) ? p.grade : (gradesWithModules[0] ?? GRADES[0]);
   const modules = subject ? modulesOf(lib, subject, grade) : [];
-  const recent = [...lib.lessons].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 4);
+  // Planned lessons from the year plan were imported, not edited.
+  const recent = lib.lessons
+    .filter(isWorkedOut)
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .slice(0, 4);
   const moduleOf = (l: Lesson) => lib.modules.find((m) => m.id === l.moduleId);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [claudeOpen, setClaudeOpen] = useState(false);
@@ -195,16 +199,26 @@ export function Overview(p: OverviewProps) {
             <div className="lib-grid">
               {modules.map((m) => {
                 const lessons = lessonsOf(lib, m.id);
+                const progress = progressOf(lessons);
+                const planned = progress.done === 0;
                 return (
-                  <button key={m.id} type="button" className="lib-card" onClick={() => p.onOpenModule(m)}>
+                  <button key={m.id} type="button" className={'lib-card' + (planned ? ' is-planned' : '')} onClick={() => p.onOpenModule(m)}>
                     <span className="lib-icon">
                       <Icon icon={topicIcon(m.icon)} size={22} />
                     </span>
-                    <span className="lib-card-kicker">Modul {m.number}</span>
+                    <span className="lib-card-kicker">
+                      Modul {m.number}
+                      {planned && <span className="lib-planned-badge">{progress.total ? 'Geplant' : 'Noch leer'}</span>}
+                    </span>
                     <span className="lib-card-title">{m.title}</span>
                     <span className="lib-card-meta">
-                      {lessons.length} {lessons.length === 1 ? 'Stunde' : 'Stunden'} · {m.competences.length} {m.competences.length === 1 ? 'Kompetenz' : 'Kompetenzen'}
+                      {progressText(progress)} · {m.competences.length} {m.competences.length === 1 ? 'Kompetenz' : 'Kompetenzen'}
                     </span>
+                    {progress.done > 0 && progress.done < progress.total && (
+                      <span className="lib-progress-bar is-card" aria-hidden="true">
+                        <span style={{ width: `${(100 * progress.done) / progress.total}%` }} />
+                      </span>
+                    )}
                   </button>
                 );
               })}

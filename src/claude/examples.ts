@@ -1,6 +1,6 @@
 // Complete Stundenpakete for the instructions: an English lesson (Klasse 5), a year plan and the Geography sample.
 // Built with the app's own functions, so the tests can check that the Baukasten reads them without a single note.
-import { lessonsOf, seedLibrary } from '../library/model';
+import { lessonsOf, plannedDoc, seedLibrary } from '../library/model';
 import { packageFromModules, type PackageFile } from '../library/package';
 import type { Lesson, Module } from '../library/types';
 import { BW_2026_27 } from '../library/yearplan';
@@ -29,6 +29,7 @@ const lesson = (m: Module, number: number, title: string, textbook: string, page
   number,
   title,
   textbook,
+  plan: '',
   doc: { icon: m.icon, lang: m.lang, help: m.help, footer: '', code: '', pages } satisfies Doc,
   updatedAt: time,
 });
@@ -224,7 +225,13 @@ export function englishExample(): PackageFile {
   return clean(packageFromModules([{ module: m, lessons: [lesson(m, 1, 'Hello, I’m …', '', [teacher, vocab, grammar, speaking])] }]));
 }
 
-/** A year plan without a textbook: the units of Englisch Klasse 5 with their focus and weeks, without lessons yet, and the school year. */
+/** A planned lesson of the year plan: title and planning note, no pages yet. */
+const planned = (m: Module, number: number, title: string, plan: string): Lesson => ({ ...lesson(m, number, title, '', []), plan, doc: plannedDoc(m, title) });
+
+/**
+ * A year plan without a textbook: the units of Englisch Klasse 5 with their focus and weeks, the school year,
+ * and planned lessons (title and note, no pages) where they are already known.
+ */
 export function yearPlanExample(): PackageFile {
   const units: [string, string, number, string][] = [
     ['Hello, school!', 'school', 5, 'Sich vorstellen, Schule und Klassenzimmer · Grammatik: to be, Personalpronomen'],
@@ -244,9 +251,18 @@ export function yearPlanExample(): PackageFile {
       lessons: '',
     },
   ];
+  const [m1, m2] = modules;
+  const lessons: Record<string, Lesson[]> = {
+    [m1.id]: [
+      planned(m1, 1, 'Hello, I’m …', 'Sich begrüßen und vorstellen; Wortschatz Klassenzimmer; Kennenlernspiel.'),
+      planned(m1, 2, 'My classroom', 'Schulsachen benennen; Hörverstehen: What’s in your school bag?'),
+      planned(m1, 3, 'I am, you are …', 'Formen von to be entdecken und üben; Personalpronomen.'),
+    ],
+    [m2.id]: [planned(m2, 1, 'This is my family', 'Familienwörter; Stammbaum beschriften; Possessivbegleiter my/your.')],
+  };
   return clean(
     packageFromModules(
-      modules.map((m) => ({ module: m, lessons: [] })),
+      modules.map((m) => ({ module: m, lessons: lessons[m.id] ?? [] })),
       BW_2026_27,
     ),
   );
@@ -284,6 +300,6 @@ export function geographyExample(): PackageFile {
       lessons: [{ ...l, doc: { ...l.doc, pages: [teacher, versuch, sicherung] } }],
     },
   ]);
-  for (const pg of pkg.modules[0].lessons[0].pages) for (const x of pg.blocks) if (x.props.competence) x.props.competence = ids.get(String(x.props.competence));
+  for (const pg of pkg.modules[0].lessons[0].pages ?? []) for (const x of pg.blocks) if (x.props.competence) x.props.competence = ids.get(String(x.props.competence));
   return clean(pkg);
 }

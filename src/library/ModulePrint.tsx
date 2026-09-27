@@ -7,7 +7,7 @@ import type { Doc, Page } from '../model/types';
 import { THEMES } from '../model/themes';
 import { PAGE_H, PAGE_W, SheetPage } from '../sheet/SheetPage';
 import { topicIcon } from '../topicIcons';
-import { competenceLessons, competenceLinks, footerFor, moduleCode } from './model';
+import { competenceLessons, competenceLinks, footerFor, isWorkedOut, moduleCode } from './model';
 import type { Competence, Lesson, Module, Settings } from './types';
 
 export type PrintKind = 'inhalt' | 'raster';
@@ -86,14 +86,20 @@ export function ModulePages({ kind, module: m, lessons, settings, scale = 1 }: M
                       <div>Material</div>
                     </div>
                     {lessonRows.map(({ l }) => (
-                      <div key={l.id} className="ov-row" data-row="">
+                      <div key={l.id} className={'ov-row' + (isWorkedOut(l) ? '' : ' is-planned')} data-row="">
                         <div className="ov-num">{l.number}</div>
                         <div className="ov-title">
                           {l.title}
                           {l.textbook.trim() && <span className="ov-lesson-book">{l.textbook}</span>}
                         </div>
                         <div className="ov-pages">
-                          {l.doc.pages.map((pg, k) => (
+                          {!isWorkedOut(l) && (
+                            <span className="ov-plan">
+                              <span className="ov-planned">geplant</span>
+                              {l.plan}
+                            </span>
+                          )}
+                          {isWorkedOut(l) && l.doc.pages.map((pg, k) => (
                             <span key={k} className="ov-page" style={{ background: THEMES[pg.type].band }}>
                               <span
                                 className="ov-page-type"

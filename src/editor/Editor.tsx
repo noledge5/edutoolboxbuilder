@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors, type Announcements, type DragStartEvent } from '@dnd-kit/core';
+import { X } from 'lucide-react';
+import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { historyReducer, initHistory } from '../model/history';
 import * as ops from '../model/ops';
@@ -79,11 +81,14 @@ export interface EditorProps {
   codeLocked?: boolean;
   /** The module's competences, for linking tasks. */
   competences?: { id: string; area: string }[];
+  /** Planning note of the lesson from the year plan, shown above the page. */
+  note?: string;
 }
 
 const NO_COMPETENCES: { id: string; area: string }[] = [];
 
-export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competences = NO_COMPETENCES }: EditorProps) {
+export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competences = NO_COMPETENCES, note = '' }: EditorProps) {
+  const [noteOpen, setNoteOpen] = useState(true);
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
   const doc = hist.present;
   const [rawSel, setSel] = useState<Selection>({ kind: 'page', p: 0 });
@@ -510,7 +515,7 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
         screenReaderInstructions: { draggable: 'Mit der Maus ziehen oder auf dem Tablet gedrückt halten und ziehen. Mit Eingabe auswählen.' },
       }}
     >
-      <div className={'app ' + (editing ? 'is-editing' : 'is-preview') + (compact ? ' is-compact' : '') + (dragItem ? ' is-dragging' : '')}>
+      <div className={'app ' + (editing ? 'is-editing' : 'is-preview') + (compact ? ' is-compact' : '') + (dragItem ? ' is-dragging' : '') + (note && noteOpen ? ' has-note' : '')}>
         <TopBar
           icon={doc.icon}
           place={place}
@@ -544,6 +549,16 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
             if (f) openFile(f);
           }}
         />
+        {note && noteOpen && (
+          <div className="ed-note" data-noprint="1">
+            <span>
+              <b>Planung:</b> {note}
+            </span>
+            <button type="button" className="iconbtn" title="Ausblenden" aria-label="Planung ausblenden" onClick={() => setNoteOpen(false)}>
+              <Icon icon={X} size={16} />
+            </button>
+          </div>
+        )}
         <div className="workspace">
           {editing && <Toolbox open={!compact || toolboxOpen} compact={compact} lang={doc.lang} onAdd={api.addBlock} onClose={() => setToolboxOpen(false)} />}
           <InlineEditContext.Provider value={editing ? inlineEdit : null}>

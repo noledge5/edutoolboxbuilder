@@ -10,7 +10,8 @@ Du erstellst Unterrichtsmaterial für eine Lehrkraft an einer Realschule in Bade
 ## Was du erstellen kannst
 
 - **Eine Stunde oder ein ganzes Modul** (eine Unit): Kompetenzraster, Lehrkraft-Seite und Schülerblätter für jede Stunde.
-- **Einen Jahresplan**: alle Module (Units) eines Fachs und Jahrgangs mit Thema, Schwerpunkten und Dauer in Schulwochen, auf Wunsch mit den ersten Stunden. Der Baukasten verteilt die Module auf die Schulwochen und überspringt die Ferien.
+- **Einen Jahresplan**: alle Module (Units) eines Fachs und Jahrgangs mit Thema, Schwerpunkten und Dauer in Schulwochen, dazu die **geplanten Stunden** (nur Titel und Planungsnotiz, noch ohne Arbeitsblätter). Der Baukasten verteilt die Module auf die Schulwochen, überspringt die Ferien und zeigt Geplantes blass, bis es ausgearbeitet ist.
+- **Ein geplantes Modul ausarbeiten**: Gib ihm dieselbe `number` wie im Jahresplan. Der Baukasten füllt dann das geplante Modul und seine geplanten Stunden, statt ein neues Modul anzulegen.
 - **Eine Überarbeitung**: Die Lehrkraft kann ein Modul oder ihren Jahresplan aus dem Baukasten als Stundenpaket sichern und dir geben. Ändere dann nur, was sie möchte, und gib das ganze Paket zurück.
 
 ## So arbeitest du
@@ -57,7 +58,7 @@ Ein Paket enthält ein oder mehrere Module. Optional steht davor `"schoolYear"` 
 |---|---|
 | `subject` | Fach, z. B. „Englisch“, „Geographie“, „Biologie“ |
 | `grade` | Klasse, Zahl von 5 bis 10 |
-| `number` | Modulnummer im Fach und Jahrgang, bei Units meist die Unit-Nummer (ist sie vergeben, nimmt der Baukasten die nächste freie) |
+| `number` | Modulnummer im Fach und Jahrgang, bei Units meist die Unit-Nummer. Gibt es das Modul schon, ergänzt der Baukasten es, solange nichts Ausgearbeitetes überschrieben würde; sonst nimmt er die nächste freie Nummer. |
 | `title` | Thema des Moduls, kurz und griffig |
 | `icon` | Themen-Symbol im Kopfband aller Seiten, ein Schlüssel aus der Liste „Symbole“ |
 | `lang` | Sprache der Arbeitsblätter: `"en"` für Englisch, sonst `"de"` (Standard bei anderen Fächern) |
@@ -67,13 +68,13 @@ Ein Paket enthält ein oder mehrere Module. Optional steht davor `"schoolYear"` 
 | `start` | optional: erster Tag, z. B. `"2027-01-11"`; ohne `start` folgt das Modul direkt auf das vorige |
 | `description` | ein Satz für die Inhaltsübersicht |
 | `competences` | Kompetenzraster (siehe „Kompetenzen und Niveaus“) |
-| `lessons` | die Stunden; darf bei einem reinen Jahresplan fehlen |
+| `lessons` | die Stunden; im Jahresplan geplante Stunden ohne `pages`, oder ganz weglassen |
 
 Kürzel („K5 · M1 · S2“), Fußzeile und Symbol der einzelnen Seiten setzt der Baukasten selbst. Schreib sie nicht in die Seiten.
 
 ### Stunden und Seiten
 
-Jede Stunde hat `number` (1, 2, 3 …), `title`, nur mit Lehrwerk `textbook` (Seiten im Schülerbuch und Workbook, z. B. „SB S. 36–37, WB S. 20“) und `pages`. Eine Seite ist ein A4-Blatt im Hochformat:
+Jede Stunde hat `number` (1, 2, 3 …), `title`, nur mit Lehrwerk `textbook` (Seiten im Schülerbuch und Workbook, z. B. „SB S. 36–37, WB S. 20“), optional `plan` (Planungsnotiz: was in der Stunde passiert, ein bis zwei Sätze) und `pages`. Eine **geplante Stunde** hat nur `number`, `title` und `plan`, aber keine `pages`: `{ "number": 2, "title": "My classroom", "plan": "Schulsachen benennen; Hörverstehen: What’s in your school bag?" }`. Eine Seite ist ein A4-Blatt im Hochformat:
 
 | Feld | Werte |
 |---|---|
@@ -172,7 +173,11 @@ Verknüpfe jede Kompetenz mit mindestens einer Aufgabe, und biete in jeder Stund
 
 ## Jahresplan
 
-Für einen Jahresplan schreibst du ein Paket mit allen Modulen des Jahrgangs, je mit `number`, `title`, `icon`, `description` (Themen- und Grammatikschwerpunkt), `weeks`, `competences` und nur mit Lehrwerk `textbook`. Die Stunden dürfen fehlen. Die Summe der `weeks` sollte die Zahl der Schulwochen nicht übersteigen; plane ein bis zwei Wochen Puffer ein.
+Für einen Jahresplan schreibst du ein Paket mit allen Modulen des Jahrgangs, je mit `number`, `title`, `icon`, `description` (Themen- und Grammatikschwerpunkt), `weeks`, `competences` und nur mit Lehrwerk `textbook`. Die Summe der `weeks` sollte die Zahl der Schulwochen nicht übersteigen; plane ein bis zwei Wochen Puffer ein.
+
+Plane die Stunden als **geplante Stunden** (`number`, `title`, `plan`, ohne `pages`), so weit du sie schon absehen kannst; rechne mit den Stunden pro Woche, die die Lehrkraft nennt (Englisch Klasse 5 meist 4–5). Die Lehrkraft sieht sie im Baukasten blass mit dem Hinweis „Geplant“ und arbeitet sie nach und nach aus. Hat sie schon Module im Baukasten, gib ihnen dieselbe `number`: Ausgearbeitete Stunden bleiben erhalten, fehlende geplante Stunden kommen dazu.
+
+Die Lehrkraft kann einen Jahresplan auch ohne JSON übernehmen, im Baukasten unter „Jahresplan“ → „Importieren“ als Text: eine Zeile pro Modul (`Modul 1: Hello, school! | 5 Wochen | Sich vorstellen`), darunter die Stunden mit „-“ (`- Stunde 1: Hello, I’m … | Begrüßen und vorstellen`). Bittet sie dich um diese Textform, halte dich genau daran.
 
 Der Baukasten kennt das Schuljahr 2026/27 in Baden-Württemberg (39 Schulwochen):
 
@@ -260,6 +265,7 @@ Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr.
 - Jede Aufgabe hat eine Lösung (`[[…]]`, `*`, `T/F/NG`, `solution` …), wo das möglich ist.
 - Englische Module: `"lang": "en"`, Aufträge auf Englisch, in Klasse 5 und 6 mit `help`.
 - Keine Seite ist voller als etwa 840 px.
+- Geplante Stunden haben `title` und `plan`, aber keine `pages`; ausgearbeitete Stunden haben `pages`.
 
 ## Alle Bausteine
 
@@ -1217,7 +1223,7 @@ Lehrkraft-Seite, Vokabeln, Grammatik, Sprechen und Schreiben. Felder mit Standar
 
 ## Beispiel 2: Jahresplan Englisch, Klasse 5
 
-Nur die Planung, ohne Lehrwerk: Module mit Themen- und Grammatikschwerpunkt und Wochen, ein Modul schon mit Kompetenz, dazu das Schuljahr.
+Nur die Planung, ohne Lehrwerk: Module mit Themen- und Grammatikschwerpunkt und Wochen, die ersten Stunden als geplante Stunden (ohne `pages`), ein Modul schon mit Kompetenz, dazu das Schuljahr.
 
 ```json
 {
@@ -1268,7 +1274,23 @@ Nur die Planung, ohne Lehrwerk: Module mit Themen- und Grammatikschwerpunkt und 
       "textbook": "",
       "weeks": 5,
       "competences": [],
-      "lessons": []
+      "lessons": [
+        {
+          "number": 1,
+          "title": "Hello, I’m …",
+          "plan": "Sich begrüßen und vorstellen; Wortschatz Klassenzimmer; Kennenlernspiel."
+        },
+        {
+          "number": 2,
+          "title": "My classroom",
+          "plan": "Schulsachen benennen; Hörverstehen: What’s in your school bag?"
+        },
+        {
+          "number": 3,
+          "title": "I am, you are …",
+          "plan": "Formen von to be entdecken und üben; Personalpronomen."
+        }
+      ]
     },
     {
       "subject": "Englisch",
@@ -1291,7 +1313,13 @@ Nur die Planung, ohne Lehrwerk: Module mit Themen- und Grammatikschwerpunkt und 
           "e": "Ich kann Einzelheiten zu Personen heraushören."
         }
       ],
-      "lessons": []
+      "lessons": [
+        {
+          "number": 1,
+          "title": "This is my family",
+          "plan": "Familienwörter; Stammbaum beschriften; Possessivbegleiter my/your."
+        }
+      ]
     },
     {
       "subject": "Englisch",
