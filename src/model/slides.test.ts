@@ -7,12 +7,14 @@ import { videoInfo } from '../slides/elements';
 import {
   createElement,
   createSlide,
+  editText,
   hasReveal,
   itemSteps,
   leanSlide,
   mapSlideImages,
   normalizeSlides,
   partSteps,
+  setEditText,
   SLIDE_LAYOUT_ORDER,
   slideImages,
   slideItems,
@@ -104,6 +106,20 @@ describe('slides', () => {
       { item: 0, answer: 0 },
     ]);
     expect(image).toMatchObject({ title: 'A map', image: 'img-2' });
+  });
+
+  it('edit single texts right on the slide', () => {
+    const s = { ...createSlide('list'), items: 'A? | a\n\nB?', elements: [{ ...createElement('text', { text: 'Hallo' }), id: 't1' }] };
+    expect(editText(s, 'item:1')).toBe('B?');
+    expect(editText(s, 'answer:0')).toBe('a');
+    expect(editText(s, 'el:t1')).toBe('Hallo');
+    expect(editText(s, 'item:5')).toBeNull();
+    // Entries stay one line each; an answer can be added or taken away.
+    expect(setEditText(s, 'item:1', 'Neue | Frage\nzwei')).toEqual({ items: 'A? | a\n\nNeue / Frage zwei' });
+    expect(setEditText(s, 'answer:1', 'b')).toEqual({ items: 'A? | a\n\nB? | b' });
+    expect(setEditText(s, 'answer:0', '')).toEqual({ items: 'A?\n\nB?' });
+    expect(setEditText(s, 'phase', 'Ein\nstieg')).toEqual({ phase: 'Ein stieg' });
+    expect(setEditText(s, 'el:t1', 'Zeile 1\nZeile 2').elements?.[0].text).toBe('Zeile 1\nZeile 2');
   });
 
   it('show the solution of a task after the answers of its entries', () => {

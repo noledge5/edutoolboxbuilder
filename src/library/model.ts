@@ -28,6 +28,7 @@ export function slideContext(m: Module, l: Lesson, settings: Settings): SlideCon
   return {
     icon: m.icon,
     lang: m.lang,
+    design: l.slideDesign,
     kicker: `${l.title} · ${gradeLabel(m)} · ${lesson}`,
     titleKicker: `${gradeLabel(m)} · ${en ? 'Unit' : 'Modul'} ${m.number}: ${m.title} · ${lesson}`,
     footer: footerFor(settings, m.subject),
@@ -169,6 +170,7 @@ export function newLesson(lib: Library, m: Module): Lesson {
     textbook: '',
     plan: '',
     slides: [],
+    slideDesign: 'organisch',
     doc: { icon: m.icon, lang: m.lang, help: m.help, footer: footerFor(lib.settings, m.subject), code: lessonCode(m, number), pages: [page] },
     updatedAt: Date.now(),
   };
@@ -227,7 +229,18 @@ export function libraryFromOldDoc(doc: Doc): Library {
     start: '',
     updatedAt: Date.now(),
   };
-  const lesson: Lesson = { id: uid(), moduleId: module.id, number: code ? Number(code[3]) : 1, title: doc.pages[0]?.title || 'Stunde', textbook: '', plan: '', doc, slides: [], updatedAt: Date.now() };
+  const lesson: Lesson = {
+    id: uid(),
+    moduleId: module.id,
+    number: code ? Number(code[3]) : 1,
+    title: doc.pages[0]?.title || 'Stunde',
+    textbook: '',
+    plan: '',
+    doc,
+    slides: [],
+    slideDesign: 'organisch',
+    updatedAt: Date.now(),
+  };
   return { settings, modules: [module], lessons: [lesson], deleted: {} };
 }
 
@@ -283,7 +296,18 @@ export function seedLibrary(): Library {
     updatedAt: 0,
   };
   const doc = seedDoc();
-  const lesson: Lesson = { id: 'beispiel-stunde', moduleId: module.id, number: 2, title: 'Der Treibhauseffekt', textbook: '', plan: '', doc, slides: seedSlides(), updatedAt: 0 };
+  const lesson: Lesson = {
+    id: 'beispiel-stunde',
+    moduleId: module.id,
+    number: 2,
+    title: 'Der Treibhauseffekt',
+    textbook: '',
+    plan: '',
+    doc,
+    slides: seedSlides(),
+    slideDesign: 'organisch',
+    updatedAt: 0,
+  };
   return { settings, modules: [module], lessons: [lesson], deleted: {} };
 }
 
@@ -365,5 +389,5 @@ export const changedSince = (lib: Library, t: number) =>
 /** A copy of a lesson as the next lesson of its module. */
 export function duplicateLesson(lib: Library, m: Module, l: Lesson): Lesson {
   const fresh = newLesson(lib, m);
-  return { ...fresh, title: `${l.title} (Kopie)`, plan: l.plan, doc: { ...l.doc, code: fresh.doc.code }, slides: l.slides.map((s) => ({ ...s, id: uid() })) };
+  return { ...fresh, title: `${l.title} (Kopie)`, plan: l.plan, doc: { ...l.doc, code: fresh.doc.code }, slides: l.slides.map((s) => ({ ...s, id: uid() })), slideDesign: l.slideDesign };
 }

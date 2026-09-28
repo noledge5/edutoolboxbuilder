@@ -75,7 +75,7 @@ Kürzel („K5 · M1 · S2“), Fußzeile und Symbol der einzelnen Seiten setzt 
 
 ### Stunden und Seiten
 
-Jede Stunde hat `number` (1, 2, 3 …), `title`, nur mit Lehrwerk `textbook` (Seiten im Schülerbuch und Workbook, z. B. „SB S. 36–37, WB S. 20“), optional `plan` (Planungsnotiz: was in der Stunde passiert, ein bis zwei Sätze), `pages` und optional `slides` (Folien, siehe „Folien“). Eine **geplante Stunde** hat nur `number`, `title` und `plan`, aber keine `pages`: `{ "number": 2, "title": "My classroom", "plan": "Schulsachen benennen; Hörverstehen: What’s in your school bag?" }`. Eine Seite ist ein A4-Blatt im Hochformat:
+Jede Stunde hat `number` (1, 2, 3 …), `title`, nur mit Lehrwerk `textbook` (Seiten im Schülerbuch und Workbook, z. B. „SB S. 36–37, WB S. 20“), optional `plan` (Planungsnotiz: was in der Stunde passiert, ein bis zwei Sätze), `pages` und optional `slides` (Folien, siehe „Folien“) mit ihrem Design `slideDesign`. Eine **geplante Stunde** hat nur `number`, `title` und `plan`, aber keine `pages`: `{ "number": 2, "title": "My classroom", "plan": "Schulsachen benennen; Hörverstehen: What’s in your school bag?" }`. Eine Seite ist ein A4-Blatt im Hochformat:
 
 | Feld | Werte |
 |---|---|
@@ -205,7 +205,9 @@ Du kannst keine Fotos liefern. Setze stattdessen einen Baustein „Abbildung“ 
 
 ## Folien
 
-Zu jeder Stunde gehören auf Wunsch Präsentationsfolien: `"slides": [ … ]` in der Stunde. Die Lehrkraft zeigt sie im Baukasten mit „Präsentieren“ (Pfeiltasten, Tippen oder Wischen blättern; Antworten erscheinen auf Klick), druckt sie als Handout oder sichert sie als PDF. Kopfleiste (Stunde · Klasse · Nummer), Symbol, Fußzeile und Foliennummer setzt der Baukasten selbst.
+Zu jeder Stunde gehören auf Wunsch Präsentationsfolien: `"slides": [ … ]` in der Stunde. Die Lehrkraft zeigt sie im Baukasten mit „Präsentieren“ (Pfeiltasten, Tippen oder Wischen blättern; Antworten erscheinen auf Klick), druckt sie als Handout oder sichert sie als PDF oder PowerPoint-Datei. Kopfleiste (Stunde · Klasse · Nummer), Symbol, Fußzeile und Foliennummer setzt der Baukasten selbst.
+
+Das Aussehen aller Folien einer Stunde bestimmt `"slideDesign"` in der Stunde (neben `slides`): `"organisch"` (Standard, wie die Arbeitsblätter), `"klar"` (schlicht, weiß, serifenlos), `"heft"` (kariertes Schulheft, Handschrift), `"tafel"` (dunkelgrüne Tafel, Kreide) oder `"kontrast"` (schwarz auf weiß, für helle Räume). Setze es nur, wenn die Lehrkraft ein Design nennt; sonst weglassen.
 
 | Feld | Bedeutung |
 |---|---|

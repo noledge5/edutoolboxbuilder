@@ -8,7 +8,7 @@ import { BLOCK_TYPES, isBlockType } from '../model/blockTypes';
 import { DocFormatError, normalizeDoc } from '../model/normalize';
 import { mapBlockImages, uid } from '../model/ops';
 import { THEMES, WORK_FORMS } from '../model/themes';
-import { leanSlide, mapSlideImages, normalizeSlides, type Slide } from '../model/slides';
+import { isSlideDesign, leanSlide, mapSlideImages, normalizeSlides, type Slide, type SlideDesign } from '../model/slides';
 import type { Block, Doc, Page } from '../model/types';
 import { DEFAULT_TOPIC_ICON, isTopicIcon } from '../topicIcons';
 import { defaultLang, footerFor, isWorkedOut, lessonCode, lessonsOf, modulesOf, plannedDoc } from './model';
@@ -35,7 +35,7 @@ export interface PackageModule {
   start?: string;
   competences: (Omit<Competence, 'lessons' | 'domain'> & { lessons?: string; domain?: string })[];
   /** Lessons; a planned lesson (year plan) has a title and a planning note but no pages yet. */
-  lessons: { number: number; title: string; textbook?: string; plan?: string; pages?: PackagePage[]; slides?: ReturnType<typeof leanSlide>[] }[];
+  lessons: { number: number; title: string; textbook?: string; plan?: string; pages?: PackagePage[]; slides?: ReturnType<typeof leanSlide>[]; slideDesign?: SlideDesign }[];
 }
 
 export interface PackageFile {
@@ -55,6 +55,8 @@ export interface ParsedLesson {
   plan: string;
   doc: Doc;
   slides: Slide[];
+  /** '' when the package does not choose a design. */
+  slideDesign: SlideDesign | '';
 }
 
 export interface ParsedModule {
@@ -171,6 +173,8 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
     if (!isObj(l)) throw new DocFormatError(`${at} ist kein Objekt.`);
     const pages = Array.isArray(l.pages) ? l.pages : isObj(l.doc) ? l.doc.pages : undefined;
     const plan = text(l.plan).trim();
+    const slideDesign = isSlideDesign(l.slideDesign) ? l.slideDesign : '';
+    if (l.slideDesign !== undefined && !slideDesign) notes.push(`${at}: Das Folien-Design „${str(l.slideDesign)}“ gibt es nicht; die Folien bleiben „organisch“.`);
     const slides = normalizeSlides(l.slides, (n) => notes.push(`${at}: ${n}`)).map((s, k) =>
       mapSlideImages(s, (img) => {
         if (imageIds.has(img)) return imageIds.get(img)!;
@@ -181,7 +185,7 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
     // A planned lesson of the year plan: title and note, the worksheet comes later.
     if ((pages === undefined || (Array.isArray(pages) && pages.length === 0)) && (str(l.title) || plan)) {
       const lessonTitle = str(l.title) || `Stunde ${posInt(l.number) || i + 1}`;
-      return { number: posInt(l.number), title: lessonTitle, textbook: str(l.textbook), plan, doc: plannedDoc({ grade, lang, title, icon, help }, lessonTitle), slides };
+      return { number: posInt(l.number), title: lessonTitle, textbook: str(l.textbook), plan, doc: plannedDoc({ grade, lang, title, icon, help }, lessonTitle), slides, slideDesign };
     }
     if (!Array.isArray(pages) || pages.length === 0) throw new DocFormatError(`${at} hat keine Seiten ("pages").`);
     checkPages(pages, at, notes);
@@ -210,7 +214,7 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
         });
       }),
     );
-    return { number: posInt(l.number), title: str(l.title) || doc.pages[0].title, textbook: str(l.textbook), plan, doc, slides };
+    return { number: posInt(l.number), title: str(l.title) || doc.pages[0].title, textbook: str(l.textbook), plan, doc, slides, slideDesign };
   });
 
   // Keep the lesson numbers from the file if they are usable, else number them in order.
@@ -308,17 +312,37 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
         const doc = { ...l.doc, icon: module.icon, lang: module.lang, help: module.help, footer, code: lessonCode(module, l.number) };
         const old = targetLessons.find((x) => x.number === l.number);
         if (!old) {
-          lessons.push({ id: uid(), moduleId: module.id, number: l.number, title: l.title, textbook: l.textbook, plan: l.plan, doc, slides: l.slides, updatedAt: now });
+          lessons.push({
+            id: uid(),
+            moduleId: module.id,
+            number: l.number,
+            title: l.title,
+            textbook: l.textbook,
+            plan: l.plan,
+            doc,
+            slides: l.slides,
+            slideDesign: l.slideDesign || 'organisch',
+            updatedAt: now,
+          });
           r.added++;
           if (!workedOut(l)) r.planned++;
         } else if (!isWorkedOut(old)) {
           // Only planned so far: the package's version replaces it, keeping what the package leaves empty.
-          lessons.push({ ...old, title: l.title || old.title, textbook: l.textbook || old.textbook, plan: l.plan || old.plan, doc, slides: l.slides.length ? l.slides : old.slides, updatedAt: now });
+          lessons.push({
+            ...old,
+            title: l.title || old.title,
+            textbook: l.textbook || old.textbook,
+            plan: l.plan || old.plan,
+            doc,
+            slides: l.slides.length ? l.slides : old.slides,
+            slideDesign: l.slideDesign || old.slideDesign,
+            updatedAt: now,
+          });
           r.changed++;
           if (!workedOut(l)) r.planned++;
-        } else if (l.slides.length || (l.plan && !old.plan)) {
+        } else if (l.slides.length || l.slideDesign || (l.plan && !old.plan)) {
           // A worked-out lesson keeps its worksheets; slides from the package (e.g. made by Claude for it) replace its slides.
-          lessons.push({ ...old, plan: old.plan || l.plan, slides: l.slides.length ? l.slides : old.slides, updatedAt: now });
+          lessons.push({ ...old, plan: old.plan || l.plan, slides: l.slides.length ? l.slides : old.slides, slideDesign: l.slideDesign || old.slideDesign, updatedAt: now });
           r.changed++;
         }
       }
@@ -342,6 +366,7 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
         plan: l.plan,
         doc: { ...l.doc, icon: module.icon, lang: module.lang, help: module.help, footer, code: lessonCode(module, l.number) },
         slides: l.slides,
+        slideDesign: l.slideDesign || 'organisch',
         updatedAt: now,
       });
     }
@@ -402,6 +427,7 @@ function packageModule(m: Module, lessons: Lesson[]): PackageModule {
         // A planned lesson goes without its empty page, so Claude sees it as planned.
         ...(isWorkedOut(l) ? { pages: l.doc.pages.map((pg) => ({ ...pg, blocks: pg.blocks.map(leanBlock) })) } : {}),
         ...(l.slides.length ? { slides: l.slides.map(leanSlide) } : {}),
+        ...(l.slideDesign !== 'organisch' ? { slideDesign: l.slideDesign } : {}),
       })),
   };
 }

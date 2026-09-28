@@ -8,11 +8,14 @@ import {
   Bold,
   BringToFront,
   Copy,
+  Download,
   Eye,
+  FileUp,
   FileText,
   Highlighter,
   ImagePlus,
   Layers,
+  Palette,
   Play,
   Plus,
   Printer,
@@ -35,18 +38,21 @@ import {
   createSlide,
   ELEMENT_LABELS,
   GAP_TITLE,
+  SLIDE_DESIGNS,
   hasGap,
   ITEM_LIMIT,
   SLIDE_ANIMS,
   SLIDE_LAYOUT_ORDER,
   SLIDE_LAYOUTS,
   SLIDE_TRANSITIONS,
+  setEditText,
   slideParts,
   stepCount,
   type PartAnim,
   type SlidePart,
   type Slide,
   type SlideAnim,
+  type SlideDesign,
   type SlideElement,
   type SlideElementKind,
   type SlideLayout,
@@ -59,6 +65,8 @@ import { storeImageFile } from '../storage/images';
 import { topicIcon } from '../topicIcons';
 import { slidesFromDoc } from './fromDoc';
 import { enterFullscreen, Presenter } from './Presenter';
+import { PptxDialog, PptxImportDialog } from './PptxDialog';
+import type { PptxRead } from './pptxImport';
 import { SlidesPrint, type SlidesPrintKind } from './SlidesPrint';
 import { SlideStage } from './SlideStage';
 import { SLIDE_H, SLIDE_W, SlideBox, type SlideContext } from './SlideView';
@@ -73,6 +81,8 @@ interface SlidesViewProps {
   lessonTitle: string;
   place: string;
   onChange(slides: Slide[]): void;
+  /** A design for all slides of the lesson. */
+  onDesign(design: SlideDesign): void;
   onBack(): void;
   onOpenSheet(): void;
 }
@@ -151,6 +161,26 @@ export function SlidesView(p: SlidesViewProps) {
   const [presenting, setPresenting] = useState<number | null>(null);
   const [printing, setPrinting] = useState<SlidesPrintKind | null>(null);
   const [picker, setPicker] = useState(false);
+  const [designing, setDesigning] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [imported, setImported] = useState<(PptxRead & { fileName: string }) | null>(null);
+  const pptxInput = useRef<HTMLInputElement>(null);
+  const openPptx = async (file: File) => {
+    try {
+      const { readPptx } = await import('./pptxImport');
+      setImported({ ...(await readPptx(file, storeImageFile)), fileName: file.name });
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : 'Die PowerPoint-Datei konnte nicht gelesen werden.');
+    }
+  };
+  const takeImported = (replace: boolean) => {
+    if (!imported) return;
+    const at = replace ? 0 : slides.length;
+    commit(replace ? imported.slides : [...slides, ...imported.slides]);
+    if ((replace || !slides.length) && imported.design) p.onDesign(imported.design);
+    pick(at);
+    setImported(null);
+  };
   const [searching, setSearching] = useState<'slide' | 'element' | null>(null);
   const [selEl, setSelEl] = useState<string | null>(null);
   const [selPart, setSelPart] = useState<string | null>(null);
@@ -372,6 +402,10 @@ export function SlidesView(p: SlidesViewProps) {
           <Icon icon={FileText} />
           <span className="btn-label">Arbeitsblatt</span>
         </button>
+        <button type="button" className="btn btn-secondary ui-btn" onClick={() => setDesigning(true)} title="Design aller Folien dieser Stunde">
+          <Icon icon={Palette} />
+          <span className="btn-label">Design</span>
+        </button>
         <Menu
           label="Folien"
           icon={Layers}
@@ -379,6 +413,8 @@ export function SlidesView(p: SlidesViewProps) {
             { label: 'Folie löschen', icon: Trash2, onClick: () => slides.length && remove() },
             { label: 'Alle Folien löschen …', icon: Trash2, onClick: removeAll },
             { label: 'Neu aus dem Arbeitsblatt vorschlagen …', icon: Sparkles, onClick: resuggest },
+            { label: 'PowerPoint öffnen …', icon: FileUp, onClick: () => pptxInput.current?.click() },
+            { label: 'Als PowerPoint sichern …', icon: Download, onClick: () => slides.length && setExporting(true) },
           ]}
         />
         <Menu
@@ -476,6 +512,7 @@ export function SlidesView(p: SlidesViewProps) {
                 setSelEl(id);
                 requestAnimationFrame(() => elText.current?.focus());
               }}
+              onEditText={(target, value) => set(setEditText(slide, target, value), `edit.${target}`)}
             />
           ) : (
             <div className="sl-empty">
@@ -487,6 +524,32 @@ export function SlidesView(p: SlidesViewProps) {
               <button type="button" className="btn btn-secondary ui-btn" onClick={() => setPicker(true)}>
                 <Icon icon={Plus} />
                 Leere Folie wählen
+              </button>
+            </div>
+          )}
+          {designing && (
+            <div className="sl-picker" role="dialog" aria-label="Design der Folien">
+              <div className="panel-section-label">Design für alle Folien dieser Stunde</div>
+              <div className="sl-picker-grid is-designs">
+                {SLIDE_DESIGNS.map((d) => (
+                  <button
+                    key={d.v}
+                    type="button"
+                    className={'sl-picker-item' + (d.v === p.ctx.design ? ' is-on' : '')}
+                    aria-pressed={d.v === p.ctx.design}
+                    onClick={() => {
+                      p.onDesign(d.v);
+                      setDesigning(false);
+                    }}
+                  >
+                    <SlideBox slide={slide ?? createSlide('task')} number={i + 1} ctx={{ ...p.ctx, design: d.v }} width={264} />
+                    <b>{d.l}</b>
+                    <span>{d.use}</span>
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="btn btn-secondary ui-btn" onClick={() => setDesigning(false)}>
+                Schließen
               </button>
             </div>
           )}
@@ -590,7 +653,9 @@ export function SlidesView(p: SlidesViewProps) {
                     <TextField label="Quelle" value={slide.source} onChange={(source) => set({ source }, 'source')} />
                   </>
                 )}
-                <p className="panel-note">Wörter markieren und B drücken schreibt sie fett, der Marker hebt sie farbig hervor.</p>
+                <p className="panel-note">
+                  Doppelklick auf einen Text der Folie (iPad: zweimal tippen) schreibt direkt dort. Wörter markieren und B drücken schreibt sie fett, der Marker hebt sie farbig hervor.
+                </p>
               </div>
               <div className="panel-section">
                 <div className="panel-section-label">Animation</div>
@@ -654,6 +719,30 @@ export function SlidesView(p: SlidesViewProps) {
           )}
         </aside>
       </div>
+      {exporting && <PptxDialog slides={slides} ctx={p.ctx} title={p.lessonTitle} onClose={() => setExporting(false)} />}
+      <input
+        ref={pptxInput}
+        type="file"
+        accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (file) openPptx(file);
+        }}
+      />
+      {imported && (
+        <PptxImportDialog
+          fileName={imported.fileName}
+          count={imported.slides.length}
+          kept={imported.kept}
+          notes={imported.notes}
+          hasSlides={slides.length > 0}
+          onAppend={() => takeImported(false)}
+          onReplace={() => takeImported(true)}
+          onClose={() => setImported(null)}
+        />
+      )}
       {searching && slide && (
         <ImageSearchDialog
           initialQuery={searching === 'element' && el?.text ? el.text : slide.title}
@@ -874,7 +963,9 @@ function PartPanel({ part, own, nextStep, onChange, onBack }: { part: SlidePart;
             Wie die übrigen Einträge
           </button>
         )}
-        <p className="panel-note">Mehrere Teile mit derselben Klick-Nummer erscheinen zusammen. Den Text änderst du unter „Zurück zur Folie“.</p>
+        <p className="panel-note">
+          Mehrere Teile mit derselben Klick-Nummer erscheinen zusammen. Den Text änderst du direkt auf der Folie („Text ändern“ oder Doppelklick) oder unter „Zurück zur Folie“.
+        </p>
       </div>
     </>
   );

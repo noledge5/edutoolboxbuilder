@@ -289,4 +289,25 @@ describe('Stundenpaket', () => {
     expect(r.lessons[0].doc.pages).toEqual(a.lessons[0].doc.pages);
     expect(r.lessons[0].slides.map((s) => s.title)).toEqual(['Neu']);
   });
+
+  it('carries the design of the slides', () => {
+    const lib: Library = { ...seedLibrary(), modules: [], lessons: [] };
+    const raw = v1();
+    raw.lessons[0] = { ...lesson(), slides: [{ layout: 'title', title: 'Zelle' }], slideDesign: 'heft' } as never;
+    const a = addPackage(lib, readPackage(raw));
+    expect(a.lessons[0].slideDesign).toBe('heft');
+    const file = JSON.parse(JSON.stringify(packageFromModule(a.modules[0], a.lessons)));
+    expect(file.modules[0].lessons[0].slideDesign).toBe('heft');
+    // The usual design is left out; an unknown one is reported and becomes the usual one.
+    const plain = JSON.parse(JSON.stringify(packageFromModule(a.modules[0], [{ ...a.lessons[0], slideDesign: 'organisch' }])));
+    expect(plain.modules[0].lessons[0]).not.toHaveProperty('slideDesign');
+    raw.lessons[0] = { ...lesson(), slideDesign: 'neon' } as never;
+    const p = readPackage(raw);
+    expect(p.notes.join()).toContain('Folien-Design „neon“');
+    expect(addPackage(lib, p).lessons[0].slideDesign).toBe('organisch');
+    // Slides with a design for a worked-out lesson: the lesson takes the design.
+    const withLesson: Library = { ...lib, modules: a.modules, lessons: [{ ...a.lessons[0], slideDesign: 'organisch' }] };
+    const r = addPackage(withLesson, readPackage({ ...v1(), lessons: [{ number: 1, title: 'Die Zelle', slides: [{ layout: 'title', title: 'Neu' }], slideDesign: 'tafel' }] }));
+    expect(r.lessons[0].slideDesign).toBe('tafel');
+  });
 });

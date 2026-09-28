@@ -106,7 +106,10 @@ export function App() {
   }, []);
 
   const putLesson = useCallback((le: Lesson) => {
-    setLib((l) => l && { ...l, lessons: l.lessons.some((x) => x.id === le.id) ? l.lessons.map((x) => (x.id === le.id ? le : x)) : [...l.lessons, le] });
+    const put = (l: Library): Library => ({ ...l, lessons: l.lessons.some((x) => x.id === le.id) ? l.lessons.map((x) => (x.id === le.id ? le : x)) : [...l.lessons, le] });
+    // At once, so a second change right after this one (slides, then their design) builds on it.
+    if (libRef.current) libRef.current = put(libRef.current);
+    setLib((l) => l && put(l));
     return store.saveLesson(le);
   }, []);
 
@@ -318,6 +321,10 @@ export function App() {
         onChange={(slides) => {
           const current = libRef.current?.lessons.find((l) => l.id === lesson.id) ?? lesson;
           putLesson({ ...current, slides, updatedAt: Date.now() }).catch(failed);
+        }}
+        onDesign={(slideDesign) => {
+          const current = libRef.current?.lessons.find((l) => l.id === lesson.id) ?? lesson;
+          putLesson({ ...current, slideDesign, updatedAt: Date.now() }).catch(failed);
         }}
         onBack={() => go({ view: 'module', id: m.id })}
         onOpenSheet={() => go({ view: 'lesson', id: lesson.id })}

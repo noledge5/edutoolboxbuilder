@@ -8,6 +8,19 @@ import type { SheetType, WorkForm } from './types';
 
 export type SlideLayout = 'title' | 'list' | 'task' | 'quote' | 'statement' | 'compare' | 'flow' | 'words' | 'image' | 'exit' | 'blank';
 
+/** The look of all slides of a lesson: fonts, background, bars and boxes (see slides.css). */
+export type SlideDesign = 'organisch' | 'klar' | 'heft' | 'tafel' | 'kontrast';
+
+export const SLIDE_DESIGNS: { v: SlideDesign; l: string; use: string }[] = [
+  { v: 'organisch', l: 'Organisch', use: 'Wie die Arbeitsblätter: runde Formen, warme Farben, Caprasimo' },
+  { v: 'klar', l: 'Klar', use: 'Schlicht und modern: weiß, gerade Linien, fette serifenlose Überschriften' },
+  { v: 'heft', l: 'Heft', use: 'Kariertes Schulheft mit rotem Rand und Überschriften in Handschrift' },
+  { v: 'tafel', l: 'Tafel', use: 'Dunkelgrüne Tafel, Kreideschrift, gut in abgedunkelten Räumen' },
+  { v: 'kontrast', l: 'Kontrast', use: 'Schwarz auf Weiß, kräftige Rahmen: für helle Räume und schwache Beamer' },
+];
+
+export const isSlideDesign = (x: unknown): x is SlideDesign => SLIDE_DESIGNS.some((d) => d.v === x);
+
 /** How something appears when its click comes: "none" just appears. */
 export type SlideAnim = 'none' | 'fade' | 'rise' | 'zoom' | 'left';
 /** How a slide comes in while presenting. */
@@ -373,6 +386,38 @@ export function slideItems(items: string): [string, string][] {
       const k = l.indexOf('|');
       return k < 0 ? [l, ''] : [l.slice(0, k).trim(), l.slice(k + 1).trim()];
     });
+}
+
+/**
+ * Texts that can be edited right on the slide: "title", "text", "label", "help", "phase", "item:2" (the entry),
+ * "answer:2" (its second part) and "el:<id>" (a text field).
+ */
+export function editText(s: Slide, target: string): string | null {
+  if (target === 'title' || target === 'text' || target === 'label' || target === 'help' || target === 'phase') return s[target];
+  const m = /^(item|answer):(\d+)$/.exec(target);
+  if (m) return slideItems(s.items)[Number(m[2])]?.[m[1] === 'item' ? 0 : 1] ?? null;
+  if (target.startsWith('el:')) return s.elements.find((e) => e.id === target.slice(3))?.text ?? null;
+  return null;
+}
+
+/** The change to a slide when a text edited on the slide becomes `value`. */
+export function setEditText(s: Slide, target: string, value: string): Partial<Slide> {
+  if (target === 'title' || target === 'text' || target === 'label' || target === 'help' || target === 'phase')
+    return { [target]: target === 'label' || target === 'phase' ? value.replace(/\n/g, ' ') : value };
+  const m = /^(item|answer):(\d+)$/.exec(target);
+  if (m) {
+    const lines = s.items.split('\n');
+    const at = lines.map((l, k) => (l.trim() ? k : -1)).filter((k) => k >= 0)[Number(m[2])];
+    if (at === undefined) return {};
+    const [head, second] = slideItems(lines[at])[0];
+    // An entry stays one line; "|" would split it, so it becomes "/" in the entry itself.
+    const one = value.replace(/\s*\n\s*/g, ' ');
+    const line = m[1] === 'item' ? [one.replace(/\|/g, '/'), second] : [head, one];
+    lines[at] = line[1].trim() ? `${line[0]} | ${line[1]}` : line[0];
+    return { items: lines.join('\n') };
+  }
+  if (target.startsWith('el:')) return { elements: s.elements.map((e) => (e.id === target.slice(3) ? { ...e, text: value } : e)) };
+  return {};
 }
 
 /** How many entries each layout shows (the rest are left out). */

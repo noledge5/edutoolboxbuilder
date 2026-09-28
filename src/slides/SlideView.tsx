@@ -2,7 +2,7 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
 import { Lightbulb, Star, User, Users } from 'lucide-react';
 import { Icon } from '../icons';
-import { partSteps, shownItems, type Slide, type SlideAnim } from '../model/slides';
+import { partSteps, shownItems, type Slide, type SlideAnim, type SlideDesign } from '../model/slides';
 import { THEMES, WORK_FORMS_EN } from '../model/themes';
 import type { Lang } from '../model/types';
 import { typo } from '../sheet/lang';
@@ -19,6 +19,8 @@ export const SLIDE_H = 1080;
 
 /** What all slides of a lesson share. */
 export interface SlideContext {
+  /** The look of the slides (fonts, background, bars, boxes). */
+  design: SlideDesign;
   icon: string;
   lang: Lang;
   /** Header bar line: "Der Treibhauseffekt · Klasse 9 · Stunde 2" */
@@ -54,7 +56,7 @@ const TEXT = {
   en: { question: 'Key question', note: 'Note', solution: 'Solution' },
 };
 
-function Header({ slide, ctx }: { slide: Slide; ctx: SlideContext }) {
+function Header({ slide, ctx, edit }: { slide: Slide; ctx: SlideContext; edit: boolean }) {
   const en = ctx.lang === 'en';
   const form = slide.form ? (en ? WORK_FORMS_EN[slide.form] : slide.form) : '';
   const formText = [form, slide.minutes ? `${slide.minutes} min` : ''].filter(Boolean).join(' · ');
@@ -64,7 +66,11 @@ function Header({ slide, ctx }: { slide: Slide; ctx: SlideContext }) {
         <Icon icon={topicIcon(ctx.icon)} size={36} />
       </div>
       <div className="sl-bar-kicker">{ctx.kicker}</div>
-      {slide.phase && <div className="sl-phase">{slide.phase}</div>}
+      {slide.phase && (
+        <div className="sl-phase" {...(edit ? { 'data-edit': 'phase' } : {})}>
+          {slide.phase}
+        </div>
+      )}
       {formText && (
         <div className="sl-form">
           {slide.form && <Icon icon={slide.form === 'allein' ? User : Users} size={24} />}
@@ -163,6 +169,8 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
     const hidden = noAnswers && p?.answer && at > 0;
     return { cls: hidden ? ' is-later' : appear(at, p?.anim ?? 'fade'), badge: <Badge at={at} edit={edit} />, at, data: { 'data-part': key } };
   };
+  /** In the editor: a text that can be edited right on the slide (double click or double tap). */
+  const ed = (target: string) => (edit ? { 'data-edit': target } : {});
   // Answers (and box texts, meanings) that come after their entry are pale while editing.
   const ghost = (i: number) => edit && (parts.get(`answer:${i}`)?.step ?? 0) > (parts.get(`item:${i}`)?.step ?? 0);
   /** The big sentence of a Merksatz or statement, with its gaps. */
@@ -173,7 +181,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
   const h1 = (cls = '') => {
     const p = part('title');
     return (
-      <h1 className={'sl-h1' + cls + p.cls} {...p.data}>
+      <h1 className={'sl-h1' + cls + p.cls} {...p.data} {...ed('title')}>
         {p.badge}
         <Rich text={s.title} lang={lang} />
       </h1>
@@ -183,7 +191,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
     if (!s.text) return null;
     const p = part('text');
     return (
-      <div className={'sl-sub' + p.cls} {...p.data}>
+      <div className={'sl-sub' + p.cls} {...p.data} {...ed('text')}>
         {p.badge}
         <Rich text={s.text} lang={lang} />
       </div>
@@ -192,7 +200,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
   const second = (i: number, cls: string, text: string, long = false) => {
     const p = part(`answer:${i}`);
     return (
-      <div className={cls + (long && text.length > 24 ? ' is-long' : '') + (ghost(i) ? ' is-ghost' : '') + p.cls} {...p.data}>
+      <div className={cls + (long && text.length > 24 ? ' is-long' : '') + (ghost(i) ? ' is-ghost' : '') + p.cls} {...p.data} {...ed(`answer:${i}`)}>
         {p.badge}
         <Rich text={text} lang={lang} />
       </div>
@@ -212,12 +220,12 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
             <Icon icon={topicIcon(ctx.icon)} size={60} />
           </div>
           <div className="sl-title-kicker">{ctx.titleKicker}</div>
-          <h1 className={'sl-title-h1' + t.cls} {...t.data}>
+          <h1 className={'sl-title-h1' + t.cls} {...t.data} {...ed('title')}>
             {t.badge}
             <Rich text={s.title} lang={lang} />
           </h1>
           {s.text && (
-            <div className={'sl-title-sub' + x.cls} {...x.data}>
+            <div className={'sl-title-sub' + x.cls} {...x.data} {...ed('text')}>
               {x.badge}
               <Rich text={s.text} lang={lang} />
             </div>
@@ -232,17 +240,23 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
       body = (
         <>
           <div className="sl-deco is-exit" />
-          <Header slide={s} ctx={ctx} />
+          <Header slide={s} ctx={ctx} edit={edit} />
           {s.text && (
-            <div className={'sl-exit-text' + x.cls} {...x.data}>
+            <div className={'sl-exit-text' + x.cls} {...x.data} {...ed('text')}>
               {x.badge}
               <Rich text={s.text} lang={lang} />
             </div>
           )}
           <div className={'sl-exit-main' + t.cls} {...t.data}>
             {t.badge}
-            {s.label && <div className="sl-exit-label">{s.label}</div>}
-            <h1 className="sl-exit-h1">{gapTitle()}</h1>
+            {s.label && (
+              <div className="sl-exit-label" {...ed('label')}>
+                {s.label}
+              </div>
+            )}
+            <h1 className="sl-exit-h1" {...ed('title')}>
+              {gapTitle()}
+            </h1>
           </div>
           <Footer ctx={ctx} number={number} />
         </>
@@ -263,7 +277,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
                 <div key={i} className={'sl-item' + p.cls} {...p.data}>
                   {p.badge}
                   <div className="sl-num">{i + 1}</div>
-                  <div className="sl-item-text">
+                  <div className="sl-item-text" {...ed(`item:${i}`)}>
                     <Rich text={q} lang={lang} />
                   </div>
                   {a && second(i, 'sl-answer', a, true)}
@@ -287,15 +301,15 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
             {num && <div className="sl-num is-task">{num}</div>}
             <div className="sl-task-lead">
               {s.label && (
-                <div className="sl-label">
+                <div className="sl-label" {...ed('label')}>
                   <TaskLabel text={s.label} />
                 </div>
               )}
-              <h1 className={'sl-task-h1' + (s.title.length > 110 ? ' is-long' : '')}>
+              <h1 className={'sl-task-h1' + (s.title.length > 110 ? ' is-long' : '')} {...ed('title')}>
                 <Rich text={s.title} lang={lang} />
               </h1>
               {s.help && (
-                <div className="sl-task-help" lang="de">
+                <div className="sl-task-help" lang="de" {...ed('help')}>
                   <Rich text={s.help} lang="de" />
                 </div>
               )}
@@ -313,7 +327,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
                         <div key={i} className={'sl-task-item' + p.cls} {...p.data}>
                           {p.badge}
                           {items.length > 1 && <div className="sl-task-letter">{String.fromCharCode(97 + i)}</div>}
-                          <div className="sl-item-text">
+                          <div className="sl-item-text" {...ed(`item:${i}`)}>
                             <GapText text={q} lang={lang} cls={g.cls} ghost={ghost(i)} data={g.data} />
                           </div>
                           {a && second(i, 'sl-answer', a, true)}
@@ -326,7 +340,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
                   <div className={'sl-solution' + (edit && x.at > 0 ? ' is-ghost' : '') + x.cls} {...x.data}>
                     {x.badge}
                     <div className="sl-solution-label">{TEXT[lang].solution}</div>
-                    <div className="sl-solution-text">
+                    <div className="sl-solution-text" {...ed('text')}>
                       <Rich text={s.text} lang={lang} />
                     </div>
                   </div>
@@ -352,8 +366,12 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
           {s.text && (
             <div className={'sl-quote' + x.cls} {...x.data}>
               {x.badge}
-              {s.label && <div className="sl-small">{s.label}</div>}
-              <div className="sl-quote-text">
+              {s.label && (
+                <div className="sl-small" {...ed('label')}>
+                  {s.label}
+                </div>
+              )}
+              <div className="sl-quote-text" {...ed('text')}>
                 <Rich text={s.text} lang={lang} />
               </div>
             </div>
@@ -361,7 +379,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
           <div className={'sl-lead' + t.cls} {...t.data}>
             {t.badge}
             <div className="sl-label">{TEXT[lang].question}</div>
-            <h1 className="sl-h1 is-big">
+            <h1 className="sl-h1 is-big" {...ed('title')}>
               <Rich text={s.title} lang={lang} />
             </h1>
           </div>
@@ -376,8 +394,14 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
         <>
           <div className={'sl-lead' + t.cls} {...t.data}>
             {t.badge}
-            {s.label && <div className="sl-label">{s.label}</div>}
-            <h1 className="sl-h1 is-statement">{gapTitle()}</h1>
+            {s.label && (
+              <div className="sl-label" {...ed('label')}>
+                {s.label}
+              </div>
+            )}
+            <h1 className="sl-h1 is-statement" {...ed('title')}>
+              {gapTitle()}
+            </h1>
           </div>
           {s.text && (
             <div className={'sl-hint' + x.cls} {...x.data}>
@@ -385,7 +409,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
               <div className="sl-hint-icon">
                 <Icon icon={Lightbulb} size={36} />
               </div>
-              <div className="sl-hint-text">
+              <div className="sl-hint-text" {...ed('text')}>
                 <Rich text={s.text} lang={lang} />
               </div>
             </div>
@@ -404,7 +428,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
               return (
                 <div key={i} className={'sl-box' + p.cls} style={{ background: BOX_COLORS[i % BOX_COLORS.length] }} {...p.data}>
                   {p.badge}
-                  <div className="sl-box-head">
+                  <div className="sl-box-head" {...ed(`item:${i}`)}>
                     <Rich text={head} lang={lang} />
                   </div>
                   {text && second(i, 'sl-box-text', text)}
@@ -426,10 +450,14 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
               const anim = parts.get(`item:${i}`)?.anim ?? 'fade';
               return (
                 <Fragment key={i}>
-                  {i > 0 && <div className={'sl-arrow' + appear(p.at, anim === 'none' ? 'none' : 'fade')}>→</div>}
+                  {i > 0 && (
+                    <div className={'sl-arrow' + appear(p.at, anim === 'none' ? 'none' : 'fade')} data-with={`item:${i}`}>
+                      →
+                    </div>
+                  )}
                   <div className={'sl-step' + p.cls} style={{ background: FLOW_COLORS[i % FLOW_COLORS.length] }} {...p.data}>
                     {p.badge}
-                    <div className="sl-step-head">
+                    <div className="sl-step-head" {...ed(`item:${i}`)}>
                       <Rich text={head} lang={lang} />
                     </div>
                     {text && second(i, 'sl-step-text', text)}
@@ -455,7 +483,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
               return (
                 <div key={i} className={'sl-word' + p.cls} {...p.data}>
                   {p.badge}
-                  <div className="sl-word-main">
+                  <div className="sl-word-main" {...ed(`item:${i}`)}>
                     <Rich text={word} lang={lang} />
                   </div>
                   {meaning && second(i, 'sl-word-meaning', meaning)}
@@ -478,7 +506,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
               <Picture id={s.image} source={s.source} />
             </div>
             {s.text && (
-              <div className={'sl-image-text' + x.cls} {...x.data}>
+              <div className={'sl-image-text' + x.cls} {...x.data} {...ed('text')}>
                 {x.badge}
                 <Rich text={s.text} lang={lang} />
               </div>
@@ -495,8 +523,8 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
 
   const framed = s.layout !== 'title' && s.layout !== 'exit';
   return (
-    <div className={'sl-slide is-' + s.layout} style={vars} lang={lang}>
-      {framed && <Header slide={s} ctx={ctx} />}
+    <div className={`sl-slide is-${s.layout} is-d-${ctx.design}`} style={vars} lang={lang}>
+      {framed && <Header slide={s} ctx={ctx} edit={edit} />}
       {body}
       {framed && <Footer ctx={ctx} number={number} />}
       {s.elements.length > 0 && (

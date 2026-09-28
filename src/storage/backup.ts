@@ -23,14 +23,14 @@ export interface BackupFile {
   images: Record<string, string>;
 }
 
-async function toDataUrl(blob: Blob): Promise<string> {
+export async function toDataUrl(blob: Blob): Promise<string> {
   const bytes = new Uint8Array(await blob.arrayBuffer());
   let bin = '';
   for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return `data:${blob.type || 'application/octet-stream'};base64,${btoa(bin)}`;
 }
 
-function dataUrlToBlob(url: string): Blob {
+export function dataUrlToBlob(url: string): Blob {
   const m = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(url);
   if (!m) throw new DocFormatError('Ein Bild in der Datei ist beschädigt.');
   const [, type = 'application/octet-stream', b64, data] = m;

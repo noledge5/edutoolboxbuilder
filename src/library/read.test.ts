@@ -18,7 +18,9 @@ describe('reading older data', () => {
     expect(m).toMatchObject({ lang: 'de', help: true, textbook: '', weeks: 0, start: '', updatedAt: 5 });
     expect(m!.competences[0].domain).toBe('');
     const l = readLesson({ id: 'l1', moduleId: 'm1', number: 2, title: 'x', doc: { pages: [{ title: 'S' }] } });
-    expect(l).toMatchObject({ textbook: '', number: 2 });
+    expect(l).toMatchObject({ textbook: '', number: 2, slideDesign: 'organisch' });
+    expect(readLesson({ id: 'l2', moduleId: 'm1', doc: { pages: [{ title: 'S' }] }, slideDesign: 'tafel' })!.slideDesign).toBe('tafel');
+    expect(readLesson({ id: 'l3', moduleId: 'm1', doc: { pages: [{ title: 'S' }] }, slideDesign: 'neon' })!.slideDesign).toBe('organisch');
     expect(l!.doc).toMatchObject({ lang: 'de', help: true });
     expect(readSettings({ subjects: ['Englisch'], footerBase: 'x' })).toMatchObject({ schoolYear: null });
   });

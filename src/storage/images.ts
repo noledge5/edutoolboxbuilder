@@ -35,6 +35,18 @@ export async function storeImageFile(file: File): Promise<string> {
 
 const urlCache = new Map<string, string>();
 
+/** Loads stored images ahead, so they are drawn at once (e.g. for an export). */
+export async function preloadImages(ids: string[]): Promise<void> {
+  await Promise.all(
+    [...new Set(ids)]
+      .filter((id) => id && !urlCache.has(id))
+      .map(async (id) => {
+        const blob = await getImage(id).catch(() => undefined);
+        if (blob) urlCache.set(id, URL.createObjectURL(blob));
+      }),
+  );
+}
+
 export type ImageState = { status: 'none' } | { status: 'loading' } | { status: 'missing' } | { status: 'ready'; url: string };
 
 /** Object URL for a stored image id. */
