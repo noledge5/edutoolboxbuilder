@@ -6,7 +6,7 @@ import { uid } from './ops';
 import { THEMES, WORK_FORMS } from './themes';
 import type { SheetType, WorkForm } from './types';
 
-export type SlideLayout = 'title' | 'list' | 'quote' | 'statement' | 'compare' | 'flow' | 'words' | 'image' | 'exit' | 'blank';
+export type SlideLayout = 'title' | 'list' | 'task' | 'quote' | 'statement' | 'compare' | 'flow' | 'words' | 'image' | 'exit' | 'blank';
 
 /** How something appears when its click comes: "none" just appears. */
 export type SlideAnim = 'none' | 'fade' | 'rise' | 'zoom' | 'left';
@@ -60,8 +60,10 @@ export interface Slide {
   /** Small line above the heading ("Leitfrage", "Deutung", "Merksatz"); in "quote" the label of the box. */
   label: string;
   title: string;
-  /** Subtitle, quote, hint or the text beside a picture, depending on the layout. */
+  /** Subtitle, quote, hint, solution of a task or the text beside a picture, depending on the layout. */
   text: string;
+  /** Task slides: the help under the instruction (e.g. the German help of an English task). */
+  help: string;
   /** One entry per line: "question | answer", "heading | text", "step | detail", "word | meaning". */
   items: string;
   /** Picture (image id) of the "image" layout, with its source line. */
@@ -101,6 +103,13 @@ export interface SlideLayoutInfo {
 export const SLIDE_LAYOUTS: Record<SlideLayout, SlideLayoutInfo> = {
   title: { label: 'Titel', use: 'Erste Folie der Stunde mit Thema und Leitfrage', items: '', text: 'Untertitel oder Leitfrage', labelHint: '' },
   list: { label: 'Fragen', use: 'Nummerierte Fragen oder Aufträge, Antworten auf Klick', items: 'Eine Frage je Zeile, Antwort nach „|“', text: 'Auftrag unter der Überschrift', labelHint: '' },
+  task: {
+    label: 'Aufgabe',
+    use: 'Eine Aufgabe des Arbeitsblatts: Nummer, Arbeitsauftrag, Einträge und Lösung, die auf Klick erscheint',
+    items: 'Einträge, je Zeile „Eintrag | Lösung“; Lücken als [[Lösung]] füllen sich auf Klick',
+    text: 'Lösung (erscheint auf Klick)',
+    labelHint: 'Zeile über dem Auftrag, z. B. „Aufgabe 2 · ★★ · 3 P.“',
+  },
   quote: {
     label: 'Zitat + Leitfrage',
     use: 'Einstieg: Zitat, Aussage oder Rückblick, darunter die Leitfrage',
@@ -150,6 +159,15 @@ const LAYOUT_DEFAULTS: Record<SlideLayout, Partial<Slide>> = {
   image: { type: 'uebung', phase: 'Erarbeitung', form: 'zu zweit', title: 'Was seht ihr?', text: 'Beschreibt das Bild in drei Sätzen.' },
   exit: { type: 'sicherung', phase: 'Exit', form: 'Plenum', minutes: 3, label: 'Merksatz', text: 'Rückbezug auf die Leitfrage.', title: 'Der wichtigste Satz der Stunde.' },
   blank: { type: 'uebung', phase: 'Erarbeitung', title: 'Überschrift' },
+  task: {
+    type: 'uebung',
+    phase: 'Übung',
+    form: 'allein',
+    label: 'Aufgabe 1 · ★★ · 3 P.',
+    title: 'Setze die fehlenden Wörter ein.',
+    items: 'Die Sonne [[erwärmt]] die Erde.\nDie Erde gibt [[Wärmestrahlung]] ab.\nWie heißt der Vorgang? | Treibhauseffekt',
+    reveal: true,
+  },
 };
 
 const BASE: Omit<Slide, 'id' | 'layout'> = {
@@ -160,6 +178,7 @@ const BASE: Omit<Slide, 'id' | 'layout'> = {
   label: '',
   title: '',
   text: '',
+  help: '',
   items: '',
   image: '',
   source: '',
@@ -238,7 +257,7 @@ const num = (x: unknown, fallback: number, min: number, max: number) => {
   return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : fallback;
 };
 
-const PART_KEY = /^(title|text|label|image|item:\d{1,2}|answer:\d{1,2})$/;
+const PART_KEY = /^(title|text|label|image|gaps|item:\d{1,2}|answer:\d{1,2})$/;
 
 /** Part animations; unknown parts are left out. */
 function normalizeAnims(raw: unknown): Record<string, PartAnim> {
@@ -328,6 +347,7 @@ export function normalizeSlides(raw: unknown, note: (text: string) => void = () 
       label: str(r.label),
       title: str(r.title),
       text: str(r.text),
+      help: str(r.help),
       items: str(r.items),
       image: str(r.image),
       source: str(r.source),
@@ -356,16 +376,27 @@ export function slideItems(items: string): [string, string][] {
 }
 
 /** How many entries each layout shows (the rest are left out). */
-export const ITEM_LIMIT: Partial<Record<SlideLayout, number>> = { list: 8, compare: 3, flow: 5, words: 12 };
+export const ITEM_LIMIT: Partial<Record<SlideLayout, number>> = { list: 8, task: 8, compare: 3, flow: 5, words: 12 };
 
 /** The entries a slide shows. */
 export const shownItems = (s: Slide) => (ITEM_LIMIT[s.layout] ? slideItems(s.items).slice(0, ITEM_LIMIT[s.layout]) : []);
 
 /** Layouts whose entries have a second part (answer, text of a box, detail of a step, meaning) that can come on a click. */
-const TWO_PART: SlideLayout[] = ['list', 'words', 'compare', 'flow'];
+const TWO_PART: SlideLayout[] = ['list', 'task', 'words', 'compare', 'flow'];
 
-/** Whether a slide has answers, box texts or meanings to uncover while presenting. */
-export const hasReveal = (s: Slide) => s.reveal && TWO_PART.includes(s.layout) && shownItems(s).some(([, a]) => a);
+/** A gap in an entry of a task slide or in a Merksatz: "The cat [[sits]] on the mat." */
+export const SLIDE_GAP = /\[\[(.+?)\]\]/g;
+export const hasGap = (t: string) => /\[\[.+?\]\]/.test(t);
+
+/** Layouts whose big sentence may have gaps that fill on a click (a Merksatz to complete). */
+export const GAP_TITLE: SlideLayout[] = ['exit', 'statement'];
+const titleGaps = (s: Slide) => GAP_TITLE.includes(s.layout) && hasGap(s.title);
+
+/** Whether an entry has something that can come on a click: its second part, or the words in its gaps (task slides). */
+const hasAnswer = (s: Slide, [head, second]: [string, string]) => !!second || (s.layout === 'task' && hasGap(head));
+
+/** Whether a slide has answers, box texts, meanings or a task's solution to uncover while presenting. */
+export const hasReveal = (s: Slide) => s.reveal && ((TWO_PART.includes(s.layout) && shownItems(s).some((it) => hasAnswer(s, it))) || (s.layout === 'task' && !!s.text.trim()) || titleGaps(s));
 
 /**
  * On which click each entry and its second part appear by default (0 = with the slide). Entries one after
@@ -374,7 +405,8 @@ export const hasReveal = (s: Slide) => s.reveal && TWO_PART.includes(s.layout) &
  */
 function defaultItemSteps(s: Slide): { item: number; answer: number }[] {
   const reveal = hasReveal(s);
-  return shownItems(s).map(([, a], i) => {
+  return shownItems(s).map((it, i) => {
+    const a = hasAnswer(s, it);
     if (s.build) return reveal ? { item: 2 * i + 1, answer: a ? 2 * i + 2 : 0 } : { item: i + 1, answer: i + 1 };
     return { item: 0, answer: reveal && a ? 1 : 0 };
   });
@@ -393,6 +425,7 @@ export interface SlidePart {
 
 const SECOND: Partial<Record<SlideLayout, [string, string]>> = {
   list: ['Frage', 'Antwort'],
+  task: ['Eintrag', 'Lösung'],
   words: ['Wort', 'Bedeutung'],
   compare: ['Kasten', 'Text im Kasten'],
   flow: ['Schritt', 'Erklärung im Schritt'],
@@ -404,7 +437,7 @@ const clip = (t: string) => (t.length > 28 ? t.slice(0, 26).trimEnd() + ' …' :
 export function slideParts(s: Slide): SlidePart[] {
   const parts: { key: string; label: string; answer?: boolean; step?: number; anim?: SlideAnim }[] = [];
   const t = !!s.text.trim();
-  const titleLabel = s.layout === 'quote' ? 'Leitfrage' : s.layout === 'exit' ? 'Merksatz' : 'Überschrift';
+  const titleLabel = s.layout === 'quote' ? 'Leitfrage' : s.layout === 'exit' ? 'Merksatz' : s.layout === 'task' ? 'Arbeitsauftrag' : 'Überschrift';
   const textLabel: Partial<Record<SlideLayout, string>> = { title: 'Untertitel', quote: 'Zitat', statement: 'Hinweis', image: 'Text neben dem Bild', exit: 'Rückbezug' };
   if (s.layout === 'quote' || s.layout === 'exit') {
     if (t) parts.push({ key: 'text', label: textLabel[s.layout]! });
@@ -413,16 +446,22 @@ export function slideParts(s: Slide): SlidePart[] {
     if (s.title.trim()) parts.push({ key: 'title', label: titleLabel });
     if (t && (s.layout === 'title' || s.layout === 'statement' || s.layout === 'list' || s.layout === 'words')) parts.push({ key: 'text', label: textLabel[s.layout] ?? 'Auftrag' });
   }
-  if (s.layout === 'image') parts.push({ key: 'image', label: 'Bild' });
+  if (titleGaps(s)) parts.push({ key: 'gaps', label: s.layout === 'exit' ? 'Lücken im Merksatz' : 'Lücken', answer: true, step: s.reveal ? 1 : 0, anim: 'fade' });
+  if (s.layout === 'image' || (s.layout === 'task' && s.image)) parts.push({ key: 'image', label: 'Bild' });
   const names = SECOND[s.layout];
   if (names) {
     const defaults = defaultItemSteps(s);
-    shownItems(s).forEach(([head, second], i) => {
-      parts.push({ key: `item:${i}`, label: `${names[0]} ${i + 1}: ${clip(head)}`, step: defaults[i].item, anim: s.itemAnim });
-      if (second) parts.push({ key: `answer:${i}`, label: `${names[1]} ${i + 1}`, answer: true, step: defaults[i].answer, anim: 'fade' });
+    shownItems(s).forEach((it, i) => {
+      parts.push({ key: `item:${i}`, label: `${names[0]} ${i + 1}: ${clip(it[0].replace(SLIDE_GAP, '…').replace(/_{3,}/g, '…'))}`, step: defaults[i].item, anim: s.itemAnim });
+      if (hasAnswer(s, it)) parts.push({ key: `answer:${i}`, label: `${names[1]} ${i + 1}`, answer: true, step: defaults[i].answer, anim: 'fade' });
     });
   }
   if (t && (s.layout === 'compare' || s.layout === 'flow' || s.layout === 'image')) parts.push({ key: 'text', label: textLabel[s.layout] ?? 'Satz darunter' });
+  if (t && s.layout === 'task') {
+    // The solution of a task: after the entries' solutions, or with them.
+    const last = parts.reduce((n, p) => Math.max(n, p.step ?? 0), 0);
+    parts.push({ key: 'text', label: 'Lösung', answer: true, step: s.reveal ? (s.build ? last + 1 : Math.max(1, last)) : 0, anim: 'fade' });
+  }
   return parts.map((p) => {
     const own = s.anims[p.key];
     return { key: p.key, label: p.label, answer: !!p.answer, step: own ? own.step : (p.step ?? 0), anim: own ? own.anim : (p.anim ?? 'fade') };

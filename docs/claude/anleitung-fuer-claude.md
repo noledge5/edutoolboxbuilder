@@ -214,12 +214,14 @@ Zu jeder Stunde gehören auf Wunsch Präsentationsfolien: `"slides": [ … ]` in
 | `phase` | Aufschrift der Phase in der Kopfleiste, z. B. „Abrufphase“, „Einstieg“, „Erarbeitung“, „Sicherung“, „Exit“; in Englisch z. B. „Warm-up“, „Vocabulary“, „Grammar“ |
 | `form` | Sozialform wie bei Seiten (`"allein"`, `"zu zweit"`, `"Gruppe"`, `"Plenum"`), weglassen, wenn keine |
 | `minutes` | Dauer der Phase in Minuten, weglassen, wenn keine |
-| `label` | kleine Zeile über der Überschrift (`statement`, `exit`) bzw. im Zitatkasten (`quote`) |
-| `title` | große Überschrift, höchstens etwa 60 Zeichen; bei `quote` die Leitfrage |
-| `text` | je nach Art: Untertitel, Zitat, Hinweis, Satz unter Kästen oder Schema, Text neben dem Bild |
+| `label` | kleine Zeile über der Überschrift (`statement`, `exit`), im Zitatkasten (`quote`) bzw. über dem Arbeitsauftrag (`task`: „Aufgabe 2 · S. 1 · ★★☆ · 3 P.“, die erste Zahl steht im Kreis) |
+| `title` | große Überschrift, höchstens etwa 60 Zeichen; bei `quote` die Leitfrage, bei `task` der Arbeitsauftrag |
+| `help` | nur `task`: Hilfe unter dem Auftrag, z. B. die deutsche Hilfe einer englischen Aufgabe |
+| `text` | je nach Art: Untertitel, Zitat, Hinweis, Satz unter Kästen oder Schema, Text neben dem Bild, bei `task` die Lösung |
 | `items` | Einträge, einer je Zeile (`\n`), Aufbau je nach Art |
-| `reveal` | `true`: Lösungen erscheinen erst auf Klick: Antworten (`list`), Bedeutungen (`words`), Text in den Kästen (`compare`), Erklärungen in den Schritten (`flow`) |
-| `build` | `true`: Die Einträge (`list`, `compare`, `flow`, `words`) erscheinen nacheinander, je Klick einer; bei `list` mit `reveal` abwechselnd Frage und Antwort |
+| `image`, `source` | Bild und Quelle der Arten `image` und `task`: die Bild-Id aus `images` (wie bei Seiten) |
+| `reveal` | `true`: Lösungen erscheinen erst auf Klick: Antworten (`list`, `task`), Wörter in Lücken (`task`, Merksatz in `exit` und `statement`), die Lösung (`text` bei `task`), Bedeutungen (`words`), Text in den Kästen (`compare`), Erklärungen in den Schritten (`flow`) |
+| `build` | `true`: Die Einträge (`list`, `task`, `compare`, `flow`, `words`) erscheinen nacheinander, je Klick einer; mit `reveal` abwechselnd Eintrag und Lösung |
 | `itemAnim` | wie die Einträge dabei erscheinen: `"rise"` (von unten, Standard), `"fade"`, `"zoom"`, `"left"`, `"none"` |
 | `transition` | Übergang zu dieser Folie: `"none"` (Standard), `"fade"`, `"push"`, `"zoom"`; sparsam einsetzen |
 | `elements` | frei platzierte Elemente auf der Folie (siehe unten) |
@@ -230,13 +232,14 @@ Zu jeder Stunde gehören auf Wunsch Präsentationsfolien: `"slides": [ … ]` in
 |---|---|
 | `title` | erste Folie: Thema der Stunde (`title`) und Leitfrage (`text`) |
 | `list` | nummerierte Fragen oder Aufträge, `items` als „Frage \| Antwort“ (Antwort optional), höchstens 6 |
+| `task` | eine Aufgabe des Arbeitsblatts: Nummer und Niveau (`label`), Arbeitsauftrag (`title`), Hilfe (`help`), Einträge (`items`) als „Eintrag \| Lösung“ oder mit Lücken „I [[am]] Tom.“ (höchstens 6), Lösung (`text`), daneben ein Bild (`image`); mit `reveal` erscheinen alle Lösungen auf Klick |
 | `quote` | Einstieg: Zitat oder Rückblick im Kasten (`text`, darüber `label`), darunter die Leitfrage (`title`) |
 | `statement` | große Aussage oder Deutung (`title`) mit kleiner Zeile (`label`) und Hinweis im grünen Kasten (`text`) |
 | `compare` | zwei oder drei Kästen nebeneinander, `items` als „Überschrift \| Text“ |
 | `flow` | Fließschema mit Pfeilen, `items` als „Begriff \| Erklärung“, drei bis fünf Schritte |
 | `words` | Wortkarten, `items` als „Wort \| Bedeutung“, bis zwölf |
 | `image` | großes Bild mit Text daneben (`text`); das Bild sucht die Lehrkraft im Baukasten, nenne in `notes`, was darauf zu sehen sein soll |
-| `exit` | letzte Folie auf grünem Grund: Rückbezug (`text`), `label` (z. B. „Merksatz“) und Merksatz (`title`) |
+| `exit` | letzte Folie auf grünem Grund: Rückbezug (`text`), `label` (z. B. „Merksatz“) und Merksatz (`title`); Lücken im Merksatz als `[[Wort]]` füllen sich mit `reveal` auf Klick |
 | `blank` | freie Folie: Kopfleiste, Überschrift (`title`, darf leer sein) und nur `elements` |
 
 **Elemente** (`elements`) liegen frei auf jeder Folie, gemessen in Pixeln einer Folie von 1920 × 1080 (`x`, `y` links oben, `w`, `h`; Kopfleiste bis etwa `y` 170, Fußzeile ab etwa `y` 1000, Rand links und rechts 96):
@@ -250,14 +253,16 @@ Zu jeder Stunde gehören auf Wunsch Präsentationsfolien: `"slides": [ … ]` in
 
 Jedes Element hat außerdem `step` (0 = mit der Folie, 1, 2 … = beim ersten, zweiten … Klick) und `anim` (wie es dann erscheint: `"fade"`, Standard, `"rise"`, `"zoom"`, `"left"`, `"none"`). Die Klicks zählen für die ganze Folie gemeinsam: Mit `build` belegen die Einträge die ersten Klicks (bei `list` mit `reveal` zwei je Frage); ein Element danach bekommt die nächste Zahl. Beispiel: `{ "kind": "text", "text": "Tipp: Schaut ins Lernjournal!", "style": "note", "x": 1240, "y": 700, "w": 580, "h": 200, "step": 1 }`.
 
-**Einzelne Teile auf Klick** (`anims`): Jeder Teil einer Folie kann auf einem eigenen Klick erscheinen, mit `step` (Klick-Nummer, 0 = mit der Folie) und `anim`. Schlüssel: `title` (Überschrift, Leitfrage, Merksatz), `text` (Untertitel, Zitat, Hinweis, Satz darunter, Rückbezug), `image` (Bild der Art `image`), `item:0`, `item:1` … (Einträge, gezählt ab 0) und `answer:0`, `answer:1` … (die Lösung bzw. der zweite Teil des Eintrags). `anims` gilt vor `build` und `reveal`. Beispiel für eine Deutung, deren Hinweis erst nach einer Diskussion kommt: `"layout": "statement", "anims": { "text": { "step": 1, "anim": "zoom" } }`.
+**Einzelne Teile auf Klick** (`anims`): Jeder Teil einer Folie kann auf einem eigenen Klick erscheinen, mit `step` (Klick-Nummer, 0 = mit der Folie) und `anim`. Schlüssel: `title` (Überschrift, Leitfrage, Merksatz, Arbeitsauftrag), `text` (Untertitel, Zitat, Hinweis, Satz darunter, Rückbezug, Lösung einer Aufgabe), `image` (Bild der Arten `image` und `task`), `gaps` (die Wörter in den Lücken eines Merksatzes), `item:0`, `item:1` … (Einträge, gezählt ab 0) und `answer:0`, `answer:1` … (die Lösung bzw. der zweite Teil des Eintrags, auch die Wörter in seinen Lücken). `anims` gilt vor `build` und `reveal`. Beispiel für eine Deutung, deren Hinweis erst nach einer Diskussion kommt: `"layout": "statement", "anims": { "text": { "step": 1, "anim": "zoom" } }`.
 
 Videos: Schreib nur Links, die die Lehrkraft dir gegeben hat oder die du sicher kennst; sonst ein Textfeld „Video: …“ als Platzhalter und in `notes`, wonach die Lehrkraft suchen soll.
 
 So werden gute Folien:
-- Eine Stunde hat meist sechs bis zehn Folien: Titel, Abrufphase oder Einstieg, je Phase ein bis zwei Folien, Exit.
+- Die Folien begleiten das Arbeitsblatt, in seiner Reihenfolge: Titel, Abrufphase oder Einstieg, dann zu jeder Aufgabe eine Folie `task` (Nummer, Niveau und Punkte wie auf dem Blatt, Arbeitsauftrag, Einträge, Lösung auf Klick mit `reveal`), dazwischen die Abbildungen (`image`, oder als `image` auf der Aufgabenfolie direkt danach), Fließschemata (`flow`), Vokabeln (`words`) und Regeln (`statement`), am Ende der Merksatz (`exit`, Lücken auf Klick).
+- Die Lösungen auf den Folien sind dieselben wie in der Lösungsfassung des Arbeitsblatts: angekreuzte Antworten als „Antwort \| ✓“, Lücken als `[[…]]`, Zuordnungen als „links \| rechts“, richtig/falsch als „Aussage \| richtig“, offene Aufgaben als Musterlösung in `text`.
 - Schrittweise einblenden (`build`, `step`) lohnt sich, wo die Klasse erst nachdenken soll: Abruffragen, Schritte eines Schemas, Vergleiche. Nicht jede Folie braucht Animationen.
-- Folien sind knapp: Fragen, Stichworte, Merksätze. Lange Texte und Aufgaben stehen auf dem Arbeitsblatt.
+- Folien sind knapp: Aufträge, Stichworte, Lösungen, Merksätze. Lange Texte (Lesetexte, Quellen) stehen auf dem Arbeitsblatt.
+- Der Baukasten schlägt solche Folien auch selbst aus dem Arbeitsblatt vor (Menü „Folien“ im Arbeitsblatt); eigene Folien lohnen sich, wenn sie mehr bieten: Einstieg, Impulse, Bilder, Videos.
 - Die Farbe (`type`) folgt der Phase: dieselbe wie das Arbeitsblatt, mit dem die Klasse gerade arbeitet.
 - Englische Stunden: Folien auf Englisch, Sprechernotizen auf Deutsch.
 - In `title`, `text` und `items` schreibt `**fett**` fett und `{{…}}` markiert farbig.
@@ -329,7 +334,7 @@ Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr.
 - Keine Seite ist voller als etwa 840 px.
 - Geplante Stunden haben `title` und `plan`, aber keine `pages`; ausgearbeitete Stunden haben `pages`.
 - Reicht ein Arbeitsblatt nicht auf eine Seite, mach die zweite Seite zur Rückseite (`"back": true`) statt zu einem neuen Blatt.
-- Folien: `layout` und `type` aus den Listen, höchstens 6 Einträge bei `list`, 5 bei `flow`, 3 bei `compare`, 12 bei `words`; Elemente liegen ganz auf der Folie (`x + w` ≤ 1920, `y + h` ≤ 1080) und verdecken keinen Text.
+- Folien: `layout` und `type` aus den Listen, höchstens 6 Einträge bei `list` und `task`, 5 bei `flow`, 3 bei `compare`, 12 bei `words`; Elemente liegen ganz auf der Folie (`x + w` ≤ 1920, `y + h` ≤ 1080) und verdecken keinen Text.
 
 ## Alle Bausteine
 
@@ -1299,17 +1304,18 @@ Lehrkraft-Seite, Vokabeln, Grammatik, Sprechen und Schreiben, dazu vier Folien. 
               "notes": "Bildkarten zeigen, chorisch nachsprechen, dann Bedeutungen aufdecken."
             },
             {
-              "layout": "list",
+              "layout": "task",
               "type": "grammar",
               "phase": "Grammar",
               "form": "zu zweit",
               "minutes": 10,
-              "title": "I am, you are …",
-              "text": "Complete the sentences.",
-              "items": "I ___ Tom. | am\nYou ___ eleven. | are\nShe ___ my friend. | is",
+              "label": "Task 3 · p. 2 · ★★★",
+              "title": "Fill in am, is or are.",
+              "help": "Setze am, is oder are ein.",
+              "items": "Hi, I [[am]] Emma.\nThis [[is]] Ben.\nWe [[are]] in class 5b.",
               "reveal": true,
               "build": true,
-              "notes": "Regel an der Tafel entdecken lassen, dann Satz für Satz aufdecken; zum Schluss der Merkzettel.",
+              "notes": "Aufgabe 3 vom Arbeitsblatt gemeinsam vergleichen: Satz für Satz zeigen, dann die Lösung aufdecken; zum Schluss der Merkzettel.",
               "elements": [
                 {
                   "kind": "text",
@@ -1331,8 +1337,9 @@ Lehrkraft-Seite, Vokabeln, Grammatik, Sprechen und Schreiben, dazu vier Folien. 
               "form": "allein",
               "minutes": 3,
               "label": "Remember",
-              "title": "I am · you are · he / she / it is",
+              "title": "I [[am]] · you [[are]] · he / she / it [[is]]",
               "text": "Tell your partner: My name is … I am … years old.",
+              "reveal": true,
               "notes": "Ich-kann-Satz ankreuzen lassen."
             }
           ]

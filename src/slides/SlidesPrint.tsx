@@ -20,7 +20,7 @@ interface SlidesPrintProps {
 }
 
 const PER_PAGE: Record<SlidesPrintKind, number> = { handout: 2, notes: 3, slides: 1 };
-const TITLE: Record<SlidesPrintKind, string> = { handout: 'Handout', notes: 'Folien mit Notizen', slides: 'Folien als PDF' };
+const TITLE: Record<SlidesPrintKind, string> = { handout: 'Handout ohne Lösungen', notes: 'Folien mit Notizen', slides: 'Folien als PDF' };
 
 /** A4 landscape in CSS pixels. */
 const LAND_W = 1123;
@@ -80,7 +80,7 @@ export function SlidesPrint({ kind, slides, ctx, title, onClose }: SlidesPrintPr
                       <div className={'sl-print-list is-' + kind}>
                         {group.map(({ slide, n }) => (
                           <div key={slide.id} className="sl-print-item">
-                            <SlideBox slide={slide} number={n} ctx={ctx} width={kind === 'notes' ? 400 : 722} print />
+                            <SlideBox slide={slide} number={n} ctx={ctx} width={kind === 'notes' ? 400 : 722} print noAnswers={kind === 'handout'} />
                             {kind === 'notes' && (
                               <div className="sl-print-notes">
                                 <b>Folie {n}</b>

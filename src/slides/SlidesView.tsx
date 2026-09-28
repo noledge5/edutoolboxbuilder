@@ -34,6 +34,8 @@ import {
   createElement,
   createSlide,
   ELEMENT_LABELS,
+  GAP_TITLE,
+  hasGap,
   ITEM_LIMIT,
   SLIDE_ANIMS,
   SLIDE_LAYOUT_ORDER,
@@ -127,6 +129,7 @@ const TEXT_STYLES: { v: TextStyle; l: string }[] = [
 
 const REVEAL_LABEL: Partial<Record<SlideLayout, string>> = {
   list: 'Antworten (Lösungen) beim Präsentieren',
+  task: 'Lösungen beim Präsentieren',
   words: 'Bedeutungen beim Präsentieren',
   compare: 'Text in den Kästen beim Präsentieren',
   flow: 'Erklärungen in den Schritten beim Präsentieren',
@@ -343,6 +346,7 @@ export function SlidesView(p: SlidesViewProps) {
   if (printing) return <SlidesPrint kind={printing} slides={slides} ctx={p.ctx} title={p.lessonTitle} onClose={() => setPrinting(null)} />;
 
   const info = slide ? SLIDE_LAYOUTS[slide.layout] : null;
+  const revealLabel = slide && (REVEAL_LABEL[slide.layout] ?? (GAP_TITLE.includes(slide.layout) && hasGap(slide.title) ? 'Lücken beim Präsentieren' : ''));
   return (
     <div className="app sl-app">
       <header className="topbar">
@@ -381,7 +385,7 @@ export function SlidesView(p: SlidesViewProps) {
           label="Drucken"
           icon={Printer}
           items={[
-            { label: 'Handout: zwei Folien je Seite', icon: Printer, onClick: () => slides.length && setPrinting('handout') },
+            { label: 'Handout: zwei Folien je Seite, ohne Lösungen', icon: Printer, onClick: () => slides.length && setPrinting('handout') },
             { label: 'Mit Sprechernotizen (für dich)', icon: Printer, onClick: () => slides.length && setPrinting('notes') },
             { label: 'Folien als PDF (Querformat)', icon: Printer, onClick: () => slides.length && setPrinting('slides') },
           ]}
@@ -554,12 +558,18 @@ export function SlidesView(p: SlidesViewProps) {
               </div>
               <div className="panel-section">
                 {info.labelHint && <TextField label={info.labelHint} value={slide.label} onChange={(label) => set({ label }, 'label')} />}
-                <RichArea label={slide.layout === 'quote' ? 'Leitfrage' : 'Überschrift'} rows={2} value={slide.title} onChange={(title) => set({ title }, 'title')} />
+                <RichArea
+                  label={slide.layout === 'quote' ? 'Leitfrage' : slide.layout === 'task' ? 'Arbeitsauftrag' : 'Überschrift'}
+                  rows={2}
+                  value={slide.title}
+                  onChange={(title) => set({ title }, 'title')}
+                />
+                {slide.layout === 'task' && <RichArea label="Hilfe unter dem Auftrag (z. B. auf Deutsch)" rows={2} value={slide.help} onChange={(help) => set({ help }, 'help')} />}
                 {info.text && <RichArea label={info.text} value={slide.text} onChange={(text) => set({ text }, 'text')} />}
                 {info.items && <RichArea label={info.items} rows={5} value={slide.items} onChange={(items) => set({ items }, 'items')} />}
-                {REVEAL_LABEL[slide.layout] && (
+                {revealLabel && (
                   <SegField<boolean>
-                    label={REVEAL_LABEL[slide.layout]!}
+                    label={revealLabel}
                     value={slide.reveal}
                     options={[
                       { v: true, l: 'erst auf Klick' },
@@ -568,7 +578,7 @@ export function SlidesView(p: SlidesViewProps) {
                     onPick={(reveal) => set({ reveal })}
                   />
                 )}
-                {slide.layout === 'image' && (
+                {(slide.layout === 'image' || slide.layout === 'task') && (
                   <>
                     <ImageField
                       label="Bild"

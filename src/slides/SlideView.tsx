@@ -1,10 +1,11 @@
 // One slide at its full size (1920 × 1080), after the design's slide reference. The caller scales it.
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
-import { Lightbulb, User, Users } from 'lucide-react';
+import { Lightbulb, Star, User, Users } from 'lucide-react';
 import { Icon } from '../icons';
 import { partSteps, shownItems, type Slide, type SlideAnim } from '../model/slides';
 import { THEMES, WORK_FORMS_EN } from '../model/themes';
 import type { Lang } from '../model/types';
+import { typo } from '../sheet/lang';
 import { themeVars } from '../sheet/SheetPage';
 import { useImageUrl } from '../storage/images';
 import { topicIcon } from '../topicIcons';
@@ -43,12 +44,14 @@ interface SlideViewProps {
   live?: boolean;
   /** Printing: videos become a QR code. */
   print?: boolean;
+  /** Handout for the class: solutions that come on a click stay blank. */
+  noAnswers?: boolean;
   style?: CSSProperties;
 }
 
 const TEXT = {
-  de: { question: 'Leitfrage', note: 'Hinweis' },
-  en: { question: 'Key question', note: 'Note' },
+  de: { question: 'Leitfrage', note: 'Hinweis', solution: 'Lösung' },
+  en: { question: 'Key question', note: 'Note', solution: 'Solution' },
 };
 
 function Header({ slide, ctx }: { slide: Slide; ctx: SlideContext }) {
@@ -99,10 +102,51 @@ function Picture({ id, source }: { id: string; source: string }) {
   );
 }
 
+/** The line above a task: "Aufgabe 2 · ★★☆ · 3 P.", with the stars drawn like on the sheet. */
+function TaskLabel({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/([★☆]+)/).map((bit, k) =>
+        k % 2 ? (
+          <span key={k} className="sl-stars">
+            {[...bit].map((c, j) => (
+              <Star key={j} size={30} strokeWidth={2.5} fill={c === '★' ? 'currentColor' : 'none'} className={c === '★' ? '' : 'is-off'} aria-hidden="true" />
+            ))}
+          </span>
+        ) : (
+          bit
+        ),
+      )}
+    </>
+  );
+}
+
+/**
+ * Text with gaps: "The cat [[sits]] on the mat." The words in the gaps come on a click; "___" is a gap
+ * without a given word.
+ */
+function GapText({ text, lang, cls, ghost, data }: { text: string; lang: Lang; cls: string; ghost: boolean; data: Record<string, string> }) {
+  return (
+    <>
+      {text.split(/(\[\[.+?\]\]|_{3,})/).map((bit, k) =>
+        k % 2 === 0 ? (
+          <Rich key={k} text={bit} lang={lang} />
+        ) : bit.startsWith('_') ? (
+          <span key={k} className="sl-gap is-empty" />
+        ) : (
+          <span key={k} className="sl-gap" {...data}>
+            <span className={'sl-gap-word' + (ghost ? ' is-ghost' : '') + cls}>{typo(bit.slice(2, -2), lang)}</span>
+          </span>
+        ),
+      )}
+    </>
+  );
+}
+
 const BOX_COLORS = ['var(--color-surface)', 'var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-3-200)'];
 const FLOW_COLORS = ['var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-300)', 'var(--color-neutral-300)', 'var(--color-accent-3-200)', 'var(--color-accent-4-200)'];
 
-export function SlideView({ slide: s, number, ctx, step, edit = false, live = false, print = false, style }: SlideViewProps) {
+export function SlideView({ slide: s, number, ctx, step, edit = false, live = false, print = false, noAnswers = false, style }: SlideViewProps) {
   const lang = ctx.lang;
   const items = shownItems(s);
   const parts = partSteps(s);
@@ -116,10 +160,16 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
   const part = (key: string) => {
     const p = parts.get(key);
     const at = p?.step ?? 0;
-    return { cls: appear(at, p?.anim ?? 'fade'), badge: <Badge at={at} edit={edit} />, at, data: { 'data-part': key } };
+    const hidden = noAnswers && p?.answer && at > 0;
+    return { cls: hidden ? ' is-later' : appear(at, p?.anim ?? 'fade'), badge: <Badge at={at} edit={edit} />, at, data: { 'data-part': key } };
   };
   // Answers (and box texts, meanings) that come after their entry are pale while editing.
   const ghost = (i: number) => edit && (parts.get(`answer:${i}`)?.step ?? 0) > (parts.get(`item:${i}`)?.step ?? 0);
+  /** The big sentence of a Merksatz or statement, with its gaps. */
+  const gapTitle = () => {
+    const g = part('gaps');
+    return <GapText text={s.title} lang={lang} cls={g.cls} ghost={edit && g.at > (parts.get('title')?.step ?? 0)} data={g.data} />;
+  };
   const h1 = (cls = '') => {
     const p = part('title');
     return (
@@ -192,9 +242,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
           <div className={'sl-exit-main' + t.cls} {...t.data}>
             {t.badge}
             {s.label && <div className="sl-exit-label">{s.label}</div>}
-            <h1 className="sl-exit-h1">
-              <Rich text={s.title} lang={lang} />
-            </h1>
+            <h1 className="sl-exit-h1">{gapTitle()}</h1>
           </div>
           <Footer ctx={ctx} number={number} />
         </>
@@ -226,6 +274,76 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
         </>
       );
       break;
+    case 'task': {
+      const t = part('title');
+      const x = part('text');
+      const pic = part('image');
+      const num = /\d+[a-z]?/i.exec(s.label)?.[0] ?? '';
+      const main = items.length > 0 || !!s.text.trim();
+      body = (
+        <>
+          <div className={'sl-task-head' + t.cls} {...t.data}>
+            {t.badge}
+            {num && <div className="sl-num is-task">{num}</div>}
+            <div className="sl-task-lead">
+              {s.label && (
+                <div className="sl-label">
+                  <TaskLabel text={s.label} />
+                </div>
+              )}
+              <h1 className={'sl-task-h1' + (s.title.length > 110 ? ' is-long' : '')}>
+                <Rich text={s.title} lang={lang} />
+              </h1>
+              {s.help && (
+                <div className="sl-task-help" lang="de">
+                  <Rich text={s.help} lang="de" />
+                </div>
+              )}
+            </div>
+          </div>
+          <div className={'sl-task-body' + (s.image && main ? ' has-image' : '')}>
+            {main && (
+              <div className="sl-task-main">
+                {items.length > 0 && (
+                  <div className={'sl-task-items' + (items.length > 4 ? ' is-many' : '')}>
+                    {items.map(([q, a], i) => {
+                      const p = part(`item:${i}`);
+                      const g = part(`answer:${i}`);
+                      return (
+                        <div key={i} className={'sl-task-item' + p.cls} {...p.data}>
+                          {p.badge}
+                          {items.length > 1 && <div className="sl-task-letter">{String.fromCharCode(97 + i)}</div>}
+                          <div className="sl-item-text">
+                            <GapText text={q} lang={lang} cls={g.cls} ghost={ghost(i)} data={g.data} />
+                          </div>
+                          {a && second(i, 'sl-answer', a, true)}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {s.text.trim() && (
+                  <div className={'sl-solution' + (edit && x.at > 0 ? ' is-ghost' : '') + x.cls} {...x.data}>
+                    {x.badge}
+                    <div className="sl-solution-label">{TEXT[lang].solution}</div>
+                    <div className="sl-solution-text">
+                      <Rich text={s.text} lang={lang} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {s.image && (
+              <div className={'sl-figure-wrap' + pic.cls} {...pic.data}>
+                {pic.badge}
+                <Picture id={s.image} source={s.source} />
+              </div>
+            )}
+          </div>
+        </>
+      );
+      break;
+    }
     case 'quote': {
       const x = part('text');
       const t = part('title');
@@ -259,9 +377,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
           <div className={'sl-lead' + t.cls} {...t.data}>
             {t.badge}
             {s.label && <div className="sl-label">{s.label}</div>}
-            <h1 className="sl-h1 is-statement">
-              <Rich text={s.title} lang={lang} />
-            </h1>
+            <h1 className="sl-h1 is-statement">{gapTitle()}</h1>
           </div>
           {s.text && (
             <div className={'sl-hint' + x.cls} {...x.data}>
@@ -395,11 +511,12 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
 }
 
 /** A slide at a given width, scaled from its full size. */
-export function SlideBox({ slide, number, ctx, width, edit = false, print = false }: { slide: Slide; number: number; ctx: SlideContext; width: number; edit?: boolean; print?: boolean }) {
+export function SlideBox(props: { slide: Slide; number: number; ctx: SlideContext; width: number; edit?: boolean; print?: boolean; noAnswers?: boolean }) {
+  const { slide, number, ctx, width, edit = false, print = false, noAnswers = false } = props;
   const scale = width / SLIDE_W;
   return (
     <div className="sl-box-frame" style={{ width, height: SLIDE_H * scale }}>
-      <SlideView slide={slide} number={number} ctx={ctx} step={null} edit={edit} print={print} style={{ transform: `scale(${scale})` }} />
+      <SlideView slide={slide} number={number} ctx={ctx} step={null} edit={edit} print={print} noAnswers={noAnswers} style={{ transform: `scale(${scale})` }} />
     </div>
   );
 }

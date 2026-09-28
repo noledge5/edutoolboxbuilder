@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { slidesFromDoc } from '../slides/fromDoc';
+import { createBlock } from './ops';
 import { seedDoc, seedSlides } from './seed';
+import type { Doc } from './types';
 import { videoInfo } from '../slides/elements';
 import {
   createElement,
@@ -51,14 +53,64 @@ describe('slides', () => {
     expect(leanSlide({ ...createSlide('statement'), image: '', notes: '' })).not.toHaveProperty('image');
   });
 
-  it('are suggested from the worksheets: title, recall, tasks per page, Merksatz as exit', () => {
+  it('are suggested from the worksheets: title, every task with its solution, Merksatz as exit', () => {
     const doc = seedDoc();
     const teacher = { title: 'Stundenverlauf', kicker: '', type: 'lehrkraft' as const, form: 'Plenum' as const, nameField: 'aus' as const, blocks: [] };
     const slides = slidesFromDoc(doc, 'Der Treibhauseffekt');
     expect(slides[0]).toMatchObject({ layout: 'title', title: 'Der Treibhauseffekt' });
-    expect(slides.some((s) => s.layout === 'list' && s.type === 'versuch')).toBe(true);
-    expect(slides[slides.length - 1]).toMatchObject({ layout: 'exit', label: 'Merksatz', title: expect.stringContaining('Beobachtung') });
+    // The multiple choice task of the experiment page: the right answer comes on a click.
+    const mc = slides.find((s) => s.layout === 'task' && s.type === 'versuch' && s.items.includes('✓'))!;
+    expect(mc).toMatchObject({ label: 'Aufgabe 1 · S. 1', phase: 'Versuch', reveal: true });
+    expect(hasReveal(mc)).toBe(true);
+    expect(slides.some((s) => s.layout === 'task' && s.text.includes('Folie'))).toBe(true);
+    expect(slides.some((s) => s.layout === 'flow')).toBe(true);
+    const exit = slides[slides.length - 1];
+    expect(exit).toMatchObject({ layout: 'exit', label: 'Merksatz', title: expect.stringContaining('[[Mechanismus]]'), reveal: true });
+    expect(partSteps(exit).get('gaps')).toMatchObject({ step: 1, answer: true });
     expect(slidesFromDoc({ ...doc, pages: [teacher] }, 'Leer')).toHaveLength(1);
+  });
+
+  it('turn each kind of task into entries with their solutions', () => {
+    const page = (blocks: Doc['pages'][number]['blocks']) => ({ title: 'Übung', kicker: '', type: 'uebung' as const, form: 'allein' as const, nameField: 'aus' as const, blocks });
+    const doc: Doc = {
+      icon: 'globe',
+      lang: 'en',
+      help: true,
+      footer: '',
+      code: '',
+      pages: [
+        page([
+          createBlock('image', { caption: 'Abb. 1: The classroom', image: 'img-1', source: 'Wikimedia' }),
+          createBlock('match', { prompt: 'Match.', left: 'dog\ncat', right: 'Katze\nHund', solution: '2, 1', level: 2, points: 4 }),
+          createBlock('truefalse', { prompt: 'True or false?', items: 'Emma is eleven. | T\nBen is a teacher. | NG', mode: 'tfn', help: 'Richtig oder falsch?' }),
+          createBlock('table', { prompt: 'Complete.', cols: 'Person\nAge\nTown', rows: 'Emma\nBen', solution: '11 | Bristol\n12 | Bath' }),
+          createBlock('qr', { url: 'https://example.org/song', caption: 'Listen to the song.' }),
+        ]),
+        page([createBlock('gap', { prompt: 'Fill in.', text: 'I [[am]] Tom.\nShe ___ Emma.' }), createBlock('image', { caption: 'A map', image: 'img-2' })]),
+      ],
+    };
+    const slides = slidesFromDoc(doc, 'Hello');
+    expect(slides.map((s) => s.layout)).toEqual(['title', 'task', 'task', 'task', 'blank', 'task', 'image']);
+    const [, match, tf, table, qr, gap, image] = slides;
+    // A picture right before a task goes on the task's slide.
+    expect(match).toMatchObject({ label: 'Task 1 · p. 1 · ★★☆ · 4 pts', items: 'dog | Hund\ncat | Katze', image: 'img-1', source: 'Wikimedia' });
+    expect(tf).toMatchObject({ help: 'Richtig oder falsch?', items: 'Emma is eleven. | true\nBen is a teacher. | not in the text' });
+    expect(table.items).toBe('Emma | Age: 11 · Town: Bristol\nBen | Age: 12 · Town: Bath');
+    expect(qr.elements[0]).toMatchObject({ kind: 'qr', url: 'https://example.org/song' });
+    expect(gap).toMatchObject({ label: 'Task 1 · p. 2', items: 'I [[am]] Tom.\nShe ___ Emma.' });
+    // The words in the gaps come on a click; a gap without a given word has nothing to uncover.
+    expect(itemSteps(gap)).toEqual([
+      { item: 0, answer: 1 },
+      { item: 0, answer: 0 },
+    ]);
+    expect(image).toMatchObject({ title: 'A map', image: 'img-2' });
+  });
+
+  it('show the solution of a task after the answers of its entries', () => {
+    const task = { ...createSlide('task'), items: 'A? | a\nB? | b', text: 'Lösung', reveal: true };
+    expect(partSteps(task).get('text')).toMatchObject({ label: 'Lösung', step: 1, answer: true });
+    expect(partSteps({ ...task, build: true }).get('text')?.step).toBe(5);
+    expect(stepCount({ ...task, reveal: false })).toBe(0);
   });
 
   it('come with the sample lesson', () => {
