@@ -1,6 +1,6 @@
 // Start page: choose subject and grade, then a module; recently edited lessons for quick access.
 import { useState, type DragEvent } from 'react';
-import { Blocks, CalendarRange, FolderSync, Plus, Settings as SettingsIcon, Sparkles, X } from 'lucide-react';
+import { Blocks, CalendarRange, FolderSync, Plus, Settings as SettingsIcon, Sparkles, Trash2, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
 import { ClaudeDialog } from './ClaudeDialog';
@@ -13,6 +13,11 @@ import { GRADES } from './types';
 
 interface OverviewProps {
   lib: Library;
+  /** Entries in the trash; 0 hides the button. */
+  trashCount: number;
+  /** Time of the last backup file saved or opened on this device (0: none yet). */
+  savedAt: number;
+  onOpenTrash(): void;
   subject?: string;
   grade?: number;
   onPick(subject: string, grade: number): void;
@@ -31,6 +36,28 @@ interface OverviewProps {
 }
 
 export function Overview(p: OverviewProps) {
+  // Safari (not installed as an app) clears stored data after 7 days without a visit: say so, until dismissed.
+  const [safariTab, setSafariTab] = useState(() => {
+    try {
+      const standalone = window.matchMedia?.('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+      const ua = navigator.userAgent;
+      const webkit = /iPad|iPhone|Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|Chromium|Edg|Firefox|OPR/.test(ua);
+      const dismissed = Number(localStorage.getItem('baukasten-hinweis-safari')) || 0;
+      return !standalone && webkit && Date.now() - dismissed > 30 * 86_400_000;
+    } catch {
+      return false;
+    }
+  });
+  const dismissSafari = () => {
+    try {
+      localStorage.setItem('baukasten-hinweis-safari', String(Date.now()));
+    } catch {
+      // Private mode: the hint just comes back next time.
+    }
+    setSafariTab(false);
+  };
+  const backupAge = p.savedAt ? Math.floor((Date.now() - p.savedAt) / 86_400_000) : null;
+
   const { lib } = p;
   const subjects = subjectsOf(lib);
   const subject = p.subject && subjects.includes(p.subject) ? p.subject : subjects[0];
@@ -107,10 +134,22 @@ export function Overview(p: OverviewProps) {
             </button>
           </div>
         )}
+        {safariTab && (
+          <div className="sync-banner is-welcome">
+            <span>
+              <b>Tipp:</b> Installiere den Baukasten als App (iPad: Teilen → Zum Home-Bildschirm, Mac: Ablage → Zum Dock hinzufügen) und öffne dort einmal deine Sicherung. Im Safari-Tab löscht Safari
+              die gespeicherten Daten, wenn du die Seite 7 Tage lang nicht öffnest.
+            </span>
+            <button type="button" className="btn btn-secondary ui-btn" onClick={dismissSafari}>
+              Verstanden
+            </button>
+          </div>
+        )}
         {p.pending > 0 && (
-          <div className="sync-banner">
+          <div className={'sync-banner' + (backupAge === null || backupAge >= 7 ? ' is-urgent' : '')}>
             <span>
               {p.pending} {p.pending === 1 ? 'Änderung ist' : 'Änderungen sind'} noch nicht in iCloud gesichert.
+              {backupAge === null ? ' Auf diesem Gerät gibt es noch keine Sicherung.' : backupAge >= 7 ? ` Die letzte Sicherung ist ${backupAge} Tage her.` : ''}
             </span>
             <button type="button" className="btn btn-primary ui-btn" onClick={p.onSync}>
               Jetzt abgleichen
@@ -237,6 +276,14 @@ export function Overview(p: OverviewProps) {
           </section>
         ) : (
           <p className="lib-empty">Lege zuerst ein Fach an.</p>
+        )}
+        {p.trashCount > 0 && (
+          <div className="lib-trash-row">
+            <button type="button" className="btn btn-secondary ui-btn" onClick={p.onOpenTrash}>
+              <Icon icon={Trash2} />
+              Papierkorb · {p.trashCount}
+            </button>
+          </div>
         )}
       </main>
 

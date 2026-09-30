@@ -1,6 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Editor, errorText } from './editor/Editor';
-import { changedSince, docForLesson, duplicateLesson, favoriteBlocks, lessonFromDoc, lessonsOf, modulesOf, newLesson, newModule, slideContext, subjectsOf, syncLibrary, vocabTestLesson } from './library/model';
+import {
+  changedSince,
+  docForLesson,
+  duplicateLesson,
+  favoriteBlocks,
+  lessonFromDoc,
+  lessonsOf,
+  modulesOf,
+  newLesson,
+  newModule,
+  restoreFromTrash,
+  slideContext,
+  subjectsOf,
+  syncLibrary,
+  toTrash,
+  vocabTestLesson,
+} from './library/model';
+import { TrashDialog } from './library/TrashDialog';
+import { VersionsDialog } from './library/VersionsDialog';
+import { whenText } from './library/when';
 import { SlidesView } from './slides/SlidesView';
 import { slidesFromDoc } from './slides/fromDoc';
 import type { Slide } from './model/slides';
@@ -10,7 +29,7 @@ import { Overview } from './library/Overview';
 import { SyncDialog } from './library/SyncDialog';
 import { go, useRoute } from './library/router';
 import { addPackage, type ImportResult, type ParsedPackage } from './library/package';
-import type { Lesson, Library, Module, Settings } from './library/types';
+import type { Lesson, LessonVersion, Library, Module, Settings, TrashEntry } from './library/types';
 import type { Doc } from './model/types';
 import { createPackageFile, createPlanFile, downloadBlob, packageFileName, readAnyFile, safeFileName, type OpenedFile } from './storage/backup';
 import { YearPlanView } from './library/YearPlanView';
@@ -54,6 +73,16 @@ export function App() {
   const [undo, setUndo] = useState<{ text: string; run(): void } | null>(null);
   const [inSyncUntil, setInSyncUntil] = useState(0);
   const [syncOpen, setSyncOpen] = useState(false);
+  const [trash, setTrash] = useState<TrashEntry[]>([]);
+  const trashRef = useRef(trash);
+  trashRef.current = trash;
+  const [trashOpen, setTrashOpen] = useState(false);
+  /** The lesson whose earlier versions are shown. */
+  const [versionsOf, setVersionsOf] = useState<string | null>(null);
+  /** Counts restores, so the editor starts again with the restored lesson. */
+  const [editorRev, setEditorRev] = useState(0);
+  /** When each lesson was last kept as a version in this session. */
+  const versionTimes = useRef(new Map<string, number>());
   const route = useRoute();
   const libRef = useRef(lib);
   libRef.current = lib;
@@ -65,8 +94,17 @@ export function App() {
         if (!alive) return;
         setLib(l);
         setInSyncUntil(t);
-        store.cleanUpImages(l).catch(() => {});
         requestPersistentStorage();
+        store
+          .loadTrash()
+          .then((t) => {
+            if (!alive) return;
+            setTrash(t);
+            store.saveTrash(t).catch(() => {});
+            // Images of the trash and of earlier versions stay; only what nothing uses goes.
+            store.cleanUpImages(l).catch(() => {});
+          })
+          .catch(() => {});
       })
       .catch((e) => alive && setLoadError(errorText(e)));
     return () => {
@@ -107,6 +145,13 @@ export function App() {
 
   const putLesson = useCallback((le: Lesson) => {
     const put = (l: Library): Library => ({ ...l, lessons: l.lessons.some((x) => x.id === le.id) ? l.lessons.map((x) => (x.id === le.id ? le : x)) : [...l.lessons, le] });
+    // An earlier version: how the lesson looked before the first change of a session, then at most every half hour.
+    const before = libRef.current?.lessons.find((x) => x.id === le.id);
+    const now = Date.now();
+    if (before && before !== le && now - (versionTimes.current.get(le.id) ?? 0) > 30 * 60 * 1000) {
+      versionTimes.current.set(le.id, now);
+      store.keepVersion(before).catch(() => {});
+    }
     // At once, so a second change right after this one (slides, then their design) builds on it.
     if (libRef.current) libRef.current = put(libRef.current);
     setLib((l) => l && put(l));
@@ -119,16 +164,88 @@ export function App() {
     store.saveSettings(next).catch(failed);
   }, []);
 
-  /** Removes modules and lessons, and remembers them as deleted so a sync with the other device does not bring them back. */
-  const remove = useCallback((moduleIds: string[], lessonIds: string[]) => {
+  const putTrash = (t: TrashEntry[]) => {
+    trashRef.current = t;
+    setTrash(t);
+    store.saveTrash(t).catch(failed);
+  };
+
+  /**
+   * Moves modules and lessons to the trash, and remembers them as deleted so a sync with the other device does not
+   * bring them back. The notice can take it back.
+   */
+  const remove = (moduleIds: string[], lessonIds: string[], text: string) => {
     const l = libRef.current!;
     const now = Date.now();
+    const entries = toTrash(l, moduleIds, lessonIds, now);
+    putTrash([...entries, ...trashRef.current]);
     const deleted = { ...l.deleted };
     for (const id of [...moduleIds, ...lessonIds]) deleted[id] = now;
-    setLib({ ...l, deleted, modules: l.modules.filter((m) => !moduleIds.includes(m.id)), lessons: l.lessons.filter((x) => !lessonIds.includes(x.id)) });
+    const next = { ...l, deleted, modules: l.modules.filter((m) => !moduleIds.includes(m.id)), lessons: l.lessons.filter((x) => !lessonIds.includes(x.id)) };
+    libRef.current = next;
+    setLib(next);
     store.deleteEntries(moduleIds, lessonIds).catch(failed);
     store.saveDeleted(deleted).catch(failed);
-  }, []);
+    setUndo({
+      text: `${text} liegt im Papierkorb.`,
+      run: () => {
+        for (const e of entries) restore(e.id, true);
+        setUndo(null);
+      },
+    });
+  };
+
+  /** Brings a trash entry back. */
+  const restore = (entryId: string, quiet = false) => {
+    const r = restoreFromTrash(libRef.current!, trashRef.current, entryId, Date.now());
+    if ('error' in r) {
+      setNotice(r.error);
+      return;
+    }
+    for (const m of r.modules) putModule(m);
+    for (const l of r.lessons) putLesson(l).catch(failed);
+    putTrash(r.trash);
+    if (!quiet) setNotice(r.modules.length ? `Modul „${r.modules[0].title}“ ist wieder da.` : `Stunde „${r.lessons[0]?.title}“ ist wieder da.`);
+  };
+
+  /** Removes trash entries for good, with the earlier versions of their lessons. */
+  const purge = (entryIds: string[]) => {
+    const gone = trashRef.current.filter((e) => entryIds.includes(e.id));
+    putTrash(trashRef.current.filter((e) => !entryIds.includes(e.id)));
+    store.deleteVersions(gone.flatMap((e) => e.lessons.map((l) => l.id))).catch(() => {});
+  };
+
+  /** A lesson back as it was in an earlier version; the state now becomes a version itself. */
+  const restoreVersion = (v: LessonVersion) => {
+    const now = libRef.current!.lessons.find((x) => x.id === v.lesson.id);
+    if (!now) return;
+    store.keepVersion(now, 'Vor dem Wiederherstellen').catch(() => {});
+    versionTimes.current.set(now.id, Date.now());
+    putLesson({ ...v.lesson, moduleId: now.moduleId, number: now.number, updatedAt: Date.now() }).catch(failed);
+    setEditorRev((r) => r + 1);
+    setVersionsOf(null);
+    setNotice(`Die Fassung von ${whenText(v.at)} ist wiederhergestellt. Die bisherige steht unter „Frühere Fassungen“.`);
+  };
+
+  /** An earlier version as a new lesson next to the current one. */
+  const copyVersion = (v: LessonVersion) => {
+    const lib = libRef.current!;
+    const now = lib.lessons.find((x) => x.id === v.lesson.id);
+    const m = lib.modules.find((x) => x.id === (now ?? v.lesson).moduleId);
+    if (!m) return;
+    const copy = { ...duplicateLesson(lib, m, v.lesson), title: `${v.lesson.title} (Fassung ${whenText(v.at)})` };
+    putLesson(copy).catch(failed);
+    setVersionsOf(null);
+    go({ view: 'lesson', id: copy.id });
+  };
+
+  /** Keeps the lessons that `next` changes as earlier versions (before a sync or an import). */
+  const keepChanged = (before: Library, next: Lesson[], reason: string) => {
+    for (const l of next) {
+      const old = before.lessons.find((x) => x.id === l.id);
+      if (old && old.updatedAt !== l.updatedAt) store.keepVersion(old, reason).catch(() => {});
+    }
+  };
 
   // Saving from the editor: the lesson's document; a new topic icon chosen there applies to the whole module.
   const saveLessonDoc = useCallback(
@@ -153,6 +270,7 @@ export function App() {
     const slides = make(l, m);
     if (!slides) return;
     const before = l.slides;
+    if (l.slides.length) store.keepVersion(l, 'Vor neuen Folien').catch(() => {});
     putLesson({ ...l, slides, updatedAt: Date.now() }).catch(failed);
     setUndo({
       text: text(slides.length),
@@ -195,6 +313,7 @@ export function App() {
   // Sync with the backup file from the other device: newer versions win, deletions are carried over.
   const syncWith = async (opened: Extract<OpenedFile, { kind: 'library' }>) => {
     const r = syncLibrary(libRef.current!, opened.library);
+    keepChanged(libRef.current!, r.library.lessons, 'Vor dem Abgleich');
     await store.replaceWhole(r.library);
     setLib(r.library);
     // Nothing here is newer than the file: this device is exactly as saved in it.
@@ -213,6 +332,7 @@ export function App() {
   const importPackage = async (pkg: ParsedPackage, stay = false) => {
     const lib = libRef.current!;
     const r = addPackage(lib, pkg);
+    keepChanged(lib, r.lessons, 'Vor dem Import');
     for (const m of r.modules) putModule(m);
     for (const l of r.lessons) await putLesson(l);
     const year = pkg.schoolYear;
@@ -290,7 +410,7 @@ export function App() {
     if (!lesson || !m) return <ToOverview />;
     view = (
       <Editor
-        key={lesson.id}
+        key={`${lesson.id}:${editorRev}`}
         initialDoc={docForLesson(m, lesson)}
         onSave={saveLessonDoc(lesson.id)}
         onBack={() => go({ view: 'module', id: m.id })}
@@ -303,6 +423,7 @@ export function App() {
         slideCount={lesson.slides.length}
         onRegenerateSlides={(doc) => regenerateSlides(lesson.id, doc)}
         onDeleteSlides={() => deleteSlides(lesson.id)}
+        onVersions={() => setVersionsOf(lesson.id)}
       />
     );
     subject = m.subject;
@@ -322,6 +443,7 @@ export function App() {
           const current = libRef.current?.lessons.find((l) => l.id === lesson.id) ?? lesson;
           putLesson({ ...current, slides, updatedAt: Date.now() }).catch(failed);
         }}
+        onVersions={() => setVersionsOf(lesson.id)}
         onDesign={(slideDesign) => {
           const current = libRef.current?.lessons.find((l) => l.id === lesson.id) ?? lesson;
           putLesson({ ...current, slideDesign, updatedAt: Date.now() }).catch(failed);
@@ -370,10 +492,10 @@ export function App() {
         onBack={() => go({ view: 'overview', subject: m.subject, grade: m.grade })}
         onChange={putModule}
         onDelete={() => {
-          if (!window.confirm(`Modul „${m.title}“ mit ${lessons.length} Stunden löschen? Das lässt sich nicht rückgängig machen.`)) return;
           remove(
             [m.id],
             lessons.map((l) => l.id),
+            `Modul „${m.title}“`,
           );
           go({ view: 'overview', subject: m.subject, grade: m.grade });
         }}
@@ -388,10 +510,7 @@ export function App() {
         onDeleteSlides={(l) => deleteSlides(l.id)}
         onChangeLesson={(l) => putLesson(l).catch(failed)}
         onDuplicateLesson={(l) => putLesson(duplicateLesson(lib, m, l)).catch(failed)}
-        onDeleteLesson={(l) => {
-          if (!window.confirm(`Stunde ${l.number} „${l.title}“ löschen? Das lässt sich nicht rückgängig machen.`)) return;
-          remove([], [l.id]);
-        }}
+        onDeleteLesson={(l) => remove([], [l.id], `Stunde ${l.number} „${l.title}“`)}
         onImportFile={(file) => openFile(file, m)}
         onExportVocab={() => {
           const csv = vocabCsv(vocabOf(lessons.map((l) => l.doc)));
@@ -419,6 +538,9 @@ export function App() {
     view = (
       <Overview
         lib={lib}
+        trashCount={trash.length}
+        savedAt={inSyncUntil}
+        onOpenTrash={() => setTrashOpen(true)}
         subject={route.subject}
         grade={route.grade}
         onPick={(subject, grade) => go({ view: 'overview', subject, grade }, true)}
@@ -445,6 +567,19 @@ export function App() {
       <div className="subject-scope" style={subject ? subjectVars(subjectColor(lib.settings, subject)) : undefined}>
         {view}
       </div>
+      {trashOpen && (
+        <TrashDialog
+          trash={trash}
+          modules={lib.modules}
+          onRestore={(id) => restore(id)}
+          onPurge={(id) => purge([id])}
+          onEmpty={() => window.confirm('Alles im Papierkorb endgültig löschen?') && purge(trash.map((e) => e.id))}
+          onClose={() => setTrashOpen(false)}
+        />
+      )}
+      {versionsOf && lib.lessons.some((l) => l.id === versionsOf) && (
+        <VersionsDialog lesson={lib.lessons.find((l) => l.id === versionsOf)!} onRestore={restoreVersion} onCopy={copyVersion} onClose={() => setVersionsOf(null)} />
+      )}
       {syncOpen && (
         <SyncDialog
           lib={lib}

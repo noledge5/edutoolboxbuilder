@@ -18,7 +18,8 @@ import { Canvas } from './Canvas';
 import { dropTargetAt, sameDrop } from './drop';
 import { ghostBesideCursor } from './ghostModifier';
 import { JsonDialog } from './JsonDialog';
-import { PrintDialog, type PrintMode } from './PrintDialog';
+import { DEFAULT_PRINT, PrintDialog, type PrintMode } from './PrintDialog';
+import { hasLevels, hasShuffle, levelCode, variantDoc } from '../model/variants';
 import { PropertiesPanel } from './PropertiesPanel';
 import { DragGhost, Toolbox } from './Toolbox';
 import { TopBar } from './TopBar';
@@ -91,11 +92,27 @@ export interface EditorProps {
   /** Makes the lesson's slides anew from this worksheet as it is now. */
   onRegenerateSlides?(doc: Doc): void;
   onDeleteSlides?(): void;
+  /** Earlier versions of the lesson. */
+  onVersions?(): void;
 }
 
 const NO_COMPETENCES: { id: string; area: string }[] = [];
 
-export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competences = NO_COMPETENCES, note = '', favorites, onSlides, slideCount = 0, onRegenerateSlides, onDeleteSlides }: EditorProps) {
+export function Editor({
+  initialDoc,
+  onSave,
+  onBack,
+  place,
+  codeLocked,
+  competences = NO_COMPETENCES,
+  note = '',
+  favorites,
+  onSlides,
+  slideCount = 0,
+  onRegenerateSlides,
+  onDeleteSlides,
+  onVersions,
+}: EditorProps) {
   const [noteOpen, setNoteOpen] = useState(true);
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
   const doc = hist.present;
@@ -112,12 +129,14 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
   const [toolboxOpen, setToolboxOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [inline, setInline] = useState<string | null>(null);
-  const [printMode, setPrintMode] = useState<PrintMode>({ solutions: false, bw: false });
+  const [printMode, setPrintMode] = useState<PrintMode>(DEFAULT_PRINT);
   const [printOpen, setPrintOpen] = useState(false);
   const editing = !preview;
   // While editing, stored answers show faintly; the preview and print show the chosen version.
   const competenceNames = useMemo(() => new Map(competences.map((c) => [c.id, c.area])), [competences]);
-  const sheetMode: SheetMode = editing ? { solutions: 'ghost', bw: false } : { solutions: printMode.solutions ? 'shown' : 'hidden', bw: printMode.bw };
+  const sheetMode: SheetMode = editing ? { solutions: 'ghost', bw: false } : { solutions: printMode.solutions ? 'shown' : 'hidden', bw: printMode.bw, group: printMode.group };
+  // The preview and print show the chosen version: some levels only, or test group B.
+  const shownDoc = useMemo(() => (editing ? doc : variantDoc(doc, printMode)), [editing, doc, printMode]);
   const canvasRef = useRef<HTMLElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -167,7 +186,7 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
   }, [fitZoom]);
 
   const api: EditorApi = {
-    doc,
+    doc: shownDoc,
     sel,
     editing,
     drop,
@@ -544,11 +563,23 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
           onOpenJson={() => setJsonOpen(true)}
           onTogglePreview={() => setPreview((p) => !p)}
           onPrint={() => setPrintOpen(true)}
-          modeLabel={!editing ? [printMode.solutions ? 'Lösungsfassung' : 'Schülerfassung', printMode.bw ? 'S/W' : 'Farbe'].join(' · ') : undefined}
+          modeLabel={
+            !editing
+              ? [
+                  printMode.solutions ? 'Lösungsfassung' : 'Schülerfassung',
+                  printMode.bw ? 'S/W' : 'Farbe',
+                  levelCode(printMode.levels) && `Niveau ${levelCode(printMode.levels)}`,
+                  printMode.group && `Gruppe ${printMode.group}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')
+              : undefined
+          }
           onSlides={onSlides}
           slideCount={slideCount}
           onRegenerateSlides={onRegenerateSlides && (() => onRegenerateSlides(doc))}
           onDeleteSlides={onDeleteSlides}
+          onVersions={onVersions}
         />
         <input
           ref={fileInput}
@@ -593,7 +624,17 @@ export function Editor({ initialDoc, onSave, onBack, place, codeLocked, competen
             <PropertiesPanel api={api} open={!compact || (panelOpen && sel !== null && inline === null)} compact={compact} onClose={() => setPanelOpen(false)} />
           )}
         </div>
-        {printOpen && <PrintDialog mode={printMode} hasTeacherPages={doc.pages.some((pg) => pg.type === 'lehrkraft')} onPreview={showPreview} onPrint={print} onClose={() => setPrintOpen(false)} />}
+        {printOpen && (
+          <PrintDialog
+            mode={printMode}
+            hasTeacherPages={doc.pages.some((pg) => pg.type === 'lehrkraft')}
+            hasLevels={hasLevels(doc)}
+            canShuffle={hasShuffle(doc)}
+            onPreview={showPreview}
+            onPrint={print}
+            onClose={() => setPrintOpen(false)}
+          />
+        )}
         {jsonOpen && (
           <JsonDialog
             doc={doc}

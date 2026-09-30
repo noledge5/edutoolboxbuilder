@@ -41,6 +41,8 @@ Online: **https://noledge5.github.io/edutoolboxbuilder/** · Stand und Pläne: [
 - **Zoom:** −/+, „Seite einpassen“; der Zoom bleibt beim Neuladen erhalten.
 - **iPad:** Zum Ziehen kurz gedrückt halten. Im Hochformat öffnet „Toolbox“ die Bausteine, das Panel erscheint beim Antippen eines Elements.
 - **Drucken / PDF:** Erst **Schülerfassung** oder **Lösungsfassung** wählen, dann **Farbe** oder **S/W-Kopiervorlage** (Umrisse statt Farbflächen). „Vorschau“ zeigt das Ergebnis, „Drucken“ öffnet den Druckdialog des Browsers: eine A4-Seite pro Blatt, Rand 0. Ist eine Seite zu voll, fragt die App vorher nach.
+- **Niveau-Fassungen:** Haben Aufgaben Niveau-Sterne, wählt der Druckdialog, welche Niveaus aufs Blatt kommen (★ G, ★★ M, ★★★ E, auch mehrere). Aufgaben ohne Niveau bleiben immer; Nummern, Punkte, Notenschlüssel und Tippkarten passen sich an, im Fußband steht das Niveau (z. B. „K9 · M1 · S2 · G“). Seiten, auf denen nichts übrig bleibt, fallen weg.
+- **Testgruppen A/B:** „Gruppe A“ ist das Blatt, wie es ist; „Gruppe B“ hat die Antworten beim Ankreuzen, Zuordnen und Richtig/Falsch und die Einträge von Sätze ordnen, Umformen, Knick-Vokabeltest, Bild-Vokabeln und Bingo in anderer Reihenfolge (jedes Mal dieselbe). Die Gruppe steht im Kopfband, die Lösungsfassung passt zur Gruppe.
 
 ### Folien
 Jede Stunde hat ein eigenes Abteil für Präsentationsfolien (16:9), im Stil der Arbeitsblätter und der Folien-Vorlage aus dem Design. Öffnen über „Folien“ in der Stundenliste des Moduls oder oben im Arbeitsblatt.
@@ -57,6 +59,11 @@ Jede Stunde hat ein eigenes Abteil für Präsentationsfolien (16:9), im Stil der
 - **Ohne die Folien zu öffnen:** Im Arbeitsblatt (oben „Folien · 9“) und in der Stundenliste des Moduls öffnet der Knopf „Folien“ ein Menü: „Folien öffnen“, „Neu aus diesem Arbeitsblatt erzeugen …“ (ersetzt die Folien durch neue Vorschläge aus dem aktuellen Arbeitsblatt) und „Alle Folien löschen …“. Danach erscheint unten „Rückgängig“.
 - **Präsentieren:** Vollbild; weiter mit →, Leertaste, Klick oder Wischen nach links (erst die Klicks der Folie, dann die nächste Folie), zurück mit ←, Klick ins linke Drittel oder Wischen nach rechts. Punkte unten zeigen die Klicks der Folie. N zeigt die Sprechernotizen, F Vollbild, Esc beendet. Nach dem Abspielen eines Videos einmal neben das Video klicken, dann reagieren die Tasten wieder.
 - **Drucken:** Handout (zwei Folien je A4-Seite, ohne die Lösungen, die erst auf Klick kommen), mit Sprechernotizen (drei je Seite, für dich) oder die Folien als PDF im Querformat.
+
+### Sicherheitsnetz
+- **Papierkorb:** Gelöschte Module und Stunden landen im Papierkorb (unten in der Übersicht „Papierkorb · 2“) und bleiben dort 30 Tage mit allen Seiten, Folien und Bildern. Direkt nach dem Löschen holt „Rückgängig“ sie zurück, später „Wiederherstellen“ im Papierkorb. Der Papierkorb gilt nur für dieses Gerät.
+- **Frühere Fassungen:** Beim Arbeiten merkt sich der Baukasten etwa jede halbe Stunde, wie eine Stunde vorher aussah, dazu vor jedem Abgleich, Import und neuen Folien (die letzten 20 Fassungen, 30 Tage). Im Arbeitsblatt unter „Datei → Frühere Fassungen …“ oder bei den Folien unter „Folien → Frühere Fassungen …“: „Wiederherstellen“ (die jetzige Fassung bleibt als frühere erhalten) oder „Als Kopie“ (als neue Stunde daneben).
+- **Safari:** Im Safari-Tab löscht Safari gespeicherte Daten, wenn die Seite 7 Tage lang nicht geöffnet wurde. Die Übersicht erinnert daran, den Baukasten als App zu installieren, und färbt den Hinweis auf nicht gesicherte Änderungen kräftiger, wenn die letzte Sicherung eine Woche her ist.
 
 ### Mac und iPad
 Der Baukasten speichert alles im Browser des jeweiligen Geräts. Abgeglichen wird über eine Datei in iCloud Drive, ohne Server und ohne Konto:

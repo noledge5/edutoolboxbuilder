@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, Minus, Plus, Presentation, Printer, Redo2, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, Minus, Plus, Presentation, Printer, Redo2, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
 
@@ -34,6 +34,8 @@ interface TopBarProps {
   /** New slides from this worksheet, replacing the old ones. */
   onRegenerateSlides?(): void;
   onDeleteSlides?(): void;
+  /** Earlier versions of the lesson (in the library). */
+  onVersions?(): void;
 }
 
 export function TopBar(p: TopBarProps) {
@@ -86,6 +88,7 @@ export function TopBar(p: TopBarProps) {
           { label: 'Öffnen …', icon: FolderOpen, onClick: p.onOpenFile },
           { label: 'Als Datei sichern', icon: Download, onClick: p.onSaveFile },
           { label: 'Daten anzeigen (JSON)', icon: Braces, onClick: p.onOpenJson },
+          ...(p.onVersions ? [{ label: 'Frühere Fassungen …', icon: History, onClick: p.onVersions }] : []),
         ]}
       />
       {p.modeLabel && <span className="topbar-mode">{p.modeLabel}</span>}

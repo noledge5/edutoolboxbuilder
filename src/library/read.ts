@@ -3,7 +3,7 @@ import { normalizeDoc } from '../model/normalize';
 import { isSlideDesign, normalizeSlides } from '../model/slides';
 import type { Lang } from '../model/types';
 import { readSubjectColors } from './subjectColor';
-import type { Competence, Holiday, Lesson, Module, SchoolYear, Settings } from './types';
+import type { Competence, Holiday, Lesson, LessonVersion, Module, SchoolYear, Settings, TrashEntry } from './types';
 
 const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const str = (x: unknown): string => (typeof x === 'string' ? x : typeof x === 'number' ? String(x) : '');
@@ -102,6 +102,27 @@ export function readSettings(raw: unknown): Settings {
     subjectColors: readSubjectColors(s.subjectColors),
     updatedAt: Number(s.updatedAt) || 0,
   };
+}
+
+/** The trash as stored; broken entries are left out. */
+export function readTrash(raw: unknown): TrashEntry[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((e): TrashEntry[] => {
+    if (!isObj(e) || typeof e.id !== 'string' || !Array.isArray(e.lessons)) return [];
+    const lessons = e.lessons.map(readLesson).filter((l): l is Lesson => l !== null);
+    const module = e.module ? readModule(e.module) : null;
+    if (!module && !lessons.length) return [];
+    return [{ id: e.id, at: Number(e.at) || 0, module, lessons }];
+  });
+}
+
+/** Earlier versions of a lesson as stored. */
+export function readVersions(raw: unknown): LessonVersion[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((v): LessonVersion[] => {
+    const lesson = isObj(v) ? readLesson(v.lesson) : null;
+    return lesson && isObj(v) ? [{ at: Number(v.at) || 0, reason: typeof v.reason === 'string' ? v.reason : '', lesson }] : [];
+  });
 }
 
 export function readDeleted(raw: unknown): Record<string, number> {

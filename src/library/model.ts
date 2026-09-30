@@ -5,7 +5,7 @@ import { seedDoc, seedSlides } from '../model/seed';
 import type { BlockType, Doc, Lang } from '../model/types';
 import { DEFAULT_TOPIC_ICON } from '../topicIcons';
 import type { SlideContext } from '../slides/SlideView';
-import type { Competence, Lesson, Library, Module, Settings } from './types';
+import type { Competence, Lesson, LessonVersion, Library, Module, Settings, TrashEntry } from './types';
 
 /** Kürzel of a lesson: "K9 · M1 · S2". */
 export const lessonCode = (m: Module, lessonNumber: number) => `K${m.grade} · M${m.number} · S${lessonNumber}`;
@@ -390,4 +390,97 @@ export const changedSince = (lib: Library, t: number) =>
 export function duplicateLesson(lib: Library, m: Module, l: Lesson): Lesson {
   const fresh = newLesson(lib, m);
   return { ...fresh, title: `${l.title} (Kopie)`, plan: l.plan, doc: { ...l.doc, code: fresh.doc.code }, slides: l.slides.map((s) => ({ ...s, id: uid() })), slideDesign: l.slideDesign };
+}
+
+// — Trash and earlier versions (kept on this device only) —
+
+/** Days a deleted module or lesson stays in the trash. */
+export const TRASH_DAYS = 30;
+const DAY = 24 * 60 * 60 * 1000;
+
+/** What goes into the trash when modules (with their lessons) and single lessons are deleted. */
+export function toTrash(lib: Library, moduleIds: string[], lessonIds: string[], now: number): TrashEntry[] {
+  const out: TrashEntry[] = [];
+  const taken = new Set<string>();
+  for (const id of moduleIds) {
+    const module = lib.modules.find((m) => m.id === id);
+    if (!module) continue;
+    const lessons = lib.lessons.filter((l) => l.moduleId === id);
+    lessons.forEach((l) => taken.add(l.id));
+    out.push({ id: uid(), at: now, module, lessons });
+  }
+  for (const id of lessonIds) {
+    const lesson = lib.lessons.find((l) => l.id === id);
+    if (lesson && !taken.has(id)) out.push({ id: uid(), at: now, module: null, lessons: [lesson] });
+  }
+  return out;
+}
+
+/** The trash without what has been in it longer than `TRASH_DAYS`. */
+export const purgeTrash = (trash: TrashEntry[], now: number) => trash.filter((e) => now - e.at < TRASH_DAYS * DAY);
+
+/** Days left before an entry leaves the trash for good. */
+export const trashDaysLeft = (e: TrashEntry, now: number) => Math.max(0, Math.ceil((e.at + TRASH_DAYS * DAY - now) / DAY));
+
+export interface Restored {
+  modules: Module[];
+  lessons: Lesson[];
+  trash: TrashEntry[];
+}
+
+/**
+ * Brings a trash entry back. A lesson whose module is gone comes back with that module if it is in the trash too.
+ * Everything restored counts as changed now, so a sync keeps it (deletions are older).
+ */
+export function restoreFromTrash(lib: Library, trash: TrashEntry[], entryId: string, now: number): Restored | { error: string } {
+  const entry = trash.find((e) => e.id === entryId);
+  if (!entry) return { error: 'Der Eintrag ist nicht mehr im Papierkorb.' };
+  const modules: Module[] = [];
+  const lessons: Lesson[] = [];
+  let rest = trash.filter((e) => e !== entry);
+  if (entry.module) modules.push({ ...entry.module, updatedAt: now });
+  else {
+    const moduleId = entry.lessons[0]?.moduleId;
+    if (!lib.modules.some((m) => m.id === moduleId)) {
+      const home = rest.find((e) => e.module?.id === moduleId);
+      if (!home?.module) return { error: 'Das Modul dieser Stunde gibt es nicht mehr. Stelle zuerst das Modul wieder her.' };
+      modules.push({ ...home.module, updatedAt: now });
+      lessons.push(...home.lessons);
+      rest = rest.filter((e) => e !== home);
+    }
+  }
+  lessons.push(...entry.lessons);
+  // A lesson number that is taken in the meantime becomes the next free one.
+  const taken = new Set(lib.lessons.map((l) => `${l.moduleId}:${l.number}`));
+  const back = lessons.map((l) => {
+    let number = l.number;
+    while (taken.has(`${l.moduleId}:${number}`)) number++;
+    taken.add(`${l.moduleId}:${number}`);
+    return { ...l, number, updatedAt: now };
+  });
+  return { modules, lessons: back, trash: rest };
+}
+
+/** Earlier versions kept per lesson, and for how long. */
+export const MAX_VERSIONS = 20;
+export const VERSION_DAYS = 30;
+
+/** Keeps `lesson` as an earlier version (unless the newest one is the same state); old ones drop out. */
+export function addVersion(versions: LessonVersion[], lesson: Lesson, now: number, reason = ''): LessonVersion[] {
+  const recent = versions.filter((v) => now - v.at < VERSION_DAYS * DAY);
+  if (recent.some((v) => v.lesson.updatedAt === lesson.updatedAt)) return recent;
+  return [{ at: now, reason, lesson }, ...recent].sort((a, b) => b.at - a.at).slice(0, MAX_VERSIONS);
+}
+
+/** "3 Seiten · 24 Bausteine · 9 Folien" */
+export function lessonSize(l: Lesson): string {
+  const pages = l.doc.pages.length;
+  const blocks = l.doc.pages.reduce((n, p) => n + p.blocks.length, 0);
+  return [
+    `${pages} ${pages === 1 ? 'Seite' : 'Seiten'}`,
+    `${blocks} ${blocks === 1 ? 'Baustein' : 'Bausteine'}`,
+    l.slides.length ? `${l.slides.length} ${l.slides.length === 1 ? 'Folie' : 'Folien'}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
 }

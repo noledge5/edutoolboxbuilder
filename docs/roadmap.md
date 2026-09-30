@@ -79,3 +79,12 @@
 - Bilder im Stundenpaket als ZIP statt data-URL (für große Fotos)
 - Test auf echtem iPad und Mac (Safari), Rückmeldungen einarbeiten
 - Leichte Textkorrektur in der App
+
+### Phase 6 – Alltag und Differenzierung (nach dem Audit)
+- ✅ Sicherheitsnetz: Papierkorb (30 Tage, Rückgängig), frühere Fassungen je Stunde, Safari-Hinweis und Erinnerung an die Sicherung
+- ✅ Niveau-Fassungen (G/M/E) und Testgruppen A/B beim Drucken
+- Suche (⌘K) über Module, Stunden, Bausteine und Folien; Suchfeld in der Toolbox; Kopieren und Einfügen zwischen Stunden, Mehrfachauswahl
+- Werkzeuge beim Präsentieren: Timer mit den Minuten der Folie, Zufallsname, Ampel, mit dem Stift auf die Folie schreiben
+- Klassen und Kalender („Diese Woche“, gehalten, Nachbereitung), neues Schuljahr übernehmen
+- Vorlesen (Aussprache, Hörtexte), zwei Seiten auf ein Blatt/A5, Korrekturbogen, lesefreundliche Fassung
+- Größere Schritte: KI direkt im Baukasten (optional, eigener Schlüssel), digitale Schülerfassung (HTML/H5P), automatischer Abgleich über eine eigene Cloud

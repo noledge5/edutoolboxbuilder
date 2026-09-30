@@ -11,6 +11,7 @@ import {
   Download,
   Eye,
   FileUp,
+  History,
   FileText,
   Highlighter,
   ImagePlus,
@@ -83,6 +84,8 @@ interface SlidesViewProps {
   onChange(slides: Slide[]): void;
   /** A design for all slides of the lesson. */
   onDesign(design: SlideDesign): void;
+  /** Earlier versions of the lesson. */
+  onVersions?(): void;
   onBack(): void;
   onOpenSheet(): void;
 }
@@ -415,6 +418,7 @@ export function SlidesView(p: SlidesViewProps) {
             { label: 'Neu aus dem Arbeitsblatt vorschlagen …', icon: Sparkles, onClick: resuggest },
             { label: 'PowerPoint öffnen …', icon: FileUp, onClick: () => pptxInput.current?.click() },
             { label: 'Als PowerPoint sichern …', icon: Download, onClick: () => slides.length && setExporting(true) },
+            ...(p.onVersions ? [{ label: 'Frühere Fassungen …', icon: History, onClick: p.onVersions }] : []),
           ]}
         />
         <Menu

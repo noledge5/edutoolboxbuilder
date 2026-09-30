@@ -92,6 +92,24 @@ export interface SchoolYear {
   holidays: Holiday[];
 }
 
+/** Deleted modules and lessons, kept on this device for a while (see `TRASH_DAYS`). */
+export interface TrashEntry {
+  id: string;
+  /** Time of deletion. */
+  at: number;
+  /** A deleted module (with its lessons), or null for a single lesson. */
+  module: Module | null;
+  lessons: Lesson[];
+}
+
+/** An earlier state of a lesson, kept on this device (see `addVersion`). */
+export interface LessonVersion {
+  at: number;
+  /** Why it was kept: '' while working, else e.g. "Vor dem Abgleich". */
+  reason: string;
+  lesson: Lesson;
+}
+
 export interface Library {
   settings: Settings;
   modules: Module[];

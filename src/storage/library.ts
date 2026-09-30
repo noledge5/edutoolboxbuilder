@@ -1,14 +1,16 @@
 // The library in IndexedDB: one entry per module and per lesson, so saving a worksheet writes only that lesson.
 import { delMany, get, getMany, keys, set, setMany } from 'idb-keyval';
-import { libraryFromOldDoc, seedLibrary } from '../library/model';
-import { readDeleted, readLesson, readModule, readSettings } from '../library/read';
-import type { Lesson, Library, Module, Settings } from '../library/types';
+import { addVersion, libraryFromOldDoc, purgeTrash, seedLibrary } from '../library/model';
+import { readDeleted, readLesson, readModule, readSettings, readTrash, readVersions } from '../library/read';
+import type { Lesson, LessonVersion, Library, Module, Settings, TrashEntry } from '../library/types';
 import { slideImages } from '../model/slides';
 import { deleteOldDoc, deleteUnusedImages, kv, loadDoc } from './db';
 
 const SETTINGS = 'lib:einstellungen';
 const DELETED = 'lib:geloescht';
 const SYNC = 'lib:abgleich';
+const TRASH = 'lib:papierkorb';
+const VERSIONS = 'fassung:';
 const MOD = 'modul:';
 const LES = 'stunde:';
 
@@ -74,9 +76,45 @@ export async function loadInSyncUntil(): Promise<number> {
 
 export const saveInSyncUntil = (t: number) => set(SYNC, { inSyncUntil: t }, kv());
 
-/** Removes images that no worksheet in the library uses any more. */
-export const cleanUpImages = (lib: Library) =>
-  deleteUnusedImages(
-    lib.lessons.map((l) => l.doc),
-    lib.lessons.flatMap((l) => slideImages(l.slides)),
+// — Trash and earlier versions: on this device only, not in backups —
+
+/** The trash, without what has been in it too long. */
+export async function loadTrash(): Promise<TrashEntry[]> {
+  return purgeTrash(readTrash(await get(TRASH, kv())), Date.now());
+}
+
+export const saveTrash = (trash: TrashEntry[]) => set(TRASH, trash, kv());
+
+export const loadVersions = async (lessonId: string): Promise<LessonVersion[]> => readVersions(await get(VERSIONS + lessonId, kv()));
+
+export const deleteVersions = (lessonIds: string[]) =>
+  delMany(
+    lessonIds.map((id) => VERSIONS + id),
+    kv(),
   );
+
+/** One write after the other per lesson, so quick changes do not lose a version. */
+const versionQueue = new Map<string, Promise<void>>();
+
+/** Keeps the lesson as it is now as an earlier version. */
+export function keepVersion(lesson: Lesson, reason = ''): Promise<void> {
+  const run = (versionQueue.get(lesson.id) ?? Promise.resolve()).then(async () => {
+    const versions = await loadVersions(lesson.id);
+    await set(VERSIONS + lesson.id, addVersion(versions, lesson, Date.now(), reason), kv());
+  });
+  const safe = run.catch(() => {});
+  versionQueue.set(lesson.id, safe);
+  return run;
+}
+
+/** Removes images that nothing uses any more: not the library, the trash or an earlier version. */
+export async function cleanUpImages(lib: Library): Promise<void> {
+  const trash = await loadTrash();
+  const versionKeys = (await keys<string>(kv())).filter((k) => typeof k === 'string' && k.startsWith(VERSIONS));
+  const versions = (await getMany<unknown>(versionKeys, kv())).flatMap(readVersions).map((v) => v.lesson);
+  const all = [...lib.lessons, ...trash.flatMap((e) => e.lessons), ...versions];
+  await deleteUnusedImages(
+    all.map((l) => l.doc),
+    all.flatMap((l) => slideImages(l.slides)),
+  );
+}

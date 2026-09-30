@@ -19,6 +19,8 @@ Browser tool for a German Realschule teacher to build printable A4 worksheets fr
 - Page field `back`: the back of the page before it, slim header with the front's title (`frontOf`).
 - Subject colours (`src/library/subjectColor.ts`): the app's `--color-accent*` follow the subject; `.ws-page` and `.sl-slide` reset them to the orange ramp `--color-accent-1-*`.
 - Image search (`src/storage/imageSearch.ts`): Openverse and Wikimedia Commons without a key; Wikimedia thumbnails only in its standard widths (330, 1280 …).
+- Safety net (this device only, not in backups): trash `lib:papierkorb` (`toTrash`, `restoreFromTrash`, `TRASH_DAYS`), earlier versions per lesson `fassung:<id>` (`addVersion`, `keepVersion`; kept in `putLesson` at most every 30 minutes and before sync, import, new slides). Image clean-up counts trash and versions.
+- Print variants (`src/model/variants.ts`): only some levels (G/M/E) and test group B (answers and entries shuffled with a seed, solutions follow); the editor's preview renders `variantDoc`, the group shows through `SheetMode.group`.
 - Readers for stored and imported library data: `src/library/read.ts` (defaults for fields added later). Year plan maths: `src/library/yearplan.ts`. Vocabulary, points, grade scale, tips: `src/model/language.ts`.
 
 ## Rules

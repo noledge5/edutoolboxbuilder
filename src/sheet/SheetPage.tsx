@@ -81,6 +81,7 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
             </div>
             <div className="ws-back-title">{front.title}</div>
             <div className="ws-band-side">
+              {mode.group && <div className="ws-solution-pill is-group">{txt.group(mode.group)}</div>}
               {mode.solutions === 'shown' && <div className="ws-solution-pill">{txt.solution}</div>}
               {page.type !== front.type && <div className="ws-type-pill">{en ? t.labelEn : t.label}</div>}
               {formPill}
@@ -97,6 +98,7 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
               <Editable as="h1" className="ws-title" target={`page${index}:title`} value={page.title} />
             </div>
             <div className="ws-band-side">
+              {mode.group && <div className="ws-solution-pill is-group">{txt.group(mode.group)}</div>}
               {mode.solutions === 'shown' && <div className="ws-solution-pill">{txt.solution}</div>}
               <div className="ws-type-pill">{en ? t.labelEn : t.label}</div>
               {formPill}
