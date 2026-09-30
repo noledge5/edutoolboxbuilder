@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from 'react';
-import { Copy, File, Trash2, X } from 'lucide-react';
+import { ClipboardCopy, Copy, File, ListChecks, Trash2, X } from 'lucide-react';
 import { BLOCK_ICONS, Icon } from '../icons';
 import { BLOCK_TYPES, SPAN_OPTIONS, type FieldDef } from '../model/blockTypes';
-import { frontOf, getBlock, pageLabel } from '../model/ops';
+import { blocksOf, frontOf, getBlock, pageLabel } from '../model/ops';
 import { num, str } from '../model/text';
 import { SHEET_TYPES, THEMES, VARIANT_OPTIONS, WORK_FORMS } from '../model/themes';
 import type { Block, Lang, NameField, SheetType, WorkForm } from '../model/types';
@@ -33,12 +33,30 @@ export function PropertiesPanel({ api, open, compact, onClose }: PanelProps) {
         <BlockProperties api={api} block={block} close={close} />
       ) : page && sel?.kind === 'page' ? (
         <PageProperties api={api} p={sel.p} close={close} />
+      ) : sel?.kind === 'blocks' ? (
+        <div className="panel-section">
+          <PanelHead icon={<Icon icon={ListChecks} />} title={`${sel.ids.length} Bausteine ausgewählt`} close={close} />
+          <ul className="panel-list">
+            {blocksOf(doc, sel.ids).map((b) => (
+              <li key={b.id}>
+                <Icon icon={BLOCK_ICONS[b.type]} size={16} />
+                {BLOCK_TYPES[b.type].label}
+              </li>
+            ))}
+          </ul>
+          <p className="panel-help">In die Ablage, Ausschneiden, Duplizieren und Löschen gelten für alle; die Leiste dafür steht oben über der Seite.</p>
+          <p className="panel-help">⌘-Klick nimmt einen Baustein dazu oder heraus, ⇧-Klick wählt alle bis dorthin. Esc hebt die Auswahl auf.</p>
+        </div>
       ) : (
         <div className="panel-intro">
           <div className="panel-title">Eigenschaften</div>
           <p className="panel-help">Wähle ein Element auf der Seite aus, um Inhalt und Breite zu ändern. Ein Klick auf den Kopf der Seite öffnet Titel, Blatt-Typ und Fußzeile.</p>
           <p className="panel-help">Texte lassen sich auch direkt auf der Seite ändern: Doppelklick, oder ein ausgewähltes Element noch einmal antippen.</p>
-          <p className="panel-help">Entf löscht das ausgewählte Element, Esc hebt die Auswahl auf. Strg+D dupliziert, Pfeiltasten wählen das nächste Element, Alt+Pfeiltasten verschieben es.</p>
+          <p className="panel-help">Entf löscht das ausgewählte Element, Esc hebt die Auswahl auf. ⌘D dupliziert, Pfeiltasten wählen das nächste Element, Alt+Pfeiltasten verschieben es.</p>
+          <p className="panel-help">
+            Mehrere Bausteine: ⌘-Klick oder ⇧-Klick, ⌘A wählt alle; auf dem iPad „Mehrere auswählen“ an einem Baustein. ⌘C legt sie in die Ablage (in der Toolbox), ⌘V fügt sie hinter der Auswahl ein,
+            auch in einer anderen Stunde.
+          </p>
         </div>
       )}
     </aside>
@@ -158,6 +176,14 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         <button type="button" className="btn btn-secondary ui-btn is-danger" onClick={() => api.deleteBlock(block.id)}>
           <Icon icon={Trash2} />
           Löschen
+        </button>
+        <button type="button" className="btn btn-secondary ui-btn" onClick={() => api.toAblage([block.id])} title="Zum Einfügen hier oder in einer anderen Stunde (⌘C)">
+          <Icon icon={ClipboardCopy} />
+          In die Ablage
+        </button>
+        <button type="button" className="btn btn-secondary ui-btn" onClick={() => api.startPicking(block.id)} title="Weitere Bausteine antippen (⌘-Klick, ⇧-Klick)">
+          <Icon icon={ListChecks} />
+          Mehrere auswählen
         </button>
       </div>
     </>

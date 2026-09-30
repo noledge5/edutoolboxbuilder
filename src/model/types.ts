@@ -90,7 +90,8 @@ export interface Doc {
   pages: Page[];
 }
 
-export type Selection = null | { kind: 'page'; p: number } | { kind: 'block'; id: string };
+/** Nothing, a page (its header), one block, or several blocks (in document order). */
+export type Selection = null | { kind: 'page'; p: number } | { kind: 'block'; id: string } | { kind: 'blocks'; ids: string[] };
 
 export type DropPos = 'before' | 'after' | 'end';
 
@@ -101,4 +102,5 @@ export interface DropTarget {
   pos: DropPos;
 }
 
-export type DragItem = { kind: 'new'; type: BlockType } | { kind: 'move'; id: string };
+/** What is dragged: a new block from the toolbox, a block on the page, or an entry of the Ablage. */
+export type DragItem = { kind: 'new'; type: BlockType } | { kind: 'move'; id: string } | { kind: 'clip'; id: string };

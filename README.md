@@ -22,10 +22,13 @@ Online: **https://noledge5.github.io/edutoolboxbuilder/** · Stand und Pläne: [
 - **Geplant und ausgearbeitet:** Stunden aus dem Jahresplan haben erst nur Titel und Planungsnotiz. Sie erscheinen blass mit „Geplant“ (auch Module, deren Stunden alle erst geplant sind), mit Fortschrittsbalken „2 von 6 Stunden ausgearbeitet“. „Ausarbeiten“ öffnet das leere Arbeitsblatt, die Planungsnotiz steht darüber. Schickt Claude später das ausgearbeitete Modul mit derselben Nummer, füllt es das geplante.
 - **Farbe je Fach:** Knöpfe und Symbole haben die Farbe des Fachs (Englisch blau, Geographie grün …), änderbar unter „Einstellungen → Farbe je Fach“. Die gedruckten Blätter bleiben gleich. In der Toolbox steht oben „Oft in <Fach>“ mit den Bausteinen, die du in diesem Fach am meisten nutzt.
 - **Zuletzt bearbeitet:** die letzten Stunden für den schnellen Einstieg.
+- **Suchen:** die Lupe oben in Übersicht, Modul, Jahresplan, Arbeitsblatt und Folien, am Mac auch ⌘K. Gesucht wird in allen Fächern und Klassen: Titel von Modulen und Stunden, Planungsnotizen, alle Texte der Bausteine (auch hinterlegte Lösungen) und der Folien samt Sprechernotizen. Groß- und Kleinschreibung und Akzente sind egal (ü findet auch u, ß auch ss); mehrere Wörter grenzen ein, auch mit der Bausteinart („Merksatz Treibhaus“). Treffer aus dem Fach und der Klasse, in denen du gerade bist, stehen oben. Ein Treffer öffnet die Stunde, wählt den Baustein bzw. die Folie aus und markiert das Suchwort ein paar Sekunden lang. Mit leerem Feld zeigt die Suche die zuletzt geöffneten Stunden; ↑/↓ und Enter wählen, Esc schließt.
 - Das Kürzel im Fußband (z. B. „K9 · M1 · S2“) und das Themen-Symbol kommen automatisch aus Klasse, Modul und Stunde.
 
 ### Arbeitsblatt
-- **Bausteine einfügen:** aus der Toolbox auf die Seite ziehen oder anklicken (landet hinter dem ausgewählten Element). Auch auf Kopfband oder Fußband ablegen geht: dann oben bzw. unten auf der Seite.
+- **Bausteine einfügen:** aus der Toolbox auf die Seite ziehen oder anklicken (landet hinter dem ausgewählten Element). Auch auf Kopfband oder Fußband ablegen geht: dann oben bzw. unten auf der Seite. Oben in der Toolbox findet „Baustein suchen …“ einen Baustein nach Namen oder Stichwort („Lücke“, „Mindmap“, „Vokabeltest“, „true false“); Enter fügt den ersten Treffer ein.
+- **Mehrere Bausteine:** ⌘-Klick nimmt einen Baustein dazu oder heraus, ⇧-Klick wählt alle bis dorthin, ⌘A alle. Auf dem iPad „Mehrere auswählen“ (in der schwarzen Leiste am Baustein oder unten im Panel), dann weitere Bausteine antippen. Oben über der Seite erscheint eine Leiste: In die Ablage, Ausschneiden, Duplizieren, Löschen und „Fertig“.
+- **Ablage, Kopieren zwischen Stunden:** ⌘C oder „In die Ablage“ legt die ausgewählten Bausteine in die Ablage oben in der Toolbox, ⌘X schneidet sie aus. In derselben oder einer anderen Stunde fügt ⌘V den neuesten Eintrag hinter der Auswahl ein; jeden Eintrag kannst du auch in der Toolbox antippen (landet hinter der Auswahl) oder an eine Stelle auf der Seite ziehen. Die Ablage behält die letzten 20 Einträge, bis du sie leerst, und gilt nur für dieses Gerät. Der Text kommt zusätzlich in die Zwischenablage, für andere Apps. Verknüpfungen mit Kompetenzen eines anderen Moduls fallen beim Einfügen weg.
 - **Text direkt auf der Seite ändern:** Doppelklick, oder ein ausgewähltes Element noch einmal anklicken bzw. antippen. Esc oder Klick daneben beendet.
 - **Panel rechts:** alle Inhalte und die Breite (Ganz · ⅔ · ½ · ⅓). Bei Aufgaben außerdem **Niveau** (★ G · ★★ M · ★★★ E), **Punkte** (druckt „__ / 3 P.“) und die **Kompetenz** aus dem Kompetenzraster des Moduls. Klick auf das Kopfband öffnet Titel, Blatt-Typ, Sozialform, Namensfeld (Name · Namen · Name + Klasse · aus), Symbol und Fußzeile.
 - **Lösungen hinterlegen:** in Lücken `[[Wort]]` statt `___`, beim Ankreuzen `*` vor die richtige Antwort, bei Offener Frage, Tabelle und Zuordnen im Feld „Lösung“. Beim Bearbeiten erscheinen sie blass, in der Lösungsfassung deutlich, in der Schülerfassung gar nicht.
@@ -37,9 +40,9 @@ Online: **https://noledge5.github.io/edutoolboxbuilder/** · Stand und Pläne: [
 - **Rückseite:** Im Panel der Seite (Klick aufs Kopfband) „Doppelseitiges Blatt → Rückseite von Seite 1“. Die Rückseite hat nur eine schmale Kopfzeile mit Symbol und Titel der Vorderseite und „Rückseite“, kein Namensfeld, und rund 110 px mehr Platz. Beim Drucken „beidseitig“ wählen.
 - **Seite ist voll:** Der Knopf „Überlauf auf neue Seite“ verschiebt, was unten abgeschnitten wird, auf eine neue Folgeseite. „Seite hinzufügen“ übernimmt Blatt-Typ, Zeile über dem Titel, Sozialform und Namensfeld der aktuellen Seite.
 - **Verschieben:** ziehen (auch auf andere Seiten) oder die Pfeile in der schwarzen Leiste über dem Element; am Seitenrand wandert das Element auf die vorige bzw. nächste Seite.
-- **Tastatur:** Entf löscht, Esc hebt die Auswahl auf, Strg/Cmd+Z macht rückgängig (mit Umschalt: wiederholen), Strg/Cmd+D dupliziert, ↑/↓ wählt das vorige/nächste Element, Alt+↑/↓ verschiebt es.
+- **Tastatur:** Entf löscht, Esc hebt die Auswahl auf, Strg/Cmd+Z macht rückgängig (mit Umschalt: wiederholen), Strg/Cmd+D dupliziert, ↑/↓ wählt das vorige/nächste Element, Alt+↑/↓ verschiebt es. Cmd+C/X/V für die Ablage, Cmd+A wählt alle Bausteine, Cmd+K sucht.
 - **Zoom:** −/+, „Seite einpassen“; der Zoom bleibt beim Neuladen erhalten.
-- **iPad:** Zum Ziehen kurz gedrückt halten. Im Hochformat öffnet „Toolbox“ die Bausteine, das Panel erscheint beim Antippen eines Elements.
+- **iPad:** Zum Ziehen kurz gedrückt halten. Im Hochformat öffnet „Toolbox“ die Bausteine und die Ablage, das Panel erscheint beim Antippen eines Elements.
 - **Drucken / PDF:** Erst **Schülerfassung** oder **Lösungsfassung** wählen, dann **Farbe** oder **S/W-Kopiervorlage** (Umrisse statt Farbflächen). „Vorschau“ zeigt das Ergebnis, „Drucken“ öffnet den Druckdialog des Browsers: eine A4-Seite pro Blatt, Rand 0. Ist eine Seite zu voll, fragt die App vorher nach.
 - **Niveau-Fassungen:** Haben Aufgaben Niveau-Sterne, wählt der Druckdialog, welche Niveaus aufs Blatt kommen (★ G, ★★ M, ★★★ E, auch mehrere). Aufgaben ohne Niveau bleiben immer; Nummern, Punkte, Notenschlüssel und Tippkarten passen sich an, im Fußband steht das Niveau (z. B. „K9 · M1 · S2 · G“). Seiten, auf denen nichts übrig bleibt, fallen weg.
 - **Testgruppen A/B:** „Gruppe A“ ist das Blatt, wie es ist; „Gruppe B“ hat die Antworten beim Ankreuzen, Zuordnen und Richtig/Falsch und die Einträge von Sätze ordnen, Umformen, Knick-Vokabeltest, Bild-Vokabeln und Bingo in anderer Reihenfolge (jedes Mal dieselbe). Die Gruppe steht im Kopfband, die Lösungsfassung passt zur Gruppe.
@@ -115,12 +118,13 @@ Jeder Push auf `main` baut die App und veröffentlicht sie (`.github/workflows/d
 src/
   App.tsx     lädt die Bibliothek und zeigt je nach Adresse Übersicht, Modul, Editor oder Folien
   library/    Übersicht, Modulseite, Kompetenzraster, Druck von Inhaltsübersicht/Kompetenzraster, Routen,
-              Abgleich Mac/iPad, Stundenpaket (Import/Export), Jahresplan und sein Import, Vokabeltest, Fachfarben
+              Abgleich Mac/iPad, Stundenpaket (Import/Export), Jahresplan und sein Import, Vokabeltest, Fachfarben,
+              Suche, Papierkorb und frühere Fassungen
   slides/     Folien: Darstellung, Editor, Präsentationsmodus, Druck, Vorschlag aus dem Arbeitsblatt
   claude/     Anleitung für Claude: Text (anleitung.md) plus Bausteinliste, Symbole, Bereiche, Ferien und Beispiele aus dem Code
   model/      Datenmodell eines Arbeitsblatts: Typen, Blocktypen, Blatt-Typen, Operationen, JSON-Prüfung, Undo
   sheet/      die gedruckte A4-Seite (Kopfband, Raster, Fußband, alle Blocktypen, Bearbeiten auf der Seite)
-  editor/     Editor-Oberfläche: Toolbox, Canvas, Eigenschaften, Datei-Menü, Drag-and-Drop
+  editor/     Editor-Oberfläche: Toolbox (mit Suche und Ablage), Canvas, Eigenschaften, Datei-Menü, Drag-and-Drop
   storage/    IndexedDB (Bibliothek, Bilder), Sicherungsdateien, Bildsuche (Openverse, Wikimedia Commons)
   styles/     Design-Tokens, Editor-Styles, Druck-Styles
 docs/

@@ -135,3 +135,41 @@ describe('back pages', () => {
     expect(ops.createPage({ ...b, back: true, nameField: 'aus' }).back).toBeUndefined();
   });
 });
+
+describe('several blocks', () => {
+  it('selects ranges across pages in document order, and makes selections of one or more', () => {
+    const doc = seedDoc();
+    const [a, b, c] = ids(doc, 0);
+    expect(ops.blockRange(doc, c, a)).toEqual([a, b, c]);
+    const last0 = ids(doc, 0).at(-1)!;
+    const first1 = ids(doc, 1)[0];
+    expect(ops.blockRange(doc, last0, first1)).toEqual([last0, first1]);
+    expect(ops.blockRange(doc, 'weg', b)).toEqual([b]);
+    expect(ops.selectionOf([])).toBeNull();
+    expect(ops.selectionOf([a])).toEqual({ kind: 'block', id: a });
+    expect(ops.selectedIds(doc, { kind: 'blocks', ids: [c, a] })).toEqual([a, c]);
+  });
+
+  it('inserts after the last selected block, deletes and copies several at once', () => {
+    const doc = seedDoc();
+    const [a, b, c] = ids(doc, 0);
+    expect(ops.insertionPoint(doc, { kind: 'blocks', ids: [b, a] })).toEqual({ p: 0, i: 2 });
+    const gone = ops.deleteBlocks(doc, [a, c]);
+    expect(ids(gone, 0).slice(0, 1)).toEqual([b]);
+    expect(ids(gone, 0)).not.toContain(a);
+    const copies = ops.copyBlocks(ops.blocksOf(doc, [a, b]));
+    expect(copies.map((x) => x.type)).toEqual(ops.blocksOf(doc, [a, b]).map((x) => x.type));
+    expect(copies.some((x) => x.id === a || x.id === b)).toBe(false);
+    const pasted = ops.insertBlocks(doc, 0, 1, copies);
+    expect(ids(pasted, 0).slice(0, 4)).toEqual([a, copies[0].id, copies[1].id, b]);
+    const dropped = ops.dropBlocks(doc, copies, { p: 1, i: 0, pos: 'after' });
+    expect(ids(dropped, 1).slice(1, 3)).toEqual(copies.map((x) => x.id));
+  });
+
+  it('drops links to competences of another module when pasting', () => {
+    const block = ops.createBlock('open', { competence: 'k1' });
+    expect(ops.copyBlocks([block], ['k1'])[0].props.competence).toBe('k1');
+    expect(ops.copyBlocks([block], ['k2'])[0].props.competence).toBe('');
+    expect(ops.copyBlocks([block])[0].props.competence).toBe('k1');
+  });
+});

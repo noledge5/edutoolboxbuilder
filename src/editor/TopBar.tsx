@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, Minus, Plus, Presentation, Printer, Redo2, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../icons';
+import { SearchButton } from '../library/SearchDialog';
 import { topicIcon } from '../topicIcons';
 
 interface TopBarProps {
@@ -53,6 +54,7 @@ export function TopBar(p: TopBarProps) {
         <div className="topbar-title">Arbeitsblatt-Baukasten</div>
         {p.place && <div className="topbar-place">{p.place}</div>}
       </div>
+      <SearchButton />
       {p.editing && p.compact && (
         <button type="button" className={'btn btn-secondary ui-btn' + (p.toolboxOpen ? ' is-on' : '')} onClick={p.onToggleToolbox} aria-pressed={p.toolboxOpen}>
           <Icon icon={Blocks} />

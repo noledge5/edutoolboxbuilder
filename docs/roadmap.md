@@ -83,7 +83,7 @@
 ### Phase 6 – Alltag und Differenzierung (nach dem Audit)
 - ✅ Sicherheitsnetz: Papierkorb (30 Tage, Rückgängig), frühere Fassungen je Stunde, Safari-Hinweis und Erinnerung an die Sicherung
 - ✅ Niveau-Fassungen (G/M/E) und Testgruppen A/B beim Drucken
-- Suche (⌘K) über Module, Stunden, Bausteine und Folien; Suchfeld in der Toolbox; Kopieren und Einfügen zwischen Stunden, Mehrfachauswahl
+- ✅ Suche (⌘K und Lupe in jeder Kopfzeile) über alle Fächer und Klassen, Titel und Inhalte von Modulen, Stunden, Bausteinen und Folien, die aktuellen zuerst; leer „Zuletzt geöffnet“; ein Treffer springt hin und markiert das Wort. Suchfeld in der Toolbox. Mehrfachauswahl (⇧/⌘-Klick, „Mehrere auswählen“ am iPad) und Ablage in der Toolbox (⌘C/⌘X/⌘V, antippen oder ziehen; die letzten 20, bis zum Leeren, nur auf diesem Gerät). Entschieden in Runde 2 (Fragen mit Vor- und Nachteilen): nur Bausteine in die Ablage, keine ganzen Seiten, Folien oder Stunden.
 - Werkzeuge beim Präsentieren: Timer mit den Minuten der Folie, Zufallsname, Ampel, mit dem Stift auf die Folie schreiben
 - Klassen und Kalender („Diese Woche“, gehalten, Nachbereitung), neues Schuljahr übernehmen
 - Vorlesen (Aussprache, Hörtexte), zwei Seiten auf ein Blatt/A5, Korrekturbogen, lesefreundliche Fassung

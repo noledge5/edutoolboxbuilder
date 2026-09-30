@@ -10,6 +10,7 @@ import { PrintFrame } from './ModulePrint';
 import { footerFor, lessonsOf, modulesOf, progressOf, progressText, subjectsOf } from './model';
 import type { ParsedPackage } from './package';
 import { PlanImportDialog } from './PlanImportDialog';
+import { SearchButton } from './SearchDialog';
 import { SettingsDialog } from './Overview';
 import type { Library, Module, Settings } from './types';
 import { BW_2026_27, dayText, planModules, schoolWeekCount, schoolWeeks, type PlannedModule, type PlanWeek } from './yearplan';
@@ -79,6 +80,7 @@ export function YearPlanView(p: YearPlanViewProps) {
             {year ? ` · Schuljahr ${year.name}` : ''}
           </div>
         </div>
+        <SearchButton />
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => setImportOpen(true)} title="Jahresplan von Claude oder aus Word, Excel, Notizen übernehmen">
           <Icon icon={CalendarPlus} />
           <span className="btn-label">Importieren</span>

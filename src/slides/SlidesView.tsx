@@ -32,6 +32,8 @@ import {
 import { ImageField, NumberField, SegField, TextField } from '../editor/fields';
 import { ImageSearchDialog } from '../editor/ImageSearchDialog';
 import { Menu } from '../editor/TopBar';
+import { markFound, pulse, type SearchFocus } from '../library/highlight';
+import { SearchButton } from '../library/SearchDialog';
 import { Icon } from '../icons';
 import { uid } from '../model/ops';
 import {
@@ -88,6 +90,8 @@ interface SlidesViewProps {
   onVersions?(): void;
   onBack(): void;
   onOpenSheet(): void;
+  /** A slide found by the search: shown, its words marked. */
+  focus?: SearchFocus;
 }
 
 const MAX_HISTORY = 60;
@@ -210,6 +214,22 @@ export function SlidesView(p: SlidesViewProps) {
     setSelEl(null);
     setSelPart(null);
   };
+
+  // A jump from the search: show the slide and mark the words found.
+  useEffect(() => {
+    const f = p.focus;
+    const k = f ? latest.current.findIndex((s) => s.id === f.id) : -1;
+    if (!f || k < 0) return;
+    pick(k);
+    const t = setTimeout(() => {
+      const thumb = document.querySelector('.sl-thumb-wrap.is-on');
+      thumb?.scrollIntoView({ block: 'nearest' });
+      if (thumb) pulse(thumb);
+      const shown = stage.current?.querySelector('.sl-slide');
+      if (shown) markFound(shown, f.query);
+    }, 150);
+    return () => clearTimeout(t);
+  }, [p.focus?.n]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** Every change goes through here; edits of the same field one after another make one undo step. */
   const commit = useCallback(
@@ -393,6 +413,7 @@ export function SlidesView(p: SlidesViewProps) {
           <div className="topbar-title">Folien</div>
           <div className="topbar-place">{p.place}</div>
         </div>
+        <SearchButton />
         <div className="seg sl-undo">
           <button type="button" className="iconbtn" disabled={!past.length} onClick={() => undo()} title="Rückgängig (⌘Z)" aria-label="Rückgängig">
             <Icon icon={Undo2} />

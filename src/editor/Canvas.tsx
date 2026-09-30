@@ -1,6 +1,6 @@
 import { useContext, useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type Ref } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { ChevronDown, ChevronUp, Copy, FilePlus2, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, ClipboardCopy, Copy, FilePlus2, ListChecks, Plus, Trash2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { canMoveBy, pageLabel, sheetNumbers } from '../model/ops';
 import type { Block, DragItem, Page } from '../model/types';
@@ -87,15 +87,16 @@ function PageFrame({ api, page, p, zoom, draggingId }: PageFrameProps) {
     return () => ro.disconnect();
   });
 
+  // While choosing several blocks, taps beside them change nothing.
   const selectPage = (e: MouseEvent) => {
     e.stopPropagation();
-    if (api.editing) api.select({ kind: 'page', p });
+    if (api.editing && !api.picking) api.select({ kind: 'page', p });
   };
   const headerSelected = api.editing && api.sel?.kind === 'page' && api.sel.p === p;
   // Header band: a click on the title or kicker of the selected page edits it right there.
   const onHeaderClick = (e: MouseEvent) => {
     e.stopPropagation();
-    if (!api.editing) return;
+    if (!api.editing || api.picking) return;
     const target = editTarget(e);
     if (target && (headerSelected || e.detail > 1)) api.startEdit(target, { kind: 'page', p });
     else api.select({ kind: 'page', p });
@@ -154,7 +155,10 @@ interface BlockFrameProps {
 
 function BlockFrame({ api, block, p, i, taskNum, dragging }: BlockFrameProps) {
   const { editing, drop } = api;
-  const selected = editing && api.sel?.kind === 'block' && api.sel.id === block.id;
+  const sel = api.sel;
+  /** The only selected block: it has the toolbar, and a second click edits its text. */
+  const selected = editing && sel?.kind === 'block' && sel.id === block.id;
+  const inSelection = selected || (editing && sel?.kind === 'blocks' && sel.ids.includes(block.id));
   const data: DragItem = { kind: 'move', id: block.id };
   const { setNodeRef, listeners, attributes } = useDraggable({ id: 'block:' + block.id, data, disabled: !editing });
   const el = useRef<HTMLDivElement | null>(null);
@@ -184,13 +188,19 @@ function BlockFrame({ api, block, p, i, taskNum, dragging }: BlockFrameProps) {
         el.current = node;
         setNodeRef(node);
       }}
-      className={'ed-block' + (selected ? ' is-selected' : '') + (dragging ? ' is-dragging' : '')}
+      className={'ed-block' + (inSelection ? ' is-selected' : '') + (dragging ? ' is-dragging' : '')}
       style={{ gridColumn: `span ${block.span}` }}
       data-block-id={block.id}
       {...(editing ? { ...attributes, ...listeners } : {})}
       onClick={(e) => {
         e.stopPropagation();
-        if (!editing) return;
+        // The click a "Bild wählen" button passes on to its hidden file field is not a click on the block.
+        if (!editing || (e.target as Element).matches('input[type=file]')) return;
+        // Several blocks: ⌘-click (or a tap while choosing) adds or removes one, ⇧-click selects a range.
+        if (api.picking || e.metaKey || e.ctrlKey || e.shiftKey) {
+          api.pickBlock(block.id, e.shiftKey && !api.picking);
+          return;
+        }
         // A second click (or tap) on a text of the selected block edits it right on the page.
         const target = editTarget(e);
         if (target && (selected || e.detail > 1)) api.startEdit(target, { kind: 'block', id: block.id });
@@ -211,7 +221,7 @@ function BlockFrame({ api, block, p, i, taskNum, dragging }: BlockFrameProps) {
         onImageFile={block.type === 'image' ? (f) => api.setImage(block.id, f) : undefined}
         onPicFile={block.type === 'picvocab' ? (i, f) => api.setPic(block.id, i, f) : undefined}
       />
-      {selected && (
+      {selected && !api.picking && (
         <div
           className={'ed-toolbar' + (toolbarBelow ? ' is-below' : '')}
           data-noprint="1"
@@ -227,6 +237,12 @@ function BlockFrame({ api, block, p, i, taskNum, dragging }: BlockFrameProps) {
           </button>
           <button type="button" title="Duplizieren" aria-label="Duplizieren" onClick={stop(() => api.duplicateBlock(block.id))}>
             <Icon icon={Copy} />
+          </button>
+          <button type="button" title="In die Ablage (⌘C), zum Einfügen hier oder in einer anderen Stunde" aria-label="In die Ablage" onClick={stop(() => api.toAblage([block.id]))}>
+            <Icon icon={ClipboardCopy} />
+          </button>
+          <button type="button" title="Mehrere auswählen (⌘-Klick, ⇧-Klick)" aria-label="Mehrere auswählen" onClick={stop(() => api.startPicking(block.id))}>
+            <Icon icon={ListChecks} />
           </button>
           <button type="button" className="is-danger" title="Löschen" aria-label="Löschen" onClick={stop(() => api.deleteBlock(block.id))}>
             <Icon icon={Trash2} />

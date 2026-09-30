@@ -2,7 +2,7 @@
 // so every result can go straight onto the undo stack.
 import { produce } from 'immer';
 import { BLOCK_TYPES } from './blockTypes';
-import type { Block, BlockProps, BlockType, Doc, DropTarget, Page } from './types';
+import type { Block, BlockProps, BlockType, Doc, DropTarget, Page, Selection } from './types';
 
 export const uid = (): string => 'b' + Math.random().toString(36).slice(2, 9);
 
@@ -38,6 +38,14 @@ export function insertBlock(doc: Doc, p: number, i: number, block: Block): Doc {
   });
 }
 
+/** Blocks inserted one after the other at position `i` of page `p`. */
+export function insertBlocks(doc: Doc, p: number, i: number, blocks: Block[]): Doc {
+  return produce(doc, (d) => {
+    const list = d.pages[p].blocks;
+    list.splice(Math.max(0, Math.min(i, list.length)), 0, ...blocks);
+  });
+}
+
 /** Index a dropped block ends up at on the target page, before removing it from its old place. */
 const dropIndex = (t: DropTarget): number => (t.pos === 'after' ? t.i + 1 : t.i);
 
@@ -45,6 +53,9 @@ export function dropNewBlock(doc: Doc, type: BlockType, target: DropTarget): { d
   const block = createBlock(type);
   return { doc: insertBlock(doc, target.p, dropIndex(target), block), id: block.id };
 }
+
+/** Blocks (from the Ablage) dropped at a place on a page. */
+export const dropBlocks = (doc: Doc, blocks: Block[], target: DropTarget): Doc => insertBlocks(doc, target.p, dropIndex(target), blocks);
 
 export function moveBlockTo(doc: Doc, id: string, target: DropTarget): Doc {
   const from = findBlock(doc, id);
@@ -154,9 +165,10 @@ export function deletePage(doc: Doc, p: number): Doc {
 }
 
 /** Where a click in the toolbox inserts: after the selected block, else at the end of the selected page, else page 1. */
-export function insertionPoint(doc: Doc, sel: { kind: 'page'; p: number } | { kind: 'block'; id: string } | null): { p: number; i: number } {
-  if (sel?.kind === 'block') {
-    const loc = findBlock(doc, sel.id);
+export function insertionPoint(doc: Doc, sel: Selection): { p: number; i: number } {
+  const last = sel?.kind === 'block' ? sel.id : sel?.kind === 'blocks' ? blocksOf(doc, sel.ids).at(-1)?.id : undefined;
+  if (last) {
+    const loc = findBlock(doc, last);
     if (loc) return { p: loc.p, i: loc.i + 1 };
   }
   const p = sel?.kind === 'page' && doc.pages[sel.p] ? sel.p : 0;
@@ -203,4 +215,49 @@ export function referencedImages(doc: Doc): Set<string> {
   const ids = new Set<string>();
   for (const pg of doc.pages) for (const b of pg.blocks) for (const id of blockImages(b)) ids.add(id);
   return ids;
+}
+
+// — Several blocks at once (selection, Ablage) —
+
+/** The blocks with these ids, in the order of the document. */
+export function blocksOf(doc: Doc, ids: string[]): Block[] {
+  const want = new Set(ids);
+  return doc.pages.flatMap((pg) => pg.blocks.filter((b) => want.has(b.id)));
+}
+
+/** The ids of the selected blocks, in the order of the document. */
+export const selectedIds = (doc: Doc, sel: Selection): string[] => (sel?.kind === 'block' ? [sel.id] : sel?.kind === 'blocks' ? blocksOf(doc, sel.ids).map((b) => b.id) : []);
+
+/** A selection of these blocks: none, one or several. */
+export function selectionOf(ids: string[]): Selection {
+  if (ids.length === 0) return null;
+  return ids.length === 1 ? { kind: 'block', id: ids[0] } : { kind: 'blocks', ids };
+}
+
+export function deleteBlocks(doc: Doc, ids: string[]): Doc {
+  const gone = new Set(ids);
+  return produce(doc, (d) => {
+    for (const pg of d.pages) pg.blocks = pg.blocks.filter((b) => !gone.has(b.id));
+  });
+}
+
+/**
+ * Copies of blocks with new ids, for pasting and duplicating. With the competences of the module they go into,
+ * links to competences of another module are dropped.
+ */
+export function copyBlocks(blocks: Block[], competences?: string[]): Block[] {
+  return blocks.map((b) => {
+    const props = { ...b.props };
+    if (competences && props.competence && !competences.includes(String(props.competence))) props.competence = '';
+    return { ...b, id: uid(), props };
+  });
+}
+
+/** The blocks from `from` to `to` (both included) in the order of the document, for shift-click. */
+export function blockRange(doc: Doc, from: string, to: string): string[] {
+  const order = allBlockIds(doc);
+  const a = order.indexOf(from);
+  const b = order.indexOf(to);
+  if (a < 0 || b < 0) return b < 0 ? [] : [to];
+  return order.slice(Math.min(a, b), Math.max(a, b) + 1);
 }

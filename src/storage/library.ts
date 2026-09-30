@@ -3,6 +3,7 @@ import { delMany, get, getMany, keys, set, setMany } from 'idb-keyval';
 import { addVersion, libraryFromOldDoc, purgeTrash, seedLibrary } from '../library/model';
 import { readDeleted, readLesson, readModule, readSettings, readTrash, readVersions } from '../library/read';
 import type { Lesson, LessonVersion, Library, Module, Settings, TrashEntry } from '../library/types';
+import { clipImages, readClips, type Clip } from '../model/clips';
 import { slideImages } from '../model/slides';
 import { deleteOldDoc, deleteUnusedImages, kv, loadDoc } from './db';
 
@@ -11,6 +12,7 @@ const DELETED = 'lib:geloescht';
 const SYNC = 'lib:abgleich';
 const TRASH = 'lib:papierkorb';
 const VERSIONS = 'fassung:';
+const CLIPS = 'lib:ablage';
 const MOD = 'modul:';
 const LES = 'stunde:';
 
@@ -107,14 +109,20 @@ export function keepVersion(lesson: Lesson, reason = ''): Promise<void> {
   return run;
 }
 
-/** Removes images that nothing uses any more: not the library, the trash or an earlier version. */
+// — The Ablage: blocks put aside for pasting, on this device only —
+
+export const loadClips = async (): Promise<Clip[]> => readClips(await get(CLIPS, kv()));
+export const saveClips = (clips: Clip[]) => set(CLIPS, clips, kv());
+
+/** Removes images that nothing uses any more: not the library, the trash, an earlier version or the Ablage. */
 export async function cleanUpImages(lib: Library): Promise<void> {
   const trash = await loadTrash();
+  const clips = await loadClips();
   const versionKeys = (await keys<string>(kv())).filter((k) => typeof k === 'string' && k.startsWith(VERSIONS));
   const versions = (await getMany<unknown>(versionKeys, kv())).flatMap(readVersions).map((v) => v.lesson);
   const all = [...lib.lessons, ...trash.flatMap((e) => e.lessons), ...versions];
   await deleteUnusedImages(
     all.map((l) => l.doc),
-    all.flatMap((l) => slideImages(l.slides)),
+    [...all.flatMap((l) => slideImages(l.slides)), ...clipImages(clips)],
   );
 }

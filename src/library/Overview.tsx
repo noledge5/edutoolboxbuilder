@@ -4,6 +4,7 @@ import { Blocks, CalendarRange, FolderSync, Plus, Settings as SettingsIcon, Spar
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
 import { ClaudeDialog } from './ClaudeDialog';
+import { SearchButton } from './SearchDialog';
 import { isWorkedOut, lastChange, lessonsOf, modulesOf, progressOf, progressText, subjectsOf } from './model';
 import type { Lesson, Library, Module, SchoolYear, Settings } from './types';
 import { readSchoolYear } from './read';
@@ -108,6 +109,7 @@ export function Overview(p: OverviewProps) {
           <div className="topbar-title">Arbeitsblatt-Baukasten</div>
           <div className="topbar-place">Übersicht</div>
         </div>
+        <SearchButton />
         <button type="button" className="btn btn-secondary ui-btn sync-btn" onClick={p.onSync} title={p.pending > 0 ? 'Änderungen noch nicht gesichert' : 'Alles gesichert'}>
           <Icon icon={FolderSync} />
           <span className="btn-label">Abgleich Mac/iPad</span>

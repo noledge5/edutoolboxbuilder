@@ -11,6 +11,7 @@ import { topicIcon } from '../topicIcons';
 import { ModulePages, ModulePrint, usePageFit, type PrintKind } from './ModulePrint';
 import { competenceLessons, competenceLinks, isWorkedOut, linkLabel, newCompetence, progressOf, type CompetenceLink } from './model';
 import { domainsFor } from './curriculum';
+import { SearchButton } from './SearchDialog';
 import type { Competence, Lesson, Module, Settings } from './types';
 import { GRADES } from './types';
 
@@ -71,6 +72,7 @@ export function ModuleView(p: ModuleViewProps) {
             {m.subject} · Klasse {m.grade}
           </div>
         </div>
+        <SearchButton />
         <Menu
           label="Drucken"
           icon={Printer}

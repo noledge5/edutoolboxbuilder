@@ -17,6 +17,9 @@ import {
   toTrash,
   vocabTestLesson,
 } from './library/model';
+import { noteRecent } from './library/recent';
+import type { Here, SearchEntry } from './library/search';
+import { SearchContext, SearchDialog } from './library/SearchDialog';
 import { TrashDialog } from './library/TrashDialog';
 import { VersionsDialog } from './library/VersionsDialog';
 import { whenText } from './library/when';
@@ -37,6 +40,16 @@ import { BW_2026_27 } from './library/yearplan';
 import { vocabCsv, vocabOf, vocabTestRows } from './model/language';
 import { requestPersistentStorage } from './storage/db';
 import * as store from './storage/library';
+
+/** Where a hit of the search is to be shown: a block on the worksheet or a slide, with the words to mark. */
+export interface Jump {
+  lessonId: string;
+  blockId?: string;
+  slideId?: string;
+  query: string;
+  /** Changes with every jump, so a second jump to the same place works too. */
+  n: number;
+}
 
 const count = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
 
@@ -83,6 +96,10 @@ export function App() {
   const [editorRev, setEditorRev] = useState(0);
   /** When each lesson was last kept as a version in this session. */
   const versionTimes = useRef(new Map<string, number>());
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [jump, setJump] = useState<Jump | null>(null);
+  const openSearch = useCallback(() => setSearchOpen(true), []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
   const route = useRoute();
   const libRef = useRef(lib);
   libRef.current = lib;
@@ -123,6 +140,27 @@ export function App() {
     ch.postMessage('hallo');
     return () => ch.close();
   }, []);
+
+  // ⌘K (Ctrl+K) opens the search everywhere, except while presenting.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k' && !document.querySelector('.sl-present')) {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    // Capture: parts that keep keys to themselves (the block toolbar) must not swallow it.
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, []);
+
+  // The lessons opened last, for the empty search.
+  const openLesson = route.view === 'lesson' || route.view === 'slides' ? route.id : '';
+  useEffect(() => {
+    if (openLesson) noteRecent(openLesson);
+    // A jump from the search is done once its lesson is left.
+    setJump((j) => (j && j.lessonId === openLesson ? j : null));
+  }, [openLesson]);
 
   useEffect(() => {
     if (!notice) return;
@@ -372,6 +410,21 @@ export function App() {
     }
   };
 
+  /** Opens what the search found; a block or slide is selected, its words marked. */
+  const openHit = (e: SearchEntry, query: string) => {
+    setSearchOpen(false);
+    const n = Date.now();
+    if (e.kind === 'module') go({ view: 'module', id: e.module.id });
+    else if (e.kind === 'lesson' && e.lesson) go({ view: 'lesson', id: e.lesson.id });
+    else if (e.kind === 'block' && e.lesson) {
+      setJump({ lessonId: e.lesson.id, blockId: e.blockId, query, n });
+      go({ view: 'lesson', id: e.lesson.id });
+    } else if (e.kind === 'slide' && e.lesson) {
+      setJump({ lessonId: e.lesson.id, slideId: e.slideId, query, n });
+      go({ view: 'slides', id: e.lesson.id });
+    }
+  };
+
   if (loadError) return <div className="lib-error">Die gespeicherten Daten konnten nicht geladen werden: {loadError}</div>;
   if (!lib) return <div className="app-loading" />;
 
@@ -404,6 +457,8 @@ export function App() {
   let view;
   // The app takes the colour of the subject in view (the printed pages keep theirs).
   let subject = '';
+  // Subject and grade in view: their hits come first in the search.
+  let here: Here = {};
   if (route.view === 'lesson') {
     const lesson = lib.lessons.find((l) => l.id === route.id);
     const m = lesson && lib.modules.find((x) => x.id === lesson.moduleId);
@@ -424,9 +479,11 @@ export function App() {
         onRegenerateSlides={(doc) => regenerateSlides(lesson.id, doc)}
         onDeleteSlides={() => deleteSlides(lesson.id)}
         onVersions={() => setVersionsOf(lesson.id)}
+        focus={jump?.lessonId === lesson.id && jump.blockId ? { id: jump.blockId, query: jump.query, n: jump.n } : undefined}
       />
     );
     subject = m.subject;
+    here = { subject, grade: m.grade };
   } else if (route.view === 'slides') {
     const lesson = lib.lessons.find((l) => l.id === route.id);
     const m = lesson && lib.modules.find((x) => x.id === lesson.moduleId);
@@ -450,12 +507,15 @@ export function App() {
         }}
         onBack={() => go({ view: 'module', id: m.id })}
         onOpenSheet={() => go({ view: 'lesson', id: lesson.id })}
+        focus={jump?.lessonId === lesson.id && jump.slideId ? { id: jump.slideId, query: jump.query, n: jump.n } : undefined}
       />
     );
     subject = m.subject;
+    here = { subject, grade: m.grade };
   } else if (route.view === 'plan') {
     const { grade } = route;
     subject = route.subject;
+    here = { subject, grade };
     view = (
       <YearPlanView
         lib={lib}
@@ -482,6 +542,7 @@ export function App() {
     const m = lib.modules.find((x) => x.id === route.id);
     if (!m) return <ToOverview />;
     subject = m.subject;
+    here = { subject, grade: m.grade };
     const lessons = lessonsOf(lib, m.id);
     view = (
       <ModuleView
@@ -535,6 +596,7 @@ export function App() {
   } else {
     const subjects = subjectsOf(lib);
     subject = route.subject && subjects.includes(route.subject) ? route.subject : (subjects[0] ?? '');
+    here = { subject, grade: route.grade };
     view = (
       <Overview
         lib={lib}
@@ -563,10 +625,11 @@ export function App() {
   }
 
   return (
-    <>
+    <SearchContext.Provider value={openSearch}>
       <div className="subject-scope" style={subject ? subjectVars(subjectColor(lib.settings, subject)) : undefined}>
         {view}
       </div>
+      {searchOpen && <SearchDialog lib={lib} here={here} onOpen={openHit} onClose={closeSearch} />}
       {trashOpen && (
         <TrashDialog
           trash={trash}
@@ -593,6 +656,6 @@ export function App() {
         />
       )}
       {toasts}
-    </>
+    </SearchContext.Provider>
   );
 }

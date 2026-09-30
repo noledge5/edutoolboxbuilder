@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors, type Announcements, type DragStartEvent } from '@dnd-kit/core';
-import { X } from 'lucide-react';
+import { ClipboardCopy, Copy, Scissors, Trash2, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
+import { addClip, clipLabel, type Clip } from '../model/clips';
 import { historyReducer, initHistory } from '../model/history';
 import * as ops from '../model/ops';
 import type { BlockType, Doc, DragItem, DropTarget, Selection } from '../model/types';
+import { blockText } from '../library/search';
 import { InlineEditContext, type InlineEdit } from '../sheet/inlineEdit';
 import { SheetModeContext, type SheetMode } from '../sheet/sheetMode';
 import { CompetenceNamesContext } from '../sheet/competences';
 import { PAGE_W } from '../sheet/SheetPage';
 import { backupFileName, createBackup, downloadBlob, readBackup } from '../storage/backup';
+import { loadClips, saveClips } from '../storage/library';
 import { storeImageFile } from '../storage/images';
 import type { EditorApi } from './api';
 import { Canvas } from './Canvas';
@@ -20,6 +23,7 @@ import { ghostBesideCursor } from './ghostModifier';
 import { JsonDialog } from './JsonDialog';
 import { DEFAULT_PRINT, PrintDialog, type PrintMode } from './PrintDialog';
 import { hasLevels, hasShuffle, levelCode, variantDoc } from '../model/variants';
+import { markFound, pulse, type SearchFocus } from '../library/highlight';
 import { PropertiesPanel } from './PropertiesPanel';
 import { DragGhost, Toolbox } from './Toolbox';
 import { TopBar } from './TopBar';
@@ -46,7 +50,9 @@ function storedZoom(): number | null {
 function validSelection(doc: Doc, sel: Selection): Selection {
   if (!sel) return null;
   if (sel.kind === 'page') return doc.pages[sel.p] ? sel : null;
-  return ops.findBlock(doc, sel.id) ? sel : null;
+  if (sel.kind === 'block') return ops.findBlock(doc, sel.id) ? sel : null;
+  const ids = sel.ids.filter((id) => ops.findBlock(doc, id));
+  return ids.length === sel.ids.length ? sel : ops.selectionOf(ids);
 }
 
 const isTyping = (el: Element | null) =>
@@ -62,11 +68,18 @@ const fullPages = () =>
     .map((b) => Number(b.dataset.pageBody));
 
 // Screen-reader messages of dnd-kit, in German.
-const dragLabel = (data: unknown, doc: Doc) => {
+const dragLabel = (data: unknown, doc: Doc, clips: Clip[]) => {
   const item = data as DragItem | undefined;
+  if (item?.kind === 'clip') {
+    const clip = clips.find((c) => c.id === item.id);
+    return clip ? clipLabel(clip) : 'Element';
+  }
   const type = item?.kind === 'new' ? item.type : item?.kind === 'move' ? ops.getBlock(doc, item.id)?.type : undefined;
   return type ? BLOCK_TYPES[type].label : 'Element';
 };
+
+/** Words of the notice for blocks put into the Ablage: "Lückentext liegt" or "3 Bausteine liegen". */
+const lieIn = (label: string, n: number) => `${label} ${n === 1 ? 'liegt' : 'liegen'} in der Ablage`;
 
 export const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -94,6 +107,8 @@ export interface EditorProps {
   onDeleteSlides?(): void;
   /** Earlier versions of the lesson. */
   onVersions?(): void;
+  /** A block found by the search: selected, scrolled into view, its words marked. */
+  focus?: SearchFocus;
 }
 
 const NO_COMPETENCES: { id: string; area: string }[] = [];
@@ -112,6 +127,7 @@ export function Editor({
   onRegenerateSlides,
   onDeleteSlides,
   onVersions,
+  focus,
 }: EditorProps) {
   const [noteOpen, setNoteOpen] = useState(true);
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
@@ -131,6 +147,12 @@ export function Editor({
   const [inline, setInline] = useState<string | null>(null);
   const [printMode, setPrintMode] = useState<PrintMode>(DEFAULT_PRINT);
   const [printOpen, setPrintOpen] = useState(false);
+  /** Choosing several blocks by tapping them (iPad), started from a block's toolbar. */
+  const [picking, setPicking] = useState(false);
+  /** The Ablage: blocks put aside for pasting, kept on this device. */
+  const [clips, setClips] = useState<Clip[]>([]);
+  /** Where a shift-click range starts: the block clicked last. */
+  const anchor = useRef<string | null>(null);
   const editing = !preview;
   // While editing, stored answers show faintly; the preview and print show the chosen version.
   const competenceNames = useMemo(() => new Map(competences.map((c) => [c.id, c.area])), [competences]);
@@ -141,8 +163,19 @@ export function Editor({
   const fileInput = useRef<HTMLInputElement>(null);
 
   // Latest values for listeners registered once.
-  const latest = useRef({ doc, sel, drop, dragItem, jsonOpen, editing });
-  latest.current = { doc, sel, drop, dragItem, jsonOpen, editing };
+  const latest = useRef({ doc, sel, drop, dragItem, jsonOpen, editing, clips });
+  latest.current = { doc, sel, drop, dragItem, jsonOpen, editing, clips };
+
+  useEffect(() => {
+    let alive = true;
+    loadClips().then(
+      (c) => alive && setClips(c),
+      () => {},
+    );
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const commit = useCallback((next: Doc, opts?: { mergeKey?: string; select?: Selection }) => {
     dispatch({ type: 'commit', doc: next, mergeKey: opts?.mergeKey });
@@ -158,7 +191,90 @@ export function Editor({
     setSel(s);
     setInline(null);
     setPanelOpen(s !== null);
+    if (s?.kind === 'block') anchor.current = s.id;
   }, []);
+
+  // — Several blocks at once, and the Ablage —
+
+  /** Where blocks put into the Ablage come from: "Modul 1 · Stunde 2: Treibhauseffekt". */
+  const clipFrom = place ? place.split(' · ').slice(2).join(' · ') : (doc.pages[0]?.title ?? '');
+
+  const putClips = (next: Clip[]) => {
+    latest.current.clips = next;
+    setClips(next);
+    saveClips(next).catch(() => setNotice('Die Ablage konnte nicht gespeichert werden.'));
+  };
+
+  /** Puts blocks into the Ablage (their text also into the clipboard, for other apps); `cut` removes them. */
+  const toAblage = (ids: string[], cut = false) => {
+    const { doc, clips } = latest.current;
+    const blocks = ops.blocksOf(doc, ids);
+    if (!blocks.length) return;
+    const next = addClip(clips, blocks, clipFrom, Date.now());
+    putClips(next);
+    const text = blocks.flatMap(blockText).join('\n\n');
+    if (text) navigator.clipboard?.writeText(text).catch(() => {});
+    if (cut) {
+      const loc = ops.findBlock(doc, blocks[0].id);
+      commit(ops.deleteBlocks(doc, ids), { select: loc ? { kind: 'page', p: loc.p } : null });
+    }
+    setNotice(`${lieIn(clipLabel(next[0]), blocks.length)}${cut ? ' (ausgeschnitten)' : ''}. Einfügen: ⌘V oder in der Toolbox antippen.`);
+  };
+
+  /** Pastes an entry of the Ablage (the newest without `clipId`) after the selection, or where it was dropped. */
+  const paste = (clipId?: string, target?: DropTarget) => {
+    const { doc, sel, clips } = latest.current;
+    const clip = clipId ? clips.find((c) => c.id === clipId) : clips[0];
+    if (!clip) return;
+    const blocks = ops.copyBlocks(clip.blocks, competences.map((c) => c.id));
+    const at = ops.insertionPoint(doc, sel);
+    commit(target ? ops.dropBlocks(doc, blocks, target) : ops.insertBlocks(doc, at.p, at.i, blocks), { select: ops.selectionOf(blocks.map((b) => b.id)) });
+    anchor.current = blocks[0].id;
+    setPicking(false);
+    setInline(null);
+  };
+
+  /** The selected blocks removed. */
+  const deleteSelected = () => {
+    const { doc, sel } = latest.current;
+    const ids = ops.selectedIds(doc, sel);
+    if (!ids.length) return;
+    const loc = ops.findBlock(doc, ids[0]);
+    commit(ops.deleteBlocks(doc, ids), { select: loc ? { kind: 'page', p: loc.p } : null });
+  };
+
+  /** Copies of the selected blocks right after the last of them, selected. */
+  const duplicateSelected = () => {
+    const { doc, sel } = latest.current;
+    const blocks = ops.copyBlocks(ops.blocksOf(doc, ops.selectedIds(doc, sel)));
+    if (!blocks.length) return;
+    const at = ops.insertionPoint(doc, sel);
+    commit(ops.insertBlocks(doc, at.p, at.i, blocks), { select: ops.selectionOf(blocks.map((b) => b.id)) });
+  };
+
+  /** ⌘-click or a tap while choosing: the block joins the selection or leaves it. ⇧-click: all blocks up to it. */
+  const pickBlock = (id: string, range: boolean) => {
+    const { doc, sel } = latest.current;
+    const ids = ops.selectedIds(doc, sel);
+    const from = anchor.current ?? ids.at(-1);
+    let next: string[];
+    if (range && from) next = ops.blockRange(doc, from, id);
+    else {
+      next = ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id];
+      anchor.current = id;
+    }
+    setInline(null);
+    setSel(ops.selectionOf(ops.blocksOf(doc, next).map((b) => b.id)));
+  };
+
+  const endPicking = () => {
+    setPicking(false);
+    setSel(null);
+  };
+
+  // For the keyboard listener, registered once.
+  const actions = useRef({ toAblage, paste, deleteSelected, duplicateSelected });
+  actions.current = { toAblage, paste, deleteSelected, duplicateSelected };
 
   const setZoom = useCallback((z: number) => {
     const next = clampZoom(z);
@@ -193,6 +309,16 @@ export function Editor({
     codeLocked: !!codeLocked,
     competences,
     select,
+    picking,
+    pickBlock,
+    startPicking: (id) => {
+      setPicking(true);
+      setInline(null);
+      setPanelOpen(false);
+      setSel({ kind: 'block', id });
+      anchor.current = id;
+    },
+    toAblage: (ids) => toAblage(ids),
     startEdit: (target, s) => {
       // Render the text field synchronously and focus it inside the tap, or iPadOS will not open the keyboard.
       flushSync(() => {
@@ -244,7 +370,7 @@ export function Editor({
     setMeta: (patch) => commit(ops.updateDocMeta(doc, patch), { mergeKey: `meta.${Object.keys(patch).join()}` }),
     addPage: () => {
       // The new page takes over the header settings of the selected page (or the last one).
-      const like = sel ? (sel.kind === 'page' ? sel.p : (ops.findBlock(doc, sel.id)?.p ?? doc.pages.length - 1)) : doc.pages.length - 1;
+      const like = sel ? (sel.kind === 'page' ? sel.p : ops.insertionPoint(doc, sel).p) : doc.pages.length - 1;
       commit(ops.addPage(doc, like), { select: { kind: 'page', p: doc.pages.length } });
     },
     deletePage: (p) => commit(ops.deletePage(doc, p), { select: { kind: 'page', p: Math.max(0, p - 1) } }),
@@ -322,32 +448,57 @@ export function Editor({
     return () => clearTimeout(t);
   }, [notice]);
 
+  // A jump from the search: select the block, bring it to the middle and mark the words found.
+  useEffect(() => {
+    if (!focus || !ops.findBlock(latest.current.doc, focus.id)) return;
+    setPreview(false);
+    setInline(null);
+    setSel({ kind: 'block', id: focus.id });
+    const t = setTimeout(() => {
+      const el = document.querySelector(`[data-block-id="${CSS.escape(focus.id)}"]`);
+      if (!el) return;
+      el.scrollIntoView({ block: 'center', inline: 'nearest' });
+      markFound(el, focus.query);
+      pulse(el);
+    }, 150);
+    return () => clearTimeout(t);
+  }, [focus?.n]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Keyboard: Entf deletes, Esc clears the selection, Cmd/Ctrl+Z undoes, Cmd/Ctrl+D duplicates,
-  // arrow keys select the previous/next block, Alt+arrow keys move it.
+  // Cmd/Ctrl+C/X put the selected blocks into the Ablage, Cmd/Ctrl+V pastes the newest entry, Cmd/Ctrl+A selects
+  // all blocks, arrow keys select the previous/next block, Alt+arrow keys move it.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const { doc, sel, jsonOpen, editing } = latest.current;
-      if (jsonOpen || isTyping(document.activeElement)) return;
+      const { doc, sel, jsonOpen, editing, clips } = latest.current;
+      if (jsonOpen || isTyping(document.activeElement) || document.querySelector('.search')) return;
       const mod = e.metaKey || e.ctrlKey;
       const key = e.key.toLowerCase();
       const block = sel?.kind === 'block' ? sel.id : null;
+      const ids = ops.selectedIds(doc, sel);
       const onCanvas = focusOnCanvas(document.activeElement);
+      // Text marked with the mouse is copied as usual.
+      const marked = !!window.getSelection()?.toString().trim();
       if (mod && key === 'z') {
         e.preventDefault();
         undo(e.shiftKey);
       } else if (mod && key === 'y') {
         e.preventDefault();
         undo(true);
-      } else if (mod && key === 'd' && editing && block) {
+      } else if (mod && key === 'd' && editing && ids.length) {
         e.preventDefault();
-        const r = ops.duplicateBlock(doc, block);
-        dispatch({ type: 'commit', doc: r.doc });
-        setSel({ kind: 'block', id: r.id });
-      } else if ((e.key === 'Delete' || e.key === 'Backspace') && editing && block && onCanvas) {
+        actions.current.duplicateSelected();
+      } else if (mod && (key === 'c' || key === 'x') && editing && ids.length && !marked && !e.shiftKey && !e.altKey) {
         e.preventDefault();
-        const loc = ops.findBlock(doc, block);
-        dispatch({ type: 'commit', doc: ops.deleteBlock(doc, block) });
-        setSel(loc ? { kind: 'page', p: loc.p } : null);
+        actions.current.toAblage(ids, key === 'x');
+      } else if (mod && key === 'v' && editing && clips.length && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        actions.current.paste();
+      } else if (mod && key === 'a' && editing) {
+        e.preventDefault();
+        setSel(ops.selectionOf(ops.allBlockIds(doc)));
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && editing && ids.length && onCanvas) {
+        e.preventDefault();
+        actions.current.deleteSelected();
       } else if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && editing && onCanvas && !mod) {
         const dir = e.key === 'ArrowUp' ? -1 : 1;
         if (e.altKey && block) {
@@ -367,6 +518,7 @@ export function Editor({
       } else if (e.key === 'Escape') {
         setSel(null);
         setPanelOpen(false);
+        setPicking(false);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -493,12 +645,16 @@ export function Editor({
     if (item.kind === 'new') {
       const r = ops.dropNewBlock(doc, item.type, target);
       commit(r.doc, { select: { kind: 'block', id: r.id } });
+    } else if (item.kind === 'clip') {
+      paste(item.id, target);
     } else {
       commit(ops.moveBlockTo(doc, item.id, target), { select: { kind: 'block', id: item.id } });
     }
   };
 
-  const ghostType = dragItem ? (dragItem.kind === 'new' ? dragItem.type : ops.getBlock(doc, dragItem.id)?.type) : undefined;
+  const dragClip = dragItem?.kind === 'clip' ? clips.find((c) => c.id === dragItem.id) : undefined;
+  const ghostType = dragItem ? (dragItem.kind === 'new' ? dragItem.type : dragItem.kind === 'clip' ? dragClip?.blocks[0].type : ops.getBlock(doc, dragItem.id)?.type) : undefined;
+  const selIds = ops.selectedIds(doc, sel);
 
   const showPreview = (mode: PrintMode) => {
     setPrintMode(mode);
@@ -524,10 +680,10 @@ export function Editor({
   };
 
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `${dragLabel(active.data.current, latest.current.doc)} aufgenommen.`,
+    onDragStart: ({ active }) => `${dragLabel(active.data.current, latest.current.doc, latest.current.clips)} aufgenommen.`,
     onDragOver: () => undefined,
-    onDragEnd: ({ active }) => `${dragLabel(active.data.current, latest.current.doc)} abgelegt.`,
-    onDragCancel: ({ active }) => `Ziehen von ${dragLabel(active.data.current, latest.current.doc)} abgebrochen.`,
+    onDragEnd: ({ active }) => `${dragLabel(active.data.current, latest.current.doc, latest.current.clips)} abgelegt.`,
+    onDragCancel: ({ active }) => `Ziehen von ${dragLabel(active.data.current, latest.current.doc, latest.current.clips)} abgebrochen.`,
   };
 
   return (
@@ -603,7 +759,20 @@ export function Editor({
           </div>
         )}
         <div className="workspace">
-          {editing && <Toolbox open={!compact || toolboxOpen} compact={compact} lang={doc.lang} favorites={favorites} onAdd={api.addBlock} onClose={() => setToolboxOpen(false)} />}
+          {editing && (
+            <Toolbox
+              open={!compact || toolboxOpen}
+              compact={compact}
+              lang={doc.lang}
+              favorites={favorites}
+              onAdd={api.addBlock}
+              clips={clips}
+              onPaste={(id) => paste(id)}
+              onRemoveClip={(id) => putClips(latest.current.clips.filter((c) => c.id !== id))}
+              onClearClips={() => window.confirm('Alles aus der Ablage entfernen?') && putClips([])}
+              onClose={() => setToolboxOpen(false)}
+            />
+          )}
           <InlineEditContext.Provider value={editing ? inlineEdit : null}>
             <SheetModeContext.Provider value={sheetMode}>
               <CompetenceNamesContext.Provider value={competenceNames}>
@@ -613,6 +782,8 @@ export function Editor({
                 zoom={zoom}
                 draggingId={dragItem?.kind === 'move' ? dragItem.id : null}
                 onBackgroundClick={() => {
+                  // While choosing blocks, a tap between them keeps the choice.
+                  if (picking) return;
                   select(null);
                   setToolboxOpen(false);
                 }}
@@ -620,6 +791,30 @@ export function Editor({
               </CompetenceNamesContext.Provider>
             </SheetModeContext.Provider>
           </InlineEditContext.Provider>
+          {editing && (picking || sel?.kind === 'blocks') && (
+            <div className="multi-bar" data-noprint="1" role="toolbar" aria-label="Ausgewählte Bausteine">
+              <span className="multi-count">{selIds.length ? `${selIds.length} ${selIds.length === 1 ? 'Baustein' : 'Bausteine'}` : 'Bausteine antippen'}</span>
+              <button type="button" disabled={!selIds.length} onClick={() => toAblage(selIds)} title="In die Ablage (⌘C)">
+                <Icon icon={ClipboardCopy} />
+                <span className="multi-label">In die Ablage</span>
+              </button>
+              <button type="button" disabled={!selIds.length} onClick={() => toAblage(selIds, true)} title="Ausschneiden (⌘X)">
+                <Icon icon={Scissors} />
+                <span className="multi-label">Ausschneiden</span>
+              </button>
+              <button type="button" disabled={!selIds.length} onClick={duplicateSelected} title="Duplizieren (⌘D)">
+                <Icon icon={Copy} />
+                <span className="multi-label">Duplizieren</span>
+              </button>
+              <button type="button" className="is-danger" disabled={!selIds.length} onClick={deleteSelected} title="Löschen (Entf)">
+                <Icon icon={Trash2} />
+                <span className="multi-label">Löschen</span>
+              </button>
+              <button type="button" className="multi-done" onClick={endPicking}>
+                Fertig
+              </button>
+            </div>
+          )}
           {editing && (
             <PropertiesPanel api={api} open={!compact || (panelOpen && sel !== null && inline === null)} compact={compact} onClose={() => setPanelOpen(false)} />
           )}
@@ -660,7 +855,7 @@ export function Editor({
         </div>
       </div>
       <DragOverlay modifiers={[ghostBesideCursor]} dropAnimation={null} className="drag-overlay">
-        {ghostType ? <DragGhost type={ghostType} /> : null}
+        {ghostType ? <DragGhost type={ghostType} label={dragClip ? clipLabel(dragClip) : undefined} /> : null}
       </DragOverlay>
     </DndContext>
   );
