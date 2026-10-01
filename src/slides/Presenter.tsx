@@ -90,6 +90,9 @@ export function Presenter({ slides, ctx, start, speaker = null, onClose }: Prese
   /** The second window; null once it is closed. */
   const [pair, setPair] = useState<SpeakerWindows | null>(speaker);
   const [popupFull, setPopupFull] = useState(false);
+  /** The hint in the slides window was clicked (also when the browser does not allow full screen there). */
+  const [hintDone, setHintDone] = useState(false);
+  const placed = popupFull || hintDone;
   const [noteSize, setNoteSizeState] = useState(storedNoteSize);
   const slide = slides[k];
 
@@ -319,7 +322,7 @@ export function Presenter({ slides, ctx, start, speaker = null, onClose }: Prese
       onNext={next}
       onPrev={prev}
       onClose={close}
-      waiting={pair?.popup === 'audience' && !popupFull ? 'Das Folienfenster auf den Beamer ziehen und einmal hineinklicken: dann füllt es den Bildschirm.' : ''}
+      waiting={pair?.popup === 'audience' && !placed ? 'Das Folienfenster auf den Beamer ziehen und einmal hineinklicken: dann füllt es den Bildschirm.' : ''}
     />
   );
 
@@ -333,7 +336,8 @@ export function Presenter({ slides, ctx, start, speaker = null, onClose }: Prese
             <b>Notizen zu Folie {k + 1}</b>
             <p>{slide.notes || 'Keine Notizen.'}</p>
             <span className="sl-notes-tip">
-              Wird der Bildschirm gespiegelt, sieht die Klasse die Notizen mit; die Referentenansicht zeigt sie nur dir. N blendet sie aus. Nach dem Abspielen eines Videos einmal neben das Video klicken, dann blättern die Tasten wieder.
+              Wird der Bildschirm gespiegelt, sieht die Klasse die Notizen mit; die Referentenansicht zeigt sie nur dir. N blendet sie aus. Nach dem Abspielen eines Videos einmal neben das Video
+              klicken, dann blättern die Tasten wieder.
             </span>
           </div>
         )}
@@ -342,11 +346,12 @@ export function Presenter({ slides, ctx, start, speaker = null, onClose }: Prese
   }
 
   // Referentenansicht: here the speaker view and the slides in the new window, or the other way round (Chrome).
-  const hint = !popupFull ? (
+  const hint = !placed ? (
     <div
       className="sl-popup-hint"
       onClick={(e) => {
         e.stopPropagation();
+        setHintDone(true);
         enterFullscreen(pair.win.document);
       }}
     >
@@ -477,7 +482,12 @@ function SpeakerView({ win, slides, ctx, k, step, now, began, tools, act, noteSi
   const bigScale = Math.max(0.05, Math.min(leftW / SLIDE_W, (size.h - top - nav - pad * 3) / SLIDE_H));
   const rightW = Math.max(200, size.w - leftW - pad * 3);
   const smallScale = Math.min(rightW / SLIDE_W, (size.h * 0.32) / SLIDE_H);
-  const coming = step < steps ? { slide, number: k + 1, step: step + 1, label: `Als Nächstes: Klick ${step + 1} von ${steps}` } : k < slides.length - 1 ? { slide: slides[k + 1], number: k + 2, step: 0, label: `Als Nächstes: Folie ${k + 2}` } : null;
+  const coming =
+    step < steps
+      ? { slide, number: k + 1, step: step + 1, label: `Als Nächstes: Klick ${step + 1} von ${steps}` }
+      : k < slides.length - 1
+        ? { slide: slides[k + 1], number: k + 2, step: 0, label: `Als Nächstes: Folie ${k + 2}` }
+        : null;
   const time = new Date(now).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   const blankText = tools.blank === 'black' ? 'Die Klasse sieht gerade: Schwarzbild' : tools.blank === 'white' ? 'Die Klasse sieht gerade: Weißbild' : '';
   return (
@@ -485,7 +495,12 @@ function SpeakerView({ win, slides, ctx, k, step, now, began, tools, act, noteSi
       <header className="sl-speaker-top">
         <span className="sl-speaker-count">
           Folie {k + 1} / {slides.length}
-          {steps > 0 && <small> · Klick {step} von {steps}</small>}
+          {steps > 0 && (
+            <small>
+              {' '}
+              · Klick {step} von {steps}
+            </small>
+          )}
         </span>
         <span className="sl-speaker-time" title="Uhrzeit">
           {time}

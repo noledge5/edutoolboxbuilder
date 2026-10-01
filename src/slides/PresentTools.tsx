@@ -162,7 +162,10 @@ export function ToolOverlays({ timer, now, ampel }: { timer: Timer | null; now: 
   return (
     <>
       {timer && (
-        <div className={'sl-timebar' + (left === 0 ? ' is-over' : left <= 60_000 ? ' is-last' : '') + (timer.since === null && left > 0 ? ' is-paused' : '')} aria-label={`Restzeit ${clockText(left)}`}>
+        <div
+          className={'sl-timebar' + (left === 0 ? ' is-over' : left <= 60_000 ? ' is-last' : '') + (timer.since === null && left > 0 ? ' is-paused' : '')}
+          aria-label={`Restzeit ${clockText(left)}`}
+        >
           <div className="sl-timebar-fill" style={{ width: `${leftShare(timer, now) * 100}%` }} />
           <span className="sl-timebar-time">{clockText(left)}</span>
         </div>
