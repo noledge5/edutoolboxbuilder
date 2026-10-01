@@ -354,6 +354,18 @@ export function Editor({
       const block = ops.createBlock(type);
       commit(ops.insertBlock(doc, at.p, at.i, block), { select: { kind: 'block', id: block.id } });
     },
+    insertAfter: (id, block) => {
+      const loc = ops.findBlock(doc, id);
+      if (loc) commit(ops.insertBlock(doc, loc.p, loc.i + 1, block), { select: { kind: 'block', id: block.id } });
+    },
+    helperContext:
+      ai &&
+      ((id) => {
+        const loc = ops.findBlock(doc, id);
+        if (!loc) return null;
+        const comp = String(doc.pages[loc.p].blocks[loc.i].props.competence ?? '');
+        return { subject: ai.module.subject, grade: ai.module.grade, lang: doc.lang, pageTitle: doc.pages[loc.p].title, competence: ai.module.competences.find((c) => c.id === comp) };
+      }),
     duplicateBlock: (id) => {
       const r = ops.duplicateBlock(doc, id);
       commit(r.doc, { select: { kind: 'block', id: r.id } });

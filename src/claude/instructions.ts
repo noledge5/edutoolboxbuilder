@@ -90,23 +90,25 @@ function defaultText(v: unknown): string {
   return '`' + cell(json.length > 70 ? json.slice(0, 67) + '…"' : json) + '`';
 }
 
+/** One block type in the reference: what it is for and its fields. */
+export function blockEntry(t: BlockType): string {
+  const T = BLOCK_TYPES[t];
+  const rows = T.fields.map((f) => `| \`${f.key}\` | ${cell(f.label)} | ${fieldType(f)} | ${defaultText(T.defaults[f.key])} |`);
+  return [
+    `#### \`${t}\` · ${T.label}${T.task ? ' (Aufgabe, wird nummeriert)' : ''}`,
+    '',
+    `${BLOCK_USE[t]} Standardbreite: ${T.span}.`,
+    '',
+    '| Feld | Bedeutung | Werte | Standard |',
+    '|---|---|---|---|',
+    ...rows,
+  ].join('\n');
+}
+
 function blockReference(): string {
   return GROUPS.map((g, gi) => {
     const types = BLOCK_ORDER.filter((t) => BLOCK_TYPES[t].group === gi);
-    const parts = types.map((t) => {
-      const T = BLOCK_TYPES[t];
-      const rows = T.fields.map((f) => `| \`${f.key}\` | ${cell(f.label)} | ${fieldType(f)} | ${defaultText(T.defaults[f.key])} |`);
-      return [
-        `#### \`${t}\` · ${T.label}${T.task ? ' (Aufgabe, wird nummeriert)' : ''}`,
-        '',
-        `${BLOCK_USE[t]} Standardbreite: ${T.span}.`,
-        '',
-        '| Feld | Bedeutung | Werte | Standard |',
-        '|---|---|---|---|',
-        ...rows,
-      ].join('\n');
-    });
-    return `### ${g.label}\n\n${parts.join('\n\n')}`;
+    return `### ${g.label}\n\n${types.map(blockEntry).join('\n\n')}`;
   }).join('\n\n');
 }
 

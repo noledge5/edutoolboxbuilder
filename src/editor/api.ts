@@ -1,4 +1,5 @@
-import type { BlockProps, BlockType, Doc, DropTarget, Page, PropValue, Selection } from '../model/types';
+import type { BlockContext } from '../ai/helpers';
+import type { Block, BlockProps, BlockType, Doc, DropTarget, Page, PropValue, Selection } from '../model/types';
 
 /** State and actions the editor hands to its parts (canvas, panel, toolbox). */
 export interface EditorApi {
@@ -41,4 +42,8 @@ export interface EditorApi {
   deletePage(p: number): void;
   /** Moves blocks `i`… of page `p` to a new page right after it. */
   splitPage(p: number, i: number): void;
+  /** Puts `block` right after block `id` (one undo step) and selects it. */
+  insertAfter(id: string, block: Block): void;
+  /** Where a block sits, for Claude's helpers (in the library only). */
+  helperContext?(id: string): BlockContext | null;
 }

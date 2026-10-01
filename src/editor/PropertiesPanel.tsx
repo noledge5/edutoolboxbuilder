@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react';
-import { ClipboardCopy, Copy, File, ListChecks, Send, Trash2, X } from 'lucide-react';
+import { ClipboardCopy, Copy, File, ListChecks, Send, Sparkles, Trash2, X } from 'lucide-react';
+import { BlockAiDialog } from '../ai/BlockAiDialog';
+import { HELPERS, isLevelHelper, type HelperKind } from '../ai/helpers';
 import { BLOCK_ICONS, Icon } from '../icons';
 import { BLOCK_TYPES, SPAN_OPTIONS, type FieldDef } from '../model/blockTypes';
 import { blocksOf, frontOf, getBlock, pageLabel } from '../model/ops';
@@ -83,6 +85,9 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
   const T = BLOCK_TYPES[block.type];
   const set = (key: string) => (v: string | number) => api.setProp(block.id, key, v);
   const [search, setSearch] = useState<ImageSearch | null>(null);
+  const [helper, setHelper] = useState<HelperKind | null>(null);
+  const helperContext = api.helperContext?.(block.id) ?? null;
+  const hasText = T.fields.some((f) => f.kind === 'text' || f.kind === 'area' || f.kind === 'ipa');
   const hasSource = T.fields.some((f) => f.key === 'source');
   const field = (f: FieldDef) => {
     if (f.when === 'en' && api.doc.lang !== 'en') return null;
@@ -164,10 +169,51 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
           onClose={() => setSearch(null)}
         />
       )}
+      {helperContext && hasText && (
+        <div className="panel-section panel-ai">
+          <div className="panel-section-label">
+            <Icon icon={Sparkles} size={14} /> Mit Claude
+          </div>
+          <div className="panel-ai-row">
+            {HELPERS.filter((h) => !isLevelHelper(h.v) && h.v !== 'loesung').map((h) => (
+              <button key={h.v} type="button" className="seg-pill" onClick={() => setHelper(h.v)}>
+                {h.l}
+              </button>
+            ))}
+          </div>
+          {T.task && (
+            <div className="panel-ai-row">
+              <span className="panel-ai-label">Fassung für</span>
+              {HELPERS.filter((h) => isLevelHelper(h.v)).map((h) => (
+                <button key={h.v} type="button" className="seg-pill" onClick={() => setHelper(h.v)}>
+                  {h.l}
+                </button>
+              ))}
+              <button type="button" className="seg-pill" onClick={() => setHelper('loesung')}>
+                Lösung und Tipp
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       <div className="panel-section">
         <SegField label="Breite im 12er-Raster" value={block.span} options={SPAN_OPTIONS} onPick={(v) => api.setSpan(block.id, v)} />
         {T.fields.map(field)}
       </div>
+      {helper && helperContext && (
+        <BlockAiDialog
+          block={block}
+          doc={api.doc}
+          kind={helper}
+          context={helperContext}
+          onApply={(next, insert) => {
+            if (insert) api.insertAfter(block.id, next);
+            else api.setProps(block.id, next.props);
+            setHelper(null);
+          }}
+          onClose={() => setHelper(null)}
+        />
+      )}
       <div className="panel-row">
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => api.duplicateBlock(block.id)}>
           <Icon icon={Copy} />

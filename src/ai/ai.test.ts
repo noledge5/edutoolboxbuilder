@@ -7,6 +7,7 @@ import { jsonOf } from './client';
 import { lessonContext, lessonSummary, lessonWeek } from './context';
 import { lessonFromAnswer, lessonPrompt } from './lesson';
 import { planPreview, yearPlanContext, yearPlanFromAnswer, yearPlanPrompt } from './yearplan';
+import { blockFromAnswer, helperPrompt, helperSystem } from './helpers';
 import { costOf, dollars, priceOf } from './prices';
 import { modelLabel, overLimit, readAiSettings, withSpent } from './settings';
 
@@ -215,5 +216,40 @@ describe('year plan from Claude', () => {
     expect(text).toContain('Modul 1: „Das Klima kippt“, 4 Wochen');
     expect(text).toContain('2. Der Treibhauseffekt (ausgearbeitet)');
     expect(yearPlanPrompt('Geographie', 9, text)).toContain('behalten ihre Nummer');
+  });
+});
+
+describe('helpers at a block', () => {
+  const block = { id: 'b1', type: 'open' as const, span: 12, props: { prompt: 'Beschreibe die Kurve.', lines: 4, solution: '', level: '2', points: 3, competence: 'k1', tip: '' } };
+  const where = { subject: 'Geographie', grade: 9, lang: 'de' as const, pageTitle: 'Zwei Kurven' };
+
+  it('takes only the texts it may change', () => {
+    const b = blockFromAnswer({ props: { prompt: 'Beschreibe kurz.', competence: 'x', level: '1', points: 9, lines: 10, unbekannt: 'y' } }, block, 'einfacher');
+    expect(b.id).toBe('b1');
+    expect(b.props).toEqual({ ...block.props, prompt: 'Beschreibe kurz.' });
+  });
+  it('makes a new block for a level version, with the level set', () => {
+    const b = blockFromAnswer({ props: { prompt: 'Beschreibe mit den Satzanfängen.', lines: 99 } }, block, 'G');
+    expect(b.id).not.toBe('b1');
+    expect(b.props.level).toBe('1');
+    expect(b.props.lines).toBe(20);
+    expect(b.props.competence).toBe('k1');
+  });
+  it('adds solution and tip', () => {
+    const b = blockFromAnswer({ props: { solution: ['Die Kurve steigt.', 'Ab 1950 schneller.'], tip: 'Schau auf die Achsen.' } }, block, 'loesung');
+    expect(b.props.solution).toBe('Die Kurve steigt.\nAb 1950 schneller.');
+    expect(b.props.tip).toBe('Schau auf die Achsen.');
+  });
+  it('says when nothing came back', () => {
+    expect(() => blockFromAnswer({ props: { level: '3' } }, block, 'einfacher')).toThrow(DocFormatError);
+    expect(() => blockFromAnswer('Hallo', block, 'einfacher')).toThrow(DocFormatError);
+  });
+  it('tells Claude the fields and the block', () => {
+    const p = helperPrompt('E', block, { ...where, competence: { id: 'k1', area: 'Kurven auswerten', g: 'a', m: 'b', e: 'c', lessons: '', domain: '' } });
+    expect(p).toContain('Niveau E');
+    expect(p).toContain('`open` · Offene Frage');
+    expect(p).toContain('Beschreibe die Kurve.');
+    expect(p).toContain('Kompetenz:** Kurven auswerten');
+    expect(helperSystem()).toContain('{"props"');
   });
 });
