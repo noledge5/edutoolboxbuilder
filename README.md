@@ -109,6 +109,15 @@ Der Punkt am Knopf „Abgleich Mac/iPad“ ist orange, solange es Änderungen gi
 
 Die Anleitung erklärt auch geplante Stunden (Jahresplan), Rückseiten (`"back": true`), Folien (`"slides"`) und Suchwörter für Bilder, sodass auch andere KIs damit Pakete schreiben können. Folien für eine vorhandene Stunde: Claude schickt das Modul mit derselben Nummer und nur die Stunde mit ihren Folien; der Baukasten hängt sie an.
 
+### KI im Baukasten
+Mit einem eigenen KI-Schlüssel arbeitet Claude direkt im Baukasten; ohne Schlüssel geht alles weiter über den Chat (Auftrag kopieren, im Claude-Projekt mit der Anleitung einfügen, Antwort einlesen).
+- **Einrichten:** Übersicht → Einstellungen → „KI im Baukasten“. Anbieter „Claude direkt“ (Schlüssel auf console.anthropic.com, eigenes Konto mit Guthaben, nicht das Claude-Abo) oder OpenRouter. „Prüfen“ testet den Schlüssel, ohne etwas zu kosten. Modelle je Aufgabe: Claude Opus 5.5 für Stunden und Jahrespläne, Claude Sonnet 5.5 für die Helfer am Baustein. Der Schlüssel bleibt nur auf diesem Gerät (nicht in Sicherungen und nicht in der Abgleich-Datei); auf dem iPad einmal eigens eintragen.
+- **Kosten:** Jede Anfrage zeigt, was sie etwa gekostet hat (eine ganze Stunde meist 0,30–0,80 $, ein Helfer wenige Cent), dazu die Summe des Monats auf diesem Gerät. Ab dem Monatslimit (Standard 10 $) fragt der Baukasten vor jeder Anfrage. Die lange Anleitung geht als zwischengespeicherter Teil mit, die zweite Anfrage innerhalb weniger Minuten kostet dafür kaum noch etwas.
+- **Jahresplan mit Claude** (Jahresplan → „Mit Claude“): Stunden pro Woche, Lehrwerk und Wünsche angeben. Claude plant mit Schuljahr und Ferien die Module mit Wochen, Kompetenzraster und allen Stunden als geplante Stunden; Module, die es schon gibt, bleiben und werden nur ergänzt. Die Vorschau zeigt jedes Modul mit Kalenderwochen, Stunden und ob es neu ist; „Übernehmen“ legt alles an wie ein Import.
+- **Stunde mit Claude** (im Arbeitsblatt oben „Claude“, bei einer geplanten Stunde auch in der Planungszeile): „Ganze Stunde“ (Lehrkraft-Seite und Schülerseiten), „Erst das Gerüst“ (nur die Lehrkraft-Seite mit Ziel, Einstieg, Verlauf, Erwartungshorizont und Abruffragen; durchsehen, ändern, dann „Blätter zum Gerüst“) oder „Überarbeiten“ mit deinen Wünschen. Claude bekommt die Lage der Stunde im Jahresplan: Fach, Klasse, Modul mit Kompetenzraster, Kalenderwoche und Ferien davor oder danach, was die Stunden davor gemacht haben (Ziel, Einstieg, Merksatz, Abruffragen, Aufgabenarten) und was die Stunden danach vorhaben. „Was Claude über die Stunde erfährt“ zeigt den Text. Das Ergebnis erscheint erst als Vorschau der Seiten; „Übernehmen“ ersetzt das Blatt (Rückgängig geht, und die vorige Fassung bleibt unter „Frühere Fassungen“ als „Vor Claude“). Neue Kompetenzen kommen ins Raster des Moduls. Die Folien macht danach der Folienvorschlag.
+- **Helfer am Baustein** (im Panel „Mit Claude“): Einfacher, Fachlicher, Kürzer, Auf Englisch, Auf Deutsch; bei Aufgaben außerdem eine Fassung für ★ G, ★★ M oder ★★★ E (dahinter einfügen oder ersetzen) und „Lösung und Tipp“. Vorher und Nachher stehen untereinander; „Übernehmen“ ist ein Schritt, den Rückgängig zurücknimmt. Bilder, Kompetenz, Niveau und Punkte ändert Claude nicht.
+- **Datenschutz:** An Claude gehen nur Unterrichtsmaterialien (Blätter, Planung, Kompetenzen), nie Namen oder Antworten von Schülerinnen und Schülern. Bei Ablehnungen aus Sicherheitsgründen antwortet automatisch das Modell, das Anthropic dafür vorsieht.
+
 ### Weitere Dateien
 - **Arbeitsblatt → Datei → Als Datei sichern / Öffnen …:** ein einzelnes Arbeitsblatt mit Bildern. Im Modul über „Modul → Arbeitsblatt-Datei als Stunde importieren …“ wird daraus eine neue Stunde.
 - **Datei → Daten anzeigen (JSON):** das Arbeitsblatt als Text zum Kopieren oder Einfügen.
@@ -148,6 +157,8 @@ src/
               Suche, Papierkorb und frühere Fassungen
   slides/     Folien: Darstellung, Editor, Präsentationsmodus, Druck, Vorschlag aus dem Arbeitsblatt
   claude/     Anleitung für Claude: Text (anleitung.md) plus Bausteinliste, Symbole, Bereiche, Ferien und Beispiele aus dem Code
+  ai/         KI im Baukasten: Schlüssel und Kosten je Gerät, Anfragen an Claude oder OpenRouter, Stunde und Jahresplan
+              mit Claude (Kontext aus dem Jahresplan, Vorschau), Helfer am Baustein
   model/      Datenmodell eines Arbeitsblatts: Typen, Blocktypen, Blatt-Typen, Operationen, JSON-Prüfung, Undo
   sheet/      die gedruckte A4-Seite (Kopfband, Raster, Fußband, alle Blocktypen, Bearbeiten auf der Seite)
   editor/     Editor-Oberfläche: Toolbox (mit Suche und Ablage), Canvas, Eigenschaften, Datei-Menü, Drag-and-Drop
