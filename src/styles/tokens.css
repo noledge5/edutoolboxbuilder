@@ -108,6 +108,15 @@
   --color-accent-7-800: #5f343e;
   --color-accent-7-900: #3e2128;
 
+  /* Added: pen colours for writing on slides. Stronger than the ramps, so handwriting reads on a projector. */
+  --ink-dark: var(--color-text);
+  --ink-red: #d1392e;
+  --ink-blue: #2a63c8;
+  --ink-green: #2d8a43;
+  --ink-orange: var(--color-accent-1-600);
+  --ink-yellow: #ffd21f;
+  --ink-white: #ffffff;
+
   --font-heading: "Caprasimo", system-ui, sans-serif;
   --font-heading-weight: 400;
   --font-body: "Figtree", system-ui, sans-serif;

@@ -224,6 +224,80 @@
   .sl-anim-fade, .sl-anim-rise, .sl-anim-zoom, .sl-anim-left { animation: sl-fade 0.2s both; }
 }
 
+/* Presenting: answers lie under cards in the colour of the phase, with their number or letter. A tap uncovers one
+   (Presenter), the next click the next one. Covers placed in the editor work the same way over any part of a slide. */
+.sl-slide .is-covered { position: relative; visibility: hidden; }
+.sl-card {
+  visibility: visible; position: absolute; inset: -4px; z-index: 1; display: grid; place-items: center; box-sizing: border-box;
+  min-width: 72px; padding: 0 16px; border-radius: 999px; background: var(--t-pill); color: var(--t-pill-fg);
+  font-family: var(--sl-body); font-size: 34px; font-weight: 800; font-style: normal; line-height: 1; letter-spacing: 0.02em; text-transform: none; white-space: nowrap;
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--color-neutral-900) 16%, transparent);
+  cursor: pointer; pointer-events: auto;
+}
+.sl-solution > .sl-card { border-radius: 40px; font-size: 30px; letter-spacing: 0.08em; text-transform: uppercase; }
+:is(.sl-box-text, .sl-step-text, .sl-word-meaning) > .sl-card { border-radius: 24px; }
+.sl-gap > .sl-card { inset: -2px -6px 2px; min-width: 0; padding: 0 8px; border-radius: 14px; font-size: max(24px, 0.5em); }
+.sl-slide.is-exit .sl-card { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
+.sl-anim-flip { animation: sl-flip 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes sl-flip { from { opacity: 0; transform: perspective(900px) rotateX(-75deg); } }
+
+.sl-el-cover {
+  container-type: size; display: grid; place-items: center; padding: 6px 12px; border-radius: 24px; text-align: center;
+  background: var(--t-pill); color: var(--t-pill-fg); box-shadow: 0 6px 0 color-mix(in srgb, var(--color-neutral-900) 16%, transparent);
+  pointer-events: auto; cursor: pointer;
+}
+.sl-el-cover > span { font-size: clamp(18px, 46cqh, 56px); font-weight: 800; line-height: 1.1; overflow-wrap: anywhere; }
+.sl-el-cover.is-plain { background: var(--paper); color: var(--color-neutral-600); box-shadow: inset 0 0 0 3px var(--color-neutral-300); }
+.sl-el-cover.is-note { background: var(--color-neutral-300); color: var(--color-neutral-800); }
+.sl-el-cover.is-edit { opacity: 0.72; outline: 4px dashed var(--color-neutral-900); outline-offset: -4px; }
+.sl-el-cover.is-gone { animation: sl-cover-off 0.45s ease-in forwards; pointer-events: none; }
+.sl-el-cover.is-gone.is-still { animation: none; visibility: hidden; }
+@keyframes sl-cover-off { to { opacity: 0; transform: scale(0.92) rotate(-2deg); visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) {
+  .sl-anim-flip { animation: sl-fade 0.2s both; }
+  .sl-el-cover.is-gone { animation-duration: 0.2s; }
+}
+
+/* Sketches drawn in the editor, handwriting while presenting, blank boards */
+.sl-el-ink { overflow: visible; }
+.sl-ink { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.sl-ink-page { position: absolute; top: 0; left: 0; z-index: 3; width: 1920px; height: 1080px; transform-origin: top left; pointer-events: none; }
+/* On the dark board "black" writes in chalk. */
+:is(.sl-slide, .sl-ink-page, .sl-board).is-d-tafel { --ink-dark: var(--color-neutral-100); }
+.sl-board { position: relative; width: 1920px; height: 1080px; box-sizing: border-box; background: var(--paper); transform-origin: top left; }
+.sl-board.is-grid { background-image: linear-gradient(var(--color-accent-3-200) 2px, transparent 2px), linear-gradient(90deg, var(--color-accent-3-200) 2px, transparent 2px); background-size: 60px 60px; }
+.sl-board.is-lines { background-image: linear-gradient(transparent 86px, var(--color-accent-3-300) 86px, var(--color-accent-3-300) 89px); background-size: 100% 90px; background-position: 0 30px; }
+.sl-board.is-d-tafel { --board-line: color-mix(in srgb, var(--color-neutral-100) 14%, transparent); background-color: color-mix(in srgb, var(--color-accent-2-900) 80%, var(--color-accent-6-900)); }
+.sl-board.is-d-tafel.is-grid { background-image: linear-gradient(var(--board-line) 2px, transparent 2px), linear-gradient(90deg, var(--board-line) 2px, transparent 2px); }
+.sl-board.is-d-tafel.is-lines { background-image: linear-gradient(transparent 86px, var(--board-line) 86px, var(--board-line) 89px); }
+
+/* A work phase: short instruction, steps (I – you – we) with their time, the time and work form big at the side */
+.sl-slide.is-work { gap: 48px; }
+.sl-work { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 72px; align-items: start; }
+.sl-work-main { min-width: 0; display: flex; flex-direction: column; gap: 40px; }
+.sl-work-h1 { font-size: 86px; }
+.sl-work-h1.is-long, .sl-work.has-steps .sl-work-h1 { font-size: 66px; }
+.sl-work-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 18px; }
+.sl-work-step { display: flex; align-items: center; gap: 28px; padding: 18px 20px 18px 30px; border-radius: 999px; background: var(--t-band); transition: opacity 0.3s, transform 0.3s; }
+.sl-work-who { flex: none; display: flex; align-items: center; gap: 12px; min-width: 190px; font-size: 32px; color: var(--t-kicker); }
+.sl-work-who b { font-weight: 800; }
+.sl-work-text { flex: 1; min-width: 0; font-size: 38px; line-height: 1.3; text-wrap: pretty; }
+.sl-work-min { flex: none; padding: 10px 24px; border-radius: 999px; background: var(--paper); color: var(--color-text); font-size: 28px; font-weight: 700; white-space: nowrap; }
+.sl-work-step.is-current { background: var(--t-pill); color: var(--t-pill-fg); transform: scale(1.02); box-shadow: 0 8px 0 color-mix(in srgb, var(--color-neutral-900) 14%, transparent); }
+.sl-work-step.is-current .sl-work-who { color: inherit; }
+.sl-work-step.is-done { opacity: 0.45; }
+.sl-work-step.is-coming { opacity: 0.8; }
+.sl-work-side { display: flex; flex-direction: column; align-items: center; gap: 28px; padding-top: 8px; }
+.sl-work-clock { width: 300px; height: 300px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--t-num); color: var(--t-num-fg); }
+.sl-work-clock b { font-size: 124px; font-weight: 800; line-height: 1; }
+.sl-work-clock span { font-size: 30px; font-weight: 700; }
+.sl-work-form { display: flex; align-items: center; gap: 16px; padding: 18px 34px; border-radius: 999px; background: var(--t-band); color: var(--t-kicker); font-size: 34px; font-weight: 700; white-space: nowrap; }
+
+/* A vote: tapping a box counts a hand */
+.sl-box.is-vote { cursor: pointer; }
+.sl-box.is-vote .sl-box-head { padding-right: 150px; }
+.sl-vote { position: absolute; top: 32px; right: 36px; display: flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 999px; background: var(--paper); color: var(--color-text); font-size: 52px; font-weight: 800; line-height: 1; }
+
 /* In the editor: the click on which something appears */
 .sl-item, .sl-task-item, .sl-box, .sl-step, .sl-word { position: relative; }
 .sl-step-badge {
@@ -249,6 +323,8 @@
 .sl-slide.is-d-klar :is(.sl-quote, .sl-hint, .sl-box, .sl-step, .sl-word, .sl-solution, .sl-picture, .sl-el-text.is-box, .sl-el-picture) { border-radius: 20px; }
 .sl-slide.is-d-klar :is(.sl-answer, .sl-answer.is-long) { border-radius: 12px; }
 .sl-slide.is-d-klar .sl-hint-icon { border-radius: 16px; }
+.sl-slide.is-d-klar :is(.sl-card, .sl-el-cover, .sl-work-step, .sl-work-min, .sl-work-form, .sl-vote) { border-radius: 12px; }
+.sl-slide.is-d-klar .sl-work-clock { border-radius: 28px; }
 .sl-slide.is-d-klar .sl-deco.is-one { left: 0; right: auto; top: 0; width: 40px; height: 100%; border-radius: 0; background: var(--color-accent); }
 .sl-slide.is-d-klar :is(.sl-deco.is-two, .sl-deco.is-exit) { display: none; }
 .sl-slide.is-d-klar.is-exit { background: var(--color-accent-2-700); }
@@ -276,6 +352,8 @@
 .sl-slide.is-d-heft :is(.sl-answer, .sl-answer.is-long) { border-radius: 10px; }
 .sl-slide.is-d-heft :is(.sl-quote, .sl-hint, .sl-box, .sl-step, .sl-solution, .sl-el-text.is-box) { border-radius: 16px; }
 .sl-slide.is-d-heft .sl-word { border-radius: 14px; background: var(--paper); border: 3px solid var(--color-accent-3-300); }
+.sl-slide.is-d-heft :is(.sl-card, .sl-el-cover, .sl-work-step, .sl-work-form) { border-radius: 12px; }
+.sl-slide.is-d-heft .sl-work-clock { background: var(--paper); color: var(--ink); border: 6px solid var(--ink); }
 .sl-slide.is-d-heft .sl-deco { display: none; }
 .sl-slide.is-d-heft.is-title { padding-left: 220px; }
 .sl-slide.is-d-heft.is-exit { background-color: var(--paper); color: var(--color-text); }
@@ -330,6 +408,9 @@
 .sl-slide.is-d-tafel .sl-el-text.is-note { color: var(--color-neutral-900); }
 .sl-slide.is-d-tafel .sl-title-icon { background: var(--chalk-yellow); color: var(--color-neutral-900); }
 .sl-slide.is-d-tafel .sl-title-kicker { color: var(--chalk-yellow); }
+.sl-slide.is-d-tafel .sl-work-clock { border: 6px solid var(--chalk); }
+.sl-slide.is-d-tafel .sl-work-min { background: var(--board-line); color: var(--chalk); }
+.sl-slide.is-d-tafel .sl-vote { background: var(--chalk-yellow); color: var(--color-neutral-900); }
 .sl-slide.is-d-tafel :is(.sl-deco.is-one, .sl-deco.is-two, .sl-deco.is-exit) { background: none; border: 6px solid var(--board-line); }
 .sl-slide.is-d-tafel.is-exit { background: color-mix(in srgb, var(--color-accent-2-800) 85%, var(--color-accent-6-900)); }
 .sl-slide.is-d-tafel.is-exit .sl-bar { background: var(--board-line); }
@@ -367,6 +448,13 @@
 .sl-slide.is-d-kontrast .sl-gap { border-bottom: 5px solid var(--ink); }
 .sl-slide.is-d-kontrast .sl-gap-word { color: var(--ink); background: var(--signal); }
 .sl-slide.is-d-kontrast .sl-arrow { color: var(--ink); }
+.sl-slide.is-d-kontrast :is(.sl-card, .sl-el-cover) { border: 4px solid var(--ink); box-shadow: none; }
+.sl-slide.is-d-kontrast .sl-work-step { background: var(--paper); border: 4px solid var(--ink); color: var(--ink); }
+.sl-slide.is-d-kontrast .sl-work-step.is-current { background: var(--signal); }
+.sl-slide.is-d-kontrast .sl-work-who { color: var(--ink); }
+.sl-slide.is-d-kontrast .sl-work-min { border: 3px solid var(--ink); }
+.sl-slide.is-d-kontrast .sl-work-form { background: var(--paper); color: var(--ink); border: 4px solid var(--ink); }
+.sl-slide.is-d-kontrast .sl-vote { border: 4px solid var(--ink); }
 .sl-slide.is-d-kontrast :is(.sl-deco.is-two, .sl-deco.is-exit) { display: none; }
 .sl-slide.is-d-kontrast .sl-deco.is-one { left: 0; right: auto; top: 0; width: 40px; height: 100%; border-radius: 0; background: var(--ink); }
 .sl-slide.is-d-kontrast .sl-title-icon { background: var(--ink); color: var(--paper); }

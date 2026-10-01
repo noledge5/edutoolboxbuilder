@@ -1,4 +1,5 @@
 // Reading library entries from storage, backup files and other devices: older data gets defaults for newer fields.
+import { normalizeBoards } from '../model/ink';
 import { normalizeDoc } from '../model/normalize';
 import { isSlideDesign, normalizeSlides } from '../model/slides';
 import type { Lang } from '../model/types';
@@ -70,6 +71,7 @@ export function readLesson(raw: unknown): Lesson | null {
       doc: normalizeDoc(raw.doc),
       slides: normalizeSlides(raw.slides),
       slideDesign: isSlideDesign(raw.slideDesign) ? raw.slideDesign : 'organisch',
+      boards: normalizeBoards(raw.boards),
       updatedAt: Number(raw.updatedAt) || 0,
     };
   } catch {

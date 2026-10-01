@@ -1,10 +1,10 @@
 // One slide at its full size (1920 × 1080), after the design's slide reference. The caller scales it.
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
-import { Lightbulb, Star, User, Users } from 'lucide-react';
+import { Check, Hand, Lightbulb, MessagesSquare, Star, Timer, User, Users, UsersRound } from 'lucide-react';
 import { Icon } from '../icons';
-import { partSteps, shownItems, type Slide, type SlideAnim, type SlideDesign } from '../model/slides';
+import { partSteps, shownItems, workSteps, type Slide, type SlideAnim, type SlideDesign } from '../model/slides';
 import { THEMES, WORK_FORMS_EN } from '../model/themes';
-import type { Lang } from '../model/types';
+import type { Lang, WorkForm } from '../model/types';
 import { typo } from '../sheet/lang';
 import { themeVars } from '../sheet/SheetPage';
 import { useImageUrl } from '../storage/images';
@@ -48,18 +48,27 @@ interface SlideViewProps {
   print?: boolean;
   /** Handout for the class: solutions that come on a click stay blank. */
   noAnswers?: boolean;
+  /** Presenting: answers, gaps and covers tapped open before their click (see `nextStep`). */
+  opened?: ReadonlySet<string>;
+  /** Presenting a vote: hands counted per box. */
+  votes?: Record<number, number>;
   style?: CSSProperties;
 }
 
+const NO_KEYS: ReadonlySet<string> = new Set();
+
+/** The icon of a work form. */
+export const formIcon = (form: WorkForm | '') => (form === 'allein' ? User : form === 'zu zweit' ? Users : form === 'Gruppe' ? UsersRound : form === 'Plenum' ? MessagesSquare : User);
+
 const TEXT = {
-  de: { question: 'Leitfrage', note: 'Hinweis', solution: 'Lösung' },
-  en: { question: 'Key question', note: 'Note', solution: 'Solution' },
+  de: { question: 'Leitfrage', note: 'Hinweis', solution: 'Lösung', minutes: 'Minuten', votes: 'Hände' },
+  en: { question: 'Key question', note: 'Note', solution: 'Solution', minutes: 'minutes', votes: 'hands' },
 };
 
 function Header({ slide, ctx, edit }: { slide: Slide; ctx: SlideContext; edit: boolean }) {
   const en = ctx.lang === 'en';
   const form = slide.form ? (en ? WORK_FORMS_EN[slide.form] : slide.form) : '';
-  const formText = [form, slide.minutes ? `${slide.minutes} min` : ''].filter(Boolean).join(' · ');
+  const formText = slide.layout === 'work' ? '' : [form, slide.minutes ? `${slide.minutes} min` : ''].filter(Boolean).join(' · ');
   return (
     <div className="sl-bar">
       <div className="sl-bar-icon">
@@ -73,7 +82,7 @@ function Header({ slide, ctx, edit }: { slide: Slide; ctx: SlideContext; edit: b
       )}
       {formText && (
         <div className="sl-form">
-          {slide.form && <Icon icon={slide.form === 'allein' ? User : Users} size={24} />}
+          {slide.form && <Icon icon={formIcon(slide.form)} size={24} />}
           {formText}
         </div>
       )}
@@ -127,24 +136,36 @@ function TaskLabel({ text }: { text: string }) {
   );
 }
 
+/** A card over an answer while presenting: tapping it uncovers the answer (`data-card` is its key). */
+const Card = ({ k, label }: { k: string; label: string }) => (
+  <span className="sl-card" data-card={k}>
+    {label}
+  </span>
+);
+
+/** How the n-th of `total` gaps shows: its classes, and the card over it while presenting. */
+type GapLook = (n: number, total: number) => { cls: string; card: { k: string; label: string } | null };
+
 /**
  * Text with gaps: "The cat [[sits]] on the mat." The words in the gaps come on a click; "___" is a gap
- * without a given word.
+ * without a given word. With cards each gap lies under its own card.
  */
-function GapText({ text, lang, cls, ghost, data }: { text: string; lang: Lang; cls: string; ghost: boolean; data: Record<string, string> }) {
+function GapText({ text, lang, ghost, data, gap }: { text: string; lang: Lang; ghost: boolean; data: Record<string, string>; gap: GapLook }) {
+  const total = (text.match(/\[\[.+?\]\]/g) ?? []).length;
+  let n = -1;
   return (
     <>
-      {text.split(/(\[\[.+?\]\]|_{3,})/).map((bit, k) =>
-        k % 2 === 0 ? (
-          <Rich key={k} text={bit} lang={lang} />
-        ) : bit.startsWith('_') ? (
-          <span key={k} className="sl-gap is-empty" />
-        ) : (
-          <span key={k} className="sl-gap" {...data}>
-            <span className={'sl-gap-word' + (ghost ? ' is-ghost' : '') + cls}>{typo(bit.slice(2, -2), lang)}</span>
+      {text.split(/(\[\[.+?\]\]|_{3,})/).map((bit, k) => {
+        if (k % 2 === 0) return <Rich key={k} text={bit} lang={lang} />;
+        if (bit.startsWith('_')) return <span key={k} className="sl-gap is-empty" />;
+        const g = gap(++n, total);
+        return (
+          <span key={k} className={'sl-gap' + (g.card ? ' is-covered' : '')} {...data}>
+            <span className={'sl-gap-word' + (ghost ? ' is-ghost' : '') + g.cls}>{typo(bit.slice(2, -2), lang)}</span>
+            {g.card && <Card k={g.card.k} label={g.card.label} />}
           </span>
-        ),
-      )}
+        );
+      })}
     </>
   );
 }
@@ -152,7 +173,7 @@ function GapText({ text, lang, cls, ghost, data }: { text: string; lang: Lang; c
 const BOX_COLORS = ['var(--color-surface)', 'var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-3-200)'];
 const FLOW_COLORS = ['var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-300)', 'var(--color-neutral-300)', 'var(--color-accent-3-200)', 'var(--color-accent-4-200)'];
 
-export function SlideView({ slide: s, number, ctx, step, edit = false, live = false, print = false, noAnswers = false, style }: SlideViewProps) {
+export function SlideView({ slide: s, number, ctx, step, edit = false, live = false, print = false, noAnswers = false, opened = NO_KEYS, votes, style }: SlideViewProps) {
   const lang = ctx.lang;
   const items = shownItems(s);
   const parts = partSteps(s);
@@ -162,13 +183,32 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
     if (at > step) return ' is-later';
     return anim === 'none' ? '' : ` sl-anim-${anim}`;
   };
-  /** Classes and marks of a part: hidden or animated while presenting, its click number while editing. */
+  /** Presenting with cards: answers that come later lie under a card, unless they were tapped open. */
+  const cardsOn = step !== null && s.cards;
+  /** Classes and marks of a part: hidden, covered or animated while presenting, its click number while editing. */
   const part = (key: string) => {
     const p = parts.get(key);
     const at = p?.step ?? 0;
     const hidden = noAnswers && p?.answer && at > 0;
-    return { cls: hidden ? ' is-later' : appear(at, p?.anim ?? 'fade'), badge: <Badge at={at} edit={edit} />, at, data: { 'data-part': key } };
+    const later = step !== null && at > step;
+    // Tapped open: keeps its animation class after its click came, so it does not play again.
+    const tapped = step !== null && at > 0 && opened.has(key);
+    const covered = !hidden && cardsOn && !!p?.answer && later && !tapped;
+    const cls = hidden ? ' is-later' : covered ? ' is-covered' : tapped ? ' sl-anim-flip' : appear(at, p?.anim ?? 'fade');
+    return { cls, covered, badge: <Badge at={at} edit={edit} />, at, data: { 'data-part': key } };
   };
+  /** The card label of an entry: its number, or its letter on a task with several entries. */
+  const entryLabel = (i: number) => (s.layout === 'task' ? (items.length > 1 ? String.fromCharCode(97 + i) : '') : String(i + 1));
+  /** The gaps of a part ("gaps", "answer:2"): under a card each while covered, tapped open one by one. */
+  const gapLook =
+    (key: string, entry: string): GapLook =>
+    (n, total) => {
+      const g = part(key);
+      const sub = `${key}#${n}`;
+      if (step !== null && opened.has(sub)) return { cls: ' sl-anim-flip', card: null };
+      if (g.covered) return { cls: '', card: { k: sub, label: total > 1 ? `${entry}${n + 1}` : entry || '?' } };
+      return { cls: g.cls, card: null };
+    };
   /** In the editor: a text that can be edited right on the slide (double click or double tap). */
   const ed = (target: string) => (edit ? { 'data-edit': target } : {});
   // Answers (and box texts, meanings) that come after their entry are pale while editing.
@@ -176,7 +216,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
   /** The big sentence of a Merksatz or statement, with its gaps. */
   const gapTitle = () => {
     const g = part('gaps');
-    return <GapText text={s.title} lang={lang} cls={g.cls} ghost={edit && g.at > (parts.get('title')?.step ?? 0)} data={g.data} />;
+    return <GapText text={s.title} lang={lang} ghost={edit && g.at > (parts.get('title')?.step ?? 0)} data={g.data} gap={gapLook('gaps', '')} />;
   };
   const h1 = (cls = '') => {
     const p = part('title');
@@ -203,6 +243,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
       <div className={cls + (long && text.length > 24 ? ' is-long' : '') + (ghost(i) ? ' is-ghost' : '') + p.cls} {...p.data} {...ed(`answer:${i}`)}>
         {p.badge}
         <Rich text={text} lang={lang} />
+        {p.covered && <Card k={`answer:${i}`} label={entryLabel(i) || '?'} />}
       </div>
     );
   };
@@ -328,7 +369,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
                           {p.badge}
                           {items.length > 1 && <div className="sl-task-letter">{String.fromCharCode(97 + i)}</div>}
                           <div className="sl-item-text" {...ed(`item:${i}`)}>
-                            <GapText text={q} lang={lang} cls={g.cls} ghost={ghost(i)} data={g.data} />
+                            <GapText text={q} lang={lang} ghost={ghost(i)} data={g.data} gap={gapLook(`answer:${i}`, entryLabel(i))} />
                           </div>
                           {a && second(i, 'sl-answer', a, true)}
                         </div>
@@ -343,6 +384,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
                     <div className="sl-solution-text" {...ed('text')}>
                       <Rich text={s.text} lang={lang} />
                     </div>
+                    {x.covered && <Card k="text" label={TEXT[lang].solution} />}
                   </div>
                 )}
               </div>
@@ -355,6 +397,82 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
             )}
           </div>
         </>
+      );
+      break;
+    }
+    case 'work': {
+      const t = part('title');
+      const x = part('text');
+      const steps = workSteps(s);
+      const total = s.minutes || steps.reduce((k, st) => k + st.minutes, 0);
+      const form = s.form ? (lang === 'en' ? WORK_FORMS_EN[s.form] : s.form) : '';
+      body = (
+        <div className={'sl-work' + (steps.length ? ' has-steps' : '')}>
+          <div className="sl-work-main">
+            <div className={'sl-lead' + t.cls} {...t.data}>
+              {t.badge}
+              {s.label && (
+                <div className="sl-label" {...ed('label')}>
+                  {s.label}
+                </div>
+              )}
+              <h1 className={'sl-h1 sl-work-h1' + (s.title.length > 90 ? ' is-long' : '')} {...ed('title')}>
+                <Rich text={s.title} lang={lang} />
+              </h1>
+            </div>
+            {steps.length > 0 && (
+              <ol className="sl-work-steps">
+                {steps.map((st, i) => {
+                  const state = step === null || steps.length < 2 ? '' : i < step ? ' is-done' : i === step ? ' is-current' : ' is-coming';
+                  return (
+                    <li key={i} className={'sl-work-step' + state}>
+                      <span className="sl-work-who">
+                        <Icon icon={state === ' is-done' ? Check : formIcon(st.form)} size={34} />
+                        {st.who && <b>{st.who}</b>}
+                      </span>
+                      <span className="sl-work-text" {...ed(`item:${i}`)}>
+                        <Rich text={st.text} lang={lang} />
+                      </span>
+                      {st.minutes > 0 && (
+                        <span className="sl-work-min" {...ed(`answer:${i}`)}>
+                          {st.minutes} min
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+            {s.text && (
+              <div className={'sl-hint' + x.cls} {...x.data}>
+                {x.badge}
+                <div className="sl-hint-icon">
+                  <Icon icon={Lightbulb} size={36} />
+                </div>
+                <div className="sl-hint-text" {...ed('text')}>
+                  <Rich text={s.text} lang={lang} />
+                </div>
+              </div>
+            )}
+          </div>
+          {(total > 0 || form) && (
+            <div className="sl-work-side">
+              {total > 0 && (
+                <div className="sl-work-clock">
+                  <Icon icon={Timer} size={56} />
+                  <b>{total}</b>
+                  <span>{TEXT[lang].minutes}</span>
+                </div>
+              )}
+              {form && (
+                <div className="sl-work-form">
+                  <Icon icon={formIcon(s.form)} size={44} />
+                  {form}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       );
       break;
     }
@@ -426,8 +544,14 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
             {items.map(([head, text], i) => {
               const p = part(`item:${i}`);
               return (
-                <div key={i} className={'sl-box' + p.cls} style={{ background: BOX_COLORS[i % BOX_COLORS.length] }} {...p.data}>
+                <div key={i} className={'sl-box' + (s.vote ? ' is-vote' : '') + p.cls} style={{ background: BOX_COLORS[i % BOX_COLORS.length] }} {...p.data} {...(s.vote && step !== null ? { 'data-vote': i } : {})}>
                   {p.badge}
+                  {s.vote && (step !== null || edit) && (
+                    <div className="sl-vote" title={TEXT[lang].votes} {...(step !== null ? { 'data-unvote': i } : {})}>
+                      <Icon icon={Hand} size={34} />
+                      {step !== null && <b>{votes?.[i] ?? 0}</b>}
+                    </div>
+                  )}
                   <div className="sl-box-head" {...ed(`item:${i}`)}>
                     <Rich text={head} lang={lang} />
                   </div>
@@ -521,6 +645,12 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
       break;
   }
 
+  /** A cover: there until its click or a tap; pale in the editor; gone on printed slides that show the answers. */
+  const coverClass = (at: number, id: string) => {
+    if (step === null) return edit ? 'is-edit' : print && !noAnswers ? 'is-gone is-still' : '';
+    return (at > 0 && step >= at) || opened.has(`el:${id}`) ? 'is-gone' : '';
+  };
+  let covers = 0;
   const framed = s.layout !== 'title' && s.layout !== 'exit';
   return (
     <div className={`sl-slide is-${s.layout} is-d-${ctx.design}`} style={vars} lang={lang}>
@@ -529,9 +659,13 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
       {framed && <Footer ctx={ctx} number={number} />}
       {s.elements.length > 0 && (
         <div className="sl-elements">
-          {s.elements.map((e) => (
-            <ElementView key={e.id} e={e} lang={lang} className={appear(e.step, e.anim).trim()} live={live} print={print} />
-          ))}
+          {s.elements.map((e) =>
+            e.kind === 'cover' ? (
+              <ElementView key={e.id} e={e} lang={lang} className={coverClass(e.step, e.id)} live={live} print={print} label={e.text || String(++covers)} />
+            ) : (
+              <ElementView key={e.id} e={e} lang={lang} className={appear(e.step, e.anim).trim()} live={live} print={print} />
+            ),
+          )}
         </div>
       )}
     </div>

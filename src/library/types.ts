@@ -1,6 +1,7 @@
 // The library: subjects and grades hold modules (topics); a module holds lessons (Stunden)
 // and a competence grid (Kompetenzraster). Each lesson is one worksheet document.
 import type { Handout } from '../share/assignment';
+import type { Board } from '../model/ink';
 import type { Slide, SlideDesign } from '../model/slides';
 import type { Doc, Lang } from '../model/types';
 
@@ -61,6 +62,8 @@ export interface Lesson {
   slides: Slide[];
   /** Design of the slides ("organisch" is the design of the worksheets). */
   slideDesign: SlideDesign;
+  /** Tafelbilder: what was written on the slides while presenting, kept to show again or print (newest first). */
+  boards: Board[];
   updatedAt: number;
 }
 

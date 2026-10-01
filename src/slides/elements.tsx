@@ -1,4 +1,4 @@
-// Elements placed freely on a slide: text fields, pictures, videos and QR codes.
+// Elements placed freely on a slide: text fields, pictures, videos, QR codes, covers and sketches.
 import { useMemo } from 'react';
 import { Link, Play } from 'lucide-react';
 import { Icon } from '../icons';
@@ -6,6 +6,7 @@ import type { SlideElement } from '../model/slides';
 import type { Lang } from '../model/types';
 import { qrCode } from '../sheet/parts';
 import { useImageUrl } from '../storage/images';
+import { InkSvg } from './Ink';
 import { Rich } from './Rich';
 
 export interface VideoInfo {
@@ -127,9 +128,11 @@ interface ElementViewProps {
   className: string;
   live: boolean;
   print: boolean;
+  /** A cover: what it shows (its text or number). */
+  label?: string;
 }
 
-export function ElementView({ e, lang, className, live, print }: ElementViewProps) {
+export function ElementView({ e, lang, className, live, print, label = '' }: ElementViewProps) {
   const box = { left: e.x, top: e.y, width: e.w, height: e.h };
   const caption = (e.kind === 'image' && (e.text || e.source)) || (e.kind === 'qr' && e.text);
   let body;
@@ -140,6 +143,19 @@ export function ElementView({ e, lang, className, live, print }: ElementViewProp
           <div>
             <Rich text={e.text} lang={lang} />
           </div>
+        </div>
+      );
+    case 'cover':
+      // Tapped while presenting, it goes (see Presenter); `data-card` names it like a card on an answer.
+      return (
+        <div className={`sl-el sl-el-cover is-${e.style} ${className}`} style={box} data-el={e.id} data-card={`el:${e.id}`}>
+          <span>{label}</span>
+        </div>
+      );
+    case 'ink':
+      return (
+        <div className={`sl-el sl-el-ink ${className}`} style={box} data-el={e.id}>
+          <InkSvg strokes={e.strokes} w={e.vw || e.w} h={e.vh || e.h} />
         </div>
       );
     case 'image':

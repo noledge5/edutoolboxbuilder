@@ -8,7 +8,7 @@
 | Geräte | Laptop/Desktop und iPad (Touch-Drag-and-Drop, Hochformat mit ausklappbarer Toolbox und Panel). |
 | Hosting | GitHub Pages, statisch. Alles läuft im Browser. |
 | Bibliothek | Stundenpakete: Klasse › Modul › Stunde. Ein Paket enthält Lehrkraft-Seiten, Schülerblätter und Folien. Kürzel (z. B. „K9 · M1 · S2“) und Themen-Icon kommen aus Klasse/Modul/Stunde. |
-| KI | Festes Handoff-Format (JSON bzw. ZIP mit Bildern) plus Anleitung/Skill für Claude. Claude erzeugt Dateien, die der Baukasten importiert. Kein API-Key in der App. |
+| KI | Festes Handoff-Format (JSON bzw. ZIP mit Bildern) plus Anleitung/Skill für Claude. Claude erzeugt Dateien, die der Baukasten importiert. Ab Runde 6 zusätzlich KI im Baukasten mit eigenem Schlüssel (Claude direkt oder OpenRouter, wählbar; Schlüssel nur auf dem Gerät, Schülernamen gehen nie an die KI). Ohne Schlüssel bleibt alles wie bisher. |
 | Folien | Entstehen per Claude im Handoff-Format. Die App zeigt sie an, erlaubt leichte Textkorrekturen und einen Präsentationsmodus. |
 | Papier und Oberfläche | Weiß statt Creme (abweichend vom Design-Handoff, Wunsch vom 26.09.2026): Arbeitsblätter über `--paper` in `src/sheet/sheet.css`, Toolbox, obere Leiste und Panel über `--color-ui` in `src/styles/app.css`. Die Fläche hinter den Seiten bleibt grau-beige, damit sich die weißen Blätter abheben. |
 | Druck | Farbdruck und S/W-Kopiervorlage, Schüler- oder Lösungsfassung. |
@@ -19,6 +19,15 @@
 | Englisch | Sprache pro Modul (`lang`): englische Beschriftungen auf den Schülerblättern, Lehrkraft-Seiten bleiben deutsch. Deutsche Hilfe unter englischen Aufträgen, pro Modul abschaltbar. Eigene Blatt-Typen (Wortschatz, Grammatik, Hören, Sprechen, Test) mit zusätzlichen Farbverläufen in der Tonalität des Design-Systems. Lautschrift in Noto Sans, weil Figtree die IPA-Zeichen nicht hat. |
 | Jahresplan | Schuljahr mit Ferien in den Einstellungen (BW 2026/27 laut Kultusministerium als Vorschlag). Module haben Dauer in Schulwochen und optional einen Beginn; sie folgen in der Reihenfolge ihrer Nummer, Ferienwochen (ab 3 freien Tagen) werden übersprungen. Stundenpakete ab Version 2 enthalten mehrere Module und optional das Schuljahr. |
 | Handoff-Format | „Stundenpaket“ (`arbeitsblatt-baukasten-paket`, Version 1): ein Modul mit Kompetenzen und Stunden, die Seiten im selben Format wie ein Arbeitsblatt. Der Import repariert, was geht, und zählt auf, was er geändert hat. Die Anleitung für Claude entsteht aus `src/claude/anleitung.md` plus Bausteinliste, Symbolen und Beispiel aus dem Code. |
+
+## Endziele bis Sommer 2027 (festgelegt am 01.10.2026)
+
+1. **Unterricht ganz vom iPad:** präsentieren, mit dem Stift schreiben, Lösungen antippen, Aufgaben austeilen und Ergebnisse sehen, ohne Mac. Präsentieren am Mac bleibt genauso möglich (iPad vergessen, Akku leer).
+2. **Stunde in 15 Minuten:** die KI im Baukasten macht aus einer geplanten Stunde Blatt, Folien und digitale Fassung; die Lehrkraft prüft und ändert nur.
+3. **Naturwissenschaft zum Anfassen:** interaktive Modelle und Simulationen mit Aufgaben darin, austeilbar und ausgewertet.
+4. Später, erst wenn das Werkzeug rundum ausgereift ist: Diagnose über das Schuljahr (Klassen, Kompetenzen je Kind, Förderaufgaben).
+
+Reihenfolge der Runden: 5 Folien (Stift, Antippen, klügerer Vorschlag) → 6 KI im Baukasten → 7 interaktive Modelle → danach Klassen/Kalender, Druckhelfer und Vorlesen, automatischer Abgleich; Diagnose zuletzt.
 
 ## Phasen
 
@@ -97,3 +106,11 @@ Entschieden mit Fragen und Vor- und Nachteilen:
 - ✅ Übung (selbst prüfen, Lösung zeigen; Lehrkraft sieht ersten Versuch und Ende) oder Test (ohne Lösungen im veröffentlichten Auftrag).
 - ✅ Auswertung: Live-Tabelle, häufige Fehler, Kompetenz-Übersicht (mit Niveau), Ansicht ohne Namen für den Beamer.
 - Als Nächstes: interaktive Modelle für die Naturwissenschaften (Simulationen mit eingebauten Aufgaben, über dieselbe Auswertung), danach ggf. Zeichenfeld digital.
+
+### Phase 8 – Folien 2.0 (Runde 5)
+Entschieden mit Fragen und Vor- und Nachteilen:
+- Stift beim Präsentieren: am iPad schreibt der Pencil sofort, der Finger blättert und tippt weiter (Finger zeichnen zuschaltbar); am Mac Knopf oder Taste P, Maus oder Trackpad. Stift, Marker, Radierer, Farben, Rückgängig; Strich halten macht ihn gerade, Pfeil-Knopf setzt Pfeilspitzen; leere Tafel (weiß, kariert, liniert) einschieben.
+- Tafelbild: bleibt während der Stunde je Folie, beim Beenden „Tafelbild sichern?“; gesicherte Tafelbilder wieder einblenden oder als PDF drucken. Im Folieneditor vorzeichnen: Skizzen als Element, die auf Klick erscheinen.
+- Antippen: Lösungen liegen unter Karten in der Phasenfarbe mit Nummer (bzw. Buchstabe der Teilaufgabe); Antippen deckt genau diese auf, Weiter deckt der Reihe nach auf. Abdeckungen über Bildteilen (z. B. stumme Karte), Antippen nimmt sie weg.
+- Folienvorschlag nach dem Stundenverlauf statt als Spiegel des Blatts: Einstieg nach Einstiegsart (Bildimpuls, Schätzfrage, Zitat/Karikatur, Problem/Fall, Video, Experiment/Gegenstand, Abstimmung, Rätsel, Vorwissen), je Arbeitsphase eine Auftragsfolie (Kurzauftrag, Zeit, Sozialform, Ich–Du–Wir-Schritte mit Timer je Schritt), Besprechung mit Lösungen zum Antippen, Sicherung, Exit. Vorher eine Liste zum Abhaken; einzelne Folien lassen sich aus dem Blatt nachholen.
+- Abruf nur, wo der Verlauf eine Abrufphase hat, und nur mit Stoff aus früheren Stunden (verteiltes Wiederholen: letzte Stunde, frühere Stunde, früheres Modul). Grund: Abruffragen einer Stunde sind für spätere Stunden gedacht, standen aber am Anfang derselben Stunde.

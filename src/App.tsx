@@ -536,6 +536,11 @@ export function App() {
           putLesson({ ...current, slides, updatedAt: Date.now() }).catch(failed);
         }}
         onVersions={() => setVersionsOf(lesson.id)}
+        boards={lesson.boards}
+        onBoards={(boards) => {
+          const current = libRef.current?.lessons.find((l) => l.id === lesson.id) ?? lesson;
+          putLesson({ ...current, boards, updatedAt: Date.now() }).catch(failed);
+        }}
         onDesign={(slideDesign) => {
           const current = libRef.current?.lessons.find((l) => l.id === lesson.id) ?? lesson;
           putLesson({ ...current, slideDesign, updatedAt: Date.now() }).catch(failed);

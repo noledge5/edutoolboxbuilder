@@ -34,6 +34,7 @@ const lesson = (m: Module, number: number, title: string, textbook: string, page
   doc: { icon: m.icon, lang: m.lang, help: m.help, footer: '', code: '', pages } satisfies Doc,
   slides: [],
   slideDesign: 'organisch',
+  boards: [],
   updatedAt: time,
 });
 

@@ -124,7 +124,14 @@ describe('slides', () => {
 
   it('show the solution of a task after the answers of its entries', () => {
     const task = { ...createSlide('task'), items: 'A? | a\nB? | b', text: 'Lösung', reveal: true };
-    expect(partSteps(task).get('text')).toMatchObject({ label: 'Lösung', step: 1, answer: true });
+    // Under cards each answer has its own click, the solution comes last.
+    expect(itemSteps(task)).toEqual([
+      { item: 0, answer: 1 },
+      { item: 0, answer: 2 },
+    ]);
+    expect(partSteps(task).get('text')).toMatchObject({ label: 'Lösung', step: 3, answer: true });
+    // Without cards all answers come together, the solution with them.
+    expect(partSteps({ ...task, cards: false }).get('text')).toMatchObject({ step: 1 });
     expect(partSteps({ ...task, build: true }).get('text')?.step).toBe(5);
     expect(stepCount({ ...task, reveal: false })).toBe(0);
   });
@@ -159,13 +166,14 @@ describe('slides with elements, steps and animations', () => {
   });
 
   it('count the clicks: entries one by one, question and answer taking turns, elements on their click', () => {
-    const list = { ...createSlide('list'), items: 'A? | a\nB? | b\nC?', reveal: true };
+    const list = { ...createSlide('list'), items: 'A? | a\nB? | b\nC?', reveal: true, cards: false };
     expect(itemSteps(list)).toEqual([
       { item: 0, answer: 1 },
       { item: 0, answer: 1 },
       { item: 0, answer: 0 },
     ]);
     expect(stepCount(list)).toBe(1);
+    expect(itemSteps({ ...list, cards: true }).map((x) => x.answer)).toEqual([1, 2, 0]);
     const built = { ...list, build: true };
     expect(itemSteps(built)).toEqual([
       { item: 1, answer: 2 },

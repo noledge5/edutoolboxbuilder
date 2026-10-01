@@ -171,6 +171,7 @@ export function newLesson(lib: Library, m: Module): Lesson {
     plan: '',
     slides: [],
     slideDesign: 'organisch',
+    boards: [],
     doc: { icon: m.icon, lang: m.lang, help: m.help, footer: footerFor(lib.settings, m.subject), code: lessonCode(m, number), pages: [page] },
     updatedAt: Date.now(),
   };
@@ -239,6 +240,7 @@ export function libraryFromOldDoc(doc: Doc): Library {
     doc,
     slides: [],
     slideDesign: 'organisch',
+    boards: [],
     updatedAt: Date.now(),
   };
   return { settings, modules: [module], lessons: [lesson], handouts: [], deleted: {} };
@@ -306,6 +308,7 @@ export function seedLibrary(): Library {
     doc,
     slides: seedSlides(),
     slideDesign: 'organisch',
+    boards: [],
     updatedAt: 0,
   };
   return { settings, modules: [module], lessons: [lesson], handouts: [], deleted: {} };

@@ -322,6 +322,7 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
             doc,
             slides: l.slides,
             slideDesign: l.slideDesign || 'organisch',
+            boards: [],
             updatedAt: now,
           });
           r.added++;
@@ -367,6 +368,7 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
         doc: { ...l.doc, icon: module.icon, lang: module.lang, help: module.help, footer, code: lessonCode(module, l.number) },
         slides: l.slides,
         slideDesign: l.slideDesign || 'organisch',
+        boards: [],
         updatedAt: now,
       });
     }

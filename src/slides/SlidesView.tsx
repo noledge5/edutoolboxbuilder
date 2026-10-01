@@ -17,6 +17,7 @@ import {
   ImagePlus,
   Layers,
   Palette,
+  PenLine,
   Play,
   Plus,
   Printer,
@@ -25,6 +26,7 @@ import {
   Redo2,
   SendToBack,
   Sparkles,
+  SquareDashed,
   Trash2,
   Type,
   Undo2,
@@ -38,6 +40,7 @@ import { SearchButton } from '../library/SearchDialog';
 import { Icon } from '../icons';
 import { uid } from '../model/ops';
 import {
+  COVER_LOOKS,
   createElement,
   createSlide,
   ELEMENT_LABELS,
@@ -72,6 +75,9 @@ import { enterFullscreen, Presenter } from './Presenter';
 import { PptxDialog, PptxImportDialog } from './PptxDialog';
 import { openSpeakerWindows, type SpeakerWindows } from './speaker';
 import type { PptxRead } from './pptxImport';
+import { BoardsDialog } from './BoardsDialog';
+import { mapStrokes, MAX_BOARDS, strokeBounds, type Board, type Stroke } from '../model/ink';
+import { PenBar, usePenSettings } from './Pen';
 import { SlidesPrint, type SlidesPrintKind } from './SlidesPrint';
 import { SlideStage } from './SlideStage';
 import { SLIDE_H, SLIDE_W, SlideBox, type SlideContext } from './SlideView';
@@ -90,6 +96,9 @@ interface SlidesViewProps {
   onDesign(design: SlideDesign): void;
   /** Earlier versions of the lesson. */
   onVersions?(): void;
+  /** Saved Tafelbilder of the lesson (newest first) and keeping them. */
+  boards: Board[];
+  onBoards(boards: Board[]): void;
   onBack(): void;
   onOpenSheet(): void;
   /** A slide found by the search: shown, its words marked. */
@@ -137,6 +146,7 @@ const INSERT: { kind: SlideElementKind; icon: typeof Type }[] = [
   { kind: 'image', icon: ImagePlus },
   { kind: 'video', icon: Video },
   { kind: 'qr', icon: QrCode },
+  { kind: 'cover', icon: SquareDashed },
 ];
 
 const TEXT_STYLES: { v: TextStyle; l: string }[] = [
@@ -171,6 +181,14 @@ export function SlidesView(p: SlidesViewProps) {
   /** The second window of the Referentenansicht. */
   const [speaker, setSpeaker] = useState<SpeakerWindows | null>(null);
   const [printing, setPrinting] = useState<SlidesPrintKind | null>(null);
+  /** A Tafelbild to print, or to start presenting with. */
+  const [printBoard, setPrintBoard] = useState<Board | null>(null);
+  const [startBoard, setStartBoard] = useState<Board | null>(null);
+  const [showBoards, setShowBoards] = useState(false);
+  /** Sketching on the slide: a new sketch (id null) or one being changed, with its strokes in slide pixels. */
+  const [sketch, setSketch] = useState<{ slideId: string; id: string | null; strokes: Stroke[]; past: Stroke[][] } | null>(null);
+  const [sketchLive, setSketchLive] = useState<Stroke | null>(null);
+  const [pen, setPen] = usePenSettings();
   const [picker, setPicker] = useState(false);
   const [designing, setDesigning] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -287,12 +305,56 @@ export function SlidesView(p: SlidesViewProps) {
     if (!slide) return;
     // New elements step a little to the side, so they do not cover each other.
     const k = slide.elements.length % 6;
-    const e = createElement(kind);
+    // A cover goes on the next click (and when tapped).
+    const e = createElement(kind, kind === 'cover' ? { step: stepCount(slide) + 1 } : {});
     const placed = { ...e, x: Math.min(1920 - e.w, e.x + k * 40), y: Math.min(1080 - e.h, e.y + k * 40) };
     setElements([...slide.elements, placed]);
     setSelEl(placed.id);
     if (kind === 'text' || kind === 'video' || kind === 'qr') requestAnimationFrame(() => document.getElementById(`sl-el-${kind}`)?.focus());
   };
+
+  /** Starts sketching: a new sketch, or the chosen one with its strokes back on the whole slide. */
+  const startSketch = (e: SlideElement | null) => {
+    if (!slide) return;
+    setSelEl(null);
+    setSelPart(null);
+    if (!e) return setSketch({ slideId: slide.id, id: null, strokes: [], past: [] });
+    const sx = e.w / (e.vw || e.w);
+    const sy = e.h / (e.vh || e.h);
+    setSketch({ slideId: slide.id, id: e.id, strokes: mapStrokes(e.strokes, (x, y) => [e.x + x * sx, e.y + y * sy], Math.min(sx, sy)), past: [] });
+  };
+  /** Done sketching: the strokes become one sketch element in the box around them (none: the sketch goes). */
+  const endSketch = () => {
+    const target = sketch && slides.find((s) => s.id === sketch.slideId);
+    if (!sketch || !target) return setSketch(null);
+    const setOn = (elements: SlideElement[]) => commit(slides.map((s) => (s.id === target.id ? { ...s, elements } : s)));
+    const box = strokeBounds(sketch.strokes);
+    const rest = target.elements.filter((e) => e.id !== sketch.id);
+    const old = target.elements.find((e) => e.id === sketch.id);
+    if (!box) {
+      if (old) setOn(rest);
+    } else {
+      const x = Math.max(0, box.x);
+      const y = Math.max(0, box.y);
+      const w = Math.max(40, Math.min(1920 - x, box.w - (x - box.x)));
+      const h = Math.max(40, Math.min(1080 - y, box.h - (y - box.y)));
+      const strokes = mapStrokes(sketch.strokes, (px, py) => [px - x, py - y]);
+      const el = old
+        ? { ...old, x, y, w, h, strokes, vw: w, vh: h }
+        : createElement('ink', { x, y, w, h, strokes, vw: w, vh: h, step: stepCount(target) + 1, anim: 'fade' });
+      setOn(old ? target.elements.map((e) => (e.id === old.id ? el : e)) : [...target.elements, el]);
+      if (target.id === slide?.id) setSelEl(el.id);
+    }
+    setSketch(null);
+    setSketchLive(null);
+  };
+  // Another slide: the sketch is done.
+  useEffect(() => {
+    if (sketch && slide?.id !== sketch.slideId) endSketch();
+  }, [slide?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Keeps a Tafelbild made while presenting (the newest first, at most MAX_BOARDS). */
+  const saveBoard = (b: Board) => p.onBoards([b, ...p.boards].slice(0, MAX_BOARDS));
   const removeEl = () => {
     if (!slide || !el) return;
     setElements(slide.elements.filter((e) => e.id !== el.id));
@@ -356,9 +418,17 @@ export function SlidesView(p: SlidesViewProps) {
 
   // Keyboard: undo/redo, arrows move between slides (not while typing).
   useEffect(() => {
-    if (presenting !== null || printing) return;
+    if (presenting !== null || printing || printBoard || showBoards) return;
     const onKey = (e: KeyboardEvent) => {
       const typing = e.target instanceof HTMLElement && (e.target.closest('input, textarea, select') || e.target.isContentEditable);
+      // Sketching: ⌘Z takes back the last stroke, Esc finishes.
+      if (sketch && !typing) {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && sketch.past.length) {
+          e.preventDefault();
+          setSketch({ ...sketch, strokes: sketch.past[sketch.past.length - 1], past: sketch.past.slice(0, -1) });
+        } else if (e.key === 'Escape') endSketch();
+        return;
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !typing) {
         e.preventDefault();
         undo(e.shiftKey);
@@ -397,7 +467,8 @@ export function SlidesView(p: SlidesViewProps) {
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [slides.length > 0]);
+    // Measured again when the stage comes back after presenting or printing.
+  }, [slides.length > 0, presenting === null, !printing && !printBoard]);
 
   if (presenting !== null)
     return (
@@ -406,14 +477,19 @@ export function SlidesView(p: SlidesViewProps) {
         ctx={p.ctx}
         start={presenting}
         speaker={speaker}
+        boards={p.boards}
+        board={startBoard}
+        onSaveBoard={saveBoard}
         onClose={(k) => {
           setPresenting(null);
           setSpeaker(null);
+          setStartBoard(null);
           pick(k);
         }}
       />
     );
   if (printing) return <SlidesPrint kind={printing} slides={slides} ctx={p.ctx} title={p.lessonTitle} onClose={() => setPrinting(null)} />;
+  if (printBoard) return <SlidesPrint kind="board" board={printBoard} slides={slides} ctx={p.ctx} title={p.lessonTitle} onClose={() => setPrintBoard(null)} />;
 
   const info = slide ? SLIDE_LAYOUTS[slide.layout] : null;
   const revealLabel = slide && (REVEAL_LABEL[slide.layout] ?? (GAP_TITLE.includes(slide.layout) && hasGap(slide.title) ? 'Lücken beim Präsentieren' : ''));
@@ -454,6 +530,7 @@ export function SlidesView(p: SlidesViewProps) {
             { label: 'Folie löschen', icon: Trash2, onClick: () => slides.length && remove() },
             { label: 'Alle Folien löschen …', icon: Trash2, onClick: removeAll },
             { label: 'Neu aus dem Arbeitsblatt vorschlagen …', icon: Sparkles, onClick: resuggest },
+            { label: `Tafelbilder${p.boards.length ? ` · ${p.boards.length}` : ''} …`, icon: PenLine, onClick: () => setShowBoards(true) },
             { label: 'PowerPoint öffnen …', icon: FileUp, onClick: () => pptxInput.current?.click() },
             { label: 'Als PowerPoint sichern …', icon: Download, onClick: () => slides.length && setExporting(true) },
             ...(p.onVersions ? [{ label: 'Frühere Fassungen …', icon: History, onClick: p.onVersions }] : []),
@@ -535,14 +612,42 @@ export function SlidesView(p: SlidesViewProps) {
         </nav>
 
         <main className="sl-stage" ref={stage}>
-          {slide && (
+          {slide && sketch && (
+            <div className="sl-insert is-sketch">
+              <PenBar
+                s={pen}
+                set={setPen}
+                place="inline"
+                canUndo={sketch.past.length > 0}
+                onUndo={() => setSketch({ ...sketch, strokes: sketch.past[sketch.past.length - 1], past: sketch.past.slice(0, -1) })}
+                onClear={() => sketch.strokes.length && setSketch({ ...sketch, strokes: [], past: [...sketch.past, sketch.strokes] })}
+                onBlank={() => {}}
+                onClose={endSketch}
+                editor={
+                  <>
+                    <button type="button" className="sl-pill" onClick={() => (setSketch(null), setSketchLive(null))}>
+                      Abbrechen
+                    </button>
+                    <button type="button" className="sl-pill is-main" onClick={endSketch}>
+                      Fertig
+                    </button>
+                  </>
+                }
+              />
+            </div>
+          )}
+          {slide && !sketch && (
             <div className="sl-insert" role="toolbar" aria-label="Einfügen">
               {INSERT.map(({ kind, icon }) => (
-                <button key={kind} type="button" className="btn btn-secondary ui-btn" onClick={() => addEl(kind)}>
+                <button key={kind} type="button" className="btn btn-secondary ui-btn" onClick={() => addEl(kind)} title={kind === 'cover' ? 'Rechteck, das einen Teil der Folie verdeckt, bis es angetippt wird oder sein Klick kommt' : undefined}>
                   <Icon icon={icon} />
                   <span className="btn-label">{ELEMENT_LABELS[kind]}</span>
                 </button>
               ))}
+              <button type="button" className="btn btn-secondary ui-btn" onClick={() => startSketch(null)} title="Mit Stift, Maus oder Finger auf die Folie zeichnen; die Skizze erscheint beim Präsentieren auf Klick">
+                <Icon icon={PenLine} />
+                <span className="btn-label">Zeichnen</span>
+              </button>
               <button
                 type="button"
                 className="btn btn-secondary ui-btn sl-insert-preview"
@@ -573,6 +678,19 @@ export function SlidesView(p: SlidesViewProps) {
                 requestAnimationFrame(() => elText.current?.focus());
               }}
               onEditText={(target, value) => set(setEditText(slide, target, value), `edit.${target}`)}
+              sketch={
+                sketch
+                  ? {
+                      strokes: sketch.strokes,
+                      live: sketchLive,
+                      pen,
+                      hide: sketch.id,
+                      onBegin: () => setSketch((x) => x && { ...x, past: [...x.past.slice(-60), x.strokes] }),
+                      onChange: (strokes) => setSketch((x) => x && { ...x, strokes }),
+                      onLive: setSketchLive,
+                    }
+                  : null
+              }
             />
           ) : (
             <div className="sl-empty">
@@ -645,6 +763,7 @@ export function SlidesView(p: SlidesViewProps) {
               onLayer={layerEl}
               onPicture={(file) => setElPicture(slide.id, el.id, file)}
               onSearch={() => setSearching('element')}
+              onSketch={() => startSketch(el)}
             />
           ) : slide && partInfo ? (
             <PartPanel part={partInfo} own={!!slide.anims[partInfo.key]} nextStep={stepCount(slide) + 1} onChange={(a) => setPartAnim(partInfo.key, a)} onBack={() => setSelPart(null)} />
@@ -699,6 +818,28 @@ export function SlidesView(p: SlidesViewProps) {
                       { v: false, l: 'gleich zeigen' },
                     ]}
                     onPick={(reveal) => set({ reveal })}
+                  />
+                )}
+                {revealLabel && slide.reveal && (
+                  <SegField<boolean>
+                    label="Bis dahin"
+                    value={slide.cards}
+                    options={[
+                      { v: true, l: 'unter Karten (antippen)' },
+                      { v: false, l: 'unsichtbar' },
+                    ]}
+                    onPick={(cards) => set({ cards })}
+                  />
+                )}
+                {slide.layout === 'compare' && (
+                  <SegField<boolean>
+                    label="Abstimmung"
+                    value={slide.vote}
+                    options={[
+                      { v: false, l: 'nein' },
+                      { v: true, l: 'Antippen zählt Hände' },
+                    ]}
+                    onPick={(vote) => set({ vote })}
                   />
                 )}
                 {(slide.layout === 'image' || slide.layout === 'task') && (
@@ -780,6 +921,26 @@ export function SlidesView(p: SlidesViewProps) {
         </aside>
       </div>
       {exporting && <PptxDialog slides={slides} ctx={p.ctx} title={p.lessonTitle} onClose={() => setExporting(false)} />}
+      {showBoards && (
+        <BoardsDialog
+          boards={p.boards}
+          slides={slides}
+          ctx={p.ctx}
+          onShow={(b) => {
+            setShowBoards(false);
+            setStartBoard(b);
+            enterFullscreen();
+            setPresenting(0);
+          }}
+          onPrint={(b) => {
+            setShowBoards(false);
+            setPrintBoard(b);
+          }}
+          onRename={(b, name) => p.onBoards(p.boards.map((x) => (x.id === b.id ? { ...x, name } : x)))}
+          onDelete={(b) => p.onBoards(p.boards.filter((x) => x.id !== b.id))}
+          onClose={() => setShowBoards(false)}
+        />
+      )}
       <input
         ref={pptxInput}
         type="file"
@@ -829,10 +990,11 @@ interface ElementPanelProps {
   onLayer(front: boolean): void;
   onPicture(file: File): void;
   onSearch(): void;
+  onSketch(): void;
 }
 
-/** Fields of a text field, picture, video or QR code on the slide, and when and how it appears. */
-function ElementPanel({ el, slide, textRef, onChange, onBack, onDuplicate, onRemove, onLayer, onPicture, onSearch }: ElementPanelProps) {
+/** Fields of a text field, picture, video, QR code, cover or sketch on the slide, and when and how it appears (or goes). */
+function ElementPanel({ el, slide, textRef, onChange, onBack, onDuplicate, onRemove, onLayer, onPicture, onSearch, onSketch }: ElementPanelProps) {
   const video = el.kind === 'video' ? videoInfo(el.url) : null;
   // "On a click": the next click after everything else on the slide.
   const nextStep = Math.max(1, stepCount({ ...slide, elements: slide.elements.filter((e) => e.id !== el.id) }) + 1);
@@ -901,6 +1063,22 @@ function ElementPanel({ el, slide, textRef, onChange, onBack, onDuplicate, onRem
             <TextField label="Titel (im Editor und im Handout)" value={el.text} onChange={(text) => onChange({ text }, 'text')} />
           </>
         )}
+        {el.kind === 'cover' && (
+          <>
+            <TextField label="Aufschrift (leer: eine Nummer)" value={el.text} onChange={(text) => onChange({ text }, 'text')} />
+            <SegField<TextStyle> label="Aussehen" value={el.style} options={COVER_LOOKS} onPick={(style) => onChange({ style })} />
+            <p className="panel-note">Leg die Abdeckung über das, was die Klasse erst später sehen soll, z. B. Beschriftungen einer Karte. Beim Präsentieren nimmt Antippen sie weg.</p>
+          </>
+        )}
+        {el.kind === 'ink' && (
+          <>
+            <button type="button" className="btn btn-secondary ui-btn" onClick={onSketch}>
+              <Icon icon={PenLine} />
+              Skizze ändern
+            </button>
+            <p className="panel-note">Die Skizze lässt sich verschieben und in der Größe ändern; „Skizze ändern“ zeichnet weiter oder radiert.</p>
+          </>
+        )}
         {el.kind === 'qr' && (
           <>
             <div className="field">
@@ -911,6 +1089,21 @@ function ElementPanel({ el, slide, textRef, onChange, onBack, onDuplicate, onRem
           </>
         )}
       </div>
+      {el.kind === 'cover' ? (
+        <div className="panel-section">
+          <div className="panel-section-label">Verschwinden</div>
+          <SegField<boolean>
+            label="Wann"
+            value={el.step > 0}
+            options={[
+              { v: true, l: 'auf Klick oder Antippen' },
+              { v: false, l: 'nur durch Antippen' },
+            ]}
+            onPick={(click) => onChange({ step: click ? nextStep : 0 })}
+          />
+          {el.step > 0 && <NumberField label="Beim wievielten Klick" value={el.step} min={1} max={30} onChange={(step) => onChange({ step }, 'step')} />}
+        </div>
+      ) : (
       <div className="panel-section">
         <div className="panel-section-label">Erscheinen</div>
         <SegField<boolean>
@@ -930,6 +1123,7 @@ function ElementPanel({ el, slide, textRef, onChange, onBack, onDuplicate, onRem
         )}
         <p className="panel-note">Auf der Folie: ziehen verschiebt, die Ecke unten rechts ändert die Größe, Pfeiltasten schieben genau, Entf löscht.</p>
       </div>
+      )}
       <div className="panel-row">
         <button type="button" className="iconbtn" onClick={() => onLayer(true)} title="Nach vorne holen" aria-label="Nach vorne holen">
           <Icon icon={BringToFront} />
@@ -955,7 +1149,7 @@ function Sequence({ slide, onPart, onElement, onClear }: { slide: Slide; onPart(
   const n = stepCount(slide);
   if (!n) return <p className="panel-note">Alles erscheint gleich mit der Folie.</p>;
   const parts = slideParts(slide);
-  const elementName = (e: SlideElement) => `${ELEMENT_LABELS[e.kind]}${e.text ? `: ${e.text.replace(/[*{}]/g, '').slice(0, 20)}` : ''}`;
+  const elementName = (e: SlideElement) => `${ELEMENT_LABELS[e.kind]}${e.text ? `: ${e.text.replace(/[*{}]/g, '').slice(0, 20)}` : ''}${e.kind === 'cover' ? ' geht weg' : ''}`;
   return (
     <div className="field">
       <label>Ablauf beim Präsentieren</label>

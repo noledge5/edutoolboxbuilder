@@ -2,7 +2,10 @@
 // While dragging only a draft changes; the slide is saved once when the pointer is let go.
 // A double click (on the iPad: a double tap) on a text writes right there, in the slide's own type.
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import type { Stroke } from '../model/ink';
 import { editText, type Slide, type SlideElement } from '../model/slides';
+import { InkSvg } from './Ink';
+import { useInkInput, type PenSettings } from './Pen';
 import { SLIDE_H, SLIDE_W, SlideView, type SlideContext } from './SlideView';
 
 type Box = Pick<SlideElement, 'x' | 'y' | 'w' | 'h'>;
@@ -22,6 +25,29 @@ interface SlideStageProps {
   onOpen(id: string): void;
   /** A text edited on the slide (see `editText`). */
   onEditText(target: string, value: string): void;
+  /** Sketching on the slide instead of choosing and moving. */
+  sketch?: SketchState | null;
+}
+
+/** Sketching: the strokes in slide pixels, the one being drawn, the pen; `hide` is the sketch being changed. */
+export interface SketchState {
+  strokes: Stroke[];
+  live: Stroke | null;
+  pen: PenSettings;
+  hide: string | null;
+  onBegin(): void;
+  onChange(strokes: Stroke[]): void;
+  onLive(s: Stroke | null): void;
+}
+
+/** Over the slide while sketching: pencil, mouse and finger draw. */
+function SketchLayer({ sketch, scale }: { sketch: SketchState; scale: number }) {
+  const handlers = useInkInput({ ...sketch, settings: { ...sketch.pen, finger: true }, on: true, scale });
+  return (
+    <div className="sl-sketch" style={{ touchAction: 'none' }} {...handlers}>
+      <InkSvg strokes={sketch.live ? [...sketch.strokes, sketch.live] : sketch.strokes} />
+    </div>
+  );
 }
 
 /** Where the text being edited sits on the stage, and how it looks. */
@@ -40,7 +66,7 @@ const GRID = 10;
 const MIN = 60;
 const snap = (n: number) => Math.round(n / GRID) * GRID;
 
-export function SlideStage({ slide, number, ctx, width, selected, onSelect, selectedPart, onPart, onBox, onOpen, onEditText }: SlideStageProps) {
+export function SlideStage({ slide, number, ctx, width, selected, onSelect, selectedPart, onPart, onBox, onOpen, onEditText, sketch = null }: SlideStageProps) {
   const scale = width / SLIDE_W;
   const frame = useRef<HTMLDivElement>(null);
   const [partBox, setPartBox] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
@@ -159,7 +185,9 @@ export function SlideStage({ slide, number, ctx, width, selected, onSelect, sele
   const [draft, setDraft] = useState<{ id: string; box: Box } | null>(null);
   const drag = useRef<{ id: string; mode: 'move' | 'size'; x: number; y: number; box: Box } | null>(null);
 
-  const shown: Slide = draft ? { ...slide, elements: slide.elements.map((e) => (e.id === draft.id ? { ...e, ...draft.box } : e)) } : slide;
+  const moved: Slide = draft ? { ...slide, elements: slide.elements.map((e) => (e.id === draft.id ? { ...e, ...draft.box } : e)) } : slide;
+  // The sketch being changed is drawn by the sketch layer instead.
+  const shown: Slide = sketch?.hide ? { ...moved, elements: moved.elements.filter((e) => e.id !== sketch.hide) } : moved;
 
   const start = (e: SlideElement, mode: 'move' | 'size') => (ev: PointerEvent) => {
     ev.stopPropagation();
@@ -196,7 +224,9 @@ export function SlideStage({ slide, number, ctx, width, selected, onSelect, sele
     <div ref={frame} className="sl-stage-frame sl-box-frame" style={{ width, height: SLIDE_H * scale }}>
       {hidden && <style>{`.sl-stage-frame .sl-slide ${hidden} { visibility: hidden; }`}</style>}
       <SlideView slide={shown} number={number} ctx={ctx} step={null} edit style={{ transform: `scale(${scale})` }} />
+      {sketch && <SketchLayer sketch={sketch} scale={scale} />}
       <div
+        hidden={!!sketch}
         className="sl-overlay"
         onPointerDown={pickPart}
         onPointerMove={move}
