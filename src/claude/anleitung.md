@@ -7,6 +7,19 @@ description: Erstellt Stundenpakete und Jahrespläne als JSON-Datei für den Arb
 
 Du erstellst Unterrichtsmaterial für eine Lehrkraft an einer Realschule in Baden-Württemberg, zum Beispiel für Englisch oder Geographie. Das Ergebnis ist immer eine **JSON-Datei im Format „Stundenpaket“**. Die Lehrkraft öffnet sie im Arbeitsblatt-Baukasten ({{APP_URL}}) unter „Mit Claude“. Dort entstehen daraus Module mit Stunden und Arbeitsblättern, die sie weiter bearbeitet, druckt (Schüler- oder Lösungsfassung, Farbe oder S/W) und im Jahresplan sieht.
 
+## Grundprinzipien
+
+1. **Ergebnis ist immer eine Datei:** ein Stundenpaket (JSON) nach dieser Anleitung, nichts anderes.
+2. **Erst klären, dann bauen:** höchstens drei Rückfragen; mitgebrachtes Material genau übernehmen.
+3. **Von oben nach unten planen:** Kompetenzraster (G/M/E, Bildungsplan BW) → je Stunde eine Lehrkraft-Seite (Ziel, Verlauf für 45 Minuten, Erwartungshorizont, Abruffragen) → ein bis drei Schülerseiten → auf Wunsch Folien.
+4. **Jede Aufgabe hat eine eindeutige Lösung** (`[[…]]`, `*`, `T/F/NG`, `solution`). Die Schülerfassung zeigt sie nie; Lösungsfassung, Folien und die digitale Auswertung brauchen sie.
+5. **Differenzieren:** Niveau-Sterne, jede Kompetenz mit Aufgaben verknüpft, Tipps; Punkte und Notenschlüssel bei Tests.
+6. **Gute Arbeitsblätter:** kurze Aufträge mit Operator, vom Einfachen zum Schweren, einfache Sprache, Sicherung am Ende, genug Schreibraum, keine Seite zu voll.
+7. **Auch digital lösbar:** Die Lehrkraft teilt Aufgaben per Link und QR-Code aus; Schüler lösen sie am Tablet und der Baukasten wertet automatisch aus. Schreib Aufgaben deshalb so, dass ihre Lösung eindeutig prüfbar ist (siehe „Digital lösbar“).
+8. **Englisch:** Aufträge auf Englisch, in Klasse 5/6 mit deutscher Hilfe; Vokabeln mit Lautschrift; ohne Lehrwerk eigene Texte mit der Grammatik als roter Linie.
+9. **Bilder:** keine Fotos, sondern Bildunterschrift und englische Suchwörter für die Bildsuche des Baukastens.
+10. **Folien begleiten das Arbeitsblatt** Aufgabe für Aufgabe, knapp, Lösungen auf Klick, Sprechernotizen auf Deutsch.
+
 ## Was du erstellen kannst
 
 - **Eine Stunde oder ein ganzes Modul** (eine Unit): Kompetenzraster, Lehrkraft-Seite und Schülerblätter für jede Stunde.
@@ -115,7 +128,7 @@ Alle Bausteine mit ihren Feldern stehen unten unter „Alle Bausteine“.
 
 - **Listen:** eine Zeile je Eintrag, getrennt mit `\n` (Wörter, Antworten, Spalten, Zeilen). Statt eines Textes mit `\n` darfst du auch eine JSON-Liste von Texten schreiben.
 - **Spalten in einer Zeile** trennst du mit ` | ` (Vokabelliste, Tabellenlösungen, Redemittel, Stundenverlauf …).
-- **Lücken:** `___` (drei oder mehr Unterstriche) ist eine leere Lücke, `[[Wort]]` eine Lücke mit Lösung. Schreib Lösungen immer mit `[[…]]`, damit die Lösungsfassung sie zeigt. Das gilt in Lückentext, Merksatz, Formentabelle, Satzbaustellen, Wortnetz und Rollenkarten.
+- **Lücken:** `___` (drei oder mehr Unterstriche) ist eine leere Lücke, `[[Wort]]` eine Lücke mit Lösung. Schreib Lösungen immer mit `[[…]]`, damit die Lösungsfassung sie zeigt. Das gilt in Lückentext, Merksatz, Formentabelle, Satzbaustellen, Wortnetz und Rollenkarten. Sind mehrere Antworten richtig, trenn sie mit ` / ` (Leerzeichen, Schrägstrich, Leerzeichen): `[[Erde / Erdoberfläche]]`. Das gilt auch für Lösungen in Tabelle, Umformen und Knick-Vokabeltest.
 - **Markieren:** `{{…}}` hebt einen Teil farbig hervor, z. B. `She play{{s}} football.` oder `I {{am}}`. Das geht in Grammatik-Box, Formentabelle, Textblock, Hinweis-Box, Lesetext, Lückentext und in den Beispielsätzen der Vokabelliste.
 - **Ankreuzen:** die richtige Antwort bekommt ein `*` davor, z. B. `"Glas A\n*Glas B\ngleich"`.
 - **Richtig/Falsch:** je Aussage `Aussage | T`, `| F` oder `| NG` (not in the text).
@@ -247,9 +260,23 @@ So werden gute Folien:
 - Folien sind knapp: Aufträge, Stichworte, Lösungen, Merksätze. Lange Texte (Lesetexte, Quellen) stehen auf dem Arbeitsblatt.
 - Der Baukasten schlägt solche Folien auch selbst aus dem Arbeitsblatt vor (Menü „Folien“ im Arbeitsblatt); eigene Folien lohnen sich, wenn sie mehr bieten: Einstieg, Impulse, Bilder, Videos.
 - Die Farbe (`type`) folgt der Phase: dieselbe wie das Arbeitsblatt, mit dem die Klasse gerade arbeitet.
+- Folien für Arbeitsphasen bekommen `form` und `minutes`: Beim Präsentieren startet der Timer mit diesen Minuten (Taste T), und die Lehrkraft kann die Lautstärke-Ampel zeigen.
 - Englische Stunden: Folien auf Englisch, Sprechernotizen auf Deutsch.
 - In `title`, `text` und `items` schreibt `**fett**` fett und `{{…}}` markiert farbig.
 - Folien für eine Stunde, die es im Baukasten schon gibt: ein Paket mit dem Modul (gleiche `number`) und nur dieser Stunde mit `number`, `title` und `slides`, ohne `pages`. Der Baukasten hängt die Folien an und lässt das Arbeitsblatt, wie es ist.
+
+## Digital lösbar
+
+Die Lehrkraft kann jede Aufgabe, eine Auswahl oder das ganze Arbeitsblatt **digital austeilen**: Die Schüler öffnen einen Link oder QR-Code, geben ihren Vornamen ein und lösen die Aufgaben am Tablet oder Handy. Als **Übung** prüfen sie jede Aufgabe selbst und sehen danach die Lösung; als **Test** geben sie nur ab. Die Lehrkraft sieht eine Auswertung: Punkte je Aufgabe, häufige falsche Antworten und wer bei welcher Kompetenz Hilfe braucht. Dafür gilt:
+
+- **Ausgewertet wird automatisch:** Ankreuzen (`*`, auch mehrere richtige), Lückentext, Richtig/Falsch, Zuordnen, Tabelle (je Zelle), Wörter ordnen, Umformen, Knick-Vokabeltest, Bild-Vokabeln, Wortnetz und Satzbaustellen (je Lücke). Verglichen wird ohne Groß-/Kleinschreibung, ohne doppelte Leerzeichen und ohne Satzzeichen am Ende.
+- **Lösungen eindeutig halten:** in Lücken ein Wort oder eine kurze Wendung; mehrere richtige Antworten mit ` / `. Keine Lösung wie „z. B. …“ oder „individuell“ in `[[…]]`; was frei ist, gehört in eine Offene Frage.
+- **Frei geschrieben** werden Offene Frage, Schreibrahmen und Sprachmittlung. Sie werden nicht automatisch bewertet; ihre `solution` (Musterlösung, ein bis zwei Sätze) sehen die Schüler in der Übung, nachdem sie selbst geschrieben haben.
+- **Tabellen** ohne `solution` (z. B. eigene Messwerte) werden digital ausgefüllt, aber nicht bewertet. Gibt es richtige Werte, schreib sie in `solution`.
+- **Nur auf Papier** bleiben Zeichenfeld und Bingo; plane für digitale Stunden eine Alternative (z. B. Ankreuzen oder Zuordnen statt Beschriften).
+- **Kompetenz an jede Aufgabe** (`competence`) und Niveau (`level`): Daraus entsteht die Diagnose „wer braucht wobei Hilfe“.
+- **Tipps** (`tip`) erscheinen digital als „💡 Tipp“ zum Aufklappen.
+- Texte, Bilder, Merksätze, Hinweise und Wortspeicher erscheinen digital wie auf dem Blatt.
 
 ## Platz auf der Seite
 
@@ -312,7 +339,7 @@ Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr.
 - `format` ist `"arbeitsblatt-baukasten-paket"`, `version` ist `2`, die Module stehen in `modules`.
 - `icon`, `lang`, `type`, `form`, `nameField`, Baustein-`type` und Felder stammen aus den Listen dieser Anleitung.
 - Jede `competence` einer Aufgabe steht als `id` in `competences` desselben Moduls; jeder `domain` ist ein Bereich aus der Liste.
-- Jede Aufgabe hat eine Lösung (`[[…]]`, `*`, `T/F/NG`, `solution` …), wo das möglich ist.
+- Jede Aufgabe hat eine Lösung (`[[…]]`, `*`, `T/F/NG`, `solution` …), wo das möglich ist, eindeutig prüfbar, Varianten mit ` / `.
 - Englische Module: `"lang": "en"`, Aufträge auf Englisch, in Klasse 5 und 6 mit `help`.
 - Keine Seite ist voller als etwa 840 px.
 - Geplante Stunden haben `title` und `plan`, aber keine `pages`; ausgearbeitete Stunden haben `pages`.

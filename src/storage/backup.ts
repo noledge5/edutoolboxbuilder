@@ -8,7 +8,7 @@ import type { Lesson, Library, Module } from '../library/types';
 import { isPackageFile, packageFromModules, readPackage, type PackageFile, type ParsedPackage } from '../library/package';
 import type { SchoolYear } from '../library/types';
 import { getImage, putImageAs } from './db';
-import { readDeleted, readLesson, readModule, readSettings } from '../library/read';
+import { readDeleted, readHandouts, readLesson, readModule, readSettings } from '../library/read';
 
 export const BACKUP_FORMAT = 'arbeitsblatt-baukasten';
 export const LIBRARY_FORMAT = 'arbeitsblatt-baukasten-bibliothek';
@@ -168,7 +168,7 @@ export async function readAnyFile(text: string): Promise<OpenedFile> {
     const modules = lib.modules.map(readModule).filter((m): m is Module => m !== null);
     for (const [id, url] of Object.entries(obj.images ?? {})) if (typeof url === 'string') await putImageAs(id, dataUrlToBlob(url));
     const savedAt = Date.parse(obj.savedAt ?? '') || 0;
-    return { kind: 'library', savedAt, library: { settings: readSettings(lib.settings), modules, lessons, deleted: readDeleted(lib.deleted) } };
+    return { kind: 'library', savedAt, library: { settings: readSettings(lib.settings), modules, lessons, handouts: readHandouts(lib.handouts), deleted: readDeleted(lib.deleted) } };
   }
   return { kind: 'doc', doc: await readBackup(text) };
 }

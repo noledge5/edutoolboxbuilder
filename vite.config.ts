@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [react()],
   // Build id for the service worker URL, so every deployment refreshes the offline copy.
   define: { __BUILD_ID__: JSON.stringify(Date.now().toString(36)) },
+  // Two pages: the Baukasten, and the student view for tasks handed out by link (a/#<id>).
+  build: { rollupOptions: { input: { main: 'index.html', aufgabe: 'a/index.html' } } },
   test: {
     environment: 'node',
   },

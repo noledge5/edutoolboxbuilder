@@ -1,5 +1,6 @@
 // The library: subjects and grades hold modules (topics); a module holds lessons (Stunden)
 // and a competence grid (Kompetenzraster). Each lesson is one worksheet document.
+import type { Handout } from '../share/assignment';
 import type { Slide, SlideDesign } from '../model/slides';
 import type { Doc, Lang } from '../model/types';
 
@@ -114,6 +115,8 @@ export interface Library {
   settings: Settings;
   modules: Module[];
   lessons: Lesson[];
+  /** Tasks handed out digitally (with their private keys, so both devices can read the results). */
+  handouts: Handout[];
   /** Deleted modules and lessons (id → time of deletion), so a sync does not bring them back. */
   deleted: Record<string, number>;
 }

@@ -1,6 +1,6 @@
 import { useContext, useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type Ref } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { ChevronDown, ChevronUp, ClipboardCopy, Copy, FilePlus2, ListChecks, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, ClipboardCopy, Copy, FilePlus2, ListChecks, Plus, Send, Trash2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { canMoveBy, pageLabel, sheetNumbers } from '../model/ops';
 import type { Block, DragItem, Page } from '../model/types';
@@ -244,6 +244,11 @@ function BlockFrame({ api, block, p, i, taskNum, dragging }: BlockFrameProps) {
           <button type="button" title="Mehrere auswählen (⌘-Klick, ⇧-Klick)" aria-label="Mehrere auswählen" onClick={stop(() => api.startPicking(block.id))}>
             <Icon icon={ListChecks} />
           </button>
+          {api.share && (
+            <button type="button" title="Digital austeilen (Link und QR-Code)" aria-label="Digital austeilen" onClick={stop(() => api.share!([block.id]))}>
+              <Icon icon={Send} />
+            </button>
+          )}
           <button type="button" className="is-danger" title="Löschen" aria-label="Löschen" onClick={stop(() => api.deleteBlock(block.id))}>
             <Icon icon={Trash2} />
           </button>

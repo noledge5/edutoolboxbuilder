@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, Minus, Plus, Presentation, Printer, Redo2, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, BarChart3, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, Minus, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { SearchButton } from '../library/SearchDialog';
+import type { Handout } from '../share/assignment';
 import { topicIcon } from '../topicIcons';
 
 interface TopBarProps {
@@ -37,6 +38,10 @@ interface TopBarProps {
   onDeleteSlides?(): void;
   /** Earlier versions of the lesson (in the library). */
   onVersions?(): void;
+  /** Hands out the whole worksheet digitally. */
+  onShareAll?(): void;
+  handouts?: Handout[];
+  onOpenHandout?(id: string): void;
 }
 
 export function TopBar(p: TopBarProps) {
@@ -94,6 +99,20 @@ export function TopBar(p: TopBarProps) {
         ]}
       />
       {p.modeLabel && <span className="topbar-mode">{p.modeLabel}</span>}
+      {p.onShareAll && (
+        <Menu
+          label={p.handouts?.length ? `Digital · ${p.handouts.length}` : 'Digital'}
+          icon={Send}
+          items={[
+            { label: 'Ganzes Arbeitsblatt austeilen …', icon: Send, onClick: p.onShareAll },
+            ...(p.handouts ?? []).slice(0, 8).map((h) => ({
+              label: `Auswertung: ${h.title.length > 30 ? h.title.slice(0, 29) + '…' : h.title} · ${new Date(h.createdAt).toLocaleString('de-DE', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
+              icon: BarChart3,
+              onClick: () => p.onOpenHandout?.(h.id),
+            })),
+          ]}
+        />
+      )}
       {p.onSlides && <SlidesMenu count={p.slideCount ?? 0} onOpen={p.onSlides} onRegenerate={p.onRegenerateSlides} onDelete={p.onDeleteSlides} fromSheet="diesem Arbeitsblatt" />}
       <button type="button" className={'btn btn-secondary ui-btn' + (p.editing ? '' : ' is-on')} onClick={p.onTogglePreview}>
         <Icon icon={Eye} />

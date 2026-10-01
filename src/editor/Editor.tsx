@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors, type Announcements, type DragStartEvent } from '@dnd-kit/core';
-import { ClipboardCopy, Copy, Scissors, Trash2, X } from 'lucide-react';
+import { ClipboardCopy, Copy, Scissors, Send, Trash2, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { addClip, clipLabel, type Clip } from '../model/clips';
@@ -24,6 +24,7 @@ import { JsonDialog } from './JsonDialog';
 import { DEFAULT_PRINT, PrintDialog, type PrintMode } from './PrintDialog';
 import { hasLevels, hasShuffle, levelCode, variantDoc } from '../model/variants';
 import { markFound, pulse, type SearchFocus } from '../library/highlight';
+import type { Handout } from '../share/assignment';
 import { PropertiesPanel } from './PropertiesPanel';
 import { DragGhost, Toolbox } from './Toolbox';
 import { TopBar } from './TopBar';
@@ -109,6 +110,11 @@ export interface EditorProps {
   onVersions?(): void;
   /** A block found by the search: selected, scrolled into view, its words marked. */
   focus?: SearchFocus;
+  /** Hands out blocks (`ids`) or the whole worksheet (null) digitally, by link and QR code. */
+  onShare?(doc: Doc, ids: string[] | null): void;
+  /** What was handed out from this lesson, newest first, with its evaluation. */
+  handouts?: Handout[];
+  onOpenHandout?(id: string): void;
 }
 
 const NO_COMPETENCES: { id: string; area: string }[] = [];
@@ -128,6 +134,9 @@ export function Editor({
   onDeleteSlides,
   onVersions,
   focus,
+  onShare,
+  handouts = [],
+  onOpenHandout,
 }: EditorProps) {
   const [noteOpen, setNoteOpen] = useState(true);
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
@@ -319,6 +328,7 @@ export function Editor({
       anchor.current = id;
     },
     toAblage: (ids) => toAblage(ids),
+    share: onShare && ((ids) => onShare(latest.current.doc, ids)),
     startEdit: (target, s) => {
       // Render the text field synchronously and focus it inside the tap, or iPadOS will not open the keyboard.
       flushSync(() => {
@@ -736,6 +746,9 @@ export function Editor({
           onRegenerateSlides={onRegenerateSlides && (() => onRegenerateSlides(doc))}
           onDeleteSlides={onDeleteSlides}
           onVersions={onVersions}
+          onShareAll={onShare && (() => onShare(doc, null))}
+          handouts={handouts}
+          onOpenHandout={onOpenHandout}
         />
         <input
           ref={fileInput}
@@ -806,6 +819,12 @@ export function Editor({
                 <Icon icon={Copy} />
                 <span className="multi-label">Duplizieren</span>
               </button>
+              {onShare && (
+                <button type="button" disabled={!selIds.length} onClick={() => onShare(doc, selIds)} title="Digital austeilen (Link und QR-Code)">
+                  <Icon icon={Send} />
+                  <span className="multi-label">Austeilen</span>
+                </button>
+              )}
               <button type="button" className="is-danger" disabled={!selIds.length} onClick={deleteSelected} title="Löschen (Entf)">
                 <Icon icon={Trash2} />
                 <span className="multi-label">Löschen</span>

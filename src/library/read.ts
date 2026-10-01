@@ -2,6 +2,7 @@
 import { normalizeDoc } from '../model/normalize';
 import { isSlideDesign, normalizeSlides } from '../model/slides';
 import type { Lang } from '../model/types';
+import type { AssignmentPage, Handout } from '../share/assignment';
 import { readSubjectColors } from './subjectColor';
 import type { Competence, Holiday, Lesson, LessonVersion, Module, SchoolYear, Settings, TrashEntry } from './types';
 
@@ -75,6 +76,30 @@ export function readLesson(raw: unknown): Lesson | null {
     return null;
   }
 }
+
+/** A handed-out assignment as stored or synced; its pages are checked like a worksheet. */
+export function readHandout(raw: unknown): Handout | null {
+  if (!isObj(raw) || typeof raw.id !== 'string' || !isObj(raw.privateKey) || !Array.isArray(raw.pages)) return null;
+  try {
+    const doc = normalizeDoc({ pages: raw.pages });
+    const pages: AssignmentPage[] = doc.pages.map((p) => ({ title: p.title, kicker: p.kicker, type: p.type, blocks: p.blocks }));
+    return {
+      id: raw.id,
+      lessonId: str(raw.lessonId),
+      title: str(raw.title),
+      mode: raw.mode === 'test' ? 'test' : 'uebung',
+      url: str(raw.url),
+      pages,
+      privateKey: raw.privateKey as JsonWebKey,
+      createdAt: Number(raw.createdAt) || 0,
+      updatedAt: Number(raw.updatedAt) || 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export const readHandouts = (raw: unknown): Handout[] => (Array.isArray(raw) ? raw.map(readHandout).filter((h): h is Handout => h !== null) : []);
 
 export function readHoliday(raw: unknown): Holiday | null {
   if (!isObj(raw)) return null;

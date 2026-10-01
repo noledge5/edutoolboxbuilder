@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { ClipboardCopy, Copy, File, ListChecks, Trash2, X } from 'lucide-react';
+import { ClipboardCopy, Copy, File, ListChecks, Send, Trash2, X } from 'lucide-react';
 import { BLOCK_ICONS, Icon } from '../icons';
 import { BLOCK_TYPES, SPAN_OPTIONS, type FieldDef } from '../model/blockTypes';
 import { blocksOf, frontOf, getBlock, pageLabel } from '../model/ops';
@@ -185,6 +185,12 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
           <Icon icon={ListChecks} />
           Mehrere auswählen
         </button>
+        {api.share && (
+          <button type="button" className="btn btn-secondary ui-btn" onClick={() => api.share!([block.id])} title="Per Link und QR-Code an die Klasse, am Tablet zu lösen">
+            <Icon icon={Send} />
+            Digital austeilen
+          </button>
+        )}
       </div>
     </>
   );

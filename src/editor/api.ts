@@ -19,6 +19,8 @@ export interface EditorApi {
   startPicking(id: string): void;
   /** Puts blocks into the Ablage, for pasting them here or in another lesson. */
   toAblage(ids: string[]): void;
+  /** Hands out blocks digitally (in the library only). */
+  share?(ids: string[]): void;
   /** Starts editing a text right on the page (see sheet/inlineEdit.tsx), selecting its block or page. */
   startEdit(target: string, s: Selection): void;
   addBlock(type: BlockType): void;

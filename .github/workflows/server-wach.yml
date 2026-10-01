@@ -1,0 +1,19 @@
+# Keeps the free results server (Supabase) awake: free projects pause after a week without use, and students could
+# not hand in during the holidays. One harmless read a day is enough.
+name: Ergebnis-Server wach halten
+
+on:
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf -X POST "https://txafdkaeotgekoxzgcxd.supabase.co/rest/v1/rpc/ergebnisse_holen" \
+            -H "apikey: sb_publishable_956BMuhr1RsRXwF3gQ4-3Q_bMXrUxFS" -H "Content-Type: application/json" \
+            -d '{"p_auftrag":"Wachhalten1"}'

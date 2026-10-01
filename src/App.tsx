@@ -21,6 +21,9 @@ import { noteRecent } from './library/recent';
 import type { Here, SearchEntry } from './library/search';
 import { SearchContext, SearchDialog } from './library/SearchDialog';
 import { TrashDialog } from './library/TrashDialog';
+import { handoutPages, handoutTitle, type AssignmentPage, type Handout } from './share/assignment';
+import { EvaluationView } from './share/EvaluationView';
+import { ShareDialog } from './share/ShareDialog';
 import { VersionsDialog } from './library/VersionsDialog';
 import { whenText } from './library/when';
 import { SlidesView } from './slides/SlidesView';
@@ -98,6 +101,8 @@ export function App() {
   const versionTimes = useRef(new Map<string, number>());
   const [searchOpen, setSearchOpen] = useState(false);
   const [jump, setJump] = useState<Jump | null>(null);
+  /** What is being handed out digitally (from the editor). */
+  const [sharing, setSharing] = useState<{ lessonId: string; pages: AssignmentPage[]; title: string } | null>(null);
   const openSearch = useCallback(() => setSearchOpen(true), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
   const route = useRoute();
@@ -194,6 +199,13 @@ export function App() {
     if (libRef.current) libRef.current = put(libRef.current);
     setLib((l) => l && put(l));
     return store.saveLesson(le);
+  }, []);
+
+  const putHandout = useCallback((h: Handout) => {
+    const put = (l: Library): Library => ({ ...l, handouts: l.handouts.some((x) => x.id === h.id) ? l.handouts.map((x) => (x.id === h.id ? h : x)) : [...l.handouts, h] });
+    if (libRef.current) libRef.current = put(libRef.current);
+    setLib((l) => l && put(l));
+    store.saveHandout(h).catch(failed);
   }, []);
 
   const putSettings = useCallback((s: Settings) => {
@@ -480,10 +492,33 @@ export function App() {
         onDeleteSlides={() => deleteSlides(lesson.id)}
         onVersions={() => setVersionsOf(lesson.id)}
         focus={jump?.lessonId === lesson.id && jump.blockId ? { id: jump.blockId, query: jump.query, n: jump.n } : undefined}
+        onShare={(doc, ids) => {
+          const pages = handoutPages(doc, ids);
+          if (pages.length) setSharing({ lessonId: lesson.id, pages, title: handoutTitle(pages, lesson.title) });
+        }}
+        handouts={lib.handouts.filter((h) => h.lessonId === lesson.id).sort((a, b) => b.createdAt - a.createdAt)}
+        onOpenHandout={(id) => go({ view: 'results', id })}
       />
     );
     subject = m.subject;
     here = { subject, grade: m.grade };
+  } else if (route.view === 'results') {
+    const handout = lib.handouts.find((h) => h.id === route.id);
+    if (!handout) return <ToOverview />;
+    const lesson = lib.lessons.find((l) => l.id === handout.lessonId);
+    const m = lesson && lib.modules.find((x) => x.id === lesson.moduleId);
+    view = (
+      <EvaluationView
+        handout={handout}
+        competences={m?.competences ?? []}
+        place={m && lesson ? `${m.subject} · Klasse ${m.grade} · Modul ${m.number} · Stunde ${lesson.number}` : 'Ausgeteilter Auftrag'}
+        onBack={() => (lesson ? go({ view: 'lesson', id: lesson.id }) : go({ view: 'overview' }))}
+      />
+    );
+    if (m) {
+      subject = m.subject;
+      here = { subject, grade: m.grade };
+    }
   } else if (route.view === 'slides') {
     const lesson = lib.lessons.find((l) => l.id === route.id);
     const m = lesson && lib.modules.find((x) => x.id === lesson.moduleId);
@@ -630,6 +665,26 @@ export function App() {
         {view}
       </div>
       {searchOpen && <SearchDialog lib={lib} here={here} onOpen={openHit} onClose={closeSearch} />}
+      {sharing &&
+        (() => {
+          const lesson = lib.lessons.find((l) => l.id === sharing.lessonId);
+          const m = lesson && lib.modules.find((x) => x.id === lesson.moduleId);
+          if (!lesson || !m) return null;
+          return (
+            <ShareDialog
+              pages={sharing.pages}
+              defaultTitle={sharing.title}
+              lessonId={lesson.id}
+              meta={{ icon: m.icon, lang: m.lang, help: m.help, code: docForLesson(m, lesson).code }}
+              onDone={putHandout}
+              onOpenResults={(id) => {
+                setSharing(null);
+                go({ view: 'results', id });
+              }}
+              onClose={() => setSharing(null)}
+            />
+          );
+        })()}
       {trashOpen && (
         <TrashDialog
           trash={trash}

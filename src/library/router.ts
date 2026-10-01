@@ -4,6 +4,7 @@
 //   #/stunde/<id>                  worksheet editor
 //   #/folien/<id>                  slides of a lesson
 //   #/jahresplan?fach=…&klasse=…   year plan of a subject and grade
+//   #/auswertung/<id>              results of a task handed out digitally
 import { useSyncExternalStore } from 'react';
 
 export type Route =
@@ -11,6 +12,7 @@ export type Route =
   | { view: 'module'; id: string }
   | { view: 'lesson'; id: string }
   | { view: 'slides'; id: string }
+  | { view: 'results'; id: string }
   | { view: 'plan'; subject: string; grade: number };
 
 export function parseRoute(hash: string): Route {
@@ -19,6 +21,7 @@ export function parseRoute(hash: string): Route {
   if (parts[0] === 'modul' && parts[1]) return { view: 'module', id: parts[1] };
   if (parts[0] === 'stunde' && parts[1]) return { view: 'lesson', id: parts[1] };
   if (parts[0] === 'folien' && parts[1]) return { view: 'slides', id: parts[1] };
+  if (parts[0] === 'auswertung' && parts[1]) return { view: 'results', id: parts[1] };
   const q = new URLSearchParams(query);
   const grade = Number(q.get('klasse'));
   if (parts[0] === 'jahresplan' && q.get('fach') && grade > 0) return { view: 'plan', subject: q.get('fach')!, grade };
@@ -29,6 +32,7 @@ export function routeHash(r: Route): string {
   if (r.view === 'module') return `#/modul/${encodeURIComponent(r.id)}`;
   if (r.view === 'lesson') return `#/stunde/${encodeURIComponent(r.id)}`;
   if (r.view === 'slides') return `#/folien/${encodeURIComponent(r.id)}`;
+  if (r.view === 'results') return `#/auswertung/${encodeURIComponent(r.id)}`;
   const q = new URLSearchParams();
   if (r.subject) q.set('fach', r.subject);
   if (r.grade) q.set('klasse', String(r.grade));

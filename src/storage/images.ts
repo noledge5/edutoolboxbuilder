@@ -47,6 +47,11 @@ export async function preloadImages(ids: string[]): Promise<void> {
   );
 }
 
+/** Images that come as URLs (the student view gets them with the assignment): drawn without the device's storage. */
+export function provideImages(urls: Record<string, string>) {
+  for (const [id, url] of Object.entries(urls)) urlCache.set(id, url);
+}
+
 export type ImageState = { status: 'none' } | { status: 'loading' } | { status: 'missing' } | { status: 'ready'; url: string };
 
 /** Object URL for a stored image id. */

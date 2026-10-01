@@ -68,6 +68,21 @@ Jede Stunde hat ein eigenes Abteil für Präsentationsfolien (16:9), im Stil der
 - **Referentenansicht** (am Mac, Beamer als zweiter Bildschirm, nicht gespiegelt): Die Klasse sieht nur die Folien, du siehst wie in Keynote die aktuelle Folie groß, darunter Zurück/Weiter, rechts den nächsten Klick bzw. die nächste Folie und die Sprechernotizen (mit − und + größer oder kleiner), oben Uhrzeit, Zeit seit Beginn, Timer, Ampel und Schwarz-/Weißbild. In Chrome und Edge legt der Baukasten die Folien nach einmaliger Erlaubnis selbst in Vollbild auf den Beamer. In Safari öffnet sich ein zweites Fenster mit den Folien: einmal auf den Beamer ziehen und hineinklicken, dann füllt es den Bildschirm. Blättern geht in beiden Fenstern; schließt du eines, läuft die Präsentation im anderen weiter. Auf dem iPad gibt es die Referentenansicht nicht, weil das iPad den Bildschirm immer spiegelt.
 - **Drucken:** Handout (zwei Folien je A4-Seite, ohne die Lösungen, die erst auf Klick kommen), mit Sprechernotizen (drei je Seite, für dich) oder die Folien als PDF im Querformat.
 
+### Digital austeilen
+Aufgaben gehen per Link und QR-Code an die Klasse und werden am Tablet, Handy oder Laptop gelöst, ohne Konto und ohne Code.
+- **Austeilen:** im Arbeitsblatt eine Aufgabe („Digital austeilen“ in der Leiste am Baustein oder im Panel), mehrere ausgewählte Bausteine (Leiste oben → „Austeilen“) oder oben „Digital → Ganzes Arbeitsblatt austeilen …“. Titel und Art wählen:
+  - **Übung:** Die Schüler prüfen jede Aufgabe selbst („Prüfen“), versuchen es nochmal und können danach die Lösung sehen; bei offenen Fragen die Musterlösung.
+  - **Test:** keine Lösungen, am Ende „Abgeben“. Die Lösungen werden gar nicht erst mitgeschickt.
+- Danach gibt es **Link und QR-Code** (kopieren, „Groß zeigen“ für den Beamer, „Ausprobieren“). Schüler geben Vorname und ersten Buchstaben des Nachnamens ein („Lea M.“) und arbeiten los; ihr Stand bleibt beim Neuladen erhalten.
+- **Auswertung** (oben „Digital → Auswertung: …“ oder direkt nach dem Austeilen), alle 5 Sekunden aktuell:
+  - **Klasse:** wer dabei ist und wer abgegeben hat, Punkte je Aufgabe farbig (grün ab 80 %, gelb ab 50 %, rot darunter). Eine Zelle antippen zeigt die Antworten, bei Übungen auch den ersten Versuch.
+  - **Häufige Fehler:** je Aufgabe, welche falsche Antwort wie oft kam (bei Übungen aus dem ersten Versuch) und die Antworten auf offene Fragen.
+  - **Kompetenzen:** je Kompetenz aus dem Kompetenzraster, wer wie viel richtig hat und wer Hilfe braucht, dazu die Ergebnisse nach Niveau G/M/E.
+  - **Für den Beamer:** ohne Namen, mit Anteil richtig und Antwortverteilung zum Besprechen.
+- **Formate:** Ankreuzen (auch mehrere richtige), Lückentext, Richtig/Falsch, Zuordnen, Tabelle, Wörter ordnen (Teile antippen), Umformen, Knick-Vokabeltest, Bild-Vokabeln, Wortnetz, Satzbaustellen und frei: Offene Frage, Schreibrahmen, Sprachmittlung. Texte, Bilder, Merksätze und Hinweise erscheinen wie auf dem Blatt. Zeichenfeld und Bingo bleiben auf Papier. Ausgewertet wird ohne Groß-/Kleinschreibung und Satzzeichen am Ende; Lösungsvarianten schreibst du als `[[Erde / Erdoberfläche]]`.
+- **Datenschutz:** Namen und Antworten werden im Browser der Schüler verschlüsselt; jeder Auftrag hat einen eigenen Schlüssel, den nur deine Geräte kennen (er reist mit dem Abgleich Mac/iPad). Der Server (Supabase, Frankfurt) sieht nur verschlüsselte Daten und löscht sie nach 14 Tagen; was du einmal geöffnet hast, bleibt auf deinem Gerät. Die Schulleitung solltest du trotzdem informieren.
+- **Einrichten (einmal pro Gerät):** Der Baukasten veröffentlicht die Aufträge im GitHub-Repository „baukasten-aufgaben“ und braucht dafür einen Schlüssel, der nur dort schreiben darf. Beim ersten Austeilen führt der Dialog durch die Schritte (Repository anlegen, Schlüssel mit „Contents: Read and write“ nur für dieses Repository erstellen, einfügen).
+
 ### Sicherheitsnetz
 - **Papierkorb:** Gelöschte Module und Stunden landen im Papierkorb (unten in der Übersicht „Papierkorb · 2“) und bleiben dort 30 Tage mit allen Seiten, Folien und Bildern. Direkt nach dem Löschen holt „Rückgängig“ sie zurück, später „Wiederherstellen“ im Papierkorb. Der Papierkorb gilt nur für dieses Gerät.
 - **Frühere Fassungen:** Beim Arbeiten merkt sich der Baukasten etwa jede halbe Stunde, wie eine Stunde vorher aussah, dazu vor jedem Abgleich, Import und neuen Folien (die letzten 20 Fassungen, 30 Tage). Im Arbeitsblatt unter „Datei → Frühere Fassungen …“ oder bei den Folien unter „Folien → Frühere Fassungen …“: „Wiederherstellen“ (die jetzige Fassung bleibt als frühere erhalten) oder „Als Kopie“ (als neue Stunde daneben).
@@ -122,6 +137,8 @@ Jeder Push auf `main` baut die App und veröffentlicht sie (`.github/workflows/d
 ```
 src/
   App.tsx     lädt die Bibliothek und zeigt je nach Adresse Übersicht, Modul, Editor oder Folien
+  share/      Digital austeilen: Auftragsformat, Auswertung je Aufgabe, Verschlüsselung, GitHub, Ergebnis-Server, Auswertung
+  student/    die Schüleransicht (a/#<id>): Name, Aufgaben am Gerät lösen, verschlüsselt abgeben
   library/    Übersicht, Modulseite, Kompetenzraster, Druck von Inhaltsübersicht/Kompetenzraster, Routen,
               Abgleich Mac/iPad, Stundenpaket (Import/Export), Jahresplan und sein Import, Vokabeltest, Fachfarben,
               Suche, Papierkorb und frühere Fassungen
