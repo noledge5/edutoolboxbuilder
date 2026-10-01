@@ -563,10 +563,11 @@ body { background: var(--color-neutral-200); }
 .sl-present.is-idle { cursor: none; }
 .sl-present-frame { position: relative; overflow: clip; contain: strict; }
 .sl-present-frame > .sl-slide { position: absolute; top: 0; left: 0; }
+.sl-present-frame, .sl-present > .sl-present-over { grid-area: 1 / 1; }
 .sl-controls {
   position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px;
   padding: 6px 10px; border-radius: 999px; background: color-mix(in srgb, var(--color-neutral-900) 82%, transparent); color: #fff;
-  transition: opacity 0.4s; cursor: default;
+  transition: opacity 0.4s; cursor: default; z-index: 4;
 }
 .sl-controls .iconbtn { color: #fff; }
 .sl-controls .iconbtn:disabled { opacity: 0.35; }
@@ -726,3 +727,115 @@ body { background: var(--color-neutral-200); }
 
 .panel-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
 .panel-list li { display: flex; align-items: center; gap: 8px; }
+
+/* — Tools while presenting: timer, Ampel, black and white screen (sizes follow the slide through --s) — */
+.sl-present-over { position: relative; pointer-events: none; }
+.sl-timebar { position: absolute; left: 0; right: 0; bottom: 0; height: calc(16px * var(--s)); background: color-mix(in srgb, var(--color-neutral-900) 22%, transparent); }
+.sl-timebar-fill { height: 100%; background: var(--color-accent-2-500); transition: width 0.3s linear, background-color 0.4s; }
+.sl-timebar.is-last .sl-timebar-fill { background: var(--color-accent-1-500); }
+.sl-timebar.is-paused .sl-timebar-fill { opacity: 0.5; }
+.sl-timebar-time {
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(28px * var(--s)); padding: calc(6px * var(--s)) calc(18px * var(--s));
+  border-radius: 999px; background: color-mix(in srgb, var(--color-neutral-900) 78%, transparent); color: white;
+  font-family: var(--font-ui); font-size: calc(34px * var(--s)); font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.sl-timebar.is-last .sl-timebar-time { font-size: calc(52px * var(--s)); background: var(--color-accent-1-600); }
+.sl-timebar.is-over { background: var(--color-accent-7-600); animation: sl-blink 1s steps(2, start) infinite; }
+.sl-timebar.is-over .sl-timebar-time { font-size: calc(52px * var(--s)); background: var(--color-accent-7-600); animation: sl-blink 1s steps(2, start) infinite; }
+@keyframes sl-blink { to { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .sl-timebar.is-over, .sl-timebar.is-over .sl-timebar-time { animation: none; } }
+
+.sl-ampel { position: absolute; right: calc(28px * var(--s)); bottom: calc(34px * var(--s)); display: flex; flex-direction: row-reverse; align-items: center; gap: calc(12px * var(--s)); }
+.sl-ampel-box {
+  display: flex; gap: calc(12px * var(--s)); padding: calc(12px * var(--s));
+  border-radius: calc(36px * var(--s)); background: var(--color-neutral-900); box-shadow: 0 calc(8px * var(--s)) calc(24px * var(--s)) rgb(0 0 0 / 0.25);
+}
+.sl-ampel-box i { width: calc(56px * var(--s)); height: calc(56px * var(--s)); border-radius: 50%; opacity: 0.18; }
+.sl-ampel-box i.is-on { opacity: 1; box-shadow: 0 0 calc(26px * var(--s)) currentColor; }
+:is(.sl-ampel-box i, .sl-ampel-btn).is-still { color: var(--color-accent-7-500); }
+:is(.sl-ampel-box i, .sl-ampel-btn).is-fluestern { color: var(--color-accent-5-400); }
+:is(.sl-ampel-box i, .sl-ampel-btn).is-leise { color: var(--color-accent-2-500); }
+.sl-ampel-box i, .sl-ampel-btn i { background: currentColor; }
+.sl-ampel > span {
+  padding: calc(4px * var(--s)) calc(16px * var(--s)); border-radius: 999px; background: var(--color-neutral-900); color: white;
+  font-family: var(--font-ui); font-size: calc(26px * var(--s)); font-weight: 700;
+}
+
+.sl-blank { position: fixed; inset: 0; z-index: 3; cursor: pointer; }
+.sl-blank.is-black { background: black; }
+.sl-blank.is-white { background: white; }
+
+/* Buttons for the tools: in the bar at the bottom (dark) and in the speaker view (light) */
+.sl-sep { width: 1px; height: 22px; margin: 0 4px; background: color-mix(in srgb, currentColor 25%, transparent); }
+.sl-tools { display: flex; align-items: center; gap: 4px; }
+.sl-tool {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; min-width: 32px; justify-content: center; padding: 4px 8px;
+  border: 0; border-radius: 999px; background: transparent; color: inherit; font: inherit; font-size: 14px; font-weight: 700;
+  font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.sl-tool:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
+.sl-tool.is-on { background: color-mix(in srgb, currentColor 22%, transparent); }
+.sl-timer-btn.is-over { background: var(--color-accent-7-600); color: white; }
+.sl-ampel-btns { display: flex; gap: 2px; }
+.sl-ampel-btn { padding: 4px; }
+.sl-ampel-btn i { width: 14px; height: 14px; border-radius: 50%; opacity: 0.45; }
+.sl-ampel-btn.is-on i { opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 35%, transparent); }
+.sl-timer-wrap { position: relative; }
+.sl-timer-panel {
+  position: absolute; bottom: calc(100% + 14px); left: 50%; transform: translateX(-50%); z-index: 5; width: 300px;
+  display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 20px;
+  background: var(--color-ui); color: var(--color-text); box-shadow: var(--shadow-lg); font-family: var(--font-ui); cursor: default;
+}
+.sl-timer-panel.is-below { top: calc(100% + 10px); bottom: auto; }
+.sl-timer-now { display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--color-divider); }
+.sl-timer-now b { font-size: 34px; font-variant-numeric: tabular-nums; text-align: center; }
+.sl-timer-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.sl-pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 5px 13px;
+  border: 1px solid var(--color-divider); border-radius: 999px; background: var(--color-ui); color: var(--color-text);
+  font-family: var(--font-ui); font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.sl-pill:hover:not(:disabled) { background: var(--color-accent-1-100); }
+.sl-pill:disabled { opacity: 0.4; cursor: default; }
+.sl-pill.is-main { background: var(--color-accent-2-600); border-color: var(--color-accent-2-600); color: white; }
+.sl-pill.is-main:hover:not(:disabled) { background: var(--color-accent-2-700); }
+.sl-sound { align-self: flex-start; border: 0; padding-left: 4px; color: var(--color-neutral-800); }
+
+/* In the second window, until it fills the projector */
+.sl-popup-hint {
+  position: fixed; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px;
+  background: color-mix(in srgb, var(--color-neutral-900) 72%, transparent); color: white; font-family: var(--font-ui); text-align: center; cursor: pointer;
+}
+.sl-popup-hint b { font-size: 26px; }
+.sl-popup-hint span { max-width: 520px; font-size: 16px; line-height: 1.45; }
+
+/* — Referentenansicht (like Keynote): current slide large, next click or slide, notes, times, tools — */
+.sl-speaker {
+  position: fixed; inset: 0; z-index: 50; display: grid; grid-template-rows: 64px minmax(0, 1fr); column-gap: 20px; padding: 0 20px 20px;
+  background: var(--color-neutral-900); color: var(--color-neutral-100); font-family: var(--font-ui);
+}
+.sl-speaker-top { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; }
+.sl-speaker-count { font-size: 17px; font-weight: 700; margin-right: auto; }
+.sl-speaker-count small { font-size: 14px; font-weight: 600; opacity: 0.75; }
+.sl-speaker-time { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sl-speaker-time.is-soft { font-size: 16px; opacity: 0.7; }
+.sl-speaker-top .sl-tools { color: var(--color-neutral-100); }
+.sl-speaker-end { background: transparent; color: inherit; border-color: color-mix(in srgb, currentColor 35%, transparent); }
+.sl-speaker-end:hover { color: var(--color-text); }
+.sl-speaker-main { display: flex; flex-direction: column; align-items: center; gap: 12px; min-height: 0; padding-top: 8px; }
+.sl-speaker-now, .sl-speaker-next { position: relative; flex: none; overflow: clip; border-radius: 10px; }
+.sl-speaker-now { cursor: pointer; box-shadow: 0 0 0 2px var(--color-accent-2-500); }
+.sl-speaker-now > .sl-slide, .sl-speaker-next > .sl-slide { position: absolute; top: 0; left: 0; }
+.sl-speaker-now > .sl-present-over { position: absolute; top: 0; left: 0; }
+.sl-speaker-blank { position: absolute; inset: 0; display: grid; place-items: center; font-size: 20px; font-weight: 700; }
+.sl-speaker-blank.is-black { background: rgb(0 0 0 / 0.78); color: white; }
+.sl-speaker-blank.is-white { background: rgb(255 255 255 / 0.85); color: var(--color-text); }
+.sl-speaker-nav { display: flex; gap: 10px; }
+.sl-speaker-wait { width: 100%; padding: 10px 16px; border-radius: 14px; background: var(--color-accent-5-200); color: var(--color-accent-5-900); font-size: 14.5px; font-weight: 600; }
+.sl-speaker-side { display: flex; flex-direction: column; gap: 10px; min-height: 0; padding-top: 8px; }
+.sl-speaker-label { display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; }
+.sl-speaker-label .iconbtn { color: inherit; }
+.sl-speaker-notes-head { margin-top: 6px; }
+.sl-speaker-notes { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px; border-radius: 14px; background: color-mix(in srgb, white 7%, transparent); line-height: 1.45; white-space: pre-wrap; }
+.sl-speaker-notes .is-empty { opacity: 0.55; font-size: 16px; }
+@media (hover: none) { .sl-speaker-btn { display: none; } }

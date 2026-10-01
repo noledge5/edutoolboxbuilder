@@ -20,6 +20,7 @@ import {
   Play,
   Plus,
   Printer,
+  Projector,
   QrCode,
   Redo2,
   SendToBack,
@@ -69,6 +70,7 @@ import { topicIcon } from '../topicIcons';
 import { slidesFromDoc } from './fromDoc';
 import { enterFullscreen, Presenter } from './Presenter';
 import { PptxDialog, PptxImportDialog } from './PptxDialog';
+import { openSpeakerWindows, type SpeakerWindows } from './speaker';
 import type { PptxRead } from './pptxImport';
 import { SlidesPrint, type SlidesPrintKind } from './SlidesPrint';
 import { SlideStage } from './SlideStage';
@@ -166,6 +168,8 @@ export function SlidesView(p: SlidesViewProps) {
   const [future, setFuture] = useState<Slide[][]>([]);
   const lastEdit = useRef('');
   const [presenting, setPresenting] = useState<number | null>(null);
+  /** The second window of the Referentenansicht. */
+  const [speaker, setSpeaker] = useState<SpeakerWindows | null>(null);
   const [printing, setPrinting] = useState<SlidesPrintKind | null>(null);
   const [picker, setPicker] = useState(false);
   const [designing, setDesigning] = useState(false);
@@ -395,7 +399,20 @@ export function SlidesView(p: SlidesViewProps) {
     return () => ro.disconnect();
   }, [slides.length > 0]);
 
-  if (presenting !== null) return <Presenter slides={slides} ctx={p.ctx} start={presenting} onClose={(k) => (setPresenting(null), pick(k))} />;
+  if (presenting !== null)
+    return (
+      <Presenter
+        slides={slides}
+        ctx={p.ctx}
+        start={presenting}
+        speaker={speaker}
+        onClose={(k) => {
+          setPresenting(null);
+          setSpeaker(null);
+          pick(k);
+        }}
+      />
+    );
   if (printing) return <SlidesPrint kind={printing} slides={slides} ctx={p.ctx} title={p.lessonTitle} onClose={() => setPrinting(null)} />;
 
   const info = slide ? SLIDE_LAYOUTS[slide.layout] : null;
@@ -462,6 +479,24 @@ export function SlidesView(p: SlidesViewProps) {
         >
           <Icon icon={Play} />
           <span className="btn-label">Präsentieren</span>
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary ui-btn sl-speaker-btn"
+          disabled={!slides.length}
+          title="Beamer als zweiter Bildschirm: die Klasse sieht die Folien, du siehst die nächste Folie, Notizen, Uhr und Werkzeuge"
+          onClick={async () => {
+            const r = await openSpeakerWindows();
+            if ('error' in r) window.alert(r.error);
+            else if ('again' in r) window.alert(r.again);
+            else {
+              setSpeaker(r);
+              setPresenting(i);
+            }
+          }}
+        >
+          <Icon icon={Projector} />
+          <span className="btn-label">Referentenansicht</span>
         </button>
       </header>
 
