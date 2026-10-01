@@ -901,7 +901,7 @@ Nur Lehrkraft-Seite: Abruffragen zum Stoff dieser Stunde, mit Antworten. Der Bau
 
 | Feld | Bedeutung | Werte | Standard |
 |---|---|---|---|
-| `title` | Überschrift | Text | `"Abrufphase — die drei Fragen"` |
+| `title` | Überschrift | Text | `"Abruffragen für spätere Stunden"` |
 | `items` | Fragen (je Zeile: Frage \| Antwort) | Text, mehrzeilig | `"Welche Einheit hat der CO₂-Wert in unserer Kurve? \| ppm\nReicht ei…"` |
 | `answers` | Antworten zeigen | `"immer"` (Immer), `"loesung"` (Nur in der Lösungsfassung) | `"immer"` |
 
@@ -1236,7 +1236,6 @@ Lehrkraft-Seite, Vokabeln, Grammatik, Sprechen und Schreiben, dazu vier Folien. 
                   "type": "recall",
                   "span": 12,
                   "props": {
-                    "title": "Abruffragen für spätere Stunden",
                     "items": "Wie sagt man „Tafel“ auf Englisch? | board\nWelche Form von to be gehört zu she? | is\nWie fragst du nach dem Alter? | How old are you?"
                   }
                 }
