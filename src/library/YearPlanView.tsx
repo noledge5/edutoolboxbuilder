@@ -1,6 +1,7 @@
 // Year plan of a subject and grade: the modules (units) laid out on the school weeks, with holidays; printable on A4.
 import { useState, type CSSProperties } from 'react';
-import { ArrowLeft, CalendarPlus, CalendarRange, PackageOpen, Printer } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CalendarRange, PackageOpen, Printer, Sparkles } from 'lucide-react';
+import { YearPlanAiDialog } from '../ai/YearPlanAiDialog';
 import { NumberField } from '../editor/fields';
 import { Icon } from '../icons';
 import type { Doc, Page } from '../model/types';
@@ -51,6 +52,7 @@ export function YearPlanView(p: YearPlanViewProps) {
   const [printing, setPrinting] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [claudeOpen, setClaudeOpen] = useState(false);
   const year = p.lib.settings.schoolYear;
   const modules = modulesOf(p.lib, p.subject, p.grade);
   const weeks = year ? schoolWeeks(year) : [];
@@ -81,6 +83,10 @@ export function YearPlanView(p: YearPlanViewProps) {
           </div>
         </div>
         <SearchButton />
+        <button type="button" className="btn btn-secondary ui-btn" onClick={() => setClaudeOpen(true)} title="Claude entwirft den Jahresplan mit Modulen, Kompetenzen und geplanten Stunden">
+          <Icon icon={Sparkles} />
+          <span className="btn-label">Mit Claude</span>
+        </button>
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => setImportOpen(true)} title="Jahresplan von Claude oder aus Word, Excel, Notizen übernehmen">
           <Icon icon={CalendarPlus} />
           <span className="btn-label">Importieren</span>
@@ -206,6 +212,18 @@ export function YearPlanView(p: YearPlanViewProps) {
             p.onImport(pkg);
           }}
           onClose={() => setImportOpen(false)}
+        />
+      )}
+      {claudeOpen && (
+        <YearPlanAiDialog
+          lib={p.lib}
+          subject={p.subject}
+          grade={p.grade}
+          onApply={(pkg) => {
+            setClaudeOpen(false);
+            p.onImport(pkg);
+          }}
+          onClose={() => setClaudeOpen(false)}
         />
       )}
     </div>

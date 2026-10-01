@@ -6,6 +6,7 @@ import { DocFormatError } from '../model/normalize';
 import { jsonOf } from './client';
 import { lessonContext, lessonSummary, lessonWeek } from './context';
 import { lessonFromAnswer, lessonPrompt } from './lesson';
+import { planPreview, yearPlanContext, yearPlanFromAnswer, yearPlanPrompt } from './yearplan';
 import { costOf, dollars, priceOf } from './prices';
 import { modelLabel, overLimit, readAiSettings, withSpent } from './settings';
 
@@ -159,5 +160,60 @@ describe('lesson from Claude', () => {
     expect(p).toContain('Kurven lesen');
     expect(p).toContain('keine Rückfragen');
     expect(lessonPrompt(m, l, 'KONTEXT', 'full', true)).toContain('Projektwissen');
+  });
+});
+
+describe('year plan from Claude', () => {
+  const answer = {
+    format: 'arbeitsblatt-baukasten-paket',
+    version: 2,
+    schoolYear: { name: 'falsch', start: '2026-01-01', end: '2026-02-01', holidays: [] },
+    modules: [
+      { subject: 'Erdkunde', grade: 8, number: 1, title: 'Das Klima kippt', weeks: 5, lessons: [{ number: 1, title: 'CO₂', plan: 'Kurven' }, { number: 3, title: 'Neu', plan: 'Neu' }] },
+      {
+        subject: 'Erdkunde',
+        grade: 8,
+        number: 2,
+        title: 'Wasser',
+        weeks: 6,
+        competences: [{ id: 'w1', area: 'Wasserkreislauf erklären', g: 'a', m: 'b', e: 'c' }],
+        lessons: [{ number: 1, title: 'Kreislauf', plan: 'Modell', pages: [{ title: 'X', blocks: [{ type: 'open', props: { prompt: 'x' } }] }] }],
+      },
+    ],
+  };
+
+  it('keeps subject and grade of the year plan, plans lessons only and leaves the school year alone', () => {
+    const p = yearPlanFromAnswer(answer, 'Geographie', 9);
+    expect(p.modules.map((m) => [m.module.subject, m.module.grade])).toEqual([
+      ['Geographie', 9],
+      ['Geographie', 9],
+    ]);
+    expect(p.modules[1].lessons[0].doc.pages.every((pg) => pg.blocks.length === 0)).toBe(true);
+    expect(p.schoolYear).toBeNull();
+    expect(() => yearPlanFromAnswer({ modules: [] }, 'Geographie', 9)).toThrow(DocFormatError);
+  });
+  it('shows which modules are completed and where they fall', () => {
+    const lib = library();
+    const p = yearPlanFromAnswer(answer, 'Geographie', 9);
+    const v = planPreview(lib, 'Geographie', 9, p);
+    expect(v.rows.map((r) => [r.number, r.action])).toEqual([
+      [1, 'ergänzt'],
+      [2, 'neu'],
+    ]);
+    // Module 1 has a worked-out lesson: it keeps its 4 weeks and its grid; lessons 1–3 are there already.
+    expect(v.rows[0].weeks).toBe(4);
+    expect(v.rows[0].competences).toBe(3);
+    expect(v.rows[0].lessons).toBe(3);
+    expect(v.used).toBe(10);
+    expect(v.rows[1].when).toMatch(/^KW \d+–\d+$/);
+  });
+  it('tells Claude about the school year and the modules there', () => {
+    const lib = library();
+    const text = yearPlanContext(lib, 'Geographie', 9, { hours: 2, textbook: 'Diercke', wishes: 'Projekt vor Weihnachten' });
+    expect(text).toContain('Stunden pro Woche: 2');
+    expect(text).toContain('Herbstferien');
+    expect(text).toContain('Modul 1: „Das Klima kippt“, 4 Wochen');
+    expect(text).toContain('2. Der Treibhauseffekt (ausgearbeitet)');
+    expect(yearPlanPrompt('Geographie', 9, text)).toContain('behalten ihre Nummer');
   });
 });

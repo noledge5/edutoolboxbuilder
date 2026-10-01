@@ -1,7 +1,7 @@
 // "Stunde mit Claude": the whole lesson, the scaffold (teacher page) first or the sheets to it, or a revision, with
 // the lesson's place in the year plan. With a key on this device Claude answers right here; without one the request
 // is copied for the Claude project and the answer pasted back. Either way the result is shown before it is applied.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Check, ClipboardCopy, ClipboardPaste, KeyRound, Sparkles, X } from 'lucide-react';
 import { SegField } from '../editor/fields';
 import { Icon } from '../icons';
@@ -13,11 +13,11 @@ import { CompetenceNamesContext } from '../sheet/competences';
 import { PAGE_H, PAGE_W, SheetPage, taskNumbers } from '../sheet/SheetPage';
 import { SheetModeContext, type SheetMode } from '../sheet/sheetMode';
 import { AiSettingsDialog } from './AiSettingsDialog';
-import { jsonOf, type AiAnswer } from './client';
 import { isTeacherPage, LESSON_TOKENS, lessonFromAnswer, lessonPrompt, lessonSystem, type LessonDraft, type LessonMode } from './lesson';
 import { dollars } from './prices';
 import { modelLabel } from './settings';
-import { runAi, useAiSettings } from './useAi';
+import { AiBusy, ChatPath, useAiJob } from './parts';
+import { useAiSettings } from './useAi';
 
 /** What the editor knows about the lesson's place in the library. */
 export interface LessonAi {
@@ -79,32 +79,22 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
   const hasSheets = filled.some((p) => !isTeacherPage(p));
   const [mode, setMode] = useState<LessonMode>(hasTeacher && !hasSheets ? 'sheets' : 'full');
   const [wishes, setWishes] = useState('');
-  const [busy, setBusy] = useState<{ chars: number; since: number } | null>(null);
-  const [now, setNow] = useState(Date.now());
-  const [error, setError] = useState('');
+  const job = useAiJob();
   const [draft, setDraft] = useState<LessonDraft | null>(null);
-  const [answer, setAnswer] = useState<AiAnswer | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [pasted, setPasted] = useState('');
-  const [copied, setCopied] = useState(false);
   const [keyOpen, setKeyOpen] = useState(false);
   const [big, setBig] = useState<number | null>(null);
-  const abort = useRef<AbortController | null>(null);
+  const { busy, error, answer } = job;
 
   const modes = MODES.filter((x) => (x.v === 'sheets' ? hasTeacher : x.v === 'revise' ? filled.length > 0 : true));
   const context = useMemo(() => ai.context(wishes), [ai, wishes]);
   const lessonNow = useMemo(() => ({ ...ai.lesson, doc }), [ai.lesson, doc]);
   const prompt = (chat: boolean) => lessonPrompt(ai.module, lessonNow, context, mode, chat);
 
-  useEffect(() => {
-    if (!busy) return;
-    const t = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(t);
-  }, [busy]);
-
   const close = () => {
     if (busy && !window.confirm('Claude arbeitet noch. Abbrechen und schließen?')) return;
-    abort.current?.abort();
+    job.stop();
     onClose();
   };
   useEffect(() => {
@@ -118,64 +108,26 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
   });
 
   const read = (raw: unknown) => {
-    const d = lessonFromAnswer(raw, ai.module, lessonNow, doc, mode);
-    setDraft(d);
+    setDraft(lessonFromAnswer(raw, ai.module, lessonNow, doc, mode));
     setBig(null);
   };
-
-  const run = async () => {
-    setError('');
+  const run = () => {
     setDraft(null);
-    setAnswer(null);
-    const ctrl = new AbortController();
-    abort.current = ctrl;
-    setBusy({ chars: 0, since: Date.now() });
-    setNow(Date.now());
-    try {
-      const a = await runAi({
+    return job.run(
+      {
         job: 'big',
         what: mode === 'scaffold' ? 'Gerüst einer Stunde' : mode === 'sheets' ? 'Blätter zum Gerüst' : mode === 'revise' ? 'Stunde überarbeiten' : 'Stunde ausarbeiten',
         system: lessonSystem(),
         user: prompt(false),
         maxTokens: LESSON_TOKENS[mode],
         effort: mode === 'scaffold' ? 'medium' : 'high',
-        signal: ctrl.signal,
-        onText: (chars) => setBusy((b) => b && { ...b, chars }),
-      });
-      if (!a) return;
-      setAnswer(a);
-      read(jsonOf(a.text));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(null);
-      abort.current = null;
-    }
-  };
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(prompt(true));
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2500);
-    } catch {
-      setError('Kopieren ging nicht. Erlaube dem Baukasten den Zugriff auf die Zwischenablage.');
-    }
-  };
-
-  const readPasted = () => {
-    setError('');
-    setAnswer(null);
-    try {
-      read(jsonOf(pasted));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
+      },
+      read,
+    );
   };
 
   const names = useMemo(() => new Map([...ai.module.competences, ...(draft?.added ?? [])].map((c) => [c.id, c.area])), [ai.module.competences, draft]);
   const madeAt = draft ? draft.doc.pages.map((p, i) => (draft.made.includes(p) ? i : -1)).filter((i) => i >= 0) : [];
-  const seconds = busy ? Math.max(0, Math.round((now - busy.since) / 1000)) : 0;
 
   return (
     <>
@@ -190,7 +142,7 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
 
         {!draft && (
           <>
-            <SegField<LessonMode> label="Was soll Claude tun?" value={mode} options={modes} onPick={(v) => (setMode(v), setError(''))} />
+            <SegField<LessonMode> label="Was soll Claude tun?" value={mode} options={modes} onPick={(v) => (setMode(v), job.setError(''))} />
             <p className="ai-hint">{MODE_TEXT[mode]}</p>
             {(mode === 'full' || mode === 'revise') && filled.length > 0 && (
               <p className="ai-hint is-warn">Die jetzige Fassung wird ersetzt. Sie bleibt unter „Datei“ → „Frühere Fassungen“, und Rückgängig geht auch.</p>
@@ -213,19 +165,7 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
           </>
         )}
 
-        {busy && (
-          <div className="ai-busy" role="status">
-            <span className="ai-spinner" />
-            <span>
-              Claude {busy.chars ? `schreibt … ${busy.chars.toLocaleString('de-DE')} Zeichen` : 'denkt nach …'} · {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')} Min.
-              <br />
-              <small>Eine ganze Stunde dauert meist zwei bis vier Minuten.</small>
-            </span>
-            <button type="button" className="btn btn-secondary ui-btn" onClick={() => abort.current?.abort()}>
-              Abbrechen
-            </button>
-          </div>
-        )}
+        {busy && <AiBusy busy={busy} hint="Eine ganze Stunde dauert meist zwei bis vier Minuten." onStop={job.stop} />}
         {error && <p className="json-err">{error}</p>}
 
         {draft && (
@@ -280,26 +220,13 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
         )}
 
         {!draft && chatOpen && (
-          <div className="ai-chat">
-            <ol className="share-steps">
-              <li>
-                <button type="button" className="btn btn-secondary ui-btn" onClick={copy}>
-                  <Icon icon={copied ? Check : ClipboardCopy} />
-                  {copied ? 'Kopiert' : 'Auftrag kopieren'}
-                </button>{' '}
-                Er enthält die Stunde im Jahresplan und die Stunden davor und danach.
-              </li>
-              <li>In deinem Claude-Projekt „Arbeitsblätter“ (mit der Anleitung im Projektwissen) einfügen und senden.</li>
-              <li>Claudes Antwort (den JSON-Block) kopieren und hier einfügen:</li>
-            </ol>
-            <textarea className="input" rows={4} value={pasted} placeholder='{ "format": "arbeitsblatt-baukasten-paket", … }' onChange={(e) => setPasted(e.target.value)} aria-label="Antwort aus dem Chat" />
-          </div>
+          <ChatPath request={() => prompt(true)} what="Er enthält die Stunde im Jahresplan und die Stunden davor und danach." pasted={pasted} onPaste={setPasted} onError={job.setError} />
         )}
 
         <div className="dialog-actions">
           {draft ? (
             <>
-              <button type="button" className="btn btn-secondary ui-btn" onClick={() => (setDraft(null), setAnswer(null))} style={{ marginRight: 'auto' }}>
+              <button type="button" className="btn btn-secondary ui-btn" onClick={() => setDraft(null)} style={{ marginRight: 'auto' }}>
                 Zurück
               </button>
               <button type="button" className="btn btn-secondary ui-btn" onClick={close}>
@@ -328,7 +255,7 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
                 Abbrechen
               </button>
               {chatOpen ? (
-                <button type="button" className="btn btn-primary ui-btn" onClick={readPasted} disabled={!pasted.trim()}>
+                <button type="button" className="btn btn-primary ui-btn" onClick={() => job.paste(pasted, read)} disabled={!pasted.trim()}>
                   <Icon icon={ClipboardPaste} />
                   Antwort einlesen
                 </button>
