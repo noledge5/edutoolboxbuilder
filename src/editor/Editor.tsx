@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors, type Announcements, type DragStartEvent } from '@dnd-kit/core';
-import { ClipboardCopy, Copy, Scissors, Send, Trash2, X } from 'lucide-react';
+import { ClipboardCopy, Copy, Scissors, Send, Sparkles, Trash2, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { addClip, clipLabel, type Clip } from '../model/clips';
@@ -16,6 +16,10 @@ import { PAGE_W } from '../sheet/SheetPage';
 import { backupFileName, createBackup, downloadBlob, readBackup } from '../storage/backup';
 import { loadClips, saveClips } from '../storage/library';
 import { storeImageFile } from '../storage/images';
+import { putImageAs } from '../storage/db';
+import { dataUrlToBlob } from '../storage/backup';
+import { AiSettingsDialog } from '../ai/AiSettingsDialog';
+import { LessonAiDialog, type LessonAi } from '../ai/LessonAiDialog';
 import type { EditorApi } from './api';
 import { Canvas } from './Canvas';
 import { dropTargetAt, sameDrop } from './drop';
@@ -115,6 +119,8 @@ export interface EditorProps {
   /** What was handed out from this lesson, newest first, with its evaluation. */
   handouts?: Handout[];
   onOpenHandout?(id: string): void;
+  /** Working out the lesson with Claude (in the library). */
+  ai?: LessonAi;
 }
 
 const NO_COMPETENCES: { id: string; area: string }[] = [];
@@ -137,6 +143,7 @@ export function Editor({
   onShare,
   handouts = [],
   onOpenHandout,
+  ai,
 }: EditorProps) {
   const [noteOpen, setNoteOpen] = useState(true);
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
@@ -147,6 +154,7 @@ export function Editor({
   const [zoom, setZoomState] = useState(() => storedZoom() ?? 0.8);
   const [preview, setPreview] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState<'lesson' | 'settings' | null>(null);
   const [drop, setDrop] = useState<DropTarget | null>(null);
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
   const [saveError, setSaveError] = useState(false);
@@ -749,6 +757,8 @@ export function Editor({
           onShareAll={onShare && (() => onShare(doc, null))}
           handouts={handouts}
           onOpenHandout={onOpenHandout}
+          onClaude={ai && (() => setAiOpen('lesson'))}
+          onAiSettings={() => setAiOpen('settings')}
         />
         <input
           ref={fileInput}
@@ -766,6 +776,12 @@ export function Editor({
             <span>
               <b>Planung:</b> {note}
             </span>
+            {ai && editing && !doc.pages.some((pg) => pg.blocks.length > 0) && (
+              <button type="button" className="btn btn-secondary ui-btn ed-note-ai" onClick={() => setAiOpen('lesson')}>
+                <Icon icon={Sparkles} />
+                Mit Claude ausarbeiten
+              </button>
+            )}
             <button type="button" className="iconbtn" title="Ausblenden" aria-label="Planung ausblenden" onClick={() => setNoteOpen(false)}>
               <Icon icon={X} size={16} />
             </button>
@@ -860,6 +876,26 @@ export function Editor({
             }}
           />
         )}
+        {aiOpen === 'lesson' && ai && (
+          <LessonAiDialog
+            doc={doc}
+            ai={ai}
+            onClose={() => setAiOpen(null)}
+            onApply={async (draft) => {
+              try {
+                await Promise.all(Object.entries(draft.images).map(([id, url]) => putImageAs(id, dataUrlToBlob(url))));
+              } catch (e) {
+                window.alert('Ein Bild konnte nicht gespeichert werden: ' + errorText(e));
+              }
+              ai.onApplied(draft.added);
+              const { icon, code } = latest.current.doc;
+              commit({ ...draft.doc, icon, code }, { select: { kind: 'page', p: 0 } });
+              setAiOpen(null);
+              setNotice('Von Claude übernommen. Mit Rückgängig oder unter „Frühere Fassungen“ kommst du zur vorherigen Fassung zurück.');
+            }}
+          />
+        )}
+        {aiOpen === 'settings' && <AiSettingsDialog onClose={() => setAiOpen(null)} />}
         <div className="toasts" data-noprint="1">
           {saveError && (
             <div className="toast is-warn" role="alert">

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, BarChart3, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, Minus, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, BarChart3, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, KeyRound, Minus, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { SearchButton } from '../library/SearchDialog';
 import type { Handout } from '../share/assignment';
@@ -40,6 +40,10 @@ interface TopBarProps {
   onVersions?(): void;
   /** Hands out the whole worksheet digitally. */
   onShareAll?(): void;
+  /** Works out the lesson with Claude. */
+  onClaude?(): void;
+  /** Claude's key and costs on this device. */
+  onAiSettings?(): void;
   handouts?: Handout[];
   onOpenHandout?(id: string): void;
 }
@@ -99,6 +103,16 @@ export function TopBar(p: TopBarProps) {
         ]}
       />
       {p.modeLabel && <span className="topbar-mode">{p.modeLabel}</span>}
+      {p.onClaude && (
+        <Menu
+          label="Claude"
+          icon={Sparkles}
+          items={[
+            { label: 'Stunde mit Claude …', icon: Sparkles, onClick: p.onClaude },
+            ...(p.onAiSettings ? [{ label: 'KI im Baukasten …', icon: KeyRound, onClick: p.onAiSettings }] : []),
+          ]}
+        />
+      )}
       {p.onShareAll && (
         <Menu
           label={p.handouts?.length ? `Digital · ${p.handouts.length}` : 'Digital'}

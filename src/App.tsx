@@ -41,6 +41,7 @@ import type { Doc } from './model/types';
 import { createPackageFile, createPlanFile, downloadBlob, packageFileName, readAnyFile, safeFileName, type OpenedFile } from './storage/backup';
 import { YearPlanView } from './library/YearPlanView';
 import { BW_2026_27 } from './library/yearplan';
+import { lessonContext } from './ai/context';
 import { vocabCsv, vocabOf, vocabTestRows } from './model/language';
 import { requestPersistentStorage } from './storage/db';
 import * as store from './storage/library';
@@ -499,6 +500,17 @@ export function App() {
         }}
         handouts={lib.handouts.filter((h) => h.lessonId === lesson.id).sort((a, b) => b.createdAt - a.createdAt)}
         onOpenHandout={(id) => go({ view: 'results', id })}
+        ai={{
+          module: m,
+          lesson,
+          context: (wishes) => lessonContext(libRef.current!, m, lesson, wishes),
+          onApplied: (added) => {
+            const now = libRef.current?.lessons.find((x) => x.id === lesson.id);
+            if (now) store.keepVersion(now, 'Vor Claude').catch(() => {});
+            const mod = libRef.current?.modules.find((x) => x.id === m.id);
+            if (mod && added.length) putModule({ ...mod, competences: [...mod.competences, ...added], updatedAt: Date.now() });
+          },
+        }}
       />
     );
     subject = m.subject;

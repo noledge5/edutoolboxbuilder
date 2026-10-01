@@ -3,6 +3,9 @@ import { useState, type DragEvent } from 'react';
 import { Blocks, CalendarRange, FolderSync, Plus, Settings as SettingsIcon, Sparkles, Trash2, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
+import { AiSettingsDialog } from '../ai/AiSettingsDialog';
+import { dollars } from '../ai/prices';
+import { useAiSettings } from '../ai/useAi';
 import { ClaudeDialog } from './ClaudeDialog';
 import { SearchButton } from './SearchDialog';
 import { isWorkedOut, lastChange, lessonsOf, modulesOf, progressOf, progressText, subjectsOf } from './model';
@@ -329,7 +332,10 @@ export function SettingsDialog({ settings, subjects, onSave, onClose }: { settin
         .map(([name, from = '', to = '']) => ({ name, from, to })),
     });
   const incomplete = (start || end) && !schoolYear();
+  const ai = useAiSettings();
+  const [aiOpen, setAiOpen] = useState(false);
   return (
+    <>
     <div className="dialog-backdrop" onClick={onClose}>
       <div className="dialog sync-dialog settings-dialog" role="dialog" aria-modal="true" aria-label="Einstellungen" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-title">Einstellungen</div>
@@ -394,6 +400,18 @@ export function SettingsDialog({ settings, subjects, onSave, onClose }: { settin
           <p className="sync-tip">Bewegliche Ferientage legt jede Schule selbst fest: Trage sie als eigene Zeile ein.</p>
           {incomplete && <p className="json-err">Erster und letzter Schultag fehlen oder passen nicht zusammen.</p>}
         </div>
+        <div className="settings-ai">
+          <div className="panel-section-label">KI im Baukasten</div>
+          <div className="panel-row">
+            <span className="settings-ai-state">
+              {ai === undefined ? '…' : ai ? `${ai.provider === 'openrouter' ? 'OpenRouter' : 'Claude direkt'} · diesen Monat ${dollars(ai.spent)}${ai.limit ? ` von ${dollars(ai.limit)}` : ''}` : 'Kein Schlüssel auf diesem Gerät: Claude geht über den Chat.'}
+            </span>
+            <button type="button" className="btn btn-secondary ui-btn" onClick={() => setAiOpen(true)}>
+              <Icon icon={Sparkles} />
+              {ai ? 'Ändern …' : 'Einrichten …'}
+            </button>
+          </div>
+        </div>
         <div className="dialog-actions">
           <button type="button" className="btn btn-secondary ui-btn" onClick={onClose}>
             Abbrechen
@@ -412,5 +430,7 @@ export function SettingsDialog({ settings, subjects, onSave, onClose }: { settin
         </div>
       </div>
     </div>
+    {aiOpen && <AiSettingsDialog onClose={() => setAiOpen(false)} />}
+    </>
   );
 }

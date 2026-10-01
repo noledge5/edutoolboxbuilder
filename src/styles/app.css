@@ -481,6 +481,7 @@ body { background: var(--color-neutral-200); }
 .app.has-note { grid-template-rows: auto auto minmax(0, 1fr); }
 .ed-note { display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 20px; background: var(--color-accent-2-100); color: var(--color-accent-2-900); font-size: 13.5px; border-bottom: 1px solid var(--color-accent-2-200); }
 .ed-note span { flex: 1; min-width: 0; }
+.ed-note-ai { flex: none; padding-block: 4px; font-size: 13px; }
 
 /* — Image search (Openverse, Wikimedia Commons) — */
 .img-search { width: min(920px, 100%); max-height: calc(100dvh - 32px); }
@@ -993,3 +994,43 @@ body { background: var(--color-neutral-200); }
 .ev-dist-row.is-right .ev-bar i { background: var(--color-accent-2-400); }
 .ev-beamer-hint { margin-top: auto; font-size: 13px; opacity: 0.6; }
 @media (max-width: 700px) { .ev-main { padding: 14px 12px 40px; } .ev-cards, .ev-beamer-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* — KI im Baukasten (settings, lesson with Claude) — */
+.ai-settings { max-height: calc(100dvh - 32px); overflow-y: auto; }
+.ai-key-row { display: flex; gap: 8px; }
+.ai-settings .share-steps a { white-space: nowrap; }
+.ai-key-row .input { flex: 1; min-width: 0; }
+.ai-ok { margin: 0; font-size: 13px; font-weight: 600; color: var(--color-accent-2-800); }
+.ai-spent { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; border-radius: 14px; background: var(--color-neutral-100); font-size: 13px; }
+.ai-spent ul { margin: 0; padding-left: 18px; color: var(--color-neutral-800); }
+.settings-ai { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px solid var(--color-divider); }
+.settings-ai .panel-row { display: flex; align-items: center; gap: 10px; }
+.settings-ai-state { flex: 1; font-size: 13.5px; }
+.ai-dialog { width: min(820px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; }
+.ai-dialog .dialog-title { display: flex; align-items: center; gap: 8px; }
+.ai-where { margin: 0; }
+.ai-hint { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--color-neutral-800); }
+.ai-hint.is-warn { padding: 8px 12px; border-radius: 12px; background: var(--color-accent-1-100); color: var(--color-accent-1-900); }
+.ai-context { font-size: 13px; }
+.ai-context summary { cursor: pointer; font-weight: 600; color: var(--color-neutral-800); }
+.ai-context pre { margin: 8px 0 0; padding: 10px 12px; max-height: 240px; overflow: auto; border-radius: 12px; background: var(--color-neutral-100); font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11.5px; line-height: 1.5; white-space: pre-wrap; }
+.ai-context ul { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.ai-busy { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 16px; background: var(--color-accent-100); font-size: 14px; }
+.ai-busy span:nth-child(2) { flex: 1; }
+.ai-busy small { color: var(--color-neutral-700); }
+.ai-spinner { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--color-accent-200); border-top-color: var(--color-accent-700); animation: ai-spin 0.9s linear infinite; }
+@keyframes ai-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ai-spinner { animation-duration: 3s; } }
+.ai-result { display: flex; flex-direction: column; gap: 10px; }
+.ai-pages { display: flex; gap: 14px; overflow-x: auto; padding: 4px 2px 10px; }
+.ai-thumb { flex: none; display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: none; font: inherit; font-size: 12.5px; font-weight: 600; color: var(--color-neutral-800); cursor: zoom-in; text-align: left; }
+.ai-thumb .ai-page { box-shadow: var(--shadow-md); border-radius: 4px; outline: 2px solid transparent; outline-offset: 2px; }
+.ai-thumb.is-new .ai-page { outline-color: var(--color-accent-400); }
+.ai-thumb span { max-width: 238px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-page { position: relative; overflow: hidden; background: white; pointer-events: none; }
+.ai-page > .ws-page { position: absolute; top: 0; left: 0; }
+.ai-big { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; overflow-x: auto; }
+.ai-big .ai-page { box-shadow: var(--shadow-md); border-radius: 4px; }
+.ai-cost { margin: 0; font-size: 12.5px; color: var(--color-neutral-700); }
+.ai-chat { display: flex; flex-direction: column; gap: 10px; }
+.ai-chat .input { border-radius: 16px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; }
