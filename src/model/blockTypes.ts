@@ -31,6 +31,19 @@ export interface BlockTypeDef {
   fields: FieldDef[];
 }
 
+/** Kinds of a lesson's beginning (block "hook"); the slides suggested for the lesson follow the kind. */
+export const HOOK_KINDS: SegOption<string>[] = [
+  { v: 'bild', l: 'Bildimpuls' },
+  { v: 'schaetzen', l: 'Schätzfrage' },
+  { v: 'zitat', l: 'Zitat/Karikatur' },
+  { v: 'fall', l: 'Problem/Fall' },
+  { v: 'video', l: 'Video' },
+  { v: 'versuch', l: 'Experiment/Gegenstand' },
+  { v: 'abstimmung', l: 'Abstimmung' },
+  { v: 'raetsel', l: 'Rätsel' },
+  { v: 'vorwissen', l: 'Vorwissen' },
+];
+
 /** Fields every task has: German help, level stars, points (content and language), competence and a tip card. */
 const TASK_FIELDS: FieldDef[] = [
   {
@@ -293,9 +306,9 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     defaults: {
       rows: [
         '0–5 | Abrufphase | 3 Fragen aus dem Gedächtnis ins Lernjournal, dann Selbstkorrektur. | Einzel | Lernjournal',
-        '5–10 | Einstieg | Leitfrage: Wie genau erwärmt CO₂ die Luft? | Plenum | Tafel',
-        '10–30 | Erarbeitung | Modellversuch in Partnerarbeit, Werte alle 3 Minuten notieren. | Partner | Versuchsprotokoll',
-        '30–45 | Sicherung | Fließschema ins Lernjournal, Merksatz. | Einzel | Arbeitsblatt',
+        '5–10 | Einstieg | Schätzfrage, dann die Leitfrage: Wie genau erwärmt CO₂ die Luft? | Plenum | Tafel',
+        '10–30 | Erarbeitung | Führt den Modellversuch durch und notiert die Werte alle 3 Minuten. | Partner | AB S. 1',
+        '30–45 | Sicherung | Übertragt das Fließschema ins Lernjournal und ergänzt den Merksatz. | Einzel | AB S. 2',
       ].join('\n'),
     },
     fields: [{ key: 'rows', label: 'Phasen (je Zeile: Zeit | Phase | Ablauf | Sozialform | Material)', kind: 'area' }],
@@ -325,12 +338,40 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     },
     fields: [{ key: 'items', label: 'Einträge (je Zeile: Richtig/Falsch/Vorsicht | Schüleraussage | Erklärung)', kind: 'area' }],
   },
+  hook: {
+    label: 'Einstieg',
+    group: 6,
+    span: 12,
+    defaults: {
+      kind: 'schaetzen',
+      impulse: 'Wie viel wärmer wird es im Glas mit Folie nach 15 Minuten?',
+      answer: 'etwa 3 °C',
+      image: '',
+      source: '',
+      url: '',
+      question: 'Wie genau erwärmt CO₂ die Luft?',
+    },
+    fields: [
+      {
+        key: 'kind',
+        label: 'Art des Einstiegs',
+        kind: 'seg',
+        options: HOOK_KINDS,
+      },
+      { key: 'impulse', label: 'Impuls (Frage, Zitat, Fall, Aussage zum Abstimmen, Rätsel …)', kind: 'area' },
+      { key: 'answer', label: 'Auflösung (Schätzfrage, Rätsel) oder Antworten zum Abstimmen, mit / getrennt', kind: 'text' },
+      { key: 'image', label: 'Bild (Bildimpuls, Karikatur, Gegenstand)', kind: 'image' },
+      { key: 'source', label: 'Quelle des Bilds', kind: 'text' },
+      { key: 'url', label: 'Video-Link', kind: 'text' },
+      { key: 'question', label: 'Leitfrage der Stunde', kind: 'text' },
+    ],
+  },
   recall: {
     label: 'Abruffragen',
     group: 6,
     span: 12,
     defaults: {
-      title: 'Abrufphase — die drei Fragen',
+      title: 'Abruffragen für spätere Stunden',
       items: 'Welche Einheit hat der CO₂-Wert in unserer Kurve? | ppm\nReicht ein zeitlicher Zusammenhang als Beweis? | Nein',
       answers: 'immer',
     },

@@ -4,6 +4,7 @@ import { createBlock, createPage, sheetNumbers, uid } from '../model/ops';
 import { seedDoc, seedSlides } from '../model/seed';
 import type { BlockType, Doc, Lang } from '../model/types';
 import { DEFAULT_TOPIC_ICON } from '../topicIcons';
+import type { EarlierLesson } from '../slides/fromDoc';
 import type { SlideContext } from '../slides/SlideView';
 import type { Competence, Lesson, LessonVersion, Library, Module, Settings, TrashEntry } from './types';
 
@@ -73,6 +74,21 @@ export function favoriteBlocks(lib: Library, subject: string, max = 6): BlockTyp
 
 /** A lesson is worked out once one of its pages has content; before that it is only planned (from the year plan). */
 export const isWorkedOut = (l: Lesson) => l.doc.pages.some((p) => p.blocks.length > 0);
+
+/**
+ * Worked-out lessons before this one, the last first: those of its module, then those of earlier modules of the same
+ * subject and grade (for the recall of earlier lessons on the slides).
+ */
+export function earlierLessons(lib: Library, m: Module, l: Lesson): EarlierLesson[] {
+  const before = lib.modules.filter((x) => x.subject === m.subject && x.grade === m.grade && x.number < m.number).sort((a, b) => b.number - a.number);
+  const lessons = (mod: Module) => lib.lessons.filter((x) => x.moduleId === mod.id && isWorkedOut(x)).sort((a, b) => b.number - a.number);
+  return [
+    ...lessons(m)
+      .filter((x) => x.number < l.number)
+      .map((x) => ({ where: `Stunde ${x.number}`, sameModule: true, doc: docForLesson(m, x) })),
+    ...before.flatMap((mod) => lessons(mod).map((x) => ({ where: `Modul ${mod.number} · Stunde ${x.number}`, sameModule: false, doc: docForLesson(mod, x) }))),
+  ];
+}
 
 /** How many of a module's lessons are worked out. */
 export const progressOf = (lessons: Lesson[]) => ({ done: lessons.filter(isWorkedOut).length, total: lessons.length });

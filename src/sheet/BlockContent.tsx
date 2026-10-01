@@ -9,7 +9,7 @@ import { Editable } from './inlineEdit';
 import { answerClass, GapText, ImageBox, Marked, qrCode, variantVars } from './parts';
 import { SheetModeContext, type SolutionView } from './sheetMode';
 import { CompetenceNamesContext } from './competences';
-import { BLOCK_TYPES, LEVEL_NAMES } from '../model/blockTypes';
+import { BLOCK_TYPES, HOOK_KINDS, LEVEL_NAMES } from '../model/blockTypes';
 import type { BlockType } from '../model/types';
 import { typo, useSheetDoc, useSheetLang, useSheetText } from './lang';
 import { LanguageBlock, LanguageTaskBody } from './LanguageBlocks';
@@ -152,6 +152,39 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
           </div>
         </div>
       );
+    case 'hook': {
+      const image = str(p.image);
+      const vote = str(p.kind) === 'abstimmung';
+      return (
+        <div className="ws-hook">
+          <div className="ws-hook-head">
+            <span className="ws-label">Einstieg</span>
+            <span className="ws-hook-kind">{HOOK_KINDS.find((k) => k.v === str(p.kind))?.l ?? 'Impuls'}</span>
+          </div>
+          <div className={'ws-hook-body' + (image || (editing && onImageFile) ? ' has-image' : '')}>
+            {(image || (editing && onImageFile)) && <ImageBox id={image} height={96} fit="cover" editing={editing} onImageFile={onImageFile} />}
+            <div className="ws-hook-text">
+              <Editable as="p" className="ws-hook-impulse" target={t('impulse')} value={str(p.impulse)} multiline />
+              {str(p.answer).trim() && (
+                <p className="ws-hook-line">
+                  <b>{vote ? 'Antworten' : 'Auflösung'}:</b> {str(p.answer)}
+                </p>
+              )}
+              {str(p.url).trim() && (
+                <p className="ws-hook-line">
+                  <b>Video:</b> {str(p.url)}
+                </p>
+              )}
+              {str(p.question).trim() && (
+                <p className="ws-hook-line is-question">
+                  <b>Leitfrage:</b> <Editable target={t('question')} value={str(p.question)} />
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
     case 'expect':
       return (
         <div className="ws-expect">

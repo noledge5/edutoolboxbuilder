@@ -70,7 +70,8 @@ import { SHEET_TYPES, THEMES, WORK_FORMS } from '../model/themes';
 import type { SheetType, WorkForm } from '../model/types';
 import { storeImageFile } from '../storage/images';
 import { topicIcon } from '../topicIcons';
-import { slidesFromDoc } from './fromDoc';
+import { suggestSlides, type SuggestOptions, type SuggestSection } from './fromDoc';
+import { SuggestDialog } from './SuggestDialog';
 import { enterFullscreen, Presenter } from './Presenter';
 import { PptxDialog, PptxImportDialog } from './PptxDialog';
 import { openSpeakerWindows, type SpeakerWindows } from './speaker';
@@ -90,6 +91,8 @@ interface SlidesViewProps {
   /** The lesson's worksheets, to suggest first slides. */
   doc: Doc;
   lessonTitle: string;
+  /** Earlier lessons for the recall slide of the suggestion. */
+  suggest?: SuggestOptions;
   place: string;
   onChange(slides: Slide[]): void;
   /** A design for all slides of the lesson. */
@@ -185,6 +188,8 @@ export function SlidesView(p: SlidesViewProps) {
   const [printBoard, setPrintBoard] = useState<Board | null>(null);
   const [startBoard, setStartBoard] = useState<Board | null>(null);
   const [showBoards, setShowBoards] = useState(false);
+  /** The suggestion as a list to tick, or single slides from the worksheet to put in. */
+  const [suggesting, setSuggesting] = useState<{ mode: 'suggest' | 'pick'; sections: SuggestSection[] } | null>(null);
   /** Sketching on the slide: a new sketch (id null) or one being changed, with its strokes in slide pixels. */
   const [sketch, setSketch] = useState<{ slideId: string; id: string | null; strokes: Stroke[]; past: Stroke[][] } | null>(null);
   const [sketchLive, setSketchLive] = useState<Stroke | null>(null);
@@ -407,18 +412,25 @@ export function SlidesView(p: SlidesViewProps) {
     commit([]);
     pick(0);
   };
-  const suggest = () => {
-    commit(slidesFromDoc(p.doc, p.lessonTitle));
-    pick(0);
-  };
-  const resuggest = () => {
-    if (slides.length && !window.confirm('Die Folien durch neue Vorschläge aus dem Arbeitsblatt ersetzen? Mit „Rückgängig“ (⌘Z) holst du die alten zurück.')) return;
-    suggest();
+  const suggest = (mode: 'suggest' | 'pick' = 'suggest') => setSuggesting({ mode, sections: suggestSlides(p.doc, p.lessonTitle, p.suggest) });
+  const takeSuggested = (made: Slide[], how: 'replace' | 'append' | 'insert') => {
+    setSuggesting(null);
+    if (how === 'replace') {
+      commit(made);
+      pick(0);
+    } else if (how === 'append') {
+      commit([...slides, ...made]);
+      pick(slides.length);
+    } else {
+      const at = slides.length ? i + 1 : 0;
+      commit([...slides.slice(0, at), ...made, ...slides.slice(at)]);
+      pick(at);
+    }
   };
 
   // Keyboard: undo/redo, arrows move between slides (not while typing).
   useEffect(() => {
-    if (presenting !== null || printing || printBoard || showBoards) return;
+    if (presenting !== null || printing || printBoard || showBoards || suggesting) return;
     const onKey = (e: KeyboardEvent) => {
       const typing = e.target instanceof HTMLElement && (e.target.closest('input, textarea, select') || e.target.isContentEditable);
       // Sketching: ⌘Z takes back the last stroke, Esc finishes.
@@ -529,7 +541,8 @@ export function SlidesView(p: SlidesViewProps) {
           items={[
             { label: 'Folie löschen', icon: Trash2, onClick: () => slides.length && remove() },
             { label: 'Alle Folien löschen …', icon: Trash2, onClick: removeAll },
-            { label: 'Neu aus dem Arbeitsblatt vorschlagen …', icon: Sparkles, onClick: resuggest },
+            { label: 'Neu aus dem Arbeitsblatt vorschlagen …', icon: Sparkles, onClick: () => suggest() },
+            { label: 'Aus dem Arbeitsblatt einfügen …', icon: FileText, onClick: () => suggest('pick') },
             { label: `Tafelbilder${p.boards.length ? ` · ${p.boards.length}` : ''} …`, icon: PenLine, onClick: () => setShowBoards(true) },
             { label: 'PowerPoint öffnen …', icon: FileUp, onClick: () => pptxInput.current?.click() },
             { label: 'Als PowerPoint sichern …', icon: Download, onClick: () => slides.length && setExporting(true) },
@@ -695,7 +708,7 @@ export function SlidesView(p: SlidesViewProps) {
           ) : (
             <div className="sl-empty">
               <p className="lib-empty">Noch keine Folien für diese Stunde.</p>
-              <button type="button" className="btn btn-primary ui-btn" onClick={suggest}>
+              <button type="button" className="btn btn-primary ui-btn" onClick={() => suggest()}>
                 <Icon icon={Sparkles} />
                 Folien aus dem Arbeitsblatt vorschlagen
               </button>
@@ -921,6 +934,9 @@ export function SlidesView(p: SlidesViewProps) {
         </aside>
       </div>
       {exporting && <PptxDialog slides={slides} ctx={p.ctx} title={p.lessonTitle} onClose={() => setExporting(false)} />}
+      {suggesting && (
+        <SuggestDialog sections={suggesting.sections} ctx={p.ctx} mode={suggesting.mode} hasSlides={slides.length > 0} onDone={takeSuggested} onClose={() => setSuggesting(null)} />
+      )}
       {showBoards && (
         <BoardsDialog
           boards={p.boards}

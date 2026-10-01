@@ -67,7 +67,7 @@ export interface Submission {
 }
 
 /** Blocks that stay with the teacher (planning, grading). */
-const TEACHER_ONLY = new Set(['plan', 'goal', 'expect', 'recall', 'gradescale', 'tipcards']);
+const TEACHER_ONLY = new Set(['plan', 'goal', 'hook', 'expect', 'recall', 'gradescale', 'tipcards']);
 
 const pageOf = (doc: Doc, p: number, blocks: Block[]): AssignmentPage => ({ title: doc.pages[p].title, kicker: doc.pages[p].kicker, type: doc.pages[p].type, blocks });
 

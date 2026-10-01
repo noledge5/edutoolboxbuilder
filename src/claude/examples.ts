@@ -97,9 +97,15 @@ export function englishExample(): PackageFile {
         goal: 'Die Klasse stellt sich auf Englisch vor und festigt die Formen von to be.',
         curriculum: '3.1.3.3 Sprechen – an Gesprächen teilnehmen · 3.1.3.7 Verfügbarkeit sprachlicher Mittel (Wortschatz, Grammatik)',
       }),
+      b('hook', {
+        kind: 'vorwissen',
+        impulse: 'Hello! Which English words for saying hello do you know?',
+        answer: '',
+        question: 'How can we introduce ourselves in English?',
+      }),
       b('plan', {
         rows: [
-          '0–5 | Warm-up | Song „Hello, hello“, Begrüßung auf Englisch. | Plenum | Audio',
+          '0–5 | Warm-up | Song „Hello, hello“, Begrüßung auf Englisch, Wörter sammeln. | Plenum | Audio',
           '5–15 | Vocabulary | Neue Wörter mit Bildkarten einführen, Aussprache chorisch üben. | Plenum | Bildkarten, AB S. 1',
           '15–25 | Grammar | to be an der Tafel entdecken, Regel gemeinsam formulieren. | Plenum | Tafel, AB S. 2',
           '25–40 | Speaking | Rollenkarten: sich zu zweit vorstellen, dann Partner vorstellen. | Partner | AB S. 3',
@@ -114,7 +120,7 @@ export function englishExample(): PackageFile {
         ].join('\n'),
       }),
       b('recall', {
-        title: 'Abrufphase für die nächste Stunde',
+        title: 'Abruffragen für spätere Stunden',
         items: 'Wie sagt man „Tafel“ auf Englisch? | board\nWelche Form von to be gehört zu she? | is\nWie fragst du nach dem Alter? | How old are you?',
       }),
     ],
@@ -324,7 +330,7 @@ export function geographyExample(): PackageFile {
     type: 'lehrkraft',
     form: 'Plenum',
     nameField: 'aus',
-    blocks: [b('goal'), b('plan'), b('expect'), b('recall')],
+    blocks: [b('goal'), b('hook'), b('plan'), b('expect'), b('recall')],
   };
   const tasks = (p: Page) => p.blocks.filter((x) => BLOCK_TYPES[x.type].task);
   const link = (p: Page, i: number, competence: string, level: string) => Object.assign(tasks(p)[i].props, { competence, level });

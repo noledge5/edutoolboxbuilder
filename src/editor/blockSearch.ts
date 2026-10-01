@@ -22,6 +22,7 @@ export const BLOCK_WORDS: Record<BlockType, string> = {
   selfcheck: 'Ich kann Selbsteinschätzung Smileys Reflexion Checkliste',
   plan: 'Stundenverlauf Verlaufsplan Phasen Ablauf Lehrkraft',
   goal: 'Ziel Bildungsplan Kompetenz Stundenziel Lehrkraft',
+  hook: 'Einstieg Impuls Bildimpuls Schätzfrage Zitat Karikatur Problem Fall Video Experiment Abstimmung Rätsel Vorwissen Leitfrage Lehrkraft',
   expect: 'Erwartungshorizont Bewertung Musterlösung Lehrkraft',
   recall: 'Abruffragen Wiederholung Einstieg Quiz Lehrkraft',
   vocab: 'Vokabelliste Vokabeln Wörter Wortschatz vocabulary words',

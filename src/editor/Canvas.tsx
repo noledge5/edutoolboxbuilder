@@ -218,7 +218,7 @@ function BlockFrame({ api, block, p, i, taskNum, dragging }: BlockFrameProps) {
         block={block}
         taskNum={taskNum}
         editing={editing}
-        onImageFile={block.type === 'image' ? (f) => api.setImage(block.id, f) : undefined}
+        onImageFile={block.type === 'image' || block.type === 'hook' ? (f) => api.setImage(block.id, f) : undefined}
         onPicFile={block.type === 'picvocab' ? (i, f) => api.setPic(block.id, i, f) : undefined}
       />
       {selected && !api.picking && (

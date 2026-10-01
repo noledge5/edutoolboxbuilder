@@ -37,6 +37,7 @@ import {
   Tag,
   TextCursorInput,
   Workflow,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 import type { BlockType } from './model/types';
@@ -59,6 +60,7 @@ export const BLOCK_ICONS: Record<BlockType, LucideIcon> = {
   selfcheck: SmilePlus,
   plan: CalendarClock,
   goal: Target,
+  hook: Zap,
   expect: ClipboardCheck,
   recall: MessageCircleQuestion,
   vocab: BookA,

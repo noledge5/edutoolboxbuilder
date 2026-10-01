@@ -4,6 +4,7 @@ import {
   changedSince,
   docForLesson,
   duplicateLesson,
+  earlierLessons,
   favoriteBlocks,
   lessonFromDoc,
   lessonsOf,
@@ -339,7 +340,7 @@ export function App() {
       (l, m) => {
         const n = l.slides.length;
         if (n && !window.confirm(`Die ${n === 1 ? 'Folie' : `${n} Folien`} von Stunde ${l.number} „${l.title}“ durch neue aus dem Arbeitsblatt ersetzen?`)) return null;
-        return slidesFromDoc(doc ? { ...doc, lang: m.lang } : docForLesson(m, l), l.title);
+        return slidesFromDoc(doc ? { ...doc, lang: m.lang } : docForLesson(m, l), l.title, { earlier: earlierLessons(libRef.current!, m, l), lessonNumber: l.number });
       },
       (n) => `${n} ${n === 1 ? 'Folie' : 'Folien'} aus dem Arbeitsblatt erzeugt.`,
     );
@@ -530,6 +531,7 @@ export function App() {
         ctx={slideContext(m, lesson, lib.settings)}
         doc={docForLesson(m, lesson)}
         lessonTitle={lesson.title}
+        suggest={{ earlier: earlierLessons(lib, m, lesson), lessonNumber: lesson.number }}
         place={`${m.subject} · Klasse ${m.grade} · Modul ${m.number} · Stunde ${lesson.number}: ${lesson.title}`}
         onChange={(slides) => {
           const current = libRef.current?.lessons.find((l) => l.id === lesson.id) ?? lesson;

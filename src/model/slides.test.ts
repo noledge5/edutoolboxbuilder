@@ -62,7 +62,9 @@ describe('slides', () => {
     expect(slides[0]).toMatchObject({ layout: 'title', title: 'Der Treibhauseffekt' });
     // The multiple choice task of the experiment page: the right answer comes on a click.
     const mc = slides.find((s) => s.layout === 'task' && s.type === 'versuch' && s.items.includes('✓'))!;
-    expect(mc).toMatchObject({ label: 'Aufgabe 1 · S. 1', phase: 'Versuch', reveal: true });
+    expect(mc).toMatchObject({ label: 'Aufgabe 1 · S. 1', phase: 'Besprechung', form: 'Plenum', reveal: true });
+    // Each sheet is a work phase with its instruction slide before the tasks.
+    expect(slides.filter((s) => s.layout === 'work').map((s) => s.title)).toEqual(['Bearbeitet Aufgabe 1–4 auf S. 1.', 'Bearbeite Aufgabe 1–3 auf S. 2.']);
     expect(hasReveal(mc)).toBe(true);
     expect(slides.some((s) => s.layout === 'task' && s.text.includes('Folie'))).toBe(true);
     expect(slides.some((s) => s.layout === 'flow')).toBe(true);
@@ -92,8 +94,10 @@ describe('slides', () => {
       ],
     };
     const slides = slidesFromDoc(doc, 'Hello');
-    expect(slides.map((s) => s.layout)).toEqual(['title', 'task', 'task', 'task', 'blank', 'task', 'image']);
-    const [, match, tf, table, qr, gap, image] = slides;
+    // Links and pictures to look at come before the instruction, the tasks after it for the discussion.
+    expect(slides.map((s) => s.layout)).toEqual(['title', 'blank', 'work', 'task', 'task', 'task', 'image', 'work', 'task']);
+    const [, qr, work, match, tf, table, image, , gap] = slides;
+    expect(work).toMatchObject({ title: 'Do tasks 1–3 on page 1.', label: 'Worksheet p. 1 · Practice', form: 'allein' });
     // A picture right before a task goes on the task's slide.
     expect(match).toMatchObject({ label: 'Task 1 · p. 1 · ★★☆ · 4 pts', items: 'dog | Hund\ncat | Katze', image: 'img-1', source: 'Wikimedia' });
     expect(tf).toMatchObject({ help: 'Richtig oder falsch?', items: 'Emma is eleven. | true\nBen is a teacher. | not in the text' });

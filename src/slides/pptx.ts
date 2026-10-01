@@ -56,6 +56,8 @@ export function wordsPrint(xml: string): string {
 interface Anim {
   step: number;
   anim: SlideAnim;
+  /** A cover: it goes on its click instead of coming. */
+  exit?: boolean;
 }
 
 /** An object on a PowerPoint slide that appears on a click. */
@@ -199,8 +201,16 @@ function effect(id: number, anim: SlideAnim, first: boolean, next: () => number)
   return `<p:par><p:cTn id="${next()}" presetID="${preset}" presetClass="entr" presetSubtype="0" fill="hold" grpId="0" nodeType="${first ? 'clickEffect' : 'withEffect'}"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>${behaviours}</p:childTnLst></p:cTn></p:par>`;
 }
 
-/** The click sequence of a slide: one click per step, all objects of a step together. */
-export function timingXml(objects: { id: number; step: number; anim: SlideAnim; picture: boolean }[]): string {
+/** Exit of a cover: faded out, then hidden. */
+function exitEffect(id: number, first: boolean, next: () => number): string {
+  const target = `<p:tgtEl><p:spTgt spid="${id}"/></p:tgtEl>`;
+  const fade = `<p:animEffect transition="out" filter="fade"><p:cBhvr><p:cTn id="${next()}" dur="500"/>${target}</p:cBhvr></p:animEffect>`;
+  const hide = `<p:set><p:cBhvr><p:cTn id="${next()}" dur="1" fill="hold"><p:stCondLst><p:cond delay="499"/></p:stCondLst></p:cTn>${target}<p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst></p:cBhvr><p:to><p:strVal val="hidden"/></p:to></p:set>`;
+  return `<p:par><p:cTn id="${next()}" presetID="10" presetClass="exit" presetSubtype="0" fill="hold" grpId="1" nodeType="${first ? 'clickEffect' : 'withEffect'}"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>${fade}${hide}</p:childTnLst></p:cTn></p:par>`;
+}
+
+/** The click sequence of a slide: one click per step, all objects of a step together; covers go on theirs. */
+export function timingXml(objects: { id: number; step: number; anim: SlideAnim; picture: boolean; exit?: boolean }[]): string {
   const steps = [...new Set(objects.filter((o) => o.step > 0).map((o) => o.step))].sort((a, b) => a - b);
   if (!steps.length) return '';
   let n = 2;
@@ -211,14 +221,14 @@ export function timingXml(objects: { id: number; step: number; anim: SlideAnim; 
       const inner = next();
       const effects = objects
         .filter((o) => o.step === step)
-        .map((o, k) => effect(o.id, o.anim, k === 0, next))
+        .map((o, k) => (o.exit ? exitEffect(o.id, k === 0, next) : effect(o.id, o.anim, k === 0, next)))
         .join('');
       return `<p:par><p:cTn id="${outer}" fill="hold"><p:stCondLst><p:cond delay="indefinite"/></p:stCondLst><p:childTnLst><p:par><p:cTn id="${inner}" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>${effects}</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>`;
     })
     .join('');
   const builds = objects
     .filter((o) => o.step > 0 && !o.picture)
-    .map((o) => `<p:bldP spid="${o.id}" grpId="0" animBg="1"/>`)
+    .map((o) => `<p:bldP spid="${o.id}" grpId="${o.exit ? 1 : 0}" animBg="1"/>`)
     .join('');
   return (
     `<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst>` +
@@ -233,7 +243,7 @@ export function timingXml(objects: { id: number; step: number; anim: SlideAnim; 
 export function addTiming(xml: string, placed: Placed[], transition: SlideTransition): string {
   const ids = new Map<string, number>();
   for (const m of xml.matchAll(/<p:cNvPr id="(\d+)" name="([^"]*)"/g)) ids.set(m[2], Number(m[1]));
-  const objects = placed.flatMap((p) => (ids.has(p.name) ? [{ id: ids.get(p.name)!, step: p.step, anim: p.anim, picture: p.picture }] : []));
+  const objects = placed.flatMap((p) => (ids.has(p.name) ? [{ id: ids.get(p.name)!, step: p.step, anim: p.anim, picture: p.picture, exit: p.exit }] : []));
   const extra = (TRANSITIONS[transition] ?? '') + timingXml(objects);
   if (!extra) return xml;
   return xml.includes('</p:clrMapOvr>') ? xml.replace('</p:clrMapOvr>', '</p:clrMapOvr>' + extra) : xml.replace('</p:sld>', extra + '</p:sld>');
@@ -284,7 +294,7 @@ export async function drawSlide(root: HTMLElement, s: Slide, pptx: PptxGenJS, op
   const pos = (x: number, y: number, w: number, h: number) => ({ x: (x - base.left) * IN, y: (y - base.top) * IN, w: Math.max(w, 1) * IN, h: Math.max(h, 1) * IN });
   const name = (kind: string, a: Anim, picture = false) => {
     const n = `${kind} ${++count}`;
-    if (a.step > 0) placed.push({ name: n, step: a.step, anim: a.anim, picture });
+    if (a.step > 0) placed.push({ name: n, step: a.step, anim: a.anim, picture, exit: a.exit });
     return n;
   };
   /** On which click an element appears: from the part or element it belongs to. */
@@ -295,7 +305,7 @@ export async function drawSlide(root: HTMLElement, s: Slide, pptx: PptxGenJS, op
       const id = p.dataset.el;
       if (id) {
         const e = s.elements.find((x) => x.id === id);
-        if (e) return { step: e.step, anim: e.anim };
+        if (e) return { step: e.step, anim: e.anim, exit: e.kind === 'cover' };
       }
       const key = p.dataset.part ?? p.dataset.with;
       const part = key ? parts.get(key) : undefined;
@@ -515,6 +525,9 @@ export async function drawSlide(root: HTMLElement, s: Slide, pptx: PptxGenJS, op
     clone.setAttribute('width', String(r.width));
     clone.setAttribute('height', String(r.height));
     if (Number(cs.opacity) < 1) clone.setAttribute('opacity', cs.opacity);
+    // Colours from CSS variables (the pen's ink) do not work in a picture on its own: they are written out.
+    const own = el.querySelectorAll('[fill^="var("]');
+    clone.querySelectorAll('[fill^="var("]').forEach((n, k) => n.setAttribute('fill', getComputedStyle(own[k]).fill));
     const xml = new XMLSerializer().serializeToString(clone).replace(/currentColor/g, cs.color);
     const data = await rasterSvg(xml, r.width, r.height, Math.min(3, 1200 / Math.max(r.width, r.height)));
     const url = linkOf(el);

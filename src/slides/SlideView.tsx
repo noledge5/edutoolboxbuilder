@@ -52,6 +52,8 @@ interface SlideViewProps {
   opened?: ReadonlySet<string>;
   /** Presenting a vote: hands counted per box. */
   votes?: Record<number, number>;
+  /** PowerPoint export with clicks: covers stay (they go on their click in PowerPoint). */
+  keepCovers?: boolean;
   style?: CSSProperties;
 }
 
@@ -173,7 +175,7 @@ function GapText({ text, lang, ghost, data, gap }: { text: string; lang: Lang; g
 const BOX_COLORS = ['var(--color-surface)', 'var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-3-200)'];
 const FLOW_COLORS = ['var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-300)', 'var(--color-neutral-300)', 'var(--color-accent-3-200)', 'var(--color-accent-4-200)'];
 
-export function SlideView({ slide: s, number, ctx, step, edit = false, live = false, print = false, noAnswers = false, opened = NO_KEYS, votes, style }: SlideViewProps) {
+export function SlideView({ slide: s, number, ctx, step, edit = false, live = false, print = false, noAnswers = false, opened = NO_KEYS, votes, keepCovers = false, style }: SlideViewProps) {
   const lang = ctx.lang;
   const items = shownItems(s);
   const parts = partSteps(s);
@@ -405,10 +407,11 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
       const x = part('text');
       const steps = workSteps(s);
       const total = s.minutes || steps.reduce((k, st) => k + st.minutes, 0);
-      const form = s.form ? (lang === 'en' ? WORK_FORMS_EN[s.form] : s.form) : '';
+      // Steps with their own work form (Ich – Du – Wir) need no form for the whole phase.
+      const form = s.form && !steps.some((st) => st.form) ? (lang === 'en' ? WORK_FORMS_EN[s.form] : s.form) : '';
       body = (
-        <div className={'sl-work' + (steps.length ? ' has-steps' : '')}>
-          <div className="sl-work-main">
+        <div className={'sl-wp' + (steps.length ? ' has-steps' : '')}>
+          <div className="sl-wp-main">
             <div className={'sl-lead' + t.cls} {...t.data}>
               {t.badge}
               {s.label && (
@@ -416,25 +419,25 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
                   {s.label}
                 </div>
               )}
-              <h1 className={'sl-h1 sl-work-h1' + (s.title.length > 90 ? ' is-long' : '')} {...ed('title')}>
+              <h1 className={'sl-h1 sl-wp-h1' + (s.title.length > 90 ? ' is-long' : '')} {...ed('title')}>
                 <Rich text={s.title} lang={lang} />
               </h1>
             </div>
             {steps.length > 0 && (
-              <ol className="sl-work-steps">
+              <ol className="sl-wp-steps">
                 {steps.map((st, i) => {
                   const state = step === null || steps.length < 2 ? '' : i < step ? ' is-done' : i === step ? ' is-current' : ' is-coming';
                   return (
-                    <li key={i} className={'sl-work-step' + state}>
-                      <span className="sl-work-who">
+                    <li key={i} className={'sl-wp-step' + state}>
+                      <span className="sl-wp-who">
                         <Icon icon={state === ' is-done' ? Check : formIcon(st.form)} size={34} />
                         {st.who && <b>{st.who}</b>}
                       </span>
-                      <span className="sl-work-text" {...ed(`item:${i}`)}>
+                      <span className="sl-wp-text" {...ed(`item:${i}`)}>
                         <Rich text={st.text} lang={lang} />
                       </span>
                       {st.minutes > 0 && (
-                        <span className="sl-work-min" {...ed(`answer:${i}`)}>
+                        <span className="sl-wp-min" {...ed(`answer:${i}`)}>
                           {st.minutes} min
                         </span>
                       )}
@@ -456,16 +459,16 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
             )}
           </div>
           {(total > 0 || form) && (
-            <div className="sl-work-side">
+            <div className="sl-wp-side">
               {total > 0 && (
-                <div className="sl-work-clock">
+                <div className="sl-wp-clock">
                   <Icon icon={Timer} size={56} />
                   <b>{total}</b>
                   <span>{TEXT[lang].minutes}</span>
                 </div>
               )}
               {form && (
-                <div className="sl-work-form">
+                <div className="sl-wp-form">
                   <Icon icon={formIcon(s.form)} size={44} />
                   {form}
                 </div>
@@ -647,7 +650,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
 
   /** A cover: there until its click or a tap; pale in the editor; gone on printed slides that show the answers. */
   const coverClass = (at: number, id: string) => {
-    if (step === null) return edit ? 'is-edit' : print && !noAnswers ? 'is-gone is-still' : '';
+    if (step === null) return edit ? 'is-edit' : print && !noAnswers && !keepCovers ? 'is-gone is-still' : '';
     return (at > 0 && step >= at) || opened.has(`el:${id}`) ? 'is-gone' : '';
   };
   let covers = 0;

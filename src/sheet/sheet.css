@@ -529,6 +529,19 @@
 .ws-goal-box .ws-label { color: var(--color-neutral-700); }
 .ws-goal-text { margin: 4px 0 0; font-size: 13.5px; white-space: pre-wrap; }
 
+.ws-hook { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; border-radius: 18px; background: var(--color-accent-100); }
+.ws-hook-head { display: flex; align-items: center; gap: 10px; }
+.ws-hook-head .ws-label { color: var(--color-accent-800); }
+.ws-hook-kind { padding: 2px 10px; border-radius: 999px; background: var(--color-accent); color: var(--color-accent-100); font-size: 11px; font-weight: 700; }
+.ws-hook-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: start; }
+.ws-hook-body.has-image { grid-template-columns: 150px minmax(0, 1fr); }
+.ws-hook-text { display: flex; flex-direction: column; gap: 4px; }
+.ws-hook-impulse { margin: 0; font-size: 14px; font-weight: 600; white-space: pre-wrap; }
+.ws-hook-line { margin: 0; font-size: 13px; color: var(--color-neutral-800); overflow-wrap: anywhere; }
+.ws-hook-line.is-question { color: var(--color-text); }
+.is-bw .ws-hook { background: var(--paper); border: 1.5px solid var(--color-neutral-600); }
+.is-bw .ws-hook-kind { background: var(--paper); border: 1.5px solid var(--color-text); color: var(--color-text); }
+
 .ws-expect { display: flex; flex-direction: column; gap: 8px; }
 .ws-expect-row { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 12px; align-items: start; padding: 10px 14px; border-radius: 18px; border: 2px solid var(--color-neutral-300); }
 .ws-verdict { justify-self: start; padding: 3px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }

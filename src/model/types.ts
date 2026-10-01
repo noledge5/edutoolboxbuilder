@@ -31,6 +31,7 @@ export type BlockType =
   | 'selfcheck'
   | 'plan'
   | 'goal'
+  | 'hook'
   | 'expect'
   | 'recall'
   | 'vocab'

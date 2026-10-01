@@ -617,6 +617,20 @@ body { background: var(--color-neutral-200); }
 .sl-boards-info > span { font-size: 12.5px; color: var(--color-neutral-700); }
 .sl-boards-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .sl-print-land.sl-box-frame { position: relative; overflow: hidden; }
+/* The suggested slides as a list to tick */
+.sl-suggest { width: min(960px, 100%); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; }
+.sl-suggest-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; margin: 0 -4px; padding: 0 4px 4px; }
+.sl-suggest-section h3 { margin: 0 0 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-neutral-700); }
+.sl-suggest-note { margin: 0 0 8px; font-size: 13px; line-height: 1.45; color: var(--color-neutral-700); }
+.sl-suggest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.sl-suggest-item { display: flex; flex-direction: column; gap: 6px; padding: 4px; border: 0; border-radius: 12px; background: transparent; color: var(--color-text); font: inherit; text-align: left; cursor: pointer; }
+.sl-suggest-item:hover { background: var(--color-neutral-100); }
+.sl-suggest-thumb { position: relative; display: block; border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px var(--color-divider); opacity: 0.45; transition: opacity 0.15s; }
+.sl-suggest-item.is-on .sl-suggest-thumb { opacity: 1; box-shadow: 0 0 0 3px var(--color-accent-2-600); }
+.sl-suggest-check { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--color-neutral-500); background: var(--color-ui); color: white; }
+.sl-suggest-item.is-on .sl-suggest-check { border-color: var(--color-accent-2-600); background: var(--color-accent-2-600); }
+.sl-suggest-label { font-size: 12.5px; line-height: 1.35; color: var(--color-neutral-800); }
+.sl-suggest-count { margin-right: auto; font-size: 13px; font-weight: 700; color: var(--color-neutral-700); }
 .sl-print-land > .sl-board { position: absolute; top: 0; left: 0; }
 .sl-handle-box { position: absolute; box-sizing: border-box; border: 2px dashed transparent; border-radius: 6px; cursor: move; touch-action: none; }
 .sl-handle-box:hover { border-color: color-mix(in srgb, var(--color-accent) 60%, transparent); }

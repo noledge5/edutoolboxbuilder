@@ -30,6 +30,17 @@ describe('PowerPoint export', () => {
     expect(timingXml([{ id: 4, step: 0, anim: 'fade', picture: false }])).toBe('');
   });
 
+  it('lets covers go on their click', () => {
+    const xml = timingXml([
+      { id: 4, step: 1, anim: 'fade', picture: false, exit: true },
+      { id: 5, step: 2, anim: 'fade', picture: false },
+    ]);
+    expect(xml).toContain('presetClass="exit"');
+    expect(xml).toContain('<p:strVal val="hidden"/>');
+    expect(xml).toContain('<p:bldP spid="4" grpId="1" animBg="1"/>');
+    expect(xml.match(/presetClass="entr"/g)).toHaveLength(1);
+  });
+
   it('adds transition and timing after the colour mapping of a slide', () => {
     const slide = '<p:sld><p:cSld><p:spTree><p:sp><p:nvSpPr><p:cNvPr id="3" name="Text 1"/></p:nvSpPr></p:sp></p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>';
     const out = addTiming(slide, [{ name: 'Text 1', step: 1, anim: 'fade', picture: false }], 'fade');

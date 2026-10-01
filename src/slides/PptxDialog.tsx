@@ -110,7 +110,7 @@ export function PptxDialog({ slides, ctx, title, onClose }: PptxDialogProps) {
         createPortal(
           <div ref={host} className={'sl-export' + (fonts === 'standard' ? ' is-std' : '')} aria-hidden="true">
             {slides.map((s, k) => (
-              <SlideView key={s.id} slide={s} number={k + 1} ctx={ctx} step={null} print />
+              <SlideView key={s.id} slide={s} number={k + 1} ctx={ctx} step={null} print keepCovers={clicks} />
             ))}
           </div>,
           document.body,
