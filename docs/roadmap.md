@@ -127,3 +127,6 @@ Entschieden mit Fragen und Vor- und Nachteilen:
 - Kosten: je Anfrage und je Monat angezeigt, Monatslimit, ab dem der Baukasten vorher fragt. Der Schlüssel bleibt nur auf dem Gerät.
 - Umgesetzt (01.10.2026): Claude direkt (Anthropic SDK im Browser, lange Anleitung als zwischengespeicherter Systemprompt, adaptives Denken, Ausweichmodell bei Ablehnungen) und OpenRouter; „Stunde mit Claude“ mit ganzer Stunde, Gerüst, Blättern zum Gerüst und Überarbeiten; Jahresplan-Assistent; Helfer im Panel; alles auch über den Chat.
 
+### Als Nächstes
+- Runde 7 (interaktive Modelle) in der nächsten Woche.
+- Fachdesigns für Arbeitsblatt und Folien (Wunsch vom 02.10.2026): Geographie, Englisch, Informatik, je für Klasse 5–6 und 7–10; das Design darf Kopfband, Farben, Muster und Kästen ändern, Schriften, Raster und Maße bleiben (kein neuer Umbruch), mit S/W-Fassung. Entwurf durch Claude Design nach `docs/design/handoff-fachdesigns.md`, danach Einbau.
