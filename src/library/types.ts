@@ -2,6 +2,7 @@
 // and a competence grid (Kompetenzraster). Each lesson is one worksheet document.
 import type { Handout } from '../share/assignment';
 import type { Board } from '../model/ink';
+import type { ModuleLook } from '../model/look';
 import type { Slide, SlideDesign } from '../model/slides';
 import type { Doc, Lang } from '../model/types';
 
@@ -40,6 +41,8 @@ export interface Module {
   help: boolean;
   /** Textbook reference, e.g. "Green Line 1, Unit 2, S. 34–51". */
   textbook: string;
+  /** Subject design of its sheets and slides (absent: follows the subject). */
+  look?: ModuleLook;
   /** Planned length in school weeks, for the year plan (0 = not planned). */
   weeks: number;
   /** Monday of the first week ("2026-09-14"); empty = right after the previous module. */

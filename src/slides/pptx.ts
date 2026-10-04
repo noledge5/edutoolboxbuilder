@@ -131,6 +131,38 @@ async function rasterBackground(cs: CSSStyleDeclaration, w: number, h: number): 
   return rasterSvg(xml, w, h, 1);
 }
 
+/** The page's style rules without fonts, for drawing a part of a slide as a picture (cached per export). */
+let ruleText: string | null = null;
+function pageRules(): string {
+  if (ruleText !== null) return ruleText;
+  const out: string[] = [];
+  for (const sheet of [...document.styleSheets]) {
+    try {
+      for (const rule of [...sheet.cssRules]) if (!(rule instanceof CSSFontFaceRule)) out.push(rule.cssText);
+    } catch {
+      // A sheet from another origin cannot be read.
+    }
+  }
+  return (ruleText = out.join('\n'));
+}
+
+/**
+ * A box of a subject design with what CSS draws around it (masked motifs, ::before/::after, clip-path) as a picture.
+ * Its children are left out: they are added as shapes on top. `root` gives the classes and variables of the slide.
+ */
+async function rasterDecor(el: HTMLElement, root: HTMLElement, w: number, h: number): Promise<string> {
+  const clone = el.cloneNode(el === root ? false : true) as HTMLElement;
+  clone.classList.add('om-raster');
+  clone.style.cssText += `;position:absolute;left:0;top:0;width:${w}px;height:${h}px;margin:0;transform:none;`;
+  const inner =
+    el === root
+      ? clone.outerHTML.replace(/^<div /, '<div xmlns="http://www.w3.org/1999/xhtml" ')
+      : `<div xmlns="http://www.w3.org/1999/xhtml" class="${attr(root.className)} om-wrap" style="${attr(root.getAttribute('style') ?? '')};position:relative;width:${w}px;height:${h}px;overflow:visible;background:none">${clone.outerHTML}</div>`;
+  const style = `${pageRules()}\n.om-wrap::before,.om-wrap::after{display:none!important}.om-raster>*{visibility:hidden!important}`;
+  const xml = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><foreignObject width="100%" height="100%"><style xmlns="http://www.w3.org/1999/xhtml">${style.replace(/</g, '\\3c ')}</style>${inner}</foreignObject></svg>`;
+  return rasterSvg(xml, w, h, 1);
+}
+
 /** What an <img> shows (with object-fit), as data and the rectangle it covers. */
 async function pictureData(img: HTMLImageElement, r: DOMRect): Promise<{ data: string; x: number; y: number; w: number; h: number } | null> {
   const nw = img.naturalWidth;
@@ -286,6 +318,7 @@ function caseOf(text: string, cs: CSSStyleDeclaration): string {
 
 export async function drawSlide(root: HTMLElement, s: Slide, pptx: PptxGenJS, opts: PptxOptions): Promise<{ slide: PptxSlide; placed: Placed[] }> {
   const slide = pptx.addSlide();
+  ruleText = null;
   const base = root.getBoundingClientRect();
   const parts = partSteps(s);
   const placed: Placed[] = [];
@@ -331,7 +364,14 @@ export async function drawSlide(root: HTMLElement, s: Slide, pptx: PptxGenJS, op
   // The slide's own background: a colour, or a picture of a pattern (squared paper).
   const rcs = getComputedStyle(root);
   const bg = cssColor(rcs.backgroundColor);
-  if (rcs.backgroundImage && rcs.backgroundImage !== 'none') {
+  if (root.classList.contains('is-fd')) {
+    // A subject design: tinted paper, pattern and frame (::before) as one picture.
+    try {
+      slide.background = { data: await rasterDecor(root, root, 1920, 1080) };
+    } catch {
+      if (bg) slide.background = { color: bg.hex };
+    }
+  } else if (rcs.backgroundImage && rcs.backgroundImage !== 'none') {
     try {
       slide.background = { data: await rasterBackground(rcs, 1920, 1080) };
     } catch {
@@ -540,7 +580,12 @@ export async function drawSlide(root: HTMLElement, s: Slide, pptx: PptxGenJS, op
     const r = el.getBoundingClientRect();
     if (el !== root) {
       if (r.width < 0.5 || r.height < 0.5) return;
-      box(el, cs, r);
+      if (el.hasAttribute('data-om-raster')) {
+        // Motifs of a subject design (masks, clip-path, pseudo-elements) cannot be shapes: a picture of the box.
+        const data = await rasterDecor(el, root, r.width, r.height).catch(() => null);
+        if (data) slide.addImage({ data, ...pos(r.left, r.top, r.width, r.height), objectName: name('Form', { step: 0, anim: 'none' }) });
+        else box(el, cs, r);
+      } else box(el, cs, r);
     }
     if (el instanceof HTMLImageElement) {
       const p = await pictureData(el, r).catch(() => null);

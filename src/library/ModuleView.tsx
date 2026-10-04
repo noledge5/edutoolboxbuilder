@@ -12,6 +12,7 @@ import { ModulePages, ModulePrint, usePageFit, type PrintKind } from './ModulePr
 import { competenceLessons, competenceLinks, isWorkedOut, linkLabel, newCompetence, progressOf, type CompetenceLink } from './model';
 import { domainsFor } from './curriculum';
 import { SearchButton } from './SearchDialog';
+import { ageOf, DEFAULT_MODULE_LOOK, ENG_VARIANTS, FACH_LABELS, fachOf, HEAD_FONTS, lookFor, lookKey, LOOK_NAMES, type EngVariant, type Fach, type HeadFont, type ModuleLook } from '../model/look';
 import type { Competence, Lesson, Module, Settings } from './types';
 import { GRADES } from './types';
 
@@ -158,6 +159,7 @@ export function ModuleView(p: ModuleViewProps) {
                 </select>
               </div>
             )}
+            <LookFields m={m} onChange={(look) => set({ look })} />
             <div className="field is-wide">
               <label htmlFor="m-book">Lehrwerk (nur falls genutzt, z. B. Green Line 1, Unit 2)</label>
               <input id="m-book" className="input" value={m.textbook} onChange={(e) => set({ textbook: e.target.value })} />
@@ -446,5 +448,53 @@ function CompetenceGrid({ competences, domains, links, onChange }: CompetenceGri
         )}
       </div>
     </div>
+  );
+}
+
+/** Design of the module's sheets and slides: the subject's own (by grade), another subject's, or "Organisch". */
+function LookFields({ m, onChange }: { m: Module; onChange(look: ModuleLook): void }) {
+  const ml = m.look ?? DEFAULT_MODULE_LOOK;
+  const own = fachOf(m.subject);
+  const age = ageOf(m.grade);
+  const look = lookFor(m);
+  const nameOf = (f: Fach) => (f === 'eng' && age === 1 ? 'Englisch 5–6' : LOOK_NAMES[f][age - 1]);
+  const fonts = look ? HEAD_FONTS[lookKey(look)] : null;
+  return (
+    <>
+      <div className="field">
+        <label htmlFor="m-look">Design der Blätter und Folien</label>
+        <select id="m-look" className="input" value={ml.theme} onChange={(e) => onChange({ ...ml, theme: e.target.value as ModuleLook['theme'] })}>
+          <option value="auto">{own ? `Wie das Fach: ${nameOf(own)}` : 'Wie das Fach: Organisch'}</option>
+          <option value="organisch">Organisch</option>
+          {(Object.keys(FACH_LABELS) as Fach[]).map((f) => (
+            <option key={f} value={f}>
+              {FACH_LABELS[f]}: {nameOf(f)}
+            </option>
+          ))}
+        </select>
+      </div>
+      {look?.fach === 'eng' && look.age === 1 && (
+        <div className="field">
+          <label htmlFor="m-look-x">Variante</label>
+          <select id="m-look-x" className="input" value={ml.variant} onChange={(e) => onChange({ ...ml, variant: e.target.value as EngVariant })}>
+            {ENG_VARIANTS.map((v) => (
+              <option key={v.v} value={v.v}>
+                {v.l}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      {fonts && (
+        <div className="field">
+          <label htmlFor="m-look-h">Schrift der Überschriften</label>
+          <select id="m-look-h" className="input" value={ml.head} onChange={(e) => onChange({ ...ml, head: e.target.value as HeadFont })}>
+            <option value="a">{fonts[0]}</option>
+            <option value="b">{fonts[1]}</option>
+            <option value="o">Caprasimo (wie Organisch)</option>
+          </select>
+        </div>
+      )}
+    </>
   );
 }

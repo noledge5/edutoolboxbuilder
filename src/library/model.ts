@@ -1,4 +1,5 @@
 // Pure library helpers: codes, new modules and lessons, migration of the old single worksheet, sample data.
+import { lookFor } from '../model/look';
 import { BLOCK_TYPES, LEVEL_NAMES } from '../model/blockTypes';
 import { createBlock, createPage, sheetNumbers, uid } from '../model/ops';
 import { seedDoc, seedSlides } from '../model/seed';
@@ -20,7 +21,11 @@ export const modulePlace = (m: Module) => `${m.subject} · Klasse ${m.grade} · 
 export const footerFor = (settings: Settings, subject: string) => [settings.footerBase.trim(), subject].filter(Boolean).join(' · ');
 
 /** The lesson's document with icon, code, language and help switch taken from its module, so they are always consistent. */
-export const docForLesson = (m: Module, l: Lesson): Doc => ({ ...l.doc, icon: m.icon, lang: m.lang, help: m.help, code: lessonCode(m, l.number) });
+export const docForLesson = (m: Module, l: Lesson): Doc => {
+  const { look: _old, ...doc } = l.doc;
+  const look = lookFor(m);
+  return { ...doc, icon: m.icon, lang: m.lang, help: m.help, code: lessonCode(m, l.number), ...(look ? { look } : {}) };
+};
 
 /** What all slides of a lesson show: icon, language, header line, title line and footer. */
 export function slideContext(m: Module, l: Lesson, settings: Settings): SlideContext {
@@ -30,6 +35,7 @@ export function slideContext(m: Module, l: Lesson, settings: Settings): SlideCon
     icon: m.icon,
     lang: m.lang,
     design: l.slideDesign,
+    look: lookFor(m),
     kicker: `${l.title} · ${gradeLabel(m)} · ${lesson}`,
     titleKicker: `${gradeLabel(m)} · ${en ? 'Unit' : 'Modul'} ${m.number}: ${m.title} · ${lesson}`,
     footer: footerFor(settings, m.subject),

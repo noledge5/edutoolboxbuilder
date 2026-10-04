@@ -6,6 +6,7 @@ import { BLOCK_TYPES } from '../model/blockTypes';
 import { frontOf } from '../model/ops';
 import { THEMES, WORK_FORMS_EN, type SheetTheme } from '../model/themes';
 import type { Doc, Page } from '../model/types';
+import { lookClasses, typeClass } from '../model/look';
 import { topicIcon } from '../topicIcons';
 import { Editable } from './inlineEdit';
 import { SheetModeContext } from './sheetMode';
@@ -73,7 +74,12 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
   );
   return (
     <SheetDocContext.Provider value={sheetDoc}>
-      <div className={'ws-page' + (mode.bw ? ' is-bw' : '')} style={{ ...themeVars(t), ...style }} data-page={index} lang={lang}>
+      <div
+        className={'ws-page' + (mode.bw ? ' is-bw' : '') + (doc.look ? lookClasses(doc.look) + typeClass(page.type) : '')}
+        style={doc.look ? style : { ...themeVars(t), ...style }}
+        data-page={index}
+        lang={lang}
+      >
         {front ? (
           <div className={'ws-band is-back' + (headerSelected ? ' is-selected' : '')} onClick={onHeaderClick}>
             <div className="ws-band-icon">

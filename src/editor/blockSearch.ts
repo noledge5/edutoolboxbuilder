@@ -13,6 +13,7 @@ export const BLOCK_WORDS: Record<BlockType, string> = {
   image: 'Bild Foto Abbildung Grafik Karte Diagramm picture',
   flow: 'Fließschema Ablauf Pfeile Kreislauf Schritte Wirkungskette',
   qr: 'QR Link Video Internet',
+  code: 'Code Programm Python Informatik Quelltext Algorithmus',
   open: 'Offene Frage Schreiblinien Antwort Linien Frage',
   mc: 'Ankreuzen Multiple Choice Quiz Auswahl Antworten',
   gap: 'Lückentext Lücken Cloze fill in gaps',

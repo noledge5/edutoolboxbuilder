@@ -1,0 +1,476 @@
+/* Handwriting of the designs "Heft" and "Tafel". */
+:root { --font-hand: 'Kalam', var(--font-body); }
+
+/* Presentation slides (1920 × 1080), after docs/design/referenz/Präsentation Treibhauseffekt.dc.html.
+   Like the printed page: Caprasimo headings, Figtree text, white paper (the user's choice) and the
+   design's orange accent whatever the subject colour of the app around it. */
+.sl-slide {
+  --color-accent: var(--color-accent-1);
+  --color-accent-100: var(--color-accent-1-100);
+  --color-accent-200: var(--color-accent-1-200);
+  --color-accent-300: var(--color-accent-1-300);
+  --color-accent-400: var(--color-accent-1-400);
+  --color-accent-500: var(--color-accent-1-500);
+  --color-accent-600: var(--color-accent-1-600);
+  --color-accent-700: var(--color-accent-1-700);
+  --color-accent-800: var(--color-accent-1-800);
+  --color-accent-900: var(--color-accent-1-900);
+  /* Fonts of headings and text; the designs below change them. */
+  --sl-head: var(--font-heading);
+  --sl-body: var(--font-body);
+  --sl-hand: var(--font-hand);
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  flex: none;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  padding: 56px 96px 48px;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--color-text);
+  font-family: var(--sl-body);
+  font-size: 36px;
+  line-height: 1.3;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  text-align: left;
+  transform-origin: top left;
+}
+.sl-slide strong { font-weight: 700; }
+.sl-mark { padding: 0 8px; border-radius: 10px; background: var(--color-accent-200); color: inherit; }
+
+/* Header bar: topic icon, lesson line, phase pill, work form and time */
+.sl-bar { position: relative; display: flex; align-items: center; gap: 24px; padding: 16px; border-radius: 999px; background: var(--t-band); }
+.sl-bar-icon { width: 72px; height: 72px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--t-circle); color: var(--t-circle-fg); }
+.sl-bar-kicker { flex: 1; min-width: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--t-kicker); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sl-phase { padding: 12px 26px; border-radius: 999px; background: var(--t-pill); color: var(--t-pill-fg); font-size: 26px; font-weight: 700; white-space: nowrap; }
+.sl-form { display: flex; align-items: center; gap: 10px; padding: 12px 26px; border-radius: 999px; background: var(--paper); font-size: 26px; font-weight: 700; white-space: nowrap; }
+
+.sl-head { display: flex; flex-direction: column; gap: 20px; }
+.sl-h1 { margin: 0; font-family: var(--sl-head); font-weight: 400; letter-spacing: -0.01em; font-size: 80px; line-height: 1.1; text-wrap: pretty; }
+.sl-h1.is-big { font-size: 110px; line-height: 1.05; }
+.sl-h1.is-statement { font-size: 76px; line-height: 1.15; max-width: 1600px; }
+.sl-sub { font-size: 36px; color: var(--color-neutral-800); text-wrap: pretty; }
+.sl-small { font-size: 26px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-neutral-700); }
+.sl-label { font-size: 30px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--t-kicker); }
+.sl-lead { display: flex; flex-direction: column; gap: 16px; }
+.sl-foot { position: relative; margin-top: auto; display: flex; justify-content: space-between; gap: 40px; font-size: 24px; color: var(--color-neutral-700); }
+
+/* Numbered questions, answers in pills */
+.sl-list { display: flex; flex-direction: column; gap: 28px; }
+.sl-item { display: flex; align-items: center; gap: 32px; }
+.sl-num { width: 80px; height: 80px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--t-num); color: var(--t-num-fg); font-size: 40px; font-weight: 700; }
+.sl-item-text { flex: 1; min-width: 0; font-size: 44px; text-wrap: pretty; }
+.sl-list.is-many { gap: 20px; }
+.sl-list.is-many .sl-num { width: 64px; height: 64px; font-size: 32px; }
+.sl-list.is-many .sl-item-text { font-size: 36px; }
+.sl-answer { flex: none; max-width: 640px; padding: 14px 32px; border-radius: 999px; background: var(--color-accent-2-200); color: var(--color-accent-2-900); font-size: 40px; font-weight: 700; text-align: center; }
+.sl-answer.is-long { border-radius: 40px; font-size: 34px; }
+/* Solutions that come on a click: pale while editing. */
+.sl-slide .is-ghost { opacity: 0.4; outline: 3px dashed var(--color-accent-2-600); outline-offset: 2px; border-radius: 12px; }
+.sl-answer.is-ghost { outline-offset: -3px; border-radius: 999px; }
+
+/* A task of the worksheet: number, instruction, help, entries with gaps, solution on a click, picture */
+.sl-slide.is-task { gap: 40px; }
+.sl-task-head { display: flex; align-items: flex-start; gap: 36px; }
+.sl-num.is-task { width: 96px; height: 96px; font-size: 48px; }
+.sl-task-lead { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.sl-task-lead .sl-label { display: flex; align-items: center; gap: 0 4px; flex-wrap: wrap; }
+.sl-stars { display: inline-flex; gap: 2px; margin: 0 6px; color: var(--t-kicker); }
+.sl-stars .is-off { opacity: 0.35; }
+.sl-task-h1 { margin: 0; font-family: var(--sl-head); font-weight: 400; letter-spacing: -0.01em; font-size: 62px; line-height: 1.12; text-wrap: pretty; }
+.sl-task-h1.is-long { font-size: 50px; }
+.sl-task-help { font-size: 32px; font-style: italic; color: var(--color-neutral-800); text-wrap: pretty; }
+.sl-task-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+.sl-task-body.has-image { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.sl-task-main { min-height: 0; display: flex; flex-direction: column; gap: 32px; }
+.sl-task-items { display: flex; flex-direction: column; gap: 22px; }
+.sl-task-item { display: flex; align-items: center; gap: 28px; }
+.sl-task-item .sl-item-text { flex: 0 1 auto; font-size: 46px; line-height: 1.45; }
+.sl-task-letter { width: 64px; height: 64px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--t-band); color: var(--t-kicker); font-size: 30px; font-weight: 700; }
+.sl-task-items.is-many { gap: 12px; }
+.sl-task-items.is-many .sl-item-text { font-size: 40px; line-height: 1.35; }
+.sl-task-items.is-many .sl-task-letter { width: 50px; height: 50px; font-size: 26px; }
+.sl-task-items.is-many .sl-answer { padding: 8px 26px; font-size: 30px; }
+.sl-task-body.has-image .sl-answer { max-width: 420px; }
+/* A gap keeps its width; the word in it comes on a click. */
+.sl-gap { display: inline-block; min-width: 3em; margin: 0 0.1em; padding: 0 0.3em; border-bottom: 4px solid var(--color-neutral-500); line-height: 1.2; text-align: center; }
+.sl-gap-word { display: inline-block; font-weight: 700; color: var(--color-accent-2-800); }
+.sl-gap-word.is-ghost { outline-offset: 0; border-radius: 8px; }
+.sl-gap.is-empty { min-width: 4em; height: 1em; vertical-align: baseline; }
+.sl-exit-h1 .sl-gap, .sl-h1 .sl-gap { border-bottom-width: 6px; }
+.sl-slide.is-exit .sl-gap { border-bottom-color: var(--color-accent-2-300); }
+.sl-slide.is-exit .sl-gap-word { color: var(--color-accent-2-100); }
+.sl-solution { display: flex; flex-direction: column; gap: 8px; max-width: 1500px; padding: 30px 44px; border-radius: 40px; background: var(--color-accent-2-100); }
+.sl-solution-label { font-size: 24px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-2-800); }
+.sl-solution-text { font-size: 38px; line-height: 1.4; text-wrap: pretty; }
+.sl-task-items.is-many + .sl-solution .sl-solution-text { font-size: 30px; }
+.sl-task-body > .sl-figure-wrap { height: 100%; }
+
+/* Quote box above the key question */
+.sl-quote { display: flex; flex-direction: column; gap: 20px; max-width: 1400px; padding: 44px 56px; border-radius: 48px; background: var(--color-surface); }
+.sl-quote-text { font-size: 48px; line-height: 1.3; text-wrap: pretty; }
+
+/* Statement with a hint */
+.sl-slide.is-statement .sl-lead { gap: 12px; }
+.sl-hint { display: flex; gap: 32px; align-items: flex-start; max-width: 1500px; padding: 40px 48px; border-radius: 48px; background: var(--color-accent-2-100); }
+.sl-hint-icon { width: 72px; height: 72px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--color-accent-2-600); color: var(--color-accent-2-100); }
+.sl-hint-text { font-size: 34px; line-height: 1.4; }
+.sl-hint-text strong { color: var(--color-accent-2-800); }
+
+/* Boxes side by side */
+.sl-compare { display: grid; gap: 40px; }
+.sl-box { display: flex; flex-direction: column; gap: 20px; padding: 48px 56px; border-radius: 56px; }
+.sl-box-head { font-size: 48px; font-weight: 700; line-height: 1.15; }
+.sl-box-text { font-size: 36px; line-height: 1.4; }
+
+/* Flow chart with arrows */
+.sl-flow { display: grid; align-items: stretch; gap: 12px; }
+.sl-step { display: grid; align-content: center; gap: 6px; padding: 36px 24px; border-radius: 40px; text-align: center; }
+.sl-step-head { font-size: 40px; font-weight: 700; line-height: 1.15; }
+.sl-step-text { font-size: 28px; color: var(--color-neutral-800); }
+.sl-flow.is-many .sl-step-head { font-size: 34px; }
+.sl-flow.is-many .sl-step-text { font-size: 24px; }
+.sl-arrow { display: grid; place-items: center; font-size: 52px; font-weight: 700; color: var(--color-neutral-600); }
+
+/* Word cards */
+.sl-words { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.sl-words.is-many { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.sl-word { display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 150px; padding: 28px 36px; border-radius: 40px; background: var(--t-band); }
+.sl-word-main { font-size: 48px; font-weight: 700; line-height: 1.15; }
+.sl-words.is-many .sl-word-main { font-size: 40px; }
+.sl-word-meaning { font-size: 32px; color: var(--color-neutral-800); }
+
+/* A big picture with text beside it */
+.sl-image-row { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+.sl-image-row.has-text { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: center; }
+.sl-figure { margin: 0; min-height: 0; height: 100%; display: flex; flex-direction: column; gap: 12px; }
+.sl-picture { flex: 1; min-height: 0; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; border-radius: 40px; overflow: hidden; background: var(--color-surface); color: var(--color-neutral-600); font-size: 32px; font-weight: 700; }
+.sl-picture.has-image { background: transparent; }
+.sl-picture img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.sl-figure figcaption { font-size: 20px; color: var(--color-neutral-700); }
+.sl-image-text { font-size: 40px; line-height: 1.4; text-wrap: pretty; }
+
+/* Title slide */
+.sl-slide.is-title { justify-content: center; gap: 40px; padding: 96px 120px; }
+.sl-deco { position: absolute; border-radius: 50%; }
+.sl-deco.is-one { right: -160px; top: -120px; width: 820px; height: 820px; background: var(--color-accent-200); }
+.sl-deco.is-two { right: 260px; bottom: -220px; width: 480px; height: 480px; background: var(--color-accent-2-200); }
+.sl-title-icon { position: relative; width: 120px; height: 120px; border-radius: 50%; display: grid; place-items: center; background: var(--color-accent); color: var(--color-accent-100); }
+.sl-title-kicker { position: relative; font-size: 30px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-700); }
+.sl-title-h1 { position: relative; margin: 0; max-width: 1400px; font-family: var(--sl-head); font-weight: 400; letter-spacing: -0.01em; font-size: 150px; line-height: 1; text-wrap: balance; }
+.sl-title-sub { position: relative; max-width: 1000px; font-size: 40px; text-wrap: pretty; }
+
+/* Exit: summary on the green of the Sicherung */
+.sl-slide.is-exit { background: var(--color-accent-2-600); color: var(--color-accent-2-100); }
+.sl-deco.is-exit { right: -200px; bottom: -260px; width: 760px; height: 760px; background: var(--color-accent-2-500); }
+.sl-slide.is-exit .sl-bar { background: var(--color-accent-2-700); }
+.sl-slide.is-exit .sl-bar-icon { background: var(--color-accent-2-100); color: var(--color-accent-2-700); }
+.sl-slide.is-exit .sl-bar-kicker { color: inherit; }
+.sl-slide.is-exit .sl-phase { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
+.sl-slide.is-exit .sl-form { background: var(--color-accent-2-800); color: inherit; }
+.sl-slide.is-exit .sl-foot { color: inherit; }
+.sl-exit-text { position: relative; font-size: 36px; }
+.sl-exit-main { position: relative; display: flex; flex-direction: column; gap: 20px; }
+.sl-exit-label { font-size: 30px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.sl-exit-h1 { margin: 0; max-width: 1600px; font-family: var(--sl-head); font-weight: 400; letter-spacing: -0.01em; font-size: 120px; line-height: 1.05; text-wrap: pretty; }
+
+/* Free elements: text fields, pictures, videos, QR codes (positions in slide pixels) */
+.sl-elements { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.sl-el { position: absolute; box-sizing: border-box; margin: 0; overflow: hidden; }
+.sl-el-text { display: flex; flex-direction: column; justify-content: center; line-height: 1.3; text-wrap: pretty; }
+.sl-el-text.is-box { padding: 28px 36px; border-radius: 40px; background: var(--color-surface); }
+.sl-el-text.is-note { padding: 28px 36px; border-radius: 12px 12px 40px 12px; background: var(--color-accent-5-100); box-shadow: 0 10px 24px color-mix(in srgb, var(--color-neutral-900) 14%, transparent); }
+.sl-el-text.is-plain { padding: 8px 0; }
+.sl-el-text.is-heading { padding: 8px 0; font-family: var(--sl-head); letter-spacing: -0.01em; line-height: 1.1; }
+.sl-el-text strong { font-weight: 700; }
+.sl-el-image, .sl-el-video, .sl-el-qr { display: flex; flex-direction: column; gap: 10px; }
+.sl-el-picture { flex: 1; min-height: 0; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; border-radius: 32px; overflow: hidden; background: var(--color-surface); color: var(--color-neutral-600); font-size: 32px; font-weight: 700; }
+.sl-el-picture.has-image { background: transparent; }
+.sl-el-picture img { display: block; width: 100%; height: 100%; }
+.sl-el figcaption { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 26px; line-height: 1.3; color: var(--color-neutral-800); }
+.sl-el-source { font-size: 18px; color: var(--color-neutral-700); }
+.sl-el-qr { align-items: center; }
+.sl-el-qr > .sl-el-qr { flex: 1; min-height: 0; align-self: stretch; }
+.sl-el-qr .sl-qr-code { height: 100%; width: auto; max-width: 100%; aspect-ratio: 1; }
+.sl-el-qr .sl-qr-empty { flex: 1; width: 100%; }
+.sl-el-qr + figcaption, .sl-el.sl-el-qr figcaption { justify-content: center; }
+.sl-qr-code { display: block; color: var(--color-text); }
+.sl-qr-empty { display: grid; place-items: center; border: 4px dashed var(--color-neutral-400); border-radius: 24px; color: var(--color-neutral-600); font-size: 24px; font-weight: 700; }
+.sl-el-video { border-radius: 24px; background: #000; }
+.sl-el-video.is-live { pointer-events: auto; }
+.sl-video-frame { flex: 1; width: 100%; height: 100%; border: 0; border-radius: 24px; background: #000; }
+.sl-video-still { flex: 1; position: relative; display: grid; place-items: center; align-content: center; gap: 20px; border-radius: 24px; background: var(--color-neutral-800) center / cover no-repeat; color: #fff; }
+.sl-video-play { display: grid; place-items: center; width: 120px; height: 120px; border-radius: 50%; background: color-mix(in srgb, var(--color-neutral-900) 70%, transparent); }
+.sl-video-label { max-width: 90%; padding: 6px 18px; border-radius: 999px; background: color-mix(in srgb, var(--color-neutral-900) 70%, transparent); font-size: 26px; font-weight: 700; text-align: center; }
+.sl-video-print { flex: 1; display: flex; align-items: center; gap: 28px; padding: 28px; border-radius: 24px; background: var(--paper); border: 4px solid var(--color-neutral-300); font-size: 30px; }
+.sl-video-print .sl-qr-code, .sl-video-print .sl-qr-empty { flex: none; width: auto; height: 100%; max-width: 45%; aspect-ratio: 1; }
+.sl-slide:has(.sl-video-print) .sl-el-video { background: transparent; }
+
+/* Appearing on a click: hidden (keeping its place) until then, then animated in. */
+.sl-slide .is-later { visibility: hidden; }
+.sl-anim-fade { animation: sl-fade 0.5s ease-out both; }
+.sl-anim-rise { animation: sl-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.sl-anim-zoom { animation: sl-zoom 0.5s cubic-bezier(0.2, 0.8, 0.2, 1.2) both; }
+.sl-anim-left { animation: sl-left 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes sl-fade { from { opacity: 0; } }
+@keyframes sl-rise { from { opacity: 0; transform: translateY(60px); } }
+@keyframes sl-zoom { from { opacity: 0; transform: scale(0.6); } }
+@keyframes sl-left { from { opacity: 0; transform: translateX(-120px); } }
+@media (prefers-reduced-motion: reduce) {
+  .sl-anim-fade, .sl-anim-rise, .sl-anim-zoom, .sl-anim-left { animation: sl-fade 0.2s both; }
+}
+
+/* Presenting: answers lie under cards in the colour of the phase, with their number or letter. A tap uncovers one
+   (Presenter), the next click the next one. Covers placed in the editor work the same way over any part of a slide. */
+.sl-slide .is-covered { position: relative; visibility: hidden; }
+.sl-card {
+  visibility: visible; position: absolute; inset: -4px; z-index: 1; display: grid; place-items: center; box-sizing: border-box;
+  min-width: 72px; padding: 0 16px; border-radius: 999px; background: var(--t-pill); color: var(--t-pill-fg);
+  font-family: var(--sl-body); font-size: 34px; font-weight: 800; font-style: normal; line-height: 1; letter-spacing: 0.02em; text-transform: none; white-space: nowrap;
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--color-neutral-900) 16%, transparent);
+  cursor: pointer; pointer-events: auto;
+}
+.sl-solution > .sl-card { border-radius: 40px; font-size: 30px; letter-spacing: 0.08em; text-transform: uppercase; }
+:is(.sl-box-text, .sl-step-text, .sl-word-meaning) > .sl-card { border-radius: 24px; }
+.sl-gap > .sl-card { inset: -2px -6px 2px; min-width: 0; padding: 0 8px; border-radius: 14px; font-size: max(24px, 0.5em); }
+.sl-slide.is-exit .sl-card { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
+.sl-anim-flip { animation: sl-flip 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes sl-flip { from { opacity: 0; transform: perspective(900px) rotateX(-75deg); } }
+
+.sl-el-cover {
+  container-type: size; display: grid; place-items: center; padding: 6px 12px; border-radius: 24px; text-align: center;
+  background: var(--t-pill); color: var(--t-pill-fg); box-shadow: 0 6px 0 color-mix(in srgb, var(--color-neutral-900) 16%, transparent);
+  pointer-events: auto; cursor: pointer;
+}
+.sl-el-cover > span { font-size: clamp(18px, 46cqh, 56px); font-weight: 800; line-height: 1.1; overflow-wrap: anywhere; }
+.sl-el-cover.is-plain { background: var(--paper); color: var(--color-neutral-600); box-shadow: inset 0 0 0 3px var(--color-neutral-300); }
+.sl-el-cover.is-note { background: var(--color-neutral-300); color: var(--color-neutral-800); }
+.sl-el-cover.is-edit { opacity: 0.72; outline: 4px dashed var(--color-neutral-900); outline-offset: -4px; }
+.sl-el-cover.is-gone { animation: sl-cover-off 0.45s ease-in forwards; pointer-events: none; }
+.sl-el-cover.is-gone.is-still { animation: none; visibility: hidden; }
+@keyframes sl-cover-off { to { opacity: 0; transform: scale(0.92) rotate(-2deg); visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) {
+  .sl-anim-flip { animation: sl-fade 0.2s both; }
+  .sl-el-cover.is-gone { animation-duration: 0.2s; }
+}
+
+/* Sketches drawn in the editor, handwriting while presenting, blank boards */
+.sl-el-ink { overflow: visible; }
+.sl-ink { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.sl-ink-page { position: absolute; top: 0; left: 0; z-index: 3; width: 1920px; height: 1080px; transform-origin: top left; pointer-events: none; }
+/* On the dark board "black" writes in chalk. */
+:is(.sl-slide, .sl-ink-page, .sl-board).is-d-tafel { --ink-dark: var(--color-neutral-100); }
+.sl-board { position: relative; width: 1920px; height: 1080px; box-sizing: border-box; background: var(--paper); transform-origin: top left; }
+.sl-board.is-grid { background-image: linear-gradient(var(--color-accent-3-200) 2px, transparent 2px), linear-gradient(90deg, var(--color-accent-3-200) 2px, transparent 2px); background-size: 60px 60px; }
+.sl-board.is-lines { background-image: linear-gradient(transparent 86px, var(--color-accent-3-300) 86px, var(--color-accent-3-300) 89px); background-size: 100% 90px; background-position: 0 30px; }
+.sl-board.is-d-tafel { --board-line: color-mix(in srgb, var(--color-neutral-100) 14%, transparent); background-color: color-mix(in srgb, var(--color-accent-2-900) 80%, var(--color-accent-6-900)); }
+.sl-board.is-d-tafel.is-grid { background-image: linear-gradient(var(--board-line) 2px, transparent 2px), linear-gradient(90deg, var(--board-line) 2px, transparent 2px); }
+.sl-board.is-d-tafel.is-lines { background-image: linear-gradient(transparent 86px, var(--board-line) 86px, var(--board-line) 89px); }
+
+/* A work phase: short instruction, steps (I – you – we) with their time, the time and work form big at the side */
+.sl-slide.is-work { gap: 48px; }
+.sl-wp { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 72px; align-items: start; }
+.sl-wp-main { min-width: 0; display: flex; flex-direction: column; gap: 40px; }
+.sl-wp-h1 { font-size: 86px; }
+.sl-wp-h1.is-long, .sl-wp.has-steps .sl-wp-h1 { font-size: 66px; }
+.sl-wp-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 18px; }
+.sl-wp-step { display: flex; align-items: center; gap: 28px; padding: 18px 20px 18px 30px; border-radius: 999px; background: var(--t-band); transition: opacity 0.3s, transform 0.3s; }
+.sl-wp-who { flex: none; display: flex; align-items: center; gap: 12px; min-width: 190px; font-size: 32px; color: var(--t-kicker); }
+.sl-wp-who b { font-weight: 800; }
+.sl-wp-text { flex: 1; min-width: 0; font-size: 38px; line-height: 1.3; text-wrap: pretty; }
+.sl-wp-min { flex: none; padding: 10px 24px; border-radius: 999px; background: var(--paper); color: var(--color-text); font-size: 28px; font-weight: 700; white-space: nowrap; }
+.sl-wp-step.is-current { background: var(--t-pill); color: var(--t-pill-fg); transform: scale(1.02); box-shadow: 0 8px 0 color-mix(in srgb, var(--color-neutral-900) 14%, transparent); }
+.sl-wp-step.is-current .sl-wp-who { color: inherit; }
+.sl-wp-step.is-done { opacity: 0.45; }
+.sl-wp-step.is-coming { opacity: 0.8; }
+.sl-wp-side { display: flex; flex-direction: column; align-items: center; gap: 28px; padding-top: 8px; }
+.sl-wp-clock { width: 300px; height: 300px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--t-num); color: var(--t-num-fg); }
+.sl-wp-clock b { font-size: 124px; font-weight: 800; line-height: 1; }
+.sl-wp-clock span { font-size: 30px; font-weight: 700; }
+.sl-wp-form { display: flex; align-items: center; gap: 16px; padding: 18px 34px; border-radius: 999px; background: var(--t-band); color: var(--t-kicker); font-size: 34px; font-weight: 700; white-space: nowrap; }
+
+/* A vote: tapping a box counts a hand */
+.sl-box.is-vote { cursor: pointer; }
+.sl-box.is-vote .sl-box-head { padding-right: 150px; }
+.sl-vote { position: absolute; top: 32px; right: 36px; display: flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 999px; background: var(--paper); color: var(--color-text); font-size: 52px; font-weight: 800; line-height: 1; }
+
+/* In the editor: the click on which something appears */
+.sl-item, .sl-task-item, .sl-box, .sl-step, .sl-word { position: relative; }
+.sl-step-badge {
+  position: absolute; top: -14px; left: -14px; z-index: 3; display: grid; place-items: center; min-width: 40px; height: 40px; padding: 0 8px; box-sizing: border-box;
+  border-radius: 999px; background: var(--color-neutral-900); color: #fff; font-family: var(--font-ui, system-ui); font-size: 22px; font-weight: 700; line-height: 1;
+}
+.sl-slide [data-part] { position: relative; }
+.sl-figure-wrap { position: relative; min-height: 0; height: 100%; display: flex; }
+.sl-figure-wrap > .sl-figure { flex: 1; min-width: 0; }
+
+/* ——— Designs (one per presentation, chosen in the slide editor) ———
+   "organisch" is the design above. The others change fonts, background, bars and boxes;
+   `!important` on --t-* wins over the sheet-type colours set on each slide. */
+
+/* Klar: white, straight lines, bold sans-serif headings */
+.sl-slide.is-d-klar { --sl-head: var(--sl-body); }
+.sl-slide.is-d-klar :is(.sl-h1, .sl-title-h1, .sl-exit-h1, .sl-task-h1, .sl-el-text.is-heading) { font-weight: 800; letter-spacing: -0.025em; }
+.sl-slide.is-d-klar .sl-bar { padding: 0 0 22px; border-radius: 0; background: none; border-bottom: 6px solid var(--t-pill); }
+.sl-slide.is-d-klar .sl-bar-icon { width: 64px; height: 64px; border-radius: 16px; }
+.sl-slide.is-d-klar :is(.sl-phase, .sl-form) { border-radius: 12px; }
+.sl-slide.is-d-klar .sl-form { background: var(--color-neutral-100); }
+.sl-slide.is-d-klar :is(.sl-num, .sl-task-letter, .sl-title-icon) { border-radius: 16px; }
+.sl-slide.is-d-klar :is(.sl-quote, .sl-hint, .sl-box, .sl-step, .sl-word, .sl-solution, .sl-picture, .sl-el-text.is-box, .sl-el-picture) { border-radius: 20px; }
+.sl-slide.is-d-klar :is(.sl-answer, .sl-answer.is-long) { border-radius: 12px; }
+.sl-slide.is-d-klar .sl-hint-icon { border-radius: 16px; }
+.sl-slide.is-d-klar :is(.sl-card, .sl-el-cover, .sl-wp-step, .sl-wp-min, .sl-wp-form, .sl-vote) { border-radius: 12px; }
+.sl-slide.is-d-klar .sl-wp-clock { border-radius: 28px; }
+.sl-slide.is-d-klar .sl-deco.is-one { left: 0; right: auto; top: 0; width: 40px; height: 100%; border-radius: 0; background: var(--color-accent); }
+.sl-slide.is-d-klar :is(.sl-deco.is-two, .sl-deco.is-exit) { display: none; }
+.sl-slide.is-d-klar.is-exit { background: var(--color-accent-2-700); }
+.sl-slide.is-d-klar.is-exit .sl-bar { background: none; border-bottom-color: var(--color-accent-2-300); }
+.sl-slide.is-d-klar.is-exit .sl-form { background: var(--color-accent-2-800); }
+
+/* Heft: squared exercise-book paper with a red margin, headings in handwriting */
+.sl-slide.is-d-heft {
+  --sl-head: var(--sl-hand);
+  --ink: var(--color-accent-3-900);
+  padding-left: 200px;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(90deg, transparent 150px, var(--color-accent-7-500) 150px, var(--color-accent-7-500) 154px, transparent 154px),
+    linear-gradient(var(--color-accent-3-200) 2px, transparent 2px),
+    linear-gradient(90deg, var(--color-accent-3-200) 2px, transparent 2px);
+  background-size: 100% 100%, 48px 48px, 48px 48px;
+  background-repeat: no-repeat, repeat, repeat;
+}
+.sl-slide.is-d-heft :is(.sl-h1, .sl-title-h1, .sl-exit-h1, .sl-task-h1, .sl-el-text.is-heading) { font-weight: 700; letter-spacing: 0; color: var(--ink); }
+.sl-slide.is-d-heft .sl-title-h1 { font-size: 140px; line-height: 1.05; }
+.sl-slide.is-d-heft .sl-bar { border-radius: 12px; }
+.sl-slide.is-d-heft :is(.sl-bar-icon, .sl-title-icon) { border-radius: 14px; }
+.sl-slide.is-d-heft .sl-num { background: var(--paper); color: var(--ink); border: 4px solid var(--ink); }
+.sl-slide.is-d-heft :is(.sl-answer, .sl-answer.is-long) { border-radius: 10px; }
+.sl-slide.is-d-heft :is(.sl-quote, .sl-hint, .sl-box, .sl-step, .sl-solution, .sl-el-text.is-box) { border-radius: 16px; }
+.sl-slide.is-d-heft .sl-word { border-radius: 14px; background: var(--paper); border: 3px solid var(--color-accent-3-300); }
+.sl-slide.is-d-heft :is(.sl-card, .sl-el-cover, .sl-wp-step, .sl-wp-form) { border-radius: 12px; }
+.sl-slide.is-d-heft .sl-wp-clock { background: var(--paper); color: var(--ink); border: 6px solid var(--ink); }
+.sl-slide.is-d-heft .sl-deco { display: none; }
+.sl-slide.is-d-heft.is-title { padding-left: 220px; }
+.sl-slide.is-d-heft.is-exit { background-color: var(--paper); color: var(--color-text); }
+.sl-slide.is-d-heft.is-exit .sl-bar { background: var(--t-band); }
+.sl-slide.is-d-heft.is-exit .sl-bar-icon { background: var(--t-circle); color: var(--t-circle-fg); }
+.sl-slide.is-d-heft.is-exit .sl-bar-kicker { color: var(--t-kicker); }
+.sl-slide.is-d-heft.is-exit .sl-phase { background: var(--t-pill); color: var(--t-pill-fg); }
+.sl-slide.is-d-heft.is-exit .sl-form { background: var(--paper); }
+.sl-slide.is-d-heft.is-exit .sl-foot { color: var(--color-neutral-700); }
+.sl-slide.is-d-heft .sl-exit-main { padding: 40px 56px; border-radius: 20px; border: 6px solid var(--color-accent-2-600); background: var(--color-accent-2-100); }
+.sl-slide.is-d-heft .sl-exit-label { color: var(--color-accent-2-700); }
+.sl-slide.is-d-heft .sl-exit-h1 { font-size: 100px; color: var(--color-accent-2-900); }
+.sl-slide.is-d-heft.is-exit .sl-gap { border-bottom-color: var(--color-accent-2-500); }
+.sl-slide.is-d-heft.is-exit .sl-gap-word { color: var(--color-accent-2-700); }
+
+/* Tafel: a dark green board, chalk-coloured writing, headings in handwriting */
+.sl-slide.is-d-tafel {
+  --sl-head: var(--sl-hand);
+  --chalk: var(--color-neutral-100);
+  --chalk-yellow: var(--color-accent-5-200);
+  --board-line: color-mix(in srgb, var(--color-neutral-100) 12%, transparent);
+  --color-neutral-800: var(--color-neutral-300);
+  --color-neutral-700: var(--color-neutral-400);
+  --color-neutral-600: var(--color-neutral-400);
+  --color-neutral-500: var(--color-neutral-400);
+  --t-band: var(--board-line) !important;
+  --t-circle: var(--chalk) !important;
+  --t-circle-fg: var(--color-accent-2-900) !important;
+  --t-pill: var(--chalk-yellow) !important;
+  --t-pill-fg: var(--color-neutral-900) !important;
+  --t-kicker: var(--chalk-yellow) !important;
+  --t-num: transparent !important;
+  --t-num-fg: var(--chalk) !important;
+  background: color-mix(in srgb, var(--color-accent-2-900) 80%, var(--color-accent-6-900));
+  color: var(--chalk);
+}
+.sl-slide.is-d-tafel :is(.sl-h1, .sl-title-h1, .sl-exit-h1, .sl-task-h1, .sl-el-text.is-heading) { font-weight: 700; letter-spacing: 0; }
+.sl-slide.is-d-tafel .sl-title-h1 { font-size: 140px; line-height: 1.05; }
+.sl-slide.is-d-tafel .sl-bar-kicker { color: var(--chalk); }
+.sl-slide.is-d-tafel .sl-form { background: var(--board-line); color: var(--chalk); }
+.sl-slide.is-d-tafel .sl-num { border: 4px solid var(--chalk); }
+.sl-slide.is-d-tafel :is(.sl-answer, .sl-answer.is-long) { background: none; border: 4px solid var(--chalk-yellow); color: var(--chalk-yellow); }
+.sl-slide.is-d-tafel :is(.sl-quote, .sl-hint, .sl-el-text.is-box, .sl-picture, .sl-el-picture) { background: var(--board-line); }
+.sl-slide.is-d-tafel :is(.sl-box, .sl-step) { background: var(--board-line) !important; border: 3px solid color-mix(in srgb, var(--chalk) 40%, transparent); }
+.sl-slide.is-d-tafel .sl-hint-icon { background: var(--chalk-yellow); color: var(--color-neutral-900); }
+.sl-slide.is-d-tafel .sl-hint-text strong { color: var(--chalk-yellow); }
+.sl-slide.is-d-tafel .sl-mark { background: color-mix(in srgb, var(--chalk-yellow) 35%, transparent); }
+.sl-slide.is-d-tafel .sl-solution { background: color-mix(in srgb, var(--color-accent-2-400) 30%, transparent); }
+.sl-slide.is-d-tafel .sl-solution-label { color: var(--chalk-yellow); }
+.sl-slide.is-d-tafel .sl-gap { border-bottom-color: var(--color-neutral-400); }
+.sl-slide.is-d-tafel .sl-gap-word { color: var(--chalk-yellow); }
+.sl-slide.is-d-tafel .sl-el-text.is-note { color: var(--color-neutral-900); }
+.sl-slide.is-d-tafel .sl-title-icon { background: var(--chalk-yellow); color: var(--color-neutral-900); }
+.sl-slide.is-d-tafel .sl-title-kicker { color: var(--chalk-yellow); }
+.sl-slide.is-d-tafel .sl-wp-clock { border: 6px solid var(--chalk); }
+.sl-slide.is-d-tafel .sl-wp-min { background: var(--board-line); color: var(--chalk); }
+.sl-slide.is-d-tafel .sl-vote { background: var(--chalk-yellow); color: var(--color-neutral-900); }
+.sl-slide.is-d-tafel :is(.sl-deco.is-one, .sl-deco.is-two, .sl-deco.is-exit) { background: none; border: 6px solid var(--board-line); }
+.sl-slide.is-d-tafel.is-exit { background: color-mix(in srgb, var(--color-accent-2-800) 85%, var(--color-accent-6-900)); }
+.sl-slide.is-d-tafel.is-exit .sl-bar { background: var(--board-line); }
+.sl-slide.is-d-tafel.is-exit .sl-phase { background: var(--chalk-yellow); color: var(--color-neutral-900); }
+.sl-slide.is-d-tafel .sl-exit-label { color: var(--chalk-yellow); }
+
+/* Kontrast: black on white, strong frames, yellow for solutions */
+.sl-slide.is-d-kontrast {
+  --sl-head: var(--sl-body);
+  --ink: var(--color-neutral-900);
+  --signal: var(--color-accent-5-200);
+  --color-neutral-800: var(--ink);
+  --color-neutral-700: var(--ink);
+  --t-band: var(--ink) !important;
+  --t-circle: var(--paper) !important;
+  --t-circle-fg: var(--ink) !important;
+  --t-pill: var(--signal) !important;
+  --t-pill-fg: var(--ink) !important;
+  --t-kicker: var(--ink) !important;
+  --t-num: var(--ink) !important;
+  --t-num-fg: var(--paper) !important;
+  color: var(--ink);
+}
+.sl-slide.is-d-kontrast :is(.sl-h1, .sl-title-h1, .sl-exit-h1, .sl-task-h1, .sl-el-text.is-heading) { font-weight: 800; letter-spacing: -0.02em; }
+.sl-slide.is-d-kontrast .sl-bar-kicker { color: var(--paper); }
+.sl-slide.is-d-kontrast .sl-form { background: var(--paper); color: var(--ink); }
+.sl-slide.is-d-kontrast .sl-sub { font-weight: 600; }
+.sl-slide.is-d-kontrast :is(.sl-answer, .sl-answer.is-long) { background: var(--signal); border: 4px solid var(--ink); color: var(--ink); }
+.sl-slide.is-d-kontrast :is(.sl-quote, .sl-hint, .sl-word, .sl-solution, .sl-task-letter, .sl-el-text.is-box, .sl-picture) { background: var(--paper); border: 4px solid var(--ink); }
+.sl-slide.is-d-kontrast :is(.sl-box, .sl-step) { background: var(--paper) !important; border: 4px solid var(--ink); }
+.sl-slide.is-d-kontrast .sl-hint-icon { background: var(--ink); color: var(--paper); }
+.sl-slide.is-d-kontrast .sl-hint-text strong { color: var(--ink); }
+.sl-slide.is-d-kontrast .sl-mark { background: var(--signal); }
+.sl-slide.is-d-kontrast .sl-solution-label { color: var(--ink); }
+.sl-slide.is-d-kontrast .sl-gap { border-bottom: 5px solid var(--ink); }
+.sl-slide.is-d-kontrast .sl-gap-word { color: var(--ink); background: var(--signal); }
+.sl-slide.is-d-kontrast .sl-arrow { color: var(--ink); }
+.sl-slide.is-d-kontrast :is(.sl-card, .sl-el-cover) { border: 4px solid var(--ink); box-shadow: none; }
+.sl-slide.is-d-kontrast .sl-wp-step { background: var(--paper); border: 4px solid var(--ink); color: var(--ink); }
+.sl-slide.is-d-kontrast .sl-wp-step.is-current { background: var(--signal); }
+.sl-slide.is-d-kontrast .sl-wp-who { color: var(--ink); }
+.sl-slide.is-d-kontrast .sl-wp-min { border: 3px solid var(--ink); }
+.sl-slide.is-d-kontrast .sl-wp-form { background: var(--paper); color: var(--ink); border: 4px solid var(--ink); }
+.sl-slide.is-d-kontrast .sl-vote { border: 4px solid var(--ink); }
+.sl-slide.is-d-kontrast :is(.sl-deco.is-two, .sl-deco.is-exit) { display: none; }
+.sl-slide.is-d-kontrast .sl-deco.is-one { left: 0; right: auto; top: 0; width: 40px; height: 100%; border-radius: 0; background: var(--ink); }
+.sl-slide.is-d-kontrast .sl-title-icon { background: var(--ink); color: var(--paper); }
+.sl-slide.is-d-kontrast .sl-title-kicker { color: var(--ink); }
+.sl-slide.is-d-kontrast.is-exit { background: var(--ink); color: var(--paper); }
+.sl-slide.is-d-kontrast.is-exit .sl-bar { background: var(--paper); }
+.sl-slide.is-d-kontrast.is-exit .sl-bar-icon { background: var(--ink); color: var(--paper); }
+.sl-slide.is-d-kontrast.is-exit .sl-bar-kicker { color: var(--ink); }
+.sl-slide.is-d-kontrast.is-exit .sl-phase { background: var(--signal); color: var(--ink); }
+.sl-slide.is-d-kontrast.is-exit .sl-form { background: var(--ink); color: var(--paper); }
+.sl-slide.is-d-kontrast .sl-exit-label { color: var(--signal); }
+.sl-slide.is-d-kontrast.is-exit .sl-gap { border-bottom-color: var(--signal); }
+.sl-slide.is-d-kontrast.is-exit .sl-gap-word { color: var(--ink); }
+
+/* Drawing the slides off screen for the PowerPoint export (PptxDialog). "Standardschriften" measure the
+   slides in the fonts PowerPoint will use on any computer. */
+.sl-export { position: fixed; left: -30000px; top: 0; width: 1920px; pointer-events: none; }
+.sl-export.is-std { --font-heading: Georgia, 'Times New Roman', serif; --font-body: Arial, Helvetica, sans-serif; --font-hand: 'Comic Sans MS', 'Comic Sans', cursive; }
+.sl-export.is-std .sl-slide.is-d-organisch :is(.sl-h1, .sl-title-h1, .sl-exit-h1, .sl-task-h1, .sl-el-text.is-heading) { font-weight: 700; }

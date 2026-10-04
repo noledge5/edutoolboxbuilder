@@ -109,6 +109,17 @@ Der Punkt am Knopf „Abgleich Mac/iPad“ ist orange, solange es Änderungen gi
 
 Die Anleitung erklärt auch geplante Stunden (Jahresplan), Rückseiten (`"back": true`), Folien (`"slides"`) und Suchwörter für Bilder, sodass auch andere KIs damit Pakete schreiben können. Folien für eine vorhandene Stunde: Claude schickt das Modul mit derselben Nummer und nur die Stunde mit ihren Folien; der Baukasten hängt sie an.
 
+### Fachdesigns
+Jedes Modul hat unter „Design der Blätter und Folien“ ein Design. Vorgabe ist das Design des Fachs, passend zur Klasse:
+- **Geographie:** Klasse 5–6 „Entdecker“ (Kompassrose, Gradnetz, Kartenpunkte), Klasse 7–10 „Atlas“ (Kartenrahmen mit Gradleiste, Höhenlinien).
+- **Englisch:** Klasse 5–6 wahlweise „Sprechblase“, „Sticker“ oder „Comic“ (Feld „Variante“), Klasse 7–10 „Notizbuch“ (Klebeband, Punktraster, Etiketten).
+- **Informatik:** Klasse 5–6 „Bausteine“ (Kopfband als Programmblock), Klasse 7–10 „Terminal“ (Leiterbahnen, Flussdiagramm-Formen).
+- Alle anderen Fächer bleiben „Organisch“; jedes Modul kann aber jedes Design nehmen oder „Organisch“ wählen.
+- **Schrift der Überschriften:** je Design zwei Vorschläge oder Caprasimo. Fließtext, Größen, Abstände und Raster bleiben gleich, vorhandene Blätter brechen also nicht neu um.
+- Das Design gilt für die Arbeitsblätter, die Inhaltsübersicht und das Kompetenzraster des Moduls und für die Folien, solange dort das Design „Organisch“ gewählt ist (es heißt dann „Fachdesign …“). Klar, Heft, Tafel und Kontrast bleiben wie bisher.
+- Die S/W-Kopiervorlage hat in jedem Design nur Linien statt Flächen. Im PowerPoint-Export kommen Motive als Bilder mit, Texte bleiben bearbeitbar.
+- Neuer Baustein **Code** (Text & Struktur): Programmcode mit Zeilennummern, Python-Schlüsselwörter und Werte hervorgehoben.
+
 ### KI im Baukasten
 Mit einem eigenen KI-Schlüssel arbeitet Claude direkt im Baukasten; ohne Schlüssel geht alles weiter über den Chat (Auftrag kopieren, im Claude-Projekt mit der Anleitung einfügen, Antwort einlesen).
 - **Einrichten:** Übersicht → Einstellungen → „KI im Baukasten“. Anbieter „Claude direkt“ (Schlüssel auf console.anthropic.com, eigenes Konto mit Guthaben, nicht das Claude-Abo) oder OpenRouter. „Prüfen“ testet den Schlüssel, ohne etwas zu kosten. Modelle je Aufgabe: Claude Opus 5.5 für Stunden und Jahrespläne, Claude Sonnet 5.5 für die Helfer am Baustein. Der Schlüssel bleibt nur auf diesem Gerät (nicht in Sicherungen und nicht in der Abgleich-Datei); auf dem iPad einmal eigens eintragen.

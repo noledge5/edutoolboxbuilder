@@ -1,4 +1,5 @@
 import {
+  SquareCode,
   BadgeHelp,
   BookA,
   BookMarked,
@@ -51,6 +52,7 @@ export const BLOCK_ICONS: Record<BlockType, LucideIcon> = {
   image: Image,
   flow: Workflow,
   qr: QrCode,
+  code: SquareCode,
   open: PencilLine,
   mc: ListChecks,
   gap: TextCursorInput,

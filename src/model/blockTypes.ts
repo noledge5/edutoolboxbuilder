@@ -207,6 +207,24 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       { key: 'caption', label: 'Beschriftung', kind: 'text' },
     ],
   },
+  code: {
+    label: 'Code',
+    group: 0,
+    span: 12,
+    defaults: { code: 'summe = 0\nfor i in range(1, 6):\n    summe = summe + i\nprint(summe)', language: 'python' },
+    fields: [
+      { key: 'code', label: 'Code (je Zeile eine Programmzeile; Einrückung mit Leerzeichen)', kind: 'area' },
+      {
+        key: 'language',
+        label: 'Hervorheben',
+        kind: 'seg',
+        options: [
+          { v: 'python', l: 'Python' },
+          { v: 'plain', l: 'Ohne' },
+        ],
+      },
+    ],
+  },
   open: {
     label: 'Offene Frage',
     group: 2,

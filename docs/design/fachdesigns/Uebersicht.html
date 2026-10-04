@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fachdesigns · Übersicht</title>
+<link rel="stylesheet" href="vendor/organic-styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&family=Nunito:wght@800&family=Archivo:wght@700&family=IBM+Plex+Sans+Condensed:wght@600&family=Patrick+Hand&family=Sniglet:wght@800&family=Rubik:wght@800&family=Bangers&family=Luckiest+Guy&family=DM+Serif+Display&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Fredoka:wght@600&family=Lilita+One&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700&display=swap">
+<link rel="stylesheet" href="vendor/sheet.css">
+<link rel="stylesheet" href="vendor/slides.css">
+<link rel="stylesheet" href="fachdesigns.css">
+<link rel="stylesheet" href="fd-docs.css">
+</head>
+<body class="fd-doc">
+<header class="fd-top"><h1>Fachdesigns · Übersicht<small>Drei Fächer, zwei Altersstufen. Klick auf ein Design öffnet Arbeitsblatt, S/W-Fassung, Blatt-Typen und Folien.</small></h1><nav class="fd-tabs" id="fh"></nav><nav class="fd-tabs"><a class="fd-tab" href="Fachdesigns-Spezifikation.md">Spezifikation</a></nav></header>
+<main class="fd-main" id="main"></main>
+<script src="fd-render.js"></script>
+<script src="fd-content.js"></script>
+<script>
+(function(){
+  const DS = window.FD_DESIGNS, main = document.getElementById('main');
+  const z = (html, s) => `<div class="fd-z" style="zoom:${s}">${html}</div>`;
+  const rows = [['geo','Geographie'],['eng','Englisch'],['inf','Informatik']];
+  let fh = localStorage.getItem('fd-heads') || 'a';
+  const nav = document.getElementById('fh');
+  const draw = () => {
+  nav.innerHTML = '<span class="fd-label" style="align-self:center">Überschrift</span>' + [['a','Vorschlag A'],['b','Vorschlag B'],['o','Caprasimo']].map(([v,l])=>`<button class="fd-tab${fh===v?' is-on':''}" data-fh="${v}">${l}</button>`).join('');
+  main.innerHTML = rows.map(([f,label]) => `<section class="fd-sec" data-screen-label="${label}"><h2>${label}</h2><div class="fd-grid">${DS.filter(d=>d.fach===f).map(FD.view).map(d=>`
+    <a class="fd-card" href="Fachdesign.html#${d.key}"><div><h3>${d.stufe} · „${d.name}“${d.variants ? ` <small style="font-weight:600;color:#645c50">(Variante, ${Object.keys(d.variants).length} zur Wahl)</small>` : ''}</h3><div class="fd-sub">${d.motifs.join(' · ')}</div></div>
+    <div class="fd-card-body">${z(FD.page(d),.36)}<div class="fd-card-slides">${z(FD.slideTitle(d),.17)}${z(FD.slideTask(d,false),.17)}</div></div></a>`).join('')}</div></section>`).join('');
+  main.querySelectorAll('.is-fd').forEach(el => el.classList.add('is-fh-'+fh));
+  main.querySelectorAll('.fd-card .fd-sub').forEach((s,i)=>{ const d = FD.view(DS.filter(x=>x.fach===rows[Math.floor(i/2)][0])[i%2]); s.textContent += ' · Überschrift: ' + (fh==='o'?'Caprasimo':d.heads[fh==='a'?0:1]); });
+  };
+  nav.addEventListener('click', e => { const b = e.target.closest('[data-fh]'); if(!b) return; fh = b.dataset.fh; localStorage.setItem('fd-heads', fh); draw(); });
+  draw();
+})();
+</script>
+</body>
+</html>

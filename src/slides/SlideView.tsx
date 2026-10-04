@@ -7,6 +7,7 @@ import { THEMES, WORK_FORMS_EN } from '../model/themes';
 import type { Lang, WorkForm } from '../model/types';
 import { typo } from '../sheet/lang';
 import { themeVars } from '../sheet/SheetPage';
+import { lookClasses, typeClass, type Look } from '../model/look';
 import { useImageUrl } from '../storage/images';
 import { topicIcon } from '../topicIcons';
 import { ElementView } from './elements';
@@ -21,6 +22,8 @@ export const SLIDE_H = 1080;
 export interface SlideContext {
   /** The look of the slides (fonts, background, bars, boxes). */
   design: SlideDesign;
+  /** Subject design, used with the design "Organisch". */
+  look?: Look | null;
   icon: string;
   lang: Lang;
   /** Header bar line: "Der Treibhauseffekt · Klasse 9 · Stunde 2" */
@@ -72,7 +75,7 @@ function Header({ slide, ctx, edit }: { slide: Slide; ctx: SlideContext; edit: b
   const form = slide.form ? (en ? WORK_FORMS_EN[slide.form] : slide.form) : '';
   const formText = slide.layout === 'work' ? '' : [form, slide.minutes ? `${slide.minutes} min` : ''].filter(Boolean).join(' · ');
   return (
-    <div className="sl-bar">
+    <div className="sl-bar" data-om-raster={ctx.look && ctx.design === 'organisch' ? '' : undefined}>
       <div className="sl-bar-icon">
         <Icon icon={topicIcon(ctx.icon)} size={36} />
       </div>
@@ -173,13 +176,19 @@ function GapText({ text, lang, ghost, data, gap }: { text: string; lang: Lang; g
 }
 
 const BOX_COLORS = ['var(--color-surface)', 'var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-3-200)'];
+const FD_BOX_COLORS = ['var(--fd-surface)', 'var(--fd-p-200)', 'var(--fd-s-200)', 'var(--fd-t-200)'];
+const FD_FLOW_COLORS = ['var(--fd-p-200)', 'var(--fd-s-200)', 'var(--fd-t-200)', 'var(--fd-n-300)'];
 const FLOW_COLORS = ['var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-300)', 'var(--color-neutral-300)', 'var(--color-accent-3-200)', 'var(--color-accent-4-200)'];
 
 export function SlideView({ slide: s, number, ctx, step, edit = false, live = false, print = false, noAnswers = false, opened = NO_KEYS, votes, keepCovers = false, style }: SlideViewProps) {
   const lang = ctx.lang;
   const items = shownItems(s);
   const parts = partSteps(s);
-  const vars = { ...themeVars(THEMES[s.type] ?? THEMES.uebung), ...style } as CSSProperties;
+  // A subject design takes the place of "Organisch"; its palette gives the sheet type's colours (not inline).
+  const look = ctx.design === 'organisch' ? ctx.look : null;
+  const vars = (look ? { ...style } : { ...themeVars(THEMES[s.type] ?? THEMES.uebung), ...style }) as CSSProperties;
+  const boxColors = look ? FD_BOX_COLORS : BOX_COLORS;
+  const flowColors = look ? FD_FLOW_COLORS : FLOW_COLORS;
   const appear: Appear = (at, anim) => {
     if (step === null || at === 0) return '';
     if (at > step) return ' is-later';
@@ -257,8 +266,8 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
       const x = part('text');
       body = (
         <>
-          <div className="sl-deco is-one" />
-          <div className="sl-deco is-two" />
+          <div className="sl-deco is-one" data-om-raster={look ? '' : undefined} />
+          <div className="sl-deco is-two" data-om-raster={look ? '' : undefined} />
           <div className="sl-title-icon">
             <Icon icon={topicIcon(ctx.icon)} size={60} />
           </div>
@@ -547,7 +556,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
             {items.map(([head, text], i) => {
               const p = part(`item:${i}`);
               return (
-                <div key={i} className={'sl-box' + (s.vote ? ' is-vote' : '') + p.cls} style={{ background: BOX_COLORS[i % BOX_COLORS.length] }} {...p.data} {...(s.vote && step !== null ? { 'data-vote': i } : {})}>
+                <div key={i} className={'sl-box' + (s.vote ? ' is-vote' : '') + p.cls} style={{ background: boxColors[i % boxColors.length] }} {...p.data} {...(s.vote && step !== null ? { 'data-vote': i } : {})}>
                   {p.badge}
                   {s.vote && (step !== null || edit) && (
                     <div className="sl-vote" title={TEXT[lang].votes} {...(step !== null ? { 'data-unvote': i } : {})}>
@@ -582,7 +591,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
                       →
                     </div>
                   )}
-                  <div className={'sl-step' + p.cls} style={{ background: FLOW_COLORS[i % FLOW_COLORS.length] }} {...p.data}>
+                  <div className={'sl-step' + p.cls} style={{ background: flowColors[i % flowColors.length] }} {...p.data}>
                     {p.badge}
                     <div className="sl-step-head" {...ed(`item:${i}`)}>
                       <Rich text={head} lang={lang} />
@@ -656,7 +665,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
   let covers = 0;
   const framed = s.layout !== 'title' && s.layout !== 'exit';
   return (
-    <div className={`sl-slide is-${s.layout} is-d-${ctx.design}`} style={vars} lang={lang}>
+    <div className={`sl-slide is-${s.layout} is-d-${ctx.design}` + (look ? lookClasses(look) + typeClass(s.type) : '')} style={vars} lang={lang}>
       {framed && <Header slide={s} ctx={ctx} edit={edit} />}
       {body}
       {framed && <Footer ctx={ctx} number={number} />}

@@ -22,6 +22,7 @@ const BLOCK_USE: Record<BlockType, string> = {
   image: 'Platz für ein Bild mit Bildunterschrift; in `search` englische Suchwörter für die Bildsuche der Lehrkraft (Openverse, Wikimedia Commons), die Quelle trägt der Baukasten ein.',
   flow: 'Fließschema: Stationen nebeneinander, mit Pfeilen verbunden (bis etwa 5 Schritte).',
   qr: 'QR-Code zu einem Link (Video, Simulation, Karte).',
+  code: 'Programmcode mit Zeilennummern (Informatik), z. B. Python zum Lesen und Nachvollziehen; Schlüsselwörter und Werte werden hervorgehoben.',
   open: 'Offene Frage mit Schreiblinien.',
   mc: 'Ankreuzaufgabe.',
   gap: 'Lückentext.',

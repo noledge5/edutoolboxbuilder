@@ -1,5 +1,6 @@
 // The slides of a lesson: thumbnails on the left, the chosen slide in the middle, its fields on the right.
 // Presenting and printing (handout, PDF) start from the top bar.
+import { lookName } from '../model/look';
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import {
   ArrowDown,
@@ -734,8 +735,8 @@ export function SlidesView(p: SlidesViewProps) {
                     }}
                   >
                     <SlideBox slide={slide ?? createSlide('task')} number={i + 1} ctx={{ ...p.ctx, design: d.v }} width={264} />
-                    <b>{d.l}</b>
-                    <span>{d.use}</span>
+                    <b>{d.v === 'organisch' && p.ctx.look ? `Fachdesign „${lookName(p.ctx.look)}“` : d.l}</b>
+                    <span>{d.v === 'organisch' && p.ctx.look ? 'Wie die Arbeitsblätter des Moduls (im Modul einstellbar)' : d.use}</span>
                   </button>
                 ))}
               </div>

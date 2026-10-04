@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fachdesign</title>
+<link rel="stylesheet" href="vendor/organic-styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&family=Nunito:wght@800&family=Archivo:wght@700&family=IBM+Plex+Sans+Condensed:wght@600&family=Patrick+Hand&family=Sniglet:wght@800&family=Rubik:wght@800&family=Bangers&family=Luckiest+Guy&family=DM+Serif+Display&family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Fredoka:wght@600&family=Lilita+One&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@700&display=swap">
+<link rel="stylesheet" href="vendor/sheet.css">
+<link rel="stylesheet" href="vendor/slides.css">
+<link rel="stylesheet" href="fachdesigns.css">
+<link rel="stylesheet" href="fd-docs.css">
+</head>
+<body class="fd-doc">
+<header class="fd-top"><h1>Fachdesigns<small>Arbeitsblatt-Baukasten · Arbeitsblatt und Folien je Design</small></h1><nav class="fd-tabs" id="fh"></nav><nav class="fd-tabs" id="tabs"></nav></header>
+<main class="fd-main" id="main"></main>
+<script src="fd-render.js"></script>
+<script src="fd-content.js"></script>
+<script>
+(function(){
+  const DS = window.FD_DESIGNS, PAL = {};
+  const dot = d => ({'geo-1':'#0185b4','geo-2':'#396088','eng-1':'#c74b43','eng-2':'#425a96','inf-1':'#8962c5','inf-2':'#066a75'})[d.key];
+  const tabs = document.getElementById('tabs'), main = document.getElementById('main');
+  tabs.innerHTML = '<a class="fd-tab" href="Übersicht.html">← Übersicht</a>' + DS.map(d => `<a class="fd-tab" data-k="${d.key}" href="#${d.key}"><span class="fd-dot" style="background:${dot(d)}"></span>${d.fachLabel} ${d.stufe.replace('Klasse ','')}</a>`).join('');
+  const z = (html, s) => `<div class="fd-z" style="zoom:${s}">${html}</div>`;
+  const fig = (cap, html) => `<div class="fd-fig"><div class="fd-cap">${cap}</div>${html}</div>`;
+  function ramps(d){
+    const names = {p:'Fachfarbe',s:'Partnerfarbe',t:'Drittfarbe',n:'Neutral'};
+    const el = document.createElement('div'); el.className = 'ws-page ' + FD.cls(d); el.style.cssText='position:absolute;visibility:hidden;height:0;padding:0';
+    document.body.appendChild(el); const cs = getComputedStyle(el);
+    const out = ['p','s','t','n'].map(r => `<div class="fd-ramp"><span>${d.ramps[r]}<small>${names[r]} · --fd-${r}</small></span>${[1,2,3,4,5,6,7,8,9].map(i=>{const v=cs.getPropertyValue(`--fd-${r}-${i*100}`).trim();return `<i style="background:${v};color:${i<5?'#201e1d':'#fff'}" title="${v}">${i*100}</i>`}).join('')}</div>`).join('');
+    el.remove(); return out;
+  }
+  let fh = localStorage.getItem('fd-heads') || 'a';
+  const fhNav = document.getElementById('fh');
+  function fhTabs(d){ fhNav.innerHTML = '<span class="fd-label" style="align-self:center">Überschrift</span>' + [['a',d.heads[0]],['b',d.heads[1]],['o','Caprasimo']].map(([v,l])=>`<button class="fd-tab${fh===v?' is-on':''}" data-fh="${v}">${l}</button>`).join(''); }
+  fhNav.addEventListener('click', e => { const b = e.target.closest('[data-fh]'); if(!b) return; fh = b.dataset.fh; localStorage.setItem('fd-heads', fh); render(true); });
+  const applyFh = root => root.querySelectorAll('.is-fd').forEach(el => { if(!el.closest('[data-fix]')) el.classList.add('is-fh-'+fh); });
+  const fx = (v, html) => `<div data-fix class="is-fh-${v}">${html}</div>`;
+  function render(keep){
+    const k = (location.hash||'#geo-1').slice(1), raw = DS.find(x=>x.key===k) || DS[0], d = FD.view(raw);
+    fhTabs(d);
+    const cur = raw.variants ? FD.variant(raw) : null;
+    const varBar = raw.variants ? `<section class="fd-sec" data-screen-label="${d.key} Varianten"><h2>Varianten · zum Vergleich</h2><div class="fd-row">${Object.entries(raw.variants).map(([v,o])=>`<button class="fd-tab${v===cur?' is-on':''}" data-x="${v}">${o.label}</button>`).join('')}</div><div class="fd-row">${Object.keys(raw.variants).map(v=>{const dv=Object.assign({},raw,raw.variants[v]);const html=FD.page(dv).replace(/is-x-\w+/,'is-x-'+v);const sl=FD.slideTask(dv,false).replace(/is-x-\w+/,'is-x-'+v);return fig(raw.variants[v].label, `<div style="display:flex;flex-direction:column;gap:10px">${z(html,.4)}${z(sl,.166)}</div>`)}).join('')}</div></section>` : '';
+    const y = scrollY;
+    document.title = `Fachdesign ${d.fachLabel} ${d.stufe} · ${d.name}`;
+    tabs.querySelectorAll('[data-k]').forEach(a=>a.classList.toggle('is-on', a.dataset.k===d.key));
+    main.innerHTML = `
+    <section class="fd-head" data-screen-label="${d.key} Steckbrief"><div><h2>${d.fachLabel} ${d.stufe} · „${d.name}“</h2><div class="fd-sub">.is-fd.is-f-${d.fach}.is-age-${d.age}</div><p>${d.why}</p><ul class="fd-motifs">${d.motifs.map(m=>`<li>${m}</li>`).join('')}</ul></div><div class="fd-ramps">${ramps(d)}</div></section>
+    ${varBar}
+    <section class="fd-sec" data-screen-label="${d.key} Arbeitsblatt"><h2>Arbeitsblatt · Übung</h2><div class="fd-row">
+      ${fig('Farbe', z(FD.page(d),.56))}
+      ${fig('S/W-Kopiervorlage', z(FD.page(d,{bw:true}),.56))}
+      ${fig('Kopfbänder aller Blatt-Typen', z(FD.bands(d),.56))}
+    </div></section>
+    <section class="fd-sec" data-screen-label="${d.key} Folien"><h2>Folien · 1920 × 1080</h2><div class="fd-row">
+      ${fig('Titel', z(FD.slideTitle(d),.34))}
+      ${fig('Arbeitsauftrag', z(FD.slideWork(d),.34))}
+      ${fig('Aufgabe · Karten verdeckt', z(FD.slideTask(d,false),.34))}
+      ${fig('Aufgabe · aufgedeckt', z(FD.slideTask(d,true),.34))}
+    </div></section>
+    <section class="fd-sec" data-screen-label="${d.key} Typografie"><h2>Überschriften · zwei Vorschläge und Caprasimo</h2><div class="fd-row">
+      ${[['a',d.heads[0]],['b',d.heads[1]],['o','Caprasimo (Organisch)']].map(([v,l])=>fig(l, fx(v, z(FD.page(d),.4)))).join('')}
+    </div><div class="fd-row">
+      ${[['a',d.heads[0]],['b',d.heads[1]],['o','Caprasimo (Organisch)']].map(([v,l])=>fig(l, fx(v, z(FD.slideTitle(d),.22)))).join('')}
+    </div></section>`;
+    applyFh(main);
+    window.scrollTo(0, keep ? y : 0);
+  }
+  main.addEventListener('click', e => { const b = e.target.closest('[data-x]'); if(!b) return; const k=(location.hash||'#geo-1').slice(1); localStorage.setItem('fd-x-'+k, b.dataset.x); render(true); });
+  addEventListener('hashchange', () => render()); render();
+})();
+</script>
+</body>
+</html>

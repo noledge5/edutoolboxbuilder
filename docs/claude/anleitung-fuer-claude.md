@@ -451,6 +451,15 @@ Begriffe als Hilfe für Lücken oder Beschriftungen. Standardbreite: 12.
 |---|---|---|---|
 | `words` | Wörter (eins je Zeile) | Text, mehrzeilig | `"Begriff 1\nBegriff 2\nBegriff 3"` |
 
+#### `code` · Code
+
+Programmcode mit Zeilennummern (Informatik), z. B. Python zum Lesen und Nachvollziehen; Schlüsselwörter und Werte werden hervorgehoben. Standardbreite: 12.
+
+| Feld | Bedeutung | Werte | Standard |
+|---|---|---|---|
+| `code` | Code (je Zeile eine Programmzeile; Einrückung mit Leerzeichen) | Text, mehrzeilig | `"summe = 0\nfor i in range(1, 6):\n    summe = summe + i\nprint(sum…"` |
+| `language` | Hervorheben | `"python"` (Python), `"plain"` (Ohne) | `"python"` |
+
 ### Grafik & Abbildung
 
 #### `image` · Abbildung

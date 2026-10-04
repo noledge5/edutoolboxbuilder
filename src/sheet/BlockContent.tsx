@@ -1,12 +1,12 @@
 // Printed content of one block. Pure rendering: editor chrome (selection, drag, toolbar) lives in the editor.
-import { useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Frown, Lightbulb, Meh, Smile, Star } from 'lucide-react';
 import { Icon, BLOCK_ICONS } from '../icons';
 import { FLOW_COLORS } from '../model/themes';
 import { cellRows, choices, flowSteps, lines, matchNumbers, num, rows, str } from '../model/text';
 import type { Block, Variant } from '../model/types';
 import { Editable } from './inlineEdit';
-import { answerClass, GapText, ImageBox, Marked, qrCode, variantVars } from './parts';
+import { answerClass, GapText, ImageBox, Marked, qrCode, variantProps } from './parts';
 import { SheetModeContext, type SolutionView } from './sheetMode';
 import { CompetenceNamesContext } from './competences';
 import { BLOCK_TYPES, HOOK_KINDS, LEVEL_NAMES } from '../model/blockTypes';
@@ -54,6 +54,7 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
   const txt = useSheetText();
   const lang = useSheetLang();
   const doc = useSheetDoc();
+  const vr = variantProps(doc?.look, str(p.variant) as Variant);
   if (!BLOCK_TYPES[block.type].task && LANGUAGE_BLOCKS.has(block.type)) return <LanguageBlock block={block} target={t} editing={editing} />;
   switch (block.type) {
     case 'heading':
@@ -66,7 +67,7 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
       );
     case 'hint':
       return (
-        <div className="ws-hint" style={variantVars(str(p.variant) as Variant)}>
+        <div className={"ws-hint" + vr.className} style={vr.style}>
           <div className="ws-hint-icon">
             <Icon icon={BLOCK_ICONS.hint} size={16} />
           </div>
@@ -80,7 +81,7 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
       );
     case 'merksatz':
       return (
-        <div className="ws-merksatz" style={variantVars(str(p.variant) as Variant)}>
+        <div className={"ws-merksatz" + vr.className} style={vr.style}>
           <div className="ws-merksatz-icon">
             <Icon icon={BLOCK_ICONS.merksatz} size={20} />
           </div>
@@ -115,6 +116,8 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
           )}
         </div>
       );
+    case 'code':
+      return <CodeBlock code={str(p.code)} python={str(p.language) !== 'plain'} />;
     case 'qr':
       return <QrBlock url={str(p.url)} caption={str(p.caption)} editing={editing} captionTarget={t('caption')} />;
     case 'plan':
@@ -234,10 +237,10 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
           {steps.map((s, k) => {
             const [bg, fg] = FLOW_COLORS[k % FLOW_COLORS.length];
             return [
-              <div key={'s' + k} className="ws-flow-step" style={{ background: bg }}>
+              <div key={'s' + k} className={'ws-flow-step' + (doc?.look ? ` is-c${(k % 4) + 1}` : '')} style={doc?.look ? undefined : { background: bg }}>
                 <div className="ws-flow-title">{s.title}</div>
                 {s.sub && (
-                  <div className="ws-flow-sub" style={{ color: fg }}>
+                  <div className="ws-flow-sub" style={doc?.look ? undefined : { color: fg }}>
                     {s.sub}
                   </div>
                 )}
@@ -496,5 +499,37 @@ function QrBlock({ url, caption, editing, captionTarget }: { url: string; captio
         {qr && qr !== 'error' && <div className="ws-qr-url">{link.replace(/^https?:\/\//, '')}</div>}
       </div>
     </div>
+  );
+}
+
+const PY_WORDS = new Set(['and', 'as', 'break', 'class', 'continue', 'def', 'elif', 'else', 'except', 'False', 'for', 'from', 'if', 'import', 'in', 'is', 'lambda', 'None', 'not', 'or', 'pass', 'return', 'True', 'try', 'while', 'with', 'print', 'range', 'len', 'input', 'int', 'str', 'float', 'list']);
+
+/** One line of Python: keywords bold, numbers and strings as values. */
+function pyLine(line: string): ReactNode[] {
+  const out: ReactNode[] = [];
+  const re = /("[^"]*"?|'[^']*'?|#.*$|\b\d+(?:\.\d+)?\b|\b[A-Za-z_]\w*\b)/g;
+  let at = 0;
+  for (let m: RegExpExecArray | null; (m = re.exec(line)); ) {
+    const w = m[0];
+    if (m.index > at) out.push(line.slice(at, m.index));
+    if (w.startsWith('#')) out.push(w);
+    else if (/^["'\d]/.test(w)) out.push(<i key={m.index}>{w}</i>);
+    else if (PY_WORDS.has(w)) out.push(<b key={m.index}>{w}</b>);
+    else out.push(w);
+    at = m.index + w.length;
+  }
+  if (at < line.length) out.push(line.slice(at));
+  return out;
+}
+
+/** Program code with line numbers (block "code"). */
+function CodeBlock({ code, python }: { code: string; python: boolean }) {
+  const lines = code.replace(/\t/g, '    ').replace(/\n+$/, '').split('\n');
+  return (
+    <pre className="ws-code">
+      {lines.map((l, k) => (
+        <span key={k}>{!l ? ' ' : python ? pyLine(l) : l}</span>
+      ))}
+    </pre>
   );
 }

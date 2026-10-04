@@ -1,4 +1,5 @@
 // Reading library entries from storage, backup files and other devices: older data gets defaults for newer fields.
+import { readModuleLook } from '../model/look';
 import { normalizeBoards } from '../model/ink';
 import { normalizeDoc } from '../model/normalize';
 import { isSlideDesign, normalizeSlides } from '../model/slides';
@@ -54,6 +55,7 @@ export function readModule(raw: unknown): Module | null {
     textbook: str(raw.textbook),
     weeks: Math.max(0, int(raw.weeks)),
     start: readDay(raw.start),
+    ...(readModuleLook(raw.look) ? { look: readModuleLook(raw.look) } : {}),
     updatedAt: Number(raw.updatedAt) || 0,
   };
 }

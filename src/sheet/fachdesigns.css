@@ -1,0 +1,360 @@
+/* Subject designs (Fachdesigns) from Claude Design, see docs/design/fachdesigns/. A layer over sheet.css and slides.css,
+   switched on by the classes from src/model/look.ts. Port of design/fachdesigns.css (03.10.2026); keep in step with it. */
+/* Fachdesigns für den Arbeitsblatt-Baukasten · Stand 03.10.2026
+   Liegt auf sheet.css und slides.css. Ändert nur Farben, Radien, Hintergründe und Motive:
+   keine Schriftgrößen, Innenabstände oder Höhen (Rahmen als inset-Schatten statt border).
+   Aktivieren: .ws-page / .sl-slide bekommt .is-fd .is-f-<geo|eng|inf> .is-age-<1|2> .is-t-<blatt-typ>. */
+
+:root{
+--fd-m-compass:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2080%2080'%3E%3Cpath%20d%3D'M40%200L46.5%2033.5L80%2040L46.5%2046.5L40%2080L33.5%2046.5L0%2040L33.5%2033.5Z'%2F%3E%3Cpath%20opacity%3D'.55'%20d%3D'M14%2014L43%2037L66%2014L43%2043L66%2066L37%2043L14%2066L37%2037Z'%2F%3E%3C%2Fsvg%3E");
+--fd-m-contour:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20240%20120'%20fill%3D'none'%20stroke%3D'black'%20stroke-width%3D'1.5'%3E%3Cg%20transform%3D'rotate(-10%20160%2064)'%3E%3Cellipse%20cx%3D'172'%20cy%3D'66'%20rx%3D'18'%20ry%3D'10'%2F%3E%3Cellipse%20cx%3D'167'%20cy%3D'64'%20rx%3D'40'%20ry%3D'24'%2F%3E%3Cellipse%20cx%3D'160'%20cy%3D'62'%20rx%3D'64'%20ry%3D'38'%2F%3E%3Cellipse%20cx%3D'151'%20cy%3D'59'%20rx%3D'90'%20ry%3D'53'%2F%3E%3Cellipse%20cx%3D'140'%20cy%3D'56'%20rx%3D'118'%20ry%3D'70'%2F%3E%3Cellipse%20cx%3D'128'%20cy%3D'52'%20rx%3D'148'%20ry%3D'88'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+--fd-m-circuit:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20240%20100'%3E%3Cg%20fill%3D'none'%20stroke%3D'black'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M8%2018H92L106%2032H178'%2F%3E%3Cpath%20d%3D'M0%2056H58L72%2070H150L164%2056H240'%2F%3E%3Cpath%20d%3D'M120%2090H198L212%2076'%2F%3E%3Cpath%20d%3D'M206%208V34'%2F%3E%3C%2Fg%3E%3Cg%3E%3Ccircle%20cx%3D'182'%20cy%3D'32'%20r%3D'4.5'%2F%3E%3Ccircle%20cx%3D'116'%20cy%3D'90'%20r%3D'4.5'%2F%3E%3Ccircle%20cx%3D'215'%20cy%3D'73'%20r%3D'4.5'%2F%3E%3Ccircle%20cx%3D'206'%20cy%3D'38'%20r%3D'4.5'%2F%3E%3Ccircle%20cx%3D'8'%20cy%3D'18'%20r%3D'4.5'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+--fd-m-blocks:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20210%20214'%3E%3Cpath%20d%3D'M0%2010a10%2010%200%200%201%2010-10h18l7%208h26l7-8h122a10%2010%200%200%201%2010%2010v36a10%2010%200%200%201-10%2010H68l-7%208H35l-7-8H10A10%2010%200%200%201%200%2046Z'%2F%3E%3Cpath%20opacity%3D'.7'%20transform%3D'translate(20%2072)'%20d%3D'M0%2010a10%2010%200%200%201%2010-10h18l7%208h26l7-8h122a10%2010%200%200%201%2010%2010v36a10%2010%200%200%201-10%2010H68l-7%208H35l-7-8H10A10%2010%200%200%201%200%2046Z'%2F%3E%3Cpath%20opacity%3D'.45'%20transform%3D'translate(0%20144)'%20d%3D'M0%2010a10%2010%200%200%201%2010-10h18l7%208h26l7-8h122a10%2010%200%200%201%2010%2010v36a10%2010%200%200%201-10%2010H68l-7%208H35l-7-8H10A10%2010%200%200%201%200%2046Z'%2F%3E%3C%2Fsvg%3E");
+}
+
+/* ── 1 · Paletten ── */
+.is-f-geo.is-age-1{
+--fd-p-100:#eaf7fe;--fd-p-200:#ceedff;--fd-p-300:#a0deff;--fd-p-400:#65c4f2;--fd-p-500:#24a5da;--fd-p-600:#0185b4;--fd-p-700:#00668a;--fd-p-800:#014964;--fd-p-900:#003044;
+--fd-s-100:#e8fbe9;--fd-s-200:#cef3d2;--fd-s-300:#abe6b2;--fd-s-400:#7fcd8b;--fd-s-500:#53af65;--fd-s-600:#319047;--fd-s-700:#15702f;--fd-s-800:#02511d;--fd-s-900:#003610;
+--fd-t-100:#fff3e0;--fd-t-200:#fce5bc;--fd-t-300:#f3cf8d;--fd-t-400:#deaf55;--fd-t-500:#c38e01;--fd-t-600:#9d7206;--fd-t-700:#795700;--fd-t-800:#573d00;--fd-t-900:#3a2800;
+--fd-n-100:#edf7fb;--fd-n-200:#e0eaee;--fd-n-300:#cdd6db;--fd-n-400:#b0b9be;--fd-n-500:#919a9e;--fd-n-600:#737c80;--fd-n-700:#575f63;--fd-n-800:#3c4448;--fd-n-900:#252d30;
+--fd-r-band:999px;--fd-r-box:26px;--fd-r-solid:32px;--fd-r-chip:999px;--fd-r-num:50%;--fd-r-table:20px;--fd-r-foot:999px;--fd-r-pill:999px;--fd-surface:var(--fd-p-100);--fd-foot:var(--fd-p-100);--fd-head:var(--fd-p-100);--fd-word:var(--fd-t-200);
+--fd-slide:color-mix(in srgb,var(--fd-n-200) 55%,var(--fd-n-100));
+}
+.is-f-geo.is-age-2{
+--fd-p-100:#eef6ff;--fd-p-200:#d8eafe;--fd-p-300:#b9d8f8;--fd-p-400:#94bce5;--fd-p-500:#6f9dcb;--fd-p-600:#527eab;--fd-p-700:#396088;--fd-p-800:#254565;--fd-p-900:#162d44;
+--fd-s-100:#f1f7ec;--fd-s-200:#e0edd7;--fd-s-300:#c8dcba;--fd-s-400:#a8c196;--fd-s-500:#87a272;--fd-s-600:#6a8455;--fd-s-700:#4f663c;--fd-s-800:#374928;--fd-s-900:#233018;
+--fd-t-100:#fff2e8;--fd-t-200:#fae3d0;--fd-t-300:#f0cdaf;--fd-t-400:#daad87;--fd-t-500:#be8d61;--fd-t-600:#9e6e43;--fd-t-700:#7d532b;--fd-t-800:#5c3a1a;--fd-t-900:#3d250e;
+--fd-n-100:#f8f4ee;--fd-n-200:#ebe8e1;--fd-n-300:#d7d4ce;--fd-n-400:#bab7b1;--fd-n-500:#9b9892;--fd-n-600:#7d7a74;--fd-n-700:#605d58;--fd-n-800:#45423d;--fd-n-900:#2d2b26;
+--fd-r-band:10px;--fd-r-box:10px;--fd-r-solid:10px;--fd-r-chip:4px;--fd-r-num:5px;--fd-r-table:8px;--fd-r-foot:6px;--fd-r-pill:4px;--fd-surface:var(--fd-n-200);--fd-foot:var(--fd-n-200);--fd-head:var(--fd-p-100);--fd-word:var(--fd-n-200);
+--fd-slide:color-mix(in srgb,var(--fd-n-200) 55%,var(--fd-n-100));
+}
+.is-f-eng.is-age-1{
+--fd-p-100:#fff1ef;--fd-p-200:#ffe0db;--fd-p-300:#ffc3bc;--fd-p-400:#ff968b;--fd-p-500:#eb6b60;--fd-p-600:#c74b43;--fd-p-700:#a0312c;--fd-p-800:#771d1a;--fd-p-900:#51100e;
+--fd-s-100:#ebf7ff;--fd-s-200:#d2ecfe;--fd-s-300:#a9dcfe;--fd-s-400:#74c1f2;--fd-s-500:#44a2d9;--fd-s-600:#1c83b8;--fd-s-700:#006492;--fd-s-800:#02486a;--fd-s-900:#002f47;
+--fd-t-100:#fcf5dc;--fd-t-200:#f5e8b9;--fd-t-300:#e8d487;--fd-t-400:#d1b64b;--fd-t-500:#b39609;--fd-t-600:#907904;--fd-t-700:#6f5c01;--fd-t-800:#504100;--fd-t-900:#352b00;
+--fd-n-100:#fcf2ee;--fd-n-200:#efe6e1;--fd-n-300:#dbd2ce;--fd-n-400:#beb5b1;--fd-n-500:#9f9692;--fd-n-600:#817874;--fd-n-700:#635b58;--fd-n-800:#48413d;--fd-n-900:#312a26;
+--fd-r-band:22px;--fd-r-box:22px;--fd-r-solid:24px;--fd-r-chip:999px;--fd-r-num:50% 50% 50% 4px;--fd-r-table:18px;--fd-r-foot:999px;--fd-r-pill:999px;--fd-surface:var(--fd-t-100);--fd-foot:var(--fd-p-100);--fd-head:var(--fd-s-100);--fd-word:var(--fd-t-200);
+--fd-slide:color-mix(in srgb,var(--fd-n-200) 55%,var(--fd-n-100));
+}
+.is-f-eng.is-age-2{
+--fd-p-100:#f0f5ff;--fd-p-200:#dee8fe;--fd-p-300:#c1d4ff;--fd-p-400:#9bb6f5;--fd-p-500:#7896dd;--fd-p-600:#5b78bb;--fd-p-700:#425a96;--fd-p-800:#2d4070;--fd-p-900:#1c2a4c;
+--fd-s-100:#fff1ef;--fd-s-200:#ffe0da;--fd-s-300:#fec4b8;--fd-s-400:#ff9782;--fd-s-500:#e6715b;--fd-s-600:#c3513d;--fd-s-700:#9c3726;--fd-s-800:#742315;--fd-s-900:#4f140a;
+--fd-t-100:#e8f9f3;--fd-t-200:#d0f1e5;--fd-t-300:#ade2d0;--fd-t-400:#82c8b2;--fd-t-500:#57ab92;--fd-t-600:#368b74;--fd-t-700:#1b6c58;--fd-t-800:#094e3e;--fd-t-900:#033428;
+--fd-n-100:#f2f5fb;--fd-n-200:#e5e8ee;--fd-n-300:#d1d4da;--fd-n-400:#b4b7bd;--fd-n-500:#96989e;--fd-n-600:#787a80;--fd-n-700:#5b5d62;--fd-n-800:#404348;--fd-n-900:#292b30;
+--fd-r-band:14px;--fd-r-box:14px;--fd-r-solid:14px;--fd-r-chip:6px;--fd-r-num:8px;--fd-r-table:12px;--fd-r-foot:10px;--fd-r-pill:4px;--fd-surface:var(--fd-n-200);--fd-foot:var(--fd-n-200);--fd-head:var(--fd-p-100);--fd-word:var(--fd-s-100);
+--fd-slide:color-mix(in srgb,var(--fd-n-200) 55%,var(--fd-n-100));
+}
+.is-f-inf.is-age-1{
+--fd-p-100:#f6f2ff;--fd-p-200:#ece3ff;--fd-p-300:#dbcaff;--fd-p-400:#c4a4fd;--fd-p-500:#a780e6;--fd-p-600:#8962c5;--fd-p-700:#6a479e;--fd-p-800:#4d3076;--fd-p-900:#331e51;
+--fd-s-100:#eafbe4;--fd-s-200:#d3f3c8;--fd-s-300:#b2e5a1;--fd-s-400:#8acc73;--fd-s-500:#62af45;--fd-s-600:#448f22;--fd-s-700:#2b6f01;--fd-s-800:#1c5000;--fd-s-900:#0f3500;
+--fd-t-100:#fff2eb;--fd-t-200:#fee1d1;--fd-t-300:#fec7a6;--fd-t-400:#fc9c5f;--fd-t-500:#e37726;--fd-t-600:#bc5b03;--fd-t-700:#914500;--fd-t-800:#6a3000;--fd-t-900:#481e00;
+--fd-n-100:#f6f3fc;--fd-n-200:#e9e6ef;--fd-n-300:#d5d3db;--fd-n-400:#b8b6be;--fd-n-500:#99979f;--fd-n-600:#7b7980;--fd-n-700:#5e5c63;--fd-n-800:#434148;--fd-n-900:#2c2a31;
+--fd-r-band:16px;--fd-r-box:18px;--fd-r-solid:18px;--fd-r-chip:10px;--fd-r-num:9px;--fd-r-table:14px;--fd-r-foot:12px;--fd-r-pill:10px;--fd-surface:var(--fd-p-100);--fd-foot:var(--fd-p-100);--fd-head:var(--fd-p-100);--fd-word:var(--fd-t-100);
+--fd-slide:color-mix(in srgb,var(--fd-n-200) 55%,var(--fd-n-100));
+}
+.is-f-inf.is-age-2{
+--fd-p-100:#e6f9fc;--fd-p-200:#ccf0f5;--fd-p-300:#a7e0e9;--fd-p-400:#79c6d1;--fd-p-500:#4aa8b5;--fd-p-600:#248996;--fd-p-700:#066a75;--fd-p-800:#034c54;--fd-p-900:#003238;
+--fd-s-100:#fff3e5;--fd-s-200:#ffe3c2;--fd-s-300:#f8cc95;--fd-s-400:#e4ab63;--fd-s-500:#c9892b;--fd-s-600:#a76c01;--fd-s-700:#805202;--fd-s-800:#5d3a00;--fd-s-900:#3e2500;
+--fd-t-100:#f4f4fe;--fd-t-200:#e6e5fe;--fd-t-300:#d1cefe;--fd-t-400:#b4afec;--fd-t-500:#958ed3;--fd-t-600:#7770b2;--fd-t-700:#5b548e;--fd-t-800:#413b6a;--fd-t-900:#2a2647;
+--fd-n-100:#eef7f9;--fd-n-200:#e1eaec;--fd-n-300:#cdd6d8;--fd-n-400:#b1b9bb;--fd-n-500:#929a9c;--fd-n-600:#747c7e;--fd-n-700:#575f61;--fd-n-800:#3d4446;--fd-n-900:#262d2e;
+--fd-r-band:6px;--fd-r-box:6px;--fd-r-solid:999px;--fd-r-chip:4px;--fd-r-num:3px;--fd-r-table:6px;--fd-r-foot:4px;--fd-r-pill:3px;--fd-surface:var(--fd-n-200);--fd-foot:var(--fd-n-200);--fd-head:var(--fd-p-100);--fd-word:var(--fd-n-200);
+--fd-slide:color-mix(in srgb,var(--fd-n-200) 55%,var(--fd-n-100));
+}
+
+/* ── 2 · Gemeinsame Abbildung auf die vorhandenen Variablen ── */
+.is-fd,.ws-page.is-fd,.sl-slide.is-fd{
+--color-neutral-100:var(--fd-n-100);--color-neutral-200:var(--fd-n-200);--color-neutral-300:var(--fd-n-300);--color-neutral-400:var(--fd-n-400);--color-neutral-500:var(--fd-n-500);--color-neutral-600:var(--fd-n-600);--color-neutral-700:var(--fd-n-700);--color-neutral-800:var(--fd-n-800);--color-neutral-900:var(--fd-n-900);
+--color-accent:var(--fd-p-600);--color-accent-100:var(--fd-p-100);--color-accent-200:var(--fd-p-200);--color-accent-300:var(--fd-p-300);--color-accent-400:var(--fd-p-400);--color-accent-500:var(--fd-p-500);--color-accent-600:var(--fd-p-600);--color-accent-700:var(--fd-p-700);--color-accent-800:var(--fd-p-800);--color-accent-900:var(--fd-p-900);
+--color-accent-2-100:var(--fd-s-100);--color-accent-2-200:var(--fd-s-200);--color-accent-2-300:var(--fd-s-300);--color-accent-2-400:var(--fd-s-400);--color-accent-2-500:var(--fd-s-500);--color-accent-2-600:var(--fd-s-600);--color-accent-2-700:var(--fd-s-700);--color-accent-2-800:var(--fd-s-800);--color-accent-2-900:var(--fd-s-900);
+--color-surface:var(--fd-surface);
+--t-line:transparent;
+}
+.ws-page.is-fd{--color-accent:var(--fd-p-600);--color-accent-100:var(--fd-p-100);--color-accent-200:var(--fd-p-200);--color-accent-300:var(--fd-p-300);--color-accent-700:var(--fd-p-700);--color-accent-800:var(--fd-p-800);--color-accent-900:var(--fd-p-900)}
+
+/* Blatt-Typen: vier Farbfamilien × drei Stärken (voll · flach · Rahmen) */
+.is-fd.is-t-uebung,.is-fd .is-t-uebung{--t-band:var(--fd-p-200);--t-circle:var(--fd-p-700);--t-circle-fg:var(--fd-p-100);--t-pill:var(--fd-p-800);--t-pill-fg:var(--fd-p-100);--t-kicker:var(--fd-p-800);--t-num:var(--fd-p-700);--t-num-fg:var(--fd-p-100);--t-line:transparent}
+.is-fd.is-t-versuch,.is-fd .is-t-versuch{--t-band:var(--fd-p-100);--t-circle:var(--fd-p-600);--t-circle-fg:var(--fd-p-100);--t-pill:var(--fd-p-700);--t-pill-fg:var(--fd-p-100);--t-kicker:var(--fd-p-700);--t-num:var(--fd-p-700);--t-num-fg:var(--fd-p-100);--t-line:transparent}
+.is-fd.is-t-test,.is-fd .is-t-test{--t-band:var(--paper);--t-circle:var(--fd-p-900);--t-circle-fg:var(--fd-p-100);--t-pill:var(--fd-p-900);--t-pill-fg:var(--fd-p-100);--t-kicker:var(--fd-p-800);--t-num:var(--fd-p-800);--t-num-fg:var(--fd-p-100);--t-line:var(--fd-p-800)}
+.is-fd.is-t-sicherung,.is-fd .is-t-sicherung{--t-band:var(--fd-s-200);--t-circle:var(--fd-s-700);--t-circle-fg:var(--fd-s-100);--t-pill:var(--fd-s-800);--t-pill-fg:var(--fd-s-100);--t-kicker:var(--fd-s-800);--t-num:var(--fd-s-700);--t-num-fg:var(--fd-s-100);--t-line:transparent}
+.is-fd.is-t-hoeren,.is-fd .is-t-hoeren{--t-band:var(--fd-s-100);--t-circle:var(--fd-s-600);--t-circle-fg:var(--fd-s-100);--t-pill:var(--fd-s-700);--t-pill-fg:var(--fd-s-100);--t-kicker:var(--fd-s-700);--t-num:var(--fd-s-700);--t-num-fg:var(--fd-s-100);--t-line:transparent}
+.is-fd.is-t-wortschatz,.is-fd .is-t-wortschatz{--t-band:var(--fd-t-100);--t-circle:var(--fd-t-600);--t-circle-fg:var(--fd-t-100);--t-pill:var(--fd-t-700);--t-pill-fg:var(--fd-t-100);--t-kicker:var(--fd-t-700);--t-num:var(--fd-t-700);--t-num-fg:var(--fd-t-100);--t-line:transparent}
+.is-fd.is-t-grammatik,.is-fd .is-t-grammatik{--t-band:var(--fd-t-200);--t-circle:var(--fd-t-800);--t-circle-fg:var(--fd-t-100);--t-pill:var(--fd-t-800);--t-pill-fg:var(--fd-t-100);--t-kicker:var(--fd-t-800);--t-num:var(--fd-t-800);--t-num-fg:var(--fd-t-100);--t-line:transparent}
+.is-fd.is-t-sprechen,.is-fd .is-t-sprechen{--t-band:var(--paper);--t-circle:var(--fd-t-700);--t-circle-fg:var(--fd-t-100);--t-pill:var(--fd-t-700);--t-pill-fg:var(--fd-t-100);--t-kicker:var(--fd-t-700);--t-num:var(--fd-t-700);--t-num-fg:var(--fd-t-100);--t-line:var(--fd-t-600)}
+.is-fd.is-t-lehrkraft,.is-fd .is-t-lehrkraft{--t-band:var(--fd-n-200);--t-circle:var(--fd-n-800);--t-circle-fg:var(--fd-n-100);--t-pill:var(--fd-n-800);--t-pill-fg:var(--fd-n-100);--t-kicker:var(--fd-n-700);--t-num:var(--fd-n-800);--t-num-fg:var(--fd-n-100);--t-line:transparent}
+
+/* Varianten von Hinweis und Merksatz: .is-v-p (Fachfarbe), .is-v-s (Partnerfarbe), .is-v-t (dritte Farbe), .is-v-n (neutral) */
+.is-fd .is-v-p{--v-bg:var(--fd-p-100);--v-circle:var(--fd-p-700);--v-circle-fg:var(--fd-p-100);--v-title:var(--fd-p-800);--v-solid:var(--fd-p-700);--v-solid-fg:var(--fd-p-100)}
+.is-fd .is-v-s{--v-bg:var(--fd-s-100);--v-circle:var(--fd-s-700);--v-circle-fg:var(--fd-s-100);--v-title:var(--fd-s-800);--v-solid:var(--fd-s-700);--v-solid-fg:var(--fd-s-100)}
+.is-fd .is-v-t{--v-bg:var(--fd-t-100);--v-circle:var(--fd-t-700);--v-circle-fg:var(--fd-t-100);--v-title:var(--fd-t-800);--v-solid:var(--fd-t-800);--v-solid-fg:var(--fd-t-100)}
+.is-fd .is-v-n{--v-bg:var(--fd-n-200);--v-circle:var(--fd-n-800);--v-circle-fg:var(--fd-n-100);--v-title:var(--fd-n-900);--v-solid:var(--fd-n-800);--v-solid-fg:var(--fd-n-100)}
+/* Fließschema-Farben im Wechsel */
+.is-fd .ws-flow-step.is-c1{background:var(--fd-p-100)}.is-fd .ws-flow-step.is-c2{background:var(--fd-s-100)}.is-fd .ws-flow-step.is-c3{background:var(--fd-t-100)}.is-fd .ws-flow-step.is-c4{background:var(--fd-n-200)}
+
+/* ── 3 · Gemeinsame Formen (nur Radius, Farbe, inset-Linien) ── */
+.is-fd .ws-band{position:relative;border-radius:var(--fd-r-band);box-shadow:inset 0 0 0 2px var(--t-line)}
+.is-fd .ws-band>*{position:relative}
+.is-fd .ws-band::before{content:"";position:absolute;pointer-events:none}
+.is-fd :is(.ws-type-pill,.ws-form-pill,.ws-foot-page){border-radius:var(--fd-r-pill)}
+.is-fd :is(.ws-num,.ws-recall-num){border-radius:var(--fd-r-num)}
+.is-fd :is(.ws-hint,.ws-grammar,.ws-forms,.ws-phrases,.ws-recall,.ws-listen){border-radius:var(--fd-r-box)}
+.is-fd .ws-merksatz{border-radius:var(--fd-r-solid)}
+.is-fd :is(.ws-word,.ws-option,.ws-match-item,.ws-points){border-radius:var(--fd-r-chip)}
+.is-fd .ws-word{background:var(--fd-word)}
+.is-fd :is(.ws-table,.ws-tf,.ws-flow,.ws-plan,.ws-self,.ws-syntax,.ws-vocab,.ws-image,.ws-draw){border-radius:var(--fd-r-table)}
+.is-fd .ws-flow-step{border-radius:calc(var(--fd-r-table) * .75)}
+.is-fd :is(.ws-table-head,.ws-tf-row.is-head,.ws-plan-row.is-head,.ws-self-row.is-head){background:var(--fd-head)}
+.is-fd .ws-foot{border-radius:var(--fd-r-foot);background:var(--fd-foot)}
+
+/* Neuer Baustein (nur Informatik): Code mit Zeilennummern */
+.ws-code{margin:0;padding:10px 14px 10px 0;border-radius:var(--fd-r-table,18px);background:var(--fd-p-100,#f9f4ed);font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:13px;line-height:22px;counter-reset:ln;white-space:pre;overflow:hidden}
+.ws-code>span{display:block;counter-increment:ln}
+.ws-code>span::before{content:counter(ln);display:inline-block;width:34px;margin-right:12px;text-align:right;color:var(--color-neutral-600)}
+.ws-code b{font-weight:700;color:var(--fd-p-800)}
+.ws-code i{font-style:normal;color:var(--fd-s-700)}
+
+/* Folien: gemeinsamer Teil */
+.sl-slide.is-fd{background:var(--fd-slide)}
+.is-fd .sl-bar{border-radius:var(--fd-r-bar,999px);box-shadow:inset 0 0 0 3px var(--t-line)}
+.is-fd .sl-bar>*{position:relative}
+.is-fd .sl-bar::before{content:"";position:absolute;pointer-events:none}
+.is-fd :is(.sl-phase,.sl-form,.sl-wp-min,.sl-wp-form){border-radius:var(--fd-r-sl-pill,999px)}
+.is-fd :is(.sl-num,.sl-task-letter){border-radius:var(--fd-r-num)}
+.is-fd :is(.sl-answer,.sl-answer.is-long){border-radius:var(--fd-r-sl-chip,999px)}
+.is-fd .sl-card{border-radius:var(--fd-r-sl-chip,999px)}
+.is-fd :is(.sl-quote,.sl-hint,.sl-box,.sl-step,.sl-word,.sl-solution,.sl-picture){border-radius:var(--fd-r-sl-box,40px)}
+.is-fd .sl-wp-step{border-radius:var(--fd-r-sl-chip,999px)}
+.is-fd .sl-wp-clock{border-radius:var(--fd-r-clock,50%)}
+.is-fd .sl-deco{pointer-events:none}
+
+/* ── 4 · Die sechs Designs ── */
+
+/* Geographie 5–6 · „Entdecker“: Kompassrose hinter dem Symbolkreis, Gradnetz als Papiermuster, Kartenpunkte als Nummern */
+.ws-page.is-f-geo.is-age-1{background-image:linear-gradient(color-mix(in srgb,var(--fd-p-200) 55%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--fd-p-200) 55%,transparent) 1px,transparent 1px);background-size:40px 40px;background-position:-1px 18px}
+.is-f-geo.is-age-1 .ws-band::before{left:2px;top:50%;width:100px;height:100px;margin-top:-50px;background:var(--t-circle);opacity:.28;-webkit-mask:var(--fd-m-compass) center/contain no-repeat;mask:var(--fd-m-compass) center/contain no-repeat}
+.is-f-geo.is-age-1 .ws-band-icon{box-shadow:0 0 0 3px var(--t-band),0 0 0 5px var(--t-circle)}
+.is-f-geo.is-age-1 .ws-num{box-shadow:0 0 0 2px var(--paper),0 0 0 3.5px var(--t-num)}
+.is-f-geo.is-age-1 .ws-hint-icon{box-shadow:0 0 0 2px var(--v-bg),0 0 0 3.5px var(--v-circle)}
+.sl-slide.is-f-geo.is-age-1{background-image:linear-gradient(var(--fd-n-200) 2px,transparent 2px),linear-gradient(90deg,var(--fd-n-200) 2px,transparent 2px);background-size:80px 80px;background-position:-2px -2px}
+.is-f-geo.is-age-1 .sl-bar::before{left:-14px;top:50%;width:132px;height:132px;margin-top:-66px;background:var(--t-circle);opacity:.3;-webkit-mask:var(--fd-m-compass) center/contain no-repeat;mask:var(--fd-m-compass) center/contain no-repeat}
+.is-f-geo.is-age-1 .sl-bar-icon{box-shadow:0 0 0 5px var(--t-band),0 0 0 8px var(--t-circle)}
+.is-f-geo.is-age-1 :is(.sl-num,.sl-task-letter){box-shadow:0 0 0 4px var(--fd-slide),0 0 0 7px var(--t-num)}
+.is-f-geo.is-age-1 .sl-wp-clock{box-shadow:0 0 0 10px var(--fd-slide),0 0 0 16px var(--t-num)}
+.is-f-geo.is-age-1 .sl-title-icon{box-shadow:0 0 0 8px var(--fd-slide),0 0 0 13px var(--fd-p-600)}
+.is-f-geo.is-age-1 .sl-deco.is-one{right:-140px;top:-160px;width:900px;height:900px;border-radius:0;background:var(--fd-p-200);-webkit-mask:var(--fd-m-compass) center/contain no-repeat;mask:var(--fd-m-compass) center/contain no-repeat;transform:rotate(12deg)}
+.is-f-geo.is-age-1 .sl-deco.is-two{right:300px;bottom:-260px;width:520px;height:520px;background:var(--fd-s-200)}
+
+/* Geographie 7–10 · „Atlas“: Kartenrahmen mit Gradleiste, Höhenlinien im Kopfband, Legendenkästchen */
+.ws-page.is-f-geo.is-age-2{position:relative}
+.ws-page.is-f-geo.is-age-2::before{content:"";position:absolute;inset:17px;pointer-events:none;box-shadow:inset 0 0 0 1px var(--fd-n-500);background:repeating-linear-gradient(90deg,var(--fd-n-700) 0 40px,transparent 40px 80px) 0 0/100% 3px no-repeat,repeating-linear-gradient(90deg,var(--fd-n-700) 0 40px,transparent 40px 80px) 0 100%/100% 3px no-repeat,repeating-linear-gradient(180deg,var(--fd-n-700) 0 40px,transparent 40px 80px) 0 0/3px 100% no-repeat,repeating-linear-gradient(180deg,var(--fd-n-700) 0 40px,transparent 40px 80px) 100% 0/3px 100% no-repeat}
+.is-f-geo.is-age-2 .ws-band::before{right:0;top:0;bottom:0;width:62%;background:var(--t-circle);opacity:.22;-webkit-mask:var(--fd-m-contour) right center/auto 180% no-repeat;mask:var(--fd-m-contour) right center/auto 180% no-repeat}
+.is-f-geo.is-age-2 .ws-band{overflow:hidden}
+.is-f-geo.is-age-2 .ws-merksatz-icon{border-radius:5px}
+.is-f-geo.is-age-2 .ws-check{border-radius:3px}
+.sl-slide.is-f-geo.is-age-2{--fd-r-bar:14px;--fd-r-sl-pill:8px;--fd-r-sl-chip:10px;--fd-r-sl-box:16px;--fd-r-clock:24px;--fd-r-num:12px}
+.sl-slide.is-f-geo.is-age-2::before{content:"";position:absolute;inset:22px;pointer-events:none;box-shadow:inset 0 0 0 2px var(--fd-n-500);background:repeating-linear-gradient(90deg,var(--fd-n-700) 0 96px,transparent 96px 192px) 0 0/100% 6px no-repeat,repeating-linear-gradient(90deg,var(--fd-n-700) 0 96px,transparent 96px 192px) 0 100%/100% 6px no-repeat,repeating-linear-gradient(180deg,var(--fd-n-700) 0 96px,transparent 96px 192px) 0 0/6px 100% no-repeat,repeating-linear-gradient(180deg,var(--fd-n-700) 0 96px,transparent 96px 192px) 100% 0/6px 100% no-repeat}
+.is-f-geo.is-age-2 .sl-bar{overflow:hidden}
+.is-f-geo.is-age-2 .sl-bar::before{right:0;top:0;bottom:0;width:60%;background:var(--t-circle);opacity:.2;-webkit-mask:var(--fd-m-contour) right center/auto 220% no-repeat;mask:var(--fd-m-contour) right center/auto 220% no-repeat}
+.is-f-geo.is-age-2 .sl-title-icon{border-radius:20px}
+.is-f-geo.is-age-2 .sl-deco.is-one{right:-80px;top:-40px;width:1200px;height:1160px;border-radius:0;background:var(--fd-p-300);opacity:.75;-webkit-mask:var(--fd-m-contour) center/contain no-repeat;mask:var(--fd-m-contour) center/contain no-repeat}
+.is-f-geo.is-age-2 .sl-deco.is-two{display:none}
+
+
+/* Englisch 7–10 · „Notizbuch“: Klebeband am Kopfband, Punktraster als Papier, Etiketten statt Pillen */
+.ws-page.is-f-eng.is-age-2{background-image:radial-gradient(circle,var(--fd-n-300) 0.9px,transparent 1.3px);background-size:5mm 5mm;background-position:2mm 2mm}
+.is-f-eng.is-age-2 .ws-band::before{left:40%;top:-9px;width:78px;height:20px;background:color-mix(in srgb,var(--fd-s-300) 80%,transparent);transform:rotate(-3deg);clip-path:polygon(0 12%,5% 0,95% 0,100% 18%,96% 50%,100% 82%,95% 100%,5% 100%,0 88%,4% 50%)}
+.is-f-eng.is-age-2 .ws-type-pill{transform:rotate(-2deg)}
+.is-f-eng.is-age-2 .ws-merksatz-icon{border-radius:8px}
+.is-f-eng.is-age-2 .ws-check{border-radius:4px}
+.sl-slide.is-f-eng.is-age-2{--fd-r-bar:22px;--fd-r-sl-pill:10px;--fd-r-sl-chip:14px;--fd-r-sl-box:22px;--fd-r-clock:40px;--fd-r-num:16px;background-image:radial-gradient(circle,var(--fd-n-300) 2px,transparent 2.6px);background-size:40px 40px;background-position:20px 20px}
+.is-f-eng.is-age-2 .sl-bar::before{left:42%;top:-18px;width:180px;height:44px;background:color-mix(in srgb,var(--fd-s-300) 80%,transparent);transform:rotate(-3deg);clip-path:polygon(0 12%,5% 0,95% 0,100% 18%,96% 50%,100% 82%,95% 100%,5% 100%,0 88%,4% 50%)}
+.is-f-eng.is-age-2 .sl-phase{transform:rotate(-2deg)}
+.is-f-eng.is-age-2 .sl-card{transform:rotate(-1.5deg)}
+.is-f-eng.is-age-2 .sl-title-icon{border-radius:28px}
+.is-f-eng.is-age-2 .sl-deco.is-one{right:140px;top:150px;width:560px;height:440px;border-radius:50% 50% 50% 6%;background:var(--fd-p-200)}
+.is-f-eng.is-age-2 .sl-deco.is-two{right:420px;top:120px;width:300px;height:70px;border-radius:0;background:color-mix(in srgb,var(--fd-s-300) 85%,transparent);transform:rotate(-8deg);clip-path:polygon(0 12%,4% 0,96% 0,100% 18%,97% 50%,100% 82%,96% 100%,4% 100%,0 88%,3% 50%)}
+
+/* Informatik 5–6 · „Bausteine“: Kopfband als Programmblock mit Kerbe und Nase, bunte Bausteine im Wortspeicher */
+.is-f-inf.is-age-1 .ws-band{clip-path:polygon(0 0,28px 0,35px 7px,63px 7px,70px 0,100% 0,100% 100%,70px 100%,63px calc(100% + 7px),35px calc(100% + 7px),28px 100%,0 100%)}
+.is-f-inf.is-age-1 .ws-band::after{content:"";position:absolute;left:28px;bottom:-7px;width:42px;height:7px;background:var(--t-band)}
+.is-f-inf.is-age-1 .ws-band-icon{border-radius:14px}
+.is-f-inf.is-age-1 .ws-word:nth-of-type(3n+1){background:var(--fd-p-100)}.is-f-inf.is-age-1 .ws-word:nth-of-type(3n+2){background:var(--fd-s-100)}.is-f-inf.is-age-1 .ws-word:nth-of-type(3n){background:var(--fd-t-100)}
+.is-f-inf.is-age-1 .ws-merksatz-icon,.is-f-inf.is-age-1 .ws-hint-icon{border-radius:10px}
+.is-f-inf.is-age-1 .ws-check{border-radius:5px}
+.sl-slide.is-f-inf.is-age-1{--fd-r-bar:28px;--fd-r-sl-pill:18px;--fd-r-sl-chip:20px;--fd-r-sl-box:28px;--fd-r-clock:56px;--fd-r-num:22px}
+.is-f-inf.is-age-1 .sl-bar{clip-path:polygon(0 0,52px 0,64px 12px,112px 12px,124px 0,100% 0,100% 100%,124px 100%,112px calc(100% + 12px),64px calc(100% + 12px),52px 100%,0 100%)}
+.is-f-inf.is-age-1 .sl-bar::after{content:"";position:absolute;left:52px;bottom:-12px;width:72px;height:12px;background:var(--t-band)}
+.is-f-inf.is-age-1 .sl-bar-icon{border-radius:20px}
+.is-f-inf.is-age-1 .sl-title-icon{border-radius:32px}
+.is-f-inf.is-age-1 .sl-deco.is-one{right:80px;top:160px;width:760px;height:774px;border-radius:0;background:var(--fd-p-300);-webkit-mask:var(--fd-m-blocks) center/contain no-repeat;mask:var(--fd-m-blocks) center/contain no-repeat}
+.is-f-inf.is-age-1 .sl-deco.is-two{display:none}
+
+/* Informatik 7–10 · „Terminal“: Leiterbahnen im Kopfband, Flussdiagramm-Formen (Prozess-Kästchen, Entscheidungs-Raute, Terminator-Merksatz) */
+.is-f-inf.is-age-2 .ws-band::before{right:0;top:0;bottom:0;width:58%;background:var(--t-circle);opacity:.2;-webkit-mask:var(--fd-m-circuit) right center/auto 100% no-repeat;mask:var(--fd-m-circuit) right center/auto 100% no-repeat}
+.is-f-inf.is-age-2 .ws-band-icon{border-radius:10px}
+.is-f-inf.is-age-2 .ws-hint-icon{border-radius:4px;transform:rotate(45deg) scale(.86)}
+.is-f-inf.is-age-2 .ws-hint-icon>svg{transform:rotate(-45deg) scale(1.16)}
+.is-f-inf.is-age-2 .ws-merksatz-icon{border-radius:8px}
+.is-f-inf.is-age-2 .ws-check{border-radius:2px}
+.sl-slide.is-f-inf.is-age-2{--fd-r-bar:12px;--fd-r-sl-pill:6px;--fd-r-sl-chip:8px;--fd-r-sl-box:12px;--fd-r-clock:20px;--fd-r-num:8px}
+.is-f-inf.is-age-2 .sl-bar::before{right:0;top:0;bottom:0;width:56%;background:var(--t-circle);opacity:.18;-webkit-mask:var(--fd-m-circuit) right center/auto 100% no-repeat;mask:var(--fd-m-circuit) right center/auto 100% no-repeat}
+.is-f-inf.is-age-2 .sl-bar-icon{border-radius:14px}
+.is-f-inf.is-age-2 .sl-title-icon{border-radius:20px}
+.is-f-inf.is-age-2 .sl-deco.is-one{right:-60px;top:200px;width:1100px;height:458px;border-radius:0;background:var(--fd-p-300);-webkit-mask:var(--fd-m-circuit) center/contain no-repeat;mask:var(--fd-m-circuit) center/contain no-repeat}
+.is-f-inf.is-age-2 .sl-deco.is-two{display:none}
+
+/* ── 5 · S/W-Kopiervorlage: Linien statt Flächen, ohne Umbruch (inset-Schatten statt border) ── */
+.ws-page.is-fd.is-bw{background-image:none;--fd-foot:var(--paper);--fd-head:var(--paper);--fd-word:var(--paper);--fd-surface:var(--paper)}
+.is-fd.is-bw .ws-band{border:0;box-shadow:inset 0 0 0 2px var(--color-text)}
+.is-fd.is-bw :is(.ws-band-icon,.ws-type-pill){border:0;box-shadow:inset 0 0 0 1.5px var(--color-text)}
+.is-fd.is-bw .ws-form-pill{border:0;box-shadow:inset 0 0 0 1.5px var(--color-neutral-500)}
+.is-fd.is-bw .ws-band::before{background:var(--color-neutral-500);opacity:.35}
+.is-fd.is-bw :is(.ws-hint,.ws-merksatz){border:0;box-shadow:inset 0 0 0 2px var(--color-text)}
+.is-fd.is-bw :is(.ws-word,.ws-option,.ws-match-item,.ws-points,.ws-flow-step){border:0;box-shadow:inset 0 0 0 1.5px var(--color-neutral-600)}
+.is-fd.is-bw .ws-flow-step{background:var(--paper)!important}
+.is-fd.is-bw .ws-foot{border:0;box-shadow:inset 0 0 0 1.5px var(--color-neutral-600)}
+.is-fd.is-bw .ws-foot-page{border:0;box-shadow:inset 0 0 0 1.5px var(--color-neutral-600)}
+.is-fd.is-bw :is(.ws-table-head,.ws-tf-row.is-head){border-bottom:0;box-shadow:inset 0 -1.5px 0 var(--color-neutral-600)}
+.is-fd.is-bw .ws-image:not(.has-image){border:0;box-shadow:inset 0 0 0 1.5px var(--color-neutral-500)}
+.is-fd.is-bw .ws-code{background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--color-neutral-600)}
+.is-fd.is-bw .ws-code :is(b,i){color:var(--color-text)}
+.is-f-geo.is-age-1.is-bw .ws-num{box-shadow:0 0 0 2px var(--paper),0 0 0 1px var(--color-text)}
+.is-f-geo.is-age-1.is-bw .ws-band-icon{box-shadow:inset 0 0 0 1.5px var(--color-text),0 0 0 3px var(--paper),0 0 0 4.5px var(--color-text)}
+.is-f-geo.is-age-2.is-bw::before{box-shadow:inset 0 0 0 1px var(--color-neutral-600);background:repeating-linear-gradient(90deg,var(--color-neutral-600) 0 40px,transparent 40px 80px) 0 0/100% 1.5px no-repeat,repeating-linear-gradient(90deg,var(--color-neutral-600) 0 40px,transparent 40px 80px) 0 100%/100% 1.5px no-repeat,repeating-linear-gradient(180deg,var(--color-neutral-600) 0 40px,transparent 40px 80px) 0 0/1.5px 100% no-repeat,repeating-linear-gradient(180deg,var(--color-neutral-600) 0 40px,transparent 40px 80px) 100% 0/1.5px 100% no-repeat}
+.is-f-eng.is-age-2.is-bw .ws-band::before{background:var(--paper);opacity:1;box-shadow:inset 0 0 0 1.5px var(--color-neutral-500);clip-path:none;border-radius:2px}
+.is-f-inf.is-age-1.is-bw .ws-band{clip-path:none}
+.is-f-inf.is-age-1.is-bw .ws-band::after{display:none}
+.is-f-inf.is-age-1.is-bw .ws-word{background:var(--paper)!important}
+
+/* ── 6 · Überschriften-Schrift je Design (zwei Vorschläge: .is-fh-a / .is-fh-b am Element oder einem Vorfahren) ──
+   Nur Überschriften und Nummern. --fd-hs gleicht die Laufweite an Caprasimo an (gemessen an Beispieltiteln,
+   nie breiter als Caprasimo, höchstens 1,2-fach). Zeilenhöhen sind in px fest, damit Kopfband und Bausteine gleich hoch bleiben. */
+.is-fd{--fd-hf:var(--font-heading);--fd-hw:400;--fd-hs:1}
+.is-fh-a .is-f-geo.is-age-1,.is-f-geo.is-age-1.is-fh-a{--fd-hf:"Baloo 2",var(--font-heading);--fd-hw:700;--fd-hs:1.07}
+.is-fh-b .is-f-geo.is-age-1,.is-f-geo.is-age-1.is-fh-b{--fd-hf:"Nunito",var(--font-heading);--fd-hw:800;--fd-hs:1.0}
+.is-fh-a .is-f-geo.is-age-2,.is-f-geo.is-age-2.is-fh-a{--fd-hf:"Archivo",var(--font-heading);--fd-hw:700;--fd-hs:1.085}
+.is-fh-b .is-f-geo.is-age-2,.is-f-geo.is-age-2.is-fh-b{--fd-hf:"IBM Plex Sans Condensed",var(--font-heading);--fd-hw:600;--fd-hs:1.2}
+.is-fh-a .is-f-eng.is-age-2,.is-f-eng.is-age-2.is-fh-a{--fd-hf:"DM Serif Display",var(--font-heading);--fd-hw:400;--fd-hs:1.158}
+.is-fh-b .is-f-eng.is-age-2,.is-f-eng.is-age-2.is-fh-b{--fd-hf:"Bricolage Grotesque",var(--font-heading);--fd-hw:700;--fd-hs:1.174}
+.is-fh-a .is-f-inf.is-age-1,.is-f-inf.is-age-1.is-fh-a{--fd-hf:"Fredoka",var(--font-heading);--fd-hw:600;--fd-hs:1.14}
+.is-fh-b .is-f-inf.is-age-1,.is-f-inf.is-age-1.is-fh-b{--fd-hf:"Lilita One",var(--font-heading);--fd-hw:400;--fd-hs:1.2}
+.is-fh-a .is-f-inf.is-age-2,.is-f-inf.is-age-2.is-fh-a{--fd-hf:"JetBrains Mono",var(--font-heading);--fd-hw:700;--fd-hs:0.876}
+.is-fh-b .is-f-inf.is-age-2,.is-f-inf.is-age-2.is-fh-b{--fd-hf:"Space Grotesk",var(--font-heading);--fd-hw:700;--fd-hs:1.061}
+.ws-page.is-fd :is(.ws-title,.ws-h3,.ws-back-title,.ws-num,.ws-recall-num,.ws-grammar-title,.ws-forms-title,.ws-phrases-title,.ws-grades-grade){font-family:var(--fd-hf);font-weight:var(--fd-hw)}
+.ws-page.is-fd .ws-title{font-size:calc(28px * var(--fd-hs));line-height:31.36px}
+.ws-page.is-fd .ws-h3{font-size:calc(21px * var(--fd-hs));line-height:23.52px}
+.ws-page.is-fd .ws-back-title{font-size:calc(15px * var(--fd-hs));line-height:18px}
+.ws-page.is-fd :is(.ws-grammar-title,.ws-forms-title,.ws-phrases-title){font-size:calc(18px * var(--fd-hs));line-height:27.9px}
+.ws-page.is-fd .ws-num{font-size:calc(15px * var(--fd-hs))}
+.ws-page.is-fd .ws-recall-num{font-size:calc(12px * var(--fd-hs))}
+.sl-slide.is-fd{--sl-head:var(--fd-hf)}
+.sl-slide.is-fd :is(.sl-h1,.sl-title-h1,.sl-exit-h1,.sl-task-h1,.sl-el-text.is-heading){font-weight:var(--fd-hw)}
+.sl-slide.is-fd .sl-h1{font-size:calc(80px * var(--fd-hs));line-height:88px}
+.sl-slide.is-fd .sl-h1.is-big{font-size:calc(110px * var(--fd-hs));line-height:115.5px}
+.sl-slide.is-fd .sl-h1.is-statement{font-size:calc(76px * var(--fd-hs));line-height:87.4px}
+.sl-slide.is-fd .sl-wp-h1{font-size:calc(86px * var(--fd-hs));line-height:94.6px}
+.sl-slide.is-fd .sl-wp-h1.is-long,.sl-slide.is-fd .sl-wp.has-steps .sl-wp-h1{font-size:calc(66px * var(--fd-hs));line-height:72.6px}
+.sl-slide.is-fd .sl-title-h1{font-size:calc(150px * var(--fd-hs));line-height:150px}
+.sl-slide.is-fd .sl-task-h1{font-size:calc(62px * var(--fd-hs));line-height:69.44px}
+.sl-slide.is-fd .sl-task-h1.is-long{font-size:calc(50px * var(--fd-hs));line-height:56px}
+.sl-slide.is-fd .sl-exit-h1{font-size:calc(120px * var(--fd-hs));line-height:126px}
+
+/* ── 7 · Englisch 5–6: drei Varianten (.is-x-bubble · .is-x-sticker · .is-x-comic) ── */
+.is-f-eng.is-age-1.is-x-bubble{
+--fd-p-100:#e3fafb;--fd-p-200:#c5f2f4;--fd-p-300:#9ae3e7;--fd-p-400:#65cacf;--fd-p-500:#20acb3;--fd-p-600:#048b91;--fd-p-700:#016b6f;--fd-p-800:#034d50;--fd-p-900:#003335;
+--fd-s-100:#fff0f6;--fd-s-200:#ffddeb;--fd-s-300:#ffbfda;--fd-s-400:#f296bf;--fd-s-500:#d871a1;--fd-s-600:#b65283;--fd-s-700:#913965;--fd-s-800:#6c2449;--fd-s-900:#491630;
+--fd-t-100:#fdf5dc;--fd-t-200:#f7e7b8;--fd-t-300:#ebd387;--fd-t-400:#d5b44a;--fd-t-500:#b79406;--fd-t-600:#937702;--fd-t-700:#715b00;--fd-t-800:#514102;--fd-t-900:#362a00;
+--fd-n-100:#eef7f7;--fd-n-200:#e1eaea;--fd-n-300:#cdd6d7;--fd-n-400:#b0b9ba;--fd-n-500:#929a9b;--fd-n-600:#747c7d;--fd-n-700:#575f5f;--fd-n-800:#3d4445;--fd-n-900:#262d2d;
+--fd-r-band:26px;--fd-r-box:22px;--fd-r-solid:26px;--fd-r-chip:999px;--fd-r-num:50% 50% 50% 4px;--fd-r-table:18px;--fd-r-foot:999px;--fd-r-pill:999px;--fd-surface:var(--fd-t-100);--fd-foot:var(--fd-p-100);--fd-head:var(--fd-p-100);--fd-word:var(--fd-s-100);
+}
+.is-f-eng.is-age-1.is-x-sticker{
+--fd-p-100:#fff1ef;--fd-p-200:#ffe0da;--fd-p-300:#ffc4b9;--fd-p-400:#fe9786;--fd-p-500:#ea6c5a;--fd-p-600:#c74c3d;--fd-p-700:#a03225;--fd-p-800:#771e14;--fd-p-900:#51110a;
+--fd-s-100:#eff5ff;--fd-s-200:#dbe9fe;--fd-s-300:#bbd6fe;--fd-s-400:#8ab9ff;--fd-s-500:#5f99ed;--fd-s-600:#417acc;--fd-s-700:#2a5ca4;--fd-s-800:#18417b;--fd-s-900:#0d2a54;
+--fd-t-100:#eefae2;--fd-t-200:#dcf1c4;--fd-t-300:#c1e19b;--fd-t-400:#9fc76a;--fd-t-500:#7da937;--fd-t-600:#608a05;--fd-t-700:#486a00;--fd-t-800:#334c01;--fd-t-900:#203200;
+--fd-n-100:#fbf3f0;--fd-n-200:#eee6e3;--fd-n-300:#dad2cf;--fd-n-400:#bdb5b3;--fd-n-500:#9e9694;--fd-n-600:#807876;--fd-n-700:#635c59;--fd-n-800:#48413f;--fd-n-900:#302a28;
+--fd-r-band:20px;--fd-r-box:20px;--fd-r-solid:22px;--fd-r-chip:999px;--fd-r-num:50%;--fd-r-table:16px;--fd-r-foot:999px;--fd-r-pill:999px;--fd-surface:var(--fd-n-200);--fd-foot:var(--fd-n-200);--fd-head:var(--fd-p-100);--fd-word:var(--fd-t-100);
+}
+.is-f-eng.is-age-1.is-x-comic{
+--fd-p-100:#ebf7ff;--fd-p-200:#d2ecfe;--fd-p-300:#a8dcff;--fd-p-400:#65c2fb;--fd-p-500:#26a3e4;--fd-p-600:#0383bd;--fd-p-700:#046491;--fd-p-800:#00486a;--fd-p-900:#002f47;
+--fd-s-100:#fef1f0;--fd-s-200:#fee0dd;--fd-s-300:#ffc3be;--fd-s-400:#fe968e;--fd-s-500:#f3625d;--fd-s-600:#cf4040;--fd-s-700:#a72528;--fd-s-800:#7d1217;--fd-s-900:#55080c;
+--fd-t-100:#fcf5d9;--fd-t-200:#f7e8b2;--fd-t-300:#ebd47b;--fd-t-400:#d5b531;--fd-t-500:#b39609;--fd-t-600:#907904;--fd-t-700:#6f5c00;--fd-t-800:#504200;--fd-t-900:#352b00;
+--fd-n-100:#f8f4f1;--fd-n-200:#ebe7e4;--fd-n-300:#d7d3d0;--fd-n-400:#bab6b4;--fd-n-500:#9b9795;--fd-n-600:#7d7977;--fd-n-700:#605d5a;--fd-n-800:#45423f;--fd-n-900:#2e2b28;
+--fd-r-band:12px;--fd-r-box:12px;--fd-r-solid:14px;--fd-r-chip:8px;--fd-r-num:50%;--fd-r-table:12px;--fd-r-foot:10px;--fd-r-pill:8px;--fd-surface:var(--fd-t-100);--fd-foot:var(--fd-t-100);--fd-head:var(--fd-t-100);--fd-word:var(--fd-t-100);--fd-ink:#201e1d;
+}
+
+/* Sprechblase: Kopfband mit Zipfel, Nummern und Symbole als kleine Sprechblasen */
+.is-f-eng.is-age-1.is-x-bubble .ws-band::after{content:"";position:absolute;left:46px;bottom:-11px;width:24px;height:12px;background:var(--t-band);clip-path:polygon(0 0,100% 0,8% 100%)}
+.is-f-eng.is-age-1.is-x-bubble :is(.is-t-test,.is-t-sprechen) .ws-band::after,.is-f-eng.is-age-1.is-x-bubble:is(.is-t-test,.is-t-sprechen) .ws-band::after{background:var(--t-line)}
+.is-f-eng.is-age-1.is-x-bubble :is(.ws-hint-icon,.ws-merksatz-icon){border-radius:50% 50% 50% 4px}
+.sl-slide.is-f-eng.is-age-1.is-x-bubble{--fd-r-num:50% 50% 50% 10px;--fd-r-clock:50% 50% 50% 14%}
+.is-f-eng.is-age-1.is-x-bubble .sl-bar::after{content:"";position:absolute;left:84px;bottom:-22px;width:46px;height:24px;background:var(--t-band);clip-path:polygon(0 0,100% 0,8% 100%)}
+.is-f-eng.is-age-1.is-x-bubble .sl-title-icon{border-radius:50% 50% 50% 12px}
+.is-f-eng.is-age-1.is-x-bubble .sl-deco.is-one{right:-60px;top:80px;width:820px;height:600px;border-radius:50% 50% 50% 8%;background:var(--fd-p-200)}
+.is-f-eng.is-age-1.is-x-bubble .sl-deco.is-two{right:620px;bottom:-120px;width:420px;height:320px;border-radius:50% 50% 8% 50%;background:var(--fd-s-200)}
+
+/* Sticker: weißer Rand und kleiner Schatten an Kopfband, Symbol, Pillen und Nummern; Typ-Pille schräg aufgeklebt */
+.is-f-eng.is-age-1.is-x-sticker .ws-band{box-shadow:inset 0 0 0 2px var(--t-line),0 0 0 4px var(--paper),0 3px 0 4px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .ws-band-icon{box-shadow:0 0 0 3px var(--paper),0 2px 0 3px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .ws-type-pill{transform:rotate(-3deg);box-shadow:0 0 0 2.5px var(--paper),0 2px 0 2.5px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .ws-form-pill{box-shadow:0 2px 0 color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .ws-num{box-shadow:0 0 0 2.5px var(--paper),0 2px 0 2.5px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker :is(.ws-word,.ws-option){box-shadow:0 2px 0 color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .ws-merksatz{box-shadow:0 0 0 4px var(--paper),0 3px 0 4px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker :is(.ws-hint-icon,.ws-merksatz-icon){box-shadow:0 0 0 2.5px var(--paper)}
+.is-f-eng.is-age-1.is-x-sticker .sl-bar{box-shadow:inset 0 0 0 3px var(--t-line),0 0 0 8px var(--paper),0 6px 0 8px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker :is(.sl-bar-icon,.sl-num,.sl-task-letter){box-shadow:0 0 0 5px var(--paper),0 4px 0 5px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .sl-phase{transform:rotate(-3deg);box-shadow:0 0 0 5px var(--paper),0 4px 0 5px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .sl-card{box-shadow:0 0 0 5px var(--paper),0 6px 0 5px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .sl-wp-clock{box-shadow:0 0 0 10px var(--paper),0 8px 0 10px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .sl-title-icon{box-shadow:0 0 0 8px var(--paper),0 6px 0 8px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .sl-deco.is-one{right:40px;top:80px;width:640px;height:640px;background:var(--fd-p-200);box-shadow:0 0 0 22px var(--paper),0 12px 0 22px color-mix(in srgb,var(--fd-n-900) 16%,transparent);transform:rotate(-8deg)}
+.is-f-eng.is-age-1.is-x-sticker .sl-deco.is-two{right:600px;bottom:-60px;width:380px;height:260px;border-radius:60px;background:var(--fd-t-200);box-shadow:0 0 0 18px var(--paper),0 10px 0 18px color-mix(in srgb,var(--fd-n-900) 16%,transparent);transform:rotate(7deg)}
+
+/* Comic: dunkle Konturen, harter Versatzschatten, Halbton-Punkte rechts im Kopfband */
+.is-f-eng.is-age-1.is-x-comic .ws-band{box-shadow:inset 0 0 0 2.5px var(--fd-ink),4px 4px 0 var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .ws-band::before{top:2.5px;right:2.5px;bottom:2.5px;width:52%;border-radius:0 10px 10px 0;background:radial-gradient(circle,var(--t-circle) 1.4px,transparent 1.8px) 0 0/7px 7px;opacity:.5;-webkit-mask:linear-gradient(to left,#000 15%,transparent);mask:linear-gradient(to left,#000 15%,transparent)}
+.is-f-eng.is-age-1.is-x-comic .ws-band-icon{box-shadow:0 0 0 2.5px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .ws-type-pill{box-shadow:0 0 0 2px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .ws-form-pill{box-shadow:inset 0 0 0 2px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .ws-num{box-shadow:0 0 0 2px var(--fd-ink),2px 2px 0 2px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic :is(.ws-hint,.ws-merksatz){box-shadow:inset 0 0 0 2.5px var(--fd-ink),3px 3px 0 var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic :is(.ws-hint-icon,.ws-merksatz-icon){box-shadow:0 0 0 2px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic :is(.ws-word,.ws-option,.ws-match-item){box-shadow:inset 0 0 0 2px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic :is(.ws-table,.ws-tf,.ws-flow){border-color:var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .ws-foot{box-shadow:inset 0 0 0 2px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .sl-bar{box-shadow:inset 0 0 0 5px var(--fd-ink),8px 8px 0 var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .sl-bar{overflow:hidden}
+.is-f-eng.is-age-1.is-x-comic .sl-bar::before{top:0;right:0;bottom:0;width:50%;background:radial-gradient(circle,var(--t-circle) 3px,transparent 3.8px) 0 0/16px 16px;opacity:.45;-webkit-mask:linear-gradient(to left,#000 15%,transparent);mask:linear-gradient(to left,#000 15%,transparent)}
+.is-f-eng.is-age-1.is-x-comic :is(.sl-bar-icon,.sl-task-letter,.sl-title-icon){box-shadow:0 0 0 5px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .sl-num{box-shadow:0 0 0 5px var(--fd-ink),6px 6px 0 5px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic :is(.sl-phase,.sl-answer){box-shadow:0 0 0 4px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .sl-form{box-shadow:inset 0 0 0 4px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .sl-card{box-shadow:0 0 0 4px var(--fd-ink),6px 6px 0 4px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .sl-wp-step{box-shadow:inset 0 0 0 4px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .sl-wp-step.is-current{box-shadow:inset 0 0 0 4px var(--fd-ink),8px 8px 0 var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .sl-wp-clock{box-shadow:0 0 0 6px var(--fd-ink),10px 10px 0 6px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic .sl-deco.is-one{right:-140px;top:-120px;width:1000px;height:1000px;background:radial-gradient(circle,var(--fd-p-400) 9px,transparent 10.5px) 0 0/40px 40px;-webkit-mask:radial-gradient(closest-side,#000 40%,transparent);mask:radial-gradient(closest-side,#000 40%,transparent)}
+.is-f-eng.is-age-1.is-x-comic .sl-deco.is-two{right:520px;top:560px;width:460px;height:300px;border-radius:50% 50% 50% 8%;background:var(--paper);box-shadow:inset 0 0 0 7px var(--fd-ink),12px 12px 0 var(--fd-ink);transform:rotate(-6deg)}
+
+/* S/W der drei Varianten */
+.is-f-eng.is-age-1.is-x-bubble.is-bw .ws-band::after{display:none}
+.is-f-eng.is-age-1.is-x-sticker.is-bw .ws-band{box-shadow:inset 0 0 0 2px var(--color-text)}
+.is-f-eng.is-age-1.is-x-sticker.is-bw :is(.ws-band-icon,.ws-type-pill){box-shadow:inset 0 0 0 1.5px var(--color-text)}
+.is-f-eng.is-age-1.is-x-sticker.is-bw :is(.ws-num,.ws-form-pill,.ws-word,.ws-option){box-shadow:inset 0 0 0 1.5px var(--color-neutral-600)}
+.is-f-eng.is-age-1.is-x-sticker.is-bw .ws-num{box-shadow:none}
+.is-f-eng.is-age-1.is-x-sticker.is-bw .ws-merksatz{box-shadow:inset 0 0 0 2px var(--color-text)}
+.is-f-eng.is-age-1.is-x-comic.is-bw .ws-band::before{background:radial-gradient(circle,var(--color-neutral-500) 1.1px,transparent 1.5px) 0 0/7px 7px;opacity:.6}
+.is-f-eng.is-age-1.is-x-comic.is-bw .ws-band-icon{box-shadow:inset 0 0 0 2px var(--fd-ink)}
+.is-f-eng.is-age-1.is-x-comic.is-bw .ws-type-pill{box-shadow:inset 0 0 0 2px var(--fd-ink)}
+
+/* Überschriften der drei Varianten */
+.is-fh-a .is-f-eng.is-age-1.is-x-bubble,.is-f-eng.is-age-1.is-x-bubble.is-fh-a{--fd-hf:"Sniglet",var(--font-heading);--fd-hw:800;--fd-hs:0.875}
+.is-fh-b .is-f-eng.is-age-1.is-x-bubble,.is-f-eng.is-age-1.is-x-bubble.is-fh-b{--fd-hf:"Patrick Hand",var(--font-heading);--fd-hw:400;--fd-hs:1.2}
+.is-fh-a .is-f-eng.is-age-1.is-x-sticker,.is-f-eng.is-age-1.is-x-sticker.is-fh-a{--fd-hf:"Rubik",var(--font-heading);--fd-hw:800;--fd-hs:1.005}
+.is-fh-b .is-f-eng.is-age-1.is-x-sticker,.is-f-eng.is-age-1.is-x-sticker.is-fh-b{--fd-hf:"Lilita One",var(--font-heading);--fd-hw:400;--fd-hs:1.2}
+.is-fh-a .is-f-eng.is-age-1.is-x-comic,.is-f-eng.is-age-1.is-x-comic.is-fh-a{--fd-hf:"Bangers",var(--font-heading);--fd-hw:400;--fd-hs:1.2}
+.is-fh-b .is-f-eng.is-age-1.is-x-comic,.is-f-eng.is-age-1.is-x-comic.is-fh-b{--fd-hf:"Luckiest Guy",var(--font-heading);--fd-hw:400;--fd-hs:1.019}
+
+/* Additions in the Baukasten: the subject's colours win over the orange reset of .ws-page/.sl-slide (see slides.css),
+   and in B/W the variants' own head, foot and word colours give way to paper. */
+.ws-page.is-fd.is-bw :is(.ws-table-head,.ws-tf-row.is-head,.ws-plan-row.is-head,.ws-self-row.is-head,.ws-foot,.ws-word,.ws-option,.ws-match-item,.ws-points,.ws-image:not(.has-image)){background:var(--paper)}

@@ -8,7 +8,7 @@ import { lines, num, rows, str } from '../model/text';
 import type { Block, Variant } from '../model/types';
 import { Editable } from './inlineEdit';
 import { typo, useSheetDoc, useSheetLang, useSheetText } from './lang';
-import { answerClass, GapText, ImageBox, Marked, qrCode, variantVars } from './parts';
+import { answerClass, GapText, ImageBox, Marked, qrCode, variantProps } from './parts';
 import { SheetModeContext } from './sheetMode';
 
 /** Column colours of the sentence-building table (subject, verb, object, place, time …). */
@@ -221,6 +221,7 @@ function WordWeb({ center, centerTarget, branches, height }: { center: string; c
 
 function GrammarBox({ block, target: t }: { block: Block; target(key: string): string }) {
   const p = block.props;
+  const vr = variantProps(useSheetDoc()?.look, str(p.variant) as Variant);
   const txt = useSheetText();
   const lang = useSheetLang();
   const signal = str(p.signal)
@@ -229,7 +230,7 @@ function GrammarBox({ block, target: t }: { block: Block; target(key: string): s
     .filter(Boolean);
   const examples = lines(p.examples);
   return (
-    <div className="ws-grammar" style={variantVars(str(p.variant) as Variant)}>
+    <div className={"ws-grammar" + vr.className} style={vr.style}>
       <Editable className="ws-grammar-title" target={t('title')} value={str(p.title)} />
       {str(p.rule).trim() && (
         <div className="ws-grammar-part">
@@ -269,6 +270,7 @@ function GrammarBox({ block, target: t }: { block: Block; target(key: string): s
 
 function FormsTable({ block, target: t }: { block: Block; target(key: string): string }) {
   const p = block.props;
+  const vr = variantProps(useSheetDoc()?.look, str(p.variant) as Variant);
   const cols = str(p.cols)
     .split('\n')
     .map((c) => c.trim());
@@ -276,7 +278,7 @@ function FormsTable({ block, target: t }: { block: Block; target(key: string): s
   const n = Math.max(cols.filter(Boolean).length, ...data.map((r) => r.length), 1);
   const template = { gridTemplateColumns: `minmax(0, 0.8fr) repeat(${n - 1}, minmax(0, 1fr))` };
   return (
-    <div className="ws-forms" style={variantVars(str(p.variant) as Variant)}>
+    <div className={"ws-forms" + vr.className} style={vr.style}>
       <Editable className="ws-forms-title" target={t('title')} value={str(p.title)} />
       <div className="ws-forms-grid">
         {cols.some(Boolean) && (
@@ -524,9 +526,10 @@ function TrueFalse({ items, withNg }: { items: ReturnType<typeof statements>; wi
 
 function Phrases({ block, target: t }: { block: Block; target(key: string): string }) {
   const p = block.props;
+  const vr = variantProps(useSheetDoc()?.look, str(p.variant) as Variant);
   const lang = useSheetLang();
   return (
-    <div className="ws-phrases" style={variantVars(str(p.variant) as Variant)}>
+    <div className={"ws-phrases" + vr.className} style={vr.style}>
       <Editable className="ws-phrases-title" target={t('title')} value={str(p.title)} />
       {rows(p.items).map(([en = '', de = ''], k) => (
         <div key={k} className="ws-phrase">

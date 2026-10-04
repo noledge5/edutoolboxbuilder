@@ -4,11 +4,14 @@ import { createRoot } from 'react-dom/client';
 import '@fontsource/caprasimo/400.css';
 import '@fontsource/figtree/400.css';
 import '@fontsource/figtree/600.css';
+import '@fontsource/jetbrains-mono/latin-400.css';
+import '@fontsource/jetbrains-mono/latin-700.css';
 import '@fontsource/figtree/700.css';
 import '@fontsource/figtree/800.css';
 import '@fontsource/noto-sans/latin-400.css';
 import '../styles/tokens.css';
 import '../sheet/sheet.css';
+import '../sheet/fachdesigns.css';
 import './student.css';
 import { StudentApp } from './StudentApp';
 

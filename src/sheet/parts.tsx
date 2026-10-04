@@ -7,8 +7,16 @@ import { VARIANTS } from '../model/themes';
 import { segments, type Segment } from '../model/text';
 import type { Variant } from '../model/types';
 import { useImageUrl } from '../storage/images';
+import { variantClass, type Look } from '../model/look';
 import { typo, useSheetLang } from './lang';
 import { SheetModeContext, type SolutionView } from './sheetMode';
+
+/**
+ * Colour variant of a box (Hinweis, Merksatz, Grammatik …): inline colours in "Organisch"; in a subject design a class,
+ * so the subject's palette applies (inline values would override it).
+ */
+export const variantProps = (look: Look | undefined, v: Variant): { className: string; style?: CSSProperties } =>
+  look ? { className: ' ' + variantClass(v) } : { className: '', style: variantVars(v) };
 
 export const variantVars = (v: Variant): CSSProperties => {
   const c = VARIANTS[v] ?? VARIANTS['accent-2'];
