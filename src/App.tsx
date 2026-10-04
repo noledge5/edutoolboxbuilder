@@ -28,6 +28,7 @@ import { ShareDialog } from './share/ShareDialog';
 import { VersionsDialog } from './library/VersionsDialog';
 import { whenText } from './library/when';
 import { SlidesView } from './slides/SlidesView';
+import { enterFullscreen } from './slides/Presenter';
 import { slidesFromDoc } from './slides/fromDoc';
 import type { Slide } from './model/slides';
 import { subjectColor, subjectVars } from './library/subjectColor';
@@ -103,6 +104,14 @@ export function App() {
   const versionTimes = useRef(new Map<string, number>());
   const [searchOpen, setSearchOpen] = useState(false);
   const [jump, setJump] = useState<Jump | null>(null);
+  /** A lesson whose slides start presenting when they open ("Präsentieren" in the module or worksheet). */
+  const [presentNext, setPresentNext] = useState<string | null>(null);
+  const present = (lessonId: string) => {
+    // Full screen needs the tap itself (the iPad allows it only then), so before the slides open.
+    enterFullscreen();
+    setPresentNext(lessonId);
+    go({ view: 'slides', id: lessonId });
+  };
   /** What is being handed out digitally (from the editor). */
   const [sharing, setSharing] = useState<{ lessonId: string; pages: AssignmentPage[]; title: string } | null>(null);
   const openSearch = useCallback(() => setSearchOpen(true), []);
@@ -489,6 +498,7 @@ export function App() {
         note={lesson.plan}
         favorites={{ label: `Oft in ${m.subject}`, types: favoriteBlocks(lib, m.subject) }}
         onSlides={() => go({ view: 'slides', id: lesson.id })}
+        onPresent={() => present(lesson.id)}
         slideCount={lesson.slides.length}
         onRegenerateSlides={(doc) => regenerateSlides(lesson.id, doc)}
         onDeleteSlides={() => deleteSlides(lesson.id)}
@@ -562,6 +572,8 @@ export function App() {
         onBack={() => go({ view: 'module', id: m.id })}
         onOpenSheet={() => go({ view: 'lesson', id: lesson.id })}
         focus={jump?.lessonId === lesson.id && jump.slideId ? { id: jump.slideId, query: jump.query, n: jump.n } : undefined}
+        present={presentNext === lesson.id}
+        onPresentStarted={() => setPresentNext(null)}
       />
     );
     subject = m.subject;
@@ -621,6 +633,7 @@ export function App() {
         }}
         onOpenLesson={(l) => go({ view: 'lesson', id: l.id })}
         onOpenSlides={(l) => go({ view: 'slides', id: l.id })}
+        onPresent={(l) => present(l.id)}
         onRegenerateSlides={(l) => regenerateSlides(l.id)}
         onDeleteSlides={(l) => deleteSlides(l.id)}
         onChangeLesson={(l) => putLesson(l).catch(failed)}

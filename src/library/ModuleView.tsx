@@ -27,6 +27,8 @@ interface ModuleViewProps {
   onAddLesson(): void;
   onOpenLesson(l: Lesson): void;
   onOpenSlides(l: Lesson): void;
+  /** Opens the lesson's slides and starts presenting. */
+  onPresent(l: Lesson): void;
   onRegenerateSlides(l: Lesson): void;
   onDeleteSlides(l: Lesson): void;
   onChangeLesson(l: Lesson): void;
@@ -314,7 +316,7 @@ function LessonList(p: ModuleViewProps) {
                 <button type="button" className={'btn ui-btn ' + (planned ? 'btn-secondary' : 'btn-primary')} onClick={() => p.onOpenLesson(l)}>
                   {planned ? 'Ausarbeiten' : 'Öffnen'}
                 </button>
-                <SlidesMenu className="lib-slides-btn" count={l.slides.length} onOpen={() => p.onOpenSlides(l)} onRegenerate={() => p.onRegenerateSlides(l)} onDelete={() => p.onDeleteSlides(l)} />
+                <SlidesMenu className="lib-slides-btn" count={l.slides.length} onOpen={() => p.onOpenSlides(l)} onPresent={() => p.onPresent(l)} onRegenerate={() => p.onRegenerateSlides(l)} onDelete={() => p.onDeleteSlides(l)} />
               <button type="button" className="iconbtn" title="Duplizieren" aria-label="Duplizieren" onClick={() => p.onDuplicateLesson(l)}>
                   <Icon icon={Copy} />
                 </button>

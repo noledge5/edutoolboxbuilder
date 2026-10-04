@@ -106,6 +106,8 @@ export interface EditorProps {
   favorites?: { label: string; types: BlockType[] };
   /** Opens the lesson's slides. */
   onSlides?(): void;
+  /** Opens the slides and starts presenting. */
+  onPresent?(): void;
   slideCount?: number;
   /** Makes the lesson's slides anew from this worksheet as it is now. */
   onRegenerateSlides?(doc: Doc): void;
@@ -135,6 +137,7 @@ export function Editor({
   note = '',
   favorites,
   onSlides,
+  onPresent,
   slideCount = 0,
   onRegenerateSlides,
   onDeleteSlides,
@@ -762,6 +765,7 @@ export function Editor({
               : undefined
           }
           onSlides={onSlides}
+          onPresent={onPresent}
           slideCount={slideCount}
           onRegenerateSlides={onRegenerateSlides && (() => onRegenerateSlides(doc))}
           onDeleteSlides={onDeleteSlides}

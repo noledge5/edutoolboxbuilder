@@ -367,7 +367,11 @@ body { background: var(--color-neutral-200); }
   .topbar { gap: 8px; padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
   .topbar .btn-label { display: none; }
   .topbar .ui-btn { padding-inline: 10px; }
+  /* Präsentieren stays named: on the iPad it is the main thing in the slides. */
+  .topbar .sl-present-btn .btn-label { display: inline; }
+  .topbar .sl-present-btn { padding-inline: 14px; }
 }
+.topbar .sl-present-btn { flex: none; }
 @media (max-width: 560px) {
   .topbar-title { display: none; }
   .topbar-icon { margin-right: auto; }

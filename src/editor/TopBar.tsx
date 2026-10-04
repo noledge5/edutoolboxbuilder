@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, BarChart3, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, KeyRound, Minus, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, BarChart3, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, KeyRound, Minus, Play, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { SearchButton } from '../library/SearchDialog';
 import type { Handout } from '../share/assignment';
@@ -31,6 +31,7 @@ interface TopBarProps {
   modeLabel?: string;
   /** Opens the lesson's slides (in the library). */
   onSlides?(): void;
+  onPresent?(): void;
   /** Number of slides of the lesson. */
   slideCount?: number;
   /** New slides from this worksheet, replacing the old ones. */
@@ -127,7 +128,7 @@ export function TopBar(p: TopBarProps) {
           ]}
         />
       )}
-      {p.onSlides && <SlidesMenu count={p.slideCount ?? 0} onOpen={p.onSlides} onRegenerate={p.onRegenerateSlides} onDelete={p.onDeleteSlides} fromSheet="diesem Arbeitsblatt" />}
+      {p.onSlides && <SlidesMenu count={p.slideCount ?? 0} onOpen={p.onSlides} onPresent={p.onPresent} onRegenerate={p.onRegenerateSlides} onDelete={p.onDeleteSlides} fromSheet="diesem Arbeitsblatt" />}
       <button type="button" className={'btn btn-secondary ui-btn' + (p.editing ? '' : ' is-on')} onClick={p.onTogglePreview}>
         <Icon icon={Eye} />
         <span className="btn-label">{p.editing ? 'Vorschau' : 'Bearbeiten'}</span>
@@ -197,6 +198,7 @@ export function Menu({ label, icon, items, className = '' }: { label: string; ic
 export function SlidesMenu({
   count,
   onOpen,
+  onPresent,
   onRegenerate,
   onDelete,
   fromSheet = 'dem Arbeitsblatt',
@@ -204,12 +206,17 @@ export function SlidesMenu({
 }: {
   count: number;
   onOpen(): void;
+  /** Opens the slides and starts presenting at once. */
+  onPresent?(): void;
   onRegenerate?(): void;
   onDelete?(): void;
   fromSheet?: string;
   className?: string;
 }) {
-  const items: MenuItem[] = [{ label: count ? 'Folien öffnen' : 'Folien öffnen (noch keine)', icon: Presentation, onClick: onOpen }];
+  const items: MenuItem[] = [
+    ...(onPresent && count ? [{ label: 'Präsentieren', icon: Play, onClick: onPresent }] : []),
+    { label: count ? 'Folien öffnen' : 'Folien öffnen (noch keine)', icon: Presentation, onClick: onOpen },
+  ];
   if (onRegenerate) items.push({ label: count ? `Neu aus ${fromSheet} erzeugen …` : `Aus ${fromSheet} erzeugen`, icon: Sparkles, onClick: onRegenerate });
   if (onDelete && count) items.push({ label: `Alle ${count} Folien löschen …`, icon: Trash2, onClick: onDelete });
   return <Menu label={count ? `Folien · ${count}` : 'Folien'} icon={Presentation} items={items} className={className + (count ? '' : ' is-empty')} />;

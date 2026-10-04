@@ -107,6 +107,9 @@ interface SlidesViewProps {
   onOpenSheet(): void;
   /** A slide found by the search: shown, its words marked. */
   focus?: SearchFocus;
+  /** Start presenting right away (from a "Präsentieren" in the module or the worksheet). */
+  present?: boolean;
+  onPresentStarted?(): void;
 }
 
 const MAX_HISTORY = 60;
@@ -181,7 +184,12 @@ export function SlidesView(p: SlidesViewProps) {
   const [past, setPast] = useState<Slide[][]>([]);
   const [future, setFuture] = useState<Slide[][]>([]);
   const lastEdit = useRef('');
-  const [presenting, setPresenting] = useState<number | null>(null);
+  // Started from a "Präsentieren" elsewhere (module, worksheet): present from the first slide.
+  const [presenting, setPresenting] = useState<number | null>(p.present && p.slides.length ? 0 : null);
+  useEffect(() => {
+    if (p.present) p.onPresentStarted?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   /** The second window of the Referentenansicht. */
   const [speaker, setSpeaker] = useState<SpeakerWindows | null>(null);
   const [printing, setPrinting] = useState<SlidesPrintKind | null>(null);
@@ -561,8 +569,9 @@ export function SlidesView(p: SlidesViewProps) {
         />
         <button
           type="button"
-          className="btn btn-primary ui-btn"
+          className="btn btn-primary ui-btn sl-present-btn"
           disabled={!slides.length}
+          title="Präsentieren ab dieser Folie"
           onClick={() => {
             enterFullscreen();
             setPresenting(i);
