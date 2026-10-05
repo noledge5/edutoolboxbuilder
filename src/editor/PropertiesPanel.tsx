@@ -127,16 +127,21 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         return <IpaAreaField key={f.key} label={f.label} value={str(v)} onChange={set(f.key)} />;
       case 'pics': {
         const ids = str(v).split('\n');
+        const vocab = block.type === 'vocab';
         const names = str(block.props[f.of])
           .split('\n')
           .filter((l) => l.trim())
           .map((l) =>
-            l
-              .split('|')
-              .map((x) => x.trim())
-              .filter(Boolean)
-              .join(' · '),
+            vocab
+              ? l.split('|')[0].trim()
+              : l
+                  .split('|')
+                  .map((x) => x.trim())
+                  .filter(Boolean)
+                  .join(' · '),
           );
+        // A vocabulary list searches with the word's search words for the picture, else with the English word.
+        const queryOf = (i: number) => (vocab ? str(block.props.picwords).split('\n')[i]?.trim() || names[i] : names[i]?.split(' · ').pop()) ?? '';
         return (
           <PicsField
             key={f.key}
@@ -146,7 +151,7 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
             onFile={(i, file) => api.setPic(block.id, i, file)}
             onRemove={(i) => set(f.key)(ids.map((x, k) => (k === i ? '' : x)).join('\n'))}
             // Picture cards have no room for a source line: public domain pictures first.
-            onSearch={(i) => setSearch({ query: names[i]?.split(' · ').pop() ?? '', free: true, pick: (file) => api.setPic(block.id, i, file) })}
+            onSearch={(i) => setSearch({ query: queryOf(i), free: true, pick: (file) => api.setPic(block.id, i, file) })}
           />
         );
       }

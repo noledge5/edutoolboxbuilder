@@ -3,7 +3,8 @@ import { lookFor } from '../model/look';
 import { BLOCK_TYPES, LEVEL_NAMES } from '../model/blockTypes';
 import { createBlock, createPage, sheetNumbers, uid } from '../model/ops';
 import { seedDoc, seedSlides } from '../model/seed';
-import type { BlockType, Doc, Lang } from '../model/types';
+import { vocabOf } from '../model/language';
+import type { BlockType, Doc, Lang, Page } from '../model/types';
 import { DEFAULT_TOPIC_ICON } from '../topicIcons';
 import type { EarlierLesson } from '../slides/fromDoc';
 import type { SlideContext } from '../slides/SlideView';
@@ -509,4 +510,15 @@ export function lessonSize(l: Lesson): string {
   ]
     .filter(Boolean)
     .join(' · ');
+}
+
+/** English words in the vocabulary lists of a subject and grade (what the class has already met). */
+export const gradeVocab = (lib: Library, m: Pick<Module, 'subject' | 'grade'>): string[] =>
+  vocabOf(lib.lessons.filter((l) => lib.modules.some((x) => x.id === l.moduleId && x.subject === m.subject && x.grade === m.grade)).map((l) => l.doc)).map((w) => w.en);
+
+/** A new lesson "Vocabulary" with the given pages (made with Claude from the unit's worksheets). */
+export function vocabLesson(lib: Library, m: Module, pages: Page[]): Lesson {
+  const l = newLesson(lib, m);
+  const title = m.lang === 'en' ? `Vocabulary: ${m.title}` : `Wortschatz: ${m.title}`;
+  return { ...l, title, doc: { ...l.doc, pages } };
 }

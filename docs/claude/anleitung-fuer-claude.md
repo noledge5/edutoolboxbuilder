@@ -594,12 +594,14 @@ Feld zum Zeichnen, Beschriften oder Rechnen. Standardbreite: 12.
 
 #### `vocab` · Vokabelliste
 
-Vokabelliste mit den Spalten Englisch, Lautschrift (IPA), Deutsch und Beispielsatz. Leere Spalten fallen weg. Standardbreite: 12.
+Vokabelliste mit den Spalten Englisch, Lautschrift (IPA), Deutsch und Beispielsatz. Leere Spalten fallen weg. Eine Liste je Wortfeld (Überschrift = Wortfeld). Für anschauliche Wörter (Dinge, Tiere, Orte, Essen) in `picwords` je Zeile ein englisches Suchwort fürs Bild, sonst eine leere Zeile; dann bekommt die Liste eine Bildspalte, die die Lehrkraft füllt. `pics` lässt du leer. Standardbreite: 12.
 
 | Feld | Bedeutung | Werte | Standard |
 |---|---|---|---|
 | `title` | Überschrift | Text | `"Vocabulary"` |
 | `rows` | Wörter (je Zeile: Englisch \| Lautschrift \| Deutsch \| Beispielsatz) | Text, mehrzeilig (IPA-Zeichen erlaubt) | `"house \| haʊs \| Haus \| My house is next to the school.\nfriend \| fr…"` |
+| `picwords` | Bildspalte (je Zeile zum Wort ein Suchwort fürs Bild, leere Zeile = ohne Bild) | Text, mehrzeilig | – |
+| `pics` | Bilder zu den Wörtern | Bild-IDs aus `images`, eine je Zeile | – |
 
 #### `foldtest` · Knick-Vokabeltest (Aufgabe, wird nummeriert)
 

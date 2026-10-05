@@ -55,7 +55,7 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
   const lang = useSheetLang();
   const doc = useSheetDoc();
   const vr = variantProps(doc?.look, str(p.variant) as Variant);
-  if (!BLOCK_TYPES[block.type].task && LANGUAGE_BLOCKS.has(block.type)) return <LanguageBlock block={block} target={t} editing={editing} />;
+  if (!BLOCK_TYPES[block.type].task && LANGUAGE_BLOCKS.has(block.type)) return <LanguageBlock block={block} target={t} editing={editing} onPicFile={onPicFile} />;
   switch (block.type) {
     case 'heading':
       return <Editable as="h3" className="ws-h3" target={t('text')} value={str(p.text)} />;

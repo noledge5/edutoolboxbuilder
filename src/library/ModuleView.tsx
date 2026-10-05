@@ -1,8 +1,10 @@
 // One module: its data, the lessons (content overview) and the competence grid, with A4 prints of both.
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowLeft, ArrowUp, BookA, Copy, Download, FileInput, ListChecks, PackageOpen, Plus, Printer, Shuffle, SquarePen, Table, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, BookA, Copy, Download, FileInput, ListChecks, PackageOpen, Plus, Printer, Shuffle, Sparkles, SquarePen, Table, Trash2 } from 'lucide-react';
 import { vocabOf } from '../model/language';
 import { VocabTestDialog, type VocabTestOptions } from './VocabTestDialog';
+import { VocabAiDialog } from '../ai/VocabAiDialog';
+import type { Page } from '../model/types';
 import { IconPickerField, NumberField } from '../editor/fields';
 import { Menu, SlidesMenu } from '../editor/TopBar';
 import { Icon } from '../icons';
@@ -27,6 +29,9 @@ interface ModuleViewProps {
   onAddLesson(): void;
   onOpenLesson(l: Lesson): void;
   onOpenSlides(l: Lesson): void;
+  /** English words of the grade's vocabulary lists; with it, "Vokabelliste mit Claude" makes a lesson of `pages`. */
+  knownVocab: string[];
+  onVocabLesson(pages: Page[]): void;
   /** Opens the lesson's slides and starts presenting. */
   onPresent(l: Lesson): void;
   onRegenerateSlides(l: Lesson): void;
@@ -53,6 +58,7 @@ export function ModuleView(p: ModuleViewProps) {
   const set = (patch: Partial<Module>) => p.onChange({ ...m, ...patch, updatedAt: Date.now() });
 
   const [testOpen, setTestOpen] = useState(false);
+  const [vocabAiOpen, setVocabAiOpen] = useState(false);
   const [gridMode, setGridMode] = useState<'ansicht' | 'bearbeiten'>(m.competences.length ? 'ansicht' : 'bearbeiten');
   const vocabCount = vocabOf(p.lessons.map((l) => l.doc)).length;
   const noVocab = () => window.alert('In diesem Modul gibt es noch keine Vokabelliste. Lege in einer Stunde den Baustein „Vokabelliste“ an (Toolbox: Wortschatz & Grammatik).');
@@ -89,6 +95,7 @@ export function ModuleView(p: ModuleViewProps) {
             label="Vokabeln"
             icon={BookA}
             items={[
+              ...(m.lang === 'en' ? [{ label: 'Vokabelliste mit Claude …', icon: Sparkles, onClick: () => setVocabAiOpen(true) }] : []),
               { label: 'Vokabeltest erstellen …', icon: Shuffle, onClick: () => (vocabCount ? setTestOpen(true) : noVocab()) },
               { label: 'Vokabeln als CSV (Anki, Quizlet)', icon: Download, onClick: () => (vocabCount ? p.onExportVocab() : noVocab()) },
             ]}
@@ -220,6 +227,22 @@ export function ModuleView(p: ModuleViewProps) {
           </section>
         )}
       </main>
+      {vocabAiOpen && (
+        <VocabAiDialog
+          scope="module"
+          grade={m.grade}
+          topic={m.title}
+          lang={m.lang}
+          kicker={`${m.lang === 'en' ? 'Class' : 'Klasse'} ${m.grade} · Unit ${m.number}`}
+          sources={p.lessons.filter(isWorkedOut).map((l) => ({ title: `Stunde ${l.number}: ${l.title}`, doc: l.doc }))}
+          known={p.knownVocab}
+          onClose={() => setVocabAiOpen(false)}
+          onApply={(pages) => {
+            setVocabAiOpen(false);
+            p.onVocabLesson(pages);
+          }}
+        />
+      )}
       {testOpen && (
         <VocabTestDialog
           available={vocabCount}

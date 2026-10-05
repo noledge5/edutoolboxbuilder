@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, BarChart3, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, KeyRound, Minus, Play, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, BarChart3, BookA, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, KeyRound, Minus, Play, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { SearchButton } from '../library/SearchDialog';
 import type { Handout } from '../share/assignment';
@@ -43,6 +43,8 @@ interface TopBarProps {
   onShareAll?(): void;
   /** Works out the lesson with Claude. */
   onClaude?(): void;
+  /** Vocabulary list of this lesson with Claude (English modules). */
+  onVocabAi?(): void;
   /** Claude's key and costs on this device. */
   onAiSettings?(): void;
   handouts?: Handout[];
@@ -110,6 +112,7 @@ export function TopBar(p: TopBarProps) {
           icon={Sparkles}
           items={[
             { label: 'Stunde mit Claude …', icon: Sparkles, onClick: p.onClaude },
+            ...(p.onVocabAi ? [{ label: 'Vokabelliste mit Claude …', icon: BookA, onClick: p.onVocabAi }] : []),
             ...(p.onAiSettings ? [{ label: 'KI im Baukasten …', icon: KeyRound, onClick: p.onAiSettings }] : []),
           ]}
         />

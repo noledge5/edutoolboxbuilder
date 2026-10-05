@@ -27,6 +27,8 @@ export interface LessonAi {
   context(wishes: string): string;
   /** Before Claude's lesson is applied: keep the lesson as it was, add new competences to the module. */
   onApplied(added: Competence[]): void;
+  /** English words in the vocabulary lists of this subject and grade (for "Vokabelliste mit Claude"). */
+  known(): string[];
 }
 
 interface LessonAiDialogProps {

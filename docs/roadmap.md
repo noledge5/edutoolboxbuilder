@@ -130,3 +130,4 @@ Entschieden mit Fragen und Vor- und Nachteilen:
 ### Als Nächstes
 - Runde 7 (interaktive Modelle) in der nächsten Woche.
 - ✅ (04.10.2026, nach dem Entwurf von Claude Design; Entscheidungen: alle drei Englisch-Varianten wählbar, Überschrift Vorschlag A als Vorgabe und umschaltbar, Einstellung je Modul mit dem Fach als Vorgabe, Code-Baustein dazu) Fachdesigns für Arbeitsblatt und Folien (Wunsch vom 02.10.2026): Geographie, Englisch, Informatik, je für Klasse 5–6 und 7–10; das Design darf Kopfband, Farben, Muster und Kästen ändern, Schriften, Raster und Maße bleiben (kein neuer Umbruch), mit S/W-Fassung. Entwurf durch Claude Design nach `docs/design/handoff-fachdesigns.md`, danach Einbau.
+- ✅ (05.10.2026) Vokabellisten mit Claude aus den Arbeitsblättern (Entscheidungen: je Stunde als Seite und je Unit als Stunde; je Wortfeld eine Liste plus Wortnetz; Bildspalte mit Suchwörtern, Bilder setzt die Lehrkraft; nur neue Wörter des Jahrgangs, Vorschau zum Abwählen).

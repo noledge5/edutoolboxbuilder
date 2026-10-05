@@ -20,6 +20,8 @@ import { putImageAs } from '../storage/db';
 import { dataUrlToBlob } from '../storage/backup';
 import { AiSettingsDialog } from '../ai/AiSettingsDialog';
 import { LessonAiDialog, type LessonAi } from '../ai/LessonAiDialog';
+import { VocabAiDialog } from '../ai/VocabAiDialog';
+import { vocabOf } from '../model/language';
 import type { EditorApi } from './api';
 import { Canvas } from './Canvas';
 import { dropTargetAt, sameDrop } from './drop';
@@ -157,7 +159,7 @@ export function Editor({
   const [zoom, setZoomState] = useState(() => storedZoom() ?? 0.8);
   const [preview, setPreview] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
-  const [aiOpen, setAiOpen] = useState<'lesson' | 'settings' | null>(null);
+  const [aiOpen, setAiOpen] = useState<'lesson' | 'settings' | 'vocab' | null>(null);
   const [drop, setDrop] = useState<DropTarget | null>(null);
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
   const [saveError, setSaveError] = useState(false);
@@ -774,6 +776,7 @@ export function Editor({
           handouts={handouts}
           onOpenHandout={onOpenHandout}
           onClaude={ai && (() => setAiOpen('lesson'))}
+          onVocabAi={ai && ai.module.lang === 'en' ? () => setAiOpen('vocab') : undefined}
           onAiSettings={() => setAiOpen('settings')}
         />
         <input
@@ -912,6 +915,24 @@ export function Editor({
           />
         )}
         {aiOpen === 'settings' && <AiSettingsDialog onClose={() => setAiOpen(null)} />}
+        {aiOpen === 'vocab' && ai && (
+          <VocabAiDialog
+            scope="lesson"
+            grade={ai.module.grade}
+            topic={ai.module.title}
+            lang={doc.lang}
+            kicker={`${ai.module.lang === 'en' ? 'Class' : 'Klasse'} ${ai.module.grade} · Unit ${ai.module.number}`}
+            sources={[{ title: ai.lesson.title, doc }]}
+            known={[...ai.known(), ...vocabOf([doc]).map((w) => w.en)]}
+            onClose={() => setAiOpen(null)}
+            onApply={(pages) => {
+              const d = latest.current.doc;
+              commit({ ...d, pages: [...d.pages, ...pages] }, { select: { kind: 'page', p: d.pages.length } });
+              setAiOpen(null);
+              setNotice(`${pages.length === 1 ? 'Seite' : `${pages.length} Seiten`} „Vocabulary“ angelegt. Bilder setzt du im Panel der Listen ein; Rückgängig nimmt sie wieder heraus.`);
+            }}
+          />
+        )}
         <div className="toasts" data-noprint="1">
           {saveError && (
             <div className="toast is-warn" role="alert">

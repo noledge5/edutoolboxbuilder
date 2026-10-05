@@ -428,10 +428,14 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     defaults: {
       title: 'Vocabulary',
       rows: 'house | haʊs | Haus | My house is next to the school.\nfriend | frend | Freund, Freundin | Tom is my best friend.\nto live | lɪv | wohnen, leben | I live in Stuttgart.',
+      picwords: '',
+      pics: '',
     },
     fields: [
       { key: 'title', label: 'Überschrift', kind: 'text' },
       { key: 'rows', label: 'Wörter (je Zeile: Englisch | Lautschrift | Deutsch | Beispielsatz)', kind: 'ipa' },
+      { key: 'picwords', label: 'Bildspalte (je Zeile zum Wort ein Suchwort fürs Bild, leere Zeile = ohne Bild)', kind: 'area' },
+      { key: 'pics', label: 'Bilder zu den Wörtern', kind: 'pics', of: 'rows' },
     ],
   },
   foldtest: {

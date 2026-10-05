@@ -1,7 +1,7 @@
 // Printed content of the language blocks (vocabulary, grammar, the four skills) and of the blocks that sum up
 // the whole sheet (grade scale, tip cards). BlockContent hands these block types over to here.
 import { useContext, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { Headphones, Lightbulb, Scissors, Star } from 'lucide-react';
+import { Headphones, ImagePlus, Lightbulb, Scissors, Star } from 'lucide-react';
 import { Icon } from '../icons';
 import { docPoints, docTips, glossary, gradeRanges, jumble, pointText, statements, thresholds } from '../model/language';
 import { lines, num, rows, str } from '../model/text';
@@ -10,6 +10,7 @@ import { Editable } from './inlineEdit';
 import { typo, useSheetDoc, useSheetLang, useSheetText } from './lang';
 import { answerClass, GapText, ImageBox, Marked, qrCode, variantProps } from './parts';
 import { SheetModeContext } from './sheetMode';
+import { useImageUrl } from '../storage/images';
 
 /** Column colours of the sentence-building table (subject, verb, object, place, time …). */
 const COLUMN_COLORS = ['accent-3', 'accent', 'accent-2', 'accent-4', 'accent-5', 'accent-6', 'accent-7'];
@@ -38,11 +39,21 @@ interface BlockProps {
 }
 
 /** Blocks that are not tasks. */
-export function LanguageBlock({ block, target: t, editing }: BlockProps): ReactNode {
+export function LanguageBlock({ block, target: t, editing, onPicFile }: BlockProps): ReactNode {
   const p = block.props;
   switch (block.type) {
     case 'vocab':
-      return <VocabList title={str(p.title)} titleTarget={t('title')} rows={rows(p.rows)} />;
+      return (
+        <VocabList
+          title={str(p.title)}
+          titleTarget={t('title')}
+          rows={rows(p.rows)}
+          picwords={str(p.picwords).split('\n')}
+          pics={str(p.pics).split('\n')}
+          editing={editing}
+          onPicFile={onPicFile}
+        />
+      );
     case 'grammar':
       return <GrammarBox block={block} target={t} />;
     case 'forms':
@@ -95,31 +106,106 @@ export function LanguageTaskBody({ block, target: t, editing, onPicFile }: Block
 
 // — Wortschatz —
 
-function VocabList({ title, titleTarget, rows: data }: { title: string; titleTarget: string; rows: string[][] }) {
+interface VocabListProps {
+  title: string;
+  titleTarget: string;
+  rows: string[][];
+  /** Per row: search words for a picture; empty = no picture field. */
+  picwords?: string[];
+  /** Per row: the picture's image id. */
+  pics?: string[];
+  editing?: boolean;
+  onPicFile?: (index: number, file: File) => void;
+}
+
+function VocabList({ title, titleTarget, rows: data, picwords = [], pics = [], editing = false, onPicFile }: VocabListProps) {
   const txt = useSheetText();
   const lang = useSheetLang();
   const hasIpa = data.some((r) => r[1]);
   const hasExample = data.some((r) => r[3]);
-  const cols = [0, hasIpa ? 1 : -1, 2, hasExample ? 3 : -1].filter((c) => c >= 0);
-  const widths: Record<number, string> = { 0: 'minmax(0, 1fr)', 1: 'minmax(0, 0.95fr)', 2: 'minmax(0, 1fr)', 3: 'minmax(0, 1.8fr)' };
+  // A picture column (first) when a word has a picture or asks for one.
+  const picOf = (k: number) => ({ id: pics[k]?.trim() ?? '', wanted: !!picwords[k]?.trim() });
+  const hasPics = data.some((_, k) => picOf(k).id || picOf(k).wanted);
+  const cols = [hasPics ? 4 : -1, 0, hasIpa ? 1 : -1, 2, hasExample ? 3 : -1].filter((c) => c >= 0);
+  const widths: Record<number, string> = { 4: '64px', 0: 'minmax(0, 1fr)', 1: 'minmax(0, 0.95fr)', 2: 'minmax(0, 1fr)', 3: 'minmax(0, 1.8fr)' };
   const template = { gridTemplateColumns: cols.map((c) => widths[c]).join(' ') };
   return (
     <div className="ws-vocab">
       <Editable className="ws-vocab-title" target={titleTarget} value={title} />
       <div className="ws-vocab-row is-head" style={template}>
         {cols.map((c) => (
-          <div key={c}>{txt.vocabCols[c]}</div>
+          <div key={c}>{c === 4 ? '' : txt.vocabCols[c]}</div>
         ))}
       </div>
       {data.map((r, k) => (
-        <div key={k} className="ws-vocab-row" style={template}>
-          {cols.map((c) => (
+        <div key={k} className={'ws-vocab-row' + (hasPics ? ' has-pic' : '')} style={template}>
+          {cols.map((c) =>
+            c === 4 ? (
+              <div key={c} className="ws-vocab-piccell">
+                {(picOf(k).id || picOf(k).wanted) && <VocabPic id={picOf(k).id} editing={editing} onFile={onPicFile ? (f) => onPicFile(k, f) : undefined} />}
+              </div>
+            ) : (
             <div key={c} className={c === 0 ? 'ws-vocab-en' : c === 1 ? 'ws-ipa' : c === 3 ? 'ws-vocab-example' : ''}>
               {c === 1 ? withBrackets(r[1] ?? '') : <Marked text={typo(r[c] ?? '', lang)} />}
             </div>
-          ))}
+            ),
+          )}
         </div>
       ))}
+    </div>
+  );
+}
+
+/** A small picture beside a word; empty, it is a frame to draw or glue in (and to drop a picture on while editing). */
+function VocabPic({ id, editing, onFile }: { id: string; editing: boolean; onFile?: (f: File) => void }) {
+  const img = useImageUrl(id);
+  const input = useRef<HTMLInputElement>(null);
+  const canEdit = editing && !!onFile;
+  if (img.status === 'ready') return <img className="ws-vocab-pic" src={img.url} alt="" draggable={false} />;
+  return (
+    <div
+      className="ws-vocab-pic is-empty"
+      onDragOver={canEdit ? (e) => e.dataTransfer.types.includes('Files') && e.preventDefault() : undefined}
+      onDrop={
+        canEdit
+          ? (e) => {
+              e.preventDefault();
+              const f = Array.from(e.dataTransfer.files).find((x) => x.type.startsWith('image/'));
+              if (f) onFile!(f);
+            }
+          : undefined
+      }
+    >
+      {canEdit && (
+        <>
+          <button
+            type="button"
+            className="ws-vocab-pick"
+            data-noprint="1"
+            title="Bild wählen (Bildsuche im Panel)"
+            aria-label="Bild wählen"
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              input.current?.click();
+            }}
+          >
+            <Icon icon={ImagePlus} size={16} />
+          </button>
+          <input
+            ref={input}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = '';
+              if (f) onFile!(f);
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

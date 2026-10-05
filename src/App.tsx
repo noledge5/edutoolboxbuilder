@@ -17,6 +17,8 @@ import {
   syncLibrary,
   toTrash,
   vocabTestLesson,
+  gradeVocab,
+  vocabLesson,
 } from './library/model';
 import { noteRecent } from './library/recent';
 import type { Here, SearchEntry } from './library/search';
@@ -514,6 +516,7 @@ export function App() {
           module: m,
           lesson,
           context: (wishes) => lessonContext(libRef.current!, m, lesson, wishes),
+          known: () => gradeVocab(libRef.current!, m),
           onApplied: (added) => {
             const now = libRef.current?.lessons.find((x) => x.id === lesson.id);
             if (now) store.keepVersion(now, 'Vor Claude').catch(() => {});
@@ -634,6 +637,12 @@ export function App() {
         onOpenLesson={(l) => go({ view: 'lesson', id: l.id })}
         onOpenSlides={(l) => go({ view: 'slides', id: l.id })}
         onPresent={(l) => present(l.id)}
+        knownVocab={gradeVocab(lib, m)}
+        onVocabLesson={(pages) => {
+          const l = vocabLesson(libRef.current!, m, pages);
+          putLesson(l).catch(failed);
+          go({ view: 'lesson', id: l.id });
+        }}
         onRegenerateSlides={(l) => regenerateSlides(l.id)}
         onDeleteSlides={(l) => deleteSlides(l.id)}
         onChangeLesson={(l) => putLesson(l).catch(failed)}

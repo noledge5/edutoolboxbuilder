@@ -763,3 +763,10 @@
 .is-bw .ws-web-center, .is-bw .ws-listen-icon, .is-bw .ws-listen-stage, .is-bw .ws-role-title { background: var(--paper); color: var(--color-text); border: 1.5px solid var(--color-text); }
 .is-bw .ws-web-label, .is-bw .ws-pic-emoji, .is-bw .ws-transform-to { background: var(--paper); border: 1.5px solid var(--color-neutral-600); }
 .is-bw .ws-web-lines line { stroke: var(--color-neutral-600); }
+
+/* Vocabulary list with a picture column: a small picture or an empty frame to draw or glue in */
+.ws-vocab-row > div.ws-vocab-piccell { padding: 4px 6px; display: grid; place-items: center; }
+.ws-vocab-pic { width: 52px; height: 40px; object-fit: contain; display: block; }
+.ws-vocab-pic.is-empty { position: relative; border-radius: 8px; box-shadow: inset 0 0 0 1.5px var(--color-accent-5-200); display: grid; place-items: center; }
+.ws-vocab-pick { width: 30px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 6px; background: var(--color-accent-5-100); color: var(--color-accent-5-800); cursor: pointer; }
+.is-bw .ws-vocab-pic.is-empty { box-shadow: inset 0 0 0 1.5px var(--color-neutral-500); }

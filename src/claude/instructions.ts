@@ -35,7 +35,7 @@ const BLOCK_USE: Record<BlockType, string> = {
   hook: 'Nur Lehrkraft-Seite: der Einstieg mit seiner Art (`kind`), dem Impuls, der Auflösung, Bild oder Video und der Leitfrage. Daraus baut der Baukasten die Einstiegsfolie.',
   expect: 'Nur Lehrkraft-Seite: Erwartungshorizont mit typischen Schüleraussagen und ihrer Bewertung.',
   recall: 'Nur Lehrkraft-Seite: Abruffragen zum Stoff dieser Stunde, mit Antworten. Der Baukasten stellt sie in späteren Stunden zum Abrufen (verteiltes Wiederholen), nicht am Anfang dieser Stunde.',
-  vocab: 'Vokabelliste mit den Spalten Englisch, Lautschrift (IPA), Deutsch und Beispielsatz. Leere Spalten fallen weg.',
+  vocab: 'Vokabelliste mit den Spalten Englisch, Lautschrift (IPA), Deutsch und Beispielsatz. Leere Spalten fallen weg. Eine Liste je Wortfeld (Überschrift = Wortfeld). Für anschauliche Wörter (Dinge, Tiere, Orte, Essen) in `picwords` je Zeile ein englisches Suchwort fürs Bild, sonst eine leere Zeile; dann bekommt die Liste eine Bildspalte, die die Lehrkraft füllt. `pics` lässt du leer.',
   foldtest: 'Knick-Vokabeltest: vorgegebenes Wort, Schreiblinie, Faltlinie, Lösung zum Selbstkontrollieren. Als „test“ ohne Lösungsspalte.',
   picvocab: 'Bilder (Emoji oder eingefügte Bilder) mit Beschriftungslinie („Label the pictures“).',
   wordweb: 'Wortnetz (Mindmap): Mitte und Äste mit Wörtern, Lücken und Lösungen.',
