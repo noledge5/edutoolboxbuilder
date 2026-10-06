@@ -46,6 +46,8 @@ import { YearPlanView } from './library/YearPlanView';
 import { BW_2026_27 } from './library/yearplan';
 import { lessonContext } from './ai/context';
 import { AiGradeContext } from './ai/ImageAiPane';
+import { classNotes, ClassNotesContext } from './ai/classNotes';
+import { applyModulePlan } from './ai/moduleplan';
 import { vocabCsv, vocabOf, vocabTestRows } from './model/language';
 import { requestPersistentStorage } from './storage/db';
 import * as store from './storage/library';
@@ -518,6 +520,7 @@ export function App() {
           lesson,
           context: (wishes) => lessonContext(libRef.current!, m, lesson, wishes),
           known: () => gradeVocab(libRef.current!, m),
+          notes: () => classNotes(libRef.current!.settings, m.subject, m.grade),
           onApplied: (added) => {
             const now = libRef.current?.lessons.find((x) => x.id === lesson.id);
             if (now) store.keepVersion(now, 'Vor Claude').catch(() => {});
@@ -649,6 +652,14 @@ export function App() {
         onChangeLesson={(l) => putLesson(l).catch(failed)}
         onDuplicateLesson={(l) => putLesson(duplicateLesson(lib, m, l)).catch(failed)}
         onDeleteLesson={(l) => remove([], [l.id], `Stunde ${l.number} „${l.title}“`)}
+        lib={lib}
+        onApplyPlan={(plan) => {
+          const done = applyModulePlan(libRef.current!, m, plan);
+          // First the trash (it sets the whole library), then the module and its lessons on top.
+          if (done.remove.length) remove([], done.remove.map((l) => l.id), done.remove.length === 1 ? 'Eine Stunde der alten Planung' : `Die alte Planung (${done.remove.length} Stunden)`);
+          putModule(done.module);
+          for (const l of done.lessons) putLesson(l).catch(failed);
+        }}
         onImportFile={(file) => openFile(file, m)}
         onExportVocab={() => {
           const csv = vocabCsv(vocabOf(lessons.map((l) => l.doc)));
@@ -704,7 +715,9 @@ export function App() {
   return (
     <SearchContext.Provider value={openSearch}>
       <div className="subject-scope" style={subject ? subjectVars(subjectColor(lib.settings, subject)) : undefined}>
-        <AiGradeContext.Provider value={here.grade}>{view}</AiGradeContext.Provider>
+        <AiGradeContext.Provider value={here.grade}>
+          <ClassNotesContext.Provider value={{ settings: lib.settings, save: putSettings }}>{view}</ClassNotesContext.Provider>
+        </AiGradeContext.Provider>
       </div>
       {searchOpen && <SearchDialog lib={lib} here={here} onOpen={openHit} onClose={closeSearch} />}
       {sharing &&

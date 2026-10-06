@@ -9,6 +9,7 @@ import { defaultLang, modulesOf } from '../library/model';
 import type { ParsedPackage } from '../library/package';
 import type { Library } from '../library/types';
 import { AiSettingsDialog } from './AiSettingsDialog';
+import { ClassNotesLine } from './ClassNotesDialog';
 import { AiBusy, ChatPath, useAiJob } from './parts';
 import { dollars } from './prices';
 import { modelLabel } from './settings';
@@ -30,12 +31,14 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
   const [hours, setHours] = useState(defaultLang(subject) === 'en' ? 4 : 2);
   const [textbook, setTextbook] = useState(() => modulesOf(lib, subject, grade).find((m) => m.textbook)?.textbook.replace(/,.*$/, '') ?? '');
   const [wishes, setWishes] = useState('');
+  const [tests, setTests] = useState<number | null>(null);
+  const [dates, setDates] = useState('');
   const [plan, setPlan] = useState<ParsedPackage | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [pasted, setPasted] = useState('');
   const [keyOpen, setKeyOpen] = useState(false);
 
-  const context = useMemo(() => yearPlanContext(lib, subject, grade, { hours, textbook, wishes }), [lib, subject, grade, hours, textbook, wishes]);
+  const context = useMemo(() => yearPlanContext(lib, subject, grade, { hours, textbook, wishes, tests, dates }), [lib, subject, grade, hours, textbook, wishes, tests, dates]);
   const prompt = (chat: boolean) => yearPlanPrompt(subject, grade, context, chat);
   const preview = useMemo(() => (plan ? planPreview(lib, subject, grade, plan) : null), [lib, subject, grade, plan]);
   const read = (raw: unknown) => setPlan(yearPlanFromAnswer(raw, subject, grade));
@@ -81,6 +84,23 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
                   <input id="ai-textbook" className="input" value={textbook} placeholder={defaultLang(subject) === 'en' ? 'z. B. Green Line 1' : 'z. B. Diercke Praxis 9'} onChange={(e) => setTextbook(e.target.value)} />
                 </div>
               </div>
+              <div className="ai-plan-row">
+                <div className="field">
+                  <label htmlFor="ai-plan-tests">Klassenarbeiten im Schuljahr</label>
+                  <select id="ai-plan-tests" className="input" value={tests ?? ''} onChange={(e) => setTests(e.target.value === '' ? null : Number(e.target.value))}>
+                    <option value="">Claude entscheidet (wie im Fach üblich)</option>
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                      <option key={n} value={n}>
+                        {n === 0 ? 'keine' : n}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="ai-plan-dates">Prüfungen, Projekte, feste Termine (freiwillig)</label>
+                  <input id="ai-plan-dates" className="input" value={dates} placeholder="z. B. VERA 8 im Mai, Projektwoche KW 28, Exkursion im Juni" onChange={(e) => setDates(e.target.value)} />
+                </div>
+              </div>
               <div className="field">
                 <label htmlFor="ai-plan-wishes">Schwerpunkte und Wünsche (freiwillig)</label>
                 <textarea
@@ -88,10 +108,11 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
                   className="input"
                   rows={3}
                   value={wishes}
-                  placeholder="z. B. Reihenfolge wie im Buch, vor Weihnachten ein Projekt, drei Klassenarbeiten, im Sommer Exkursion"
+                  placeholder="z. B. Reihenfolge wie im Buch, vor Weihnachten ein Projekt, Klimadiagramme früh einführen"
                   onChange={(e) => setWishes(e.target.value)}
                 />
               </div>
+              <ClassNotesLine subject={subject} grade={grade} />
               <details className="ai-context">
                 <summary>Was Claude über den Jahrgang erfährt</summary>
                 <pre>{context}</pre>
@@ -120,6 +141,7 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
                           {r.weeks} {r.weeks === 1 ? 'Woche' : 'Wochen'}
                           {r.when && ` · ${r.when}`}
                           {r.short && ' · passt nicht mehr ins Schuljahr'} · {r.lessons} {r.lessons === 1 ? 'Stunde' : 'Stunden'} · {r.competences} {r.competences === 1 ? 'Kompetenz' : 'Kompetenzen'}
+                          {r.tests > 0 && ` · ${r.tests} ${r.tests === 1 ? 'Leistungsnachweis' : 'Leistungsnachweise'}`}
                         </span>
                         <span className={'ai-plan-tag' + (r.action === 'neu' ? ' is-new' : '')}>{r.action === 'neu' ? 'Neu' : 'Ergänzt'}</span>
                       </summary>

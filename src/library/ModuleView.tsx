@@ -4,6 +4,8 @@ import { ArrowDown, ArrowLeft, ArrowUp, BookA, Copy, Download, FileInput, ListCh
 import { vocabOf } from '../model/language';
 import { VocabTestDialog, type VocabTestOptions } from './VocabTestDialog';
 import { VocabAiDialog } from '../ai/VocabAiDialog';
+import { ModulePlanAiDialog } from '../ai/ModulePlanAiDialog';
+import type { ModulePlan } from '../ai/moduleplan';
 import type { Page } from '../model/types';
 import { IconPickerField, NumberField } from '../editor/fields';
 import { Menu, SlidesMenu } from '../editor/TopBar';
@@ -13,9 +15,10 @@ import { topicIcon } from '../topicIcons';
 import { ModulePages, ModulePrint, usePageFit, type PrintKind } from './ModulePrint';
 import { competenceLessons, competenceLinks, isWorkedOut, linkLabel, newCompetence, progressOf, type CompetenceLink } from './model';
 import { domainsFor } from './curriculum';
+import { isLessonRole, LESSON_ROLES } from './planning';
 import { SearchButton } from './SearchDialog';
 import { ageOf, DEFAULT_MODULE_LOOK, ENG_VARIANTS, FACH_LABELS, fachOf, HEAD_FONTS, lookFor, lookKey, LOOK_NAMES, type EngVariant, type Fach, type HeadFont, type ModuleLook } from '../model/look';
-import type { Competence, Lesson, Module, Settings } from './types';
+import type { Competence, Lesson, Library, Module, Settings } from './types';
 import { GRADES } from './types';
 
 interface ModuleViewProps {
@@ -45,6 +48,10 @@ interface ModuleViewProps {
   /** Saves the words of the module's vocabulary lists as CSV. */
   onExportVocab(): void;
   onVocabTest(o: VocabTestOptions): void;
+  /** The whole library, for planning the module with Claude (school year, other modules). */
+  lib: Library;
+  /** Applies Claude's module plan: worked-out lessons stay, planned ones are replaced. */
+  onApplyPlan(plan: ModulePlan): void;
 }
 
 type Tab = 'inhalt' | 'raster';
@@ -59,6 +66,7 @@ export function ModuleView(p: ModuleViewProps) {
 
   const [testOpen, setTestOpen] = useState(false);
   const [vocabAiOpen, setVocabAiOpen] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
   const [gridMode, setGridMode] = useState<'ansicht' | 'bearbeiten'>(m.competences.length ? 'ansicht' : 'bearbeiten');
   const vocabCount = vocabOf(p.lessons.map((l) => l.doc)).length;
   const noVocab = () => window.alert('In diesem Modul gibt es noch keine Vokabelliste. Lege in einer Stunde den Baustein „Vokabelliste“ an (Toolbox: Wortschatz & Grammatik).');
@@ -105,6 +113,7 @@ export function ModuleView(p: ModuleViewProps) {
           label="Modul"
           icon={SquarePen}
           items={[
+            { label: 'Mit Claude planen …', icon: Sparkles, onClick: () => setPlanOpen(true) },
             { label: 'Arbeitsblatt-Datei als Stunde importieren …', icon: FileInput, onClick: () => fileInput.current?.click() },
             { label: 'Als Stundenpaket sichern', icon: PackageOpen, onClick: p.onExportPackage },
             { label: 'Modul löschen', icon: Trash2, onClick: p.onDelete },
@@ -203,7 +212,7 @@ export function ModuleView(p: ModuleViewProps) {
         </div>
 
         {tab === 'inhalt' ? (
-          <LessonList {...p} />
+          <LessonList {...p} onPlan={() => setPlanOpen(true)} />
         ) : (
           <section className="lib-section">
             <div className="lib-h2-row">
@@ -243,6 +252,17 @@ export function ModuleView(p: ModuleViewProps) {
           }}
         />
       )}
+      {planOpen && (
+        <ModulePlanAiDialog
+          lib={p.lib}
+          module={m}
+          onClose={() => setPlanOpen(false)}
+          onApply={(plan) => {
+            setPlanOpen(false);
+            p.onApplyPlan(plan);
+          }}
+        />
+      )}
       {testOpen && (
         <VocabTestDialog
           available={vocabCount}
@@ -276,7 +296,37 @@ function GridPreview(p: ModuleViewProps & { onEdit(): void }) {
   );
 }
 
-function LessonList(p: ModuleViewProps) {
+/** The competences a (planned) lesson works on, as chips; one more is added from the module's grid. */
+function LessonCompetences({ lesson: l, competences, onChange }: { lesson: Lesson; competences: Competence[]; onChange(l: Lesson): void }) {
+  const set = (ids: string[]) => onChange({ ...l, competences: ids, updatedAt: Date.now() });
+  const mine = l.competences.map((id) => competences.find((c) => c.id === id)).filter((c): c is Competence => !!c);
+  const rest = competences.filter((c) => !l.competences.includes(c.id));
+  const name = (c: Competence) => c.area || c.g || 'Kompetenz';
+  return (
+    <div className="lib-comp-chips">
+      {mine.map((c) => (
+        <span key={c.id} className="lib-comp-chip" title={name(c)}>
+          {name(c).length > 34 ? name(c).slice(0, 33) + '…' : name(c)}
+          <button type="button" aria-label={`„${name(c)}“ entfernen`} onClick={() => set(l.competences.filter((x) => x !== c.id))}>
+            ×
+          </button>
+        </span>
+      ))}
+      {rest.length > 0 && (
+        <select className="input lib-comp-add" aria-label="Kompetenz zuordnen" value="" onChange={(e) => e.target.value && set([...l.competences, e.target.value])}>
+          <option value="">{mine.length ? '+ Kompetenz' : 'Kompetenzen zuordnen …'}</option>
+          {rest.map((c) => (
+            <option key={c.id} value={c.id}>
+              {name(c)}
+            </option>
+          ))}
+        </select>
+      )}
+    </div>
+  );
+}
+
+function LessonList(p: ModuleViewProps & { onPlan(): void }) {
   const progress = progressOf(p.lessons);
   return (
     <section className="lib-section">
@@ -307,9 +357,23 @@ function LessonList(p: ModuleViewProps) {
                     onChange={(e) => p.onChangeLesson({ ...l, textbook: e.target.value, updatedAt: Date.now() })}
                   />
                 </div>
-                {(planned || l.plan) && (
+                {(planned || l.plan || l.role) && (
                   <div className="lib-lesson-plan-row">
                     {planned && <span className="lib-planned-badge">Geplant</span>}
+                    <select
+                      className={'input lib-role-select' + (l.role ? ' is-set' : '')}
+                      aria-label="Rolle der Stunde im Modul"
+                      title="Rolle der Stunde im Modul"
+                      value={l.role}
+                      onChange={(e) => p.onChangeLesson({ ...l, role: isLessonRole(e.target.value) ? e.target.value : '', updatedAt: Date.now() })}
+                    >
+                      <option value="">Rolle …</option>
+                      {LESSON_ROLES.map((r) => (
+                        <option key={r.v} value={r.v}>
+                          {r.short}
+                        </option>
+                      ))}
+                    </select>
                     <input
                       className="input lib-lesson-plan"
                       aria-label="Planung der Stunde"
@@ -319,6 +383,7 @@ function LessonList(p: ModuleViewProps) {
                     />
                   </div>
                 )}
+                {(planned || l.competences.length > 0) && p.module.competences.length > 0 && <LessonCompetences lesson={l} competences={p.module.competences} onChange={p.onChangeLesson} />}
                 {!planned && (
                   <div className="lib-lesson-pages">
                     {l.doc.pages.map((pg, k) =>
@@ -352,10 +417,16 @@ function LessonList(p: ModuleViewProps) {
         })}
         {p.lessons.length === 0 && <p className="lib-empty">Noch keine Stunden. Lege die erste an oder importiere eine Arbeitsblatt-Datei.</p>}
       </div>
-      <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onAddLesson}>
-        <Icon icon={Plus} />
-        Neue Stunde
-      </button>
+      <div className="lib-add-row">
+        <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onAddLesson}>
+          <Icon icon={Plus} />
+          Neue Stunde
+        </button>
+        <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onPlan}>
+          <Icon icon={Sparkles} />
+          Modul mit Claude planen …
+        </button>
+      </div>
     </section>
   );
 }

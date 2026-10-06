@@ -12,8 +12,9 @@ import { isSlideDesign, leanSlide, mapSlideImages, normalizeSlides, type Slide, 
 import type { Block, Doc, Page } from '../model/types';
 import { DEFAULT_TOPIC_ICON, isTopicIcon } from '../topicIcons';
 import { defaultLang, footerFor, isWorkedOut, lessonCode, lessonsOf, modulesOf, plannedDoc } from './model';
+import { isLessonRole, LESSON_ROLES } from './planning';
 import { readDay, readSchoolYear } from './read';
-import { GRADES, type Competence, type Lesson, type Library, type Module, type SchoolYear } from './types';
+import { GRADES, type Competence, type Lesson, type LessonRole, type Library, type Module, type SchoolYear } from './types';
 
 export const PACKAGE_FORMAT = 'arbeitsblatt-baukasten-paket';
 export const PACKAGE_VERSION = 2;
@@ -35,7 +36,7 @@ export interface PackageModule {
   start?: string;
   competences: (Omit<Competence, 'lessons' | 'domain'> & { lessons?: string; domain?: string })[];
   /** Lessons; a planned lesson (year plan) has a title and a planning note but no pages yet. */
-  lessons: { number: number; title: string; textbook?: string; plan?: string; pages?: PackagePage[]; slides?: ReturnType<typeof leanSlide>[]; slideDesign?: SlideDesign }[];
+  lessons: { number: number; title: string; textbook?: string; plan?: string; role?: LessonRole; competences?: string[]; pages?: PackagePage[]; slides?: ReturnType<typeof leanSlide>[]; slideDesign?: SlideDesign }[];
 }
 
 export interface PackageFile {
@@ -53,6 +54,9 @@ export interface ParsedLesson {
   title: string;
   textbook: string;
   plan: string;
+  role: LessonRole | '';
+  /** Competence ids (the module's fresh ids). */
+  competences: string[];
   doc: Doc;
   slides: Slide[];
   /** '' when the package does not choose a design. */
@@ -62,6 +66,8 @@ export interface ParsedLesson {
 export interface ParsedModule {
   module: Omit<Module, 'id' | 'updatedAt'>;
   lessons: ParsedLesson[];
+  /** Fresh competence id → the id in the file (to find a module's own competences again when its grid stays). */
+  fileIds?: Record<string, string>;
 }
 
 /** A package read from a file: modules and lesson documents with fresh ids, plus notes about what was repaired. */
@@ -174,6 +180,13 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
     const pages = Array.isArray(l.pages) ? l.pages : isObj(l.doc) ? l.doc.pages : undefined;
     const plan = text(l.plan).trim();
     const slideDesign = isSlideDesign(l.slideDesign) ? l.slideDesign : '';
+    const role = readRole(l.role);
+    if (l.role !== undefined && str(l.role) && !role) notes.push(`${at}: Die Rolle „${str(l.role)}“ gibt es nicht; möglich sind ${LESSON_ROLES.map((r) => r.v).join(', ')}.`);
+    const lessonComps = (Array.isArray(l.competences) ? l.competences.map(str) : str(l.competences).split(/[,;]\s*/)).filter(Boolean).flatMap((c) => {
+      if (compIds.has(c)) return [compIds.get(c)!];
+      notes.push(`${at}: Die Kompetenz „${c}“ steht nicht in "competences" des Moduls; die Zuordnung wurde weggelassen.`);
+      return [];
+    });
     if (l.slideDesign !== undefined && !slideDesign) notes.push(`${at}: Das Folien-Design „${str(l.slideDesign)}“ gibt es nicht; die Folien bleiben „organisch“.`);
     const slides = normalizeSlides(l.slides, (n) => notes.push(`${at}: ${n}`)).map((s, k) =>
       mapSlideImages(s, (img) => {
@@ -185,7 +198,7 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
     // A planned lesson of the year plan: title and note, the worksheet comes later.
     if ((pages === undefined || (Array.isArray(pages) && pages.length === 0)) && (str(l.title) || plan)) {
       const lessonTitle = str(l.title) || `Stunde ${posInt(l.number) || i + 1}`;
-      return { number: posInt(l.number), title: lessonTitle, textbook: str(l.textbook), plan, doc: plannedDoc({ grade, lang, title, icon, help }, lessonTitle), slides, slideDesign };
+      return { number: posInt(l.number), title: lessonTitle, textbook: str(l.textbook), plan, role, competences: lessonComps, doc: plannedDoc({ grade, lang, title, icon, help }, lessonTitle), slides, slideDesign };
     }
     if (!Array.isArray(pages) || pages.length === 0) throw new DocFormatError(`${at} hat keine Seiten ("pages").`);
     checkPages(pages, at, notes);
@@ -214,7 +227,7 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
         });
       }),
     );
-    return { number: posInt(l.number), title: str(l.title) || doc.pages[0].title, textbook: str(l.textbook), plan, doc, slides, slideDesign };
+    return { number: posInt(l.number), title: str(l.title) || doc.pages[0].title, textbook: str(l.textbook), plan, role, competences: lessonComps, doc, slides, slideDesign };
   });
 
   // Keep the lesson numbers from the file if they are usable, else number them in order.
@@ -242,7 +255,16 @@ function readModuleEntry(m: unknown, prefix: string, imageIds: Map<string, strin
       start,
     },
     lessons,
+    fileIds: Object.fromEntries([...compIds].map(([file, fresh]) => [fresh, file])),
   };
+}
+
+/** A role as Claude may write it: the key ("uebung") or the German word ("Übung"). */
+function readRole(x: unknown): LessonRole | '' {
+  const t = str(x).toLowerCase();
+  if (!t) return '';
+  if (isLessonRole(t)) return t;
+  return LESSON_ROLES.find((r) => r.short.toLowerCase() === t || r.l.toLowerCase() === t)?.v ?? '';
 }
 
 /** Notes about content the normalizer would silently drop or replace: unknown block types, fields and page settings. */
@@ -308,8 +330,10 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
       modules.push(module);
       const r: ImportResult = { module, action: 'ergänzt', added: 0, changed: 0, planned: 0 };
       const footer = footerFor(lib.settings, module.subject);
+      const comps = gridIds(module, pm);
       for (const l of pm.lessons) {
         const doc = { ...l.doc, icon: module.icon, lang: module.lang, help: module.help, footer, code: lessonCode(module, l.number) };
+        const competences = comps(l.competences);
         const old = targetLessons.find((x) => x.number === l.number);
         if (!old) {
           lessons.push({
@@ -319,6 +343,8 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
             title: l.title,
             textbook: l.textbook,
             plan: l.plan,
+            role: l.role,
+            competences,
             doc,
             slides: l.slides,
             slideDesign: l.slideDesign || 'organisch',
@@ -334,6 +360,8 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
             title: l.title || old.title,
             textbook: l.textbook || old.textbook,
             plan: l.plan || old.plan,
+            role: l.role || old.role,
+            competences: competences.length ? competences : old.competences,
             doc,
             slides: l.slides.length ? l.slides : old.slides,
             slideDesign: l.slideDesign || old.slideDesign,
@@ -341,9 +369,17 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
           });
           r.changed++;
           if (!workedOut(l)) r.planned++;
-        } else if (l.slides.length || l.slideDesign || (l.plan && !old.plan)) {
+        } else if (l.slides.length || l.slideDesign || (l.plan && !old.plan) || (l.role && !old.role) || (competences.length && !old.competences.length)) {
           // A worked-out lesson keeps its worksheets; slides from the package (e.g. made by Claude for it) replace its slides.
-          lessons.push({ ...old, plan: old.plan || l.plan, slides: l.slides.length ? l.slides : old.slides, slideDesign: l.slideDesign || old.slideDesign, updatedAt: now });
+          lessons.push({
+            ...old,
+            plan: old.plan || l.plan,
+            role: old.role || l.role,
+            competences: old.competences.length ? old.competences : competences,
+            slides: l.slides.length ? l.slides : old.slides,
+            slideDesign: l.slideDesign || old.slideDesign,
+            updatedAt: now,
+          });
           r.changed++;
         }
       }
@@ -365,6 +401,8 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
         title: l.title,
         textbook: l.textbook,
         plan: l.plan,
+        role: l.role,
+        competences: l.competences,
         doc: { ...l.doc, icon: module.icon, lang: module.lang, help: module.help, footer, code: lessonCode(module, l.number) },
         slides: l.slides,
         slideDesign: l.slideDesign || 'organisch',
@@ -375,6 +413,26 @@ export function addPackage(lib: Library, p: ParsedPackage): { modules: Module[];
     results.push({ module, action: 'neu', added: pm.lessons.length, changed: 0, planned: pm.lessons.filter((l) => !workedOut(l)).length });
   }
   return { modules, lessons, notes: p.notes, results };
+}
+
+/**
+ * Competence ids of a package lesson in the merged module. When the module keeps its own grid, the package's
+ * competences are found again by their id in the file (Claude got the module's ids) or by the same area.
+ */
+function gridIds(module: Module, pm: ParsedModule): (ids: string[]) => string[] {
+  const norm = (s: string) => s.trim().toLowerCase();
+  return (ids) =>
+    [
+      ...new Set(
+        ids.flatMap((id) => {
+          if (module.competences.some((c) => c.id === id)) return [id];
+          const fileId = pm.fileIds?.[id];
+          const area = norm(pm.module.competences.find((c) => c.id === id)?.area ?? '');
+          const hit = module.competences.find((k) => (fileId && k.id === fileId) || (area && norm(k.area) === area));
+          return hit ? [hit.id] : [];
+        }),
+      ),
+    ];
 }
 
 /**
@@ -426,6 +484,8 @@ function packageModule(m: Module, lessons: Lesson[]): PackageModule {
         title: l.title,
         ...(l.textbook ? { textbook: l.textbook } : {}),
         ...(l.plan ? { plan: l.plan } : {}),
+        ...(l.role ? { role: l.role } : {}),
+        ...(l.competences.length ? { competences: l.competences } : {}),
         // A planned lesson goes without its empty page, so Claude sees it as planned.
         ...(isWorkedOut(l) ? { pages: l.doc.pages.map((pg) => ({ ...pg, blocks: pg.blocks.map(leanBlock) })) } : {}),
         ...(l.slides.length ? { slides: l.slides.map(leanSlide) } : {}),

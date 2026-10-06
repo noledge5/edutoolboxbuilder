@@ -1,9 +1,10 @@
 // Start page: choose subject and grade, then a module; recently edited lessons for quick access.
 import { useState, type DragEvent } from 'react';
-import { Blocks, CalendarRange, FolderSync, Plus, Settings as SettingsIcon, Sparkles, Trash2, X } from 'lucide-react';
+import { Blocks, CalendarRange, FolderSync, Plus, Settings as SettingsIcon, Sparkles, Trash2, Users, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
 import { AiSettingsDialog } from '../ai/AiSettingsDialog';
+import { ClassNotesDialog } from '../ai/ClassNotesDialog';
 import { dollars } from '../ai/prices';
 import { useAiSettings } from '../ai/useAi';
 import { ClaudeDialog } from './ClaudeDialog';
@@ -40,6 +41,7 @@ interface OverviewProps {
 }
 
 export function Overview(p: OverviewProps) {
+  const [notesOpen, setNotesOpen] = useState(false);
   // Safari (not installed as an app) clears stored data after 7 days without a visit: say so, until dismissed.
   const [safariTab, setSafariTab] = useState(() => {
     try {
@@ -237,10 +239,15 @@ export function Overview(p: OverviewProps) {
               <h2 className="lib-h2">
                 Module · {subject} · Klasse {grade}
               </h2>
+              <button type="button" className="btn btn-secondary ui-btn" onClick={() => setNotesOpen(true)} style={{ marginLeft: 'auto' }}>
+                <Icon icon={Users} />
+                Klasse und Grundsätze
+              </button>
               <button type="button" className="btn btn-secondary ui-btn" onClick={() => p.onOpenPlan(subject, grade)}>
                 <Icon icon={CalendarRange} />
                 Jahresplan
               </button>
+              {notesOpen && <ClassNotesDialog subject={subject} grade={grade} onClose={() => setNotesOpen(false)} />}
             </div>
             <div className="lib-grid">
               {modules.map((m) => {

@@ -55,7 +55,7 @@ interface TopBarProps {
 
 export function TopBar(p: TopBarProps) {
   return (
-    <header className="topbar" data-noprint="1">
+    <header className="topbar topbar-ed" data-noprint="1">
       {p.onBack && (
         <button type="button" className="iconbtn topbar-back" onClick={p.onBack} title="Zur Übersicht" aria-label="Zur Übersicht">
           <Icon icon={ArrowLeft} size={18} />
@@ -112,6 +112,7 @@ export function TopBar(p: TopBarProps) {
         <Menu
           label="Claude"
           icon={Sparkles}
+          className="menu-claude"
           items={[
             ...(p.onTaskAi ? [{ label: 'Neue Aufgabe mit Claude …', icon: Sparkles, onClick: p.onTaskAi }] : []),
             { label: 'Stunde mit Claude …', icon: Sparkles, onClick: p.onClaude },
@@ -172,7 +173,7 @@ export function Menu({ label, icon, items, className = '' }: { label: string; ic
   }, [open]);
   return (
     <div className="menu" ref={root}>
-      <button type="button" className={'btn btn-secondary ui-btn ' + className + (open ? ' is-on' : '')} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <button type="button" className={'btn btn-secondary ui-btn ' + className + (open ? ' is-on' : '')} aria-haspopup="menu" aria-expanded={open} aria-label={label} title={label} onClick={() => setOpen((o) => !o)}>
         <Icon icon={icon} />
         <span className="btn-label">{label}</span>
         <Icon icon={ChevronDown} size={14} />

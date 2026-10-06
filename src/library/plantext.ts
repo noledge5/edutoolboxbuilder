@@ -80,7 +80,7 @@ export function readPlanText(text: string, subject: string, grade: number): Pars
     const taken = m.lessons.map((l) => l.number);
     const n = number && !taken.includes(number) ? number : taken.length ? Math.max(...taken) + 1 : 1;
     const t = title || `Stunde ${n}`;
-    const lesson: ParsedLesson = { number: n, title: t, textbook, plan: plan.join('; '), doc: plannedDoc(m.module, t), slides: [], slideDesign: '' };
+    const lesson: ParsedLesson = { number: n, title: t, textbook, plan: plan.join('; '), role: '', competences: [], doc: plannedDoc(m.module, t), slides: [], slideDesign: '' };
     m.lessons.push(lesson);
   };
 

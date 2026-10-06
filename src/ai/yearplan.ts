@@ -5,6 +5,8 @@ import { PACKAGE_FORMAT, PACKAGE_VERSION, readPackage, type ParsedPackage } from
 import type { Library, Module } from '../library/types';
 import { DocFormatError } from '../model/normalize';
 import { dayText, planModules, schoolWeekCount, schoolWeeks, type PlannedModule } from '../library/yearplan';
+import { roleLabel } from '../library/planning';
+import { classNotes } from './classNotes';
 
 export interface PlanWishes {
   /** Lessons per week. */
@@ -12,6 +14,10 @@ export interface PlanWishes {
   textbook: string;
   /** Topics, order, projects, tests … in the teacher's words. */
   wishes: string;
+  /** Klassenarbeiten in the school year; null = Claude decides as usual for the subject. */
+  tests?: number | null;
+  /** Exams, projects, trips and other fixed dates in the teacher's words. */
+  dates?: string;
 }
 
 const flat = (s: string) => s.replace(/\s+/g, ' ').trim();
@@ -22,6 +28,8 @@ export function yearPlanContext(lib: Library, subject: string, grade: number, w:
   out.push(`- Fach: ${subject} · Klasse ${grade} · Sprache der Arbeitsblätter: ${defaultLang(subject) === 'en' ? 'Englisch (`"lang": "en"`)' : 'Deutsch'}`);
   out.push(`- Stunden pro Woche: ${w.hours}`);
   if (w.textbook.trim()) out.push(`- Lehrwerk: ${flat(w.textbook)}`);
+  if (w.tests != null) out.push(w.tests ? `- Klassenarbeiten im Schuljahr: ${w.tests}` : '- Klassenarbeiten im Schuljahr: keine (höchstens kurze Tests, wo sie passen)');
+  if (w.dates?.trim()) out.push(`- Prüfungen, Projekte und feste Termine: ${flat(w.dates)}`);
   if (w.wishes.trim()) out.push(`- Wünsche der Lehrkraft: ${flat(w.wishes)}`);
   const year = lib.settings.schoolYear;
   if (year) {
@@ -33,6 +41,8 @@ export function yearPlanContext(lib: Library, subject: string, grade: number, w:
     );
     for (const h of year.holidays) out.push(`- ${h.name}: ${dayText(h.from, true)} bis ${dayText(h.to, true)}`);
   }
+  const notes = classNotes(lib.settings, subject, grade);
+  if (notes) out.push('', notes);
   const modules = modulesOf(lib, subject, grade);
   out.push('', '## Module, die es schon gibt');
   if (!modules.length) out.push('- Noch keine.');
@@ -52,7 +62,9 @@ export function yearPlanPrompt(subject: string, grade: number, context: string, 
   const task =
     `Erstelle den Jahresplan (Stoffverteilungsplan) für ${subject}, Klasse ${grade}: Module in sinnvoller Reihenfolge mit \`weeks\`, die zusammen in die Schulwochen passen (lass ein, zwei Wochen Puffer), ` +
     'je Modul ein Kompetenzraster (G/M/E, Bildungsplan BW) und alle Stunden als geplante Stunden (`number`, `title`, `plan`: ein, zwei Sätze, was in der Stunde passiert, mit Lehrwerksseiten, wenn du sie kennst), ' +
-    'so viele Stunden je Modul, wie Wochen × Stunden pro Woche ergeben. Plane Wiederholung und Klassenarbeiten als eigene Stunden ein, wo sie üblich sind. ' +
+    'so viele Stunden je Modul, wie Wochen × Stunden pro Woche ergeben. Plane jedes Modul rückwärts von seinem Ende her (siehe „Jahresplan“ und „Ein Modul planen“ in der Anleitung): ' +
+    'jede geplante Stunde bekommt ihre Rolle (`role`) und die Kompetenzen, an denen sie arbeitet (`competences`, IDs aus dem Raster des Moduls). ' +
+    'Klassenarbeiten (Rolle `leistung`, mit Wiederholungsstunde davor und Rückgabe danach) in der Zahl, die die Lehrkraft nennt, sonst wo sie im Fach üblich sind; feste Termine der Lehrkraft beachten. ' +
     'Module, die es schon gibt, behalten ihre Nummer und ihre Stunden; ergänze sie nur, wo noch Stunden fehlen, und plane die übrigen Module drumherum.';
   const out: string[] = [];
   if (chat) out.push(`Bitte nach der Anleitung „Arbeitsblatt-Baukasten“ im Projektwissen: ${task}`);
@@ -99,6 +111,8 @@ export interface PlanRow {
   when: string;
   short: boolean;
   lessonTitles: string[];
+  /** Klassenarbeiten and other proofs of learning among the module's new lessons. */
+  tests: number;
 }
 
 /** The plan as it will look: modules of the package (merged by number) and the ones that stay, in the school weeks. */
@@ -130,7 +144,8 @@ export function planPreview(lib: Library, subject: string, grade: number, p: Par
         action: old ? 'ergänzt' : 'neu',
         when: pl ? `KW ${weeks[pl.first].kw}–${weeks[pl.last].kw}` : '',
         short: !!pl?.short,
-        lessonTitles: pm.lessons.map((l) => `${l.number}. ${l.title}`),
+        lessonTitles: pm.lessons.map((l) => `${l.number}. ${l.title}${l.role ? ` · ${roleLabel(l.role)}` : ''}`),
+        tests: pm.lessons.filter((l) => l.role === 'leistung').length,
       };
     })
     .sort((a, b) => a.number - b.number);

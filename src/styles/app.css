@@ -372,6 +372,17 @@ body { background: var(--color-neutral-200); }
   .topbar .sl-present-btn { padding-inline: 14px; }
 }
 .topbar .sl-present-btn { flex: none; }
+/* The worksheet's bar has the most buttons: on an iPad in landscape (1024–1366 px) only Claude and Drucken keep their names. */
+@media (min-width: 901px) and (max-width: 1439px) {
+  .topbar-ed { gap: 10px; }
+  .topbar-ed .btn-label { display: none; }
+  .topbar-ed .ui-btn { padding-inline: 10px; }
+  .topbar-ed .btn-primary .btn-label, .topbar-ed .menu-claude .btn-label { display: inline; }
+}
+@media (max-width: 900px) {
+  .topbar-ed .topbar-name { display: none; }
+  .topbar-ed .topbar-icon { margin-right: auto; }
+}
 @media (max-width: 560px) {
   .topbar-title { display: none; }
   .topbar-icon { margin-right: auto; }
@@ -381,6 +392,9 @@ body { background: var(--color-neutral-200); }
 .topbar-back { flex: none; }
 .topbar-name { margin-right: auto; min-width: 0; display: flex; flex-direction: column; }
 .topbar-name .topbar-title { margin-right: 0; }
+/* Squeezed to a few letters, the name says nothing: then it gives its place to the buttons. */
+.topbar-ed .topbar-name { container-type: inline-size; flex: 1 1 0; }
+@container (max-width: 72px) { .topbar-ed .topbar-name > * { display: none; } }
 .topbar-place { font-size: 12px; font-weight: 600; color: var(--color-neutral-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .menu { position: relative; flex: none; }
 .menu-list {
@@ -1015,6 +1029,10 @@ body { background: var(--color-neutral-200); }
 .ai-where { margin: 0; }
 .ai-hint { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--color-neutral-800); }
 .ai-hint.is-warn { padding: 8px 12px; border-radius: 12px; background: var(--color-accent-1-100); color: var(--color-accent-1-900); }
+.ai-class-line { display: flex; align-items: center; gap: 8px; margin: 0; padding: 7px 12px; border-radius: 12px; background: var(--color-surface); font-size: 13px; color: var(--color-neutral-800); }
+.ai-class-line > span { flex: 1; min-width: 0; }
+.ai-class-edit { flex: none; border: 0; background: none; padding: 4px 2px; font: inherit; font-weight: 700; color: var(--color-accent-800); text-decoration: underline; cursor: pointer; }
+.class-notes { width: min(620px, 94vw); }
 .ai-context { font-size: 13px; }
 .ai-context summary { cursor: pointer; font-weight: 600; color: var(--color-neutral-800); }
 .ai-context pre { margin: 8px 0 0; padding: 10px 12px; max-height: 240px; overflow: auto; border-radius: 12px; background: var(--color-neutral-100); font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11.5px; line-height: 1.5; white-space: pre-wrap; }
@@ -1041,12 +1059,25 @@ body { background: var(--color-neutral-200); }
 .ai-plan-row { display: grid; grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr); gap: 12px; }
 @media (max-width: 560px) { .ai-plan-row { grid-template-columns: 1fr; } }
 .ai-plan { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.ai-comps { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+.ai-comps li { padding: 8px 12px; border-radius: 12px; background: var(--color-neutral-100); font-size: 13.5px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.ai-comps small { flex-basis: 100%; color: var(--color-neutral-700); font-size: 12px; }
+.ai-way { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.ai-way li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 8px 12px; border-radius: 12px; background: var(--color-neutral-100); font-size: 14px; }
+.ai-way li.is-kept { background: var(--color-surface); }
+.ai-way-num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--color-accent-100); color: var(--color-accent-800); font-weight: 700; font-size: 13px; }
+.ai-way-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-width: 0; }
+.ai-way-main small { flex-basis: 100%; color: var(--color-neutral-800); font-size: 12.5px; line-height: 1.4; }
+.ai-way-main small.ai-way-comps { color: var(--color-accent-800); }
+.ai-way-role { padding: 1px 8px; border-radius: 999px; background: var(--color-accent-2-100); color: var(--color-accent-2-900); font-size: 11.5px; font-weight: 700; }
 .ai-plan > li { border-radius: 14px; background: var(--color-neutral-100); }
 .ai-plan summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 10px 14px; cursor: pointer; font-size: 14px; list-style: none; }
 .ai-plan summary::-webkit-details-marker { display: none; }
 .ai-plan summary span:not(.ai-plan-tag) { grid-column: 1; font-size: 12.5px; color: var(--color-neutral-800); }
 .ai-plan-tag { grid-column: 2; grid-row: 1 / span 2; align-self: center; padding: 3px 10px; border-radius: 999px; background: var(--color-accent-2-100); color: var(--color-accent-2-900); font-size: 12px; font-weight: 700; }
 .ai-plan-tag.is-new { background: var(--color-accent-100); color: var(--color-accent-900); }
+.ai-way .ai-plan-tag { grid-column: 3; grid-row: 1; align-self: start; }
+.ai-comps .ai-plan-tag { padding: 1px 8px; font-size: 11px; }
 .ai-plan ol { margin: 0; padding: 0 14px 12px 36px; font-size: 13px; columns: 2; column-gap: 24px; }
 @media (max-width: 560px) { .ai-plan ol { columns: 1; } }
 .panel-ai { gap: 8px; }

@@ -1,6 +1,6 @@
 ---
 name: arbeitsblatt-baukasten
-description: Erstellt Stundenpakete und Jahrespläne als JSON-Datei für den Arbeitsblatt-Baukasten, auch für Englisch mit Vokabeln, Grammatik, Hör- und Lesetexten, Sprechen, Schreiben und Klassenarbeiten. Verwenden, wenn eine Lehrkraft Arbeitsblätter, Unterrichtsstunden, Units, Module oder einen Jahresplan für den Baukasten erstellen, umwandeln oder überarbeiten möchte.
+description: Erstellt Stundenpakete, Modulpläne und Jahrespläne als JSON-Datei für den Arbeitsblatt-Baukasten, nach didaktischen Leitlinien für die Realschule, auch für Englisch mit Vokabeln, Grammatik, Hör- und Lesetexten, Sprechen, Schreiben und Klassenarbeiten. Verwenden, wenn eine Lehrkraft Arbeitsblätter, Unterrichtsstunden, Units, Module oder einen Jahresplan für den Baukasten erstellen, umwandeln oder überarbeiten möchte.
 ---
 
 # Stundenpakete für den Arbeitsblatt-Baukasten
@@ -11,20 +11,23 @@ Du erstellst Unterrichtsmaterial für eine Lehrkraft an einer Realschule in Bade
 
 1. **Ergebnis ist immer eine Datei:** ein Stundenpaket (JSON) nach dieser Anleitung, nichts anderes.
 2. **Erst klären, dann bauen:** höchstens drei Rückfragen; mitgebrachtes Material genau übernehmen.
-3. **Von oben nach unten planen:** Kompetenzraster (G/M/E, Bildungsplan BW) → je Stunde eine Lehrkraft-Seite (Ziel, Einstieg, Verlauf für 45 Minuten, Erwartungshorizont, Abruffragen) → ein bis drei Schülerseiten → auf Wunsch Folien.
-4. **Jede Aufgabe hat eine eindeutige Lösung** (`[[…]]`, `*`, `T/F/NG`, `solution`). Die Schülerfassung zeigt sie nie; Lösungsfassung, Folien und die digitale Auswertung brauchen sie.
-5. **Differenzieren:** Niveau-Sterne, jede Kompetenz mit Aufgaben verknüpft, Tipps; Punkte und Notenschlüssel bei Tests.
-6. **Gute Arbeitsblätter:** kurze Aufträge mit Operator, vom Einfachen zum Schweren, einfache Sprache, Sicherung am Ende, genug Schreibraum, keine Seite zu voll.
-7. **Auch digital lösbar:** Die Lehrkraft teilt Aufgaben per Link und QR-Code aus; Schüler lösen sie am Tablet und der Baukasten wertet automatisch aus. Schreib Aufgaben deshalb so, dass ihre Lösung eindeutig prüfbar ist (siehe „Digital lösbar“).
-8. **Englisch:** Aufträge auf Englisch, in Klasse 5/6 mit deutscher Hilfe; Vokabeln mit Lautschrift; ohne Lehrwerk eigene Texte mit der Grammatik als roter Linie.
-9. **Bilder:** keine Fotos, sondern Bildunterschrift und englische Suchwörter für die Bildsuche des Baukastens.
-10. **Vielfältig einsteigen:** Nicht jede Stunde knüpft an Vorwissen an. Wähle für jede Stunde eine passende Einstiegsart und wechsle ab (siehe „Einstieg, Abruf und Verlauf“).
-11. **Abruf nur mit Bekanntem:** Abruffragen einer Stunde fragen den Stoff **dieser** Stunde ab; der Baukasten stellt sie in **späteren** Stunden (verteiltes Wiederholen). Nie Fragen zu etwas, das die Klasse erst noch erarbeitet.
-12. **Folien folgen dem Stundenverlauf:** Einstieg, je Arbeitsphase ein Auftrag mit Zeit und Sozialform, Besprechung der Aufgaben mit Lösungen auf Klick, Merksatz. Knapp, Sprechernotizen auf Deutsch.
+3. **Vom Ziel her planen:** erst, was die Klasse am Ende eines Moduls kann und woran man es sieht (Lernaufgabe, Test, Klassenarbeit), dann das Kompetenzraster (G/M/E, Bildungsplan BW) und der Lernweg mit der Rolle jeder Stunde, dann je Stunde eine Lehrkraft-Seite (Ziel, Einstieg, Verlauf für 45 Minuten, Erwartungshorizont, Abruffragen) und ein bis drei Schülerseiten, auf Wunsch Folien.
+4. **Didaktisch durchdacht:** ein überprüfbares Kernziel je Stunde, Aufgaben aus allen drei Anforderungsbereichen, kognitiv aktivierend, Fehlvorstellungen aufgreifen, gestufte Hilfen, sprachsensibel, Rückmeldung am Ende; dazu die Fachdidaktik des Fachs (siehe „Didaktische Leitlinien“ und „Fachdidaktik“).
+5. **Jede Aufgabe hat eine eindeutige Lösung** (`[[…]]`, `*`, `T/F/NG`, `solution`). Die Schülerfassung zeigt sie nie; Lösungsfassung, Folien und die digitale Auswertung brauchen sie.
+6. **Differenzieren:** Niveau-Sterne, jede Kompetenz mit Aufgaben verknüpft, Tipps; Punkte und Notenschlüssel bei Tests.
+7. **Gute Arbeitsblätter:** kurze Aufträge mit Operator, vom Einfachen zum Schweren, einfache Sprache, Sicherung am Ende, genug Schreibraum, keine Seite zu voll.
+8. **Die Klasse kennen:** Steht im Auftrag ein Klassenprofil oder Grundsätze der Lehrkraft, richte Material, Sprache, Hilfen, Methoden und Tempo danach aus.
+9. **Auch digital lösbar:** Die Lehrkraft teilt Aufgaben per Link und QR-Code aus; Schüler lösen sie am Tablet und der Baukasten wertet automatisch aus. Schreib Aufgaben deshalb so, dass ihre Lösung eindeutig prüfbar ist (siehe „Digital lösbar“).
+10. **Englisch:** Aufträge auf Englisch, in Klasse 5/6 mit deutscher Hilfe; Vokabeln mit Lautschrift; ohne Lehrwerk eigene Texte mit der Grammatik als roter Linie.
+11. **Bilder:** keine Fotos, sondern Bildunterschrift, eine englische Bildbeschreibung (`describe`) und englische Suchwörter (`search`) für die Bildsuche oder das Bildmodell des Baukastens.
+12. **Vielfältig einsteigen:** Nicht jede Stunde knüpft an Vorwissen an. Wähle für jede Stunde eine passende Einstiegsart und wechsle ab (siehe „Einstieg, Abruf und Verlauf“).
+13. **Abruf nur mit Bekanntem:** Abruffragen einer Stunde fragen den Stoff **dieser** Stunde ab; der Baukasten stellt sie in **späteren** Stunden (verteiltes Wiederholen). Nie Fragen zu etwas, das die Klasse erst noch erarbeitet.
+14. **Folien folgen dem Stundenverlauf:** Einstieg, je Arbeitsphase ein Auftrag mit Zeit und Sozialform, Besprechung der Aufgaben mit Lösungen auf Klick, Merksatz. Knapp, Sprechernotizen auf Deutsch.
 
 ## Was du erstellen kannst
 
 - **Eine Stunde oder ein ganzes Modul** (eine Unit): Kompetenzraster, Lehrkraft-Seite und Schülerblätter für jede Stunde.
+- **Einen Modulplan**: ein Modul vom Ende her geplant: Abschluss, Kompetenzraster und alle Stunden als geplante Stunden mit Rolle und Kompetenzen, noch ohne Arbeitsblätter (siehe „Ein Modul planen“).
 - **Einen Jahresplan**: alle Module (Units) eines Fachs und Jahrgangs mit Thema, Schwerpunkten und Dauer in Schulwochen, dazu die **geplanten Stunden** (nur Titel und Planungsnotiz, noch ohne Arbeitsblätter). Der Baukasten verteilt die Module auf die Schulwochen, überspringt die Ferien und zeigt Geplantes blass, bis es ausgearbeitet ist.
 - **Folien zu einer Stunde** (16:9, für Beamer oder Tafel), wenn die Lehrkraft Folien möchte: im Stil der Arbeitsblätter, mit Sprechernotizen. Siehe „Folien“.
 - **Ein geplantes Modul ausarbeiten**: Gib ihm dieselbe `number` wie im Jahresplan. Der Baukasten füllt dann das geplante Modul und seine geplanten Stunden, statt ein neues Modul anzulegen.
@@ -34,9 +37,96 @@ Du erstellst Unterrichtsmaterial für eine Lehrkraft an einer Realschule in Bade
 
 1. **Klären.** Frage kurz nach, was fehlt: Fach, Klasse (5–10), Thema bzw. Unit, Zahl der Stunden, Besonderheiten der Klasse und ob die Klasse mit einem Lehrwerk arbeitet. Viele Lehrkräfte unterrichten Englisch **ohne Lehrwerk**; dann planst du Themen, Texte und Grammatik selbst (siehe „Englisch ohne Lehrwerk“). Bei einem Jahresplan außerdem: Stunden pro Woche und welche Themen in welcher Reihenfolge. Stelle höchstens drei Fragen auf einmal; wenn genug klar ist, fang an.
 2. **Material übernehmen.** Hat die Lehrkraft Material angehängt (PDF, Foto eines Arbeitsblatts, Tafelbild, Buchseite, Jahresplan, Stundenpaket), übernimm dessen Inhalte möglichst genau und bilde sie auf die Bausteine unten ab. Einen Lehrwerksbezug (`textbook`) schreibst du nur, wenn die Lehrkraft mit einem Lehrwerk arbeitet, und Seitenzahlen nur, wenn du sie aus ihrem Material kennst.
-3. **Planen.** Lege zuerst die Kompetenzen fest (G, M, E, mit Bereich aus dem Bildungsplan). Plane dann jede Stunde: eine Seite „Für die Lehrkraft“ (Ziel, Verlauf, Erwartungshorizont, Abruffragen) und ein bis drei Schülerseiten.
+3. **Planen.** Vom Ziel her (siehe „Didaktische Leitlinien“): zuerst Abschluss und Kompetenzen (G, M, E, mit Bereich aus dem Bildungsplan), dann der Lernweg mit der Rolle jeder Stunde. Plane dann jede Stunde: eine Seite „Für die Lehrkraft“ (Kernziel, Verlauf, Erwartungshorizont mit typischen Fehlern, Abruffragen) und ein bis drei Schülerseiten.
 4. **Datei schreiben.** Erzeuge `Stundenpaket <Thema>.json` bzw. `Jahresplan <Fach> <Klasse>.json` als Download (Datei oder Artefakt). Geht das nicht, gib das Paket als **einen einzigen** JSON-Codeblock aus. Die Lehrkraft kann ihn im Baukasten unter „Mit Claude“ einfügen.
 5. **Kurz berichten.** Nenne in zwei, drei Sätzen, was im Paket steckt und was die Lehrkraft noch ergänzen muss (vor allem Bilder, Audiodateien und Seitenzahlen).
+
+## Didaktische Leitlinien
+
+Diese Leitlinien gelten für alles, was du planst: Jahrespläne, Module, Stunden, Aufgaben und Folien. Sie fassen zusammen, was nach der Unterrichtsforschung guten Unterricht ausmacht; „Fachdidaktik“ ergänzt sie je Fach. Was die Lehrkraft im Auftrag ausdrücklich anders wünscht, geht vor.
+
+### Vom Ziel her planen
+- **Modul:** Lege zuerst fest, was die Klasse am Ende kann (Kompetenzraster) und woran man es sieht: eine Lernaufgabe (ein Produkt, eine Präsentation, ein Gespräch), ein Test oder eine Klassenarbeit. Plane dann den Weg dorthin (siehe „Ein Modul planen“). Jede Kompetenz wird erarbeitet, geübt und angewendet, bevor sie geprüft wird.
+- **Stunde:** ein Kernziel, beobachtbar formuliert („Die Schülerinnen und Schüler können … erklären.“), höchstens zwei Teilziele. Einstieg, Aufgaben, Sicherung und Exit dienen diesem Ziel; was nicht dazu beiträgt, fällt weg. Ziel, Aufgaben, Sicherung und Test passen zusammen.
+- **Leitfrage:** Jede Stunde hat eine Frage, die die Klasse wirklich beantworten will. Am Ende kehrt die Stunde zu ihr zurück.
+
+### Anforderungsbereiche und Operatoren
+- Aufgaben stammen aus allen drei Anforderungsbereichen:
+  - **AFB I, Wiedergeben:** nennen, beschreiben, benennen, wiedergeben, zuordnen, beschriften.
+  - **AFB II, Anwenden und Zusammenhänge herstellen:** erklären, erläutern, vergleichen, einordnen, auswerten, anwenden.
+  - **AFB III, Beurteilen und Gestalten:** beurteilen, bewerten, begründet Stellung nehmen, entwickeln, gestalten.
+- Jeder Auftrag beginnt mit einem Operator, und die Aufgabe verlangt genau, was er sagt: „Erkläre“ heißt Gründe und Zusammenhänge, nicht Aufzählen.
+- Niveaus: G arbeitet vor allem in AFB I und mit einfachen Aufgaben aus AFB II, M in AFB II, E auch in AFB III. Jede Stunde hat Aufgaben aus AFB II, die meisten auch eine aus AFB III, ab Klasse 7 öfter.
+- Tests und Klassenarbeiten: etwa 40 % AFB I, 40 % AFB II, 20 % AFB III, in Klasse 5 und 6 mehr AFB I. Geprüft wird nur, was geübt wurde, in vertrauten Aufgabenformen.
+- In Klasse 5 und 6 erklärst du einen Operator beim ersten Mal kurz („Beschreibe: Sag genau, was du siehst.“), etwa im Wortspeicher oder in einer Hinweis-Box.
+
+### Kognitiv aktivieren
+- Aufgaben verlangen Denken, nicht Abschreiben: vergleichen, begründen, vorhersagen, Fehler finden, ordnen, Beispiele und Gegenbeispiele suchen, einen Fall auf einen anderen übertragen.
+- Erst vermuten, dann prüfen: eine Vorhersage oder Schätzung vor der Erarbeitung, die die Klasse am Ende überprüft.
+- Lückentexte und Ankreuzaufgaben sichern und üben; sie ersetzen keine Erarbeitung. Mindestens eine Aufgabe je Stunde lässt die Klasse selbst formulieren.
+- Beispiele aus der Lebenswelt der Klasse (Schulweg, Wohnort in Baden-Württemberg, Freizeit, Medien), altersgerecht, ohne kindisch zu werden.
+
+### Fehlvorstellungen aufgreifen
+- Überlege für jedes Thema, welche falschen Vorstellungen Kinder mitbringen, und mach sie sichtbar: eine Vorhersage, Ankreuzaufgaben, deren falsche Antworten genau diese Vorstellungen sind, oder „Wer hat recht?“ mit zwei Aussagen.
+- Beispiele: Geographie „Der Treibhauseffekt kommt vom Ozonloch“, „Im Sommer ist die Erde näher an der Sonne“; Englisch „he go“, „I am agree“, „become“ heißt „bekommen“; Informatik „Der Computer versteht, was ich meine“, „`=` heißt gleich“.
+- Der Erwartungshorizont nennt die typischen Fehler und wie die Lehrkraft darauf eingeht.
+
+### In kleinen Schritten
+- Ein neuer Gedanke nach dem anderen. Erst ein Lösungsbeispiel („So geht’s“ in einer Hinweis-Box oder eine vorgemachte erste Aufgabe), dann ähnliche Aufgaben, dann selbstständig; die Hilfen nehmen ab.
+- Text und Bild gehören zusammen: die Abbildung neben den Text, auf den sie sich bezieht (Breite 6 + 6), Beschriftungen im Bild statt in einer fernen Legende.
+- Kurze Texte, ein Gedanke je Absatz, Wichtiges **fett**; keine Seite nur mit Neuem.
+- Klasse 5 und 6: Arbeitsphasen höchstens 10 bis 15 Minuten, dann ein Wechsel (Tätigkeit, Sozialform, Bewegung).
+
+### Gestufte Hilfen und Differenzierung
+- Hilfen in Stufen statt der Lösung: Tipp 1 lenkt den Blick („Schau dir die Legende an.“), Tipp 2 gibt eine Strategie, Tipp 3 einen Teil der Lösung. Schreib sie als `tip`; der Baustein „Tippkarten“ macht daraus Karten zum Ausschneiden.
+- Sprachliche Hilfen für alle, die sie brauchen: Wortspeicher, Satzanfänge, Redemittel, ein Beispielsatz.
+- Basisaufgaben für alle, dazu Aufgaben für Schnelle („Wenn du fertig bist: …“, Niveau E) und offene Aufgaben, die jede und jeder auf dem eigenen Niveau lösen kann.
+- Nennt der Auftrag ein Klassenprofil, passe Hilfen, Textlänge und Tempo an (bei vielen Kindern mit Deutsch als Zweitsprache mehr Bilder, Wortspeicher und Satzanfänge; bei LRS kurze Texte, klare Gliederung, wenig Abschreiben).
+
+### Sprachsensibel unterrichten
+- Fachbegriffe werden eingeführt, gesichert (Wortspeicher, Glossar, Merksatz) und in späteren Stunden wieder benutzt.
+- Für erklären, begründen und beurteilen gibt es Formulierungshilfen: „Das liegt daran, dass …“, „Im Vergleich zu …“, „Ich finde …, weil …“.
+- Aufträge in einfacher Sprache: ein Auftrag je Satz, aktive Verben, keine Schachtelsätze. Sachtexte kurz, mit Zwischenüberschriften, schwierige Wörter erklärt.
+- Vom Alltagswort zum Fachwort: erst in eigenen Worten, dann in der Fachsprache.
+
+### Aktiv und miteinander
+- Vollständige Arbeitsaufträge: was, womit, wie (Sozialform), wie lange und was danach kommt (Ergebnis, „Wenn du fertig bist …“).
+- Kooperativ, und jede und jeder trägt etwas bei: Ich – Du – Wir (erst allein denken, dann zu zweit, dann in der Klasse), Gruppen mit Rollen oder Teilaufgaben, Ergebnisse sichtbar.
+- Wenige, wiederkehrende Methoden, die die Klasse kennt, statt jede Stunde eine neue.
+- Die Klasse spricht und schreibt mehr als die Lehrkraft; Lehrervortrag kurz.
+
+### Sichern, Rückmeldung, Wiederholen
+- Jede Stunde endet mit einer Sicherung (Merksatz, Schema, Regel) und einer kurzen Überprüfung des Kernziels: Exit-Frage, „Ich kann …“ zur Selbsteinschätzung oder eine kleine Aufgabe.
+- Rückmeldung während der Arbeit: Selbstkontrolle, Besprechung mit Lösungen, digitale Übung. Fehler sind Lernanlässe.
+- Üben ist abwechslungsreich, verteilt und vermischt: Abruffragen in späteren Stunden, Übungen, die Älteres mit Neuem mischen.
+- Hausaufgaben üben, was in der Stunde sicher wurde; nichts Neues.
+
+## Fachdidaktik
+
+### Geographie
+- **Raumbezug in jeder Stunde:** Wo liegt das? Karte, Atlas oder Kartenskizze gehören dazu; die Lage beschreiben (Kontinent, Land, Himmelsrichtung, Nachbarn, ab Klasse 7 Gradnetz). Topographie in kleinen Portionen wiederholen.
+- **Vom Fall zum Allgemeinen und zurück:** an einem konkreten Raum (Fallbeispiel) erarbeiten, daraus die Regel oder das Modell gewinnen (Fließschema, Merksatz), dann auf einen anderen Raum übertragen.
+- **Mensch und Umwelt verknüpfen:** natürliche Bedingungen und menschliches Handeln als Wirkungsgefüge (Ursache → Folge → Rückwirkung), am besten als Fließschema.
+- **Methoden schrittweise und immer wieder:** Karte lesen, Klimadiagramm (beschreiben → auswerten → erklären), Diagramme und Statistiken, Luft- und Satellitenbilder, Profile. Beim ersten Mal ein Methodenkasten „So geht’s“, später nur noch eine Erinnerung.
+- **Urteilen lernen:** erst das Sachurteil (Was stimmt?), dann das Werturteil (Was ist gut, und für wen?). Perspektiven der Beteiligten vergleichen, Nachhaltigkeit mit ihren drei Seiten (ökologisch, ökonomisch, sozial) prüfen, eine eigene begründete Meinung bilden.
+- **Anschaulich und handelnd:** Modellversuche, Material zum Anfassen (Gesteine, Kompass, Bodenproben), Erkundung vor Ort, aktuelle Ereignisse aus den Nachrichten.
+
+### Englisch
+- **Kommunikativ:** Das Ziel jeder Stunde ist etwas, das die Klasse auf Englisch tun kann („sich vorstellen“, „nach dem Weg fragen“). Viel Sprechzeit für alle: Partnerdialoge, Kettenübungen, Aufgaben mit Informationslücke.
+- **Aufgeklärte Einsprachigkeit:** Unterrichtssprache ist Englisch; Deutsch gezielt bei Grammatikregeln, bei Wörtern, die sich nicht zeigen lassen, in der Sprachmittlung und in der deutschen Hilfe.
+- **Unit vom Ende her:** eine Lernaufgabe am Ende (eine E-Mail an eine Brieffreundin, ein Dialog zum Vorspielen, ein Poster mit Präsentation). Jede Stunde liefert Wörter, Strukturen und Redemittel dafür.
+- **Wortschatz:** in Wortfeldern und im Zusammenhang, mit Bild, Lautschrift und Beispielsatz; mehrfach umwälzen (erkennen → zuordnen → selbst verwenden); in Klasse 5 und 6 etwa 8 bis 12 neue Wörter je Stunde.
+- **Grammatik:** entdecken (Beispielsätze mit `{{markierter}}` Form, die Regel selbst finden) → Regel sichern (Grammatik-Box) → gelenkt üben (Lücken, Umformen) → frei anwenden in einer Sprechsituation oder einem kurzen Text. Grammatik dient der Mitteilung.
+- **Hören und Lesen in drei Phasen:** pre (Vorwissen, Schlüsselwörter, Erwartungen), while (erst global, dann Einzelheiten), post (über den Text sprechen oder schreiben).
+- **Schreiben und Sprechen mit Gerüst:** Modelltext, Schreibrahmen und Checkliste; Redemittel und Rollenkarten. In freien Phasen zählt die Mitteilung vor der Richtigkeit, in Übungsphasen wird gezielt korrigiert.
+- **Interkulturell:** der Alltag in englischsprachigen Ländern, verglichen mit dem eigenen.
+
+### Informatik
+- **Erst ohne Computer:** Begriffe wie Algorithmus, Binärzahl, Sortieren oder Verschlüsseln zuerst mit Karten, im Rollenspiel oder auf Papier, dann am Rechner.
+- **Code lesen vor Code schreiben:** vorhersagen, was ein Programm tut → ausführen und vergleichen → einzelne Zeilen untersuchen → ändern → selbst ein ähnliches Programm schreiben. Dazu passen Programme im Baustein „Code“ mit Fragen zu einzelnen Zeilen („Was gibt Zeile 3 aus?“), Fehler finden und Zuordnen (Zeile ↔ Wirkung).
+- **Kleine Schritte, sofort ausprobieren:** kommentierte Beispielprogramme, eine Änderung nach der anderen; Programmieren zu zweit mit festen Rollen (eine Person tippt, die andere denkt mit und prüft), die regelmäßig wechseln.
+- **Begriffe sauber:** Variable, Schleife, Bedingung, Eingabe, Ausgabe, jeweils mit einem Beispiel aus dem Alltag.
+- **Wirkung und Verantwortung:** Daten, Datenschutz, Algorithmen und KI im Alltag der Klasse, mit einem begründeten eigenen Urteil.
 
 ## Aufbau der Datei
 
@@ -90,7 +180,7 @@ Kürzel („K5 · M1 · S2“), Fußzeile und Symbol der einzelnen Seiten setzt 
 
 ### Stunden und Seiten
 
-Jede Stunde hat `number` (1, 2, 3 …), `title`, nur mit Lehrwerk `textbook` (Seiten im Schülerbuch und Workbook, z. B. „SB S. 36–37, WB S. 20“), optional `plan` (Planungsnotiz: was in der Stunde passiert, ein bis zwei Sätze), `pages` und optional `slides` (Folien, siehe „Folien“) mit ihrem Design `slideDesign`. Eine **geplante Stunde** hat nur `number`, `title` und `plan`, aber keine `pages`: `{ "number": 2, "title": "My classroom", "plan": "Schulsachen benennen; Hörverstehen: What’s in your school bag?" }`. Eine Seite ist ein A4-Blatt im Hochformat:
+Jede Stunde hat `number` (1, 2, 3 …), `title`, nur mit Lehrwerk `textbook` (Seiten im Schülerbuch und Workbook, z. B. „SB S. 36–37, WB S. 20“), optional `plan` (Planungsnotiz: was in der Stunde passiert, ein bis zwei Sätze), `role` (Rolle der Stunde im Modul, siehe „Ein Modul planen“), `competences` (Liste der Kompetenz-IDs, an denen die Stunde arbeitet), `pages` und optional `slides` (Folien, siehe „Folien“) mit ihrem Design `slideDesign`. Eine **geplante Stunde** hat `number`, `title`, `plan`, `role` und `competences`, aber keine `pages`: `{ "number": 2, "title": "My classroom", "plan": "Schulsachen benennen; Hörverstehen: What’s in your school bag?", "role": "erarbeitung", "competences": ["k1"] }`. Eine Seite ist ein A4-Blatt im Hochformat:
 
 | Feld | Werte |
 |---|---|
@@ -192,7 +282,16 @@ Verknüpfe jede Kompetenz mit mindestens einer Aufgabe, und biete in jeder Stund
 
 Für einen Jahresplan schreibst du ein Paket mit allen Modulen des Jahrgangs, je mit `number`, `title`, `icon`, `description` (Themen- und Grammatikschwerpunkt), `weeks`, `competences` und nur mit Lehrwerk `textbook`. Die Summe der `weeks` sollte die Zahl der Schulwochen nicht übersteigen; plane ein bis zwei Wochen Puffer ein.
 
-Plane die Stunden als **geplante Stunden** (`number`, `title`, `plan`, ohne `pages`), so weit du sie schon absehen kannst; rechne mit den Stunden pro Woche, die die Lehrkraft nennt (Englisch Klasse 5 meist 4–5). Die Lehrkraft sieht sie im Baukasten blass mit dem Hinweis „Geplant“ und arbeitet sie nach und nach aus. Hat sie schon Module im Baukasten, gib ihnen dieselbe `number`: Ausgearbeitete Stunden bleiben erhalten, fehlende geplante Stunden kommen dazu.
+Plane die Stunden als **geplante Stunden** (`number`, `title`, `plan`, `role`, `competences`, ohne `pages`), so weit du sie schon absehen kannst; rechne mit den Stunden pro Woche, die die Lehrkraft nennt (Englisch Klasse 5 meist 4–5). Die Lehrkraft sieht sie im Baukasten blass mit dem Hinweis „Geplant“ und arbeitet sie nach und nach aus. Hat sie schon Module im Baukasten, gib ihnen dieselbe `number`: Ausgearbeitete Stunden bleiben erhalten, fehlende geplante Stunden kommen dazu.
+
+So wird der Jahresplan didaktisch gut:
+
+- **Aufeinander aufbauen:** Kompetenzen und Methoden werden eingeführt und in späteren Modulen wieder aufgegriffen und vertieft (das Klimadiagramm in Modul 2 eingeführt, in Modul 5 auf einen neuen Raum angewendet; in Englisch die Grammatik als rote Linie). Nenne den Bezug in `description` oder `plan`.
+- **Ausgewogen:** Über das Jahr kommen alle Kompetenzbereiche des Fachs vor (Englisch: Hören, Lesen, Sprechen, Schreiben, Sprachmittlung, Wortschatz, Grammatik; Geographie: Orientierung, Methoden, Erklären, Urteilen).
+- **Jedes Modul vom Ende her**, wie unter „Ein Modul planen“: Abschluss, Kompetenzraster, Lernweg mit der Rolle jeder Stunde.
+- **Klassenarbeiten** in der Zahl, die die Lehrkraft nennt, sonst wie im Fach üblich; gleichmäßig über das Jahr, nicht in der ersten Woche nach Ferien, davor eine Wiederholungsstunde (`wiederholung`), danach Rückgabe und Berichtigung (`rueckgabe`). Feste Termine der Lehrkraft (Prüfungen, Projekte, Ausflüge) haben Vorrang.
+- **Ferien als Einschnitt:** Ein Modul endet möglichst vor den Ferien; beginnt eins danach, fängt es mit Wiederholung an. Jahreszeitliche Themen dort, wo sie hinpassen (Englisch: Halloween, Christmas, Easter).
+- **Puffer:** ein bis zwei Wochen im Jahr bleiben frei.
 
 Die Lehrkraft kann einen Jahresplan auch ohne JSON übernehmen, im Baukasten unter „Jahresplan“ → „Importieren“ als Text: eine Zeile pro Modul (`Modul 1: Hello, school! | 5 Wochen | Sich vorstellen`), darunter die Stunden mit „-“ (`- Stunde 1: Hello, I’m … | Begrüßen und vorstellen`). Bittet sie dich um diese Textform, halte dich genau daran.
 
@@ -213,6 +312,27 @@ Für ein anderes Schuljahr oder Bundesland gib `schoolYear` mit (nur mit Daten, 
 ```json
 "schoolYear": { "name": "2026/27", "start": "2026-09-14", "end": "2027-07-28", "holidays": [ { "name": "Herbstferien", "from": "2026-10-26", "to": "2026-10-31" } ] }
 ```
+
+## Ein Modul planen
+
+Ein Modul (eine Unit) planst du rückwärts, vom Ende her. So entsteht auch jedes Modul im Jahresplan; im Baukasten kann die Lehrkraft ein einzelnes Modul mit „Modul mit Claude planen“ neu planen lassen.
+
+1. **Abschluss:** Was kann die Klasse am Ende, und woran sieht man es? Eine Lernaufgabe (Produkt, Präsentation, Gespräch, Projekt), ein Test oder eine Klassenarbeit. Schreib es als ersten Satz in `description` („Am Ende gestaltet die Klasse …“, „Die Unit endet mit einer Klassenarbeit zu …“), danach die Schwerpunkte.
+2. **Kompetenzraster:** drei bis sechs Kompetenzen, jede mit G, M und E als „Ich kann …“-Satz. Sie beschreiben, was am Ende gekonnt wird, nicht die Themen einzelner Stunden.
+3. **Lernweg:** alle Stunden in ihrer Reihenfolge, jede mit `role`, `competences` und einem `plan` aus ein, zwei Sätzen (was passiert, welche Einstiegsidee, welches Material). Ein Modul läuft meist so:
+
+| `role` | Stunde |
+|---|---|
+| `einstieg` | Einstieg ins Modul: Neugier wecken, Vorwissen sichtbar machen, Leitfrage und Abschluss vorstellen, „Ich kann …“-Liste als Lernlandkarte |
+| `erarbeitung` | Neues in kleinen Schritten erarbeiten |
+| `uebung` | Üben und Festigen, gleich nach der Erarbeitung und später vermischt |
+| `anwendung` | Übertragen auf einen neuen Fall, Arbeit an der Lernaufgabe |
+| `wiederholung` | vor dem Leistungsnachweis, gemischt über alle Kompetenzen, mit Selbsteinschätzung |
+| `leistung` | Klassenarbeit, Test oder Präsentation der Lernaufgabe |
+| `rueckgabe` | Rückgabe, Berichtigung, Rückblick auf die Lernlandkarte |
+| `projekt` | Projekt, Exkursion oder Lerngang, wo es passt |
+
+4. **Prüfen:** Jede Kompetenz kommt in mehreren Stunden vor (erarbeiten → üben → anwenden), bevor sie geprüft wird. Erarbeitung und Übung wechseln sich ab. Die Zahl der Stunden passt zu Wochen × Stunden pro Woche. Ausgearbeitete Stunden, die es schon gibt, behalten Nummer und Titel.
 
 ## Einstieg, Abruf und Verlauf
 
@@ -387,11 +507,11 @@ Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr.
 ## Gute Arbeitsblätter für die Realschule
 
 - Klare, kurze Arbeitsaufträge mit Operator am Anfang. Ein Auftrag je Aufgabe.
-- Vom Einfachen zum Schweren: erst Reproduktion (G), dann Anwendung (M), dann Transfer und Beurteilung (E).
+- Vom Einfachen zum Schweren, mit Aufgaben aus allen drei Anforderungsbereichen: erst Wiedergeben (G), dann Anwenden (M), dann Übertragen und Beurteilen (E).
 - Informationstexte kurz und in einfacher Sprache; neue Wörter im Wortspeicher, in der Vokabelliste oder im Glossar des Lesetexts sichern.
 - Jede Stunde endet mit einer Sicherung (Merksatz, Grammatik-Box, Fließschema, „Ich kann …“).
 - Genug Schreibraum: für einen Satz zwei Linien, für eine Begründung drei bis vier.
-- Die Lehrkraft-Seite nennt Ziel und Bildungsplanbezug, den Einstieg mit seiner Art und der Leitfrage, einen Verlauf mit Zeiten für 45 Minuten (Phasen, Sozialform, „AB S. …“), typische Fehler im Erwartungshorizont und Abruffragen zum Stoff dieser Stunde für spätere Stunden.
+- Die Lehrkraft-Seite nennt das Kernziel (beobachtbar) und den Bildungsplanbezug, den Einstieg mit seiner Art und der Leitfrage, einen Verlauf mit Zeiten für 45 Minuten (Phasen, Sozialform, „AB S. …“), im Erwartungshorizont typische Fehler und Fehlvorstellungen und wie die Lehrkraft darauf eingeht, und Abruffragen zum Stoff dieser Stunde für spätere Stunden.
 
 ## Prüfe vor der Ausgabe
 
@@ -404,6 +524,11 @@ Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr.
 - Keine Seite ist voller als etwa 840 px.
 - Geplante Stunden haben `title` und `plan`, aber keine `pages`; ausgearbeitete Stunden haben `pages`.
 - Reicht ein Arbeitsblatt nicht auf eine Seite, mach die zweite Seite zur Rückseite (`"back": true`) statt zu einem neuen Blatt.
+- Jede Stunde hat ein beobachtbares Kernziel; Aufgaben, Sicherung und Exit passen dazu.
+- Aufträge beginnen mit einem Operator; jede Stunde hat Aufgaben aus AFB I und II, die meisten auch aus AFB III; Tests etwa 40/40/20.
+- Der Erwartungshorizont nennt typische Fehler und Fehlvorstellungen; mindestens eine Aufgabe greift eine davon auf.
+- Es gibt Hilfen für Schwächere (Tipps in Stufen, Wortspeicher, Satzanfänge) und eine Aufgabe für Schnelle.
+- Geplante Stunden haben `role` und `competences`; jede Kompetenz kommt vor ihrem Leistungsnachweis in mehreren Stunden vor.
 - Jede ausgearbeitete Stunde hat auf der Lehrkraft-Seite einen Einstieg (`hook`) mit `kind` und `question`; die Einstiegsarten eines Moduls wechseln.
 - Abruffragen fragen nur den Stoff ihrer eigenen Stunde ab; der Verlauf nennt Phasen, Sozialform und das Arbeitsblatt („AB S. 1“).
 - Folien: `layout` und `type` aus den Listen, höchstens 6 Einträge bei `list` und `task`, 5 bei `flow` und `work`, 3 bei `compare`, 12 bei `words`; Elemente liegen ganz auf der Folie (`x + w` ≤ 1920, `y + h` ≤ 1080) und verdecken keinen Text (außer Abdeckungen, die das sollen).
@@ -1460,7 +1585,7 @@ Lehrkraft-Seite, Vokabeln, Grammatik, Sprechen und Schreiben, dazu vier Folien. 
 
 ## Beispiel 2: Jahresplan Englisch, Klasse 5
 
-Nur die Planung, ohne Lehrwerk: Module mit Themen- und Grammatikschwerpunkt und Wochen, die ersten Stunden als geplante Stunden (ohne `pages`), ein Modul schon mit Kompetenz, dazu das Schuljahr.
+Nur die Planung, ohne Lehrwerk: Module mit Themen- und Grammatikschwerpunkt und Wochen, die ersten Stunden als geplante Stunden mit Rolle (ohne `pages`), ein Modul schon mit Kompetenz, mit der seine Stunden verknüpft sind, dazu das Schuljahr.
 
 ```json
 {
@@ -1515,17 +1640,20 @@ Nur die Planung, ohne Lehrwerk: Module mit Themen- und Grammatikschwerpunkt und 
         {
           "number": 1,
           "title": "Hello, I’m …",
-          "plan": "Sich begrüßen und vorstellen; Wortschatz Klassenzimmer; Kennenlernspiel."
+          "plan": "Sich begrüßen und vorstellen; Kennenlernspiel; Lernaufgabe der Unit vorstellen: ein Steckbrief über mich.",
+          "role": "einstieg"
         },
         {
           "number": 2,
           "title": "My classroom",
-          "plan": "Schulsachen benennen; Hörverstehen: What’s in your school bag?"
+          "plan": "Schulsachen benennen; Hörverstehen: What’s in your school bag?",
+          "role": "erarbeitung"
         },
         {
           "number": 3,
           "title": "I am, you are …",
-          "plan": "Formen von to be entdecken und üben; Personalpronomen."
+          "plan": "Formen von to be an Beispielen entdecken, Regel sichern, gelenkt üben.",
+          "role": "erarbeitung"
         }
       ]
     },
@@ -1554,7 +1682,20 @@ Nur die Planung, ohne Lehrwerk: Module mit Themen- und Grammatikschwerpunkt und 
         {
           "number": 1,
           "title": "This is my family",
-          "plan": "Familienwörter; Stammbaum beschriften; Possessivbegleiter my/your."
+          "plan": "Bildimpuls Familienfoto; Familienwörter; Stammbaum beschriften.",
+          "role": "einstieg",
+          "competences": [
+            "k1"
+          ]
+        },
+        {
+          "number": 2,
+          "title": "Meet the Parkers",
+          "plan": "Hörtext über eine Familie: pre, while, post; Possessivbegleiter my/your.",
+          "role": "erarbeitung",
+          "competences": [
+            "k1"
+          ]
         }
       ]
     },

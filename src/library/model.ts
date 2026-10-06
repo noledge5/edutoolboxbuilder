@@ -192,6 +192,8 @@ export function newLesson(lib: Library, m: Module): Lesson {
     title: 'Neue Stunde',
     textbook: '',
     plan: '',
+    role: '',
+    competences: [],
     slides: [],
     slideDesign: 'organisch',
     boards: [],
@@ -235,7 +237,7 @@ export function libraryFromOldDoc(doc: Doc): Library {
   const code = /K\s*(\d+)\s*·\s*M\s*(\d+)\s*·\s*S\s*(\d+)/.exec(doc.code);
   const parts = doc.footer.split('·').map((s) => s.trim()).filter(Boolean);
   const subject = parts.length > 1 ? parts[parts.length - 1] : 'Allgemein';
-  const settings: Settings = { subjects: [subject], footerBase: parts.slice(0, -1).join(' · '), schoolYear: null, subjectColors: {}, updatedAt: Date.now() };
+  const settings: Settings = { subjects: [subject], footerBase: parts.slice(0, -1).join(' · '), schoolYear: null, subjectColors: {}, principles: '', classProfiles: {}, updatedAt: Date.now() };
   const grade = code ? Math.min(10, Math.max(5, Number(code[1]))) : 9;
   const module: Module = {
     id: uid(),
@@ -260,6 +262,8 @@ export function libraryFromOldDoc(doc: Doc): Library {
     title: doc.pages[0]?.title || 'Stunde',
     textbook: '',
     plan: '',
+    role: '',
+    competences: [],
     doc,
     slides: [],
     slideDesign: 'organisch',
@@ -275,7 +279,7 @@ export function libraryFromOldDoc(doc: Doc): Library {
  * duplicate it, and any real edit is newer.
  */
 export function seedLibrary(): Library {
-  const settings: Settings = { subjects: ['Geographie'], footerBase: 'Kuhl · Grafen-von-Zimmern-Realschule', schoolYear: null, subjectColors: {}, updatedAt: 0 };
+  const settings: Settings = { subjects: ['Geographie'], footerBase: 'Kuhl · Grafen-von-Zimmern-Realschule', schoolYear: null, subjectColors: {}, principles: '', classProfiles: {}, updatedAt: 0 };
   const module: Module = {
     id: 'beispiel-modul',
     subject: 'Geographie',
@@ -328,6 +332,8 @@ export function seedLibrary(): Library {
     title: 'Der Treibhauseffekt',
     textbook: '',
     plan: '',
+    role: '',
+    competences: [],
     doc,
     slides: seedSlides(),
     slideDesign: 'organisch',
@@ -416,7 +422,7 @@ export const changedSince = (lib: Library, t: number) =>
 /** A copy of a lesson as the next lesson of its module. */
 export function duplicateLesson(lib: Library, m: Module, l: Lesson): Lesson {
   const fresh = newLesson(lib, m);
-  return { ...fresh, title: `${l.title} (Kopie)`, plan: l.plan, doc: { ...l.doc, code: fresh.doc.code }, slides: l.slides.map((s) => ({ ...s, id: uid() })), slideDesign: l.slideDesign };
+  return { ...fresh, title: `${l.title} (Kopie)`, plan: l.plan, role: l.role, competences: l.competences, doc: { ...l.doc, code: fresh.doc.code }, slides: l.slides.map((s) => ({ ...s, id: uid() })), slideDesign: l.slideDesign };
 }
 
 // — Trash and earlier versions (kept on this device only) —

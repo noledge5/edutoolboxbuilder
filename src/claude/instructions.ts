@@ -109,6 +109,14 @@ export function blockEntry(t: BlockType): string {
 /** The reference of all blocks with their fields (also the system prompt for tasks made by instruction). */
 export const blockReferenceText = () => blockReference();
 
+/** The didactic guidelines in short, for the requests that do not carry the whole Anleitung (task, helpers). */
+export const DIDACTICS_BRIEF =
+  'Didaktisch (Kurzfassung der Leitlinien): Jeder Auftrag beginnt mit einem Operator und verlangt genau, was er sagt. Niveau G vor allem Wiedergeben (AFB I: nennen, beschreiben, zuordnen), ' +
+  'M Anwenden und Zusammenhänge herstellen (AFB II: erklären, vergleichen, auswerten), E Beurteilen und Gestalten (AFB III: beurteilen, begründet Stellung nehmen, entwickeln). ' +
+  'Aufgaben verlangen Denken statt Abschreiben (vergleichen, begründen, vorhersagen, Fehler finden); falsche Antworten beim Ankreuzen sind typische Fehlvorstellungen. ' +
+  'Hilfen in Stufen als `tip` (erst den Blick lenken, dann eine Strategie, dann ein Teil der Lösung), sprachliche Hilfen (Wortspeicher, Satzanfänge), einfache Sprache: ein Auftrag je Satz. ' +
+  'Steht ein Klassenprofil oder stehen Grundsätze der Lehrkraft im Auftrag, richte dich danach.';
+
 function blockReference(): string {
   return GROUPS.map((g, gi) => {
     const types = BLOCK_ORDER.filter((t) => BLOCK_TYPES[t].group === gi);

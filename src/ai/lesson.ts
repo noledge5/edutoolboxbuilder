@@ -1,6 +1,7 @@
 // Working out a lesson with Claude: the request (with the lesson's place in the year plan) and reading the answer,
 // a Stundenpaket with this one lesson, back into the module (its competences keep their ids).
 import { claudeInstructions } from '../claude/instructions';
+import { roleLabel } from '../library/planning';
 import { PACKAGE_FORMAT, PACKAGE_VERSION, readPackage } from '../library/package';
 import type { Competence, Lesson, Module } from '../library/types';
 import { DocFormatError } from '../model/normalize';
@@ -40,6 +41,7 @@ export function lessonPrompt(m: Module, l: Lesson, context: string, mode: Lesson
       '',
       `**Auftrag:** ${TASK[mode]}`,
     );
+  if (mode !== 'revise') out.push('', `Halte dich an die „Didaktischen Leitlinien“ und an die „Fachdidaktik“ für ${m.subject}${l.role ? `; die Stunde hat im Modul die Rolle „${roleLabel(l.role)}“` : ''}.`);
   out.push(
     '',
     `**Form der Antwort:** genau ein JSON-Codeblock mit einem Stundenpaket („${PACKAGE_FORMAT}“, Version ${PACKAGE_VERSION}) und darin genau einem Modul (subject „${m.subject}“, grade ${m.grade}, number ${m.number}, title „${m.title}“) mit genau dieser einen Stunde (\`"number": ${l.number}\`, title „${l.title}“). ` +

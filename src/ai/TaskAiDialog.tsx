@@ -6,6 +6,7 @@ import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import type { Block, Doc } from '../model/types';
 import { AiSettingsDialog } from './AiSettingsDialog';
+import { ClassNotesLine } from './ClassNotesDialog';
 import { BlockPreview } from './BlockAiDialog';
 import { AiBusy, ChatPath, useAiJob } from './parts';
 import { dollars } from './prices';
@@ -76,6 +77,7 @@ export function TaskAiDialog({ doc, context, block, onApply, onClose }: TaskAiDi
                   onChange={(e) => setInstruction(e.target.value)}
                 />
               </div>
+              <ClassNotesLine subject={context.subject} grade={context.grade} />
               <div className="ai-ideas">
                 {ideas.map((t) => (
                   <button key={t} type="button" className="seg-pill" onClick={() => setInstruction(t)}>

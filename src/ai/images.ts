@@ -125,5 +125,25 @@ export async function runImages(prompt: string, aspect: ImageAspect, count: numb
 /** A data URL as a file for the image store. */
 export async function fileOfDataUrl(url: string, name: string): Promise<File> {
   const blob = await (await fetch(url)).blob();
+  const jpeg = await asJpeg(blob).catch(() => null);
+  if (jpeg) return new File([jpeg], `${name}.jpg`, { type: 'image/jpeg' });
   return new File([blob], `${name}.${blob.type.split('/')[1] || 'png'}`, { type: blob.type || 'image/png' });
+}
+
+/**
+ * Pictures from an image model come as PNG of 1–2 MB without transparency; as JPEG they need a tenth of that in the
+ * library, the backups and the sync file.
+ */
+async function asJpeg(blob: Blob): Promise<Blob | null> {
+  if (blob.type === 'image/jpeg' || blob.type === 'image/svg+xml') return null;
+  const bitmap = await createImageBitmap(blob);
+  const canvas = document.createElement('canvas');
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  const ctx = canvas.getContext('2d')!;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bitmap, 0, 0);
+  bitmap.close();
+  return new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.88));
 }

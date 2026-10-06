@@ -5,6 +5,7 @@ import { normalizeDoc } from '../model/normalize';
 import { isSlideDesign, normalizeSlides } from '../model/slides';
 import type { Lang } from '../model/types';
 import type { AssignmentPage, Handout } from '../share/assignment';
+import { isLessonRole } from './planning';
 import { readSubjectColors } from './subjectColor';
 import type { Competence, Holiday, Lesson, LessonVersion, Module, SchoolYear, Settings, TrashEntry } from './types';
 
@@ -70,6 +71,8 @@ export function readLesson(raw: unknown): Lesson | null {
       title: str(raw.title),
       textbook: str(raw.textbook),
       plan: str(raw.plan),
+      role: isLessonRole(raw.role) ? raw.role : '',
+      competences: Array.isArray(raw.competences) ? raw.competences.filter((x): x is string => typeof x === 'string' && x !== '') : [],
       doc: normalizeDoc(raw.doc),
       slides: normalizeSlides(raw.slides),
       slideDesign: isSlideDesign(raw.slideDesign) ? raw.slideDesign : 'organisch',
@@ -129,6 +132,8 @@ export function readSettings(raw: unknown): Settings {
     footerBase: typeof s.footerBase === 'string' ? s.footerBase : '',
     schoolYear: readSchoolYear(s.schoolYear),
     subjectColors: readSubjectColors(s.subjectColors),
+    principles: typeof s.principles === 'string' ? s.principles : '',
+    classProfiles: isObj(s.classProfiles) ? Object.fromEntries(Object.entries(s.classProfiles).filter((e): e is [string, string] => typeof e[1] === 'string' && e[1].trim() !== '')) : {},
     updatedAt: Number(s.updatedAt) || 0,
   };
 }

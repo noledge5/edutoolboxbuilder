@@ -1,6 +1,6 @@
 // Tasks by instruction: the teacher says in her words what she wants ("Mach daraus eine Zuordnung mit Bildern"),
 // Claude answers with one to three blocks of any type. They replace a block, go in after it, or are new.
-import { blockReferenceText } from '../claude/instructions';
+import { blockReferenceText, DIDACTICS_BRIEF } from '../claude/instructions';
 import { blockText } from '../library/search';
 import { BLOCK_TYPES, isBlockType } from '../model/blockTypes';
 import { DocFormatError, normalizeDoc } from '../model/normalize';
@@ -17,6 +17,8 @@ export interface TaskContext {
   lang: Lang;
   page: Page;
   competences: Competence[];
+  /** The class profile and the teacher's principles (`classNotes`), '' without. */
+  notes?: string;
 }
 
 export function taskSystem(): string {
@@ -25,6 +27,7 @@ export function taskSystem(): string {
     'Du bekommst eine Anweisung der Lehrkraft und, falls es ihn gibt, den Baustein, um den es geht. Folge der Anweisung. Du darfst den Typ wechseln, wenn die Anweisung es nahelegt, und 1 bis 3 Bausteine liefern (z. B. eine Abbildung und die Aufgabe dazu). Aufgaben sind eindeutig lösbar und enthalten ihre Lösung.',
     'Bilder kannst du nicht liefern: Bei Abbildungen und Bildimpulsen schreibst du in `describe` eine englische Bildbeschreibung für eine Illustration (ohne Text im Bild) und in `search` zwei, drei englische Suchwörter; `image` und `pics` bleiben leer. Bei Bild-Vokabeln nimmst du Emojis als Platzhalter.',
     'Klasse 5 und 6: anschaulich und abwechslungsreich, kurze Sätze, gern mit Bild, Rätsel oder Spiel. Sprache der Aufgaben wie das Blatt; deutsche Hilfe (`help`) bei englischen Blättern, wenn sie hilft. Verknüpfe Aufgaben über `competence` mit einer ID aus dem Kompetenzraster, wenn eine passt.',
+    DIDACTICS_BRIEF,
     'Antworte nur mit einem JSON-Codeblock, ohne Rückfragen: ```json\n{"blocks": [{"type": "match", "span": 12, "props": {…}}]}\n```',
     '# Referenz der Bausteine',
     blockReferenceText(),
@@ -49,6 +52,7 @@ export function taskPrompt(instruction: string, c: TaskContext, block?: Block): 
     c.competences.length ? `**Kompetenzraster:** ${c.competences.map((k) => `\`${k.id}\` ${k.area}`).join(' · ')}` : '',
     block ? `**Der Baustein, um den es geht:**\n\`\`\`json\n${JSON.stringify(leanBlock(block))}\n\`\`\`` : '**Neu:** Die Aufgabe kommt neu auf das Blatt.',
     `**Was sonst auf der Seite steht:**\n${pageSummary(c.page, block?.id) || '(noch nichts)'}`,
+    c.notes ? `\n${c.notes}` : '',
   ]
     .filter(Boolean)
     .join('\n');

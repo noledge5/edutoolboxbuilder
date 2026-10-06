@@ -13,6 +13,7 @@ import { CompetenceNamesContext } from '../sheet/competences';
 import { PAGE_H, PAGE_W, SheetPage, taskNumbers } from '../sheet/SheetPage';
 import { SheetModeContext, type SheetMode } from '../sheet/sheetMode';
 import { AiSettingsDialog } from './AiSettingsDialog';
+import { ClassNotesLine } from './ClassNotesDialog';
 import { isTeacherPage, LESSON_TOKENS, lessonFromAnswer, lessonPrompt, lessonSystem, type LessonDraft, type LessonMode } from './lesson';
 import { dollars } from './prices';
 import { modelLabel } from './settings';
@@ -29,6 +30,8 @@ export interface LessonAi {
   onApplied(added: Competence[]): void;
   /** English words in the vocabulary lists of this subject and grade (for "Vokabelliste mit Claude"). */
   known(): string[];
+  /** The class profile and the teacher's principles as Markdown for Claude ('' without). */
+  notes(): string;
 }
 
 interface LessonAiDialogProps {
@@ -146,6 +149,7 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
           <>
             <SegField<LessonMode> label="Was soll Claude tun?" value={mode} options={modes} onPick={(v) => (setMode(v), job.setError(''))} />
             <p className="ai-hint">{MODE_TEXT[mode]}</p>
+            <ClassNotesLine subject={ai.module.subject} grade={ai.module.grade} />
             {(mode === 'full' || mode === 'revise') && filled.length > 0 && (
               <p className="ai-hint is-warn">Die jetzige Fassung wird ersetzt. Sie bleibt unter „Datei“ → „Frühere Fassungen“, und Rückgängig geht auch.</p>
             )}

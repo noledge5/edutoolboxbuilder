@@ -370,7 +370,7 @@ export function Editor({
       ((id) => {
         const p = id ? ops.findBlock(doc, id)?.p : ops.insertionPoint(doc, sel).p;
         if (p === undefined) return null;
-        return { subject: ai.module.subject, grade: ai.module.grade, topic: ai.module.title, lang: doc.lang, page: doc.pages[p], competences: ai.module.competences };
+        return { subject: ai.module.subject, grade: ai.module.grade, topic: ai.module.title, lang: doc.lang, page: doc.pages[p], competences: ai.module.competences, notes: ai.notes() };
       }),
     helperContext:
       ai &&

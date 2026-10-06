@@ -2,7 +2,7 @@
 // Built with the app's own functions, so the tests can check that the Baukasten reads them without a single note.
 import { lessonsOf, plannedDoc, seedLibrary } from '../library/model';
 import { packageFromModules, type PackageFile } from '../library/package';
-import type { Lesson, Module } from '../library/types';
+import type { Lesson, LessonRole, Module } from '../library/types';
 import { BW_2026_27 } from '../library/yearplan';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { createBlock as b } from '../model/ops';
@@ -31,6 +31,8 @@ const lesson = (m: Module, number: number, title: string, textbook: string, page
   title,
   textbook,
   plan: '',
+  role: '',
+  competences: [],
   doc: { icon: m.icon, lang: m.lang, help: m.help, footer: '', code: '', pages } satisfies Doc,
   slides: [],
   slideDesign: 'organisch',
@@ -274,8 +276,14 @@ export function englishExample(): PackageFile {
   return clean(packageFromModules([{ module: m, lessons: [{ ...lesson(m, 1, 'Hello, I’m …', '', [teacher, vocab, grammar, speaking]), slides }] }]));
 }
 
-/** A planned lesson of the year plan: title and planning note, no pages yet. */
-const planned = (m: Module, number: number, title: string, plan: string): Lesson => ({ ...lesson(m, number, title, '', []), plan, doc: plannedDoc(m, title) });
+/** A planned lesson of the year plan: title, planning note, role and competences, no pages yet. */
+const planned = (m: Module, number: number, title: string, plan: string, role: LessonRole, competences: string[] = []): Lesson => ({
+  ...lesson(m, number, title, '', []),
+  plan,
+  role,
+  competences,
+  doc: plannedDoc(m, title),
+});
 
 /**
  * A year plan without a textbook: the units of Englisch Klasse 5 with their focus and weeks, the school year,
@@ -303,11 +311,14 @@ export function yearPlanExample(): PackageFile {
   const [m1, m2] = modules;
   const lessons: Record<string, Lesson[]> = {
     [m1.id]: [
-      planned(m1, 1, 'Hello, I’m …', 'Sich begrüßen und vorstellen; Wortschatz Klassenzimmer; Kennenlernspiel.'),
-      planned(m1, 2, 'My classroom', 'Schulsachen benennen; Hörverstehen: What’s in your school bag?'),
-      planned(m1, 3, 'I am, you are …', 'Formen von to be entdecken und üben; Personalpronomen.'),
+      planned(m1, 1, 'Hello, I’m …', 'Sich begrüßen und vorstellen; Kennenlernspiel; Lernaufgabe der Unit vorstellen: ein Steckbrief über mich.', 'einstieg'),
+      planned(m1, 2, 'My classroom', 'Schulsachen benennen; Hörverstehen: What’s in your school bag?', 'erarbeitung'),
+      planned(m1, 3, 'I am, you are …', 'Formen von to be an Beispielen entdecken, Regel sichern, gelenkt üben.', 'erarbeitung'),
     ],
-    [m2.id]: [planned(m2, 1, 'This is my family', 'Familienwörter; Stammbaum beschriften; Possessivbegleiter my/your.')],
+    [m2.id]: [
+      planned(m2, 1, 'This is my family', 'Bildimpuls Familienfoto; Familienwörter; Stammbaum beschriften.', 'einstieg', ['k1']),
+      planned(m2, 2, 'Meet the Parkers', 'Hörtext über eine Familie: pre, while, post; Possessivbegleiter my/your.', 'erarbeitung', ['k1']),
+    ],
   };
   return clean(
     packageFromModules(

@@ -50,6 +50,9 @@ export interface Module {
   updatedAt: number;
 }
 
+/** What a lesson does in its module: the steps of a unit planned from its end. */
+export type LessonRole = 'einstieg' | 'erarbeitung' | 'uebung' | 'anwendung' | 'wiederholung' | 'leistung' | 'rueckgabe' | 'projekt';
+
 export interface Lesson {
   id: string;
   moduleId: string;
@@ -60,6 +63,10 @@ export interface Lesson {
   textbook: string;
   /** Planning note from the year plan: what the lesson is about while it is not worked out yet. */
   plan: string;
+  /** What the lesson does in its module (from the module or year plan); '' = not said. */
+  role: LessonRole | '';
+  /** Ids of the module's competences the lesson works on (planned lessons; worked-out ones link tasks). */
+  competences: string[];
   doc: Doc;
   /** Presentation slides of the lesson (16:9). */
   slides: Slide[];
@@ -79,6 +86,10 @@ export interface Settings {
   schoolYear: SchoolYear | null;
   /** Colour of each subject in the app, a token ramp ("accent-3"); subjects without one get a default. */
   subjectColors: Record<string, string>;
+  /** The teacher's own principles for every lesson ("Ich-Du-Wir, Hausaufgabe immer auf der Folie"); go to Claude. */
+  principles: string;
+  /** About the class of a subject and grade (key `classKey`), without names: level, DaZ, LRS …; goes to Claude. */
+  classProfiles: Record<string, string>;
   /** When the settings last changed (for the Mac ↔ iPad sync); 0 = never. */
   updatedAt: number;
 }

@@ -1,7 +1,7 @@
 // Helpers at a block (small jobs, Claude Sonnet): rewrite it (simpler, more technical, shorter, in English or German),
 // make a version for level G, M or E, or add the solution and a tip. Claude gets the block, its field reference and
 // the lesson around it, and answers with the block's new fields; pictures, the competence and the points stay.
-import { blockEntry } from '../claude/instructions';
+import { blockEntry, DIDACTICS_BRIEF } from '../claude/instructions';
 import { BLOCK_TYPES, type FieldDef } from '../model/blockTypes';
 import { uid } from '../model/ops';
 import type { Block, BlockProps, Lang } from '../model/types';
@@ -55,6 +55,7 @@ export function helperSystem(): string {
     'Du hilfst einer Lehrkraft an einer Realschule in Baden-Württemberg, einen Baustein eines Arbeitsblatts im „Arbeitsblatt-Baukasten“ zu überarbeiten.',
     'Ein Baustein hat einen Typ und Felder (`props`). Jedes Feld hat ein festes Format, das in der Feldtabelle steht: Zeilen mit `|` getrennt, richtige Antworten mit `*` davor, Lücken als `[[Lösung]]`, freie Lücken als `___`, Hervorhebungen wie dort beschrieben. Halte diese Formate genau ein.',
     'Antworte nur mit einem JSON-Codeblock: `{"props": { … }}` mit den Feldern, die du änderst (Text als Zeichenkette, mehrere Zeilen mit \\n). Felder, die du nicht nennst, bleiben. Keine Rückfragen, kein Text außerhalb des Codeblocks.',
+    DIDACTICS_BRIEF,
     'Ändere nie Bilder, Bildquellen, die Kompetenz, das Niveau oder die Punkte. Typografie: deutsche Anführungszeichen „…“ in deutschen Texten, englische “…” in englischen.',
   ].join('\n\n');
 }
