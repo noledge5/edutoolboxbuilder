@@ -50,6 +50,8 @@ import { classNotes, ClassNotesContext } from './ai/classNotes';
 import { applyModulePlan } from './ai/moduleplan';
 import { vocabCsv, vocabOf, vocabTestRows } from './model/language';
 import { requestPersistentStorage } from './storage/db';
+import { AutoSync, type SyncStatus } from './sync/engine';
+import type { MergeResult } from './sync/merge';
 import * as store from './storage/library';
 
 /** Where a hit of the search is to be shown: a block on the worksheet or a slide, with the words to mark. */
@@ -122,8 +124,16 @@ export function App() {
   const openSearch = useCallback(() => setSearchOpen(true), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
   const route = useRoute();
+  const routeRef = useRef(route);
+  routeRef.current = route;
   const libRef = useRef(lib);
   libRef.current = lib;
+
+  // The automatic sync with the other device (through the server, encrypted with the pairing code).
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({ kind: 'aus' });
+  const [joinCode, setJoinCode] = useState<string | undefined>();
+  const autoSync = useRef<AutoSync | null>(null);
+  const applyRemote = useRef<(r: MergeResult) => Promise<void>>(async () => {});
 
   useEffect(() => {
     let alive = true;
@@ -131,8 +141,15 @@ export function App() {
       .then(([l, t]) => {
         if (!alive) return;
         setLib(l);
+        libRef.current = l;
         setInSyncUntil(t);
         requestPersistentStorage();
+        const sync = new AutoSync({ getLib: () => libRef.current, apply: (r) => applyRemote.current(r), onStatus: setSyncStatus });
+        autoSync.current = sync;
+        sync
+          .load()
+          .then((on) => (on ? sync.run() : undefined))
+          .catch(() => {});
         store
           .loadTrash()
           .then((t) => {
@@ -263,6 +280,62 @@ export function App() {
       },
     });
   };
+
+  // What the automatic sync brings from the other device: stored here, deleted lessons into the trash, the losing
+  // side of a conflict kept as an earlier version, and the open worksheet loaded again if it changed.
+  applyRemote.current = async (r: MergeResult) => {
+    const before = libRef.current!;
+    if (r.removedModules.length || r.removedLessons.length) {
+      const entries = toTrash(before, r.removedModules, r.removedLessons, Date.now());
+      if (entries.length) putTrash([...entries, ...trashRef.current]);
+    }
+    for (const k of r.keep) store.keepVersion(k.lesson, k.reason).catch(() => {});
+    libRef.current = r.library;
+    setLib(r.library);
+    const writes: Promise<unknown>[] = [
+      ...r.modules.map((m) => store.saveModule(m)),
+      ...r.lessons.map((l) => store.saveLesson(l)),
+      ...r.handouts.map((h) => store.saveHandout(h)),
+    ];
+    if (r.settings) writes.push(store.saveSettings(r.library.settings));
+    if (r.deleted) writes.push(store.saveDeleted(r.library.deleted));
+    if (r.removedModules.length || r.removedLessons.length) writes.push(store.deleteEntries(r.removedModules, r.removedLessons));
+    await Promise.all(writes).catch(failed);
+    const here = routeRef.current;
+    const open = here.view === 'lesson' || here.view === 'slides' ? here.id : '';
+    // Not while presenting: the slides on the projector stay until the end.
+    if (open && (r.lessons.some((l) => l.id === open) || r.removedLessons.includes(open)) && !document.querySelector('.sl-present')) setEditorRev((n) => n + 1);
+    if (r.conflicts.length)
+      setNotice(
+        `${r.conflicts.length === 1 ? `„${r.conflicts[0]}“ wurde` : `${r.conflicts.length} Stunden wurden`} auf beiden Geräten geändert. Die neuere Fassung gilt, die andere steht unter „Frühere Fassungen“.`,
+      );
+  };
+
+  // Sync a few seconds after every change, every three minutes, and when the device is back online or in front.
+  useEffect(() => {
+    if (lib) autoSync.current?.poke();
+  }, [lib]);
+  useEffect(() => {
+    const now = () => void autoSync.current?.run();
+    const visible = () => document.visibilityState === 'visible' && now();
+    const t = window.setInterval(now, 3 * 60 * 1000);
+    window.addEventListener('online', now);
+    document.addEventListener('visibilitychange', visible);
+    return () => {
+      window.clearInterval(t);
+      window.removeEventListener('online', now);
+      document.removeEventListener('visibilitychange', visible);
+    };
+  }, []);
+
+  // A pairing link (QR code scanned with the camera app) opens the sync dialog with its code.
+  const pairCode = route.view === 'overview' ? route.pair : undefined;
+  useEffect(() => {
+    if (!pairCode) return;
+    setJoinCode(pairCode);
+    setSyncOpen(true);
+    go({ view: 'overview' }, true);
+  }, [pairCode]);
 
   /** Brings a trash entry back. */
   const restore = (entryId: string, quiet = false) => {
@@ -564,7 +637,7 @@ export function App() {
     if (!lesson || !m) return <ToOverview />;
     view = (
       <SlidesView
-        key={lesson.id}
+        key={`${lesson.id}:${editorRev}`}
         slides={lesson.slides}
         ctx={slideContext(m, lesson, lib.settings)}
         doc={docForLesson(m, lesson)}
@@ -720,6 +793,7 @@ export function App() {
         onRemoveSubject={(name) => putSettings({ ...lib.settings, subjects: lib.settings.subjects.filter((s) => s !== name) })}
         onSettings={putSettings}
         pending={changedSince(lib, inSyncUntil)}
+        autoSync={syncStatus}
         onSync={() => setSyncOpen(true)}
         onOpenFile={(file) => openFile(file)}
         onOpenPlan={(subject, grade) => go({ view: 'plan', subject, grade })}
@@ -777,7 +851,21 @@ export function App() {
             setNotice('Sicherung gespeichert. Auf dem anderen Gerät über „Abgleich Mac/iPad“ öffnen.');
           }}
           onOpenFile={(file) => openFile(file)}
-          onClose={() => setSyncOpen(false)}
+          onClose={() => {
+            setSyncOpen(false);
+            setJoinCode(undefined);
+          }}
+          auto={{
+            status: syncStatus,
+            code: autoSync.current?.code ?? '',
+            joinCode,
+            onStart: (code) => {
+              setJoinCode(undefined);
+              autoSync.current?.start(code).catch(() => {});
+            },
+            onStop: () => void autoSync.current?.stop(),
+            onRunNow: () => void autoSync.current?.run(),
+          }}
         />
       )}
       {toasts}

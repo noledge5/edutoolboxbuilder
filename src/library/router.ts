@@ -5,10 +5,11 @@
 //   #/folien/<id>                  slides of a lesson
 //   #/jahresplan?fach=…&klasse=…   year plan of a subject and grade
 //   #/auswertung/<id>              results of a task handed out digitally
+//   #/koppeln/<code>               pairing link of the automatic sync (opens the overview with the sync dialog)
 import { useSyncExternalStore } from 'react';
 
 export type Route =
-  | { view: 'overview'; subject?: string; grade?: number }
+  | { view: 'overview'; subject?: string; grade?: number; pair?: string }
   | { view: 'module'; id: string }
   | { view: 'lesson'; id: string }
   | { view: 'slides'; id: string }
@@ -22,6 +23,7 @@ export function parseRoute(hash: string): Route {
   if (parts[0] === 'stunde' && parts[1]) return { view: 'lesson', id: parts[1] };
   if (parts[0] === 'folien' && parts[1]) return { view: 'slides', id: parts[1] };
   if (parts[0] === 'auswertung' && parts[1]) return { view: 'results', id: parts[1] };
+  if (parts[0] === 'koppeln' && parts[1]) return { view: 'overview', pair: parts[1] };
   const q = new URLSearchParams(query);
   const grade = Number(q.get('klasse'));
   if (parts[0] === 'jahresplan' && q.get('fach') && grade > 0) return { view: 'plan', subject: q.get('fach')!, grade };

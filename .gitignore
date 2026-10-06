@@ -4,3 +4,6 @@ dist
 .DS_Store
 coverage
 *.tsbuildinfo
+
+# Screenshots from checks belong in the scratchpad, not here
+/*.png

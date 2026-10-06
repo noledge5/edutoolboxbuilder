@@ -8,6 +8,8 @@ import { ClassNotesDialog } from '../ai/ClassNotesDialog';
 import { dollars } from '../ai/prices';
 import { useAiSettings } from '../ai/useAi';
 import { ClaudeDialog } from './ClaudeDialog';
+import { statusText } from '../sync/AutoSyncPanel';
+import type { SyncStatus } from '../sync/engine';
 import { SearchButton } from './SearchDialog';
 import { isWorkedOut, lastChange, lessonsOf, modulesOf, progressOf, progressText, subjectsOf } from './model';
 import type { Lesson, Library, Module, SchoolYear, Settings } from './types';
@@ -34,6 +36,8 @@ interface OverviewProps {
   onSettings(s: Settings): void;
   /** Changes not yet in a backup file on this device. */
   pending: number;
+  /** The automatic sync; with it on, the reminders about backup files are not needed. */
+  autoSync: SyncStatus;
   onSync(): void;
   /** A file opened or dropped here: Stundenpaket, library backup or worksheet. */
   onOpenFile(file: File): void;
@@ -62,6 +66,7 @@ export function Overview(p: OverviewProps) {
     }
     setSafariTab(false);
   };
+  const auto = p.autoSync.kind !== 'aus';
   const backupAge = p.savedAt ? Math.floor((Date.now() - p.savedAt) / 86_400_000) : null;
 
   const { lib } = p;
@@ -115,11 +120,19 @@ export function Overview(p: OverviewProps) {
           <div className="topbar-place">Übersicht</div>
         </div>
         <SearchButton />
-        <button type="button" className="btn btn-secondary ui-btn sync-btn" onClick={p.onSync} title={p.pending > 0 ? 'Änderungen noch nicht gesichert' : 'Alles gesichert'}>
-          <Icon icon={FolderSync} />
-          <span className="btn-label">Abgleich Mac/iPad</span>
-          <span className={'sync-dot' + (p.pending > 0 ? ' is-open' : '')} aria-label={p.pending > 0 ? 'nicht gesichert' : 'gesichert'} />
-        </button>
+        {auto ? (
+          <button type="button" className="btn btn-secondary ui-btn sync-btn" onClick={p.onSync} title={statusText(p.autoSync)}>
+            <Icon icon={FolderSync} />
+            <span className="btn-label">Abgleich Mac/iPad</span>
+            <span className={`sync-dot is-auto is-${p.autoSync.kind}`} aria-label={statusText(p.autoSync)} />
+          </button>
+        ) : (
+          <button type="button" className="btn btn-secondary ui-btn sync-btn" onClick={p.onSync} title={p.pending > 0 ? 'Änderungen noch nicht gesichert' : 'Alles gesichert'}>
+            <Icon icon={FolderSync} />
+            <span className="btn-label">Abgleich Mac/iPad</span>
+            <span className={'sync-dot' + (p.pending > 0 ? ' is-open' : '')} aria-label={p.pending > 0 ? 'nicht gesichert' : 'gesichert'} />
+          </button>
+        )}
         <button type="button" className="btn btn-secondary ui-btn" title="Mit Claude erstellen" onClick={() => setClaudeOpen(true)}>
           <Icon icon={Sparkles} />
           <span className="btn-label">Mit Claude</span>
@@ -134,10 +147,11 @@ export function Overview(p: OverviewProps) {
         {lastChange(lib) === 0 && (
           <div className="sync-banner is-welcome">
             <span>
-              Neu auf diesem Gerät oder gerade als App installiert? Die App hat hier ihren eigenen Speicher. Öffne einmal deine Sicherung aus iCloud Drive, dann ist alles da.
+              Neu auf diesem Gerät oder gerade als App installiert? Die App hat hier ihren eigenen Speicher. Verbinde das Gerät unter „Abgleich Mac/iPad“ mit deinem Kopplungscode, oder öffne
+              deine Sicherung aus iCloud Drive, dann ist alles da.
             </span>
             <button type="button" className="btn btn-primary ui-btn" onClick={p.onSync}>
-              Sicherung öffnen
+              Abgleichen
             </button>
           </div>
         )}
@@ -152,7 +166,15 @@ export function Overview(p: OverviewProps) {
             </button>
           </div>
         )}
-        {p.pending > 0 && (
+        {p.autoSync.kind === 'fehler' && (
+          <div className="sync-banner is-urgent">
+            <span>{statusText(p.autoSync)}</span>
+            <button type="button" className="btn btn-primary ui-btn" onClick={p.onSync}>
+              Ansehen
+            </button>
+          </div>
+        )}
+        {!auto && p.pending > 0 && (
           <div className={'sync-banner' + (backupAge === null || backupAge >= 7 ? ' is-urgent' : '')}>
             <span>
               {p.pending} {p.pending === 1 ? 'Änderung ist' : 'Änderungen sind'} noch nicht in iCloud gesichert.

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { getImage, putImage } from './db';
 
 const MAX_SIDE = 1600;
@@ -52,10 +52,23 @@ export function provideImages(urls: Record<string, string>) {
   for (const [id, url] of Object.entries(urls)) urlCache.set(id, url);
 }
 
+// Pictures that came later (from the other device): images shown as missing look again.
+let arrivals = 0;
+const arrivalListeners = new Set<() => void>();
+export function imagesArrived() {
+  arrivals++;
+  for (const f of arrivalListeners) f();
+}
+const onArrival = (f: () => void) => {
+  arrivalListeners.add(f);
+  return () => void arrivalListeners.delete(f);
+};
+
 export type ImageState = { status: 'none' } | { status: 'loading' } | { status: 'missing' } | { status: 'ready'; url: string };
 
 /** Object URL for a stored image id. */
 export function useImageUrl(id: string): ImageState {
+  const arrived = useSyncExternalStore(onArrival, () => arrivals);
   const [state, setState] = useState<ImageState>(() => {
     if (!id) return { status: 'none' };
     const url = urlCache.get(id);
@@ -79,6 +92,6 @@ export function useImageUrl(id: string): ImageState {
     return () => {
       alive = false;
     };
-  }, [id]);
+  }, [id, arrived]);
   return state;
 }

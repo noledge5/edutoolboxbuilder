@@ -95,13 +95,23 @@ Aufgaben gehen per Link und QR-Code an die Klasse und werden am Tablet, Handy od
 - **Safari:** Im Safari-Tab löscht Safari gespeicherte Daten, wenn die Seite 7 Tage lang nicht geöffnet wurde. Die Übersicht erinnert daran, den Baukasten als App zu installieren, und färbt den Hinweis auf nicht gesicherte Änderungen kräftiger, wenn die letzte Sicherung eine Woche her ist.
 
 ### Mac und iPad
-Der Baukasten speichert alles im Browser des jeweiligen Geräts. Abgeglichen wird über eine Datei in iCloud Drive, ohne Server und ohne Konto:
+Der Baukasten speichert alles im Browser des jeweiligen Geräts.
+
+**Automatisch abgleichen** (empfohlen): Mac und iPad bleiben von selbst gleich, beim Öffnen, wenige Sekunden nach jeder Änderung und alle drei Minuten, auch nach einer Pause ohne Netz.
+1. Auf dem ersten Gerät: **Übersicht → Abgleich Mac/iPad → Auf diesem Gerät einrichten.** Es erscheint ein Kopplungscode (24 Zeichen) mit QR-Code. **Schreib den Code auf**: Mit ihm holst du deine Daten auch auf ein neues Gerät.
+2. Auf dem anderen Gerät: **Abgleich Mac/iPad → Mit Code verbinden → Code scannen** (Kamera) oder den Code abtippen. Die Daten beider Geräte werden zusammengeführt, Bilder kommen mit.
+- Alles wird auf dem Gerät mit einem Schlüssel aus dem Code verschlüsselt; der Server (Supabase in Frankfurt, derselbe wie für die Schülerabgaben) sieht nur Zeichensalat, nicht einmal, ob ein Eintrag ein Modul oder eine Stunde ist. Ohne Code kommt niemand an die Daten, auch nicht der Server. KI-Schlüssel und GitHub-Schlüssel bleiben auf dem Gerät.
+- Wurde dieselbe Stunde auf beiden Geräten geändert, gilt die neuere Fassung; die andere steht unter „Datei → Frühere Fassungen“, und ein Hinweis sagt es. Was auf dem anderen Gerät gelöscht wurde, landet hier im Papierkorb.
+- Der Punkt am Knopf zeigt den Stand: grün abgeglichen, pulsierend beim Abgleichen, grau offline, orange bei einem Problem. „Jetzt abgleichen“ stößt einen Abgleich an; „Weiteres Gerät koppeln“ zeigt den Code wieder; „Auf diesem Gerät beenden“ hört hier auf (die Daten bleiben).
+- Platz: etwa 350 MB je Kopplung, für viele Hundert Blätter mit Bildern genug.
+
+**Mit einer Sicherungsdatei** (ohne Server, weiter möglich): über eine Datei in iCloud Drive, ohne Konto:
 1. Auf dem Gerät, auf dem du gearbeitet hast: **Übersicht → Abgleich Mac/iPad → Sicherung speichern.** Die Datei heißt immer „Arbeitsblatt-Baukasten Bibliothek.json“. Auf dem iPad über „In Dateien sichern“ nach iCloud Drive, auf dem Mac landet sie im Download-Ordner (Tipp: in Safari als Download-Ordner einen Ordner in iCloud Drive wählen).
 2. Auf dem anderen Gerät: **Abgleich Mac/iPad → Sicherung öffnen und abgleichen …** und die Datei wählen. Von jeder Stunde und jedem Modul bleibt die neuere Fassung, Gelöschtes bleibt gelöscht.
 
 Der Punkt am Knopf „Abgleich Mac/iPad“ ist orange, solange es Änderungen gibt, die noch nicht gesichert sind.
 
-**Als App installieren:** auf dem iPad in Safari „Teilen → Zum Home-Bildschirm“, auf dem Mac in Safari „Ablage → Zum Dock hinzufügen“. Die App startet dann ohne Browserleiste und funktioniert auch offline. Achtung: Die installierte App hat ihren eigenen Speicher. Öffne dort einmal die Sicherung aus iCloud Drive, dann ist alles da.
+**Als App installieren:** auf dem iPad in Safari „Teilen → Zum Home-Bildschirm“, auf dem Mac in Safari „Ablage → Zum Dock hinzufügen“. Die App startet dann ohne Browserleiste und funktioniert auch offline. Achtung: Die installierte App hat ihren eigenen Speicher. Verbinde sie einmal mit deinem Kopplungscode (oder öffne die Sicherung aus iCloud Drive), dann ist alles da. Scanne den QR-Code dafür in der App („Code scannen“), nicht mit der Kamera-App: die öffnet Safari, nicht die App.
 
 ### Mit Claude erstellen
 **Übersicht → Mit Claude** führt durch drei Schritte:
