@@ -45,6 +45,8 @@ interface TopBarProps {
   onClaude?(): void;
   /** Vocabulary list of this lesson with Claude (English modules). */
   onVocabAi?(): void;
+  /** A new task by instruction, at the insertion point. */
+  onTaskAi?(): void;
   /** Claude's key and costs on this device. */
   onAiSettings?(): void;
   handouts?: Handout[];
@@ -111,6 +113,7 @@ export function TopBar(p: TopBarProps) {
           label="Claude"
           icon={Sparkles}
           items={[
+            ...(p.onTaskAi ? [{ label: 'Neue Aufgabe mit Claude …', icon: Sparkles, onClick: p.onTaskAi }] : []),
             { label: 'Stunde mit Claude …', icon: Sparkles, onClick: p.onClaude },
             ...(p.onVocabAi ? [{ label: 'Vokabelliste mit Claude …', icon: BookA, onClick: p.onVocabAi }] : []),
             ...(p.onAiSettings ? [{ label: 'KI im Baukasten …', icon: KeyRound, onClick: p.onAiSettings }] : []),

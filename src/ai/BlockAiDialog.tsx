@@ -30,7 +30,7 @@ interface BlockAiDialogProps {
 const SHOWN: SheetMode = { solutions: 'shown', bw: false };
 
 /** One block as on the sheet, at half size. */
-function BlockPreview({ block, doc }: { block: Block; doc: Doc }) {
+export function BlockPreview({ block, doc }: { block: Block; doc: Doc }) {
   return (
     <SheetDocContext.Provider value={doc}>
       <SheetModeContext.Provider value={SHOWN}>

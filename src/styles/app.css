@@ -1070,3 +1070,14 @@ body { background: var(--color-neutral-200); }
 .ai-vocab-word.is-on .ai-vocab-check { background: var(--color-accent); color: var(--color-bg); box-shadow: none; }
 .ai-vocab-en { font-weight: 700; }
 .ai-vocab-de { flex: 1; min-width: 0; color: var(--color-neutral-800); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.img-search-tabs { align-self: flex-start; }
+.img-search-tabs .seg-pill { display: inline-flex; align-items: center; gap: 6px; }
+.img-ai { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; }
+.img-ai .input { border-radius: 16px; }
+.img-ai-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.img-ai-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.img-ai-grid .img-tile img { object-fit: contain; background: white; }
+.img-ai .ai-hint.is-warn { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.ai-ideas { display: flex; flex-wrap: wrap; gap: 6px; }
+.ai-ideas .seg-pill { font-size: 12.5px; }
+.panel-ai-main { align-self: flex-start; }

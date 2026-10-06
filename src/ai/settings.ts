@@ -22,6 +22,9 @@ export interface AiSettings {
   models: Record<AiJob, string>;
   /** Ask before a request once this month's spending reaches it (dollars; 0 = no limit). */
   limit: number;
+  /** Pictures come from OpenRouter: its key (with provider "openrouter" the main key is used) and image model. */
+  imageKey: string;
+  imageModel: string;
   /** "2026-10" and what was spent in it on this device. */
   month: string;
   spent: number;
@@ -32,6 +35,20 @@ export const AI_MODELS: Record<Provider, Record<AiJob, string>> = {
   anthropic: { big: 'claude-opus-5-5', small: 'claude-sonnet-5-5' },
   openrouter: { big: 'anthropic/claude-opus-5.5', small: 'anthropic/claude-sonnet-5.5' },
 };
+
+/** Default model for pictures (OpenRouter): Google's Nano Banana 2. */
+export const IMAGE_MODEL = 'google/gemini-3.1-flash-image';
+
+/** Picture models to choose from when the list cannot be fetched. */
+export const IMAGE_CHOICES = [
+  { v: 'google/gemini-3.1-flash-image', l: 'Nano Banana 2 (Google, empfohlen)' },
+  { v: 'google/gemini-3.1-flash-lite-image', l: 'Nano Banana 2 Lite (Google, günstiger)' },
+  { v: 'google/gemini-3-pro-image', l: 'Nano Banana Pro (Google, beste Qualität, teurer)' },
+  { v: 'openai/gpt-5-image-mini', l: 'GPT-5 Image Mini (OpenAI)' },
+];
+
+/** The OpenRouter key for pictures, or '' when there is none on this device. */
+export const imageKeyOf = (s: AiSettings | null | undefined) => (!s ? '' : s.provider === 'openrouter' ? s.key : s.imageKey);
 
 /** Claude models to choose from (direct). */
 export const ANTHROPIC_CHOICES = [
@@ -65,6 +82,8 @@ export function readAiSettings(raw: unknown, now = Date.now()): AiSettings | nul
     key: r.key.trim(),
     models: { big: r.models?.big || AI_MODELS[provider].big, small: r.models?.small || AI_MODELS[provider].small },
     limit: Number(r.limit) >= 0 ? Number(r.limit) : 10,
+    imageKey: typeof r.imageKey === 'string' ? r.imageKey.trim() : '',
+    imageModel: typeof r.imageModel === 'string' && r.imageModel.trim() ? r.imageModel.trim() : IMAGE_MODEL,
     month,
     spent: same ? Number(r.spent) || 0 : 0,
     log: Array.isArray(r.log) ? r.log.slice(0, LOG) : [],

@@ -114,6 +114,15 @@ export function deleteBlock(doc: Doc, id: string): Doc {
   });
 }
 
+/** The block `id` replaced by `blocks` at its place (one undo step). */
+export function replaceBlock(doc: Doc, id: string, blocks: Block[]): Doc {
+  const loc = findBlock(doc, id);
+  if (!loc) return doc;
+  return produce(doc, (d) => {
+    d.pages[loc.p].blocks.splice(loc.i, 1, ...blocks);
+  });
+}
+
 export function updateBlock(doc: Doc, id: string, patch: { span?: number; props?: BlockProps }): Doc {
   const loc = findBlock(doc, id);
   if (!loc) return doc;

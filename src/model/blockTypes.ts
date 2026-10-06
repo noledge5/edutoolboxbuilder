@@ -172,12 +172,13 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     label: 'Abbildung',
     group: 1,
     span: 6,
-    defaults: { caption: 'Abb. 1: Bildunterschrift', source: '', height: 200, image: '', fit: 'cover', search: '' },
+    defaults: { caption: 'Abb. 1: Bildunterschrift', source: '', height: 200, image: '', fit: 'cover', search: '', describe: '' },
     fields: [
       { key: 'image', label: 'Bild', kind: 'image' },
       { key: 'caption', label: 'Bildunterschrift', kind: 'text' },
       { key: 'source', label: 'Quelle', kind: 'text' },
       { key: 'search', label: 'Suchwörter für die Bildsuche (englisch findet mehr)', kind: 'text' },
+      { key: 'describe', label: 'Bildbeschreibung für „Mit KI erzeugen“', kind: 'area' },
       { key: 'height', label: 'Höhe in px', kind: 'number', min: 40, max: 900 },
       {
         key: 'fit',
@@ -380,6 +381,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       { key: 'answer', label: 'Auflösung (Schätzfrage, Rätsel) oder Antworten zum Abstimmen, mit / getrennt', kind: 'text' },
       { key: 'image', label: 'Bild (Bildimpuls, Karikatur, Gegenstand)', kind: 'image' },
       { key: 'source', label: 'Quelle des Bilds', kind: 'text' },
+      { key: 'describe', label: 'Bildbeschreibung für „Mit KI erzeugen“', kind: 'area' },
       { key: 'url', label: 'Video-Link', kind: 'text' },
       { key: 'question', label: 'Leitfrage der Stunde', kind: 'text' },
     ],

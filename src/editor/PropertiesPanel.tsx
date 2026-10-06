@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { ClipboardCopy, Copy, File, ListChecks, Send, Sparkles, Trash2, X } from 'lucide-react';
 import { BlockAiDialog } from '../ai/BlockAiDialog';
+import { TaskAiDialog } from '../ai/TaskAiDialog';
 import { HELPERS, isLevelHelper, type HelperKind } from '../ai/helpers';
 import { BLOCK_ICONS, Icon } from '../icons';
 import { BLOCK_TYPES, SPAN_OPTIONS, type FieldDef } from '../model/blockTypes';
@@ -11,6 +12,7 @@ import type { Block, Lang, NameField, SheetType, WorkForm } from '../model/types
 import type { EditorApi } from './api';
 import { AreaField, CompetenceField, IconPickerField, ImageField, IpaAreaField, NumberField, PicsField, PresetField, SegField, TextField } from './fields';
 import { ImageSearchDialog, queryFromCaption } from './ImageSearchDialog';
+import type { ImageAspect } from '../ai/images';
 
 interface PanelProps {
   api: EditorApi;
@@ -78,6 +80,10 @@ function PanelHead({ icon, title, close }: { icon: ReactNode; title: string; clo
 interface ImageSearch {
   query: string;
   free: boolean;
+  /** Open on "Mit KI erzeugen", with this description. */
+  ai?: boolean;
+  describe?: string;
+  aspect?: ImageAspect;
   pick(file: File, credit: string): void;
 }
 
@@ -86,9 +92,19 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
   const set = (key: string) => (v: string | number) => api.setProp(block.id, key, v);
   const [search, setSearch] = useState<ImageSearch | null>(null);
   const [helper, setHelper] = useState<HelperKind | null>(null);
+  const [taskOpen, setTaskOpen] = useState(false);
   const helperContext = api.helperContext?.(block.id) ?? null;
   const hasText = T.fields.some((f) => f.kind === 'text' || f.kind === 'area' || f.kind === 'ipa');
   const hasSource = T.fields.some((f) => f.key === 'source');
+  /** The picture dialog for the block's image: search words, or Claude's description for a picture made with KI. */
+  const imageSearch = (ai: boolean): ImageSearch => ({
+    query: str(block.props.search).trim() || queryFromCaption(str(block.props.caption)),
+    free: false,
+    ai,
+    describe: str(block.props.describe).trim() || str(block.props.impulse).trim() || queryFromCaption(str(block.props.caption)),
+    // The author and licence go into the source line, in the same step as the picture.
+    pick: (file, credit) => api.setImage(block.id, file, hasSource ? { source: credit } : {}),
+  });
   const field = (f: FieldDef) => {
     if (f.when === 'en' && api.doc.lang !== 'en') return null;
     const v = block.props[f.key];
@@ -111,14 +127,8 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
             hasImage={!!str(v)}
             onFile={(file) => api.setImage(block.id, file)}
             onRemove={() => set(f.key)('')}
-            onSearch={() =>
-              setSearch({
-                query: str(block.props.search).trim() || queryFromCaption(str(block.props.caption)),
-                free: false,
-                // The author and licence go into the source line, in the same step as the picture.
-                pick: (file, credit) => api.setImage(block.id, file, hasSource ? { source: credit } : {}),
-              })
-            }
+            onSearch={() => setSearch(imageSearch(false))}
+            onGenerate={() => setSearch(imageSearch(true))}
           />
         );
       case 'competence':
@@ -152,6 +162,7 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
             onRemove={(i) => set(f.key)(ids.map((x, k) => (k === i ? '' : x)).join('\n'))}
             // Picture cards have no room for a source line: public domain pictures first.
             onSearch={(i) => setSearch({ query: queryOf(i), free: true, pick: (file) => api.setPic(block.id, i, file) })}
+            onGenerate={(i) => setSearch({ query: queryOf(i), free: true, ai: true, aspect: '1:1', pick: (file) => api.setPic(block.id, i, file) })}
           />
         );
       }
@@ -167,6 +178,9 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         <ImageSearchDialog
           initialQuery={search.query}
           freeOnly={search.free}
+          startAi={search.ai}
+          describe={search.describe}
+          aspect={search.aspect}
           onPick={(file, credit) => {
             search.pick(file, credit);
             setSearch(null);
@@ -174,11 +188,16 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
           onClose={() => setSearch(null)}
         />
       )}
-      {helperContext && hasText && (
+      {helperContext && (
         <div className="panel-section panel-ai">
           <div className="panel-section-label">
             <Icon icon={Sparkles} size={14} /> Mit Claude
           </div>
+          <button type="button" className="btn btn-secondary ui-btn panel-ai-main" onClick={() => setTaskOpen(true)}>
+            <Icon icon={Sparkles} />
+            Mit Anweisung neu machen …
+          </button>
+          {hasText && (
           <div className="panel-ai-row">
             {HELPERS.filter((h) => !isLevelHelper(h.v) && h.v !== 'loesung').map((h) => (
               <button key={h.v} type="button" className="seg-pill" onClick={() => setHelper(h.v)}>
@@ -186,7 +205,8 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
               </button>
             ))}
           </div>
-          {T.task && (
+          )}
+          {T.task && hasText && (
             <div className="panel-ai-row">
               <span className="panel-ai-label">Fassung für</span>
               {HELPERS.filter((h) => isLevelHelper(h.v)).map((h) => (
@@ -205,6 +225,19 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         <SegField label="Breite im 12er-Raster" value={block.span} options={SPAN_OPTIONS} onPick={(v) => api.setSpan(block.id, v)} />
         {T.fields.map(field)}
       </div>
+      {taskOpen && api.taskContext?.(block.id) && (
+        <TaskAiDialog
+          doc={api.doc}
+          context={api.taskContext(block.id)!}
+          block={block}
+          onApply={(blocks, how) => {
+            if (how === 'replace') api.replaceBlock(block.id, blocks);
+            else api.insertAfter(block.id, blocks);
+            setTaskOpen(false);
+          }}
+          onClose={() => setTaskOpen(false)}
+        />
+      )}
       {helper && helperContext && (
         <BlockAiDialog
           block={block}
@@ -212,7 +245,7 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
           kind={helper}
           context={helperContext}
           onApply={(next, insert) => {
-            if (insert) api.insertAfter(block.id, next);
+            if (insert) api.insertAfter(block.id, [next]);
             else api.setProps(block.id, next.props);
             setHelper(null);
           }}

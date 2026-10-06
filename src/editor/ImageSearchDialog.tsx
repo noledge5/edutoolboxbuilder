@@ -1,7 +1,9 @@
 // "Bild aus dem Internet": search Openverse or Wikimedia Commons, pick a picture, and it is stored
 // with its author and licence as the source line. Large tiles, so it works with a finger on the iPad.
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Check, ExternalLink, LoaderCircle, Search } from 'lucide-react';
+import { Check, ExternalLink, LoaderCircle, Search, Sparkles } from 'lucide-react';
+import { ImageAiPane } from '../ai/ImageAiPane';
+import type { ImageAspect } from '../ai/images';
 import { Icon } from '../icons';
 import { creditOf, downloadImage, searchImages, SearchError, type FoundImage, type ImageKind, type ImageSource, type SearchOptions } from '../storage/imageSearch';
 
@@ -10,7 +12,13 @@ interface ImageSearchDialogProps {
   initialQuery: string;
   /** Start with public domain images only (where the sheet has no room for a source line). */
   freeOnly?: boolean;
-  onPick(file: File, credit: string, img: FoundImage): void;
+  /** A description of the picture for "Mit KI erzeugen" (else the search words). */
+  describe?: string;
+  /** Shape of a picture made with KI. */
+  aspect?: ImageAspect;
+  /** Open on "Mit KI erzeugen". */
+  startAi?: boolean;
+  onPick(file: File, credit: string, img?: FoundImage): void;
   onClose(): void;
 }
 
@@ -34,7 +42,8 @@ export const queryFromCaption = (caption: string) =>
     .replace(/bildunterschrift/i, '')
     .trim();
 
-export function ImageSearchDialog({ initialQuery, freeOnly = false, onPick, onClose }: ImageSearchDialogProps) {
+export function ImageSearchDialog({ initialQuery, freeOnly = false, describe = '', aspect, startAi = false, onPick, onClose }: ImageSearchDialogProps) {
+  const [mode, setMode] = useState<'search' | 'ai'>(startAi ? 'ai' : 'search');
   const [source, setSource] = useState<ImageSource>('openverse');
   const [query, setQuery] = useState(initialQuery);
   const [opts, setOpts] = useState<SearchOptions>({ kind: 'alle', free: freeOnly });
@@ -131,7 +140,19 @@ export function ImageSearchDialog({ initialQuery, freeOnly = false, onPick, onCl
 
   return (
     <div className="dialog-backdrop" onClick={onClose}>
-      <div className="dialog img-search" role="dialog" aria-modal="true" aria-label="Bild aus dem Internet" onClick={(e) => e.stopPropagation()}>
+      <div className="dialog img-search" role="dialog" aria-modal="true" aria-label="Bild einfügen" onClick={(e) => e.stopPropagation()}>
+        <div className="img-search-tabs seg-pills" role="tablist" aria-label="Woher das Bild kommt">
+          <button type="button" role="tab" aria-selected={mode === 'search'} className={'seg-pill' + (mode === 'search' ? ' is-on' : '')} onClick={() => setMode('search')}>
+            <Icon icon={Search} size={15} /> Im Internet suchen
+          </button>
+          <button type="button" role="tab" aria-selected={mode === 'ai'} className={'seg-pill' + (mode === 'ai' ? ' is-on' : '')} onClick={() => setMode('ai')}>
+            <Icon icon={Sparkles} size={15} /> Mit KI erzeugen
+          </button>
+        </div>
+        {mode === 'ai' ? (
+          <ImageAiPane initial={describe || initialQuery} aspect={aspect} onPick={(file, credit) => onPick(file, credit)} onClose={onClose} />
+        ) : (
+        <>
         <div className="img-search-head">
           <div className="dialog-title">Bild aus dem Internet</div>
           <div className="seg-pills" role="radiogroup" aria-label="Bilddatenbank">
@@ -261,6 +282,8 @@ export function ImageSearchDialog({ initialQuery, freeOnly = false, onPick, onCl
             </button>
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

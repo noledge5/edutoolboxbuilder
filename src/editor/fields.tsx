@@ -1,6 +1,6 @@
 // Form fields of the properties panel (Organic `.field` label + pill `.input`).
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
-import { Globe, ImageUp, Trash2 } from 'lucide-react';
+import { Globe, ImageUp, Sparkles, Trash2 } from 'lucide-react';
 import { Icon } from '../icons';
 import type { SegOption } from '../model/blockTypes';
 import { searchTopicIcons, TOPIC_GROUPS, type TopicIcon } from '../topicIcons';
@@ -71,6 +71,7 @@ export function PicsField({
   onFile,
   onRemove,
   onSearch,
+  onGenerate,
 }: {
   label: string;
   names: string[];
@@ -78,6 +79,7 @@ export function PicsField({
   onFile(i: number, f: File): void;
   onRemove(i: number): void;
   onSearch(i: number): void;
+  onGenerate?(i: number): void;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const slot = useRef(0);
@@ -102,6 +104,11 @@ export function PicsField({
             <button type="button" className="iconbtn" title="Bild im Internet suchen" aria-label="Bild im Internet suchen" onClick={() => onSearch(i)}>
               <Icon icon={Globe} />
             </button>
+            {onGenerate && (
+              <button type="button" className="iconbtn" title="Bild mit KI erzeugen" aria-label="Bild mit KI erzeugen" onClick={() => onGenerate(i)}>
+                <Icon icon={Sparkles} />
+              </button>
+            )}
             {ids[i] && (
               <button type="button" className="iconbtn is-danger" title="Bild entfernen" aria-label="Bild entfernen" onClick={() => onRemove(i)}>
                 <Icon icon={Trash2} />
@@ -219,7 +226,21 @@ export function SegField<V extends string | number | boolean>({ label, value, op
   );
 }
 
-export function ImageField({ label, hasImage, onFile, onRemove, onSearch }: { label: string; hasImage: boolean; onFile(f: File): void; onRemove(): void; onSearch(): void }) {
+export function ImageField({
+  label,
+  hasImage,
+  onFile,
+  onRemove,
+  onSearch,
+  onGenerate,
+}: {
+  label: string;
+  hasImage: boolean;
+  onFile(f: File): void;
+  onRemove(): void;
+  onSearch(): void;
+  onGenerate?(): void;
+}) {
   const input = useRef<HTMLInputElement>(null);
   return (
     <div className="field">
@@ -233,6 +254,12 @@ export function ImageField({ label, hasImage, onFile, onRemove, onSearch }: { la
           <Icon icon={Globe} />
           Im Internet suchen
         </button>
+        {onGenerate && (
+          <button type="button" className="btn btn-secondary ui-btn" onClick={onGenerate}>
+            <Icon icon={Sparkles} />
+            Mit KI erzeugen
+          </button>
+        )}
         {hasImage && (
           <button type="button" className="btn btn-secondary ui-btn is-danger" onClick={onRemove}>
             <Icon icon={Trash2} />

@@ -106,6 +106,9 @@ export function blockEntry(t: BlockType): string {
   ].join('\n');
 }
 
+/** The reference of all blocks with their fields (also the system prompt for tasks made by instruction). */
+export const blockReferenceText = () => blockReference();
+
 function blockReference(): string {
   return GROUPS.map((g, gi) => {
     const types = BLOCK_ORDER.filter((t) => BLOCK_TYPES[t].group === gi);

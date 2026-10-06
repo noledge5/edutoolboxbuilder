@@ -6,7 +6,8 @@ import { SegField } from '../editor/fields';
 import { Icon } from '../icons';
 import { checkKey } from './client';
 import { dollars } from './prices';
-import { AI_MODELS, ANTHROPIC_CHOICES, monthOf, type AiJob, type AiSettings, type Provider } from './settings';
+import { imageModels } from './images';
+import { AI_MODELS, ANTHROPIC_CHOICES, IMAGE_CHOICES, IMAGE_MODEL, monthOf, type AiJob, type AiSettings, type Provider } from './settings';
 import { setAiSettings, useAiSettings } from './useAi';
 
 const KEY_PAGES: Record<Provider, string> = {
@@ -31,6 +32,9 @@ export function AiSettingsDialog({ onClose }: { onClose(): void }) {
   const [busy, setBusy] = useState(false);
   const [choices, setChoices] = useState(ANTHROPIC_CHOICES);
   const [loaded, setLoaded] = useState(false);
+  const [imageKey, setImageKey] = useState('');
+  const [imageModel, setImageModel] = useState(IMAGE_MODEL);
+  const [imageChoices, setImageChoices] = useState(IMAGE_CHOICES);
 
   useEffect(() => {
     if (saved === undefined || loaded) return;
@@ -38,6 +42,8 @@ export function AiSettingsDialog({ onClose }: { onClose(): void }) {
     if (!saved) return;
     setProvider(saved.provider);
     setKey(saved.key);
+    setImageKey(saved.imageKey);
+    setImageModel(saved.imageModel);
     setModels(saved.models);
     setLimit(saved.limit);
   }, [saved, loaded]);
@@ -55,6 +61,16 @@ export function AiSettingsDialog({ onClose }: { onClose(): void }) {
       alive = false;
     };
   }, [provider]);
+
+  useEffect(() => {
+    let alive = true;
+    imageModels()
+      .then((list) => alive && list.length && setImageChoices(list))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -85,6 +101,8 @@ export function AiSettingsDialog({ onClose }: { onClose(): void }) {
       key: key.trim(),
       models,
       limit: Math.max(0, limit),
+      imageKey: provider === 'openrouter' ? '' : imageKey.trim(),
+      imageModel,
       month,
       spent: saved && saved.month === month ? saved.spent : 0,
       log: saved?.log ?? [],
@@ -160,6 +178,35 @@ export function AiSettingsDialog({ onClose }: { onClose(): void }) {
         </div>
         {modelField('big', 'Stunden und Jahrespläne')}
         {modelField('small', 'Helfer am Baustein (umformulieren, Niveaus, Lösungen)')}
+        <div className="settings-ai">
+          <div className="panel-section-label">Bilder mit KI (über OpenRouter)</div>
+          <p className="ai-hint">
+            Bilder erzeugt ein Bildmodell bei OpenRouter, z. B. Googles „Nano Banana“. Ein Bild kostet je nach Modell etwa 2 bis 15 Cent.{' '}
+            {provider === 'openrouter' ? 'Dafür nimmt der Baukasten deinen OpenRouter-Schlüssel.' : 'Claude direkt kann keine Bilder machen: Trag dafür einen OpenRouter-Schlüssel ein (freiwillig).'}
+          </p>
+          {provider !== 'openrouter' && (
+            <div className="field">
+              <label htmlFor="ai-image-key">OpenRouter-Schlüssel für Bilder</label>
+              <div className="ai-key-row">
+                <input id="ai-image-key" className="input" type="password" autoComplete="off" value={imageKey} placeholder="sk-or-… (leer = keine KI-Bilder)" onChange={(e) => setImageKey(e.target.value)} />
+                <a className="btn btn-secondary ui-btn" href={KEY_PAGES.openrouter} target="_blank" rel="noreferrer">
+                  <Icon icon={ExternalLink} />
+                  Schlüssel
+                </a>
+              </div>
+            </div>
+          )}
+          <div className="field">
+            <label htmlFor="ai-image-model">Bildmodell</label>
+            <select id="ai-image-model" className="input" value={imageModel} onChange={(e) => setImageModel(e.target.value)}>
+              {[...imageChoices, ...(imageChoices.some((c) => c.v === imageModel) ? [] : [{ v: imageModel, l: imageModel }])].map((c) => (
+                <option key={c.v} value={c.v}>
+                  {c.l}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="field">
           <label htmlFor="ai-limit">Monatslimit in US-Dollar (vorher fragen, 0 = nie fragen)</label>
           <input id="ai-limit" className="input" type="number" min={0} step={1} value={limit} onChange={(e) => setLimit(Number(e.target.value) || 0)} />

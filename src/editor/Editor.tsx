@@ -21,6 +21,7 @@ import { dataUrlToBlob } from '../storage/backup';
 import { AiSettingsDialog } from '../ai/AiSettingsDialog';
 import { LessonAiDialog, type LessonAi } from '../ai/LessonAiDialog';
 import { VocabAiDialog } from '../ai/VocabAiDialog';
+import { TaskAiDialog } from '../ai/TaskAiDialog';
 import { vocabOf } from '../model/language';
 import type { EditorApi } from './api';
 import { Canvas } from './Canvas';
@@ -159,7 +160,7 @@ export function Editor({
   const [zoom, setZoomState] = useState(() => storedZoom() ?? 0.8);
   const [preview, setPreview] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
-  const [aiOpen, setAiOpen] = useState<'lesson' | 'settings' | 'vocab' | null>(null);
+  const [aiOpen, setAiOpen] = useState<'lesson' | 'settings' | 'vocab' | 'task' | null>(null);
   const [drop, setDrop] = useState<DropTarget | null>(null);
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
   const [saveError, setSaveError] = useState(false);
@@ -359,10 +360,18 @@ export function Editor({
       const block = ops.createBlock(type);
       commit(ops.insertBlock(doc, at.p, at.i, block), { select: { kind: 'block', id: block.id } });
     },
-    insertAfter: (id, block) => {
+    insertAfter: (id, blocks) => {
       const loc = ops.findBlock(doc, id);
-      if (loc) commit(ops.insertBlock(doc, loc.p, loc.i + 1, block), { select: { kind: 'block', id: block.id } });
+      if (loc) commit(ops.insertBlocks(doc, loc.p, loc.i + 1, blocks), { select: ops.selectionOf(blocks.map((b) => b.id)) });
     },
+    replaceBlock: (id, blocks) => commit(ops.replaceBlock(doc, id, blocks), { select: ops.selectionOf(blocks.map((b) => b.id)) }),
+    taskContext:
+      ai &&
+      ((id) => {
+        const p = id ? ops.findBlock(doc, id)?.p : ops.insertionPoint(doc, sel).p;
+        if (p === undefined) return null;
+        return { subject: ai.module.subject, grade: ai.module.grade, topic: ai.module.title, lang: doc.lang, page: doc.pages[p], competences: ai.module.competences };
+      }),
     helperContext:
       ai &&
       ((id) => {
@@ -777,6 +786,7 @@ export function Editor({
           onOpenHandout={onOpenHandout}
           onClaude={ai && (() => setAiOpen('lesson'))}
           onVocabAi={ai && ai.module.lang === 'en' ? () => setAiOpen('vocab') : undefined}
+          onTaskAi={ai && (() => setAiOpen('task'))}
           onAiSettings={() => setAiOpen('settings')}
         />
         <input
@@ -915,6 +925,19 @@ export function Editor({
           />
         )}
         {aiOpen === 'settings' && <AiSettingsDialog onClose={() => setAiOpen(null)} />}
+        {aiOpen === 'task' && api.taskContext?.(null) && (
+          <TaskAiDialog
+            doc={doc}
+            context={api.taskContext(null)!}
+            onClose={() => setAiOpen(null)}
+            onApply={(blocks) => {
+              const d = latest.current.doc;
+              const at = ops.insertionPoint(d, latest.current.sel);
+              commit(ops.insertBlocks(d, at.p, at.i, blocks), { select: ops.selectionOf(blocks.map((b) => b.id)) });
+              setAiOpen(null);
+            }}
+          />
+        )}
         {aiOpen === 'vocab' && ai && (
           <VocabAiDialog
             scope="lesson"

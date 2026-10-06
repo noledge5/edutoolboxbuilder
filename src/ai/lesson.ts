@@ -47,6 +47,9 @@ export function lessonPrompt(m: Module, l: Lesson, context: string, mode: Lesson
         ? 'Das Kompetenzraster gibt es schon: verknüpfe Aufgaben über `competence` mit den IDs unten und schreib in `competences` nur neue Kompetenzen, falls wirklich eine fehlt (mit eigener ID). '
         : 'Das Modul hat noch kein Kompetenzraster: lege in `competences` die Kompetenzen an, an denen diese Stunde arbeitet, und verknüpfe die Aufgaben damit. ') +
       'Keine Folien (`slides`): Der Baukasten schlägt sie aus der Lehrkraft-Seite vor. ' +
+      (m.grade <= 6 && mode !== 'scaffold'
+        ? 'Klasse ' + m.grade + ': Mach die Schülerseiten anschaulich (siehe „Klasse 5 und 6: anschaulich“): auf jeder Seite mindestens ein Bild mit `describe`, Bilder auch in den Aufgaben, abwechslungsreiche Aufgabenformen. '
+        : '') +
       (chat ? 'Gib das Paket als Codeblock im Chat aus, keine Datei.' : 'Kein Text vor oder nach dem Codeblock.'),
     '',
     context,

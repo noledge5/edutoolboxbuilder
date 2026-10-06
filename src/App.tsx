@@ -45,6 +45,7 @@ import { createPackageFile, createPlanFile, downloadBlob, packageFileName, readA
 import { YearPlanView } from './library/YearPlanView';
 import { BW_2026_27 } from './library/yearplan';
 import { lessonContext } from './ai/context';
+import { AiGradeContext } from './ai/ImageAiPane';
 import { vocabCsv, vocabOf, vocabTestRows } from './model/language';
 import { requestPersistentStorage } from './storage/db';
 import * as store from './storage/library';
@@ -703,7 +704,7 @@ export function App() {
   return (
     <SearchContext.Provider value={openSearch}>
       <div className="subject-scope" style={subject ? subjectVars(subjectColor(lib.settings, subject)) : undefined}>
-        {view}
+        <AiGradeContext.Provider value={here.grade}>{view}</AiGradeContext.Provider>
       </div>
       {searchOpen && <SearchDialog lib={lib} here={here} onOpen={openHit} onClose={closeSearch} />}
       {sharing &&

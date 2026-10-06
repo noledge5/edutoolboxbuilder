@@ -247,7 +247,11 @@ Beispiel: `"0–5 | Abrufphase | 3 Fragen ins Lernjournal | Einzel | Lernjournal
 
 ## Bilder
 
-Du kannst keine Fotos liefern. Setze stattdessen einen Baustein „Abbildung“ mit aussagekräftiger Bildunterschrift (`caption`) und in `search` zwei, drei **englische Suchwörter** für ein passendes freies Bild (z. B. `"search": "volcano eruption"`, `"search": "map united kingdom"`). Die Lehrkraft tippt im Baukasten auf „Im Internet suchen“; die Suche in Openverse und Wikimedia Commons startet mit deinen Wörtern, und Urheber und Lizenz landen automatisch in `source`. Lass `source` deshalb leer, außer du kennst die Quelle eines Bildes aus dem Material der Lehrkraft. In „Bild-Vokabeln“ nimmst du Emojis (`🐶 | dog`), die die Lehrkraft durch eigene Bilder ersetzen kann. Nur wenn du ein Bild wirklich als Datei hast (z. B. eine selbst erstellte SVG-Grafik), trag es unter `"images": { "abb1": "data:image/svg+xml;base64,…" }` ein und setze im Baustein `"image": "abb1"`.
+Du kannst keine Fotos liefern. Setze stattdessen einen Baustein „Abbildung“ mit aussagekräftiger Bildunterschrift (`caption`) und in `search` zwei, drei **englische Suchwörter** für ein passendes freies Bild (z. B. `"search": "volcano eruption"`, `"search": "map united kingdom"`). Schreib außerdem in `describe` eine **englische Bildbeschreibung** für eine Illustration (was zu sehen ist, ohne Text im Bild, z. B. `"describe": "a girl holding a compass on a hiking path, mountains in the background"`). Die Lehrkraft tippt im Baukasten auf „Im Internet suchen“ (die Suche in Openverse und Wikimedia Commons startet mit deinen Suchwörtern, Urheber und Lizenz landen automatisch in `source`) oder auf „Mit KI erzeugen“ (ein Bildmodell zeichnet nach deiner Beschreibung). Beim Baustein „Einstieg“ mit Bildimpuls gilt dasselbe. Lass `source` deshalb leer, außer du kennst die Quelle eines Bildes aus dem Material der Lehrkraft. In „Bild-Vokabeln“ nimmst du Emojis (`🐶 | dog`), die die Lehrkraft durch eigene Bilder ersetzen kann. Nur wenn du ein Bild wirklich als Datei hast (z. B. eine selbst erstellte SVG-Grafik), trag es unter `"images": { "abb1": "data:image/svg+xml;base64,…" }` ein und setze im Baustein `"image": "abb1"`.
+
+### Klasse 5 und 6: anschaulich
+
+In Klasse 5 und 6 wirken Blätter mit viel Text schnell trocken. Plane deshalb auf **jeder Schülerseite mindestens ein Bild** ein (Abbildung mit `describe`, Bild-Vokabeln, Bildimpuls) und nutze Bilder in den Aufgaben selbst: Zuordnen mit Bildern, „Beschrifte das Bild“, Bildgeschichten, Ausmalen und Markieren. Wechsle die Aufgabenformen ab (Rätsel, Bingo, Zuordnen, Partneraufgaben) statt mehrerer Lückentexte hintereinander, und halte Sätze kurz. Bilder sind dort am besten groß genug (Höhe 180–260) und neben dem Text (Breite 6 oder 4).
 
 ## Folien
 
@@ -472,6 +476,7 @@ Platz für ein Bild mit Bildunterschrift; in `search` englische Suchwörter für
 | `caption` | Bildunterschrift | Text | `"Abb. 1: Bildunterschrift"` |
 | `source` | Quelle | Text | – |
 | `search` | Suchwörter für die Bildsuche (englisch findet mehr) | Text | – |
+| `describe` | Bildbeschreibung für „Mit KI erzeugen“ | Text, mehrzeilig | – |
 | `height` | Höhe in px | Zahl 40–900 | `200` |
 | `fit` | Bild einpassen | `"cover"` (Füllen), `"contain"` (Ganz zeigen) | `"cover"` |
 
@@ -903,6 +908,7 @@ Nur Lehrkraft-Seite: der Einstieg mit seiner Art (`kind`), dem Impuls, der Aufl�
 | `answer` | Auflösung (Schätzfrage, Rätsel) oder Antworten zum Abstimmen, mit / getrennt | Text | `"etwa 3 °C"` |
 | `image` | Bild (Bildimpuls, Karikatur, Gegenstand) | Bild-ID aus `images` | – |
 | `source` | Quelle des Bilds | Text | – |
+| `describe` | Bildbeschreibung für „Mit KI erzeugen“ | Text, mehrzeilig | – |
 | `url` | Video-Link | Text | – |
 | `question` | Leitfrage der Stunde | Text | `"Wie genau erwärmt CO₂ die Luft?"` |
 
