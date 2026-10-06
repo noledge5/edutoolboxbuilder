@@ -11,6 +11,8 @@ export interface AiRequest {
   /** Instructions that stay the same between requests (cached). */
   system: string;
   user: string;
+  /** Pictures that go with the user text (e.g. the pages of a PDF), JPEG or PNG as base64 without the data: prefix. */
+  images?: { type: 'image/jpeg' | 'image/png'; data: string }[];
   maxTokens: number;
   effort: 'low' | 'medium' | 'high';
   signal?: AbortSignal;
@@ -68,7 +70,14 @@ async function askAnthropic(s: AiSettings, r: AiRequest): Promise<AiAnswer> {
         betas: ['server-side-fallback-2026-07-01'],
         fallbacks: 'default',
         system: [{ type: 'text', text: r.system, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: r.user }],
+        messages: [
+          {
+            role: 'user',
+            content: r.images?.length
+              ? [...r.images.map((i) => ({ type: 'image' as const, source: { type: 'base64' as const, media_type: i.type, data: i.data } })), { type: 'text' as const, text: r.user }]
+              : r.user,
+          },
+        ],
         thinking: { type: 'adaptive' },
         output_config: { effort: r.effort },
       },
@@ -127,7 +136,10 @@ async function askOpenRouter(s: AiSettings, r: AiRequest): Promise<AiAnswer> {
         reasoning: { effort: r.effort },
         messages: [
           { role: 'system', content: [{ type: 'text', text: r.system, cache_control: { type: 'ephemeral' } }] },
-          { role: 'user', content: r.user },
+          {
+            role: 'user',
+            content: r.images?.length ? [...r.images.map((i) => ({ type: 'image_url', image_url: { url: `data:${i.type};base64,${i.data}` } })), { type: 'text', text: r.user }] : r.user,
+          },
         ],
       }),
     });

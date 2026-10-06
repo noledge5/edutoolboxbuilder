@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, BarChart3, BookA, Blocks, Braces, ChevronDown, Download, Expand, Eye, FolderOpen, History, KeyRound, Minus, Play, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, BarChart3, BookA, Blocks, Braces, ChevronDown, Download, Expand, Eye, FileText, FolderOpen, History, KeyRound, Minus, Play, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { SearchButton } from '../library/SearchDialog';
 import type { Handout } from '../share/assignment';
@@ -23,6 +23,8 @@ interface TopBarProps {
   onZoom(dir: -1 | 1): void;
   onFitZoom(): void;
   onOpenFile(): void;
+  /** Brings in a worksheet from a PDF (with Claude). */
+  onImportPdf?(): void;
   onSaveFile(): void;
   onOpenJson(): void;
   onTogglePreview(): void;
@@ -102,6 +104,7 @@ export function TopBar(p: TopBarProps) {
         icon={FolderOpen}
         items={[
           { label: 'Öffnen …', icon: FolderOpen, onClick: p.onOpenFile },
+          ...(p.onImportPdf ? [{ label: 'PDF einpflegen …', icon: FileText, onClick: p.onImportPdf }] : []),
           { label: 'Als Datei sichern', icon: Download, onClick: p.onSaveFile },
           { label: 'Daten anzeigen (JSON)', icon: Braces, onClick: p.onOpenJson },
           ...(p.onVersions ? [{ label: 'Frühere Fassungen …', icon: History, onClick: p.onVersions }] : []),

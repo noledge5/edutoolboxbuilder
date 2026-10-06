@@ -196,6 +196,9 @@ export function App() {
   }, [undo]);
 
   const failed = (e: unknown) => setNotice('Speichern im Browser fehlgeschlagen: ' + errorText(e));
+  // A PDF chosen in the module for a new lesson: the lesson's editor takes it and opens "PDF einpflegen".
+  const [pendingPdf, setPendingPdf] = useState<{ lessonId: string; file: File } | null>(null);
+  const takePdf = useCallback(() => setPendingPdf(null), []);
 
   const putModule = useCallback((m: Module) => {
     setLib((l) => l && { ...l, modules: l.modules.some((x) => x.id === m.id) ? l.modules.map((x) => (x.id === m.id ? m : x)) : [...l.modules, m] });
@@ -502,6 +505,8 @@ export function App() {
         competences={m.competences}
         note={lesson.plan}
         favorites={{ label: `Oft in ${m.subject}`, types: favoriteBlocks(lib, m.subject) }}
+        pdf={pendingPdf?.lessonId === lesson.id ? pendingPdf.file : undefined}
+        onPdfTaken={takePdf}
         onSlides={() => go({ view: 'slides', id: lesson.id })}
         onPresent={() => present(lesson.id)}
         slideCount={lesson.slides.length}
@@ -521,6 +526,10 @@ export function App() {
           context: (wishes) => lessonContext(libRef.current!, m, lesson, wishes),
           known: () => gradeVocab(libRef.current!, m),
           notes: () => classNotes(libRef.current!.settings, m.subject, m.grade),
+          rename: (title) => {
+            const now = libRef.current?.lessons.find((x) => x.id === lesson.id);
+            if (now && (!now.title.trim() || now.title === 'Neue Stunde')) putLesson({ ...now, title, updatedAt: Date.now() }).catch(failed);
+          },
           onApplied: (added) => {
             const now = libRef.current?.lessons.find((x) => x.id === lesson.id);
             if (now) store.keepVersion(now, 'Vor Claude').catch(() => {});
@@ -652,6 +661,12 @@ export function App() {
         onChangeLesson={(l) => putLesson(l).catch(failed)}
         onDuplicateLesson={(l) => putLesson(duplicateLesson(lib, m, l)).catch(failed)}
         onDeleteLesson={(l) => remove([], [l.id], `Stunde ${l.number} „${l.title}“`)}
+        onImportPdf={(file) => {
+          const l = newLesson(lib, m);
+          putLesson(l).catch(failed);
+          setPendingPdf({ lessonId: l.id, file });
+          go({ view: 'lesson', id: l.id });
+        }}
         lib={lib}
         onApplyPlan={(plan) => {
           const done = applyModulePlan(libRef.current!, m, plan);

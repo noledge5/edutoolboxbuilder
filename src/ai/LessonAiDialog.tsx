@@ -32,6 +32,8 @@ export interface LessonAi {
   known(): string[];
   /** The class profile and the teacher's principles as Markdown for Claude ('' without). */
   notes(): string;
+  /** Gives a lesson that has no name yet ("Neue Stunde") the title of what was brought in. */
+  rename?(title: string): void;
 }
 
 interface LessonAiDialogProps {
@@ -61,7 +63,7 @@ const THUMB = 0.3;
 const hasBlocks = (p: Page) => p.blocks.length > 0;
 
 /** A page as on the sheet, scaled down (read-only). */
-function PagePreview({ doc, p, scale }: { doc: Doc; p: number; scale: number }) {
+export function PagePreview({ doc, p, scale }: { doc: Doc; p: number; scale: number }) {
   const page = doc.pages[p];
   const nums = taskNumbers(page);
   return (

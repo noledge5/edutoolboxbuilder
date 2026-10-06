@@ -1,6 +1,6 @@
 // One module: its data, the lessons (content overview) and the competence grid, with A4 prints of both.
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowLeft, ArrowUp, BookA, Copy, Download, FileInput, ListChecks, PackageOpen, Plus, Printer, Shuffle, Sparkles, SquarePen, Table, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, BookA, Copy, Download, FileInput, FileText, ListChecks, PackageOpen, Plus, Printer, Shuffle, Sparkles, SquarePen, Table, Trash2 } from 'lucide-react';
 import { vocabOf } from '../model/language';
 import { VocabTestDialog, type VocabTestOptions } from './VocabTestDialog';
 import { VocabAiDialog } from '../ai/VocabAiDialog';
@@ -52,6 +52,8 @@ interface ModuleViewProps {
   lib: Library;
   /** Applies Claude's module plan: worked-out lessons stay, planned ones are replaced. */
   onApplyPlan(plan: ModulePlan): void;
+  /** A worksheet PDF becomes a new lesson (read with Claude in the lesson's editor). */
+  onImportPdf(file: File): void;
 }
 
 type Tab = 'inhalt' | 'raster';
@@ -62,6 +64,7 @@ export function ModuleView(p: ModuleViewProps) {
   const [printing, setPrinting] = useState<PrintKind | null>(null);
   const [iconOpen, setIconOpen] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const pdfInput = useRef<HTMLInputElement>(null);
   const set = (patch: Partial<Module>) => p.onChange({ ...m, ...patch, updatedAt: Date.now() });
 
   const [testOpen, setTestOpen] = useState(false);
@@ -114,10 +117,22 @@ export function ModuleView(p: ModuleViewProps) {
           icon={SquarePen}
           items={[
             { label: 'Mit Claude planen …', icon: Sparkles, onClick: () => setPlanOpen(true) },
+            { label: 'PDF als Stunde einpflegen …', icon: FileText, onClick: () => pdfInput.current?.click() },
             { label: 'Arbeitsblatt-Datei als Stunde importieren …', icon: FileInput, onClick: () => fileInput.current?.click() },
             { label: 'Als Stundenpaket sichern', icon: PackageOpen, onClick: p.onExportPackage },
             { label: 'Modul löschen', icon: Trash2, onClick: p.onDelete },
           ]}
+        />
+        <input
+          ref={pdfInput}
+          type="file"
+          accept=".pdf,application/pdf"
+          hidden
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (f) p.onImportPdf(f);
+          }}
         />
         <input
           ref={fileInput}
@@ -212,7 +227,7 @@ export function ModuleView(p: ModuleViewProps) {
         </div>
 
         {tab === 'inhalt' ? (
-          <LessonList {...p} onPlan={() => setPlanOpen(true)} />
+          <LessonList {...p} onPlan={() => setPlanOpen(true)} onPdf={() => pdfInput.current?.click()} />
         ) : (
           <section className="lib-section">
             <div className="lib-h2-row">
@@ -326,7 +341,7 @@ function LessonCompetences({ lesson: l, competences, onChange }: { lesson: Lesso
   );
 }
 
-function LessonList(p: ModuleViewProps & { onPlan(): void }) {
+function LessonList(p: ModuleViewProps & { onPlan(): void; onPdf(): void }) {
   const progress = progressOf(p.lessons);
   return (
     <section className="lib-section">
@@ -425,6 +440,10 @@ function LessonList(p: ModuleViewProps & { onPlan(): void }) {
         <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onPlan}>
           <Icon icon={Sparkles} />
           Modul mit Claude planen …
+        </button>
+        <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onPdf}>
+          <Icon icon={FileText} />
+          PDF als Stunde einpflegen …
         </button>
       </div>
     </section>

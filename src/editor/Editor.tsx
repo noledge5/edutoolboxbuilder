@@ -22,6 +22,7 @@ import { AiSettingsDialog } from '../ai/AiSettingsDialog';
 import { LessonAiDialog, type LessonAi } from '../ai/LessonAiDialog';
 import { VocabAiDialog } from '../ai/VocabAiDialog';
 import { TaskAiDialog } from '../ai/TaskAiDialog';
+import { PdfImportDialog } from '../ai/PdfImportDialog';
 import { vocabOf } from '../model/language';
 import type { EditorApi } from './api';
 import { Canvas } from './Canvas';
@@ -126,6 +127,9 @@ export interface EditorProps {
   onOpenHandout?(id: string): void;
   /** Working out the lesson with Claude (in the library). */
   ai?: LessonAi;
+  /** A PDF to bring in right away (chosen in the module for a new lesson). */
+  pdf?: File;
+  onPdfTaken?(): void;
 }
 
 const NO_COMPETENCES: { id: string; area: string }[] = [];
@@ -150,6 +154,8 @@ export function Editor({
   handouts = [],
   onOpenHandout,
   ai,
+  pdf,
+  onPdfTaken,
 }: EditorProps) {
   const [noteOpen, setNoteOpen] = useState(true);
   const [hist, dispatch] = useReducer(historyReducer, initialDoc, initHistory);
@@ -161,6 +167,13 @@ export function Editor({
   const [preview, setPreview] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState<'lesson' | 'settings' | 'vocab' | 'task' | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const pdfInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!pdf) return;
+    setPdfFile(pdf);
+    onPdfTaken?.();
+  }, [pdf, onPdfTaken]);
   const [drop, setDrop] = useState<DropTarget | null>(null);
   const [dragItem, setDragItem] = useState<DragItem | null>(null);
   const [saveError, setSaveError] = useState(false);
@@ -787,6 +800,7 @@ export function Editor({
           onClaude={ai && (() => setAiOpen('lesson'))}
           onVocabAi={ai && ai.module.lang === 'en' ? () => setAiOpen('vocab') : undefined}
           onTaskAi={ai && (() => setAiOpen('task'))}
+          onImportPdf={ai && (() => pdfInput.current?.click())}
           onAiSettings={() => setAiOpen('settings')}
         />
         <input
@@ -798,6 +812,17 @@ export function Editor({
             const f = e.target.files?.[0];
             e.target.value = '';
             if (f) openFile(f);
+          }}
+        />
+        <input
+          ref={pdfInput}
+          type="file"
+          accept=".pdf,application/pdf"
+          hidden
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (f) setPdfFile(f);
           }}
         />
         {note && noteOpen && (
@@ -925,6 +950,22 @@ export function Editor({
           />
         )}
         {aiOpen === 'settings' && <AiSettingsDialog onClose={() => setAiOpen(null)} />}
+        {pdfFile && ai && (
+          <PdfImportDialog
+            file={pdfFile}
+            doc={doc}
+            ai={ai}
+            onClose={() => setPdfFile(null)}
+            onApply={(r) => {
+              ai.onApplied(r.added);
+              const { icon, code } = latest.current.doc;
+              commit({ ...r.doc, icon, code }, { select: { kind: 'page', p: 0 } });
+              if (r.title) ai.rename?.(r.title);
+              setPdfFile(null);
+              setNotice('PDF eingepflegt. Mit Rückgängig oder unter „Frühere Fassungen“ kommst du zur vorherigen Fassung zurück.');
+            }}
+          />
+        )}
         {aiOpen === 'task' && api.taskContext?.(null) && (
           <TaskAiDialog
             doc={doc}
