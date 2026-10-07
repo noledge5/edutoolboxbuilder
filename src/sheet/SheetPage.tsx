@@ -3,6 +3,7 @@ import { useContext, useMemo, type CSSProperties, type MouseEvent, type ReactNod
 import { User, Users } from 'lucide-react';
 import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
+import { materialNumbers } from '../model/material';
 import { frontOf } from '../model/ops';
 import { THEMES, WORK_FORMS_EN, type SheetTheme } from '../model/themes';
 import type { Doc, Page } from '../model/types';
@@ -11,6 +12,7 @@ import { topicIcon } from '../topicIcons';
 import { Editable } from './inlineEdit';
 import { SheetModeContext } from './sheetMode';
 import { SHEET_TEXT, SheetDocContext } from './lang';
+import { MaterialNumbersContext } from './material';
 
 export const PAGE_W = 794;
 export const PAGE_H = 1123;
@@ -66,6 +68,7 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
   // A back page shows the front's title in a slim header, so it is clear which sheet it belongs to.
   const f = frontOf(doc.pages, index);
   const front = f === null ? null : doc.pages[f];
+  const materials = useMemo(() => materialNumbers(doc.pages, index), [doc.pages, index]);
   const formPill = !hideForm && (
     <div className="ws-form-pill">
       <Icon icon={page.form === 'allein' ? User : Users} size={front ? 12 : 14} />
@@ -134,7 +137,7 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
             </div>
           )}
           {editing && page.blocks.length === 0 && <div className="ws-empty">Element aus der Toolbox hierher ziehen</div>}
-          {children}
+          <MaterialNumbersContext.Provider value={materials}>{children}</MaterialNumbersContext.Provider>
           {dropEnd && <div className="ws-drop-end" />}
         </div>
         <div className="ws-foot">

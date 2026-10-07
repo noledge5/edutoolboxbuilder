@@ -15,13 +15,14 @@ export const INSTRUCTIONS_FILE_NAME = 'Arbeitsblatt-Baukasten Anleitung fuer Cla
 /** What each block is for, in the words of the teacher. */
 const BLOCK_USE: Record<BlockType, string> = {
   heading: 'Zwischenüberschrift auf der Seite.',
-  text: 'Kurzer Informations- oder Materialtext.',
+  text: 'Kurzer Informations- oder Materialtext. Als Material, auf das Aufgaben verweisen: `"material": "ja"` (wird M1, M2 …).',
   hint: 'Kasten mit Titel für Tipps, Sicherheitshinweise oder Einschränkungen.',
   merksatz: 'Hervorgehobener Merksatz zur Sicherung, gern mit Lücken.',
   wordbank: 'Begriffe als Hilfe für Lücken oder Beschriftungen.',
-  image: 'Platz für ein Bild mit Bildunterschrift; in `search` englische Suchwörter für die Bildsuche der Lehrkraft (Openverse, Wikimedia Commons), die Quelle trägt der Baukasten ein.',
+  image: 'Platz für ein Bild mit Bildunterschrift (ohne „Abb. 1“: das Bild ist Material und bekommt M1, M2 …); in `search` englische Suchwörter für die Bildsuche der Lehrkraft (Openverse, Wikimedia Commons), die Quelle trägt der Baukasten ein.',
+  chart: 'Diagramm aus Zahlen (Material M1, M2 …): Klimadiagramm (12 Zeilen Monat | °C | mm; Jahresmittel und -summe rechnet der Baukasten), Säulen, Balken (lange Beschriftungen), Linien (Entwicklung über Zeit), Kreis (Anteile) oder Tabelle. Echte, gerundete Werte mit Quelle; bei mehreren Datenreihen je Reihe ein Spaltenkopf mit Einheit. `values` `"nein"`, wenn die Klasse Werte ablesen soll.',
   flow: 'Fließschema: Stationen nebeneinander, mit Pfeilen verbunden (bis etwa 5 Schritte).',
-  qr: 'QR-Code zu einem Link (Video, Simulation, Karte).',
+  qr: 'QR-Code zu einem Link (Video, Simulation, Karte). Für ein Video, dessen Adresse du nicht sicher kennst: `url` leer lassen und in `search` Thema und Suchwörter schreiben (z. B. „Treibhauseffekt einfach erklärt planet schule“); die Lehrkraft sucht damit und trägt den Link ein. In `caption`, was das Video zeigt und wie lang es etwa sein soll.',
   code: 'Programmcode mit Zeilennummern (Informatik), z. B. Python zum Lesen und Nachvollziehen; Schlüsselwörter und Werte werden hervorgehoben.',
   open: 'Offene Frage mit Schreiblinien.',
   mc: 'Ankreuzaufgabe.',
@@ -45,7 +46,7 @@ const BLOCK_USE: Record<BlockType, string> = {
   transform: 'Umformen: Ausgangssatz → Zielform (z. B. negative, question) mit Schreiblinie.',
   syntax: 'Satzbaustellen-Tabelle mit farbigen Spalten (subject, verb, object, place, time).',
   listening: 'Hörverstehen: Phase (pre/while/post), Track im Lehrwerk, QR-Code zur Audiodatei, Transkript in der Lösungsfassung.',
-  reading: 'Lesetext mit automatischen Zeilennummern und Worterklärungen als Fußnote (mit Zeilenangabe).',
+  reading: 'Lesetext mit automatischen Zeilennummern und Worterklärungen als Fußnote (mit Zeilenangabe). Ist Material (M1, M2 …): auch für Sachtexte in allen Fächern, auf die Aufgaben mit Zeilen verweisen („M1, Z. 4–9“).',
   truefalse: 'Richtig/falsch/steht nicht im Text: mehrere Aussagen in einer Tabelle zum Ankreuzen.',
   phrases: 'Redemittel zweispaltig: Englisch | Deutsch.',
   rolecards: 'Zwei Rollenkarten A und B zum Ausschneiden, z. B. für Information Gap.',
@@ -80,6 +81,8 @@ function fieldType(f: FieldDef): string {
       return 'Bild-IDs aus `images`, eine je Zeile';
     case 'preset':
       return 'keine Eigenschaft: Vorlagen ' + f.presets.map((p) => `„${p.l}“`).join(', ');
+    case 'videosearch':
+      return 'Text (Suchwörter, kein Link)';
   }
 }
 

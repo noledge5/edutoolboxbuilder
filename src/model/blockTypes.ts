@@ -7,6 +7,8 @@ export interface SegOption<V extends string | number | boolean = string | number
 
 export type FieldDef = (
   | { key: string; label: string; kind: 'text' | 'area' | 'variant' | 'image' | 'competence' }
+  /** Search words for a video; the panel opens video searches with them (planet schule, Terra X …). */
+  | { key: string; label: string; kind: 'videosearch' }
   /** Multi-line text with a row of IPA characters to insert (vocabulary). */
   | { key: string; label: string; kind: 'ipa' }
   | { key: string; label: string; kind: 'number'; min: number; max: number }
@@ -42,6 +44,64 @@ export const HOOK_KINDS: SegOption<string>[] = [
   { v: 'abstimmung', l: 'Abstimmung' },
   { v: 'raetsel', l: 'Rätsel' },
   { v: 'vorwissen', l: 'Vorwissen' },
+];
+
+/** Switch of the blocks that can be a material (M1, M2 … per sheet, see model/material.ts). */
+const MATERIAL_FIELD: FieldDef = {
+  key: 'material',
+  label: 'Als Material nummerieren (M1, M2 …), damit Aufgaben darauf verweisen',
+  kind: 'seg',
+  options: [
+    { v: 'ja', l: 'Ja' },
+    { v: 'nein', l: 'Nein' },
+  ],
+};
+
+/** Kinds of the chart block. */
+export const CHART_KINDS: SegOption<string>[] = [
+  { v: 'klima', l: 'Klimadiagramm' },
+  { v: 'saeulen', l: 'Säulen' },
+  { v: 'balken', l: 'Balken' },
+  { v: 'linie', l: 'Linien' },
+  { v: 'kreis', l: 'Kreis' },
+  { v: 'tabelle', l: 'Tabelle' },
+];
+
+/** Ready-made charts with rounded real values, to start from. */
+const CHART_PRESETS: { l: string; props: BlockProps }[] = [
+  {
+    l: 'Klimadiagramm Freiburg',
+    props: {
+      kind: 'klima',
+      title: 'Freiburg im Breisgau',
+      sub: '48° N, 8° O · 237 m',
+      cols: 'Monat\nTemperatur (°C)\nNiederschlag (mm)',
+      rows: 'Jan | 3,0 | 61\nFeb | 3,9 | 55\nMär | 7,7 | 60\nApr | 11,4 | 62\nMai | 15,3 | 95\nJun | 18,8 | 90\nJul | 20,8 | 86\nAug | 20,4 | 80\nSep | 16,1 | 71\nOkt | 11,6 | 78\nNov | 6,6 | 75\nDez | 3,8 | 76',
+      source: 'Beispielwerte, gerundet – vor dem Druck mit DWD-Werten prüfen',
+    },
+  },
+  {
+    l: 'Weltbevölkerung (Linien)',
+    props: {
+      kind: 'linie',
+      title: 'Weltbevölkerung',
+      sub: 'in Milliarden Menschen',
+      cols: 'Jahr\nMenschen (Mrd.)',
+      rows: '1950 | 2,5\n1960 | 3,0\n1970 | 3,7\n1980 | 4,4\n1990 | 5,3\n2000 | 6,1\n2010 | 6,9\n2020 | 7,8',
+      source: 'Vereinte Nationen, gerundet',
+    },
+  },
+  {
+    l: 'Flächennutzung Deutschland (Kreis)',
+    props: {
+      kind: 'kreis',
+      title: 'Wie wird die Fläche Deutschlands genutzt?',
+      sub: 'Anteile in Prozent',
+      cols: 'Nutzung\nAnteil (%)',
+      rows: 'Landwirtschaft | 50,5\nWald | 29,9\nSiedlung und Verkehr | 14,5\nWasser | 2,3\nSonstiges | 2,8',
+      source: 'Statistisches Bundesamt, gerundet',
+    },
+  },
 ];
 
 /** Fields every task has: German help, level stars, points (content and language), competence and a tip card. */
@@ -137,18 +197,19 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     label: 'Textblock',
     group: 0,
     span: 12,
-    defaults: { text: 'Hier steht ein kurzer Informationstext für die Klasse.' },
-    fields: [{ key: 'text', label: 'Text', kind: 'area' }],
+    defaults: { text: 'Hier steht ein kurzer Informationstext für die Klasse.', material: 'nein' },
+    fields: [{ key: 'text', label: 'Text', kind: 'area' }, MATERIAL_FIELD],
   },
   hint: {
     label: 'Hinweis-Box',
     group: 0,
     span: 12,
-    defaults: { title: 'Wichtiger Hinweis', text: 'Kurzer Hinweis oder Tipp.', variant: 'accent-2' },
+    defaults: { title: 'Wichtiger Hinweis', text: 'Kurzer Hinweis oder Tipp.', variant: 'accent-2', material: 'nein' },
     fields: [
       { key: 'title', label: 'Titel', kind: 'text' },
       { key: 'text', label: 'Text', kind: 'area' },
       { key: 'variant', label: 'Farbe', kind: 'variant' },
+      MATERIAL_FIELD,
     ],
   },
   merksatz: {
@@ -172,7 +233,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     label: 'Abbildung',
     group: 1,
     span: 6,
-    defaults: { caption: 'Abb. 1: Bildunterschrift', source: '', height: 200, image: '', fit: 'cover', search: '', describe: '' },
+    defaults: { caption: 'Bildunterschrift', source: '', height: 200, image: '', fit: 'cover', search: '', describe: '', material: 'ja' },
     fields: [
       { key: 'image', label: 'Bild', kind: 'image' },
       { key: 'caption', label: 'Bildunterschrift', kind: 'text' },
@@ -189,30 +250,59 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
           { v: 'contain', l: 'Ganz zeigen' },
         ],
       },
+      MATERIAL_FIELD,
+    ],
+  },
+  chart: {
+    label: 'Diagramm',
+    group: 1,
+    span: 12,
+    defaults: { kind: 'klima', ...CHART_PRESETS[0].props, values: 'nein', height: 230, material: 'ja' },
+    fields: [
+      { key: 'preset', label: 'Vorlage', kind: 'preset', presets: CHART_PRESETS },
+      { key: 'kind', label: 'Art', kind: 'seg', options: CHART_KINDS },
+      { key: 'title', label: 'Überschrift (Klimadiagramm: Ort)', kind: 'text' },
+      { key: 'sub', label: 'Zusatz (Klimadiagramm: Lage und Höhe, z. B. 48° N, 8° O · 237 m)', kind: 'text' },
+      { key: 'cols', label: 'Spaltenköpfe (einer je Zeile: erst die Beschriftung, dann je Datenreihe Name mit Einheit)', kind: 'area' },
+      { key: 'rows', label: 'Werte (je Zeile: Beschriftung | Wert | Wert …; Klimadiagramm: Monat | °C | mm)', kind: 'area' },
+      { key: 'source', label: 'Quelle', kind: 'text' },
+      {
+        key: 'values',
+        label: 'Zahlen an Säulen, Punkte und Stücke schreiben',
+        kind: 'seg',
+        options: [
+          { v: 'nein', l: 'Nein (Schüler lesen ab)' },
+          { v: 'ja', l: 'Ja' },
+        ],
+      },
+      { key: 'height', label: 'Höhe in px', kind: 'number', min: 120, max: 600 },
+      MATERIAL_FIELD,
     ],
   },
   flow: {
     label: 'Fließschema',
     group: 1,
     span: 12,
-    defaults: { steps: 'Schritt 1 | Zusatz\nSchritt 2\nSchritt 3' },
-    fields: [{ key: 'steps', label: 'Schritte (Titel | Zusatz, eine Zeile je Schritt)', kind: 'area' }],
+    defaults: { steps: 'Schritt 1 | Zusatz\nSchritt 2\nSchritt 3', material: 'nein' },
+    fields: [{ key: 'steps', label: 'Schritte (Titel | Zusatz, eine Zeile je Schritt)', kind: 'area' }, MATERIAL_FIELD],
   },
   qr: {
     label: 'QR-Code',
     group: 1,
     span: 4,
-    defaults: { url: 'https://', caption: 'Scanne den Code.' },
+    defaults: { url: 'https://', caption: 'Scanne den Code.', search: '', material: 'ja' },
     fields: [
       { key: 'url', label: 'Link (Adresse)', kind: 'text' },
       { key: 'caption', label: 'Beschriftung', kind: 'text' },
+      { key: 'search', label: 'Video suchen mit (Thema und Suchwörter)', kind: 'videosearch' },
+      MATERIAL_FIELD,
     ],
   },
   code: {
     label: 'Code',
     group: 0,
     span: 12,
-    defaults: { code: 'summe = 0\nfor i in range(1, 6):\n    summe = summe + i\nprint(summe)', language: 'python' },
+    defaults: { code: 'summe = 0\nfor i in range(1, 6):\n    summe = summe + i\nprint(summe)', language: 'python', material: 'nein' },
     fields: [
       { key: 'code', label: 'Code (je Zeile eine Programmzeile; Einrückung mit Leerzeichen)', kind: 'area' },
       {
@@ -224,6 +314,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
           { v: 'plain', l: 'Ohne' },
         ],
       },
+      MATERIAL_FIELD,
     ],
   },
   open: {
@@ -595,12 +686,14 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       text: 'Hi, I’m Emma and I’m eleven. Today is my first day at Hillside School in Bristol. I’m a bit nervous. My mum takes me to school by car. At the gate I meet Ben. He’s in my class and he’s very friendly. We have got English first. Our teacher is Mr Clark. He’s funny and the lesson is great. At break Ben shows me the canteen. In the afternoon we have got PE. I love sports, so that’s my favourite lesson!',
       glossary: 'nervous | aufgeregt, nervös\ngate | Tor\ncanteen | Kantine, Mensa',
       numbers: 5,
+      material: 'ja',
     },
     fields: [
       { key: 'title', label: 'Überschrift', kind: 'text' },
       { key: 'text', label: 'Text (Absätze ohne Leerzeile)', kind: 'area' },
       { key: 'glossary', label: 'Worterklärungen (je Zeile: Wort | Erklärung; die Zeile im Text wird ergänzt)', kind: 'area' },
       { key: 'numbers', label: 'Zeilennummern alle … Zeilen (0 = keine)', kind: 'number', min: 0, max: 10 },
+      MATERIAL_FIELD,
     ],
   },
   truefalse: {

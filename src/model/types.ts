@@ -21,6 +21,7 @@ export type BlockType =
   | 'merksatz'
   | 'wordbank'
   | 'image'
+  | 'chart'
   | 'flow'
   | 'qr'
   | 'code'
