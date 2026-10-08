@@ -1,6 +1,7 @@
 // The pairing code of the automatic sync and what is derived from it. The code (100 random bits and a 20-bit check,
 // "K7QF-…") stays on the teacher's devices; the server only sees a room id, a token and ciphertext. Entries and
 // pictures are named on the server by an HMAC of their key, so it cannot tell modules from lessons.
+import { fromB64, toB64 } from '../share/crypto';
 
 /** Crockford's base 32: no I, L, O, U, so codes are easy to read and type. */
 const ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -69,13 +70,6 @@ export async function deriveKeys(code: string): Promise<SyncKeys> {
 export async function serverName(k: SyncKeys, key: string): Promise<string> {
   return hex(await crypto.subtle.sign('HMAC', k.mac, enc.encode(key))).slice(0, 32);
 }
-
-const toB64 = (bytes: Uint8Array) => {
-  let s = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  return btoa(s);
-};
-const fromB64 = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 
 /** IV and ciphertext in one base64 text. */
 export async function encrypt(k: SyncKeys, plain: Uint8Array<ArrayBuffer>): Promise<string> {

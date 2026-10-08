@@ -1,7 +1,7 @@
 // A task as students do it on a device: the frame of the sheet (number, stars, instruction, help) with inputs instead
 // of blanks. Practice shows right and wrong after "Prüfen"; the solution can be shown after a check.
 import { useState, type ReactNode } from 'react';
-import { Check, Star, X } from 'lucide-react';
+import { Check, Star } from 'lucide-react';
 import { Icon } from '../icons';
 import { jumble, statements } from '../model/language';
 import { lines, num, rows, segments, str } from '../model/text';
@@ -434,4 +434,3 @@ function Tip({ text }: { text: string }) {
 }
 
 /** Right/wrong icon for a result line. */
-export const ResultIcon = ({ ok }: { ok: boolean }) => <Icon icon={ok ? Check : X} size={16} />;

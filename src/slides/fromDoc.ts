@@ -570,10 +570,15 @@ function hookItems(hook: Block, question: string, rs: PlanRow[], en: boolean, tx
   let withQuestion = false;
   switch (kind) {
     case 'bild':
-      slide = { ...createSlide('image'), ...base, title: impulse || tx.look, text: '', image, source };
+      slide = { ...createSlide('full'), ...base, label, title: impulse || tx.look, text: '', image, source, describe: str(p.describe) };
       break;
     case 'schaetzen':
     case 'raetsel':
+      // A guess without a picture stands alone, huge; the answer comes on a click.
+      if (kind === 'schaetzen' && !image) {
+        slide = { ...createSlide('big'), ...base, label: en ? 'Guess' : 'Schätzfrage', title: impulse || '?', text: answer, anims: answer ? { text: { step: 1, anim: 'zoom' } } : {} };
+        break;
+      }
       slide = { ...createSlide('task'), ...base, label: kind === 'schaetzen' ? (en ? 'Guess' : 'Schätzfrage') : en ? 'Riddle' : 'Rätsel', title: impulse || '?', items: '', text: answer, image, source, reveal: true };
       break;
     case 'zitat':
@@ -713,7 +718,7 @@ function workSection(g: Group, no: number, c: WorkCtx): SuggestSection {
         const caption = str(props.caption).replace(/^\s*(Abb\.|Abbildung|Fig\.|Figure)\s*\d*\s*[:.]?\s*/i, '');
         const beside = [blocks[k - 1], next].find((x) => x?.type === 'text' && str(x.props.text).length <= 320);
         // Pictures are looked at together before the work.
-        before.push(item(`Bild: ${clip(caption || heading || sheet?.page.title || '')}`, { ...createSlide('image'), ...base, title: caption || heading || sheet?.page.title || '', text: beside ? str(beside.props.text) : '', image, source }, !!image));
+        before.push(item(`Bild: ${clip(caption || heading || sheet?.page.title || '')}`, { ...createSlide('image'), ...base, title: caption || heading || sheet?.page.title || '', text: beside ? str(beside.props.text) : '', image, source, search: str(props.search), describe: str(props.describe) }, !!image));
         break;
       }
       case 'flow': {

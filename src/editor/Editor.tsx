@@ -22,6 +22,8 @@ import { AiSettingsDialog } from '../ai/AiSettingsDialog';
 import { LessonAiDialog, type LessonAi } from '../ai/LessonAiDialog';
 import { VocabAiDialog } from '../ai/VocabAiDialog';
 import { TaskAiDialog } from '../ai/TaskAiDialog';
+import { CheckAiDialog } from '../ai/CheckAiDialog';
+import type { Finding } from '../ai/check';
 import { PdfImportDialog } from '../ai/PdfImportDialog';
 import { vocabOf } from '../model/language';
 import type { EditorApi } from './api';
@@ -29,6 +31,7 @@ import { Canvas } from './Canvas';
 import { dropTargetAt, sameDrop } from './drop';
 import { ghostBesideCursor } from './ghostModifier';
 import { JsonDialog } from './JsonDialog';
+import { KeysDialog } from './KeysDialog';
 import { DEFAULT_PRINT, PrintDialog, type PrintMode } from './PrintDialog';
 import { hasLevels, hasShuffle, levelCode, variantDoc } from '../model/variants';
 import { markFound, pulse, type SearchFocus } from '../library/highlight';
@@ -37,6 +40,7 @@ import { PropertiesPanel } from './PropertiesPanel';
 import { DragGhost, Toolbox } from './Toolbox';
 import { TopBar } from './TopBar';
 import { useMediaQuery } from './useMediaQuery';
+import { setPart, str } from '../model/text';
 
 const ZOOM_MIN = 0.4;
 const ZOOM_MAX = 1.5;
@@ -166,7 +170,10 @@ export function Editor({
   const [zoom, setZoomState] = useState(() => storedZoom() ?? 0.8);
   const [preview, setPreview] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
-  const [aiOpen, setAiOpen] = useState<'lesson' | 'settings' | 'vocab' | 'task' | null>(null);
+  const [keysOpen, setKeysOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState<'lesson' | 'settings' | 'vocab' | 'task' | 'check' | null>(null);
+  const [findings, setFindings] = useState<Finding[] | null>(null);
+  const [fixing, setFixing] = useState<Finding | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const pdfInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -181,6 +188,8 @@ export function Editor({
   const [toolboxOpen, setToolboxOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [inline, setInline] = useState<string | null>(null);
+  /** A line emptied on the page, removed when its editing ends. */
+  const emptied = useRef<string | null>(null);
   const [printMode, setPrintMode] = useState<PrintMode>(DEFAULT_PRINT);
   const [printOpen, setPrintOpen] = useState(false);
   /** Choosing several blocks by tapping them (iPad), started from a block's toolbar. */
@@ -199,8 +208,8 @@ export function Editor({
   const fileInput = useRef<HTMLInputElement>(null);
 
   // Latest values for listeners registered once.
-  const latest = useRef({ doc, sel, drop, dragItem, jsonOpen, editing, clips });
-  latest.current = { doc, sel, drop, dragItem, jsonOpen, editing, clips };
+  const latest = useRef({ doc, sel, drop, dragItem, jsonOpen: jsonOpen || keysOpen, editing, clips });
+  latest.current = { doc, sel, drop, dragItem, jsonOpen: jsonOpen || keysOpen, editing, clips };
 
   useEffect(() => {
     let alive = true;
@@ -308,9 +317,30 @@ export function Editor({
     setSel(null);
   };
 
+  /** Opens a text of the page for editing in place. */
+  const startEdit = (target: string, s: Selection) => {
+    // Render the text field synchronously and focus it inside the tap, or iPadOS will not open the keyboard.
+    flushSync(() => {
+      setSel(s);
+      setInline(target);
+    });
+    const el = document.querySelector<HTMLTextAreaElement>('[data-inline-input]');
+    if (el) {
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    }
+  };
+
+  /** Sets the level (G/M/E, '' none) of the selected tasks. */
+  const setLevel = (ids: string[], level: string) => {
+    let d = latest.current.doc;
+    for (const b of ops.blocksOf(d, ids)) if (BLOCK_TYPES[b.type].fields.some((f) => f.key === 'level')) d = ops.updateBlock(d, b.id, { props: { level } });
+    if (d !== latest.current.doc) commit(d);
+  };
+
   // For the keyboard listener, registered once.
-  const actions = useRef({ toAblage, paste, deleteSelected, duplicateSelected });
-  actions.current = { toAblage, paste, deleteSelected, duplicateSelected };
+  const actions = useRef({ toAblage, paste, deleteSelected, duplicateSelected, startEdit, setLevel });
+  actions.current = { toAblage, paste, deleteSelected, duplicateSelected, startEdit, setLevel };
 
   const setZoom = useCallback((z: number) => {
     const next = clampZoom(z);
@@ -356,18 +386,7 @@ export function Editor({
     },
     toAblage: (ids) => toAblage(ids),
     share: onShare && ((ids) => onShare(latest.current.doc, ids)),
-    startEdit: (target, s) => {
-      // Render the text field synchronously and focus it inside the tap, or iPadOS will not open the keyboard.
-      flushSync(() => {
-        setSel(s);
-        setInline(target);
-      });
-      const el = document.querySelector<HTMLTextAreaElement>('[data-inline-input]');
-      if (el) {
-        el.focus();
-        el.setSelectionRange(el.value.length, el.value.length);
-      }
-    },
+    startEdit,
     addBlock: (type) => {
       const at = ops.insertionPoint(doc, sel);
       const block = ops.createBlock(type);
@@ -447,10 +466,27 @@ export function Editor({
       }
       const cut = target.lastIndexOf(':');
       const id = target.slice(0, cut);
-      const key = target.slice(cut + 1);
-      commit(ops.updateBlock(d, id, { props: { [key]: value } }), { mergeKey: `${id}.${key}` });
+      // "options#2": the third line of a field, "rows#1.2": a cell of it; "!" counts empty lines too.
+      const [, key, mark, line, cell] = /^(\w+)(?:([#!])(\d+)(?:\.(\d+))?)?$/.exec(target.slice(cut + 1)) ?? [];
+      if (!key) return;
+      // An emptied line would vanish under the cursor and the next one slide in: it goes when editing ends.
+      emptied.current = mark && !cell && !value.trim() ? target : null;
+      if (emptied.current) return;
+      const next = mark ? setPart(str(ops.blocksOf(d, [id])[0]?.props[key]), Number(line), value, cell === undefined ? undefined : Number(cell), mark === '!') : value;
+      commit(ops.updateBlock(d, id, { props: { [key]: next } }), { mergeKey: `${id}.${target.slice(cut + 1)}` });
     },
-    done: () => setInline(null),
+    done: () => {
+      const target = emptied.current;
+      emptied.current = null;
+      if (target) {
+        const cut = target.lastIndexOf(':');
+        const [, key, mark, line] = /^(\w+)([#!])(\d+)$/.exec(target.slice(cut + 1)) ?? [];
+        const id = target.slice(0, cut);
+        const d = latest.current.doc;
+        if (key) commit(ops.updateBlock(d, id, { props: { [key]: setPart(str(ops.blocksOf(d, [id])[0]?.props[key]), Number(line), '', undefined, mark === '!') } }));
+      }
+      setInline(null);
+    },
   };
 
   // — Files: save the worksheet with its images as one file, and open such a file again. —
@@ -550,6 +586,21 @@ export function Editor({
       } else if (mod && key === 'v' && editing && clips.length && !e.shiftKey && !e.altKey) {
         e.preventDefault();
         actions.current.paste();
+      } else if (mod && key === 'p' && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        setPrintOpen(true);
+      } else if (e.key === '?' && !mod) {
+        e.preventDefault();
+        setKeysOpen(true);
+      } else if (e.key === 'Enter' && !mod && !e.defaultPrevented && editing && block && onCanvas) {
+        const target = document.querySelector(`[data-block-id="${block}"] [data-edit]`)?.getAttribute('data-edit');
+        if (target) {
+          e.preventDefault();
+          actions.current.startEdit(target, { kind: 'block', id: block });
+        }
+      } else if (/^[0-3]$/.test(e.key) && !mod && !e.altKey && editing && ids.length && onCanvas) {
+        e.preventDefault();
+        actions.current.setLevel(ids, e.key === '0' ? '' : e.key);
       } else if (mod && key === 'a' && editing) {
         e.preventDefault();
         setSel(ops.selectionOf(ops.allBlockIds(doc)));
@@ -774,6 +825,7 @@ export function Editor({
           onOpenFile={() => fileInput.current?.click()}
           onSaveFile={saveFile}
           onOpenJson={() => setJsonOpen(true)}
+          onKeys={() => setKeysOpen(true)}
           onTogglePreview={() => setPreview((p) => !p)}
           onPrint={() => setPrintOpen(true)}
           modeLabel={
@@ -800,6 +852,7 @@ export function Editor({
           onClaude={ai && (() => setAiOpen('lesson'))}
           onVocabAi={ai && ai.module.lang === 'en' ? () => setAiOpen('vocab') : undefined}
           onTaskAi={ai && (() => setAiOpen('task'))}
+          onCheckAi={ai && (() => setAiOpen('check'))}
           onImportPdf={ai && (() => pdfInput.current?.click())}
           onAiSettings={() => setAiOpen('settings')}
         />
@@ -919,6 +972,7 @@ export function Editor({
             onClose={() => setPrintOpen(false)}
           />
         )}
+        {keysOpen && <KeysDialog onClose={() => setKeysOpen(false)} />}
         {jsonOpen && (
           <JsonDialog
             doc={doc}
@@ -963,6 +1017,43 @@ export function Editor({
               if (r.title) ai.rename?.(r.title);
               setPdfFile(null);
               setNotice('PDF eingepflegt. Mit Rückgängig oder unter „Frühere Fassungen“ kommst du zur vorherigen Fassung zurück.');
+            }}
+          />
+        )}
+        {aiOpen === 'check' && ai && (
+          <CheckAiDialog
+            doc={doc}
+            context={{ subject: ai.module.subject, grade: ai.module.grade, topic: ai.module.title, lang: doc.lang, competences: ai.module.competences, notes: ai.notes() }}
+            findings={findings}
+            onFindings={setFindings}
+            onShow={(id) => {
+              setAiOpen(null);
+              select({ kind: 'block', id });
+              document.querySelector(`[data-block-id="${id}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }}
+            onFix={(f) => {
+              setAiOpen(null);
+              setFixing(f);
+            }}
+            onClose={() => setAiOpen(null)}
+          />
+        )}
+        {fixing?.blockId && ops.findBlock(doc, fixing.blockId) && api.taskContext?.(fixing.blockId) && (
+          <TaskAiDialog
+            doc={doc}
+            context={api.taskContext(fixing.blockId)!}
+            block={ops.blocksOf(doc, [fixing.blockId])[0]}
+            initial={fixing.fix}
+            onApply={(blocks, how) => {
+              if (how === 'replace') api.replaceBlock(fixing.blockId!, blocks);
+              else api.insertAfter(fixing.blockId!, blocks);
+              setFindings((all) => all && all.filter((x) => x !== fixing));
+              setFixing(null);
+              setAiOpen('check');
+            }}
+            onClose={() => {
+              setFixing(null);
+              setAiOpen('check');
             }}
           />
         )}

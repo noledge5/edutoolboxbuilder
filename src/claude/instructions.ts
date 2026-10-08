@@ -115,6 +115,7 @@ export const DIDACTICS_BRIEF =
   'M Anwenden und Zusammenhänge herstellen (AFB II: erklären, vergleichen, auswerten), E Beurteilen und Gestalten (AFB III: beurteilen, begründet Stellung nehmen, entwickeln). ' +
   'Aufgaben verlangen Denken statt Abschreiben (vergleichen, begründen, vorhersagen, Fehler finden); falsche Antworten beim Ankreuzen sind typische Fehlvorstellungen. ' +
   'Hilfen in Stufen als `tip` (erst den Blick lenken, dann eine Strategie, dann ein Teil der Lösung), sprachliche Hilfen (Wortspeicher, Satzanfänge), einfache Sprache: ein Auftrag je Satz. ' +
+  'Jede Aufgabe ist allein mit dem lösbar, was davor auf dem Blatt steht (Infotext, Material, Abbildung) oder aus früheren Stunden sicher bekannt ist; das Wissen kommt vor der Aufgabe. ' +
   'Steht ein Klassenprofil oder stehen Grundsätze der Lehrkraft im Auftrag, richte dich danach.';
 
 function blockReference(): string {

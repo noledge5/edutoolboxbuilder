@@ -7,6 +7,7 @@ import { DocFormatError, normalizeDoc } from '../model/normalize';
 import { blockImages, uid } from '../model/ops';
 import type { Block, Lang, Page } from '../model/types';
 import type { Competence } from '../library/types';
+import { isObj } from '../model/text';
 
 /** Where the task goes and what is around it. */
 export interface TaskContext {
@@ -58,7 +59,6 @@ export function taskPrompt(instruction: string, c: TaskContext, block?: Block): 
     .join('\n');
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
 /**
  * The blocks in Claude's answer, with new ids. A task without competence or level takes the old block's; pictures

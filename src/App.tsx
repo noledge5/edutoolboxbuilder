@@ -649,6 +649,7 @@ export function App() {
           putLesson({ ...current, slides, updatedAt: Date.now() }).catch(failed);
         }}
         onVersions={() => setVersionsOf(lesson.id)}
+        ai={() => ({ subject: m.subject, grade: m.grade, topic: m.title, lessonTitle: lesson.title, notes: classNotes(libRef.current!.settings, m.subject, m.grade) })}
         boards={lesson.boards}
         onBoards={(boards) => {
           const current = libRef.current?.lessons.find((l) => l.id === lesson.id) ?? lesson;

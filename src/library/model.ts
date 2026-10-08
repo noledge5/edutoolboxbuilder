@@ -17,8 +17,6 @@ export const lessonCode = (m: Module, lessonNumber: number) => `K${m.grade} · M
 export const moduleCode = (m: Module) => `K${m.grade} · M${m.number}`;
 
 /** "Geographie · Klasse 9 · Modul 1: Das Klima kippt" */
-export const modulePlace = (m: Module) => `${m.subject} · Klasse ${m.grade} · Modul ${m.number}: ${m.title}`;
-
 export const footerFor = (settings: Settings, subject: string) => [settings.footerBase.trim(), subject].filter(Boolean).join(' · ');
 
 /** The lesson's document with icon, code, language and help switch taken from its module, so they are always consistent. */

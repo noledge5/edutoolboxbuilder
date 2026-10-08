@@ -341,6 +341,21 @@ body { background: var(--color-neutral-200); }
 .dialog-backdrop { z-index: 20; }
 .dialog { background: var(--color-ui); }
 .json-dialog { width: min(680px, 100%); }
+.keys-dialog { width: min(520px, 100%); }
+.ai-check-dialog { width: min(640px, 100%); }
+.check-list { margin: 0; padding-left: 1.4em; display: grid; gap: 12px; max-height: 55vh; overflow: auto; }
+.check-list p { margin: 4px 0; }
+.check-head { display: flex; gap: 8px; align-items: center; }
+.check-ref { font: 600 13px var(--font-ui); padding: 2px 8px; border-radius: 6px; border: 0; background: var(--color-accent-100); color: inherit; cursor: pointer; }
+span.check-ref { cursor: default; }
+.check-kind { font-size: 13px; opacity: .7; }
+.check-fix { display: flex; gap: 10px; align-items: center; justify-content: space-between; font-style: italic; }
+.check-fix .btn { flex: none; font-style: normal; }
+.check-ok { margin: 8px 0; }
+.keys-list { margin: 0; display: grid; gap: 6px; }
+.keys-list > div { display: grid; grid-template-columns: 9.5em 1fr; gap: 12px; align-items: baseline; }
+.keys-list dd { margin: 0; }
+.keys-list kbd { font-family: var(--font-ui); font-weight: 600; white-space: nowrap; }
 .json-text { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px; line-height: 1.45; border-radius: 16px; }
 .dialog .json-text.input { border-radius: 16px; }
 .json-err { font-size: 13px; font-weight: 600; color: var(--color-accent-700); }
@@ -372,8 +387,8 @@ body { background: var(--color-neutral-200); }
   .topbar .sl-present-btn { padding-inline: 14px; }
 }
 .topbar .sl-present-btn { flex: none; }
-/* The worksheet's bar has the most buttons: on an iPad in landscape (1024–1366 px) only Claude and Drucken keep their names. */
-@media (min-width: 901px) and (max-width: 1439px) {
+/* The worksheet's bar has the most buttons: on an iPad in landscape and a MacBook (up to 1680 px) only Claude and Drucken keep their names, so the lesson title fits. */
+@media (min-width: 901px) and (max-width: 1679px) {
   .topbar-ed { gap: 10px; }
   .topbar-ed .btn-label { display: none; }
   .topbar-ed .ui-btn { padding-inline: 10px; }
@@ -548,7 +563,7 @@ body { background: var(--color-neutral-200); }
 .sl-thumb.is-on { border-color: var(--color-accent); }
 .sl-thumb-num { font-size: 12px; font-weight: 700; color: var(--color-neutral-700); }
 .sl-add { display: flex; justify-content: center; padding-top: 4px; }
-.sl-stage { position: relative; min-height: 0; overflow: hidden; display: grid; place-items: center; padding: 24px; }
+.sl-stage { position: relative; min-height: 0; overflow: hidden; display: grid; place-items: center; padding: 16px; }
 .sl-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .sl-picker {
   position: absolute; inset: 16px; z-index: 5; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; align-items: flex-start;
@@ -619,6 +634,9 @@ body { background: var(--color-neutral-200); }
 /* Slides editor: inserting and handling elements */
 .sl-stage { align-content: center; gap: 12px; grid-template-rows: auto auto; }
 .sl-insert { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+/* Smaller insert buttons, so they stay one row above the slide and the slide gets the height. */
+.sl-insert .ui-btn { padding: 6px 12px; font-size: 13px; min-height: 34px; }
+.sl-insert { gap: 6px; }
 .sl-insert-preview { margin-left: 12px; }
 .sl-stage-frame { position: relative; }
 .sl-overlay { position: absolute; inset: 0; z-index: 3; touch-action: none; }

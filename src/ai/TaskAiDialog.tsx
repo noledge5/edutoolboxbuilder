@@ -19,6 +19,8 @@ interface TaskAiDialogProps {
   context: TaskContext;
   /** The block it is about; absent for a new task. */
   block?: Block;
+  /** A first instruction, e.g. the fix from "Stunde prüfen". */
+  initial?: string;
   onApply(blocks: Block[], how: 'replace' | 'after' | 'new'): void;
   onClose(): void;
 }
@@ -26,11 +28,11 @@ interface TaskAiDialogProps {
 const IDEAS_EXISTING = ['Mach daraus eine Zuordnung mit Bildern, 6 Paare', 'Als Rätsel für Klasse 5', 'Schwieriger, mit Begründung', 'Mit Bezug zum Text auf der Seite', 'Teile sie in a) und b) auf'];
 const IDEAS_NEW = ['Eine Aufgabe zum Lesetext mit 5 Fragen', 'Ein Bildimpuls mit Leitfrage', 'Ein Lückentext zum Merksatz', 'Ein Bingo mit den neuen Wörtern', 'Eine Partneraufgabe zum Sprechen'];
 
-export function TaskAiDialog({ doc, context, block, onApply, onClose }: TaskAiDialogProps) {
+export function TaskAiDialog({ doc, context, block, initial = '', onApply, onClose }: TaskAiDialogProps) {
   const settings = useAiSettings();
   const job = useAiJob();
   const { busy, error, answer } = job;
-  const [instruction, setInstruction] = useState('');
+  const [instruction, setInstruction] = useState(initial);
   const [made, setMade] = useState<Block[] | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [pasted, setPasted] = useState('');

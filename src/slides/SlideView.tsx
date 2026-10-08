@@ -110,12 +110,12 @@ type Appear = (at: number, anim: SlideAnim) => string;
 /** In the editor: the click on which something appears. */
 const Badge = ({ at, edit }: { at: number; edit: boolean }) => (edit && at > 0 ? <span className="sl-step-badge">{at}</span> : null);
 
-function Picture({ id, source }: { id: string; source: string }) {
+function Picture({ id, source, hint }: { id: string; source: string; hint?: string }) {
   const img = useImageUrl(id);
   return (
     <figure className="sl-figure">
       <div className={'sl-picture' + (img.status === 'ready' ? ' has-image' : '')}>
-        {img.status === 'ready' ? <img src={img.url} alt="" /> : <span>{img.status === 'missing' ? 'Bild fehlt auf diesem Gerät' : 'Bild'}</span>}
+        {img.status === 'ready' ? <img src={img.url} alt="" /> : <span>{img.status === 'missing' ? 'Bild fehlt auf diesem Gerät' : hint || 'Bild'}</span>}
       </div>
       {source && <figcaption>Quelle: {source}</figcaption>}
     </figure>
@@ -639,7 +639,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
           <div className={'sl-image-row' + (s.text ? ' has-text' : '')}>
             <div className={'sl-figure-wrap' + pic.cls} {...pic.data}>
               {pic.badge}
-              <Picture id={s.image} source={s.source} />
+              <Picture id={s.image} source={s.source} hint={s.describe} />
             </div>
             {s.text && (
               <div className={'sl-image-text' + x.cls} {...x.data} {...ed('text')}>
@@ -649,6 +649,61 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
             )}
           </div>
         </>
+      );
+      break;
+    }
+    case 'full': {
+      const pic = part('image');
+      const t = part('title');
+      const x = part('text');
+      body = (
+        <>
+          <div className={'sl-full-pic' + pic.cls} {...pic.data}>
+            {pic.badge}
+            <Picture id={s.image} source={s.source} hint={s.describe} />
+          </div>
+          <div className="sl-full-band" data-om-raster="">
+            {s.label && (
+              <div className="sl-label" {...ed('label')}>
+                {s.label}
+              </div>
+            )}
+            <h1 className={'sl-h1' + t.cls} {...t.data} {...ed('title')}>
+              {t.badge}
+              <Rich text={s.title} lang={lang} />
+            </h1>
+            {s.text && (
+              <div className={'sl-sub' + x.cls} {...x.data} {...ed('text')}>
+                {x.badge}
+                <Rich text={s.text} lang={lang} />
+              </div>
+            )}
+          </div>
+        </>
+      );
+      break;
+    }
+    case 'big': {
+      const t = part('title');
+      const x = part('text');
+      body = (
+        <div className="sl-big">
+          {s.label && (
+            <div className="sl-label" {...ed('label')}>
+              {s.label}
+            </div>
+          )}
+          <h1 className={'sl-big-h1' + t.cls} {...t.data} {...ed('title')}>
+            {t.badge}
+            <Rich text={s.title} lang={lang} />
+          </h1>
+          {s.text && (
+            <div className={'sl-sub' + x.cls} {...x.data} {...ed('text')}>
+              {x.badge}
+              <Rich text={s.text} lang={lang} />
+            </div>
+          )}
+        </div>
       );
       break;
     }
@@ -663,7 +718,7 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
     return (at > 0 && step >= at) || opened.has(`el:${id}`) ? 'is-gone' : '';
   };
   let covers = 0;
-  const framed = s.layout !== 'title' && s.layout !== 'exit';
+  const framed = s.layout !== 'title' && s.layout !== 'exit' && s.layout !== 'full';
   return (
     <div className={`sl-slide is-${s.layout} is-d-${ctx.design}` + (look ? lookClasses(look) + typeClass(s.type) : '')} style={vars} lang={lang}>
       {framed && <Header slide={s} ctx={ctx} edit={edit} />}
