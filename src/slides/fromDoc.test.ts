@@ -67,7 +67,8 @@ describe('slides along the course of the lesson', () => {
     // The title does not give the key question away: the beginning leads to it.
     expect(slides[0]).toMatchObject({ layout: 'title', text: '' });
     expect(slides[1]).toMatchObject({ layout: 'list', title: 'Aus dem Gedächtnis', items: 'Was misst ppm? | den CO₂-Anteil', reveal: true });
-    expect(slides[2]).toMatchObject({ layout: 'task', label: 'Schätzfrage', title: 'Wie viel wärmer wird es?', text: 'etwa 3 °C' });
+    expect(slides[2]).toMatchObject({ layout: 'big', label: 'Schätzfrage', title: 'Wie viel wärmer wird es?', text: 'etwa 3 °C' });
+    expect(slides[2].anims).toEqual({ text: { step: 1, anim: 'zoom' } });
     expect(slides[3]).toMatchObject({ layout: 'statement', label: 'Leitfrage', title: 'Wie genau erwärmt CO₂ die Luft?' });
     // Ich – Du – Wir as steps with their minutes; the work form of the first step.
     const work = slides.find((s) => s.layout === 'work')!;
@@ -105,7 +106,7 @@ describe('slides along the course of the lesson', () => {
       if (kind === 'video') expect(s[1].items[0].slide.elements[0]).toMatchObject({ kind: 'video', url: 'https://youtu.be/abcdefghijk' });
     }
     expect(layouts).toEqual({
-      bild: 'image statement',
+      bild: 'full statement',
       zitat: 'quote',
       fall: 'quote',
       video: 'blank statement',

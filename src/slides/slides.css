@@ -153,6 +153,21 @@
 .sl-picture img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .sl-figure figcaption { font-size: 20px; color: var(--color-neutral-700); }
 .sl-image-text { font-size: 40px; line-height: 1.4; text-wrap: pretty; }
+/* Vollbild: the picture fills the slide, the heading sits on a dark band at the bottom. */
+.sl-slide.is-full { padding: 0; }
+.sl-slide.is-full > .sl-full-pic { position: absolute; inset: 0; display: flex; }
+.sl-full-pic .sl-figure { flex: 1; gap: 0; }
+.sl-full-pic .sl-picture { border-radius: 0; }
+.sl-full-pic .sl-picture img { object-fit: cover; }
+.sl-full-pic figcaption { position: absolute; right: 24px; top: 16px; padding: 4px 12px; border-radius: 8px; background: rgb(0 0 0 / 0.45); color: #fff; font-size: 18px; }
+.sl-slide.is-full > .sl-full-band { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 12px; padding: 160px 96px 72px; background: linear-gradient(to top, rgb(0 0 0 / 0.72) 55%, transparent); color: #fff; }
+.sl-full-band .sl-label { color: #fff; opacity: 0.8; }
+.sl-full-band .sl-h1 { font-size: 88px; max-width: 1600px; color: #fff; }
+.sl-full-band .sl-sub { font-size: 40px; color: #fff; opacity: 0.92; }
+/* Groß: one number, word or question, huge in the middle. */
+.sl-big { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; text-align: center; }
+.sl-big-h1 { margin: 0; max-width: 1600px; font-family: var(--sl-head); font-weight: 400; letter-spacing: -0.02em; font-size: 220px; line-height: 1; text-wrap: balance; }
+.sl-big .sl-sub { font-size: 48px; }
 
 /* Title slide */
 .sl-slide.is-title { justify-content: center; gap: 40px; padding: 96px 120px; }

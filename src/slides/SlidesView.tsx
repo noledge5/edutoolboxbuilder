@@ -224,7 +224,7 @@ export function SlidesView(p: SlidesViewProps) {
     pick(at);
     setImported(null);
   };
-  const [searching, setSearching] = useState<'slide' | 'element' | null>(null);
+  const [searching, setSearching] = useState<'slide' | 'slide-ai' | 'element' | null>(null);
   const [selEl, setSelEl] = useState<string | null>(null);
   const [selPart, setSelPart] = useState<string | null>(null);
   const elText = useRef<HTMLTextAreaElement>(null);
@@ -865,7 +865,7 @@ export function SlidesView(p: SlidesViewProps) {
                     onPick={(vote) => set({ vote })}
                   />
                 )}
-                {(slide.layout === 'image' || slide.layout === 'task') && (
+                {(slide.layout === 'image' || slide.layout === 'full' || slide.layout === 'task') && (
                   <>
                     <ImageField
                       label="Bild"
@@ -873,8 +873,11 @@ export function SlidesView(p: SlidesViewProps) {
                       onFile={(file) => setPicture(slide.id, file)}
                       onRemove={() => set({ image: '', source: '' })}
                       onSearch={() => setSearching('slide')}
+                      onGenerate={() => setSearching('slide-ai')}
                     />
                     <TextField label="Quelle" value={slide.source} onChange={(source) => set({ source }, 'source')} />
+                    <TextField label="Suchwörter (englisch)" value={slide.search} onChange={(search) => set({ search }, 'search')} />
+                    <TextField label="Bildbeschreibung für KI" value={slide.describe} onChange={(describe) => set({ describe }, 'describe')} />
                   </>
                 )}
                 <p className="panel-note">
@@ -992,7 +995,10 @@ export function SlidesView(p: SlidesViewProps) {
       )}
       {searching && slide && (
         <ImageSearchDialog
-          initialQuery={searching === 'element' && el?.text ? el.text : slide.title}
+          initialQuery={searching === 'element' && el?.text ? el.text : slide.search || slide.title}
+          describe={searching === 'element' ? undefined : slide.describe || undefined}
+          startAi={searching === 'slide-ai'}
+          aspect={slide.layout === 'full' ? '16:9' : undefined}
           onPick={(file, credit) => {
             setSearching(null);
             if (searching === 'element' && el) setElPicture(slide.id, el.id, file, credit);

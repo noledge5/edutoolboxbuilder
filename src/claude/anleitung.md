@@ -374,7 +374,8 @@ Das Aussehen aller Folien einer Stunde bestimmt `"slideDesign"` in der Stunde (n
 | `help` | nur `task`: Hilfe unter dem Auftrag, z. B. die deutsche Hilfe einer englischen Aufgabe |
 | `text` | je nach Art: Untertitel, Zitat, Hinweis, Satz unter Kästen oder Schema, Text neben dem Bild, bei `task` die Lösung |
 | `items` | Einträge, einer je Zeile (`\n`), Aufbau je nach Art |
-| `image`, `source` | Bild und Quelle der Arten `image` und `task`: die Bild-Id aus `images` (wie bei Seiten) |
+| `image`, `source` | Bild und Quelle der Arten `image`, `full` und `task`: die Bild-Id aus `images` (wie bei Seiten) |
+| `search`, `describe` | für `image` und `full` ohne Bild: zwei, drei englische Suchwörter für die Bildsuche und eine englische Bildbeschreibung für „Mit KI erzeugen“ (wie bei Abbildungen) |
 | `reveal` | `true`: Lösungen erscheinen erst auf Klick: Antworten (`list`, `task`), Wörter in Lücken (`task`, Merksatz in `exit` und `statement`), die Lösung (`text` bei `task`), Bedeutungen (`words`), Text in den Kästen (`compare`), Erklärungen in den Schritten (`flow`). Bis dahin liegen sie unter Karten mit Nummer, die die Lehrkraft einzeln antippen kann; `"cards": false` macht sie stattdessen unsichtbar |
 | `vote` | nur `compare`: `true` macht die Kästen zu einer Abstimmung; beim Präsentieren zählt Antippen eines Kastens eine Hand |
 | `build` | `true`: Die Einträge (`list`, `task`, `compare`, `flow`, `words`) erscheinen nacheinander, je Klick einer; mit `reveal` abwechselnd Eintrag und Lösung |
@@ -395,9 +396,13 @@ Das Aussehen aller Folien einer Stunde bestimmt `"slideDesign"` in der Stunde (n
 | `compare` | zwei oder drei Kästen nebeneinander, `items` als „Überschrift \| Text“ |
 | `flow` | Fließschema mit Pfeilen, `items` als „Begriff \| Erklärung“, drei bis fünf Schritte |
 | `words` | Wortkarten, `items` als „Wort \| Bedeutung“, bis zwölf |
-| `image` | großes Bild mit Text daneben (`text`); das Bild sucht die Lehrkraft im Baukasten, nenne in `notes`, was darauf zu sehen sein soll |
+| `image` | großes Bild mit Text daneben (`text`); das Bild sucht die Lehrkraft im Baukasten, gib dafür `search` und `describe` an |
+| `full` | Vollbild: das Bild über die ganze Folie, darauf kleine Zeile (`label`), Überschrift oder Frage (`title`) und Impuls (`text`); für Bildimpulse und starke Einstiege, mit `search` und `describe` |
+| `big` | Groß: eine Zahl, ein Wort oder eine kurze Frage riesig in der Mitte (`title`, höchstens etwa 20 Zeichen), darüber `label`, darunter ein Satz (`text`, mit `anims` auf Klick als Auflösung); für Schätzfragen, Leitfragen, Schlüsselbegriffe |
 | `exit` | letzte Folie auf grünem Grund: Rückbezug (`text`), `label` (z. B. „Merksatz“) und Merksatz (`title`); Lücken im Merksatz als `[[Wort]]` füllen sich mit `reveal` auf Klick |
 | `blank` | freie Folie: Kopfleiste, Überschrift (`title`, darf leer sein) und nur `elements` |
+
+**Abwechslung:** Wechsle die Arten ab, damit nicht jede Folie gleich aussieht: ein starkes Bild (`full`) oder eine große Zahl (`big`) zum Einstieg, Kästen und Schemata zum Sichern, Bilder dort, wo Anschauung hilft. Höchstens zwei Folien derselben Art hintereinander, außer bei Aufgaben.
 
 **Elemente** (`elements`) liegen frei auf jeder Folie, gemessen in Pixeln einer Folie von 1920 × 1080 (`x`, `y` links oben, `w`, `h`; Kopfleiste bis etwa `y` 170, Fußzeile ab etwa `y` 1000, Rand links und rechts 96):
 
@@ -411,7 +416,7 @@ Das Aussehen aller Folien einer Stunde bestimmt `"slideDesign"` in der Stunde (n
 
 Jedes Element hat außerdem `step` (0 = mit der Folie, 1, 2 … = beim ersten, zweiten … Klick) und `anim` (wie es dann erscheint: `"fade"`, Standard, `"rise"`, `"zoom"`, `"left"`, `"none"`). Die Klicks zählen für die ganze Folie gemeinsam: Mit `build` belegen die Einträge die ersten Klicks (bei `list` mit `reveal` zwei je Frage); ein Element danach bekommt die nächste Zahl. Beispiel: `{ "kind": "text", "text": "Tipp: Schaut ins Lernjournal!", "style": "note", "x": 1240, "y": 700, "w": 580, "h": 200, "step": 1 }`.
 
-**Einzelne Teile auf Klick** (`anims`): Jeder Teil einer Folie kann auf einem eigenen Klick erscheinen, mit `step` (Klick-Nummer, 0 = mit der Folie) und `anim`. Schlüssel: `title` (Überschrift, Leitfrage, Merksatz, Arbeitsauftrag), `text` (Untertitel, Zitat, Hinweis, Satz darunter, Rückbezug, Lösung einer Aufgabe), `image` (Bild der Arten `image` und `task`), `gaps` (die Wörter in den Lücken eines Merksatzes), `item:0`, `item:1` … (Einträge, gezählt ab 0) und `answer:0`, `answer:1` … (die Lösung bzw. der zweite Teil des Eintrags, auch die Wörter in seinen Lücken). `anims` gilt vor `build` und `reveal`. Beispiel für eine Deutung, deren Hinweis erst nach einer Diskussion kommt: `"layout": "statement", "anims": { "text": { "step": 1, "anim": "zoom" } }`.
+**Einzelne Teile auf Klick** (`anims`): Jeder Teil einer Folie kann auf einem eigenen Klick erscheinen, mit `step` (Klick-Nummer, 0 = mit der Folie) und `anim`. Schlüssel: `title` (Überschrift, Leitfrage, Merksatz, Arbeitsauftrag), `text` (Untertitel, Zitat, Hinweis, Satz darunter, Rückbezug, Lösung einer Aufgabe), `image` (Bild der Arten `image`, `full` und `task`), `gaps` (die Wörter in den Lücken eines Merksatzes), `item:0`, `item:1` … (Einträge, gezählt ab 0) und `answer:0`, `answer:1` … (die Lösung bzw. der zweite Teil des Eintrags, auch die Wörter in seinen Lücken). `anims` gilt vor `build` und `reveal`. Beispiel für eine Deutung, deren Hinweis erst nach einer Diskussion kommt: `"layout": "statement", "anims": { "text": { "step": 1, "anim": "zoom" } }`.
 
 Videos: Schreib nur Links, die die Lehrkraft dir gegeben hat oder die du sicher kennst; sonst ein Textfeld „Video: …“ als Platzhalter und in `notes`, wonach die Lehrkraft suchen soll.
 

@@ -8,7 +8,7 @@ import { THEMES, WORK_FORMS } from './themes';
 import type { SheetType, WorkForm } from './types';
 import { isObj } from './text';
 
-export type SlideLayout = 'title' | 'list' | 'task' | 'work' | 'quote' | 'statement' | 'compare' | 'flow' | 'words' | 'image' | 'exit' | 'blank';
+export type SlideLayout = 'title' | 'list' | 'task' | 'work' | 'quote' | 'statement' | 'compare' | 'flow' | 'words' | 'image' | 'full' | 'big' | 'exit' | 'blank';
 
 /** The look of all slides of a lesson: fonts, background, bars and boxes (see slides.css). */
 export type SlideDesign = 'organisch' | 'klar' | 'heft' | 'tafel' | 'kontrast';
@@ -88,9 +88,12 @@ export interface Slide {
   help: string;
   /** One entry per line: "question | answer", "heading | text", "step | detail", "word | meaning". */
   items: string;
-  /** Picture (image id) of the "image" layout, with its source line. */
+  /** Picture (image id) of the "image" and "full" layouts, with its source line. */
   image: string;
   source: string;
+  /** For finding the picture: English search words and a description for a picture made with AI. */
+  search: string;
+  describe: string;
   /** Answers and meanings stay hidden until a click or tap while presenting. */
   reveal: boolean;
   /** Hidden answers lie under cards that can be tapped, one by one (else they are invisible until their click). */
@@ -167,6 +170,8 @@ export const SLIDE_LAYOUTS: Record<SlideLayout, SlideLayoutInfo> = {
   },
   words: { label: 'Wörter', use: 'Vokabeln oder Fachbegriffe als Karten, Bedeutung auf Klick', items: 'Ein Wort je Zeile: Wort | Bedeutung', text: 'Auftrag unter der Überschrift', labelHint: '' },
   image: { label: 'Bild', use: 'Ein großes Bild mit Text daneben', items: '', text: 'Text neben dem Bild', labelHint: '' },
+  full: { label: 'Vollbild', use: 'Bildimpuls: das Bild über die ganze Folie, Überschrift oder Frage darauf', items: '', text: 'Frage oder Impuls unter der Überschrift', labelHint: 'Kleine Zeile darüber, z. B. „Bildimpuls“' },
+  big: { label: 'Groß', use: 'Eine Zahl, ein Wort oder eine Frage riesig in der Mitte, z. B. Schätzfrage', items: '', text: 'Satz darunter, z. B. „Schätzt!“', labelHint: 'Kleine Zeile darüber' },
   exit: { label: 'Exit / Merksatz', use: 'Letzte Folie: Rückbezug und Merksatz auf grünem Grund', items: '', text: 'Rückbezug über dem Merksatz', labelHint: 'Kleine Zeile, z. B. „Merksatz“' },
   blank: { label: 'Leer', use: 'Freie Folie: nur Kopfleiste und Überschrift, Textfelder, Bilder und Videos frei platzieren', items: '', text: '', labelHint: '' },
 };
@@ -190,6 +195,8 @@ const LAYOUT_DEFAULTS: Record<SlideLayout, Partial<Slide>> = {
   flow: { type: 'sicherung', phase: 'Sicherung', form: 'allein', title: 'Wie hängt das zusammen?', items: 'Ursache | Erklärung\nZwischenschritt | Erklärung\nFolge | Erklärung' },
   words: { type: 'vocab', phase: 'Vocabulary', form: 'Plenum', title: 'New words', items: 'classroom | Klassenzimmer\nteacher | Lehrer/in\nboard | Tafel\npencil case | Federmäppchen', reveal: true },
   image: { type: 'uebung', phase: 'Erarbeitung', form: 'zu zweit', title: 'Was seht ihr?', text: 'Beschreibt das Bild in drei Sätzen.' },
+  full: { type: 'lehrkraft', phase: 'Einstieg', form: 'Plenum', minutes: 5, label: 'Bildimpuls', title: 'Was ist hier passiert?', text: 'Beschreibt, was ihr seht.' },
+  big: { type: 'lehrkraft', phase: 'Einstieg', form: 'Plenum', minutes: 5, label: 'Schätzfrage', title: '1,5 °C', text: 'Was bedeutet diese Zahl?' },
   exit: { type: 'sicherung', phase: 'Exit', form: 'Plenum', minutes: 3, label: 'Merksatz', text: 'Rückbezug auf die Leitfrage.', title: 'Der wichtigste Satz der Stunde.' },
   blank: { type: 'uebung', phase: 'Erarbeitung', title: 'Überschrift' },
   work: {
@@ -225,6 +232,8 @@ const BASE: Omit<Slide, 'id' | 'layout'> = {
   items: '',
   image: '',
   source: '',
+  search: '',
+  describe: '',
   reveal: false,
   cards: true,
   vote: false,
@@ -410,6 +419,8 @@ export function normalizeSlides(raw: unknown, note: (text: string) => void = () 
       items: str(r.items),
       image: str(r.image),
       source: str(r.source),
+      search: str(r.search),
+      describe: str(r.describe),
       reveal: r.reveal === true,
       cards: r.cards !== false,
       vote: r.vote === true,
@@ -533,16 +544,16 @@ export function slideParts(s: Slide): SlidePart[] {
   const parts: { key: string; label: string; answer?: boolean; step?: number; anim?: SlideAnim }[] = [];
   const t = !!s.text.trim();
   const titleLabel = s.layout === 'quote' ? 'Leitfrage' : s.layout === 'exit' ? 'Merksatz' : s.layout === 'task' ? 'Arbeitsauftrag' : s.layout === 'work' ? 'Kurzauftrag' : 'Überschrift';
-  const textLabel: Partial<Record<SlideLayout, string>> = { title: 'Untertitel', quote: 'Zitat', statement: 'Hinweis', image: 'Text neben dem Bild', exit: 'Rückbezug', work: 'Hinweis' };
+  const textLabel: Partial<Record<SlideLayout, string>> = { title: 'Untertitel', quote: 'Zitat', statement: 'Hinweis', image: 'Text neben dem Bild', full: 'Frage', big: 'Satz darunter', exit: 'Rückbezug', work: 'Hinweis' };
   if (s.layout === 'quote' || s.layout === 'exit') {
     if (t) parts.push({ key: 'text', label: textLabel[s.layout]! });
     if (s.title.trim()) parts.push({ key: 'title', label: titleLabel });
   } else {
     if (s.title.trim()) parts.push({ key: 'title', label: titleLabel });
-    if (t && (s.layout === 'title' || s.layout === 'statement' || s.layout === 'list' || s.layout === 'words' || s.layout === 'work')) parts.push({ key: 'text', label: textLabel[s.layout] ?? 'Auftrag' });
+    if (t && (s.layout === 'title' || s.layout === 'statement' || s.layout === 'list' || s.layout === 'words' || s.layout === 'work' || s.layout === 'full' || s.layout === 'big')) parts.push({ key: 'text', label: textLabel[s.layout] ?? 'Auftrag' });
   }
   if (titleGaps(s)) parts.push({ key: 'gaps', label: s.layout === 'exit' ? 'Lücken im Merksatz' : 'Lücken', answer: true, step: s.reveal ? 1 : 0, anim: 'fade' });
-  if (s.layout === 'image' || (s.layout === 'task' && s.image)) parts.push({ key: 'image', label: 'Bild' });
+  if (s.layout === 'image' || s.layout === 'full' || (s.layout === 'task' && s.image)) parts.push({ key: 'image', label: 'Bild' });
   const names = s.layout === 'work' ? undefined : SECOND[s.layout];
   if (names) {
     const defaults = defaultItemSteps(s);
