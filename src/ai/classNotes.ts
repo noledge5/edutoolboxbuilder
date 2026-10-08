@@ -3,8 +3,8 @@
 import { createContext } from 'react';
 import { classKey } from '../library/planning';
 import type { Settings } from '../library/types';
+import { flat } from '../model/text';
 
-const flat = (s: string) => s.replace(/\s+/g, ' ').trim();
 
 export const classProfileOf = (s: Settings, subject: string, grade: number) => s.classProfiles[classKey(subject, grade)] ?? '';
 

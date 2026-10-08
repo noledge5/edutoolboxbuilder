@@ -4,7 +4,7 @@ import { Link, Play } from 'lucide-react';
 import { Icon } from '../icons';
 import type { SlideElement } from '../model/slides';
 import type { Lang } from '../model/types';
-import { qrCode } from '../sheet/parts';
+import { qrCode, QrSvg } from '../sheet/parts';
 import { useImageUrl } from '../storage/images';
 import { InkSvg } from './Ink';
 import { Rich } from './Rich';
@@ -59,12 +59,7 @@ export function videoInfo(link: string): VideoInfo {
 function Qr({ link }: { link: string }) {
   const qr = useMemo(() => qrCode(link), [link]);
   if (!qr || qr === 'error') return <div className="sl-qr-empty">{qr === 'error' ? 'Link zu lang' : 'Link fehlt'}</div>;
-  return (
-    <svg className="sl-qr-code" viewBox={`-2 -2 ${qr.size + 4} ${qr.size + 4}`} shapeRendering="crispEdges" aria-label={link}>
-      <rect x={-2} y={-2} width={qr.size + 4} height={qr.size + 4} fill="#fff" />
-      <path d={qr.d} fill="currentColor" />
-    </svg>
-  );
+  return <QrSvg qr={qr} label={link} className="sl-qr-code" frame />;
 }
 
 function Picture({ e }: { e: SlideElement }) {

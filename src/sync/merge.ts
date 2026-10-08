@@ -5,6 +5,7 @@
 import { readHandout, readLesson, readModule, readSettings } from '../library/read';
 import type { Lesson, Library, Module, Settings } from '../library/types';
 import type { Handout } from '../share/assignment';
+import { isObj } from '../model/text';
 
 export type Base = Record<string, number>;
 
@@ -55,7 +56,6 @@ export interface MergeResult {
   taken: number;
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
 /** Settings changed on both devices: the newer ones, with the subjects and class profiles of both. */
 function mergeSettings(here: Settings, there: Settings, now: number): Settings {

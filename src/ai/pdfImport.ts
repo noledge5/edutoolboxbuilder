@@ -6,6 +6,7 @@ import type { Module } from '../library/types';
 import { DocFormatError } from '../model/normalize';
 import type { Doc, Page } from '../model/types';
 import type { Box, PdfCandidate } from '../storage/pdf';
+import { isObj } from '../model/text';
 
 export interface PdfImportOptions {
   /** Claude adds a page "Für die Lehrkraft". */
@@ -66,7 +67,6 @@ export function pdfPrompt(m: Module, pdf: PdfSummary, context: string, o: PdfImp
   return out.join('\n');
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const num = (x: unknown) => (typeof x === 'number' ? x : typeof x === 'string' ? parseFloat(x) : NaN);
 
 /** A figure to cut out: page and box in percent. */

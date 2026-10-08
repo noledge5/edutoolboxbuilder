@@ -2,6 +2,7 @@
 // Openverse (Creative Commons and public domain images from Flickr, Wikimedia, museums and more)
 // and Wikimedia Commons (strong for maps, diagrams and drawings). A picked image is downloaded and
 // stored like an image file from the device; its author and licence become the image's source line.
+import { isObj } from '../model/text';
 
 export type ImageSource = 'openverse' | 'commons';
 export type ImageKind = 'alle' | 'foto' | 'grafik';
@@ -101,7 +102,6 @@ async function getJson(url: string, init?: RequestInit): Promise<unknown> {
   return res.json();
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const s = (x: unknown) => (typeof x === 'string' ? x : typeof x === 'number' ? String(x) : '');
 
 /** Openverse: `page` counts from 1. */

@@ -7,6 +7,7 @@ import { uid } from '../model/ops';
 import type { Block, BlockProps, Lang } from '../model/types';
 import type { Competence } from '../library/types';
 import { DocFormatError } from '../model/normalize';
+import { isObj } from '../model/text';
 
 export type HelperKind = 'einfacher' | 'fachlicher' | 'kuerzer' | 'englisch' | 'deutsch' | 'G' | 'M' | 'E' | 'loesung';
 
@@ -81,7 +82,6 @@ export function helperPrompt(kind: HelperKind, b: Block, c: BlockContext): strin
   return out.join('\n');
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
 /**
  * The block after Claude's answer: only fields Claude may write are taken. A level version is a new block with the

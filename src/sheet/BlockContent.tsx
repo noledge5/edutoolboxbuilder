@@ -6,7 +6,7 @@ import { FLOW_COLORS } from '../model/themes';
 import { cellRows, choices, flowSteps, lines, matchNumbers, num, rows, str } from '../model/text';
 import type { Block, Variant } from '../model/types';
 import { Editable } from './inlineEdit';
-import { answerClass, GapText, ImageBox, Marked, qrCode, variantProps } from './parts';
+import { answerClass, GapText, ImageBox, Marked, qrCode, QrSvg, variantProps } from './parts';
 import { SheetModeContext, type SolutionView } from './sheetMode';
 import { CompetenceNamesContext } from './competences';
 import { BLOCK_TYPES, HOOK_KINDS, LEVEL_NAMES } from '../model/blockTypes';
@@ -483,9 +483,7 @@ function QrBlock({ url, caption, editing, captionTarget }: { url: string; captio
     <div className="ws-qr">
       <div className="ws-qr-code">
         {qr && qr !== 'error' ? (
-          <svg viewBox={`0 0 ${qr.size} ${qr.size}`} shapeRendering="crispEdges" role="img" aria-label={`QR-Code: ${link}`}>
-            <path d={qr.d} fill="currentColor" />
-          </svg>
+          <QrSvg qr={qr} label={`QR-Code: ${link}`} />
         ) : (
           editing && (
             <span className="ws-qr-empty" data-noprint="1">

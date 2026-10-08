@@ -5,7 +5,7 @@ import { get, set, del } from 'idb-keyval';
 import type { Library } from '../library/types';
 import { blockImages, referencedImages } from '../model/ops';
 import { slideImages } from '../model/slides';
-import { SERVER } from '../share/server';
+import { rpc } from '../share/server';
 import { getImage, kv, putImageAs } from '../storage/db';
 import { imagesArrived } from '../storage/images';
 import { decryptBlob, decryptJson, deriveKeys, encryptBlob, encryptJson, serverName, type SyncKeys } from './keys';
@@ -44,28 +44,6 @@ export interface SyncHost {
   /** Stores and shows what came from the other device. */
   apply(r: MergeResult): Promise<void>;
   onStatus(s: SyncStatus): void;
-}
-
-class ServerError extends Error {}
-
-async function rpc<T>(name: string, args: Record<string, unknown>, signal?: AbortSignal): Promise<T> {
-  let res: Response;
-  try {
-    res = await fetch(`${SERVER.url}/rest/v1/rpc/${name}`, {
-      method: 'POST',
-      headers: { apikey: SERVER.key, 'Content-Type': 'application/json' },
-      body: JSON.stringify(args),
-      signal,
-    });
-  } catch {
-    throw new TypeError('offline');
-  }
-  const text = await res.text();
-  if (!res.ok) {
-    const msg = /"message"\s*:\s*"([^"]*)"/.exec(text)?.[1] ?? String(res.status);
-    throw new ServerError(msg === 'voll' ? 'Der Speicher für den Abgleich ist voll.' : msg === 'zugang' ? 'Der Server kennt diesen Code anders. Koppel die Geräte neu.' : `Der Server antwortet nicht wie erwartet (${msg}).`);
-  }
-  return (text ? JSON.parse(text) : null) as T;
 }
 
 /** All pictures the library uses (worksheets, slides, handouts). */

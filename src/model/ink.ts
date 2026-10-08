@@ -3,6 +3,7 @@
 // that were put in between. Strokes are outlined with perfect-freehand, so a pencil's pressure shapes the line.
 import { getStroke } from 'perfect-freehand';
 import { uid } from './ops';
+import { isObj } from './text';
 
 export type InkTool = 'pen' | 'marker';
 export type InkColor = 'dark' | 'red' | 'blue' | 'green' | 'orange' | 'yellow' | 'white';
@@ -64,7 +65,6 @@ export interface Board {
   pages: BoardPage[];
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const pick = <T extends string>(x: unknown, options: readonly { v: T }[], fallback: T): T => (options.some((o) => o.v === x) ? (x as T) : fallback);
 const round = (n: number, d = 10) => Math.round(n * d) / d;
 

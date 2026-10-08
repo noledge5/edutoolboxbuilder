@@ -1,5 +1,12 @@
 import type { PropValue } from './types';
 
+export const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
+
+/** Whitespace folded to single spaces. */
+export const flat = (s: string) => s.replace(/\s+/g, ' ').trim();
+/** Shortened to `n` characters with an ellipsis. */
+export const clip = (s: string, n = 160) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
+
 export const str = (x: PropValue | undefined): string => (x == null ? '' : String(x));
 
 export const num = (x: PropValue | undefined, fallback: number): number => {

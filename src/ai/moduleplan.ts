@@ -9,6 +9,7 @@ import { dayText, planModules, schoolWeeks } from '../library/yearplan';
 import { uid } from '../model/ops';
 import { DocFormatError } from '../model/normalize';
 import { classNotes } from './classNotes';
+import { isObj, flat, clip } from '../model/text';
 
 /** How a unit ends: the proof that the class can do what it learnt. '' = Claude decides. */
 export type ModuleEnd = '' | 'klassenarbeit' | 'test' | 'lernaufgabe' | 'keins';
@@ -27,8 +28,6 @@ export interface ModuleWishes {
   wishes: string;
 }
 
-const flat = (s: string) => s.replace(/\s+/g, ' ').trim();
-const clip = (s: string, n = 160) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
 
 /** Lessons per week as the module has them so far (lessons ÷ weeks), else the usual for the subject. */
 export function hoursOf(m: Module, lessons: Lesson[]): number {
@@ -135,7 +134,6 @@ export interface ModulePlan {
   notes: string[];
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
 /**
  * Reads Claude's module plan for `m` (with its lessons `existing`). Competences Claude kept keep their ids; in a

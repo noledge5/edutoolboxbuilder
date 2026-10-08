@@ -6,6 +6,7 @@ import { normalizeStrokes, type Stroke } from './ink';
 import { uid } from './ops';
 import { THEMES, WORK_FORMS } from './themes';
 import type { SheetType, WorkForm } from './types';
+import { isObj } from './text';
 
 export type SlideLayout = 'title' | 'list' | 'task' | 'work' | 'quote' | 'statement' | 'compare' | 'flow' | 'words' | 'image' | 'exit' | 'blank';
 
@@ -301,7 +302,6 @@ export function createElement(kind: SlideElementKind, patch: Partial<SlideElemen
 /** Defaults a slide in a file may leave out. */
 export const SLIDE_DEFAULTS = BASE;
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const str = (x: unknown): string => (typeof x === 'string' ? x : typeof x === 'number' ? String(x) : Array.isArray(x) ? x.map(str).join('\n') : '');
 
 export const isSlideLayout = (x: unknown): x is SlideLayout => typeof x === 'string' && x in SLIDE_LAYOUTS;

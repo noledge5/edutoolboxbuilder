@@ -100,7 +100,6 @@ export async function deleteEntries(moduleIds: string[], lessonIds: string[]): P
   await delMany([...moduleIds.map((id) => MOD + id), ...lessonIds.map((id) => LES + id)], kv());
 }
 
-export const getLesson = async (id: string) => readLesson(await get(LES + id, kv()));
 
 /** Everything changed up to this time is in the last backup file (on this device). */
 export async function loadInSyncUntil(): Promise<number> {
