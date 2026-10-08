@@ -42,6 +42,7 @@ interface TopBarProps {
   /** Earlier versions of the lesson (in the library). */
   onVersions?(): void;
   onCheckAi?(): void;
+  onFullAi?(): void;
   onKeys?(): void;
   /** Hands out the whole worksheet digitally. */
   onShareAll?(): void;
@@ -121,6 +122,7 @@ export function TopBar(p: TopBarProps) {
           icon={Sparkles}
           className="menu-claude"
           items={[
+            ...(p.onFullAi ? [{ label: 'Stunde komplett mit Claude …', icon: Sparkles, onClick: p.onFullAi }] : []),
             ...(p.onTaskAi ? [{ label: 'Neue Aufgabe mit Claude …', icon: Sparkles, onClick: p.onTaskAi }] : []),
             { label: 'Stunde mit Claude …', icon: Sparkles, onClick: p.onClaude },
             ...(p.onCheckAi ? [{ label: 'Stunde prüfen …', icon: ListChecks, onClick: p.onCheckAi }] : []),

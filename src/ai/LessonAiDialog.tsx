@@ -8,6 +8,7 @@ import { Icon } from '../icons';
 import type { Competence, Lesson, Module } from '../library/types';
 import { sheetNumbers } from '../model/ops';
 import type { Doc } from '../model/types';
+import type { Slide } from '../model/slides';
 import { BlockContent } from '../sheet/BlockContent';
 import { CompetenceNamesContext } from '../sheet/competences';
 import { PAGE_H, PAGE_W, SheetPage, taskNumbers } from '../sheet/SheetPage';
@@ -34,6 +35,10 @@ export interface LessonAi {
   notes(): string;
   /** Gives a lesson that has no name yet ("Neue Stunde") the title of what was brought in. */
   rename?(title: string): void;
+  /** The slides the Baukasten suggests for a worksheet (the ticked ones). */
+  suggestSlides(doc: Doc): Slide[];
+  /** Replaces the lesson's slides (the old ones kept as an earlier version). */
+  setSlides(slides: Slide[]): void;
 }
 
 interface LessonAiDialogProps {

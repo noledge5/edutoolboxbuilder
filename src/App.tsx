@@ -599,6 +599,8 @@ export function App() {
           context: (wishes) => lessonContext(libRef.current!, m, lesson, wishes),
           known: () => gradeVocab(libRef.current!, m),
           notes: () => classNotes(libRef.current!.settings, m.subject, m.grade),
+          suggestSlides: (doc) => slidesFromDoc({ ...doc, lang: m.lang }, lesson.title, { earlier: earlierLessons(libRef.current!, m, lesson), lessonNumber: lesson.number }),
+          setSlides: (slides) => replaceSlides(lesson.id, () => slides, (n) => `${n} ${n === 1 ? 'Folie' : 'Folien'} von Claude.`),
           rename: (title) => {
             const now = libRef.current?.lessons.find((x) => x.id === lesson.id);
             if (now && (!now.title.trim() || now.title === 'Neue Stunde')) putLesson({ ...now, title, updatedAt: Date.now() }).catch(failed);

@@ -23,6 +23,7 @@ import { LessonAiDialog, type LessonAi } from '../ai/LessonAiDialog';
 import { VocabAiDialog } from '../ai/VocabAiDialog';
 import { TaskAiDialog } from '../ai/TaskAiDialog';
 import { CheckAiDialog } from '../ai/CheckAiDialog';
+import { FullLessonDialog } from '../ai/FullLessonDialog';
 import type { Finding } from '../ai/check';
 import { PdfImportDialog } from '../ai/PdfImportDialog';
 import { vocabOf } from '../model/language';
@@ -171,7 +172,7 @@ export function Editor({
   const [preview, setPreview] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [keysOpen, setKeysOpen] = useState(false);
-  const [aiOpen, setAiOpen] = useState<'lesson' | 'settings' | 'vocab' | 'task' | 'check' | null>(null);
+  const [aiOpen, setAiOpen] = useState<'lesson' | 'full' | 'settings' | 'vocab' | 'task' | 'check' | null>(null);
   const [findings, setFindings] = useState<Finding[] | null>(null);
   const [fixing, setFixing] = useState<Finding | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -853,6 +854,7 @@ export function Editor({
           onVocabAi={ai && ai.module.lang === 'en' ? () => setAiOpen('vocab') : undefined}
           onTaskAi={ai && (() => setAiOpen('task'))}
           onCheckAi={ai && (() => setAiOpen('check'))}
+          onFullAi={ai && (() => setAiOpen('full'))}
           onImportPdf={ai && (() => pdfInput.current?.click())}
           onAiSettings={() => setAiOpen('settings')}
         />
@@ -1000,6 +1002,26 @@ export function Editor({
               commit({ ...draft.doc, icon, code }, { select: { kind: 'page', p: 0 } });
               setAiOpen(null);
               setNotice('Von Claude übernommen. Mit Rückgängig oder unter „Frühere Fassungen“ kommst du zur vorherigen Fassung zurück.');
+            }}
+          />
+        )}
+        {aiOpen === 'full' && ai && (
+          <FullLessonDialog
+            doc={doc}
+            ai={ai}
+            onClose={() => setAiOpen(null)}
+            onApply={async (r) => {
+              try {
+                await Promise.all(Object.entries(r.images).map(([id, url]) => putImageAs(id, dataUrlToBlob(url))));
+              } catch (e) {
+                window.alert('Ein Bild konnte nicht gespeichert werden: ' + errorText(e));
+              }
+              ai.onApplied(r.added);
+              const { icon, code } = latest.current.doc;
+              commit({ ...r.doc, icon, code }, { select: { kind: 'page', p: 0 } });
+              ai.setSlides(r.slides);
+              setAiOpen(null);
+              setNotice(`Stunde und ${r.slides.length} Folien von Claude übernommen. Die vorige Fassung liegt unter „Frühere Fassungen“.`);
             }}
           />
         )}
