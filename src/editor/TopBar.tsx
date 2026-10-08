@@ -69,8 +69,9 @@ export function TopBar(p: TopBarProps) {
         <Icon icon={topicIcon(p.icon)} size={20} />
       </div>
       <div className="topbar-name">
-        <div className="topbar-title">Arbeitsblatt-Baukasten</div>
-        {p.place && <div className="topbar-place">{p.place}</div>}
+        {/* The lesson first ("Stunde 2: Der Treibhauseffekt"), where it lives below. */}
+        <div className="topbar-title" title={p.place}>{p.place?.split(' · ').at(-1) || 'Arbeitsblatt-Baukasten'}</div>
+        {p.place && <div className="topbar-place">{p.place.split(' · ').slice(0, -1).join(' · ')}</div>}
       </div>
       <SearchButton />
       {p.editing && p.compact && (

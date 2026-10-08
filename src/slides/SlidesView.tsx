@@ -483,7 +483,7 @@ export function SlidesView(p: SlidesViewProps) {
   useLayoutEffect(() => {
     const el = stage.current;
     if (!el) return;
-    const fit = () => setStageW(Math.max(240, Math.min(el.clientWidth - 48, ((el.clientHeight - 104) * SLIDE_W) / SLIDE_H)));
+    const fit = () => setStageW(Math.max(240, Math.min(el.clientWidth - 32, ((el.clientHeight - 80) * SLIDE_W) / SLIDE_H)));
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);
@@ -516,7 +516,7 @@ export function SlidesView(p: SlidesViewProps) {
   const revealLabel = slide && (REVEAL_LABEL[slide.layout] ?? (GAP_TITLE.includes(slide.layout) && hasGap(slide.title) ? 'Lücken beim Präsentieren' : ''));
   return (
     <div className="app sl-app">
-      <header className="topbar">
+      <header className="topbar topbar-ed">
         <button type="button" className="iconbtn topbar-back" onClick={p.onBack} title="Zum Modul" aria-label="Zum Modul">
           <Icon icon={ArrowLeft} size={18} />
         </button>
@@ -524,8 +524,8 @@ export function SlidesView(p: SlidesViewProps) {
           <Icon icon={topicIcon(p.ctx.icon)} size={20} />
         </div>
         <div className="topbar-name">
-          <div className="topbar-title">Folien</div>
-          <div className="topbar-place">{p.place}</div>
+          <div className="topbar-title" title={p.place}>{p.place.split(' · ').at(-1)}</div>
+          <div className="topbar-place">Folien · {p.place.split(' · ').slice(0, -1).join(' · ')}</div>
         </div>
         <SearchButton />
         <div className="seg sl-undo">

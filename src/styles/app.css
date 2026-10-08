@@ -387,8 +387,8 @@ span.check-ref { cursor: default; }
   .topbar .sl-present-btn { padding-inline: 14px; }
 }
 .topbar .sl-present-btn { flex: none; }
-/* The worksheet's bar has the most buttons: on an iPad in landscape (1024–1366 px) only Claude and Drucken keep their names. */
-@media (min-width: 901px) and (max-width: 1439px) {
+/* The worksheet's bar has the most buttons: on an iPad in landscape and a MacBook (up to 1680 px) only Claude and Drucken keep their names, so the lesson title fits. */
+@media (min-width: 901px) and (max-width: 1679px) {
   .topbar-ed { gap: 10px; }
   .topbar-ed .btn-label { display: none; }
   .topbar-ed .ui-btn { padding-inline: 10px; }
@@ -563,7 +563,7 @@ span.check-ref { cursor: default; }
 .sl-thumb.is-on { border-color: var(--color-accent); }
 .sl-thumb-num { font-size: 12px; font-weight: 700; color: var(--color-neutral-700); }
 .sl-add { display: flex; justify-content: center; padding-top: 4px; }
-.sl-stage { position: relative; min-height: 0; overflow: hidden; display: grid; place-items: center; padding: 24px; }
+.sl-stage { position: relative; min-height: 0; overflow: hidden; display: grid; place-items: center; padding: 16px; }
 .sl-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .sl-picker {
   position: absolute; inset: 16px; z-index: 5; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; align-items: flex-start;
@@ -634,6 +634,9 @@ span.check-ref { cursor: default; }
 /* Slides editor: inserting and handling elements */
 .sl-stage { align-content: center; gap: 12px; grid-template-rows: auto auto; }
 .sl-insert { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+/* Smaller insert buttons, so they stay one row above the slide and the slide gets the height. */
+.sl-insert .ui-btn { padding: 6px 12px; font-size: 13px; min-height: 34px; }
+.sl-insert { gap: 6px; }
 .sl-insert-preview { margin-left: 12px; }
 .sl-stage-frame { position: relative; }
 .sl-overlay { position: absolute; inset: 0; z-index: 3; touch-action: none; }
