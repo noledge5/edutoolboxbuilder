@@ -40,6 +40,7 @@ import { PropertiesPanel } from './PropertiesPanel';
 import { DragGhost, Toolbox } from './Toolbox';
 import { TopBar } from './TopBar';
 import { useMediaQuery } from './useMediaQuery';
+import { setPart, str } from '../model/text';
 
 const ZOOM_MIN = 0.4;
 const ZOOM_MAX = 1.5;
@@ -187,6 +188,8 @@ export function Editor({
   const [toolboxOpen, setToolboxOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [inline, setInline] = useState<string | null>(null);
+  /** A line emptied on the page, removed when its editing ends. */
+  const emptied = useRef<string | null>(null);
   const [printMode, setPrintMode] = useState<PrintMode>(DEFAULT_PRINT);
   const [printOpen, setPrintOpen] = useState(false);
   /** Choosing several blocks by tapping them (iPad), started from a block's toolbar. */
@@ -463,10 +466,27 @@ export function Editor({
       }
       const cut = target.lastIndexOf(':');
       const id = target.slice(0, cut);
-      const key = target.slice(cut + 1);
-      commit(ops.updateBlock(d, id, { props: { [key]: value } }), { mergeKey: `${id}.${key}` });
+      // "options#2": the third line of a field, "rows#1.2": a cell of it; "!" counts empty lines too.
+      const [, key, mark, line, cell] = /^(\w+)(?:([#!])(\d+)(?:\.(\d+))?)?$/.exec(target.slice(cut + 1)) ?? [];
+      if (!key) return;
+      // An emptied line would vanish under the cursor and the next one slide in: it goes when editing ends.
+      emptied.current = mark && !cell && !value.trim() ? target : null;
+      if (emptied.current) return;
+      const next = mark ? setPart(str(ops.blocksOf(d, [id])[0]?.props[key]), Number(line), value, cell === undefined ? undefined : Number(cell), mark === '!') : value;
+      commit(ops.updateBlock(d, id, { props: { [key]: next } }), { mergeKey: `${id}.${target.slice(cut + 1)}` });
     },
-    done: () => setInline(null),
+    done: () => {
+      const target = emptied.current;
+      emptied.current = null;
+      if (target) {
+        const cut = target.lastIndexOf(':');
+        const [, key, mark, line] = /^(\w+)([#!])(\d+)$/.exec(target.slice(cut + 1)) ?? [];
+        const id = target.slice(0, cut);
+        const d = latest.current.doc;
+        if (key) commit(ops.updateBlock(d, id, { props: { [key]: setPart(str(ops.blocksOf(d, [id])[0]?.props[key]), Number(line), '', undefined, mark === '!') } }));
+      }
+      setInline(null);
+    },
   };
 
   // — Files: save the worksheet with its images as one file, and open such a file again. —
@@ -572,7 +592,7 @@ export function Editor({
       } else if (e.key === '?' && !mod) {
         e.preventDefault();
         setKeysOpen(true);
-      } else if (e.key === 'Enter' && !mod && editing && block && onCanvas) {
+      } else if (e.key === 'Enter' && !mod && !e.defaultPrevented && editing && block && onCanvas) {
         const target = document.querySelector(`[data-block-id="${block}"] [data-edit]`)?.getAttribute('data-edit');
         if (target) {
           e.preventDefault();

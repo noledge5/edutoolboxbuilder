@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cellRows, choices, flowSteps, lines, matchNumbers, segments } from './text';
+import { cellRows, choices, flowSteps, lines, matchNumbers, segments, setPart } from './text';
 
 describe('text helpers', () => {
   it('splits one-per-line fields and skips empty lines', () => {
@@ -42,5 +42,19 @@ describe('text helpers', () => {
       { title: 'Sonne', sub: 'kurzwellig' },
       { title: 'Erde', sub: '' },
     ]);
+  });
+});
+
+describe('setPart (editing on the page)', () => {
+  it('changes the n-th non-empty line, and removes it when emptied', () => {
+    expect(setPart('A\n\nB\nC', 1, 'b')).toBe('A\n\nb\nC');
+    expect(setPart('A\nB\nC', 1, '')).toBe('A\nC');
+  });
+  it('changes a cell, adding cells as needed', () => {
+    expect(setPart('Ursache | alt\nFolge', 1, 'neu', 1)).toBe('Ursache | alt\nFolge | neu');
+    expect(setPart('a | b', 0, 'x|y', 0)).toBe('x/y | b');
+  });
+  it('counts empty lines with raw (table solutions)', () => {
+    expect(setPart('1 | 2\n', 2, '5', 1, true)).toBe('1 | 2\n\n | 5');
   });
 });
