@@ -56,7 +56,7 @@ export function PropertiesPanel({ api, open, compact, onClose }: PanelProps) {
           <div className="panel-title">Eigenschaften</div>
           <p className="panel-help">Wähle ein Element auf der Seite aus, um Inhalt und Breite zu ändern. Ein Klick auf den Kopf der Seite öffnet Titel, Blatt-Typ und Fußzeile.</p>
           <p className="panel-help">Texte lassen sich auch direkt auf der Seite ändern: Doppelklick, oder ein ausgewähltes Element noch einmal antippen.</p>
-          <p className="panel-help">Entf löscht das ausgewählte Element, Esc hebt die Auswahl auf. ⌘D dupliziert, Pfeiltasten wählen das nächste Element, Alt+Pfeiltasten verschieben es.</p>
+          <p className="panel-help">Entf löscht das ausgewählte Element, Esc hebt die Auswahl auf. ⌘D dupliziert, Pfeiltasten wählen das nächste Element, Alt+Pfeiltasten verschieben es, ↵ bearbeitet den Text auf der Seite, 1/2/3 setzt das Niveau. Alle Tastenkürzel: ?</p>
           <p className="panel-help">
             Mehrere Bausteine: ⌘-Klick oder ⇧-Klick, ⌘A wählt alle; auf dem iPad „Mehrere auswählen“ an einem Baustein. ⌘C legt sie in die Ablage (in der Toolbox), ⌘V fügt sie hinter der Auswahl ein,
             auch in einer anderen Stunde.
