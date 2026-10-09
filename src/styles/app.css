@@ -352,6 +352,14 @@ span.check-ref { cursor: default; }
 .check-fix { display: flex; gap: 10px; align-items: center; justify-content: space-between; font-style: italic; }
 .check-fix .btn { flex: none; font-style: normal; }
 .check-ok { margin: 8px 0; }
+.full-steps { margin: 8px 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.full-steps li { display: flex; gap: 10px; align-items: flex-start; }
+.full-steps li.is-wait { opacity: 0.5; }
+.full-steps li.is-run svg { animation: ai-spin 1s linear infinite; }
+.full-steps li.is-done svg { color: var(--color-accent); }
+.full-steps li.is-fail { color: var(--color-accent-700); }
+.full-steps small { opacity: 0.75; }
+.full-result details { margin: 8px 0; }
 .keys-list { margin: 0; display: grid; gap: 6px; }
 .keys-list > div { display: grid; grid-template-columns: 9.5em 1fr; gap: 12px; align-items: baseline; }
 .keys-list dd { margin: 0; }
