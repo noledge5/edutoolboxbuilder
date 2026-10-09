@@ -49,13 +49,12 @@ Browser tool for a German Realschule teacher to build printable A4 worksheets fr
 - Visual check: build, run `npx vite preview`, and drive it with Playwright (Chromium at `/opt/pw-browsers` in the cloud environment). Check print output with `page.pdf({ preferCSSPageSize: true, printBackground: true })`.
 
 ## How we work (every session)
-Claude acts as a team of fast developers; the user reviews and decides. For anything larger than a one-line fix, follow the skill `aufgabe` (`.claude/skills/aufgabe/SKILL.md`):
+Claude acts as a team of fast developers; the user reviews and decides. Tokens cost the user money: no parallel subagents or workflows unless the user asks. For anything larger than a one-line fix, follow the skill `aufgabe` (`.claude/skills/aufgabe/SKILL.md`):
 1. Plan first: files, scope, checkable success criteria. Ask only about decisions that are the user's, with a recommendation.
 2. One task, one branch (the session's branch, else `claude/<thema>` from `main`); never commit to `main`.
-3. Parallel: independent parts go to subagents (worktrees when they edit files); don't wait on a spinner.
-4. Tests first for pure logic; then `npm run typecheck`, `npm test`, `npm run build`, and Playwright screenshots/PDF for anything visible.
-5. Adversarial review with the `reviewer` agent (`.claude/agents/reviewer.md`) before pushing; fix what traces to a real failure.
-6. Memory: user decisions go into `docs/roadmap.md`, new structure and conventions into this file, so they are never asked twice. This file is a living basis, not a fixed text: whenever the project needs it (a new area, a rule learned the hard way, a recurring correction from the user, a step that keeps being explained), add or change it here in the same commit as the work, and remove what is no longer true. Keep it short enough to read at the start of every session. A process explained twice becomes a skill in `.claude/skills/`, a check that can be automated becomes a hook.
-7. Commit, push, and report in plain words what changed and how it was checked. Pull requests only when asked.
+3. Tests first for pure logic; then `npm run typecheck`, `npm test`, `npm run build`, and Playwright screenshots/PDF for anything visible.
+4. Adversarial review with the `reviewer` agent (`.claude/agents/reviewer.md`) before pushing; fix what traces to a real failure.
+5. Memory: user decisions go into `docs/roadmap.md`, new structure and conventions into this file, so they are never asked twice. This file is a living basis, not a fixed text: whenever the project needs it (a new area, a rule learned the hard way, a recurring correction from the user, a step that keeps being explained), add or change it here in the same commit as the work, and remove what is no longer true. Keep it short enough to read at the start of every session. When Claude notices something repeating, it suggests a skill, integration or automatic check in one line; the user decides, nothing is built unasked.
+6. Commit, push, and report in plain words what changed and how it was checked. Pull requests only when asked.
 
 Hooks in `.claude/settings.json` install dependencies at session start, typecheck after every edit of a `.ts`/`.tsx` file and run the tests before a turn ends with uncommitted changes.
