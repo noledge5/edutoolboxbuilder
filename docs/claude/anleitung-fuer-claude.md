@@ -548,11 +548,12 @@ Zwischenüberschrift auf der Seite. Standardbreite: 12.
 
 #### `text` · Textblock
 
-Kurzer Informations- oder Materialtext. Standardbreite: 12.
+Kurzer Informations- oder Materialtext. Als Material, auf das Aufgaben verweisen: `"material": "ja"` (wird M1, M2 …). Standardbreite: 12.
 
 | Feld | Bedeutung | Werte | Standard |
 |---|---|---|---|
 | `text` | Text | Text, mehrzeilig | `"Hier steht ein kurzer Informationstext für die Klasse."` |
+| `material` | Als Material nummerieren (M1, M2 …), damit Aufgaben darauf verweisen | `"ja"` (Ja), `"nein"` (Nein) | `"nein"` |
 
 #### `hint` · Hinweis-Box
 
@@ -563,6 +564,7 @@ Kasten mit Titel für Tipps, Sicherheitshinweise oder Einschränkungen. Standard
 | `title` | Titel | Text | `"Wichtiger Hinweis"` |
 | `text` | Text | Text, mehrzeilig | `"Kurzer Hinweis oder Tipp."` |
 | `variant` | Farbe | `"accent-2"` (grün), `"accent"` (orange), `"neutral"` (grau) | `"accent-2"` |
+| `material` | Als Material nummerieren (M1, M2 …), damit Aufgaben darauf verweisen | `"ja"` (Ja), `"nein"` (Nein) | `"nein"` |
 
 #### `merksatz` · Merksatz
 
@@ -589,22 +591,41 @@ Programmcode mit Zeilennummern (Informatik), z. B. Python zum Lesen und Nachvoll
 |---|---|---|---|
 | `code` | Code (je Zeile eine Programmzeile; Einrückung mit Leerzeichen) | Text, mehrzeilig | `"summe = 0\nfor i in range(1, 6):\n    summe = summe + i\nprint(sum…"` |
 | `language` | Hervorheben | `"python"` (Python), `"plain"` (Ohne) | `"python"` |
+| `material` | Als Material nummerieren (M1, M2 …), damit Aufgaben darauf verweisen | `"ja"` (Ja), `"nein"` (Nein) | `"nein"` |
 
 ### Grafik & Abbildung
 
 #### `image` · Abbildung
 
-Platz für ein Bild mit Bildunterschrift; in `search` englische Suchwörter für die Bildsuche der Lehrkraft (Openverse, Wikimedia Commons), die Quelle trägt der Baukasten ein. Standardbreite: 6.
+Platz für ein Bild mit Bildunterschrift (ohne „Abb. 1“: das Bild ist Material und bekommt M1, M2 …); in `search` englische Suchwörter für die Bildsuche der Lehrkraft (Openverse, Wikimedia Commons), die Quelle trägt der Baukasten ein. Standardbreite: 6.
 
 | Feld | Bedeutung | Werte | Standard |
 |---|---|---|---|
 | `image` | Bild | Bild-ID aus `images` | – |
-| `caption` | Bildunterschrift | Text | `"Abb. 1: Bildunterschrift"` |
+| `caption` | Bildunterschrift | Text | `"Bildunterschrift"` |
 | `source` | Quelle | Text | – |
 | `search` | Suchwörter für die Bildsuche (englisch findet mehr) | Text | – |
 | `describe` | Bildbeschreibung für „Mit KI erzeugen“ | Text, mehrzeilig | – |
 | `height` | Höhe in px | Zahl 40–900 | `200` |
 | `fit` | Bild einpassen | `"cover"` (Füllen), `"contain"` (Ganz zeigen) | `"cover"` |
+| `material` | Als Material nummerieren (M1, M2 …), damit Aufgaben darauf verweisen | `"ja"` (Ja), `"nein"` (Nein) | `"ja"` |
+
+#### `chart` · Diagramm
+
+Diagramm aus Zahlen (Material M1, M2 …): Klimadiagramm (12 Zeilen Monat | °C | mm; Jahresmittel und -summe rechnet der Baukasten), Säulen, Balken (lange Beschriftungen), Linien (Entwicklung über Zeit), Kreis (Anteile) oder Tabelle. Echte, gerundete Werte mit Quelle; bei mehreren Datenreihen je Reihe ein Spaltenkopf mit Einheit. `values` `"nein"`, wenn die Klasse Werte ablesen soll. Standardbreite: 12.
+
+| Feld | Bedeutung | Werte | Standard |
+|---|---|---|---|
+| `preset` | Vorlage | keine Eigenschaft: Vorlagen „Klimadiagramm Freiburg“, „Weltbevölkerung (Linien)“, „Flächennutzung Deutschland (Kreis)“ | – |
+| `kind` | Art | `"klima"` (Klimadiagramm), `"saeulen"` (Säulen), `"balken"` (Balken), `"linie"` (Linien), `"kreis"` (Kreis), `"tabelle"` (Tabelle) | `"klima"` |
+| `title` | Überschrift (Klimadiagramm: Ort) | Text | `"Freiburg im Breisgau"` |
+| `sub` | Zusatz (Klimadiagramm: Lage und Höhe, z. B. 48° N, 8° O · 237 m) | Text | `"48° N, 8° O · 237 m"` |
+| `cols` | Spaltenköpfe (einer je Zeile: erst die Beschriftung, dann je Datenreihe Name mit Einheit) | Text, mehrzeilig | `"Monat\nTemperatur (°C)\nNiederschlag (mm)"` |
+| `rows` | Werte (je Zeile: Beschriftung \| Wert \| Wert …; Klimadiagramm: Monat \| °C \| mm) | Text, mehrzeilig | `"Jan \| 3,0 \| 61\nFeb \| 3,9 \| 55\nMär \| 7,7 \| 60\nApr \| 11,4 \| 62\nM…"` |
+| `source` | Quelle | Text | `"Beispielwerte, gerundet – vor dem Druck mit DWD-Werten prüfen"` |
+| `values` | Zahlen an Säulen, Punkte und Stücke schreiben | `"nein"` (Nein (Schüler lesen ab)), `"ja"` (Ja) | `"nein"` |
+| `height` | Höhe in px | Zahl 120–600 | `230` |
+| `material` | Als Material nummerieren (M1, M2 …), damit Aufgaben darauf verweisen | `"ja"` (Ja), `"nein"` (Nein) | `"ja"` |
 
 #### `flow` · Fließschema
 
@@ -613,15 +634,18 @@ Fließschema: Stationen nebeneinander, mit Pfeilen verbunden (bis etwa 5 Schritt
 | Feld | Bedeutung | Werte | Standard |
 |---|---|---|---|
 | `steps` | Schritte (Titel \| Zusatz, eine Zeile je Schritt) | Text, mehrzeilig | `"Schritt 1 \| Zusatz\nSchritt 2\nSchritt 3"` |
+| `material` | Als Material nummerieren (M1, M2 …), damit Aufgaben darauf verweisen | `"ja"` (Ja), `"nein"` (Nein) | `"nein"` |
 
 #### `qr` · QR-Code
 
-QR-Code zu einem Link (Video, Simulation, Karte). Standardbreite: 4.
+QR-Code zu einem Link (Video, Simulation, Karte). Für ein Video, dessen Adresse du nicht sicher kennst: `url` leer lassen und in `search` Thema und Suchwörter schreiben (z. B. „Treibhauseffekt einfach erklärt planet schule“); die Lehrkraft sucht damit und trägt den Link ein. In `caption`, was das Video zeigt und wie lang es etwa sein soll. Standardbreite: 4.
 
 | Feld | Bedeutung | Werte | Standard |
 |---|---|---|---|
 | `url` | Link (Adresse) | Text | `"https://"` |
 | `caption` | Beschriftung | Text | `"Scanne den Code."` |
+| `search` | Video suchen mit (Thema und Suchwörter) | Text (Suchwörter, kein Link) | – |
+| `material` | Als Material nummerieren (M1, M2 …), damit Aufgaben darauf verweisen | `"ja"` (Ja), `"nein"` (Nein) | `"ja"` |
 
 ### Aufgaben
 
@@ -871,7 +895,7 @@ Hörverstehen: Phase (pre/while/post), Track im Lehrwerk, QR-Code zur Audiodatei
 
 #### `reading` · Lesetext
 
-Lesetext mit automatischen Zeilennummern und Worterklärungen als Fußnote (mit Zeilenangabe). Standardbreite: 12.
+Lesetext mit automatischen Zeilennummern und Worterklärungen als Fußnote (mit Zeilenangabe). Ist Material (M1, M2 …): auch für Sachtexte in allen Fächern, auf die Aufgaben mit Zeilen verweisen („M1, Z. 4–9“). Standardbreite: 12.
 
 | Feld | Bedeutung | Werte | Standard |
 |---|---|---|---|
@@ -879,6 +903,7 @@ Lesetext mit automatischen Zeilennummern und Worterklärungen als Fußnote (mit 
 | `text` | Text (Absätze ohne Leerzeile) | Text, mehrzeilig | `"Hi, I’m Emma and I’m eleven. Today is my first day at Hillside Sch…"` |
 | `glossary` | Worterklärungen (je Zeile: Wort \| Erklärung; die Zeile im Text wird ergänzt) | Text, mehrzeilig | `"nervous \| aufgeregt, nervös\ngate \| Tor\ncanteen \| Kantine, Mensa"` |
 | `numbers` | Zeilennummern alle … Zeilen (0 = keine) | Zahl 0–10 | `5` |
+| `material` | Als Material nummerieren (M1, M2 …), damit Aufgaben darauf verweisen | `"ja"` (Ja), `"nein"` (Nein) | `"ja"` |
 
 #### `truefalse` · Richtig / Falsch (Aufgabe, wird nummeriert)
 
