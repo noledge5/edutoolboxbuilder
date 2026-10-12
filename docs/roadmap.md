@@ -19,6 +19,7 @@
 | Englisch | Sprache pro Modul (`lang`): englische Beschriftungen auf den Schülerblättern, Lehrkraft-Seiten bleiben deutsch. Deutsche Hilfe unter englischen Aufträgen, pro Modul abschaltbar. Eigene Blatt-Typen (Wortschatz, Grammatik, Hören, Sprechen, Test) mit zusätzlichen Farbverläufen in der Tonalität des Design-Systems. Lautschrift in Noto Sans, weil Figtree die IPA-Zeichen nicht hat. |
 | Jahresplan | Schuljahr mit Ferien in den Einstellungen (BW 2026/27 laut Kultusministerium als Vorschlag). Module haben Dauer in Schulwochen und optional einen Beginn; sie folgen in der Reihenfolge ihrer Nummer, Ferienwochen (ab 3 freien Tagen) werden übersprungen. Stundenpakete ab Version 2 enthalten mehrere Module und optional das Schuljahr. |
 | Handoff-Format | „Stundenpaket“ (`arbeitsblatt-baukasten-paket`, Version 1): ein Modul mit Kompetenzen und Stunden, die Seiten im selben Format wie ein Arbeitsblatt. Der Import repariert, was geht, und zählt auf, was er geändert hat. Die Anleitung für Claude entsteht aus `src/claude/anleitung.md` plus Bausteinliste, Symbolen und Beispiel aus dem Code. |
+| Arbeitsweise | Gemeinsame Regeln aus `noledge5/based` (12.10.2026): Abschnitt „How we work“ in der CLAUDE.md, die Skills, Reviewer und Hooks in `.claude/`; `ponytail` als kopierter Skill statt als Plugin. Abweichungen für dieses Repo in der CLAUDE.md unter „How we work here“: Skill `aufgabe` als Ablauf, `main` nur auf Wunsch, Entscheidungen hier im Log. |
 
 ## Endziele bis Sommer 2027 (festgelegt am 01.10.2026)
 

@@ -15,7 +15,8 @@ You review a change to the Arbeitsblatt-Baukasten as a sceptical senior develope
    - Colours through CSS variables from `tokens.css`, no raw hex; sheet layer (`src/sheet/`) vs. editor chrome fonts kept apart.
    - Works with touch on the iPad and in print; nothing device-only (`geraet:*`, trash, versions) leaks into backups or sync.
    - Secrets/keys never logged, sent elsewhere or put in backups; student names never go to the AI.
+   - Input from outside (imported files, packages, Claude's answers, pasted text) is checked where it enters.
 3. Look for logic bugs: edge cases (empty pages, planned lessons without blocks, old data), races in sync, missing awaits, stale state.
 4. Run `npm run typecheck` and `npm test`. If the change is visual, say which screen should be checked with Playwright.
 
-Report a short list, most severe first. For each: file:line, what goes wrong, a concrete scenario, the fix. Leave out style preferences and anything you could not trace to a real failure. If nothing survives, say "Keine Befunde".
+Report a short list, most severe first. For each: file:line, what goes wrong, a concrete scenario, the fix. Leave out style preferences and anything you could not trace to a real failure; needless code is `/ponytail-review`'s job, not yours. If nothing survives, say "Keine Befunde".
