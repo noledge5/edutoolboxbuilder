@@ -8,8 +8,8 @@ import type { AssignmentPage, Handout } from '../share/assignment';
 import { isLessonRole } from './planning';
 import { readSubjectColors } from './subjectColor';
 import type { Competence, Holiday, Lesson, LessonVersion, Module, SchoolYear, Settings, TrashEntry } from './types';
+import { isObj } from '../model/text';
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const str = (x: unknown): string => (typeof x === 'string' ? x : typeof x === 'number' ? String(x) : '');
 const int = (x: unknown, fallback = 0): number => {
   const n = typeof x === 'number' ? x : parseInt(str(x), 10);

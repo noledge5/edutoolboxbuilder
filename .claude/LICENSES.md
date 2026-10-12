@@ -1,6 +1,6 @@
 # Lizenz der Skills aus noledge5/based
 
-Die Skills in `.claude/skills` stammen aus mattpocock/skills (MIT, Copyright (c) 2026 Matt Pocock; Lizenztext unten). Die `ponytail`-Skills stammen aus DietrichGebert/ponytail (MIT); deren Lizenz liegt in `.claude/skills/ponytail/LICENSE`.
+Die Skills in `.claude/skills` (außer `aufgabe`) stammen aus mattpocock/skills (MIT, Copyright (c) 2026 Matt Pocock; Lizenztext unten). Die `ponytail`-Skills stammen aus DietrichGebert/ponytail (MIT); deren Lizenz liegt in `.claude/skills/ponytail/LICENSE`.
 
 ```
 MIT License

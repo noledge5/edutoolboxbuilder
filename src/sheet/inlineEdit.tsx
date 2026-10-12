@@ -1,6 +1,7 @@
 // Editing text right on the page. The editor provides the context; without it (e.g. print) text is plain.
-// A target names one text field: "<blockId>:<prop>" for blocks, "page<p>:<field>" for the header band.
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, type ElementType, type ReactNode } from 'react';
+// A target names one text field: "<blockId>:<prop>" for blocks, "page<p>:<field>" for the header band; a line of a
+// multi-line field is "<blockId>:<prop>#<n>", a cell of it "#<n>.<c>" ("!" instead of "#" counts empty lines too).
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ElementType, type ReactNode } from 'react';
 import { typo, useSheetLang } from './lang';
 
 export interface InlineEdit {
@@ -49,8 +50,10 @@ interface InlineInputProps {
   onDone(): void;
 }
 
-function InlineInput({ value, lang, multiline, onChange, onDone }: InlineInputProps) {
+function InlineInput({ value: initial, lang, multiline, onChange, onDone }: InlineInputProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
+  // Its own text while typing: a line or cell is stored trimmed, which would eat a space just typed.
+  const [value, setValue] = useState(initial);
   // Grow with the text so the page layout moves exactly as it will when printed.
   useLayoutEffect(() => {
     const el = ref.current;
@@ -75,7 +78,11 @@ function InlineInput({ value, lang, multiline, onChange, onDone }: InlineInputPr
       lang={lang}
       spellCheck
       value={value}
-      onChange={(e) => onChange(multiline ? e.target.value : e.target.value.replace(/\n/g, ' '))}
+      onChange={(e) => {
+        const v = multiline ? e.target.value : e.target.value.replace(/\n/g, ' ');
+        setValue(v);
+        onChange(v);
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Escape' || (!multiline && e.key === 'Enter')) {
           e.preventDefault();

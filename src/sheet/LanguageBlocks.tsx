@@ -8,7 +8,7 @@ import { lines, num, rows, str } from '../model/text';
 import type { Block, Variant } from '../model/types';
 import { Editable } from './inlineEdit';
 import { typo, useSheetDoc, useSheetLang, useSheetText } from './lang';
-import { answerClass, GapText, ImageBox, Marked, qrCode, variantProps } from './parts';
+import { answerClass, GapText, ImageBox, Marked, qrCode, QrSvg, variantProps } from './parts';
 import { SheetModeContext } from './sheetMode';
 import { useImageUrl } from '../storage/images';
 
@@ -482,9 +482,7 @@ function Listening({ block, target: t, editing }: { block: Block; target(key: st
           <Editable className="ws-listen-note" target={t('note')} value={str(p.note)} multiline />
         </div>
         {qr && qr !== 'error' && (
-          <svg className="ws-listen-qr" viewBox={`0 0 ${qr.size} ${qr.size}`} shapeRendering="crispEdges" role="img" aria-label={`QR-Code: ${link}`}>
-            <path d={qr.d} fill="currentColor" />
-          </svg>
+          <QrSvg qr={qr} label={`QR-Code: ${link}`} className="ws-listen-qr" />
         )}
         {qr === 'error' && editing && (
           <span className="ws-qr-empty" data-noprint="1">

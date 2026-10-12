@@ -7,14 +7,15 @@ import { SegField } from '../editor/fields';
 import { Icon } from '../icons';
 import type { Competence, Lesson, Module } from '../library/types';
 import { sheetNumbers } from '../model/ops';
-import type { Doc, Page } from '../model/types';
+import type { Doc } from '../model/types';
+import type { Slide } from '../model/slides';
 import { BlockContent } from '../sheet/BlockContent';
 import { CompetenceNamesContext } from '../sheet/competences';
 import { PAGE_H, PAGE_W, SheetPage, taskNumbers } from '../sheet/SheetPage';
 import { SheetModeContext, type SheetMode } from '../sheet/sheetMode';
 import { AiSettingsDialog } from './AiSettingsDialog';
 import { ClassNotesLine } from './ClassNotesDialog';
-import { isTeacherPage, LESSON_TOKENS, lessonFromAnswer, lessonPrompt, lessonSystem, type LessonDraft, type LessonMode } from './lesson';
+import { isTeacherPage, LESSON_TOKENS, lessonFromAnswer, lessonPrompt, lessonSystem, type LessonDraft, type LessonMode, hasBlocks } from './lesson';
 import { dollars } from './prices';
 import { modelLabel } from './settings';
 import { AiBusy, ChatPath, useAiJob } from './parts';
@@ -34,6 +35,10 @@ export interface LessonAi {
   notes(): string;
   /** Gives a lesson that has no name yet ("Neue Stunde") the title of what was brought in. */
   rename?(title: string): void;
+  /** The slides the Baukasten suggests for a worksheet (the ticked ones). */
+  suggestSlides(doc: Doc): Slide[];
+  /** Replaces the lesson's slides (the old ones kept as an earlier version). */
+  setSlides(slides: Slide[]): void;
 }
 
 interface LessonAiDialogProps {
@@ -60,7 +65,6 @@ const MODE_TEXT: Record<LessonMode, string> = {
 const SHOWN: SheetMode = { solutions: 'shown', bw: false };
 const THUMB = 0.3;
 
-const hasBlocks = (p: Page) => p.blocks.length > 0;
 
 /** A page as on the sheet, scaled down (read-only). */
 export function PagePreview({ doc, p, scale }: { doc: Doc; p: number; scale: number }) {

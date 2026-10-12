@@ -10,14 +10,24 @@ export const SERVER = {
 /** Days the server keeps results. */
 export const KEEP_DAYS = 14;
 
-async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T> {
-  const res = await fetch(`${SERVER.url}/rest/v1/rpc/${name}`, {
-    method: 'POST',
-    headers: { apikey: SERVER.key, 'Content-Type': 'application/json' },
-    body: JSON.stringify(args),
-  });
-  if (!res.ok) throw new Error(`Server: ${res.status}`);
+/** Calls a server function; network trouble throws TypeError('offline'), a refusal a German message. */
+export async function rpc<T>(name: string, args: Record<string, unknown>, signal?: AbortSignal): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`${SERVER.url}/rest/v1/rpc/${name}`, {
+      method: 'POST',
+      headers: { apikey: SERVER.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify(args),
+      signal,
+    });
+  } catch {
+    throw new TypeError('offline');
+  }
   const text = await res.text();
+  if (!res.ok) {
+    const msg = /"message"\s*:\s*"([^"]*)"/.exec(text)?.[1] ?? String(res.status);
+    throw new Error(msg === 'voll' ? 'Der Speicher für den Abgleich ist voll.' : msg === 'zugang' ? 'Der Server kennt diesen Code anders. Koppel die Geräte neu.' : `Der Server antwortet nicht wie erwartet (${msg}).`);
+  }
   return (text ? JSON.parse(text) : null) as T;
 }
 

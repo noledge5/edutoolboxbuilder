@@ -1,7 +1,7 @@
 // What Claude is told about a lesson's place in the school year: subject, grade and module with its competences, the
 // school week (and holidays around it), the lessons before (what they did) and after (what they are to do).
 import { BLOCK_TYPES, HOOK_KINDS } from '../model/blockTypes';
-import { rows, str } from '../model/text';
+import { rows, str, flat, clip } from '../model/text';
 import type { Doc } from '../model/types';
 import { isWorkedOut, lessonsOf } from '../library/model';
 import type { Lesson, Library, Module } from '../library/types';
@@ -9,8 +9,6 @@ import { roleLabel } from '../library/planning';
 import { addDays, dayText, planModules, schoolWeeks, type PlanWeek } from '../library/yearplan';
 import { classNotes } from './classNotes';
 
-const flat = (s: string) => s.replace(/\s+/g, ' ').trim();
-const clip = (s: string, n = 160) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
 
 /** The week a lesson falls in, from the year plan: its module's school weeks shared out among its lessons. */
 export function lessonWeek(lib: Library, m: Module, l: Lesson): { week: PlanWeek; before: string; after: string } | null {

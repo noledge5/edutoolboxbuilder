@@ -6,6 +6,7 @@ import { uid } from './ops';
 import { THEMES, VARIANTS, WORK_FORMS } from './themes';
 import { DEFAULT_TOPIC_ICON, isTopicIcon } from '../topicIcons';
 import type { Block, BlockProps, Doc, NameField, Page, SheetType, WorkForm } from './types';
+import { isObj } from './text';
 
 const NAME_FIELDS: NameField[] = ['name', 'namen', 'klasse', 'aus'];
 
@@ -17,7 +18,6 @@ function normalizeNameField(x: unknown): NameField {
 
 export class DocFormatError extends Error {}
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const asStr = (x: unknown, fallback: string): string => (typeof x === 'string' ? x : typeof x === 'number' ? String(x) : fallback);
 
 function normalizeProps(type: Block['type'], raw: unknown): BlockProps {

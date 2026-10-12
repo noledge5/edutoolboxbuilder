@@ -15,12 +15,12 @@ export async function newKeyPair(): Promise<KeyPair> {
   return { publicKey: await crypto.subtle.exportKey('jwk', k.publicKey), privateKey: await crypto.subtle.exportKey('jwk', k.privateKey) };
 }
 
-const toB64 = (bytes: Uint8Array) => {
+export const toB64 = (bytes: Uint8Array) => {
   let s = '';
   for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(s);
 };
-const fromB64 = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+export const fromB64 = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 
 const aesKey = (priv: CryptoKey, pub: CryptoKey) => crypto.subtle.deriveKey({ name: 'ECDH', public: pub }, priv, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
 

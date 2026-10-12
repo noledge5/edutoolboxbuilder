@@ -76,6 +76,17 @@ export function qrPath(data: boolean[][]): string {
   return d;
 }
 
+/** A QR code drawn as SVG; `frame` adds a white quiet zone (for dark backgrounds). */
+export function QrSvg({ qr, label, className, frame }: { qr: { size: number; d: string }; label: string; className?: string; frame?: boolean }) {
+  const m = frame ? 2 : 0;
+  return (
+    <svg className={className} viewBox={`${-m} ${-m} ${qr.size + 2 * m} ${qr.size + 2 * m}`} shapeRendering="crispEdges" role="img" aria-label={label}>
+      {frame && <rect x={-m} y={-m} width={qr.size + 2 * m} height={qr.size + 2 * m} fill="white" />}
+      <path d={qr.d} fill={frame ? 'black' : 'currentColor'} />
+    </svg>
+  );
+}
+
 /** A QR code for a link, or null when there is none (or it is too long). */
 export function qrCode(link: string): { size: number; d: string } | null | 'error' {
   if (!link || link === 'https://') return null;

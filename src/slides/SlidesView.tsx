@@ -85,6 +85,8 @@ import { SlideStage } from './SlideStage';
 import { SLIDE_H, SLIDE_W, SlideBox, type SlideContext } from './SlideView';
 import { videoInfo } from './elements';
 import type { Doc } from '../model/types';
+import { SlidesAiDialog } from '../ai/SlidesAiDialog';
+import type { SlidesAiContext } from '../ai/slides';
 
 interface SlidesViewProps {
   slides: Slide[];
@@ -110,6 +112,8 @@ interface SlidesViewProps {
   /** Start presenting right away (from a "Präsentieren" in the module or the worksheet). */
   present?: boolean;
   onPresentStarted?(): void;
+  /** Context for "Folien mit Claude"; absent where there is no module. */
+  ai?: () => SlidesAiContext;
 }
 
 const MAX_HISTORY = 60;
@@ -224,7 +228,8 @@ export function SlidesView(p: SlidesViewProps) {
     pick(at);
     setImported(null);
   };
-  const [searching, setSearching] = useState<'slide' | 'element' | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [searching, setSearching] = useState<'slide' | 'slide-ai' | 'element' | null>(null);
   const [selEl, setSelEl] = useState<string | null>(null);
   const [selPart, setSelPart] = useState<string | null>(null);
   const elText = useRef<HTMLTextAreaElement>(null);
@@ -483,7 +488,7 @@ export function SlidesView(p: SlidesViewProps) {
   useLayoutEffect(() => {
     const el = stage.current;
     if (!el) return;
-    const fit = () => setStageW(Math.max(240, Math.min(el.clientWidth - 48, ((el.clientHeight - 104) * SLIDE_W) / SLIDE_H)));
+    const fit = () => setStageW(Math.max(240, Math.min(el.clientWidth - 32, ((el.clientHeight - 80) * SLIDE_W) / SLIDE_H)));
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);
@@ -516,7 +521,7 @@ export function SlidesView(p: SlidesViewProps) {
   const revealLabel = slide && (REVEAL_LABEL[slide.layout] ?? (GAP_TITLE.includes(slide.layout) && hasGap(slide.title) ? 'Lücken beim Präsentieren' : ''));
   return (
     <div className="app sl-app">
-      <header className="topbar">
+      <header className="topbar topbar-ed">
         <button type="button" className="iconbtn topbar-back" onClick={p.onBack} title="Zum Modul" aria-label="Zum Modul">
           <Icon icon={ArrowLeft} size={18} />
         </button>
@@ -524,8 +529,8 @@ export function SlidesView(p: SlidesViewProps) {
           <Icon icon={topicIcon(p.ctx.icon)} size={20} />
         </div>
         <div className="topbar-name">
-          <div className="topbar-title">Folien</div>
-          <div className="topbar-place">{p.place}</div>
+          <div className="topbar-title" title={p.place}>{p.place.split(' · ').at(-1)}</div>
+          <div className="topbar-place">Folien · {p.place.split(' · ').slice(0, -1).join(' · ')}</div>
         </div>
         <SearchButton />
         <div className="seg sl-undo">
@@ -551,6 +556,7 @@ export function SlidesView(p: SlidesViewProps) {
             { label: 'Folie löschen', icon: Trash2, onClick: () => slides.length && remove() },
             { label: 'Alle Folien löschen …', icon: Trash2, onClick: removeAll },
             { label: 'Neu aus dem Arbeitsblatt vorschlagen …', icon: Sparkles, onClick: () => suggest() },
+            ...(p.ai ? [{ label: 'Mit Claude abwechslungsreicher …', icon: Sparkles, onClick: () => slides.length && setAiOpen(true) }] : []),
             { label: 'Aus dem Arbeitsblatt einfügen …', icon: FileText, onClick: () => suggest('pick') },
             { label: `Tafelbilder${p.boards.length ? ` · ${p.boards.length}` : ''} …`, icon: PenLine, onClick: () => setShowBoards(true) },
             { label: 'PowerPoint öffnen …', icon: FileUp, onClick: () => pptxInput.current?.click() },
@@ -865,7 +871,7 @@ export function SlidesView(p: SlidesViewProps) {
                     onPick={(vote) => set({ vote })}
                   />
                 )}
-                {(slide.layout === 'image' || slide.layout === 'task') && (
+                {(slide.layout === 'image' || slide.layout === 'full' || slide.layout === 'task') && (
                   <>
                     <ImageField
                       label="Bild"
@@ -873,8 +879,11 @@ export function SlidesView(p: SlidesViewProps) {
                       onFile={(file) => setPicture(slide.id, file)}
                       onRemove={() => set({ image: '', source: '' })}
                       onSearch={() => setSearching('slide')}
+                      onGenerate={() => setSearching('slide-ai')}
                     />
                     <TextField label="Quelle" value={slide.source} onChange={(source) => set({ source }, 'source')} />
+                    <TextField label="Suchwörter (englisch)" value={slide.search} onChange={(search) => set({ search }, 'search')} />
+                    <TextField label="Bildbeschreibung für KI" value={slide.describe} onChange={(describe) => set({ describe }, 'describe')} />
                   </>
                 )}
                 <p className="panel-note">
@@ -990,9 +999,24 @@ export function SlidesView(p: SlidesViewProps) {
           onClose={() => setImported(null)}
         />
       )}
+      {aiOpen && p.ai && (
+        <SlidesAiDialog
+          slides={slides}
+          doc={p.doc}
+          context={p.ai()}
+          onApply={(next) => {
+            setAiOpen(false);
+            commit(next);
+          }}
+          onClose={() => setAiOpen(false)}
+        />
+      )}
       {searching && slide && (
         <ImageSearchDialog
-          initialQuery={searching === 'element' && el?.text ? el.text : slide.title}
+          initialQuery={searching === 'element' && el?.text ? el.text : slide.search || slide.title}
+          describe={searching === 'element' ? undefined : slide.describe || undefined}
+          startAi={searching === 'slide-ai'}
+          aspect={slide.layout === 'full' ? '16:9' : undefined}
           onPick={(file, credit) => {
             setSearching(null);
             if (searching === 'element' && el) setElPicture(slide.id, el.id, file, credit);

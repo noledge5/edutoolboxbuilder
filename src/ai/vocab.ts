@@ -5,6 +5,7 @@ import { blockText } from '../library/search';
 import { createBlock, createPage } from '../model/ops';
 import { DocFormatError } from '../model/normalize';
 import type { Doc, Lang, Page } from '../model/types';
+import { isObj } from '../model/text';
 
 export interface VocabWord {
   en: string;
@@ -89,7 +90,6 @@ export function vocabPrompt(r: VocabRequest): string {
     .join('\n');
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const s = (x: unknown) => (typeof x === 'string' ? x.replace(/\s+/g, ' ').trim() : '');
 
 /** Reads Claude's answer: words without English or German are dropped, known words and repeats left out. */

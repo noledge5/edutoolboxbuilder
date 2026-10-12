@@ -15,6 +15,7 @@ import { defaultLang, footerFor, isWorkedOut, lessonCode, lessonsOf, modulesOf, 
 import { isLessonRole, LESSON_ROLES } from './planning';
 import { readDay, readSchoolYear } from './read';
 import { GRADES, type Competence, type Lesson, type LessonRole, type Library, type Module, type SchoolYear } from './types';
+import { isObj } from '../model/text';
 
 export const PACKAGE_FORMAT = 'arbeitsblatt-baukasten-paket';
 export const PACKAGE_VERSION = 2;
@@ -79,7 +80,6 @@ export interface ParsedPackage {
   notes: string[];
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const str = (x: unknown): string => (typeof x === 'string' ? x.trim() : typeof x === 'number' ? String(x) : '');
 const text = (x: unknown): string => (typeof x === 'string' ? x : Array.isArray(x) ? x.map(str).join('\n') : str(x));
 const posInt = (x: unknown): number => {

@@ -1,5 +1,12 @@
 import type { PropValue } from './types';
 
+export const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
+
+/** Whitespace folded to single spaces. */
+export const flat = (s: string) => s.replace(/\s+/g, ' ').trim();
+/** Shortened to `n` characters with an ellipsis. */
+export const clip = (s: string, n = 160) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
+
 export const str = (x: PropValue | undefined): string => (x == null ? '' : String(x));
 
 export const num = (x: PropValue | undefined, fallback: number): number => {
@@ -57,6 +64,31 @@ export const matchNumbers = (x: PropValue | undefined): number[] =>
 
 /** Lines split into `|` separated fields (for teacher blocks), empty lines skipped. */
 export const rows = (x: PropValue | undefined): string[][] => lines(x).map((l) => l.split('|').map((c) => c.trim()));
+
+/**
+ * One line or cell of a multi-line field changed, for editing right on the page. `line` counts the non-empty lines
+ * (as `lines` and `rows` do), or with `raw` every line (as `cellRows`); `cell` is the part between `|`. An emptied
+ * line goes away.
+ */
+export function setPart(text: string, line: number, value: string, cell?: number, raw = false): string {
+  const all = text.split('\n');
+  let i = raw ? line : -1;
+  if (!raw) for (let n = -1, k = 0; k < all.length && n < line; k++) if (all[k].trim() && ++n === line) i = k;
+  if (raw) while (all.length <= i) all.push('');
+  if (i < 0) return text;
+  const v = value.replace(/\n/g, ' ');
+  if (cell === undefined) {
+    if (v.trim()) all[i] = v;
+    else all.splice(i, 1);
+    return all.join('\n');
+  }
+  const cells = all[i].split('|').map((c) => c.trim());
+  while (cells.length <= cell) cells.push('');
+  cells[cell] = v.replace(/\|/g, '/').trim();
+  while (cells.length > 1 && !cells[cells.length - 1]) cells.pop();
+  all[i] = cells.join(' | ');
+  return all.join('\n');
+}
 
 export interface FlowStep {
   title: string;

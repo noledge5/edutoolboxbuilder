@@ -6,6 +6,7 @@ import { PACKAGE_FORMAT, PACKAGE_VERSION, readPackage } from '../library/package
 import type { Competence, Lesson, Module } from '../library/types';
 import { DocFormatError } from '../model/normalize';
 import type { Doc, Page } from '../model/types';
+import { isObj } from '../model/text';
 
 /**
  * full: teacher page and sheets in one go. scaffold: only the teacher page (goal, hook, course, expectations,
@@ -15,7 +16,7 @@ import type { Doc, Page } from '../model/types';
 export type LessonMode = 'full' | 'scaffold' | 'sheets' | 'revise';
 
 export const isTeacherPage = (p: Page) => p.type === 'lehrkraft';
-const hasBlocks = (p: Page) => p.blocks.length > 0;
+export const hasBlocks = (p: Page) => p.blocks.length > 0;
 
 /** Pages as in a Stundenpaket: blocks without ids. */
 const packagePages = (pages: Page[]) => pages.map((p) => ({ ...p, blocks: p.blocks.map(({ type, span, props }) => ({ type, span, props })) }));
@@ -77,7 +78,6 @@ export interface LessonDraft {
   notes: string[];
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
 /** The lesson object in Claude's answer: a package, a module with lessons, a lesson, or bare pages. */
 function lessonIn(raw: unknown, number: number): { lesson: Record<string, unknown>; competences: unknown[]; images: unknown } {

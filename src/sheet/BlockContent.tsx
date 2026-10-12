@@ -6,7 +6,7 @@ import { FLOW_COLORS } from '../model/themes';
 import { cellRows, choices, flowSteps, lines, matchNumbers, num, rows, str } from '../model/text';
 import type { Block, Variant } from '../model/types';
 import { Editable } from './inlineEdit';
-import { answerClass, GapText, ImageBox, Marked, qrCode, variantProps } from './parts';
+import { answerClass, GapText, ImageBox, Marked, qrCode, QrSvg, variantProps } from './parts';
 import { SheetModeContext, type SolutionView } from './sheetMode';
 import { CompetenceNamesContext } from './competences';
 import { BLOCK_TYPES, HOOK_KINDS, LEVEL_NAMES } from '../model/blockTypes';
@@ -98,9 +98,7 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
         <div className="ws-wordbank">
           <span className="ws-label">{txt.wordbank}</span>
           {lines(p.words).map((w, k) => (
-            <span key={k} className="ws-word">
-              {typo(w, lang)}
-            </span>
+            <Editable key={k} as="span" className="ws-word" target={t(`words#${k}`)} value={w} />
           ))}
         </div>
       );
@@ -197,8 +195,14 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
               <div key={k} className="ws-expect-row">
                 <span className={'ws-verdict ' + kind}>{verdict || 'Richtig'}</span>
                 <div>
-                  <div className="ws-expect-quote">{quote}</div>
-                  {text && <div className="ws-expect-text">{text}</div>}
+                  <Editable className="ws-expect-quote" target={t(`items#${k}.1`)} value={quote}>
+                    {quote}
+                  </Editable>
+                  {text && (
+                    <Editable className="ws-expect-text" target={t(`items#${k}.2`)} value={text}>
+                      {text}
+                    </Editable>
+                  )}
                 </div>
               </div>
             );
@@ -220,7 +224,9 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
           </div>
           {lines(p.items).map((item, k) => (
             <div key={k} className="ws-self-row">
-              <span className="ws-self-text">{item}</span>
+              <Editable as="span" className="ws-self-text" target={t(`items#${k}`)} value={item}>
+                {item}
+              </Editable>
               {[0, 1, 2].map((j) => (
                 <span key={j} className="ws-self-mark">
                   <span className="ws-check" />
@@ -238,10 +244,14 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
             const [bg, fg] = FLOW_COLORS[k % FLOW_COLORS.length];
             return [
               <div key={'s' + k} className={'ws-flow-step' + (doc?.look ? ` is-c${(k % 4) + 1}` : '')} style={doc?.look ? undefined : { background: bg }}>
-                <div className="ws-flow-title">{s.title}</div>
+                <Editable className="ws-flow-title" target={t(`steps#${k}.0`)} value={s.title}>
+                  {s.title}
+                </Editable>
                 {s.sub && (
                   <div className="ws-flow-sub" style={doc?.look ? undefined : { color: fg }}>
-                    {s.sub}
+                    <Editable as="span" target={t(`steps#${k}.1`)} value={s.sub}>
+                      {s.sub}
+                    </Editable>
                   </div>
                 )}
               </div>,
@@ -330,7 +340,9 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
           {choices(p.options).map((o, k) => (
             <div key={k} className="ws-option">
               <span className={'ws-check' + (answers && o.correct ? ' is-correct' + answerClass(solutions) : '')} />
-              {o.text}
+              <Editable as="span" target={target(`options#${k}`)} value={lines(p.options)[k]}>
+                {o.text}
+              </Editable>
             </div>
           ))}
         </div>
@@ -350,17 +362,21 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
           {cols.length > 0 && (
             <div className="ws-table-head" style={template}>
               {cols.map((c, k) => (
-                <div key={k}>{c}</div>
+                <Editable key={k} target={target(`cols#${k}`)} value={c}>
+                  {c}
+                </Editable>
               ))}
             </div>
           )}
           {lines(p.rows).map((r, k) => (
             <div key={k} className="ws-table-row" style={template}>
-              <div className="ws-table-label">{r}</div>
+              <Editable className="ws-table-label" target={target(`rows#${k}`)} value={r}>
+                {r}
+              </Editable>
               {cols.slice(1).map((_, j) => (
-                <div key={j} className="ws-table-cell">
+                <Editable key={j} className="ws-table-cell" target={target(`solution!${k}.${j}`)} value={sol[k]?.[j] ?? ''}>
                   {sol[k]?.[j] && <span className={'ws-answer' + answerClass(solutions)}>{sol[k][j]}</span>}
-                </div>
+                </Editable>
               ))}
             </div>
           ))}
@@ -368,7 +384,7 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
       );
     }
     case 'match':
-      return <MatchBody left={lines(p.left)} right={lines(p.right)} solution={answers ? matchNumbers(p.solution) : []} view={solutions} />;
+      return <MatchBody left={lines(p.left)} right={lines(p.right)} solution={answers ? matchNumbers(p.solution) : []} view={solutions} target={target} />;
     case 'draw':
       return <div className={'ws-draw is-' + (str(p.pattern) || 'leer')} style={{ height: num(p.height, 160) }} />;
     default:
@@ -377,7 +393,7 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
 }
 
 /** Matching task; on the solution sheet lines connect each right-hand item with its left-hand partner. */
-function MatchBody({ left: L, right: R, solution, view }: { left: string[]; right: string[]; solution: number[]; view: SolutionView }) {
+function MatchBody({ left: L, right: R, solution, view, target }: { left: string[]; right: string[]; solution: number[]; view: SolutionView; target(key: string): string }) {
   const box = useRef<HTMLDivElement>(null);
   const [paths, setPaths] = useState<string[]>([]);
   const key = L.join('\n') + '|' + R.join('\n') + '|' + solution.join();
@@ -414,7 +430,9 @@ function MatchBody({ left: L, right: R, solution, view }: { left: string[]; righ
         <div key={k} className="ws-match-row">
           {L[k] ? (
             <div className="ws-match-item">
-              <span>{L[k]}</span>
+              <Editable as="span" target={target(`left#${k}`)} value={L[k]}>
+                {L[k]}
+              </Editable>
               <span className="ws-dot" data-dot="l" />
             </div>
           ) : (
@@ -424,7 +442,9 @@ function MatchBody({ left: L, right: R, solution, view }: { left: string[]; righ
           {R[k] ? (
             <div className="ws-match-item is-right">
               <span className="ws-dot" data-dot="r" />
-              <span>{R[k]}</span>
+              <Editable as="span" target={target(`right#${k}`)} value={R[k]}>
+                {R[k]}
+              </Editable>
             </div>
           ) : (
             <div />
@@ -483,9 +503,7 @@ function QrBlock({ url, caption, editing, captionTarget }: { url: string; captio
     <div className="ws-qr">
       <div className="ws-qr-code">
         {qr && qr !== 'error' ? (
-          <svg viewBox={`0 0 ${qr.size} ${qr.size}`} shapeRendering="crispEdges" role="img" aria-label={`QR-Code: ${link}`}>
-            <path d={qr.d} fill="currentColor" />
-          </svg>
+          <QrSvg qr={qr} label={`QR-Code: ${link}`} />
         ) : (
           editing && (
             <span className="ws-qr-empty" data-noprint="1">

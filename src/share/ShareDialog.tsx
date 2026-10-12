@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Check, Copy, ExternalLink, Maximize2, QrCode, Send, X } from 'lucide-react';
 import { SegField } from '../editor/fields';
 import { Icon } from '../icons';
-import { qrCode } from '../sheet/parts';
+import { qrCode, QrSvg } from '../sheet/parts';
 import { toDataUrl } from '../storage/backup';
 import { getImage } from '../storage/db';
 import { loadGithub, saveGithub, type GithubSettings } from '../storage/library';
@@ -23,13 +23,7 @@ export function studentUrl(repo: string, id: string): string {
 /** A QR code as an SVG, sized by its box. */
 export function Qr({ link, className = '' }: { link: string; className?: string }) {
   const qr = qrCode(link);
-  if (!qr || qr === 'error') return null;
-  return (
-    <svg className={'share-qr ' + className} viewBox={`-2 -2 ${qr.size + 4} ${qr.size + 4}`} role="img" aria-label="QR-Code zum Auftrag">
-      <rect x="-2" y="-2" width={qr.size + 4} height={qr.size + 4} fill="white" />
-      <path d={qr.d} fill="black" />
-    </svg>
-  );
+  return qr && qr !== 'error' ? <QrSvg qr={qr} label="QR-Code zum Auftrag" className={'share-qr ' + className} frame /> : null;
 }
 
 /** Link and QR code of a handout, to copy or to show large on the projector. */

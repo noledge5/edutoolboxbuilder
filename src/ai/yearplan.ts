@@ -7,6 +7,7 @@ import { DocFormatError } from '../model/normalize';
 import { dayText, planModules, schoolWeekCount, schoolWeeks, type PlannedModule } from '../library/yearplan';
 import { roleLabel } from '../library/planning';
 import { classNotes } from './classNotes';
+import { isObj, flat } from '../model/text';
 
 export interface PlanWishes {
   /** Lessons per week. */
@@ -20,7 +21,6 @@ export interface PlanWishes {
   dates?: string;
 }
 
-const flat = (s: string) => s.replace(/\s+/g, ' ').trim();
 
 /** Subject, grade, school year with holidays and the modules already planned, as Markdown for Claude. */
 export function yearPlanContext(lib: Library, subject: string, grade: number, w: PlanWishes): string {
@@ -79,7 +79,6 @@ export function yearPlanPrompt(subject: string, grade: number, context: string, 
   return out.join('\n');
 }
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
 /**
  * Reads Claude's year plan for `subject` and grade `grade`: every module gets this subject and grade, lessons stay

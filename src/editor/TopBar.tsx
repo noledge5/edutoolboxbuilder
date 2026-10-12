@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, BarChart3, BookA, Blocks, Braces, ChevronDown, Download, Expand, Eye, FileText, FolderOpen, History, KeyRound, Minus, Play, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, BarChart3, BookA, Blocks, Braces, ChevronDown, Download, Expand, Eye, FileText, FolderOpen, History, KeyRound, Keyboard, ListChecks, Minus, Play, Plus, Presentation, Printer, Redo2, Send, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../icons';
 import { SearchButton } from '../library/SearchDialog';
 import type { Handout } from '../share/assignment';
@@ -41,6 +41,9 @@ interface TopBarProps {
   onDeleteSlides?(): void;
   /** Earlier versions of the lesson (in the library). */
   onVersions?(): void;
+  onCheckAi?(): void;
+  onFullAi?(): void;
+  onKeys?(): void;
   /** Hands out the whole worksheet digitally. */
   onShareAll?(): void;
   /** Works out the lesson with Claude. */
@@ -67,8 +70,9 @@ export function TopBar(p: TopBarProps) {
         <Icon icon={topicIcon(p.icon)} size={20} />
       </div>
       <div className="topbar-name">
-        <div className="topbar-title">Arbeitsblatt-Baukasten</div>
-        {p.place && <div className="topbar-place">{p.place}</div>}
+        {/* The lesson first ("Stunde 2: Der Treibhauseffekt"), where it lives below. */}
+        <div className="topbar-title" title={p.place}>{p.place?.split(' · ').at(-1) || 'Arbeitsblatt-Baukasten'}</div>
+        {p.place && <div className="topbar-place">{p.place.split(' · ').slice(0, -1).join(' · ')}</div>}
       </div>
       <SearchButton />
       {p.editing && p.compact && (
@@ -108,6 +112,7 @@ export function TopBar(p: TopBarProps) {
           { label: 'Als Datei sichern', icon: Download, onClick: p.onSaveFile },
           { label: 'Daten anzeigen (JSON)', icon: Braces, onClick: p.onOpenJson },
           ...(p.onVersions ? [{ label: 'Frühere Fassungen …', icon: History, onClick: p.onVersions }] : []),
+          ...(p.onKeys ? [{ label: 'Tastenkürzel (?)', icon: Keyboard, onClick: p.onKeys }] : []),
         ]}
       />
       {p.modeLabel && <span className="topbar-mode">{p.modeLabel}</span>}
@@ -117,8 +122,10 @@ export function TopBar(p: TopBarProps) {
           icon={Sparkles}
           className="menu-claude"
           items={[
+            ...(p.onFullAi ? [{ label: 'Stunde komplett mit Claude …', icon: Sparkles, onClick: p.onFullAi }] : []),
             ...(p.onTaskAi ? [{ label: 'Neue Aufgabe mit Claude …', icon: Sparkles, onClick: p.onTaskAi }] : []),
             { label: 'Stunde mit Claude …', icon: Sparkles, onClick: p.onClaude },
+            ...(p.onCheckAi ? [{ label: 'Stunde prüfen …', icon: ListChecks, onClick: p.onCheckAi }] : []),
             ...(p.onVocabAi ? [{ label: 'Vokabelliste mit Claude …', icon: BookA, onClick: p.onVocabAi }] : []),
             ...(p.onAiSettings ? [{ label: 'KI im Baukasten …', icon: KeyRound, onClick: p.onAiSettings }] : []),
           ]}
