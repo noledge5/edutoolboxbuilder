@@ -79,7 +79,7 @@ Aufgaben gehen per Link und QR-Code an die Klasse und werden am Tablet, Handy od
 - **Austeilen:** im Arbeitsblatt eine Aufgabe („Digital austeilen“ in der Leiste am Baustein oder im Panel), mehrere ausgewählte Bausteine (Leiste oben → „Austeilen“) oder oben „Digital → Ganzes Arbeitsblatt austeilen …“. Titel und Art wählen:
   - **Übung:** Die Schüler prüfen jede Aufgabe selbst („Prüfen“), versuchen es nochmal und können danach die Lösung sehen; bei offenen Fragen die Musterlösung.
   - **Test:** keine Lösungen, am Ende „Abgeben“. Die Lösungen werden gar nicht erst mitgeschickt.
-- Danach gibt es **Link und QR-Code** (kopieren, „Groß zeigen“ für den Beamer, „Ausprobieren“). Schüler geben Vorname und ersten Buchstaben des Nachnamens ein („Lea M.“) und arbeiten los; ihr Stand bleibt beim Neuladen erhalten.
+- Danach gibt es **Link und QR-Code** (kopieren, „Groß zeigen“ für den Beamer, „Ausprobieren“). Schüler tragen ihren Namen frei ein und arbeiten los; ihr Stand bleibt beim Neuladen erhalten.
 - **Auswertung** (oben „Digital → Auswertung: …“ oder direkt nach dem Austeilen), alle 5 Sekunden aktuell:
   - **Klasse:** wer dabei ist und wer abgegeben hat, Punkte je Aufgabe farbig (grün ab 80 %, gelb ab 50 %, rot darunter). Eine Zelle antippen zeigt die Antworten, bei Übungen auch den ersten Versuch.
   - **Häufige Fehler:** je Aufgabe, welche falsche Antwort wie oft kam (bei Übungen aus dem ersten Versuch) und die Antworten auf offene Fragen.

@@ -26,15 +26,10 @@ function linkTarget(hash: string): { repo: string; id: string } | null {
   return null;
 }
 
-/** "lea m" → "Lea M."; null when it is not a first name and an initial. */
+/** Any name the student types, tidied up (spaces, length); null when empty. */
 export function cleanName(raw: string): string | null {
-  const words = raw.trim().replace(/\s+/g, ' ').replace(/\.$/, '').split(' ');
-  if (words.length < 2) return null;
-  const last = words[words.length - 1];
-  const first = words.slice(0, -1);
-  if (!/^\p{L}$/u.test(last) || !first.every((w) => /^\p{L}[\p{L}'-]*$/u.test(w))) return null;
-  const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
-  return `${first.map(cap).join(' ')} ${last.toUpperCase()}.`;
+  const name = raw.trim().replace(/\s+/g, ' ').slice(0, 40).trim();
+  return name || null;
 }
 
 interface Work {
