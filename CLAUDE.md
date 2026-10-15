@@ -65,7 +65,7 @@ The general rules are the user-wide working method from `noledge5/hierarchie` (`
 <!-- hierarchie:anfang -->
 ## hierarchie
 
-- Tests (UTS): `npm test` bzw. `node .hierarchie/werkzeuge/uts.mjs --kurz` (grün = eine Zeile).
+- Tests (UTS): `node .hierarchie/werkzeuge/uts.mjs --kurz` (grün = eine Zeile); `npm test` nur, wenn es in package.json darauf zeigt.
   Ist das Ergebnis aktuell? `node .hierarchie/werkzeuge/uts.mjs --status`. Prüfungen nur über die UTS.
 - Neue Sitzung: zuerst `node .hierarchie/werkzeuge/hierarchie.mjs uebergabe` (Kurzstand: Branch, Commits, offene Pläne).
 - Projektstand (automatisch geladen): @STAND.md
