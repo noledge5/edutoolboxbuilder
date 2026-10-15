@@ -50,56 +50,32 @@ Browser tool for a German Realschule teacher to build printable A4 worksheets fr
 
 ## How we work here
 
-The general rules are the section "How we work" at the end of this file, copied from `noledge5/based`; the skill `setup-our-workflow` refreshes only the text between its markers. This section holds what is specific to this repo:
+The general rules are the user-wide working method from `noledge5/hierarchie` (`ARBEITSWEISE.md`) and the hierarchie block at the end of this file (`hierarchie einrichten` refreshes only the text between its markers). On a conflict the user's word comes first, then hierarchie. This section holds what is specific to this repo:
 
 - **Standard flow.** For anything larger than a one-line fix, follow the skill `aufgabe` (`.claude/skills/aufgabe/SKILL.md`): plan with success criteria, branch, tests first for logic, checks, review, remember, ship.
 - **Branch and deploy.** Work on the branch the session names, else `claude/<thema>` from `main`. A push to `main` publishes the app (`.github/workflows/deploy.yml`), so `main` gets a commit only when the user asks for it. Pull requests only when the user asks.
 - **Commit lines.** The `Co-Authored-By` trailer of a commit names the model that wrote that commit; the `Claude-Session` line stays. No other commit text names a model. Older commits are not rewritten.
 - **Decision log.** Decisions made with the user, and the reasons, go to `docs/roadmap.md` („Entscheidungen“ and the dated phases); new structure and conventions into this file. This repo keeps no `docs/adr/` and no `CONTEXT.md`.
-- **Checks.** The same as CI (`.github/workflows/ci.yml`): `npm run typecheck`, `npm test`, `npm run build`; after changing blocks, fields or icons also `npm run anleitung`. Hooks in `.claude/settings.json` install dependencies at session start, typecheck after every edit of a `.ts`/`.tsx` file (about a second) and run the tests before a turn ends with uncommitted changes.
+- **Checks.** The same as CI (`.github/workflows/ci.yml`): `npm run typecheck`, `npm test` (Vitest, the app's tests), `npm run build`; after changing blocks, fields or icons also `npm run anleitung`. The UTS (`node .hierarchie/werkzeuge/uts.mjs`, CI `uts.yml`) runs the hierarchie tests (`automatisierung/`, e.g. STAND.md); Vitest leaves that folder out. Hooks in `.claude/settings.json` install dependencies at the start of a cloud session (hierarchie hook, `npm ci` when `node_modules` is missing), typecheck after every edit of a `.ts`/`.tsx` file (about a second) and run the tests before a turn ends with uncommitted changes.
 - **Visible changes** get a real check: `npm run build`, `npx vite preview --port 4173 --strictPort`, Playwright with the Chromium in `/opt/pw-browsers`; look at the screenshot, check print with `page.pdf`, and the iPad width when the editor changes. Screenshots and scripts go to the session's scratchpad, never into the repo. Browser checks that call Supabase relay the call through Node `fetch` in `page.route`; never disable TLS verification.
 - **Simplicity limits.** `/ponytail` must never remove the repairs in `normalizeDoc` and `read.ts` for older data, the print values in `src/sheet/sheet.css` (pixel-accurate), touch and long-press on the iPad, the encryption in `src/sync/` and `src/share/`, or the trash and earlier versions that guard against data loss.
 - **Privacy.** Keys and tokens (AI key, GitHub token, pairing code) stay on the device (`geraet:*`), never in backups, sync files, logs or commits. Student names and answers never go to the AI, and a class profile holds no names.
 - **Talking to the user.** German, plain and short. The user is a teacher: explain a technical word once when it first appears.
 
-<!-- how-we-work:start -->
-## How we work
+<!-- hierarchie:anfang -->
+## hierarchie
 
-Source: `noledge5/based` (`templates/how-we-work.md`). Set up or refresh a repo with the skill `setup-our-workflow`. Change this text there, not per repo; project-specific rules go in the repo's own CLAUDE.md.
-
-The user decides and reviews; Claude does the work like a team of fast developers. The user is a teacher, not a professional developer: talk plainly and briefly, no jargon without a word of explanation. Tokens cost the user money: work in this one session; no parallel subagents or workflows unless the user asks for them.
-
-### Missing tools? Set them up yourself
-The skills and the `reviewer` agent named below come from `noledge5/based`. If any of them is missing in this session, don't work around it and don't ask; fetch them:
-1. Get `noledge5/based`: in a cloud session `add_repo` (owner `noledge5`, repo `based`, access `read`), otherwise `git clone https://github.com/noledge5/based`. Clone it outside the project, e.g. `/home/user/based`.
-2. Follow `skills/setup-our-workflow/SKILL.md` from that clone for the current repository, on the task branch.
-3. Copied skills load from the next session on. Until then, read a skill's `SKILL.md` from the clone when it is needed, and run the reviewer as a subagent with `templates/agents/reviewer.md` as its instructions.
-
-If writing `.claude/` is blocked (Auto mode), say so in one line and ask the user to switch to "Accept edits".
-
-### Principles
-1. **Understand, then align.** Read the code and docs the task touches before deciding anything. Goal unclear or big → `/grill-me` (or `/grill-with-docs` where the repo keeps `CONTEXT.md`). Decisions that are the user's (what they will see or notice, scope, money, data): ask once, with a recommendation. Everything else: decide and move on.
-2. **Plan with success criteria.** Before code: which files, what stays out, and criteria that can be checked (a test passes, a screen looks like X). Larger work: `/to-prd`, then `/to-issues` in vertical slices.
-3. **Lazy senior developer (`/ponytail`, level full).** Simplest thing that works: does it need to exist → already in the repo → standard library → platform feature → installed dependency → one line → only then the minimum code. No abstractions, config or scaffolding nobody asked for; deletion over addition. Never simplify away input validation, protection against data loss, security, accessibility or anything the user asked for. Deliberate shortcuts get a `ponytail: <limit>, <when to upgrade>` comment.
-4. **One task, one branch.** Never commit to `main`. Pull requests only when the user asks; the user merges.
-5. **Feedback loops.** Logic test-first (`/tdd`, red → green → refactor). Bugs through `/diagnose` (reproduce, root cause, regression test). Run the repo's checks (typecheck, tests, build) before calling anything done; anything visible gets a real screenshot (Playwright, Chromium in `/opt/pw-browsers` in the cloud).
-6. **Review before every push.** The `reviewer` agent for bugs and the project's rules, `/ponytail-review` for needless code. Fix what traces to a real failure or a real cut; say why the rest stays.
-7. **Memory.** The repo's CLAUDE.md is living: add what a task taught (a rule, a pitfall, a correction from the user) in the same commit, delete what is no longer true, keep it short. Decisions and their reasons go to `docs/adr/` or the repo's decision log; shared terms to `CONTEXT.md`. When Claude notices something repeating (the same explanation, steps or check), it says so and suggests a skill, an integration or an automatic check, in one line with what it would save; the user decides, nothing is built unasked.
-8. **Report.** A few plain sentences: what changed, how it was checked, what the user should look at.
-
-### Which skill when
-| Situation | Skill |
-|---|---|
-| Unclear idea, plan to stress-test | `/grill-me`, `/grill-with-docs` |
-| Big feature to break down | `/to-prd` → `/to-issues`, incoming issues: `/triage` |
-| Any coding | `/ponytail` (always on, level full) |
-| New logic, bug fix with a test | `/tdd` |
-| Something broken or slow | `/diagnose` |
-| Unfamiliar code | `/zoom-out` |
-| Before pushing | `reviewer` agent + `/ponytail-review` |
-| Every few weeks | `/improve-codebase-architecture`, `/ponytail-audit`, `/ponytail-debt` |
-| Something repeats | suggest it first; on a yes `/write-a-skill` |
-| User wants it shorter | `/caveman` |
-
-In the cloud there is no `gh` CLI: skills that use the issue tracker work through the GitHub MCP tools instead.
-<!-- how-we-work:end -->
+- Tests (UTS): `node .hierarchie/werkzeuge/uts.mjs --kurz` (grün = eine Zeile); `npm test` nur, wenn es in package.json darauf zeigt.
+  Ist das Ergebnis aktuell? `node .hierarchie/werkzeuge/uts.mjs --status`. Prüfungen nur über die UTS.
+- Neue Sitzung: zuerst `node .hierarchie/werkzeuge/hierarchie.mjs uebergabe` (Kurzstand: Branch, Commits, offene Pläne).
+- Projektstand (automatisch geladen): @STAND.md
+- Pflege: nach jedem abgeschlossenen Arbeitspaket und vor Sitzungsende STAND.md mit kleinen Edits nachführen (Datum, Aktueller Stand, Offene Punkte, Nächste Schritte), dann `node .hierarchie/werkzeuge/hierarchie.mjs stand pruefen` und `node .hierarchie/werkzeuge/hierarchie.mjs stand html`; steht unter „HTML-Seite:“ ein claude.ai-Link und ist das Artifact-Werkzeug da, `stand.seite.html` an genau diesen Link neu veröffentlichen, ohne Link beim ersten Mal privat veröffentlichen und den Link in STAND.md eintragen.
+- Werkzeuge (`node .hierarchie/werkzeuge/hierarchie.mjs <befehl>`): `uebergabe` Kurzstand · `plan` Pläne · `stand` Projektstand ·
+  `ponytail-debt` offene Abkürzungen · `geheimnis-scan` vor dem Commit · `doku-verweise` tote Verweise · `aenderungsliste` ·
+  `branches` · `wiederholungen` · `nutzung` · `projekte` andere Projekte. Werkzeug vor Prompt: vor dem Bau von etwas Neuem `node .hierarchie/werkzeuge/hierarchie.mjs register`.
+- Arbeitsweise und Stufen 1–3: ARBEITSWEISE.md (nutzerweit). Stufe 3: Skill `projektleitung`. Modellwahl nach Skill `intelligent-routing`:
+  Sonnet ist Standard für Worker, Opus nur mit benanntem Grund, Fable nie automatisch.
+- Wiederholung erkannt: Skill `werkzeugbau`.
+- Neues Wissen (bewährte Lösungen, Fallstricke) gehört in die Projekt-Doku, dort wo das Projekt sie führt, nicht in Chatverläufe.
+- Alle Befehle: `node .hierarchie/werkzeuge/hierarchie.mjs hilfe`
+<!-- hierarchie:ende -->

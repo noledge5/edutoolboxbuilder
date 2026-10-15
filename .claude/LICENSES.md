@@ -1,6 +1,6 @@
-# Lizenz der Skills aus noledge5/based
+# Lizenz der übernommenen Skills
 
-Die Skills in `.claude/skills` (außer `aufgabe`) stammen aus mattpocock/skills (MIT, Copyright (c) 2026 Matt Pocock; Lizenztext unten). Die `ponytail`-Skills stammen aus DietrichGebert/ponytail (MIT); deren Lizenz liegt in `.claude/skills/ponytail/LICENSE`.
+Die Skills caveman, grill-with-docs, improve-codebase-architecture, setup-matt-pocock-skills, to-issues, to-prd, triage und write-a-skill in `.claude/skills` stammen aus mattpocock/skills (MIT, Copyright (c) 2026 Matt Pocock; Lizenztext unten). Die Skills aus noledge5/hierarchie (u. a. ponytail, diagnose, grill-me, tdd, zoom-out) bringen ihre Lizenz im eigenen Ordner mit (`LICENSE`).
 
 ```
 MIT License

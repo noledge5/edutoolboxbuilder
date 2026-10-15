@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.hierarchie/werkzeuge/hook-sitzungsstart.mjs\"",
             "timeout": 300
           }
         ]
@@ -19,6 +19,11 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/typecheck-after-edit.sh",
             "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.hierarchie/werkzeuge/hook-nach-aenderung.mjs\"",
+            "timeout": 60
           }
         ]
       }
@@ -34,5 +39,24 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "ask": [
+      "mcp__Supabase__apply_migration",
+      "mcp__Supabase__execute_sql",
+      "mcp__Supabase__deploy_edge_function",
+      "mcp__Supabase__create_edge_function_secret",
+      "mcp__Supabase__create_branch",
+      "mcp__Supabase__delete_branch",
+      "mcp__Supabase__merge_branch",
+      "mcp__Supabase__reset_branch",
+      "mcp__Supabase__rebase_branch",
+      "mcp__Supabase__create_project",
+      "mcp__Supabase__pause_project",
+      "mcp__Supabase__restore_project"
+    ]
+  },
+  "enabledPlugins": {
+    "hierarchie@hierarchie": false
   }
 }

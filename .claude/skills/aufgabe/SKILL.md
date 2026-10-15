@@ -23,7 +23,7 @@ Claude works like a team of fast junior developers; the user reviews. Follow the
 - Visible changes: `npm run build`, `npx vite preview`, drive it with Playwright (Chromium in `/opt/pw-browsers`), take a screenshot and look at it; check print with `page.pdf({ preferCSSPageSize: true, printBackground: true })`. Check iPad width too when the editor changes.
 
 ## 5. Adversarial review
-- Run the `reviewer` agent on the finished diff. Fix every finding that traces to a real failure; say why you skip the rest.
+- Run the `verification-worker` agent on the finished diff (diff review, every finding backed by a test). Fix every finding that traces to a real failure; say why you skip the rest.
 
 ## 6. Remember
 - A decision the user made → `docs/roadmap.md` („Entscheidungen“). A new structure, file or convention → `CLAUDE.md`. Keep both short and current, so the next session does not ask again. `CLAUDE.md` grows with the project: add what this task taught (a rule, a pitfall, a correction from the user), change what has become wrong, and do it in the same commit. When something repeats, suggest a skill, integration or automatic check in one line; build it only when the user says yes.
