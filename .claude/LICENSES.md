@@ -1,6 +1,6 @@
 # Lizenz der übernommenen Skills
 
-Die Skills caveman, grill-with-docs, improve-codebase-architecture, setup-matt-pocock-skills, to-issues, to-prd, triage und write-a-skill in `.claude/skills` stammen aus mattpocock/skills (MIT, Copyright (c) 2026 Matt Pocock; Lizenztext unten). Die Skills aus noledge5/hierarchie (u. a. ponytail, diagnose, grill-me, tdd, zoom-out) bringen ihre Lizenz im eigenen Ordner mit (`LICENSE`).
+Die Skills caveman, grill-with-docs, improve-codebase-architecture, setup-matt-pocock-skills, to-issues, to-prd, triage und write-a-skill in `.claude/skills` stammen aus mattpocock/skills (MIT, Copyright (c) 2026 Matt Pocock; Lizenztext unten).
 
 ```
 MIT License
