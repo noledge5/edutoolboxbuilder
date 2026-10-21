@@ -7,9 +7,3 @@ coverage
 
 # Screenshots from checks belong in the scratchpad, not here
 /*.png
-.uts/
-plaene/*/plan.html
-stand.html
-stand.seite.html
-uebersicht.html
-uebersicht.seite.html

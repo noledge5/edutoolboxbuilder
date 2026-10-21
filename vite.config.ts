@@ -1,4 +1,4 @@
-import { configDefaults, defineConfig } from 'vitest/config';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 // Relative base so the build works on GitHub Pages under /<repo>/ and anywhere else.
@@ -11,7 +11,5 @@ export default defineConfig({
   build: { rollupOptions: { input: { main: 'index.html', aufgabe: 'a/index.html' } } },
   test: {
     environment: 'node',
-    // automatisierung/ holds the hierarchie tests (node:test), run by the UTS, not by Vitest.
-    exclude: [...configDefaults.exclude, 'automatisierung/**'],
   },
 });
