@@ -1,5 +1,3 @@
-import type { BlockContext } from '../ai/helpers';
-import type { TaskContext } from '../ai/task';
 import type { Block, BlockProps, BlockType, Doc, DropTarget, Page, PropValue, Selection } from '../model/types';
 
 /** State and actions the editor hands to its parts (canvas, panel, toolbox). */
@@ -47,8 +45,4 @@ export interface EditorApi {
   insertAfter(id: string, blocks: Block[]): void;
   /** Puts `blocks` in place of block `id` (one undo step). */
   replaceBlock(id: string, blocks: Block[]): void;
-  /** Where a block sits, for Claude's helpers (in the library only). */
-  helperContext?(id: string): BlockContext | null;
-  /** The task's surroundings for Claude (block `id`, or the insertion point when null); in the library only. */
-  taskContext?(id: string | null): TaskContext | null;
 }

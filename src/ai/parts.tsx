@@ -91,7 +91,7 @@ export function AiBusy({ busy, hint, onStop }: { busy: { chars: number; seconds:
   );
 }
 
-/** The way without a key: copy the request for the Claude project, paste the answer here. */
+/** The way without a key: copy the request for a chat project (Claude, ChatGPT), paste the answer here. */
 export function ChatPath({ request, what, pasted, onPaste, onError }: { request(): string; what: string; pasted: string; onPaste(t: string): void; onError(e: string): void }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
@@ -113,8 +113,8 @@ export function ChatPath({ request, what, pasted, onPaste, onError }: { request(
           </button>{' '}
           {what}
         </li>
-        <li>In deinem Claude-Projekt „Arbeitsblätter“ (mit der Anleitung im Projektwissen) einfügen und senden.</li>
-        <li>Claudes Antwort (den JSON-Block) kopieren und hier einfügen:</li>
+        <li>In deinem Projekt „Arbeitsblätter“ bei Claude oder ChatGPT (mit der Anleitung als Projektwissen) einfügen und senden.</li>
+        <li>Die Antwort (den JSON-Block) kopieren und hier einfügen:</li>
       </ol>
       <textarea className="input" rows={4} value={pasted} placeholder='{ "format": "arbeitsblatt-baukasten-paket", … }' onChange={(e) => onPaste(e.target.value)} aria-label="Antwort aus dem Chat" />
     </div>

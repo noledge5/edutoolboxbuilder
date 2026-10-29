@@ -9,11 +9,10 @@ import type { Doc, Page } from '../model/types';
 import { isObj } from '../model/text';
 
 /**
- * full: teacher page and sheets in one go. scaffold: only the teacher page (goal, hook, course, expectations,
- * recall), to look over first. sheets: the sheets to the teacher page that is there. revise: the lesson as it is,
- * changed after the teacher's wishes.
+ * full: teacher page and sheets in one go. sheet: one more sheet for the lesson that is there, after the teacher's
+ * wishes. revise: the lesson as it is, changed after the teacher's wishes.
  */
-export type LessonMode = 'full' | 'scaffold' | 'sheets' | 'revise';
+export type LessonMode = 'full' | 'sheet' | 'revise';
 
 export const isTeacherPage = (p: Page) => p.type === 'lehrkraft';
 export const hasBlocks = (p: Page) => p.blocks.length > 0;
@@ -23,11 +22,9 @@ const packagePages = (pages: Page[]) => pages.map((p) => ({ ...p, blocks: p.bloc
 
 const TASK: Record<LessonMode, string> = {
   full:
-    'Arbeite die Stunde vollständig aus: zuerst die Seite „Für die Lehrkraft“ (Ziel & Bildungsplan, ein Einstieg, der zu dieser Stunde passt, Stundenverlauf für 45 Minuten mit „AB S. 1“ usw., Erwartungshorizont, Abruffragen für spätere Stunden), dann ein bis drei Schülerseiten.',
-  scaffold:
-    'Erstelle nur das Gerüst der Stunde: die Seite „Für die Lehrkraft“ (Ziel & Bildungsplan, ein Einstieg, der zu dieser Stunde passt, Stundenverlauf für 45 Minuten, in dem die geplanten Schülerseiten als „AB S. 1“, „AB S. 2“ … mit ihrem Inhalt stehen, Erwartungshorizont, Abruffragen für spätere Stunden). Noch keine Schülerseiten; die baut die Lehrkraft danach.',
-  sheets:
-    'Die Seite „Für die Lehrkraft“ steht schon (unten). Baue dazu die Schülerseiten, genau so, wie der Stundenverlauf sie vorsieht („AB S. 1“, „AB S. 2“ …), passend zu Ziel und Erwartungshorizont. Gib im Paket nur die Schülerseiten aus, ohne die Lehrkraft-Seite.',
+    'Arbeite die Stunde vollständig aus: zuerst die Seite „Für die Lehrkraft“ (Ziel & Bildungsplan, ein Einstieg, der zu dieser Stunde passt, der Lernweg, Stundenverlauf für 45 Minuten mit „AB S. 1“ usw., Erwartungshorizont, Abruffragen für spätere Stunden), dann ein bis drei Schülerseiten, die dem Lernweg folgen: Material (M1, M2 …) vor den Aufgaben, die es nennen.',
+  sheet:
+    'Die Stunde steht schon (unten). Baue dazu ein weiteres Arbeitsblatt nach den Wünschen der Lehrkraft: eine Schülerseite, bei Bedarf mit Rückseite. Es passt zum Lernweg der Stunde (vertieft, übt oder führt ihn weiter), nutzt ihr Material (M1, M2 …) oder bringt eigenes Material mit der nächsten freien Nummer mit und nennt es in den Aufträgen. Gib im Paket nur die neuen Seiten aus, ohne die vorhandenen.',
   revise:
     'Die Stunde ist schon ausgearbeitet (unten). Überarbeite sie nach den Wünschen der Lehrkraft; behalte, was nicht betroffen ist, möglichst wörtlich. Gib die ganze Stunde mit allen Seiten zurück.',
 };
@@ -35,7 +32,7 @@ const TASK: Record<LessonMode, string> = {
 /** The request for one lesson. `context` is `lessonContext()`; `chat`: for pasting into a Claude project. */
 export function lessonPrompt(m: Module, l: Lesson, context: string, mode: LessonMode, chat = false): string {
   const out: string[] = [];
-  if (chat) out.push(`Bitte nach der Anleitung „Arbeitsblatt-Baukasten“ im Projektwissen: ${TASK[mode]}`);
+  if (chat) out.push(`Bitte nach der Anleitung „Arbeitsblatt-Baukasten“ (im Projektwissen oder als Datei angehängt): ${TASK[mode]}`);
   else
     out.push(
       'Du arbeitest diesmal direkt im Baukasten, nicht im Chat: Es gibt keine Rückfragen und keine Dateien. Entscheide selbst, was fehlt, im Sinne der Anleitung.',
@@ -50,7 +47,7 @@ export function lessonPrompt(m: Module, l: Lesson, context: string, mode: Lesson
         ? 'Das Kompetenzraster gibt es schon: verknüpfe Aufgaben über `competence` mit den IDs unten und schreib in `competences` nur neue Kompetenzen, falls wirklich eine fehlt (mit eigener ID). '
         : 'Das Modul hat noch kein Kompetenzraster: lege in `competences` die Kompetenzen an, an denen diese Stunde arbeitet, und verknüpfe die Aufgaben damit. ') +
       'Keine Folien (`slides`): Der Baukasten schlägt sie aus der Lehrkraft-Seite vor. ' +
-      (m.grade <= 6 && mode !== 'scaffold'
+      (m.grade <= 6
         ? 'Klasse ' + m.grade + ': Mach die Schülerseiten anschaulich (siehe „Klasse 5 und 6: anschaulich“): auf jeder Seite mindestens ein Bild mit `describe`, Bilder auch in den Aufgaben, abwechslungsreiche Aufgabenformen. '
         : '') +
       (chat ? 'Gib das Paket als Codeblock im Chat aus, keine Datei.' : 'Kein Text vor oder nach dem Codeblock.'),
@@ -58,8 +55,7 @@ export function lessonPrompt(m: Module, l: Lesson, context: string, mode: Lesson
     context,
   );
   const pages = l.doc.pages.filter(hasBlocks);
-  if (mode === 'sheets') out.push('', '## Die Lehrkraft-Seite (steht schon)', '```json', JSON.stringify(packagePages(pages.filter(isTeacherPage))), '```');
-  if (mode === 'revise') out.push('', '## Die Stunde, wie sie jetzt ist', '```json', JSON.stringify(packagePages(pages)), '```');
+  if (mode === 'sheet' || mode === 'revise') out.push('', '## Die Stunde, wie sie jetzt ist', '```json', JSON.stringify(packagePages(pages)), '```');
   return out.join('\n');
 }
 
@@ -130,17 +126,13 @@ export function lessonFromAnswer(raw: unknown, m: Module, l: Lesson, current: Do
   const teacher = current.pages.filter((p) => hasBlocks(p) && isTeacherPage(p));
   const sheets = current.pages.filter((p) => hasBlocks(p) && !isTeacherPage(p));
   let pages: Page[];
-  if (mode === 'scaffold') {
-    if (made.some(isTeacherPage)) made = made.filter(isTeacherPage);
-    else notes.push('Claude hat keine Seite „Für die Lehrkraft“ geschrieben; die Seiten werden so übernommen.');
-    pages = [...made, ...sheets];
-  } else if (mode === 'sheets') {
+  if (mode === 'sheet') {
     if (made.some((p) => !isTeacherPage(p))) made = made.filter((p) => !isTeacherPage(p));
-    pages = [...teacher, ...made];
+    pages = [...teacher, ...sheets, ...made];
   } else pages = made;
   if (!made.length) throw new DocFormatError('Die Stunde in der Antwort hat keine Seiten mit Inhalt.');
   return { doc: { ...current, pages }, made, added, images: parsed.images, notes };
 }
 
 /** Upper bounds for the answer (with Claude's thinking) per mode, in tokens. */
-export const LESSON_TOKENS: Record<LessonMode, number> = { full: 48000, scaffold: 20000, sheets: 40000, revise: 48000 };
+export const LESSON_TOKENS: Record<LessonMode, number> = { full: 48000, sheet: 24000, revise: 48000 };

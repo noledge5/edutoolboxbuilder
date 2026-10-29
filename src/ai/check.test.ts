@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeDoc } from '../model/normalize';
-import { checkPrompt, findingsFromAnswer } from './check';
+import { checkPrompt, findingsFromAnswer, fixWishesOf } from './check';
 
 const doc = normalizeDoc({
   pages: [
@@ -27,5 +27,15 @@ describe('Stunde prüfen', () => {
     expect(f[0]).toMatchObject({ blockId: doc.pages[1].blocks[0].id, kind: 'loesbar', fix: 'Ergänze einen Infotext.' });
     expect(f[1]).toMatchObject({ blockId: null, kind: 'sonst' });
     expect(() => findingsFromAnswer({}, doc)).toThrow();
+  });
+});
+
+describe('fixWishesOf', () => {
+  it('lists the findings as wishes for the revision', () => {
+    const w = fixWishesOf([
+      { ref: 'S2.4', problem: 'M3 fehlt.', fix: 'Ergänze M3.' },
+      { ref: '', problem: 'Kein Lernweg.' },
+    ]);
+    expect(w).toBe('Behebe diese Befunde aus „Stunde prüfen“ und lass alles andere, wie es ist:\n- S2.4: M3 fehlt. → Ergänze M3.\n- Kein Lernweg.');
   });
 });

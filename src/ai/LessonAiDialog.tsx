@@ -1,6 +1,7 @@
-// "Stunde mit Claude": the whole lesson, the scaffold (teacher page) first or the sheets to it, or a revision, with
-// the lesson's place in the year plan. With a key on this device Claude answers right here; without one the request
-// is copied for the Claude project and the answer pasted back. Either way the result is shown before it is applied.
+// "Mit KI bauen" in the worksheet: the whole lesson, one more sheet or a revision, with the lesson's place in the
+// year plan; from here also "PDF einpflegen" and the vocabulary list. Two ways: with a key on this device Claude
+// answers right here; without one the request is copied for a chat (Claude, ChatGPT …) and the answer pasted back.
+// Either way the result is shown before it is applied.
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ClipboardCopy, ClipboardPaste, KeyRound, Sparkles, X } from 'lucide-react';
 import { SegField } from '../editor/fields';
@@ -8,7 +9,6 @@ import { Icon } from '../icons';
 import type { Competence, Lesson, Module } from '../library/types';
 import { sheetNumbers } from '../model/ops';
 import type { Doc } from '../model/types';
-import type { Slide } from '../model/slides';
 import { BlockContent } from '../sheet/BlockContent';
 import { CompetenceNamesContext } from '../sheet/competences';
 import { PAGE_H, PAGE_W, SheetPage, taskNumbers } from '../sheet/SheetPage';
@@ -35,31 +35,35 @@ export interface LessonAi {
   notes(): string;
   /** Gives a lesson that has no name yet ("Neue Stunde") the title of what was brought in. */
   rename?(title: string): void;
-  /** The slides the Baukasten suggests for a worksheet (the ticked ones). */
-  suggestSlides(doc: Doc): Slide[];
-  /** Replaces the lesson's slides (the old ones kept as an earlier version). */
-  setSlides(slides: Slide[]): void;
 }
 
 interface LessonAiDialogProps {
   doc: Doc;
   ai: LessonAi;
+  /** Opened from "Stunde prüfen" → "Beheben": the revision with the findings as wishes. */
+  initial?: { mode: LessonMode; wishes: string };
+  /** "PDF einpflegen": pick a PDF (the editor opens its dialog). */
+  onPdf?(): void;
+  /** "Vokabelliste" (English modules). */
+  onVocab?(): void;
   onApply(draft: LessonDraft): void;
   onClose(): void;
 }
 
-const MODES: { v: LessonMode; l: string }[] = [
+type What = LessonMode | 'pdf' | 'vocab';
+
+const MODES: { v: What; l: string }[] = [
   { v: 'full', l: 'Ganze Stunde' },
-  { v: 'scaffold', l: 'Erst das Gerüst' },
-  { v: 'sheets', l: 'Blätter zum Gerüst' },
+  { v: 'sheet', l: 'Ein Arbeitsblatt dazu' },
   { v: 'revise', l: 'Überarbeiten' },
+  { v: 'pdf', l: 'PDF einpflegen' },
+  { v: 'vocab', l: 'Vokabelliste' },
 ];
 
 const MODE_TEXT: Record<LessonMode, string> = {
-  full: 'Claude schreibt die Seite „Für die Lehrkraft“ (Ziel, Einstieg, Verlauf, Erwartungshorizont, Abruffragen) und ein bis drei Schülerseiten.',
-  scaffold: 'Claude schreibt nur die Seite „Für die Lehrkraft“. Du schaust sie durch, änderst, was du anders willst, und lässt dann mit „Blätter zum Gerüst“ die Schülerseiten bauen.',
-  sheets: 'Claude baut die Schülerseiten so, wie der Stundenverlauf auf deiner Lehrkraft-Seite sie vorsieht. Die Lehrkraft-Seite bleibt, wie sie ist.',
-  revise: 'Claude bekommt die Stunde, wie sie jetzt ist, und ändert sie nach deinen Wünschen.',
+  full: 'Die KI plant zuerst den Lernweg und schreibt dann die Seite „Für die Lehrkraft“ (Ziel, Einstieg, Lernweg, Verlauf, Erwartungshorizont, Abruffragen) und ein bis drei Schülerseiten mit Material (M1, M2 …) vor den Aufgaben.',
+  sheet: 'Die KI baut ein weiteres Arbeitsblatt zu dieser Stunde nach deinem Wunsch, passend zu Lernweg und Material. Die vorhandenen Seiten bleiben.',
+  revise: 'Die KI bekommt die Stunde, wie sie jetzt ist, und ändert sie nach deinen Wünschen.',
 };
 
 const SHOWN: SheetMode = { solutions: 'shown', bw: false };
@@ -83,13 +87,11 @@ export function PagePreview({ doc, p, scale }: { doc: Doc; p: number; scale: num
   );
 }
 
-export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProps) {
+export function LessonAiDialog({ doc, ai, initial, onPdf, onVocab, onApply, onClose }: LessonAiDialogProps) {
   const settings = useAiSettings();
   const filled = doc.pages.filter(hasBlocks);
-  const hasTeacher = filled.some(isTeacherPage);
-  const hasSheets = filled.some((p) => !isTeacherPage(p));
-  const [mode, setMode] = useState<LessonMode>(hasTeacher && !hasSheets ? 'sheets' : 'full');
-  const [wishes, setWishes] = useState('');
+  const [mode, setMode] = useState<LessonMode>(initial?.mode ?? 'full');
+  const [wishes, setWishes] = useState(initial?.wishes ?? '');
   const job = useAiJob();
   const [draft, setDraft] = useState<LessonDraft | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
@@ -98,7 +100,13 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
   const [big, setBig] = useState<number | null>(null);
   const { busy, error, answer } = job;
 
-  const modes = MODES.filter((x) => (x.v === 'sheets' ? hasTeacher : x.v === 'revise' ? filled.length > 0 : true));
+  const modes = MODES.filter((x) => (x.v === 'sheet' || x.v === 'revise' ? filled.length > 0 : x.v === 'pdf' ? !!onPdf : x.v === 'vocab' ? !!onVocab : true));
+  const pick = (v: What) => {
+    job.setError('');
+    if (v === 'pdf') onPdf?.();
+    else if (v === 'vocab') onVocab?.();
+    else setMode(v);
+  };
   const context = useMemo(() => ai.context(wishes), [ai, wishes]);
   const lessonNow = useMemo(() => ({ ...ai.lesson, doc }), [ai.lesson, doc]);
   const prompt = (chat: boolean) => lessonPrompt(ai.module, lessonNow, context, mode, chat);
@@ -127,11 +135,11 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
     return job.run(
       {
         job: 'big',
-        what: mode === 'scaffold' ? 'Gerüst einer Stunde' : mode === 'sheets' ? 'Blätter zum Gerüst' : mode === 'revise' ? 'Stunde überarbeiten' : 'Stunde ausarbeiten',
+        what: mode === 'sheet' ? 'Arbeitsblatt dazu' : mode === 'revise' ? 'Stunde überarbeiten' : 'Stunde ausarbeiten',
         system: lessonSystem(),
         user: prompt(false),
         maxTokens: LESSON_TOKENS[mode],
-        effort: mode === 'scaffold' ? 'medium' : 'high',
+        effort: 'high',
       },
       read,
     );
@@ -143,9 +151,9 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
   return (
     <>
     <div className="dialog-backdrop" onClick={() => !busy && !draft && close()}>
-      <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Stunde mit Claude" onClick={(e) => e.stopPropagation()}>
+      <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Mit KI bauen" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-title">
-          <Icon icon={Sparkles} /> Stunde mit Claude
+          <Icon icon={Sparkles} /> Mit KI bauen
         </div>
         <p className="dialog-body ai-where">
           Stunde {ai.lesson.number}: <b>{ai.lesson.title}</b> · Modul {ai.module.number}: {ai.module.title}
@@ -153,25 +161,25 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
 
         {!draft && (
           <>
-            <SegField<LessonMode> label="Was soll Claude tun?" value={mode} options={modes} onPick={(v) => (setMode(v), job.setError(''))} />
+            <SegField<What> label="Was soll die KI bauen?" value={mode} options={modes} onPick={pick} />
             <p className="ai-hint">{MODE_TEXT[mode]}</p>
             <ClassNotesLine subject={ai.module.subject} grade={ai.module.grade} />
             {(mode === 'full' || mode === 'revise') && filled.length > 0 && (
               <p className="ai-hint is-warn">Die jetzige Fassung wird ersetzt. Sie bleibt unter „Datei“ → „Frühere Fassungen“, und Rückgängig geht auch.</p>
             )}
             <div className="field">
-              <label htmlFor="ai-wishes">{mode === 'revise' ? 'Was soll anders werden?' : 'Wünsche (freiwillig)'}</label>
+              <label htmlFor="ai-wishes">{mode === 'revise' ? 'Was soll anders werden?' : mode === 'sheet' ? 'Was für ein Blatt?' : 'Wünsche (freiwillig)'}</label>
               <textarea
                 id="ai-wishes"
                 className="input"
                 rows={3}
                 value={wishes}
-                placeholder={mode === 'revise' ? 'z. B. Aufgabe 2 leichter, mehr Bilder, eine Partnerarbeit statt Einzelarbeit' : 'z. B. Einstieg mit einem Bild, eine Partnerarbeit, Lehrbuch S. 34–35, viel Differenzierung'}
+                placeholder={mode === 'revise' ? 'z. B. Aufgabe 2 leichter, mehr Bilder, eine Partnerarbeit statt Einzelarbeit' : mode === 'sheet' ? 'z. B. Übungsblatt für Schnelle, Lesetext mit Fragen, Wiederholung für die Klassenarbeit' : 'z. B. Einstieg mit einem Bild, eine Partnerarbeit, Lehrbuch S. 34–35, viel Differenzierung'}
                 onChange={(e) => setWishes(e.target.value)}
               />
             </div>
             <details className="ai-context">
-              <summary>Was Claude über die Stunde erfährt</summary>
+              <summary>Was die KI über die Stunde erfährt</summary>
               <pre>{context}</pre>
             </details>
           </>
@@ -274,14 +282,14 @@ export function LessonAiDialog({ doc, ai, onApply, onClose }: LessonAiDialogProp
               ) : (
                 <button type="button" className="btn btn-primary ui-btn" onClick={run} disabled={!settings || !!busy} title={settings ? undefined : 'Erst einen KI-Schlüssel einrichten oder „Über den Chat“ nehmen'}>
                   <Icon icon={Sparkles} />
-                  {mode === 'scaffold' ? 'Gerüst schreiben' : mode === 'sheets' ? 'Blätter bauen' : mode === 'revise' ? 'Überarbeiten' : 'Ausarbeiten'}
+                  {mode === 'sheet' ? 'Blatt bauen' : mode === 'revise' ? 'Überarbeiten' : 'Ausarbeiten'}
                 </button>
               )}
             </>
           )}
         </div>
         {!draft && !chatOpen && settings === null && (
-          <p className="sync-tip">Ohne eigenen KI-Schlüssel geht es über den Chat: Auftrag kopieren, im Claude-Projekt einfügen, Antwort hier einlesen.</p>
+          <p className="sync-tip">Ohne eigenen KI-Schlüssel geht es über den Chat: Auftrag kopieren, bei Claude oder ChatGPT einfügen, Antwort hier einlesen.</p>
         )}
       </div>
     </div>

@@ -85,7 +85,7 @@ export function YearPlanView(p: YearPlanViewProps) {
         <SearchButton />
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => setClaudeOpen(true)} title="Claude entwirft den Jahresplan mit Modulen, Kompetenzen und geplanten Stunden">
           <Icon icon={Sparkles} />
-          <span className="btn-label">Mit Claude</span>
+          <span className="btn-label">Mit KI bauen</span>
         </button>
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => setImportOpen(true)} title="Jahresplan von Claude oder aus Word, Excel, Notizen übernehmen">
           <Icon icon={CalendarPlus} />

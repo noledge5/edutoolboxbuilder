@@ -73,6 +73,9 @@ export const LEVEL_NAMES: Record<string, string> = { '1': 'G', '2': 'M', '3': 'E
 
 const PROMPT: FieldDef = { key: 'prompt', label: 'Arbeitsauftrag', kind: 'area' };
 
+/** Material number of a material block ("M1"); tasks name it in their instruction, the check follows the references. */
+const MAT_FIELD: FieldDef = { key: 'mat', label: 'Material-Nummer (z. B. M1, Aufgaben nennen sie im Auftrag)', kind: 'text' };
+
 /** Ready-made grammar tables for the Formentabelle. */
 const FORM_PRESETS: { l: string; props: BlockProps }[] = [
   {
@@ -137,18 +140,19 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     label: 'Textblock',
     group: 0,
     span: 12,
-    defaults: { text: 'Hier steht ein kurzer Informationstext für die Klasse.' },
-    fields: [{ key: 'text', label: 'Text', kind: 'area' }],
+    defaults: { mat: '', text: 'Hier steht ein kurzer Informationstext für die Klasse.' },
+    fields: [{ key: 'text', label: 'Text', kind: 'area' }, MAT_FIELD],
   },
   hint: {
     label: 'Hinweis-Box',
     group: 0,
     span: 12,
-    defaults: { title: 'Wichtiger Hinweis', text: 'Kurzer Hinweis oder Tipp.', variant: 'accent-2' },
+    defaults: { mat: '', title: 'Wichtiger Hinweis', text: 'Kurzer Hinweis oder Tipp.', variant: 'accent-2' },
     fields: [
       { key: 'title', label: 'Titel', kind: 'text' },
       { key: 'text', label: 'Text', kind: 'area' },
       { key: 'variant', label: 'Farbe', kind: 'variant' },
+      MAT_FIELD,
     ],
   },
   merksatz: {
@@ -172,7 +176,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     label: 'Abbildung',
     group: 1,
     span: 6,
-    defaults: { caption: 'Abb. 1: Bildunterschrift', source: '', height: 200, image: '', fit: 'cover', search: '', describe: '' },
+    defaults: { mat: '', caption: 'Abb. 1: Bildunterschrift', source: '', height: 200, image: '', fit: 'cover', search: '', describe: '' },
     fields: [
       { key: 'image', label: 'Bild', kind: 'image' },
       { key: 'caption', label: 'Bildunterschrift', kind: 'text' },
@@ -189,14 +193,15 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
           { v: 'contain', l: 'Ganz zeigen' },
         ],
       },
+      MAT_FIELD,
     ],
   },
   flow: {
     label: 'Fließschema',
     group: 1,
     span: 12,
-    defaults: { steps: 'Schritt 1 | Zusatz\nSchritt 2\nSchritt 3' },
-    fields: [{ key: 'steps', label: 'Schritte (Titel | Zusatz, eine Zeile je Schritt)', kind: 'area' }],
+    defaults: { mat: '', steps: 'Schritt 1 | Zusatz\nSchritt 2\nSchritt 3' },
+    fields: [{ key: 'steps', label: 'Schritte (Titel | Zusatz, eine Zeile je Schritt)', kind: 'area' }, MAT_FIELD],
   },
   qr: {
     label: 'QR-Code',
@@ -212,7 +217,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     label: 'Code',
     group: 0,
     span: 12,
-    defaults: { code: 'summe = 0\nfor i in range(1, 6):\n    summe = summe + i\nprint(summe)', language: 'python' },
+    defaults: { mat: '', code: 'summe = 0\nfor i in range(1, 6):\n    summe = summe + i\nprint(summe)', language: 'python' },
     fields: [
       { key: 'code', label: 'Code (je Zeile eine Programmzeile; Einrückung mit Leerzeichen)', kind: 'area' },
       {
@@ -224,6 +229,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
           { v: 'plain', l: 'Ohne' },
         ],
       },
+      MAT_FIELD,
     ],
   },
   open: {
@@ -386,6 +392,20 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       { key: 'question', label: 'Leitfrage der Stunde', kind: 'text' },
     ],
   },
+  path: {
+    label: 'Lernweg',
+    group: 6,
+    span: 12,
+    defaults: {
+      steps: [
+        'M1, M2 | Die Klasse liest den Versuchsaufbau und sagt vorher, welches Glas wärmer wird. | Aufgabe 1 (Versuch) | Eine Vermutung, die der Versuch prüft.',
+        'Versuch | Die Paare messen alle 3 Minuten und vergleichen die Gläser. | Aufgabe 2–3 (Versuch) | Glas B wird wärmer: Die Folie hält Wärme zurück.',
+        'Hinweis | Die Klasse deutet den Versuch und grenzt ab, was er nicht zeigt. | Aufgabe 4 (Versuch) | Der Versuch zeigt das Prinzip, nicht die Wirkung von CO₂.',
+        'M3 | Die Klasse überträgt das Prinzip auf die Atmosphäre. | Aufgabe 1–3 (Sicherung) | Treibhausgase halten Wärmestrahlung zurück.',
+      ].join('\n'),
+    },
+    fields: [{ key: 'steps', label: 'Schritte (je Zeile: Material | Lernschritt | Aufgabe | Erkenntnis)', kind: 'area' }],
+  },
   recall: {
     label: 'Abruffragen',
     group: 6,
@@ -428,6 +448,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     group: 3,
     span: 12,
     defaults: {
+      mat: '',
       title: 'Vocabulary',
       rows: 'house | haʊs | Haus | My house is next to the school.\nfriend | frend | Freund, Freundin | Tom is my best friend.\nto live | lɪv | wohnen, leben | I live in Stuttgart.',
       picwords: '',
@@ -438,6 +459,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       { key: 'rows', label: 'Wörter (je Zeile: Englisch | Lautschrift | Deutsch | Beispielsatz)', kind: 'ipa' },
       { key: 'picwords', label: 'Bildspalte (je Zeile zum Wort ein Suchwort fürs Bild, leere Zeile = ohne Bild)', kind: 'area' },
       { key: 'pics', label: 'Bilder zu den Wörtern', kind: 'pics', of: 'rows' },
+      MAT_FIELD,
     ],
   },
   foldtest: {
@@ -498,6 +520,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     group: 3,
     span: 12,
     defaults: {
+      mat: '',
       title: 'Simple present',
       rule: 'Bei he / she / it hängst du ein -s an das Verb.',
       signal: 'always, usually, often, sometimes, never, every day',
@@ -510,6 +533,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       { key: 'signal', label: 'Signalwörter (mit Komma getrennt)', kind: 'text' },
       { key: 'examples', label: 'Beispielsätze (einer je Zeile; {{s}} markiert die Endung)', kind: 'area' },
       { key: 'variant', label: 'Farbe', kind: 'variant' },
+      MAT_FIELD,
     ],
   },
   forms: {
@@ -567,7 +591,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     label: 'Hörverstehen',
     group: 4,
     span: 12,
-    defaults: { stage: 'while', track: 'Audio 1/12', note: 'Listen to the dialogue twice.', url: '', transcript: '' },
+    defaults: { mat: '', stage: 'while', track: 'Audio 1/12', note: 'Listen to the dialogue twice.', url: '', transcript: '' },
     fields: [
       {
         key: 'stage',
@@ -584,6 +608,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       { key: 'note', label: 'Hinweis für die Klasse', kind: 'area' },
       { key: 'url', label: 'Link zur Audiodatei (wird als QR-Code gedruckt)', kind: 'text' },
       { key: 'transcript', label: 'Transkript (nur in der Lösungsfassung)', kind: 'area' },
+      MAT_FIELD,
     ],
   },
   reading: {
@@ -591,6 +616,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     group: 4,
     span: 12,
     defaults: {
+      mat: '',
       title: 'A new school',
       text: 'Hi, I’m Emma and I’m eleven. Today is my first day at Hillside School in Bristol. I’m a bit nervous. My mum takes me to school by car. At the gate I meet Ben. He’s in my class and he’s very friendly. We have got English first. Our teacher is Mr Clark. He’s funny and the lesson is great. At break Ben shows me the canteen. In the afternoon we have got PE. I love sports, so that’s my favourite lesson!',
       glossary: 'nervous | aufgeregt, nervös\ngate | Tor\ncanteen | Kantine, Mensa',
@@ -601,6 +627,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       { key: 'text', label: 'Text (Absätze ohne Leerzeile)', kind: 'area' },
       { key: 'glossary', label: 'Worterklärungen (je Zeile: Wort | Erklärung; die Zeile im Text wird ergänzt)', kind: 'area' },
       { key: 'numbers', label: 'Zeilennummern alle … Zeilen (0 = keine)', kind: 'number', min: 0, max: 10 },
+      MAT_FIELD,
     ],
   },
   truefalse: {
@@ -633,6 +660,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     group: 4,
     span: 12,
     defaults: {
+      mat: '',
       title: 'Useful phrases',
       items: 'Can you help me, please? | Kannst du mir bitte helfen?\nHow do you say … in English? | Wie sagt man … auf Englisch?\nCan you say that again, please? | Kannst du das bitte wiederholen?',
       variant: 'accent-6',
@@ -641,6 +669,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
       { key: 'title', label: 'Überschrift', kind: 'text' },
       { key: 'items', label: 'Redemittel (je Zeile: Englisch | Deutsch)', kind: 'area' },
       { key: 'variant', label: 'Farbe', kind: 'variant' },
+      MAT_FIELD,
     ],
   },
   rolecards: {

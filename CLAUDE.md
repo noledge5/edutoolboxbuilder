@@ -17,9 +17,10 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
   Document changes go through the pure functions in `src/model/ops.ts`, so undo/redo keeps working.
 - Every change to a module or lesson sets `updatedAt` (sync: newest wins per entry, deletions travel as tombstones).
 - A new block type touches `BLOCK_TYPES`, `src/sheet/BlockContent.tsx` (or `LanguageBlocks.tsx`), `sheet.css`,
-  `src/icons.tsx`, `BLOCK_USE` and `BLOCK_WORDS`; a task block also `taskSlots`, `stripSolutions`, the student `Body`
-  (`src/student/Tasks.tsx`) and `taskBody` (`src/slides/fromDoc.ts`). After changing blocks, fields or icons run
-  `npm run anleitung` (a test fails otherwise).
+  `src/icons.tsx`, `BLOCK_USE` and `BLOCK_WORDS`; a material block also `MAT_FIELD` (`src/model/coherence.ts` follows
+  the numbers); a task block also `taskSlots`, `stripSolutions`, the student `Body` (`src/student/Tasks.tsx`) and
+  `taskBody` (`src/slides/fromDoc.ts`). After changing blocks, fields or icons run `npm run anleitung` (a test fails
+  otherwise).
 - Topic icons are a curated list in `src/topicIcons.ts`; never import all of Lucide. Fixed sheet texts go through
   `SHEET_TEXT` (`src/sheet/lang.ts`), quotation marks through `typo()`; teacher pages stay German.
 - Everything must work with touch on an iPad (long-press to drag) and in print (one A4 page per sheet).

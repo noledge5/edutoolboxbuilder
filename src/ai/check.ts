@@ -1,14 +1,24 @@
 // "Stunde prüfen": Claude reads the finished lesson and lists what would break it in class: tasks the sheet gives
 // no material for, knowledge that comes after the task needing it, tasks too hard or too easy for the class. Each
-// finding names a block and an instruction that "Mit Anweisung neu machen" can carry out.
+// finding names a block and what to do; "Beheben" hands that to the revision in "Mit KI bauen".
 import { DIDACTICS_BRIEF } from '../claude/instructions';
 import { blockText } from '../library/search';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { DocFormatError } from '../model/normalize';
-import type { Doc } from '../model/types';
-import type { TaskContext } from './task';
+import type { Competence } from '../library/types';
+import type { Doc, Lang } from '../model/types';
 
-export type CheckContext = Omit<TaskContext, 'page'>;
+/** The lesson's surroundings for the check. */
+export interface CheckContext {
+  subject: string;
+  grade: number;
+  /** Module title. */
+  topic: string;
+  lang: Lang;
+  competences: Competence[];
+  /** The class profile and the teacher's principles (`classNotes`), '' without. */
+  notes?: string;
+}
 
 export interface Finding {
   /** The block it is about, null if Claude named none the lesson has. */
@@ -17,7 +27,7 @@ export interface Finding {
   ref: string;
   kind: string;
   problem: string;
-  /** What to do, as an instruction for "Mit Anweisung neu machen". */
+  /** What to do, as an instruction for the revision. */
   fix: string;
 }
 
@@ -30,6 +40,7 @@ export function checkSystem(): string {
     '- `reihenfolge`: Das Wissen steht zwar da, aber erst nach der Aufgabe, die es braucht, oder der Stundenverlauf passt nicht zur Reihenfolge der Blätter.',
     '- `niveau`: Eine Aufgabe passt nicht zur Klasse (Klassenprofil, Klassenstufe) oder nicht zu ihrem Niveau-Stern (G/M/E): zu schwer, zu leicht, zu viel Text.',
     '- `sonst`: Lösung falsch oder fehlt, Auftrag mehrdeutig, Bild nötig, aber nur als Platzhalter beschrieben.',
+    'Steht auf der Lehrkraft-Seite ein Lernweg, prüfe auch, ob die Blätter ihm folgen: Jeder Schritt hat sein Material und seine Aufgabe, die Schritte bauen aufeinander auf, und die Aufgaben nennen das Material (M1, M2 …), mit dem sie arbeiten. Melde Abweichungen als `reihenfolge`. Fehlt der Lernweg oder ist er unklar, melde das nicht; das prüft der Baukasten selbst.',
     'Bausteine heißen `S<Seite>.<Nummer>`, z. B. `S2.4`. Bilder siehst du nicht, nur ihre Beschreibung; sie gelten als vorhanden, wenn `image` gesetzt ist. Melde nur echte Probleme, keine Geschmacksfragen, höchstens zehn, die wichtigsten zuerst. Für jedes schreibst du `fix` als kurze Anweisung an den Baustein, die ein zweiter Schritt ausführt (z. B. „Ergänze vor der Aufgabe einen kurzen Infotext zu …“ oder „Stütze die Aufgabe auf Material M2 und frag nur nach …“).',
     DIDACTICS_BRIEF,
     'Antworte nur mit einem JSON-Codeblock: ```json\n{"findings": [{"ref": "S2.4", "kind": "loesbar", "problem": "…", "fix": "…"}]}\n``` Ist alles in Ordnung: `{"findings": []}`.',
@@ -73,4 +84,12 @@ export function findingsFromAnswer(raw: unknown, doc: Doc): Finding[] {
     if (!problem) return [];
     return [{ blockId: byRef.get(ref) ?? null, ref, kind: KINDS[text(o.kind)] ? text(o.kind) : 'sonst', problem, fix: text(o.fix) }];
   });
+}
+
+/** The wishes for the revision in "Mit KI bauen" that fixes these findings ("Beheben"). */
+export function fixWishesOf(list: { ref: string; problem: string; fix?: string }[]): string {
+  return [
+    'Behebe diese Befunde aus „Stunde prüfen“ und lass alles andere, wie es ist:',
+    ...list.map((f) => `- ${f.ref ? `${f.ref}: ` : ''}${f.problem}${f.fix ? ` → ${f.fix}` : ''}`),
+  ].join('\n');
 }

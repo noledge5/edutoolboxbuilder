@@ -48,7 +48,20 @@ interface BlockContentProps {
   onPicFile?: (index: number, file: File) => void;
 }
 
-export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }: BlockContentProps) {
+export function BlockContent(props: BlockContentProps) {
+  const { block } = props;
+  const mat = str(block.props.mat).trim();
+  if (!mat || BLOCK_TYPES[block.type].task || !BLOCK_TYPES[block.type].fields.some((f) => f.key === 'mat')) return <BlockBody {...props} />;
+  // Material: its number ("M1") as a tag above, as tasks name it in their instruction.
+  return (
+    <div className="ws-mat">
+      <Editable as="span" className="ws-mat-tag" target={`${block.id}:mat`} value={mat} />
+      <BlockBody {...props} />
+    </div>
+  );
+}
+
+function BlockBody({ block, taskNum, editing, onImageFile, onPicFile }: BlockContentProps) {
   const p = block.props;
   const t = (key: string) => `${block.id}:${key}`;
   const txt = useSheetText();
@@ -136,6 +149,25 @@ export function BlockContent({ block, taskNum, editing, onImageFile, onPicFile }
               </div>
               <div>{form}</div>
               <div>{material}</div>
+            </div>
+          ))}
+        </div>
+      );
+    case 'path':
+      return (
+        <div className="ws-plan ws-path">
+          <div className="ws-plan-row is-head">
+            <div>Material</div>
+            <div>Lernschritt</div>
+            <div>Aufgabe</div>
+            <div>Erkenntnis</div>
+          </div>
+          {rows(p.steps).map(([material = '', step = '', task = '', insight = ''], k) => (
+            <div key={k} className="ws-plan-row">
+              <Editable className="ws-plan-phase" target={t(`steps#${k}.0`)} value={material} />
+              <Editable className="ws-plan-steps" target={t(`steps#${k}.1`)} value={step} />
+              <Editable target={t(`steps#${k}.2`)} value={task} />
+              <Editable className="ws-plan-steps" target={t(`steps#${k}.3`)} value={insight} />
             </div>
           ))}
         </div>

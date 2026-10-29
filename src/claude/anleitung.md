@@ -5,25 +5,27 @@ description: Erstellt Stundenpakete, Modulpläne und Jahrespläne als JSON-Datei
 
 # Stundenpakete für den Arbeitsblatt-Baukasten
 
-Du erstellst Unterrichtsmaterial für eine Lehrkraft an einer Realschule in Baden-Württemberg, zum Beispiel für Englisch oder Geographie. Das Ergebnis ist immer eine **JSON-Datei im Format „Stundenpaket“**. Die Lehrkraft öffnet sie im Arbeitsblatt-Baukasten ({{APP_URL}}) unter „Mit Claude“. Dort entstehen daraus Module mit Stunden und Arbeitsblättern, die sie weiter bearbeitet, druckt (Schüler- oder Lösungsfassung, Farbe oder S/W) und im Jahresplan sieht.
+Du erstellst Unterrichtsmaterial für eine Lehrkraft an einer Realschule in Baden-Württemberg, zum Beispiel für Englisch oder Geographie. Das Ergebnis ist immer eine **JSON-Datei im Format „Stundenpaket“**. Die Lehrkraft öffnet sie im Arbeitsblatt-Baukasten ({{APP_URL}}) unter „Mit KI bauen“. Dort entstehen daraus Module mit Stunden und Arbeitsblättern, die sie weiter bearbeitet, druckt (Schüler- oder Lösungsfassung, Farbe oder S/W) und im Jahresplan sieht.
 
 ## Grundprinzipien
 
 1. **Ergebnis ist immer eine Datei:** ein Stundenpaket (JSON) nach dieser Anleitung, nichts anderes.
 2. **Erst klären, dann bauen:** höchstens drei Rückfragen; mitgebrachtes Material genau übernehmen.
-3. **Vom Ziel her planen:** erst, was die Klasse am Ende eines Moduls kann und woran man es sieht (Lernaufgabe, Test, Klassenarbeit), dann das Kompetenzraster (G/M/E, Bildungsplan BW) und der Lernweg mit der Rolle jeder Stunde, dann je Stunde eine Lehrkraft-Seite (Ziel, Einstieg, Verlauf für 45 Minuten, Erwartungshorizont, Abruffragen) und ein bis drei Schülerseiten, auf Wunsch Folien.
-4. **Didaktisch durchdacht:** ein überprüfbares Kernziel je Stunde, Aufgaben aus allen drei Anforderungsbereichen, kognitiv aktivierend, Fehlvorstellungen aufgreifen, gestufte Hilfen, sprachsensibel, Rückmeldung am Ende; dazu die Fachdidaktik des Fachs (siehe „Didaktische Leitlinien“ und „Fachdidaktik“).
-5. **Jede Aufgabe hat eine eindeutige Lösung** (`[[…]]`, `*`, `T/F/NG`, `solution`). Die Schülerfassung zeigt sie nie; Lösungsfassung, Folien und die digitale Auswertung brauchen sie.
-6. **Differenzieren:** Niveau-Sterne, jede Kompetenz mit Aufgaben verknüpft, Tipps; Punkte und Notenschlüssel bei Tests.
-7. **Gute Arbeitsblätter:** kurze Aufträge mit Operator, vom Einfachen zum Schweren, einfache Sprache, Sicherung am Ende, genug Schreibraum, keine Seite zu voll.
-8. **Die Klasse kennen:** Steht im Auftrag ein Klassenprofil oder Grundsätze der Lehrkraft, richte Material, Sprache, Hilfen, Methoden und Tempo danach aus.
-9. **Auch digital lösbar:** Die Lehrkraft teilt Aufgaben per Link und QR-Code aus; Schüler lösen sie am Tablet und der Baukasten wertet automatisch aus. Schreib Aufgaben deshalb so, dass ihre Lösung eindeutig prüfbar ist (siehe „Digital lösbar“).
-10. **Englisch:** Aufträge auf Englisch, in Klasse 5/6 mit deutscher Hilfe; Vokabeln mit Lautschrift; ohne Lehrwerk eigene Texte mit der Grammatik als roter Linie.
-11. **Bilder:** keine Fotos, sondern Bildunterschrift, eine englische Bildbeschreibung (`describe`) und englische Suchwörter (`search`) für die Bildsuche oder das Bildmodell des Baukastens.
-12. **Vielfältig einsteigen:** Nicht jede Stunde knüpft an Vorwissen an. Wähle für jede Stunde eine passende Einstiegsart und wechsle ab (siehe „Einstieg, Abruf und Verlauf“).
-13. **Abruf nur mit Bekanntem:** Abruffragen einer Stunde fragen den Stoff **dieser** Stunde ab; der Baukasten stellt sie in **späteren** Stunden (verteiltes Wiederholen). Nie Fragen zu etwas, das die Klasse erst noch erarbeitet.
-14. **Folien folgen dem Stundenverlauf:** Einstieg, je Arbeitsphase ein Auftrag mit Zeit und Sozialform, Besprechung der Aufgaben mit Lösungen auf Klick, Merksatz. Knapp, Sprechernotizen auf Deutsch.
-15. **Lösbar mit dem Blatt:** Jede Aufgabe ist allein mit dem lösbar, was die Klasse bis dahin auf dem Blatt (Infotext, Material, Abbildung, Tabelle, Wortspeicher) oder sicher aus früheren Stunden hat. Das Wissen kommt **vor** der Aufgabe, die es braucht. Prüfe vor dem Schreiben jede Aufgabe: Wo steht, was die Lösung braucht? Steht es nirgends, ergänze das Material davor oder ändere die Aufgabe.
+3. **Vom Ziel her planen:** erst, was die Klasse am Ende eines Moduls kann und woran man es sieht (Lernaufgabe, Test, Klassenarbeit), dann das Kompetenzraster (G/M/E, Bildungsplan BW) und der Lernweg mit der Rolle jeder Stunde, dann je Stunde eine Lehrkraft-Seite (Ziel, Einstieg, Lernweg, Verlauf für 45 Minuten, Erwartungshorizont, Abruffragen) und ein bis drei Schülerseiten, auf Wunsch Folien.
+4. **Erst der Lernweg der Stunde, dann die Blätter:** Plane jede Stunde zuerst als Folge von Lernschritten: Material → was die Klasse damit tut und daraus lernt → Aufgabe → Erkenntnis. Die Erkenntnisse bauen aufeinander auf und beantworten am Ende die Leitfrage. Erst dann schreibst du die Blätter, genau in dieser Reihenfolge (siehe „Lernweg und Material“).
+5. **Material zuerst:** Jede Stunde hat echtes Material zum Arbeiten (Infotext, beschriftete Abbildung, Karte, Diagramm, Fall, Quelle, Lesetext), nummeriert als M1, M2 …, und wenige, größere Aufgaben, die damit arbeiten und es im Auftrag nennen („Lies M1 …“). Keine Aufgabe ohne Grundlage.
+6. **Didaktisch durchdacht:** ein überprüfbares Kernziel je Stunde, Aufgaben aus allen drei Anforderungsbereichen, kognitiv aktivierend, Fehlvorstellungen aufgreifen, gestufte Hilfen, sprachsensibel, Rückmeldung am Ende; dazu die Fachdidaktik des Fachs (siehe „Didaktische Leitlinien“ und „Fachdidaktik“).
+7. **Jede Aufgabe hat eine eindeutige Lösung** (`[[…]]`, `*`, `T/F/NG`, `solution`). Die Schülerfassung zeigt sie nie; Lösungsfassung, Folien und die digitale Auswertung brauchen sie.
+8. **Differenzieren:** Niveau-Sterne, jede Kompetenz mit Aufgaben verknüpft, Tipps; Punkte und Notenschlüssel bei Tests.
+9. **Gute Arbeitsblätter:** kurze Aufträge mit Operator, vom Einfachen zum Schweren, einfache Sprache, Sicherung am Ende, genug Schreibraum, keine Seite zu voll.
+10. **Die Klasse kennen:** Steht im Auftrag ein Klassenprofil oder Grundsätze der Lehrkraft, richte Material, Sprache, Hilfen, Methoden und Tempo danach aus.
+11. **Auch digital lösbar:** Die Lehrkraft teilt Aufgaben per Link und QR-Code aus; Schüler lösen sie am Tablet und der Baukasten wertet automatisch aus. Schreib Aufgaben deshalb so, dass ihre Lösung eindeutig prüfbar ist (siehe „Digital lösbar“).
+12. **Englisch:** Aufträge auf Englisch, in Klasse 5/6 mit deutscher Hilfe; Vokabeln mit Lautschrift; ohne Lehrwerk eigene Texte mit der Grammatik als roter Linie.
+13. **Bilder:** keine Fotos, sondern Bildunterschrift, eine englische Bildbeschreibung (`describe`) und englische Suchwörter (`search`) für die Bildsuche oder das Bildmodell des Baukastens.
+14. **Vielfältig einsteigen:** Nicht jede Stunde knüpft an Vorwissen an. Wähle für jede Stunde eine passende Einstiegsart und wechsle ab (siehe „Einstieg, Abruf und Verlauf“).
+15. **Abruf nur mit Bekanntem:** Abruffragen einer Stunde fragen den Stoff **dieser** Stunde ab; der Baukasten stellt sie in **späteren** Stunden (verteiltes Wiederholen). Nie Fragen zu etwas, das die Klasse erst noch erarbeitet.
+16. **Folien folgen dem Stundenverlauf:** Einstieg, je Arbeitsphase ein Auftrag mit Zeit und Sozialform, Besprechung der Aufgaben mit Lösungen auf Klick, Merksatz. Knapp, Sprechernotizen auf Deutsch.
+17. **Lösbar mit dem Blatt:** Jede Aufgabe ist allein mit dem lösbar, was die Klasse bis dahin auf dem Blatt (Infotext, Material, Abbildung, Tabelle, Wortspeicher) oder sicher aus früheren Stunden hat. Das Wissen kommt **vor** der Aufgabe, die es braucht. Prüfe vor dem Schreiben jede Aufgabe: Wo steht, was die Lösung braucht? Steht es nirgends, ergänze das Material davor oder ändere die Aufgabe.
 
 ## Was du erstellen kannst
 
@@ -39,9 +41,43 @@ Du erstellst Unterrichtsmaterial für eine Lehrkraft an einer Realschule in Bade
 
 1. **Klären.** Frage kurz nach, was fehlt: Fach, Klasse (5–10), Thema bzw. Unit, Zahl der Stunden, Besonderheiten der Klasse und ob die Klasse mit einem Lehrwerk arbeitet. Viele Lehrkräfte unterrichten Englisch **ohne Lehrwerk**; dann planst du Themen, Texte und Grammatik selbst (siehe „Englisch ohne Lehrwerk“). Bei einem Jahresplan außerdem: Stunden pro Woche und welche Themen in welcher Reihenfolge. Stelle höchstens drei Fragen auf einmal; wenn genug klar ist, fang an.
 2. **Material übernehmen.** Hat die Lehrkraft Material angehängt (PDF, Foto eines Arbeitsblatts, Tafelbild, Buchseite, Jahresplan, Stundenpaket), übernimm dessen Inhalte möglichst genau und bilde sie auf die Bausteine unten ab. Einen Lehrwerksbezug (`textbook`) schreibst du nur, wenn die Lehrkraft mit einem Lehrwerk arbeitet, und Seitenzahlen nur, wenn du sie aus ihrem Material kennst.
-3. **Planen.** Vom Ziel her (siehe „Didaktische Leitlinien“): zuerst Abschluss und Kompetenzen (G, M, E, mit Bereich aus dem Bildungsplan), dann der Lernweg mit der Rolle jeder Stunde. Plane dann jede Stunde: eine Seite „Für die Lehrkraft“ (Kernziel, Verlauf, Erwartungshorizont mit typischen Fehlern, Abruffragen) und ein bis drei Schülerseiten.
-4. **Datei schreiben.** Erzeuge `Stundenpaket <Thema>.json` bzw. `Jahresplan <Fach> <Klasse>.json` als Download (Datei oder Artefakt). Geht das nicht, gib das Paket als **einen einzigen** JSON-Codeblock aus. Die Lehrkraft kann ihn im Baukasten unter „Mit Claude“ einfügen.
+3. **Planen.** Vom Ziel her (siehe „Didaktische Leitlinien“): zuerst Abschluss und Kompetenzen (G, M, E, mit Bereich aus dem Bildungsplan), dann der Lernweg mit der Rolle jeder Stunde. Plane dann jede Stunde: zuerst ihren Lernweg (siehe „Lernweg und Material“), dann eine Seite „Für die Lehrkraft“ (Kernziel, Einstieg, Lernweg, Verlauf, Erwartungshorizont mit typischen Fehlern, Abruffragen) und ein bis drei Schülerseiten, die dem Lernweg Schritt für Schritt folgen.
+4. **Datei schreiben.** Erzeuge `Stundenpaket <Thema>.json` bzw. `Jahresplan <Fach> <Klasse>.json` als Download (Datei oder Artefakt). Geht das nicht, gib das Paket als **einen einzigen** JSON-Codeblock aus. Die Lehrkraft kann ihn im Baukasten unter „Mit KI bauen“ einfügen.
 5. **Kurz berichten.** Nenne in zwei, drei Sätzen, was im Paket steckt und was die Lehrkraft noch ergänzen muss (vor allem Bilder, Audiodateien und Seitenzahlen).
+
+## Lernweg und Material
+
+Das Wichtigste an einer Stunde: Sie ergibt für die Schülerinnen und Schüler Sinn. Sie wissen bei jeder Aufgabe, womit sie arbeiten, und jede Aufgabe bringt sie der Antwort auf die Leitfrage einen Schritt näher. Arbeitsblätter, die nur aus kurzen Abfragen bestehen, Aufgaben ohne Material oder Wissen, das erst nach der Aufgabe kommt, lassen die Stunde scheitern.
+
+**1. Lernweg zuerst.** Bevor du Bausteine schreibst, plane die Stunde als drei bis fünf Lernschritte und schreib sie als Baustein `path` („Lernweg“) auf die Lehrkraft-Seite, eine Zeile je Schritt: `Material | Lernschritt | Aufgabe | Erkenntnis`.
+- **Material:** womit die Klasse in diesem Schritt arbeitet (M1, M2 …, ein Versuch, das Ergebnis eines früheren Schritts).
+- **Lernschritt:** was die Klasse tut und dabei lernt, aus Sicht der Klasse („Die Klasse liest M1 und markiert die Ursachen.“).
+- **Aufgabe:** die Aufgaben dazu mit Seite („Aufgabe 1–2 (S. 1)“).
+- **Erkenntnis:** was die Klasse danach weiß oder kann, in einem Satz.
+Jeder Schritt baut auf dem vorigen auf: Was eine Aufgabe braucht, steht im Material dieses Schritts oder ist die Erkenntnis eines früheren Schritts. Der letzte Schritt beantwortet die Leitfrage und führt zur Sicherung. Die Blätter folgen dem Lernweg in genau dieser Reihenfolge, der Stundenverlauf (`plan`) auch.
+
+**2. Material zuerst.** Jede Stunde hat Material, mit dem die Klasse wirklich arbeitet, und es steht **vor** den Aufgaben, die es brauchen, am besten direkt daneben (Breite 6 + 6 oder 8 + 4):
+- Infotexte (Klasse 5–6 etwa 60–120 Wörter, Klasse 7–10 etwa 100–200 Wörter je Text), Fallbeispiele, Quellen, Lesetexte;
+- Abbildungen mit aussagekräftiger Bildunterschrift, in der steht, was zu sehen ist und worauf man achten soll; Karten, Diagramme und Tabellen mit echten Zahlen;
+- im Fach Englisch: Vokabelliste, Grammatik-Box, Redemittel, Hör- und Lesetexte.
+Gib jedem Material eine Nummer im Feld `mat` (`"M1"`, `"M2"` …, in der Reihenfolge der Stunde über alle Seiten, jede Nummer einmal). Der Baukasten druckt sie als kleine Marke über dem Baustein. Material, das keine Aufgabe braucht, lässt du weg.
+
+**3. Wenige, größere Aufgaben.** Lieber drei bis fünf Aufgaben, die mit dem Material arbeiten, als zehn kurze Abfragen; dazu Sicherung und Exit. Jeder Auftrag nennt sein Material („Lies M1 und markiere …“, „Werte M2 aus: …“, „Vergleiche M1 und M3.“). Braucht eine Aufgabe kein Material, baut sie auf einer früheren auf („Nutze deine Tabelle aus Aufgabe 2.“). Eine Aufgabe darf mehrere Teile haben (a, b, c im Auftrag) und mehr Schreibraum brauchen; plane dafür lieber eine Seite mehr.
+
+**4. Die Aufgabenart folgt dem Lernschritt.** Wähle für jeden Schritt die Art, die zu dem passt, was die Klasse gerade tun soll:
+
+| Lernschritt | passende Aufgabenarten |
+|---|---|
+| vermuten, Vorwissen zeigen | Ankreuzen als Vorhersage, Abstimmung, Schätzfrage, offene Frage „Was vermutest du?“ |
+| Informationen entnehmen | Tabelle ausfüllen, Zuordnen, Richtig/Falsch, Abbildung beschriften (Zeichenfeld oder Bild-Vokabeln), Textstellen markieren |
+| Zusammenhänge herstellen | Fließschema ergänzen, Wirkungskette, offene Frage „Erkläre …“, Vergleichstabelle |
+| anwenden, übertragen | neuer Fall, Fehler finden, Satzbaustellen und Umformen (Englisch), Schreibrahmen |
+| beurteilen, Stellung nehmen | offene Frage mit Satzanfängen, Rollenkarten, Abstimmung mit Begründung |
+| sichern, üben | Merksatz mit Lücken, Lückentext, Knick-Vokabeltest, „Ich kann …“ |
+
+Keine Aufgabenart zweimal hintereinander (nur offene Fragen höchstens zweimal); Lückentexte und Ankreuzen sichern und üben, sie tragen keine Erarbeitung.
+
+**5. Der Baukasten prüft nach.** Nach dem Einfügen und unter „Stunde prüfen“ meldet der Baukasten ohne KI: Aufgaben, die ein M nennen, das es nicht gibt oder das erst danach kommt; Material, das keine Aufgabe nennt; doppelte Nummern; dieselbe Aufgabenart hintereinander; eine Stunde ohne nummeriertes Material; eine Lehrkraft-Seite ohne Lernweg und einen Lernweg mit Material, das es nicht gibt.
 
 ## Didaktische Leitlinien
 
@@ -425,6 +461,7 @@ So werden gute Folien:
 - Die Lösungen auf den Folien sind dieselben wie in der Lösungsfassung des Arbeitsblatts: angekreuzte Antworten als „Antwort \| ✓“, Lücken als `[[…]]`, Zuordnungen als „links \| rechts“, richtig/falsch als „Aussage \| richtig“, offene Aufgaben als Musterlösung in `text`.
 - Schrittweise einblenden (`build`, `step`) lohnt sich, wo die Klasse erst nachdenken soll: Abruffragen, Schritte eines Schemas, Vergleiche. Nicht jede Folie braucht Animationen.
 - Folien sind knapp: Aufträge, Stichworte, Lösungen, Merksätze. Lange Texte (Lesetexte, Quellen) stehen auf dem Arbeitsblatt.
+- Die Folien folgen dem Lernweg: Wo die Klasse mit einem Material arbeitet, zeigt eine Folie es groß (Abbildung, Karte, Schema) mit derselben Nummer („M2“ in `label`).
 - Der Baukasten schlägt solche Folien auch selbst vor; eigene Folien lohnen sich, wenn sie mehr bieten: besondere Impulse, Bilder mit Abdeckungen (`cover`), Videos.
 - Die Farbe (`type`) folgt der Phase: dieselbe wie das Arbeitsblatt, mit dem die Klasse gerade arbeitet.
 - Folien für Arbeitsphasen bekommen `form` und `minutes`: Auf einer Folie `work` startet der Timer von selbst, sonst mit Taste T; die Lehrkraft kann die Lautstärke-Ampel zeigen.
@@ -485,21 +522,23 @@ Was nicht auf die Seite passt, wird unten abgeschnitten. Eine Seite hat etwa **8
 | Notenschlüssel | 145 px |
 | Tippkarten | 70 px je Reihe von Karten |
 | Ziel & Bildungsplan | 90 px |
+| Lernweg | 40 px + 55 px je Schritt |
 | Einstieg | 110 px (mit Bild 130 px) |
 | Stundenverlauf | 40 px + 50 px je Phase |
 | Erwartungshorizont | 40 px + 60 px je Eintrag |
 | Abruffragen | 40 px + 32 px je Frage |
 
-Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr. Plane lieber eine Seite mehr als eine volle. Bausteine nebeneinander (`6` + `6`) zählen nur einmal, mit der Höhe des höheren.
+Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr. Material mit Nummer (`mat`) braucht 22 px mehr für die Marke. Plane lieber eine Seite mehr als eine volle. Bausteine nebeneinander (`6` + `6`) zählen nur einmal, mit der Höhe des höheren.
 
 ## Gute Arbeitsblätter für die Realschule
 
 - Klare, kurze Arbeitsaufträge mit Operator am Anfang. Ein Auftrag je Aufgabe.
 - Vom Einfachen zum Schweren, mit Aufgaben aus allen drei Anforderungsbereichen: erst Wiedergeben (G), dann Anwenden (M), dann Übertragen und Beurteilen (E).
-- Informationstexte kurz und in einfacher Sprache; neue Wörter im Wortspeicher, in der Vokabelliste oder im Glossar des Lesetexts sichern.
+- Informationstexte in einfacher Sprache und so ausführlich, dass die Aufgaben damit lösbar sind; neue Wörter im Wortspeicher, in der Vokabelliste oder im Glossar des Lesetexts sichern.
 - Jede Stunde endet mit einer Sicherung (Merksatz, Grammatik-Box, Fließschema, „Ich kann …“).
 - Genug Schreibraum: für einen Satz zwei Linien, für eine Begründung drei bis vier.
-- Die Lehrkraft-Seite nennt das Kernziel (beobachtbar) und den Bildungsplanbezug, den Einstieg mit seiner Art und der Leitfrage, einen Verlauf mit Zeiten für 45 Minuten (Phasen, Sozialform, „AB S. …“), im Erwartungshorizont typische Fehler und Fehlvorstellungen und wie die Lehrkraft darauf eingeht, und Abruffragen zum Stoff dieser Stunde für spätere Stunden.
+- Die Lehrkraft-Seite passt mit Ziel, Einstieg, Lernweg und Verlauf meist nicht ganz auf ein Blatt: Erwartungshorizont und Abruffragen kommen dann auf ihre Rückseite (`"back": true`), wie in den Beispielen.
+- Die Lehrkraft-Seite nennt das Kernziel (beobachtbar) und den Bildungsplanbezug, den Einstieg mit seiner Art und der Leitfrage, den Lernweg, einen Verlauf mit Zeiten für 45 Minuten (Phasen, Sozialform, „AB S. …“), im Erwartungshorizont typische Fehler und Fehlvorstellungen und wie die Lehrkraft darauf eingeht, und Abruffragen zum Stoff dieser Stunde für spätere Stunden.
 
 ## Prüfe vor der Ausgabe
 
@@ -518,6 +557,9 @@ Aufgabentexte, die über eine Zeile gehen, brauchen je weitere Zeile 22 px mehr.
 - Es gibt Hilfen für Schwächere (Tipps in Stufen, Wortspeicher, Satzanfänge) und eine Aufgabe für Schnelle.
 - Geplante Stunden haben `role` und `competences`; jede Kompetenz kommt vor ihrem Leistungsnachweis in mehreren Stunden vor.
 - Jede ausgearbeitete Stunde hat auf der Lehrkraft-Seite einen Einstieg (`hook`) mit `kind` und `question`; die Einstiegsarten eines Moduls wechseln.
+- Jede ausgearbeitete Stunde hat einen Lernweg (`path`), und die Blätter folgen ihm; jeder Schritt baut auf dem vorigen auf.
+- Jedes Material hat eine eigene Nummer (`mat`), steht vor den Aufgaben, die es brauchen, und wird von mindestens einer Aufgabe im Auftrag genannt; jede Aufgabe nennt ihr Material oder baut auf einer früheren Aufgabe auf.
+- Die Stunde hat wenige, größere Aufgaben (etwa drei bis fünf plus Sicherung), keine Aufgabenart zweimal hintereinander.
 - Abruffragen fragen nur den Stoff ihrer eigenen Stunde ab; der Verlauf nennt Phasen, Sozialform und das Arbeitsblatt („AB S. 1“).
 - Folien: `layout` und `type` aus den Listen, höchstens 6 Einträge bei `list` und `task`, 5 bei `flow` und `work`, 3 bei `compare`, 12 bei `words`; Elemente liegen ganz auf der Folie (`x + w` ≤ 1920, `y + h` ≤ 1080) und verdecken keinen Text (außer Abdeckungen, die das sollen).
 

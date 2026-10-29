@@ -177,7 +177,7 @@ export function AiSettingsDialog({ onClose }: { onClose(): void }) {
           {check && <p className={check.ok ? 'ai-ok' : 'json-err'}>{check.text}</p>}
         </div>
         {modelField('big', 'Stunden und Jahrespläne')}
-        {modelField('small', 'Helfer am Baustein (umformulieren, Niveaus, Lösungen)')}
+        {modelField('small', 'Kleinere Aufträge (Vokabellisten)')}
         <div className="settings-ai">
           <div className="panel-section-label">Bilder mit KI (über OpenRouter)</div>
           <p className="ai-hint">

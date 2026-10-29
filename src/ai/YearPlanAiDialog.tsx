@@ -62,9 +62,9 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
   return (
     <>
       <div className="dialog-backdrop" onClick={() => !busy && !plan && close()}>
-        <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Jahresplan mit Claude" onClick={(e) => e.stopPropagation()}>
+        <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Mit KI bauen: Jahresplan" onClick={(e) => e.stopPropagation()}>
           <div className="dialog-title">
-            <Icon icon={Sparkles} /> Jahresplan mit Claude
+            <Icon icon={Sparkles} /> Mit KI bauen: Jahresplan
           </div>
           <p className="dialog-body ai-where">
             {subject} · Klasse {grade}
@@ -75,7 +75,7 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
             <>
               <p className="ai-hint">
                 Claude plant die Module des Schuljahrs mit Wochen, Kompetenzraster und allen Stunden als geplante Stunden. Module, die es schon gibt, bleiben und werden nur ergänzt. Danach arbeitest du jede Stunde im
-                Arbeitsblatt mit „Claude“ → „Stunde mit Claude“ aus.
+                Arbeitsblatt mit „KI“ → „Mit KI bauen“ aus.
               </p>
               <div className="ai-plan-row">
                 <NumberField label="Stunden pro Woche" value={hours} min={1} max={8} onChange={setHours} />
@@ -114,7 +114,7 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
               </div>
               <ClassNotesLine subject={subject} grade={grade} />
               <details className="ai-context">
-                <summary>Was Claude über den Jahrgang erfährt</summary>
+                <summary>Was die KI über den Jahrgang erfährt</summary>
                 <pre>{context}</pre>
               </details>
             </>
