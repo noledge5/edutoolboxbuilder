@@ -216,6 +216,23 @@
 
 /* — Blocks: graphics — */
 .ws-figure { display: flex; flex-direction: column; gap: 6px; }
+/* — Labels on a picture: pins with numbers or words, a legend below — */
+.ws-figure-box { position: relative; }
+.ws-figure-box.is-armed { cursor: crosshair; }
+.ws-pin, .ws-pin-text { position: absolute; transform: translate(-50%, -50%); touch-action: none; user-select: none; }
+.ws-pin { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--t-num); color: var(--t-num-fg); font-size: 12px; font-weight: 700; box-shadow: 0 0 0 2px var(--ink-white); }
+.ws-pin-text { padding: 2px 7px; border-radius: 7px; background: color-mix(in srgb, var(--ink-white) 92%, transparent); font-size: 11.5px; font-weight: 700; white-space: nowrap; box-shadow: 0 1px 2px color-mix(in srgb, var(--color-text) 25%, transparent); }
+.ws-labels { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; }
+.ws-labels li { display: flex; align-items: center; gap: 6px; }
+.ws-label-num { width: 18px; height: 18px; flex: none; border: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; background: var(--t-num); color: var(--t-num-fg); font: 700 11px/1 var(--font-body); }
+button.ws-label-num { cursor: pointer; }
+button.ws-label-num.is-open { box-shadow: 0 0 0 2px var(--color-accent-300); }
+button.ws-label-num.is-on { box-shadow: 0 0 0 3px var(--color-accent-700); }
+.ws-labels.is-gaps li { min-width: 46%; }
+.ws-label-line { flex: 1; min-width: 90px; height: 18px; border-bottom: 1.5px solid var(--color-neutral-400); }
+.ws-answer-inline { font-weight: 700; color: var(--color-accent-700); }
+.ws-answer-inline.is-ghost { color: var(--color-neutral-400); font-weight: 600; }
+.ws-labels-hint { font: 12px var(--font-ui, inherit); color: var(--color-neutral-700); }
 .ws-image { position: relative; border-radius: 18px; overflow: hidden; background: var(--color-surface); }
 .ws-image img { display: block; width: 100%; height: 100%; }
 .ws-image.is-dragover { outline: 2px dashed var(--color-accent); outline-offset: -2px; }

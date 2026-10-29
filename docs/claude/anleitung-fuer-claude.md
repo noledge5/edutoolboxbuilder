@@ -407,6 +407,10 @@ Beispiel: `"0–5 | Abrufphase | 3 Fragen ins Lernjournal | Einzel | Lernjournal
 
 Du kannst keine Fotos liefern. Setze stattdessen einen Baustein „Abbildung“ mit aussagekräftiger Bildunterschrift (`caption`) und in `search` zwei, drei **englische Suchwörter** für ein passendes freies Bild (z. B. `"search": "volcano eruption"`, `"search": "map united kingdom"`). Schreib außerdem in `describe` eine **englische Bildbeschreibung** für eine Illustration (was zu sehen ist, ohne Text im Bild, z. B. `"describe": "a girl holding a compass on a hiking path, mountains in the background"`). Die Lehrkraft tippt im Baukasten auf „Im Internet suchen“ (die Suche in Openverse und Wikimedia Commons startet mit deinen Suchwörtern, Urheber und Lizenz landen automatisch in `source`) oder auf „Mit KI erzeugen“ (ein Bildmodell zeichnet nach deiner Beschreibung). Beim Baustein „Einstieg“ mit Bildimpuls gilt dasselbe. Lass `source` deshalb leer, außer du kennst die Quelle eines Bildes aus dem Material der Lehrkraft. In „Bild-Vokabeln“ nimmst du Emojis (`🐶 | dog`), die die Lehrkraft durch eigene Bilder ersetzen kann. Nur wenn du ein Bild wirklich als Datei hast (z. B. eine selbst erstellte SVG-Grafik), trag es unter `"images": { "abb1": "data:image/svg+xml;base64,…" }` ein und setze im Baustein `"image": "abb1"`.
 
+### Beschriftete Abbildungen
+
+Abbildungen sind Material: Schreib die Fachbegriffe, die man am Bild zeigen soll, in `labels`, einen je Zeile, **nur die Wörter, keine Positionen** (z. B. `"labels": "Krater\nSchlot\nMagmakammer"`). Die Lehrkraft setzt sie im Baukasten als Nummern aufs Bild. `labelStyle` wählt, wie sie erscheinen: `"nummern"` (Nummern im Bild, darunter die Legende; zum Erklären), `"luecken"` (Nummern im Bild, darunter Schreiblinien, die Wörter nur in der Lösungsfassung; für „Beschrifte M2 mit den Begriffen aus dem Wortspeicher“) oder `"text"` (die Wörter stehen im Bild). Beschreib in `describe` ein Bild, auf dem diese Teile gut zu sehen sind, ohne Text im Bild. Eine beschriftete Abbildung braucht etwa 22 px je Reihe der Legende mehr (drei bis vier Begriffe passen in eine Reihe).
+
 ### Klasse 5 und 6: anschaulich
 
 In Klasse 5 und 6 wirken Blätter mit viel Text schnell trocken. Plane deshalb auf **jeder Schülerseite mindestens ein Bild** ein (Abbildung mit `describe`, Bild-Vokabeln, Bildimpuls) und nutze Bilder in den Aufgaben selbst: Zuordnen mit Bildern, „Beschrifte das Bild“, Bildgeschichten, Ausmalen und Markieren. Wechsle die Aufgabenformen ab (Rätsel, Bingo, Zuordnen, Partneraufgaben) statt mehrerer Lückentexte hintereinander, und halte Sätze kurz. Bilder sind dort am besten groß genug (Höhe 180–260) und neben dem Text (Breite 6 oder 4).
@@ -513,7 +517,7 @@ Was nicht auf die Seite passt, wird unten abgeschnitten. Eine Seite hat etwa **8
 | Wortspeicher | 35 px |
 | Fließschema | 120 px |
 | QR-Code | 105 px |
-| Abbildung | `height` + 25 px |
+| Abbildung | `height` + 25 px, mit `labels` + 22 px je Reihe der Legende |
 | Zeichenfeld | `height` + 35 px |
 | Offene Frage | 35 px + 28 px je Schreiblinie |
 | Ankreuzen | 70 px (die Antworten stehen nebeneinander) |
@@ -645,7 +649,7 @@ Programmcode mit Zeilennummern (Informatik), z. B. Python zum Lesen und Nachvoll
 
 #### `image` · Abbildung
 
-Platz für ein Bild mit Bildunterschrift; in `search` englische Suchwörter für die Bildsuche der Lehrkraft (Openverse, Wikimedia Commons), die Quelle trägt der Baukasten ein. Standardbreite: 6.
+Platz für ein Bild mit Bildunterschrift; in `search` englische Suchwörter für die Bildsuche der Lehrkraft (Openverse, Wikimedia Commons), die Quelle trägt der Baukasten ein. Beschriftungen in `labels`, ein Begriff je Zeile, nur die Wörter (die Lehrkraft setzt sie aufs Bild); `labelStyle` `"nummern"` (Nummern mit Legende), `"luecken"` (zum Ausfüllen, z. B. „Beschrifte M2“) oder `"text"` (Wörter im Bild). Standardbreite: 6.
 
 | Feld | Bedeutung | Werte | Standard |
 |---|---|---|---|
@@ -656,6 +660,8 @@ Platz für ein Bild mit Bildunterschrift; in `search` englische Suchwörter für
 | `describe` | Bildbeschreibung für „Mit KI erzeugen“ | Text, mehrzeilig | – |
 | `height` | Höhe in px | Zahl 40–900 | `200` |
 | `fit` | Bild einpassen | `"cover"` (Füllen), `"contain"` (Ganz zeigen) | `"cover"` |
+| `labels` | Beschriftungen (eine je Zeile; auf dem Blatt eine Nummer antippen, dann die Stelle im Bild) | Text, mehrzeilig | – |
+| `labelStyle` | Beschriftung | `"nummern"` (Nummern mit Legende), `"luecken"` (Zum Ausfüllen), `"text"` (Text im Bild) | `"nummern"` |
 | `mat` | Material-Nummer (z. B. M1, Aufgaben nennen sie im Auftrag) | Text | – |
 
 #### `flow` · Fließschema

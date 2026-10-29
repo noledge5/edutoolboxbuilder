@@ -1,6 +1,7 @@
 // Digital tasks: each task block is cut into parts the student answers (slots), with the answers stored on the
 // worksheet as the expected ones. The student view draws the slots, the teacher's evaluation grades them; a test
 // copy for the students has the solutions taken out (`stripSolutions`). Pure, so it is tested without a browser.
+import { labelsWithoutWords } from '../model/labels';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { jumble, statements } from '../model/language';
 import { cellRows, choices, lines, matchNumbers, rows, segments, str } from '../model/text';
@@ -233,6 +234,10 @@ export function stripSolutions(b: Block): Block {
       break;
     case 'listening':
       set('transcript', '');
+      break;
+    case 'image':
+      // Labels to fill in: the pins stay, the words go.
+      if (str(p.labelStyle) === 'luecken') set('labels', labelsWithoutWords(p.labels));
       break;
   }
   // Gaps with answers anywhere else too (Merksatz, Formentabelle, Wortnetz, Satzbaustellen, Rollenkarten …).

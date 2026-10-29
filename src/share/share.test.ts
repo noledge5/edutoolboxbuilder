@@ -53,6 +53,8 @@ describe('slots and grading', () => {
     const merk = createBlock('merksatz', { text: 'Die [[Sonne]] wärmt.' });
     expect(stripSolutions(merk).props.text).toBe('Die [[]] wärmt.');
     expect(stripSolutions(createBlock('listening', { transcript: 'A: Hi!' })).props.transcript).toBe('');
+    expect(stripSolutions(createBlock('image', { labels: 'Krater | 10 | 20', labelStyle: 'luecken' })).props.labels).toBe(' | 10 | 20');
+    expect(stripSolutions(createBlock('image', { labels: 'Krater | 10 | 20' })).props.labels).toBe('Krater | 10 | 20');
     const parts = String(stripSolutions(jumble).props.items);
     expect(parts).toContain(' / ');
     expect(parts).not.toContain('=');

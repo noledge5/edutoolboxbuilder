@@ -176,7 +176,7 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
     label: 'Abbildung',
     group: 1,
     span: 6,
-    defaults: { mat: '', caption: 'Abb. 1: Bildunterschrift', source: '', height: 200, image: '', fit: 'cover', search: '', describe: '' },
+    defaults: { mat: '', caption: 'Abb. 1: Bildunterschrift', source: '', height: 200, image: '', fit: 'cover', search: '', describe: '', labels: '', labelStyle: 'nummern' },
     fields: [
       { key: 'image', label: 'Bild', kind: 'image' },
       { key: 'caption', label: 'Bildunterschrift', kind: 'text' },
@@ -191,6 +191,17 @@ export const BLOCK_TYPES: Record<BlockType, BlockTypeDef> = {
         options: [
           { v: 'cover', l: 'Füllen' },
           { v: 'contain', l: 'Ganz zeigen' },
+        ],
+      },
+      { key: 'labels', label: 'Beschriftungen (eine je Zeile; auf dem Blatt eine Nummer antippen, dann die Stelle im Bild)', kind: 'area' },
+      {
+        key: 'labelStyle',
+        label: 'Beschriftung',
+        kind: 'seg',
+        options: [
+          { v: 'nummern', l: 'Nummern mit Legende' },
+          { v: 'luecken', l: 'Zum Ausfüllen' },
+          { v: 'text', l: 'Text im Bild' },
         ],
       },
       MAT_FIELD,
