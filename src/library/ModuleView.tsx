@@ -106,7 +106,7 @@ export function ModuleView(p: ModuleViewProps) {
             label="Vokabeln"
             icon={BookA}
             items={[
-              ...(m.lang === 'en' ? [{ label: 'Vokabelliste mit Claude …', icon: Sparkles, onClick: () => setVocabAiOpen(true) }] : []),
+              ...(m.lang === 'en' ? [{ label: 'Vokabelliste mit KI …', icon: Sparkles, onClick: () => setVocabAiOpen(true) }] : []),
               { label: 'Vokabeltest erstellen …', icon: Shuffle, onClick: () => (vocabCount ? setTestOpen(true) : noVocab()) },
               { label: 'Vokabeln als CSV (Anki, Quizlet)', icon: Download, onClick: () => (vocabCount ? p.onExportVocab() : noVocab()) },
             ]}
@@ -116,7 +116,7 @@ export function ModuleView(p: ModuleViewProps) {
           label="Modul"
           icon={SquarePen}
           items={[
-            { label: 'Mit Claude planen …', icon: Sparkles, onClick: () => setPlanOpen(true) },
+            { label: 'Mit KI bauen …', icon: Sparkles, onClick: () => setPlanOpen(true) },
             { label: 'PDF als Stunde einpflegen …', icon: FileText, onClick: () => pdfInput.current?.click() },
             { label: 'Arbeitsblatt-Datei als Stunde importieren …', icon: FileInput, onClick: () => fileInput.current?.click() },
             { label: 'Als Stundenpaket sichern', icon: PackageOpen, onClick: p.onExportPackage },
@@ -439,7 +439,7 @@ function LessonList(p: ModuleViewProps & { onPlan(): void; onPdf(): void }) {
         </button>
         <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onPlan}>
           <Icon icon={Sparkles} />
-          Modul mit Claude planen …
+          Modul mit KI bauen …
         </button>
         <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onPdf}>
           <Icon icon={FileText} />

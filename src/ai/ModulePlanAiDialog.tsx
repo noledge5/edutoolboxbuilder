@@ -62,9 +62,9 @@ export function ModulePlanAiDialog({ lib, module: m, onApply, onClose }: ModuleP
   return (
     <>
       <div className="dialog-backdrop" onClick={() => !busy && !plan && close()}>
-        <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Modul mit Claude planen" onClick={(e) => e.stopPropagation()}>
+        <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Mit KI bauen: Modul" onClick={(e) => e.stopPropagation()}>
           <div className="dialog-title">
-            <Icon icon={Sparkles} /> Modul mit Claude planen
+            <Icon icon={Sparkles} /> Mit KI bauen: Modul
           </div>
           <p className="dialog-body ai-where">
             Modul {m.number}: <b>{m.title}</b> · {m.subject} · Klasse {m.grade}
@@ -75,7 +75,7 @@ export function ModulePlanAiDialog({ lib, module: m, onApply, onClose }: ModuleP
             <>
               <p className="ai-hint">
                 Claude plant das Modul vom Ende her: was die Klasse am Ende kann und woran man es sieht, das Kompetenzraster und den Weg dorthin als geplante Stunden mit Rolle und Kompetenzen. Ausgearbeitete Stunden bleiben,
-                geplante werden ersetzt. Danach arbeitest du die Stunden einzeln mit „Stunde mit Claude“ aus.
+                geplante werden ersetzt. Danach arbeitest du die Stunden einzeln im Arbeitsblatt mit „KI“ → „Mit KI bauen“ aus.
               </p>
               <div className="ai-plan-row">
                 <NumberField label="Stunden pro Woche" value={hours} min={1} max={8} onChange={setHours} />
@@ -103,7 +103,7 @@ export function ModulePlanAiDialog({ lib, module: m, onApply, onClose }: ModuleP
               </div>
               <ClassNotesLine subject={m.subject} grade={m.grade} />
               <details className="ai-context">
-                <summary>Was Claude über das Modul erfährt</summary>
+                <summary>Was die KI über das Modul erfährt</summary>
                 <pre>{context}</pre>
               </details>
             </>

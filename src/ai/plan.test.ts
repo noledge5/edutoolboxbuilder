@@ -7,7 +7,6 @@ import type { Library } from '../library/types';
 import { classNotes, withClassNotes } from './classNotes';
 import { lessonContext } from './context';
 import { applyModulePlan, hoursOf, moduleContext, modulePlanFromAnswer, modulePlanPrompt } from './moduleplan';
-import { taskPrompt } from './task';
 import { yearPlanContext, yearPlanPrompt } from './yearplan';
 
 function library(): Library {
@@ -114,8 +113,6 @@ describe('class profile and principles', () => {
     expect(lessonContext(lib, m, l)).toContain('24 Kinder, viele DaZ');
     expect(yearPlanContext(lib, m.subject, m.grade, { hours: 2, textbook: '', wishes: '' })).toContain('24 Kinder');
     expect(moduleContext(lib, m, { hours: 2, end: '', wishes: '' })).toContain('24 Kinder');
-    const page = l.doc.pages[0];
-    expect(taskPrompt('Mach ein Rätsel', { subject: m.subject, grade: m.grade, topic: m.title, lang: 'de', page, competences: [], notes })).toContain('24 Kinder');
     // Empty profile removes the entry.
     expect(withClassNotes(lib.settings, m.subject, m.grade, ' ', '').classProfiles).toEqual({});
   });

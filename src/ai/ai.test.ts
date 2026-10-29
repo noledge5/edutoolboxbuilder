@@ -7,7 +7,6 @@ import { jsonOf } from './client';
 import { lessonContext, lessonSummary, lessonWeek } from './context';
 import { lessonFromAnswer, lessonPrompt } from './lesson';
 import { planPreview, yearPlanContext, yearPlanFromAnswer, yearPlanPrompt } from './yearplan';
-import { blockFromAnswer, helperPrompt, helperSystem } from './helpers';
 import { costOf, dollars, priceOf } from './prices';
 import { modelLabel, overLimit, readAiSettings, withSpent } from './settings';
 
@@ -136,26 +135,25 @@ describe('lesson from Claude', () => {
     expect(d.added.map((c) => c.area)).toEqual(['Kurven vergleichen']);
     expect(d.doc.pages[0].blocks[0].props.competence).toBe(d.added[0].id);
   });
-  it('builds the sheets to the scaffold and keeps the teacher page', () => {
-    const scaffold = lessonFromAnswer(answer([teacher, sheet]), m, l, l.doc, 'scaffold');
-    expect(scaffold.doc.pages.map((p) => p.type)).toEqual(['lehrkraft']);
-    const built = lessonFromAnswer({ pages: [teacher, sheet] }, m, l, scaffold.doc, 'sheets');
-    expect(built.doc.pages.map((p) => p.type)).toEqual(['lehrkraft', 'uebung']);
-    expect(built.doc.pages[0]).toBe(scaffold.doc.pages[0]);
-    expect(built.made).toHaveLength(1);
+  it('adds one more sheet and keeps the pages that are there', () => {
+    const full = lessonFromAnswer(answer([teacher, sheet]), m, l, l.doc, 'full');
+    const more = lessonFromAnswer({ pages: [teacher, { ...sheet, title: 'Noch eins' }] }, m, l, full.doc, 'sheet');
+    expect(more.doc.pages.map((p) => p.title)).toEqual(['Stundenverlauf', 'Zwei Kurven', 'Noch eins']);
+    expect(more.doc.pages[0]).toBe(full.doc.pages[0]);
+    expect(more.made).toHaveLength(1);
   });
   it('drops the empty page of a planned lesson', () => {
     const planned = plannedDoc(m, l.title);
-    const d = lessonFromAnswer(answer([teacher]), m, l, planned, 'scaffold');
+    const d = lessonFromAnswer(answer([teacher]), m, l, planned, 'full');
     expect(d.doc.pages).toHaveLength(1);
   });
   it('says what is missing', () => {
     expect(() => lessonFromAnswer({ format: 'arbeitsblatt-baukasten-paket', modules: [{ lessons: [{ number: 1, title: 'X', plan: 'nur geplant' }] }] }, m, l, l.doc, 'full')).toThrow(DocFormatError);
     expect(() => lessonFromAnswer('Hallo', m, l, l.doc, 'full')).toThrow(DocFormatError);
   });
-  it('asks for one lesson in the package format, with the teacher page for the sheets', () => {
-    const withTeacher = { ...l, doc: lessonFromAnswer(answer([teacher]), m, l, l.doc, 'scaffold').doc };
-    const p = lessonPrompt(m, withTeacher, 'KONTEXT', 'sheets');
+  it('asks for one lesson in the package format, with the lesson for one more sheet', () => {
+    const withTeacher = { ...l, doc: lessonFromAnswer(answer([teacher]), m, l, l.doc, 'full').doc };
+    const p = lessonPrompt(m, withTeacher, 'KONTEXT', 'sheet');
     expect(p).toContain('"number": 1');
     expect(p).toContain('KONTEXT');
     expect(p).toContain('Kurven lesen');
@@ -216,40 +214,5 @@ describe('year plan from Claude', () => {
     expect(text).toContain('Modul 1: „Das Klima kippt“, 4 Wochen');
     expect(text).toContain('2. Der Treibhauseffekt (ausgearbeitet)');
     expect(yearPlanPrompt('Geographie', 9, text)).toContain('behalten ihre Nummer');
-  });
-});
-
-describe('helpers at a block', () => {
-  const block = { id: 'b1', type: 'open' as const, span: 12, props: { prompt: 'Beschreibe die Kurve.', lines: 4, solution: '', level: '2', points: 3, competence: 'k1', tip: '' } };
-  const where = { subject: 'Geographie', grade: 9, lang: 'de' as const, pageTitle: 'Zwei Kurven' };
-
-  it('takes only the texts it may change', () => {
-    const b = blockFromAnswer({ props: { prompt: 'Beschreibe kurz.', competence: 'x', level: '1', points: 9, lines: 10, unbekannt: 'y' } }, block, 'einfacher');
-    expect(b.id).toBe('b1');
-    expect(b.props).toEqual({ ...block.props, prompt: 'Beschreibe kurz.' });
-  });
-  it('makes a new block for a level version, with the level set', () => {
-    const b = blockFromAnswer({ props: { prompt: 'Beschreibe mit den Satzanfängen.', lines: 99 } }, block, 'G');
-    expect(b.id).not.toBe('b1');
-    expect(b.props.level).toBe('1');
-    expect(b.props.lines).toBe(20);
-    expect(b.props.competence).toBe('k1');
-  });
-  it('adds solution and tip', () => {
-    const b = blockFromAnswer({ props: { solution: ['Die Kurve steigt.', 'Ab 1950 schneller.'], tip: 'Schau auf die Achsen.' } }, block, 'loesung');
-    expect(b.props.solution).toBe('Die Kurve steigt.\nAb 1950 schneller.');
-    expect(b.props.tip).toBe('Schau auf die Achsen.');
-  });
-  it('says when nothing came back', () => {
-    expect(() => blockFromAnswer({ props: { level: '3' } }, block, 'einfacher')).toThrow(DocFormatError);
-    expect(() => blockFromAnswer('Hallo', block, 'einfacher')).toThrow(DocFormatError);
-  });
-  it('tells Claude the fields and the block', () => {
-    const p = helperPrompt('E', block, { ...where, competence: { id: 'k1', area: 'Kurven auswerten', g: 'a', m: 'b', e: 'c', lessons: '', domain: '' } });
-    expect(p).toContain('Niveau E');
-    expect(p).toContain('`open` · Offene Frage');
-    expect(p).toContain('Beschreibe die Kurve.');
-    expect(p).toContain('Kompetenz:** Kurven auswerten');
-    expect(helperSystem()).toContain('{"props"');
   });
 });

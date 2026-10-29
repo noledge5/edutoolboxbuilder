@@ -1,14 +1,24 @@
 // "Stunde prüfen": Claude reads the finished lesson and lists what would break it in class: tasks the sheet gives
 // no material for, knowledge that comes after the task needing it, tasks too hard or too easy for the class. Each
-// finding names a block and an instruction that "Mit Anweisung neu machen" can carry out.
+// finding names a block and what to do; "Beheben" hands that to the revision in "Mit KI bauen".
 import { DIDACTICS_BRIEF } from '../claude/instructions';
 import { blockText } from '../library/search';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { DocFormatError } from '../model/normalize';
-import type { Doc } from '../model/types';
-import type { TaskContext } from './task';
+import type { Competence } from '../library/types';
+import type { Doc, Lang } from '../model/types';
 
-export type CheckContext = Omit<TaskContext, 'page'>;
+/** The lesson's surroundings for the check. */
+export interface CheckContext {
+  subject: string;
+  grade: number;
+  /** Module title. */
+  topic: string;
+  lang: Lang;
+  competences: Competence[];
+  /** The class profile and the teacher's principles (`classNotes`), '' without. */
+  notes?: string;
+}
 
 export interface Finding {
   /** The block it is about, null if Claude named none the lesson has. */
@@ -17,7 +27,7 @@ export interface Finding {
   ref: string;
   kind: string;
   problem: string;
-  /** What to do, as an instruction for "Mit Anweisung neu machen". */
+  /** What to do, as an instruction for the revision. */
   fix: string;
 }
 
@@ -74,4 +84,12 @@ export function findingsFromAnswer(raw: unknown, doc: Doc): Finding[] {
     if (!problem) return [];
     return [{ blockId: byRef.get(ref) ?? null, ref, kind: KINDS[text(o.kind)] ? text(o.kind) : 'sonst', problem, fix: text(o.fix) }];
   });
+}
+
+/** The wishes for the revision in "Mit KI bauen" that fixes these findings ("Beheben"). */
+export function fixWishesOf(list: { ref: string; problem: string; fix?: string }[]): string {
+  return [
+    'Behebe diese Befunde aus „Stunde prüfen“ und lass alles andere, wie es ist:',
+    ...list.map((f) => `- ${f.ref ? `${f.ref}: ` : ''}${f.problem}${f.fix ? ` → ${f.fix}` : ''}`),
+  ].join('\n');
 }

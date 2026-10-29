@@ -21,9 +21,8 @@ import { dataUrlToBlob } from '../storage/backup';
 import { AiSettingsDialog } from '../ai/AiSettingsDialog';
 import { LessonAiDialog, type LessonAi } from '../ai/LessonAiDialog';
 import { VocabAiDialog } from '../ai/VocabAiDialog';
-import { TaskAiDialog } from '../ai/TaskAiDialog';
 import { CheckAiDialog } from '../ai/CheckAiDialog';
-import { FullLessonDialog } from '../ai/FullLessonDialog';
+import { fixWishesOf } from '../ai/check';
 import type { Finding } from '../ai/check';
 import { PdfImportDialog } from '../ai/PdfImportDialog';
 import { vocabOf } from '../model/language';
@@ -173,9 +172,10 @@ export function Editor({
   const [preview, setPreview] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [keysOpen, setKeysOpen] = useState(false);
-  const [aiOpen, setAiOpen] = useState<'lesson' | 'full' | 'settings' | 'vocab' | 'task' | 'check' | null>(null);
+  const [aiOpen, setAiOpen] = useState<'lesson' | 'settings' | 'vocab' | 'check' | null>(null);
   const [findings, setFindings] = useState<Finding[] | null>(null);
-  const [fixing, setFixing] = useState<Finding | null>(null);
+  /** "Beheben" from "Stunde prüfen": the revision in "Mit KI bauen" with these wishes. */
+  const [fixWishes, setFixWishes] = useState<string | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const pdfInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -399,21 +399,6 @@ export function Editor({
       if (loc) commit(ops.insertBlocks(doc, loc.p, loc.i + 1, blocks), { select: ops.selectionOf(blocks.map((b) => b.id)) });
     },
     replaceBlock: (id, blocks) => commit(ops.replaceBlock(doc, id, blocks), { select: ops.selectionOf(blocks.map((b) => b.id)) }),
-    taskContext:
-      ai &&
-      ((id) => {
-        const p = id ? ops.findBlock(doc, id)?.p : ops.insertionPoint(doc, sel).p;
-        if (p === undefined) return null;
-        return { subject: ai.module.subject, grade: ai.module.grade, topic: ai.module.title, lang: doc.lang, page: doc.pages[p], competences: ai.module.competences, notes: ai.notes() };
-      }),
-    helperContext:
-      ai &&
-      ((id) => {
-        const loc = ops.findBlock(doc, id);
-        if (!loc) return null;
-        const comp = String(doc.pages[loc.p].blocks[loc.i].props.competence ?? '');
-        return { subject: ai.module.subject, grade: ai.module.grade, lang: doc.lang, pageTitle: doc.pages[loc.p].title, competence: ai.module.competences.find((c) => c.id === comp) };
-      }),
     duplicateBlock: (id) => {
       const r = ops.duplicateBlock(doc, id);
       commit(r.doc, { select: { kind: 'block', id: r.id } });
@@ -858,11 +843,7 @@ export function Editor({
           handouts={handouts}
           onOpenHandout={onOpenHandout}
           onClaude={ai && (() => setAiOpen('lesson'))}
-          onVocabAi={ai && ai.module.lang === 'en' ? () => setAiOpen('vocab') : undefined}
-          onTaskAi={ai && (() => setAiOpen('task'))}
           onCheckAi={ai && (() => setAiOpen('check'))}
-          onFullAi={ai && (() => setAiOpen('full'))}
-          onImportPdf={ai && (() => pdfInput.current?.click())}
           onAiSettings={() => setAiOpen('settings')}
         />
         <input
@@ -895,7 +876,7 @@ export function Editor({
             {ai && editing && !doc.pages.some((pg) => pg.blocks.length > 0) && (
               <button type="button" className="btn btn-secondary ui-btn ed-note-ai" onClick={() => setAiOpen('lesson')}>
                 <Icon icon={Sparkles} />
-                Mit Claude ausarbeiten
+                Mit KI ausarbeiten
               </button>
             )}
             <button type="button" className="iconbtn" title="Ausblenden" aria-label="Planung ausblenden" onClick={() => setNoteOpen(false)}>
@@ -998,7 +979,17 @@ export function Editor({
           <LessonAiDialog
             doc={doc}
             ai={ai}
-            onClose={() => setAiOpen(null)}
+            initial={fixWishes === null ? undefined : { mode: 'revise', wishes: fixWishes }}
+            onPdf={() => {
+              setAiOpen(null);
+              setFixWishes(null);
+              pdfInput.current?.click();
+            }}
+            onVocab={ai.module.lang === 'en' ? () => (setFixWishes(null), setAiOpen('vocab')) : undefined}
+            onClose={() => {
+              setAiOpen(null);
+              setFixWishes(null);
+            }}
             onApply={async (draft) => {
               try {
                 await Promise.all(Object.entries(draft.images).map(([id, url]) => putImageAs(id, dataUrlToBlob(url))));
@@ -1009,27 +1000,9 @@ export function Editor({
               const { icon, code } = latest.current.doc;
               commit({ ...draft.doc, icon, code }, { select: { kind: 'page', p: 0 } });
               setAiOpen(null);
-              appliedNotice(draft.doc, 'Von Claude übernommen. Mit Rückgängig oder unter „Frühere Fassungen“ kommst du zur vorherigen Fassung zurück.');
-            }}
-          />
-        )}
-        {aiOpen === 'full' && ai && (
-          <FullLessonDialog
-            doc={doc}
-            ai={ai}
-            onClose={() => setAiOpen(null)}
-            onApply={async (r) => {
-              try {
-                await Promise.all(Object.entries(r.images).map(([id, url]) => putImageAs(id, dataUrlToBlob(url))));
-              } catch (e) {
-                window.alert('Ein Bild konnte nicht gespeichert werden: ' + errorText(e));
-              }
-              ai.onApplied(r.added);
-              const { icon, code } = latest.current.doc;
-              commit({ ...r.doc, icon, code }, { select: { kind: 'page', p: 0 } });
-              ai.setSlides(r.slides);
-              setAiOpen(null);
-              appliedNotice(r.doc, `Stunde und ${r.slides.length} Folien von Claude übernommen. Die vorige Fassung liegt unter „Frühere Fassungen“.`);
+              if (fixWishes !== null) setFindings(null);
+              setFixWishes(null);
+              appliedNotice(draft.doc, 'Von der KI übernommen. Mit Rückgängig oder unter „Frühere Fassungen“ kommst du zur vorherigen Fassung zurück.');
             }}
           />
         )}
@@ -1061,43 +1034,11 @@ export function Editor({
               select({ kind: 'block', id });
               document.querySelector(`[data-block-id="${id}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
             }}
-            onFix={(f) => {
-              setAiOpen(null);
-              setFixing(f);
+            onFix={(list) => {
+              setFixWishes(fixWishesOf(list));
+              setAiOpen('lesson');
             }}
             onClose={() => setAiOpen(null)}
-          />
-        )}
-        {fixing?.blockId && ops.findBlock(doc, fixing.blockId) && api.taskContext?.(fixing.blockId) && (
-          <TaskAiDialog
-            doc={doc}
-            context={api.taskContext(fixing.blockId)!}
-            block={ops.blocksOf(doc, [fixing.blockId])[0]}
-            initial={fixing.fix}
-            onApply={(blocks, how) => {
-              if (how === 'replace') api.replaceBlock(fixing.blockId!, blocks);
-              else api.insertAfter(fixing.blockId!, blocks);
-              setFindings((all) => all && all.filter((x) => x !== fixing));
-              setFixing(null);
-              setAiOpen('check');
-            }}
-            onClose={() => {
-              setFixing(null);
-              setAiOpen('check');
-            }}
-          />
-        )}
-        {aiOpen === 'task' && api.taskContext?.(null) && (
-          <TaskAiDialog
-            doc={doc}
-            context={api.taskContext(null)!}
-            onClose={() => setAiOpen(null)}
-            onApply={(blocks) => {
-              const d = latest.current.doc;
-              const at = ops.insertionPoint(d, latest.current.sel);
-              commit(ops.insertBlocks(d, at.p, at.i, blocks), { select: ops.selectionOf(blocks.map((b) => b.id)) });
-              setAiOpen(null);
-            }}
           />
         )}
         {aiOpen === 'vocab' && ai && (

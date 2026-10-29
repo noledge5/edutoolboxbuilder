@@ -1,6 +1,6 @@
 // "Stunde prüfen": first the check without AI (material numbers, task types, learning path), right away and without
-// a key; then Claude lists what would break the lesson in class. Each finding jumps to its block; Claude's findings
-// also open "Mit Anweisung neu machen" with the fix as the instruction.
+// a key; then Claude lists what would break the lesson in class. Each finding jumps to its block; "Beheben" opens the
+// revision in "Mit KI bauen" with one finding or all of them as the wishes.
 import { useEffect, useMemo, useState } from 'react';
 import { ClipboardCopy, ClipboardPaste, KeyRound, ListChecks, Wand2 } from 'lucide-react';
 import { Icon } from '../icons';
@@ -21,7 +21,8 @@ interface CheckAiDialogProps {
   findings: Finding[] | null;
   onFindings(f: Finding[]): void;
   onShow(blockId: string): void;
-  onFix(f: Finding): void;
+  /** "Beheben": the revision in "Mit KI bauen" for these findings. */
+  onFix(list: { ref: string; problem: string; fix?: string }[]): void;
   onClose(): void;
 }
 
@@ -99,12 +100,10 @@ export function CheckAiDialog({ doc, context, findings, onFindings, onShow, onFi
                     {f.fix && (
                       <div className="check-fix">
                         <span>{f.fix}</span>
-                        {f.blockId && (
-                          <button type="button" className="btn btn-secondary ui-btn" onClick={() => onFix(f)}>
-                            <Icon icon={Wand2} />
-                            Beheben …
-                          </button>
-                        )}
+                        <button type="button" className="btn btn-secondary ui-btn" onClick={() => onFix([f])}>
+                          <Icon icon={Wand2} />
+                          Beheben …
+                        </button>
                       </div>
                     )}
                   </li>
@@ -133,6 +132,12 @@ export function CheckAiDialog({ doc, context, findings, onFindings, onShow, onFi
               <button type="button" className="btn btn-secondary ui-btn" onClick={() => setKeyOpen(true)}>
                 <Icon icon={KeyRound} />
                 Schlüssel einrichten …
+              </button>
+            )}
+            {local.length + (findings?.length ?? 0) > 0 && !chatOpen && (
+              <button type="button" className="btn btn-secondary ui-btn" onClick={() => onFix([...local, ...(findings ?? [])])} disabled={!!busy}>
+                <Icon icon={Wand2} />
+                Alle beheben …
               </button>
             )}
             <button type="button" className="btn btn-secondary ui-btn" onClick={close}>

@@ -133,9 +133,9 @@ export function Overview(p: OverviewProps) {
             <span className={'sync-dot' + (p.pending > 0 ? ' is-open' : '')} aria-label={p.pending > 0 ? 'nicht gesichert' : 'gesichert'} />
           </button>
         )}
-        <button type="button" className="btn btn-secondary ui-btn" title="Mit Claude erstellen" onClick={() => setClaudeOpen(true)}>
+        <button type="button" className="btn btn-secondary ui-btn" title="Mit KI bauen" onClick={() => setClaudeOpen(true)}>
           <Icon icon={Sparkles} />
-          <span className="btn-label">Mit Claude</span>
+          <span className="btn-label">Mit KI bauen</span>
         </button>
         <button type="button" className="btn btn-secondary ui-btn lib-settings-btn" title="Einstellungen" onClick={() => setSettingsOpen(true)}>
           <Icon icon={SettingsIcon} />

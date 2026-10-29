@@ -64,9 +64,9 @@ export function VocabAiDialog(p: VocabAiDialogProps) {
   return (
     <>
       <div className="dialog-backdrop" onClick={() => !busy && !draft && close()}>
-        <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Vokabelliste mit Claude" onClick={(e) => e.stopPropagation()}>
+        <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Mit KI bauen: Vokabelliste" onClick={(e) => e.stopPropagation()}>
           <div className="dialog-title">
-            <Icon icon={BookA} /> Vokabelliste mit Claude
+            <Icon icon={BookA} /> Mit KI bauen: Vokabelliste
           </div>
           <p className="dialog-body ai-where">
             {p.scope === 'lesson' ? 'Aus den Arbeitsblättern dieser Stunde' : `Aus allen Stunden der Unit (${p.sources.length})`} · {p.topic}
