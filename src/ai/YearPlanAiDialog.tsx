@@ -1,19 +1,14 @@
 // "Jahresplan mit Claude": Claude plans the school year of a subject and grade (modules with weeks, competences and
 // planned lessons) around the modules already there. Shown first as a preview, then added like an imported package.
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ClipboardCopy, ClipboardPaste, KeyRound, Sparkles } from 'lucide-react';
+import { Check, ClipboardPaste, Sparkles } from 'lucide-react';
 import { NumberField } from '../editor/fields';
 import { Icon } from '../icons';
-import { claudeInstructions } from '../claude/instructions';
 import { defaultLang, modulesOf } from '../library/model';
 import type { ParsedPackage } from '../library/package';
 import type { Library } from '../library/types';
-import { AiSettingsDialog } from './AiSettingsDialog';
 import { ClassNotesLine } from './ClassNotesDialog';
-import { AiBusy, ChatPath, useAiJob } from './parts';
-import { dollars } from './prices';
-import { modelLabel } from './settings';
-import { useAiSettings } from './useAi';
+import { ChatPath, useAiJob } from './parts';
 import { planPreview, yearPlanContext, yearPlanFromAnswer, yearPlanPrompt } from './yearplan';
 
 interface YearPlanAiDialogProps {
@@ -25,18 +20,15 @@ interface YearPlanAiDialogProps {
 }
 
 export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: YearPlanAiDialogProps) {
-  const settings = useAiSettings();
   const job = useAiJob();
-  const { busy, error, answer } = job;
+  const { error } = job;
   const [hours, setHours] = useState(defaultLang(subject) === 'en' ? 4 : 2);
   const [textbook, setTextbook] = useState(() => modulesOf(lib, subject, grade).find((m) => m.textbook)?.textbook.replace(/,.*$/, '') ?? '');
   const [wishes, setWishes] = useState('');
   const [tests, setTests] = useState<number | null>(null);
   const [dates, setDates] = useState('');
   const [plan, setPlan] = useState<ParsedPackage | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
   const [pasted, setPasted] = useState('');
-  const [keyOpen, setKeyOpen] = useState(false);
 
   const context = useMemo(() => yearPlanContext(lib, subject, grade, { hours, textbook, wishes, tests, dates }), [lib, subject, grade, hours, textbook, wishes, tests, dates]);
   const prompt = (chat: boolean) => yearPlanPrompt(subject, grade, context, chat);
@@ -44,37 +36,31 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
   const read = (raw: unknown) => setPlan(yearPlanFromAnswer(raw, subject, grade));
 
   const close = () => {
-    if (busy && !window.confirm('Claude arbeitet noch. Abbrechen und schließen?')) return;
-    job.stop();
     onClose();
   };
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !keyOpen && close();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const run = () => {
-    setPlan(null);
-    return job.run({ job: 'big', what: 'Jahresplan', system: claudeInstructions(), user: prompt(false), maxTokens: 64000, effort: 'high' }, read);
-  };
 
   return (
     <>
-      <div className="dialog-backdrop" onClick={() => !busy && !plan && close()}>
+      <div className="dialog-backdrop" onClick={() => !plan && close()}>
         <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Mit KI bauen: Jahresplan" onClick={(e) => e.stopPropagation()}>
           <div className="dialog-title">
             <Icon icon={Sparkles} /> Mit KI bauen: Jahresplan
           </div>
           <p className="dialog-body ai-where">
             {subject} · Klasse {grade}
-            {lib.settings.schoolYear ? ` · Schuljahr ${lib.settings.schoolYear.name}` : ' · ohne Schuljahr (trag es in den Einstellungen ein, dann plant Claude mit den Ferien)'}
+            {lib.settings.schoolYear ? ` · Schuljahr ${lib.settings.schoolYear.name}` : ' · ohne Schuljahr (trag es in den Einstellungen ein, dann plant die KI mit den Ferien)'}
           </p>
 
           {!plan && (
             <>
               <p className="ai-hint">
-                Claude plant die Module des Schuljahrs mit Wochen, Kompetenzraster und allen Stunden als geplante Stunden. Module, die es schon gibt, bleiben und werden nur ergänzt. Danach arbeitest du jede Stunde im
+                Die KI plant die Module des Schuljahrs mit Wochen, Kompetenzraster und allen Stunden als geplante Stunden. Module, die es schon gibt, bleiben und werden nur ergänzt. Danach arbeitest du jede Stunde im
                 Arbeitsblatt mit „KI“ → „Mit KI bauen“ aus.
               </p>
               <div className="ai-plan-row">
@@ -88,7 +74,7 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
                 <div className="field">
                   <label htmlFor="ai-plan-tests">Klassenarbeiten im Schuljahr</label>
                   <select id="ai-plan-tests" className="input" value={tests ?? ''} onChange={(e) => setTests(e.target.value === '' ? null : Number(e.target.value))}>
-                    <option value="">Claude entscheidet (wie im Fach üblich)</option>
+                    <option value="">KI entscheidet (wie im Fach üblich)</option>
                     {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                       <option key={n} value={n}>
                         {n === 0 ? 'keine' : n}
@@ -120,7 +106,6 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
             </>
           )}
 
-          {busy && <AiBusy busy={busy} hint="Ein ganzer Jahresplan dauert meist drei bis sechs Minuten." onStop={job.stop} />}
           {error && <p className="json-err">{error}</p>}
 
           {plan && preview && (
@@ -164,16 +149,10 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
                   </ul>
                 </details>
               )}
-              {answer && (
-                <p className="ai-cost">
-                  Kosten etwa {dollars(answer.usd)} · {modelLabel(answer.model)}
-                  {settings ? ` · diesen Monat ${dollars(settings.spent)}` : ''}
-                </p>
-              )}
             </div>
           )}
 
-          {!plan && chatOpen && (
+          {!plan && (
             <ChatPath request={() => prompt(true)} what="Er enthält Schuljahr, Ferien und die Module, die es schon gibt." pasted={pasted} onPaste={setPasted} onError={job.setError} />
           )}
 
@@ -193,38 +172,19 @@ export function YearPlanAiDialog({ lib, subject, grade, onApply, onClose }: Year
               </>
             ) : (
               <>
-                {!chatOpen && (
-                  <button type="button" className="btn btn-secondary ui-btn" onClick={() => setChatOpen(true)} style={{ marginRight: 'auto' }} disabled={!!busy}>
-                    <Icon icon={ClipboardCopy} />
-                    Über den Chat
-                  </button>
-                )}
-                {settings === null && !chatOpen && (
-                  <button type="button" className="btn btn-secondary ui-btn" onClick={() => setKeyOpen(true)}>
-                    <Icon icon={KeyRound} />
-                    Schlüssel einrichten …
-                  </button>
-                )}
                 <button type="button" className="btn btn-secondary ui-btn" onClick={close}>
                   Abbrechen
                 </button>
-                {chatOpen ? (
-                  <button type="button" className="btn btn-primary ui-btn" onClick={() => job.paste(pasted, read)} disabled={!pasted.trim()}>
-                    <Icon icon={ClipboardPaste} />
-                    Antwort einlesen
-                  </button>
-                ) : (
-                  <button type="button" className="btn btn-primary ui-btn" onClick={run} disabled={!settings || !!busy} title={settings ? undefined : 'Erst einen KI-Schlüssel einrichten oder „Über den Chat“ nehmen'}>
-                    <Icon icon={Sparkles} />
-                    Jahresplan entwerfen
-                  </button>
-                )}
+                <button type="button" className="btn btn-primary ui-btn" onClick={() => job.paste(pasted, read)} disabled={!pasted.trim()}>
+                  <Icon icon={ClipboardPaste} />
+                  Antwort einlesen
+                </button>
+
               </>
             )}
           </div>
         </div>
       </div>
-      {keyOpen && <AiSettingsDialog onClose={() => setKeyOpen(false)} />}
     </>
   );
 }

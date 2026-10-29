@@ -91,10 +91,10 @@ export function ClaudeDialog({ onOpenFile, onClose }: ClaudeDialogProps) {
         </div>
 
         <p className="sync-tip">
-          Mit eigenem KI-Schlüssel (Einstellungen → „KI im Baukasten“) geht es auch direkt hier: im Jahresplan und im Modul „Mit KI bauen“, im Arbeitsblatt oben „KI“ → „Mit KI bauen“.
+          Aufträge mit dem Zusammenhang aus deinem Jahresplan kopierst du dort, wo du arbeitest: im Jahresplan und im Modul „Mit KI bauen“, im Arbeitsblatt oben „KI“ → „Mit KI bauen“, bei den Folien „Folien“ → „Mit KI bauen“.
         </p>
         <p className="sync-tip">
-          Ein vorhandenes Modul gibst du Claude zum Überarbeiten über „Modul“ → „Als Stundenpaket sichern“, einen ganzen Jahrgang über „Jahresplan“ → „Als Stundenpaket sichern“.
+          Ein vorhandenes Modul gibst du der KI zum Überarbeiten über „Modul“ → „Als Stundenpaket sichern“, einen ganzen Jahrgang über „Jahresplan“ → „Als Stundenpaket sichern“.
         </p>
         <div className="dialog-actions">
           <button type="button" className="btn btn-secondary ui-btn" onClick={onClose}>

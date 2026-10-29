@@ -1126,3 +1126,4 @@ span.check-ref { cursor: default; }
 .img-ai .ai-hint.is-warn { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .ai-ideas { display: flex; flex-wrap: wrap; gap: 6px; }
 .ai-ideas .seg-pill { font-size: 12.5px; }
+.settings-version p { margin: 4px 0 0; font-size: 13px; font-variant-numeric: tabular-nums; }

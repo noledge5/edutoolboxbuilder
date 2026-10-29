@@ -725,10 +725,6 @@ export function App() {
         }}
         onOpenLesson={(l) => go({ view: 'lesson', id: l.id })}
         onOpenSlides={(l) => go({ view: 'slides', id: l.id })}
-        onSlidesAi={(l) => {
-          setSlidesAiNext(l.id);
-          go({ view: 'slides', id: l.id });
-        }}
         onPresent={(l) => present(l.id)}
         knownVocab={gradeVocab(lib, m)}
         onVocabLesson={(pages) => {

@@ -1,20 +1,15 @@
 // "Modul mit Claude planen": Claude plans a unit from its end (competence grid, way there as planned lessons with
 // role and competences). A preview first; applying keeps the worked-out lessons and replaces the planned ones.
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ClipboardCopy, ClipboardPaste, KeyRound, Sparkles } from 'lucide-react';
+import { Check, ClipboardPaste, Sparkles } from 'lucide-react';
 import { NumberField } from '../editor/fields';
 import { Icon } from '../icons';
-import { claudeInstructions } from '../claude/instructions';
 import { lessonsOf } from '../library/model';
 import { roleLabel } from '../library/planning';
 import type { Library, Module } from '../library/types';
-import { AiSettingsDialog } from './AiSettingsDialog';
 import { ClassNotesLine } from './ClassNotesDialog';
 import { hoursOf, MODULE_ENDS, moduleContext, modulePlanFromAnswer, modulePlanPrompt, type ModuleEnd, type ModulePlan } from './moduleplan';
-import { AiBusy, ChatPath, useAiJob } from './parts';
-import { dollars } from './prices';
-import { modelLabel } from './settings';
-import { useAiSettings } from './useAi';
+import { ChatPath, useAiJob } from './parts';
 
 interface ModulePlanAiDialogProps {
   lib: Library;
@@ -26,17 +21,14 @@ interface ModulePlanAiDialogProps {
 const STATUS: Record<'neu' | 'geändert' | 'bleibt', string> = { neu: 'Neu', geändert: 'Neu geplant', bleibt: 'Bleibt' };
 
 export function ModulePlanAiDialog({ lib, module: m, onApply, onClose }: ModulePlanAiDialogProps) {
-  const settings = useAiSettings();
   const job = useAiJob();
-  const { busy, error, answer } = job;
+  const { error } = job;
   const lessons = useMemo(() => lessonsOf(lib, m.id), [lib, m.id]);
   const [hours, setHours] = useState(() => hoursOf(m, lessons));
   const [end, setEnd] = useState<ModuleEnd>('');
   const [wishes, setWishes] = useState('');
   const [plan, setPlan] = useState<ModulePlan | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
   const [pasted, setPasted] = useState('');
-  const [keyOpen, setKeyOpen] = useState(false);
 
   const context = useMemo(() => moduleContext(lib, m, { hours, end, wishes }), [lib, m, hours, end, wishes]);
   const prompt = (chat: boolean) => modulePlanPrompt(m, context, chat);
@@ -44,24 +36,18 @@ export function ModulePlanAiDialog({ lib, module: m, onApply, onClose }: ModuleP
   const names = useMemo(() => new Map((plan?.competences ?? m.competences).map((c) => [c.id, c.area || c.g])), [plan, m.competences]);
 
   const close = () => {
-    if (busy && !window.confirm('Claude arbeitet noch. Abbrechen und schließen?')) return;
-    job.stop();
     onClose();
   };
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !keyOpen && close();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const run = () => {
-    setPlan(null);
-    return job.run({ job: 'big', what: 'Modul planen', system: claudeInstructions(), user: prompt(false), maxTokens: 32000, effort: 'high' }, read);
-  };
 
   return (
     <>
-      <div className="dialog-backdrop" onClick={() => !busy && !plan && close()}>
+      <div className="dialog-backdrop" onClick={() => !plan && close()}>
         <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Mit KI bauen: Modul" onClick={(e) => e.stopPropagation()}>
           <div className="dialog-title">
             <Icon icon={Sparkles} /> Mit KI bauen: Modul
@@ -74,7 +60,7 @@ export function ModulePlanAiDialog({ lib, module: m, onApply, onClose }: ModuleP
           {!plan && (
             <>
               <p className="ai-hint">
-                Claude plant das Modul vom Ende her: was die Klasse am Ende kann und woran man es sieht, das Kompetenzraster und den Weg dorthin als geplante Stunden mit Rolle und Kompetenzen. Ausgearbeitete Stunden bleiben,
+                Die KI plant das Modul vom Ende her: was die Klasse am Ende kann und woran man es sieht, das Kompetenzraster und den Weg dorthin als geplante Stunden mit Rolle und Kompetenzen. Ausgearbeitete Stunden bleiben,
                 geplante werden ersetzt. Danach arbeitest du die Stunden einzeln im Arbeitsblatt mit „KI“ → „Mit KI bauen“ aus.
               </p>
               <div className="ai-plan-row">
@@ -109,7 +95,6 @@ export function ModulePlanAiDialog({ lib, module: m, onApply, onClose }: ModuleP
             </>
           )}
 
-          {busy && <AiBusy busy={busy} hint="Ein Modulplan dauert meist ein bis drei Minuten." onStop={job.stop} />}
           {error && <p className="json-err">{error}</p>}
 
           {plan && (
@@ -159,16 +144,10 @@ export function ModulePlanAiDialog({ lib, module: m, onApply, onClose }: ModuleP
                   </ul>
                 </details>
               )}
-              {answer && (
-                <p className="ai-cost">
-                  Kosten etwa {dollars(answer.usd)} · {modelLabel(answer.model)}
-                  {settings ? ` · diesen Monat ${dollars(settings.spent)}` : ''}
-                </p>
-              )}
             </div>
           )}
 
-          {!plan && chatOpen && (
+          {!plan && (
             <ChatPath request={() => prompt(true)} what="Er enthält das Modul, seine Stunden, das Kompetenzraster und die Module davor und danach." pasted={pasted} onPaste={setPasted} onError={job.setError} />
           )}
 
@@ -188,38 +167,19 @@ export function ModulePlanAiDialog({ lib, module: m, onApply, onClose }: ModuleP
               </>
             ) : (
               <>
-                {!chatOpen && (
-                  <button type="button" className="btn btn-secondary ui-btn" onClick={() => setChatOpen(true)} style={{ marginRight: 'auto' }} disabled={!!busy}>
-                    <Icon icon={ClipboardCopy} />
-                    Über den Chat
-                  </button>
-                )}
-                {settings === null && !chatOpen && (
-                  <button type="button" className="btn btn-secondary ui-btn" onClick={() => setKeyOpen(true)}>
-                    <Icon icon={KeyRound} />
-                    Schlüssel einrichten …
-                  </button>
-                )}
                 <button type="button" className="btn btn-secondary ui-btn" onClick={close}>
                   Abbrechen
                 </button>
-                {chatOpen ? (
-                  <button type="button" className="btn btn-primary ui-btn" onClick={() => job.paste(pasted, read)} disabled={!pasted.trim()}>
-                    <Icon icon={ClipboardPaste} />
-                    Antwort einlesen
-                  </button>
-                ) : (
-                  <button type="button" className="btn btn-primary ui-btn" onClick={run} disabled={!settings || !!busy} title={settings ? undefined : 'Erst einen KI-Schlüssel einrichten oder „Über den Chat“ nehmen'}>
-                    <Icon icon={Sparkles} />
-                    Modul planen
-                  </button>
-                )}
+                <button type="button" className="btn btn-primary ui-btn" onClick={() => job.paste(pasted, read)} disabled={!pasted.trim()}>
+                  <Icon icon={ClipboardPaste} />
+                  Antwort einlesen
+                </button>
+
               </>
             )}
           </div>
         </div>
       </div>
-      {keyOpen && <AiSettingsDialog onClose={() => setKeyOpen(false)} />}
     </>
   );
 }

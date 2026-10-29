@@ -433,13 +433,17 @@ export function SettingsDialog({ settings, subjects, onSave, onClose }: { settin
           <div className="panel-section-label">KI im Baukasten</div>
           <div className="panel-row">
             <span className="settings-ai-state">
-              {ai === undefined ? '…' : ai ? `${ai.provider === 'openrouter' ? 'OpenRouter' : 'Claude direkt'} · diesen Monat ${dollars(ai.spent)}${ai.limit ? ` von ${dollars(ai.limit)}` : ''}` : 'Kein Schlüssel auf diesem Gerät: Claude geht über den Chat.'}
+              {ai === undefined ? '…' : ai ? `${ai.provider === 'openrouter' ? 'OpenRouter' : 'Claude direkt'} · diesen Monat ${dollars(ai.spent)}${ai.limit ? ` von ${dollars(ai.limit)}` : ''}` : 'Kein Schlüssel auf diesem Gerät: „Stunde prüfen“ geht über den Chat, Bilder mit KI brauchen einen Schlüssel.'}
             </span>
             <button type="button" className="btn btn-secondary ui-btn" onClick={() => setAiOpen(true)}>
               <Icon icon={Sparkles} />
               {ai ? 'Ändern …' : 'Einrichten …'}
             </button>
           </div>
+        </div>
+        <div className="settings-version">
+          <div className="panel-section-label">Version</div>
+          <p>{versionText(__APP_VERSION__)}</p>
         </div>
         <div className="dialog-actions">
           <button type="button" className="btn btn-secondary ui-btn" onClick={onClose}>
@@ -462,4 +466,11 @@ export function SettingsDialog({ settings, subjects, onSave, onClose }: { settin
     {aiOpen && <AiSettingsDialog onClose={() => setAiOpen(false)} />}
     </>
   );
+}
+
+/** "PR #8 · 29.10.2026, 19:54 · a4128a6": which merge this is, so the teacher knows what is live. */
+export function versionText(v: { sha: string; date: string; pr: string }): string {
+  const d = v.date ? new Date(v.date) : null;
+  const when = d && !isNaN(d.getTime()) ? d.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+  return [v.pr ? `PR #${v.pr}` : 'Entwicklungsstand', when, v.sha].filter(Boolean).join(' · ');
 }
