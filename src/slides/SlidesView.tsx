@@ -112,8 +112,11 @@ interface SlidesViewProps {
   /** Start presenting right away (from a "Präsentieren" in the module or the worksheet). */
   present?: boolean;
   onPresentStarted?(): void;
-  /** Context for "Folien mit Claude"; absent where there is no module. */
+  /** Context for "Mit KI bauen: Folien"; absent where there is no module. */
   ai?: () => SlidesAiContext;
+  /** Open "Mit KI bauen: Folien" right away (from "Mit KI bauen" in the worksheet). */
+  buildAi?: boolean;
+  onBuildAiStarted?(): void;
 }
 
 const MAX_HISTORY = 60;
@@ -192,6 +195,7 @@ export function SlidesView(p: SlidesViewProps) {
   const [presenting, setPresenting] = useState<number | null>(p.present && p.slides.length ? 0 : null);
   useEffect(() => {
     if (p.present) p.onPresentStarted?.();
+    if (p.buildAi) p.onBuildAiStarted?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   /** The second window of the Referentenansicht. */
@@ -202,7 +206,7 @@ export function SlidesView(p: SlidesViewProps) {
   const [startBoard, setStartBoard] = useState<Board | null>(null);
   const [showBoards, setShowBoards] = useState(false);
   /** The suggestion as a list to tick, or single slides from the worksheet to put in. */
-  const [suggesting, setSuggesting] = useState<{ mode: 'suggest' | 'pick'; sections: SuggestSection[] } | null>(null);
+  const [suggesting, setSuggesting] = useState<SuggestSection[] | null>(null);
   /** Sketching on the slide: a new sketch (id null) or one being changed, with its strokes in slide pixels. */
   const [sketch, setSketch] = useState<{ slideId: string; id: string | null; strokes: Stroke[]; past: Stroke[][] } | null>(null);
   const [sketchLive, setSketchLive] = useState<Stroke | null>(null);
@@ -228,7 +232,8 @@ export function SlidesView(p: SlidesViewProps) {
     pick(at);
     setImported(null);
   };
-  const [aiOpen, setAiOpen] = useState(false);
+  /** "Mit KI bauen: Folien" is open; from the worksheet it starts with new slides. */
+  const [aiOpen, setAiOpen] = useState<false | 'menu' | 'sheet'>(p.buildAi && p.ai ? 'sheet' : false);
   const [searching, setSearching] = useState<'slide' | 'slide-ai' | 'element' | null>(null);
   const [selEl, setSelEl] = useState<string | null>(null);
   const [selPart, setSelPart] = useState<string | null>(null);
@@ -426,20 +431,13 @@ export function SlidesView(p: SlidesViewProps) {
     commit([]);
     pick(0);
   };
-  const suggest = (mode: 'suggest' | 'pick' = 'suggest') => setSuggesting({ mode, sections: suggestSlides(p.doc, p.lessonTitle, p.suggest) });
-  const takeSuggested = (made: Slide[], how: 'replace' | 'append' | 'insert') => {
+  /** Single slides from the worksheet, to put in ("Aus dem Arbeitsblatt einfügen"). */
+  const suggest = () => setSuggesting(suggestSlides(p.doc, p.lessonTitle, p.suggest));
+  const takeSuggested = (made: Slide[]) => {
     setSuggesting(null);
-    if (how === 'replace') {
-      commit(made);
-      pick(0);
-    } else if (how === 'append') {
-      commit([...slides, ...made]);
-      pick(slides.length);
-    } else {
-      const at = slides.length ? i + 1 : 0;
-      commit([...slides.slice(0, at), ...made, ...slides.slice(at)]);
-      pick(at);
-    }
+    const at = slides.length ? i + 1 : 0;
+    commit([...slides.slice(0, at), ...made, ...slides.slice(at)]);
+    pick(at);
   };
 
   // Keyboard: undo/redo, arrows move between slides (not while typing).
@@ -555,9 +553,8 @@ export function SlidesView(p: SlidesViewProps) {
           items={[
             { label: 'Folie löschen', icon: Trash2, onClick: () => slides.length && remove() },
             { label: 'Alle Folien löschen …', icon: Trash2, onClick: removeAll },
-            { label: 'Neu aus dem Arbeitsblatt vorschlagen …', icon: Sparkles, onClick: () => suggest() },
-            ...(p.ai ? [{ label: 'Mit Claude abwechslungsreicher …', icon: Sparkles, onClick: () => slides.length && setAiOpen(true) }] : []),
-            { label: 'Aus dem Arbeitsblatt einfügen …', icon: FileText, onClick: () => suggest('pick') },
+            ...(p.ai ? [{ label: 'Mit KI bauen …', icon: Sparkles, onClick: () => setAiOpen('menu') }] : []),
+            { label: 'Aus dem Arbeitsblatt einfügen …', icon: FileText, onClick: suggest },
             { label: `Tafelbilder${p.boards.length ? ` · ${p.boards.length}` : ''} …`, icon: PenLine, onClick: () => setShowBoards(true) },
             { label: 'PowerPoint öffnen …', icon: FileUp, onClick: () => pptxInput.current?.click() },
             { label: 'Als PowerPoint sichern …', icon: Download, onClick: () => slides.length && setExporting(true) },
@@ -724,9 +721,15 @@ export function SlidesView(p: SlidesViewProps) {
           ) : (
             <div className="sl-empty">
               <p className="lib-empty">Noch keine Folien für diese Stunde.</p>
-              <button type="button" className="btn btn-primary ui-btn" onClick={() => suggest()}>
-                <Icon icon={Sparkles} />
-                Folien aus dem Arbeitsblatt vorschlagen
+              {p.ai && (
+                <button type="button" className="btn btn-primary ui-btn" onClick={() => setAiOpen('menu')}>
+                  <Icon icon={Sparkles} />
+                  Folien mit KI bauen
+                </button>
+              )}
+              <button type="button" className="btn btn-secondary ui-btn" onClick={suggest}>
+                <Icon icon={FileText} />
+                Aus dem Arbeitsblatt einfügen
               </button>
               <button type="button" className="btn btn-secondary ui-btn" onClick={() => setPicker(true)}>
                 <Icon icon={Plus} />
@@ -954,7 +957,7 @@ export function SlidesView(p: SlidesViewProps) {
       </div>
       {exporting && <PptxDialog slides={slides} ctx={p.ctx} title={p.lessonTitle} onClose={() => setExporting(false)} />}
       {suggesting && (
-        <SuggestDialog sections={suggesting.sections} ctx={p.ctx} mode={suggesting.mode} hasSlides={slides.length > 0} onDone={takeSuggested} onClose={() => setSuggesting(null)} />
+        <SuggestDialog sections={suggesting} ctx={p.ctx} onDone={takeSuggested} onClose={() => setSuggesting(null)} />
       )}
       {showBoards && (
         <BoardsDialog
@@ -1004,6 +1007,7 @@ export function SlidesView(p: SlidesViewProps) {
           slides={slides}
           doc={p.doc}
           context={p.ai()}
+          initialMode={aiOpen === 'sheet' ? 'build' : undefined}
           onApply={(next) => {
             setAiOpen(false);
             commit(next);

@@ -18,7 +18,7 @@ export const isTeacherPage = (p: Page) => p.type === 'lehrkraft';
 export const hasBlocks = (p: Page) => p.blocks.length > 0;
 
 /** Pages as in a Stundenpaket: blocks without ids. */
-const packagePages = (pages: Page[]) => pages.map((p) => ({ ...p, blocks: p.blocks.map(({ type, span, props }) => ({ type, span, props })) }));
+export const packagePages = (pages: Page[]) => pages.map((p) => ({ ...p, blocks: p.blocks.map(({ type, span, props }) => ({ type, span, props })) }));
 
 const TASK: Record<LessonMode, string> = {
   full:
@@ -46,7 +46,7 @@ export function lessonPrompt(m: Module, l: Lesson, context: string, mode: Lesson
       (m.competences.length
         ? 'Das Kompetenzraster gibt es schon: verknüpfe Aufgaben über `competence` mit den IDs unten und schreib in `competences` nur neue Kompetenzen, falls wirklich eine fehlt (mit eigener ID). '
         : 'Das Modul hat noch kein Kompetenzraster: lege in `competences` die Kompetenzen an, an denen diese Stunde arbeitet, und verknüpfe die Aufgaben damit. ') +
-      'Keine Folien (`slides`): Der Baukasten schlägt sie aus der Lehrkraft-Seite vor. ' +
+      'Keine Folien (`slides`): Die baut ein eigener Schritt aus Blatt und Lernweg, wenn das Blatt fertig ist. ' +
       (m.grade <= 6
         ? 'Klasse ' + m.grade + ': Mach die Schülerseiten anschaulich (siehe „Klasse 5 und 6: anschaulich“): auf jeder Seite mindestens ein Bild mit `describe`, Bilder auch in den Aufgaben, abwechslungsreiche Aufgabenformen. '
         : '') +

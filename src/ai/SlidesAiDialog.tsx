@@ -1,7 +1,8 @@
-// "Folien mit Claude": the teacher may add a wish; Claude answers with the reworked slides, shown as a list
-// before they replace the old ones (undo brings those back).
+// "Mit KI bauen: Folien": new slides from the whole lesson or the slides there are reworked, with a wish; through the
+// chat or with a key. The answer is shown as a list before it replaces the old slides (undo brings those back).
 import { useEffect, useMemo, useState } from 'react';
 import { Check, ClipboardCopy, ClipboardPaste, KeyRound, Sparkles } from 'lucide-react';
+import { SegField } from '../editor/fields';
 import { Icon } from '../icons';
 import { SLIDE_LAYOUTS, type Slide } from '../model/slides';
 import type { Doc } from '../model/types';
@@ -10,33 +11,46 @@ import { ClassNotesLine } from './ClassNotesDialog';
 import { AiBusy, ChatPath, useAiJob } from './parts';
 import { dollars } from './prices';
 import { modelLabel } from './settings';
-import { slidesFromAnswer, slidesPrompt, slidesSystem, type SlidesAiContext } from './slides';
+import { buildSlidesPrompt, slidesFromAnswer, slidesPrompt, slidesSystem, type SlidesAiContext, type SlidesAiMode } from './slides';
 import { useAiSettings } from './useAi';
 
 interface SlidesAiDialogProps {
   slides: Slide[];
   doc: Doc;
   context: SlidesAiContext;
+  /** Start with this mode (default: rework when there are slides, else build). */
+  initialMode?: SlidesAiMode;
   onApply(slides: Slide[]): void;
   onClose(): void;
 }
 
 const IDEAS = ['Mehr Bilder, weniger Text', 'Einstieg mit einem starken Bild', 'Für eine unruhige Klasse: kurz und klar', 'Mit einer Schätzfrage am Anfang'];
 
-export function SlidesAiDialog({ slides, doc, context, onApply, onClose }: SlidesAiDialogProps) {
+const MODES: { v: SlidesAiMode; l: string }[] = [
+  { v: 'build', l: 'Neu aus Blatt und Lernweg' },
+  { v: 'rework', l: 'Überarbeiten' },
+];
+
+export function SlidesAiDialog({ slides, doc, context, initialMode, onApply, onClose }: SlidesAiDialogProps) {
   const settings = useAiSettings();
   const job = useAiJob();
   const { busy, error, answer } = job;
+  const [mode, setMode] = useState<SlidesAiMode>(initialMode ?? (slides.length ? 'rework' : 'build'));
   const [wish, setWish] = useState('');
   const [made, setMade] = useState<Slide[] | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [pasted, setPasted] = useState('');
   const [keyOpen, setKeyOpen] = useState(false);
-  const prompt = useMemo(() => slidesPrompt(slides, doc, context, wish), [slides, doc, context, wish]);
-  const read = (raw: unknown) => setMade(slidesFromAnswer(raw, slides).slides);
+  const prompt = useMemo(() => (mode === 'build' ? buildSlidesPrompt(doc, context, wish) : slidesPrompt(slides, doc, context, wish)), [mode, slides, doc, context, wish]);
+  const read = (raw: unknown) => setMade(slidesFromAnswer(raw, slides, doc).slides);
   const run = () => {
     setMade(null);
-    return job.run({ job: 'big', what: 'Folien überarbeiten', system: slidesSystem(), user: prompt, maxTokens: 24000, effort: 'medium' }, read);
+    return job.run(
+      mode === 'build'
+        ? { job: 'big', what: 'Folien bauen', system: slidesSystem(), user: prompt, maxTokens: 32000, effort: 'high' }
+        : { job: 'big', what: 'Folien überarbeiten', system: slidesSystem(), user: prompt, maxTokens: 24000, effort: 'medium' },
+      read,
+    );
   };
   const close = () => {
     if (busy && !window.confirm('Claude arbeitet noch. Abbrechen und schließen?')) return;
@@ -52,13 +66,19 @@ export function SlidesAiDialog({ slides, doc, context, onApply, onClose }: Slide
   return (
     <>
       <div className="dialog-backdrop" onClick={() => !busy && !made && close()}>
-        <div className="dialog ai-dialog ai-check-dialog" role="dialog" aria-modal="true" aria-label="Folien mit Claude" onClick={(e) => e.stopPropagation()}>
+        <div className="dialog ai-dialog ai-check-dialog" role="dialog" aria-modal="true" aria-label="Mit KI bauen: Folien" onClick={(e) => e.stopPropagation()}>
           <div className="dialog-title">
-            <Icon icon={Sparkles} /> Folien mit Claude
+            <Icon icon={Sparkles} /> Mit KI bauen: Folien
           </div>
-          <p className="dialog-body">Claude macht die {slides.length} Folien abwechslungsreicher: passende Folienarten, starke Bilder mit Suchwörtern, Wortlaut für die Klasse. Ablauf, Aufgaben und Lösungen bleiben.</p>
           {!made && !busy && (
             <>
+              {slides.length > 0 && <SegField<SlidesAiMode> label="Was soll die KI tun?" value={mode} options={MODES} onPick={(v) => (setMode(v), job.setError(''))} />}
+              <p className="dialog-body">
+                {mode === 'build'
+                  ? 'Die KI baut die Präsentation aus der ganzen Stunde: Sie folgt dem Lernweg und dem Stundenverlauf, zeigt das Material (M1, M2 …) groß, mit Aufträgen, Besprechung mit Lösungen und Merksatz. Bilder des Blatts übernimmt sie, für andere schreibt sie Suchwörter.'
+                  : `Die KI überarbeitet die ${slides.length} Folien nach deinem Wunsch: passende Folienarten, starke Bilder mit Suchwörtern, Wortlaut für die Klasse. Ablauf, Aufgaben und Lösungen bleiben.`}
+              </p>
+              {mode === 'build' && slides.length > 0 && <p className="ai-hint is-warn">Die {slides.length === 1 ? 'Folie' : `${slides.length} Folien`} der Stunde werden ersetzt; Rückgängig (⌘Z) bringt sie zurück, solange die Folien offen sind.</p>}
               <div className="field">
                 <label htmlFor="ai-slides">Wunsch (optional)</label>
                 <textarea id="ai-slides" className="input" rows={2} value={wish} placeholder="z. B. Mehr Bilder, weniger Text" onChange={(e) => setWish(e.target.value)} />
@@ -73,7 +93,7 @@ export function SlidesAiDialog({ slides, doc, context, onApply, onClose }: Slide
               <ClassNotesLine subject={context.subject} grade={context.grade} />
             </>
           )}
-          {busy && <AiBusy busy={busy} hint="Das dauert meist ein bis zwei Minuten." onStop={job.stop} />}
+          {busy && <AiBusy busy={busy} hint={mode === 'build' ? 'Das dauert meist zwei bis drei Minuten.' : 'Das dauert meist ein bis zwei Minuten.'} onStop={job.stop} />}
           {made && (
             <ol className="check-list">
               {made.map((s) => (
@@ -92,7 +112,7 @@ export function SlidesAiDialog({ slides, doc, context, onApply, onClose }: Slide
               {settings ? ` · diesen Monat ${dollars(settings.spent)}` : ''}
             </p>
           )}
-          {!made && chatOpen && <ChatPath request={() => `${slidesSystem()}\n\n${prompt}`} what="Er enthält die Folien und das Arbeitsblatt." pasted={pasted} onPaste={setPasted} onError={job.setError} />}
+          {!made && chatOpen && <ChatPath request={() => `${slidesSystem()}\n\n${prompt}`} what={mode === 'build' ? 'Er enthält die ganze Stunde mit Lernweg und Arbeitsblättern.' : 'Er enthält die Folien und das Arbeitsblatt.'} pasted={pasted} onPaste={setPasted} onError={job.setError} />}
           <div className="dialog-actions">
             {made ? (
               <>
