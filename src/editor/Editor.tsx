@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors, type Announcements, type DragStartEvent } from '@dnd-kit/core';
-import { ClipboardCopy, Copy, Scissors, Send, Sparkles, Trash2, X } from 'lucide-react';
+import { ClipboardCopy, Copy, Scissors, Send, Trash2, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { addClip, clipLabel, type Clip } from '../model/clips';
@@ -837,7 +837,6 @@ export function Editor({
           onSlides={onSlides}
           onPresent={onPresent}
           slideCount={slideCount}
-          onSlidesAi={onSlidesAi}
           onDeleteSlides={onDeleteSlides}
           onVersions={onVersions}
           onShareAll={onShare && (() => onShare(doc, null))}
@@ -874,12 +873,6 @@ export function Editor({
             <span>
               <b>Planung:</b> {note}
             </span>
-            {ai && editing && !doc.pages.some((pg) => pg.blocks.length > 0) && (
-              <button type="button" className="btn btn-secondary ui-btn ed-note-ai" onClick={() => setAiOpen('lesson')}>
-                <Icon icon={Sparkles} />
-                Mit KI ausarbeiten
-              </button>
-            )}
             <button type="button" className="iconbtn" title="Ausblenden" aria-label="Planung ausblenden" onClick={() => setNoteOpen(false)}>
               <Icon icon={X} size={16} />
             </button>

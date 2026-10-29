@@ -1,6 +1,5 @@
 // Working out a lesson with Claude: the request (with the lesson's place in the year plan) and reading the answer,
 // a Stundenpaket with this one lesson, back into the module (its competences keep their ids).
-import { claudeInstructions } from '../claude/instructions';
 import { roleLabel } from '../library/planning';
 import { PACKAGE_FORMAT, PACKAGE_VERSION, readPackage } from '../library/package';
 import type { Competence, Lesson, Module } from '../library/types';
@@ -59,8 +58,6 @@ export function lessonPrompt(m: Module, l: Lesson, context: string, mode: Lesson
   return out.join('\n');
 }
 
-/** The long instructions (cached between requests): the same as the Anleitung for Claude projects. */
-export const lessonSystem = () => claudeInstructions();
 
 export interface LessonDraft {
   /** The worksheet to apply: the pages Claude made, merged with what stays (by mode). */
@@ -133,6 +130,3 @@ export function lessonFromAnswer(raw: unknown, m: Module, l: Lesson, current: Do
   if (!made.length) throw new DocFormatError('Die Stunde in der Antwort hat keine Seiten mit Inhalt.');
   return { doc: { ...current, pages }, made, added, images: parsed.images, notes };
 }
-
-/** Upper bounds for the answer (with Claude's thinking) per mode, in tokens. */
-export const LESSON_TOKENS: Record<LessonMode, number> = { full: 48000, sheet: 24000, revise: 48000 };

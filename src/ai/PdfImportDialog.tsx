@@ -2,7 +2,7 @@
 // The PDF is read here; Claude gets its pages as pictures and writes the blocks, the figures are cut out of the PDF.
 // The result is shown before it goes into the worksheet (appended, or in place of an empty or replaced sheet).
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, ClipboardCopy, ClipboardPaste, FileText, KeyRound, Sparkles, X } from 'lucide-react';
+import { Check, ClipboardPaste, FileText, X } from 'lucide-react';
 import { Icon } from '../icons';
 import type { Competence } from '../library/types';
 import type { Doc } from '../model/types';
@@ -11,16 +11,12 @@ import { SheetModeContext, type SheetMode } from '../sheet/sheetMode';
 import { dataUrlToBlob } from '../storage/backup';
 import { putImageAs } from '../storage/db';
 import { cropFigure, MAX_PAGES, readPdf, type PdfRead } from '../storage/pdf';
-import { AiSettingsDialog } from './AiSettingsDialog';
 import { ClassNotesLine } from './ClassNotesDialog';
-import { isTeacherPage, lessonFromAnswer, lessonSystem } from './lesson';
+import { isTeacherPage, lessonFromAnswer } from './lesson';
 import type { LessonAi } from './LessonAiDialog';
 import { PagePreview } from './LessonAiDialog';
-import { AiBusy, ChatPath, useAiJob } from './parts';
+import { ChatPath, useAiJob } from './parts';
 import { figuresOf, pdfPrompt, placePages, titleOf, withFigures } from './pdfImport';
-import { dollars } from './prices';
-import { modelLabel } from './settings';
-import { useAiSettings } from './useAi';
 
 export interface PdfResult {
   doc: Doc;
@@ -48,9 +44,8 @@ interface Draft extends PdfResult {
 }
 
 export function PdfImportDialog({ file, doc, ai, onApply, onClose }: PdfImportDialogProps) {
-  const settings = useAiSettings();
   const job = useAiJob();
-  const { busy, error, answer } = job;
+  const { error } = job;
   const [pdf, setPdf] = useState<PdfRead | null>(null);
   const [readError, setReadError] = useState('');
   const filled = hasBlocks(doc);
@@ -61,9 +56,7 @@ export function PdfImportDialog({ file, doc, ai, onApply, onClose }: PdfImportDi
   const [cutting, setCutting] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [big, setBig] = useState<number | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
   const [pasted, setPasted] = useState('');
-  const [keyOpen, setKeyOpen] = useState(false);
   const alive = useRef(true);
 
   useEffect(() => {
@@ -113,36 +106,20 @@ export function PdfImportDialog({ file, doc, ai, onApply, onClose }: PdfImportDi
       }
     })();
   };
-  const run = () => {
-    if (!pdf) return;
-    setDraft(null);
-    return job.run(
-      {
-        job: 'big',
-        what: 'PDF einpflegen',
-        system: lessonSystem(),
-        user: prompt(false),
-        images: pdf.pages.map((p) => ({ type: 'image/jpeg', data: p.jpeg })),
-        maxTokens: 48000,
-        effort: 'medium',
-      },
-      read,
-    );
-  };
   const close = () => {
-    if ((busy || cutting) && !window.confirm('Claude arbeitet noch. Abbrechen und schließen?')) return;
+    if (cutting && !window.confirm('Der Baukasten schneidet noch die Abbildungen aus. Abbrechen und schließen?')) return;
     job.stop();
     onClose();
   };
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !keyOpen && close();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
 
   return (
     <>
-      <div className="dialog-backdrop" onClick={() => !busy && !cutting && !draft && close()}>
+      <div className="dialog-backdrop" onClick={() => !cutting && !draft && close()}>
         <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="PDF einpflegen" onClick={(e) => e.stopPropagation()}>
           <div className="dialog-title">
             <Icon icon={FileText} /> PDF einpflegen
@@ -159,7 +136,7 @@ export function PdfImportDialog({ file, doc, ai, onApply, onClose }: PdfImportDi
           )}
           {readError && <p className="json-err">{readError}</p>}
 
-          {pdf && !draft && !busy && !cutting && (
+          {pdf && !draft && !cutting && (
             <>
               <div className="pdf-pages">
                 {pdf.pages.map((p, i) => (
@@ -169,8 +146,8 @@ export function PdfImportDialog({ file, doc, ai, onApply, onClose }: PdfImportDi
               <p className="ai-hint">
                 {pdf.pageCount} {pdf.pageCount === 1 ? 'Seite' : 'Seiten'}
                 {pdf.candidates.length > 0 && ` · ${pdf.candidates.length} ${pdf.candidates.length === 1 ? 'Bild' : 'Bilder'} im PDF erkannt (rot umrandet)`}
-                {scans > 0 && ` · ${scans === pdf.pages.length ? 'gescannt' : `${scans} gescannt`}: Claude schneidet die Abbildungen nach Augenmaß aus`}
-                . Claude überträgt das Blatt treu in Bausteine, trägt Lösungen ein (aus dem PDF, sonst selbst) und schneidet die Abbildungen aus dem PDF.
+                {scans > 0 && ` · ${scans === pdf.pages.length ? 'gescannt' : `${scans} gescannt`}: der Baukasten schneidet die Abbildungen nach dem Rahmen der KI aus`}
+                . Die KI überträgt das Blatt treu in Bausteine und trägt Lösungen ein (aus dem PDF, sonst selbst); der Baukasten schneidet die Abbildungen aus dem PDF.
               </p>
               {pdf.pageCount > MAX_PAGES && <p className="ai-hint is-warn">Nur die ersten {MAX_PAGES} Seiten werden eingelesen. Teile längere PDFs auf.</p>}
               <label className="check-row">
@@ -188,14 +165,13 @@ export function PdfImportDialog({ file, doc, ai, onApply, onClose }: PdfImportDi
                 </div>
               )}
               <div className="field">
-                <label htmlFor="pdf-wishes">Hinweise für Claude (freiwillig)</label>
+                <label htmlFor="pdf-wishes">Hinweise für die KI (freiwillig)</label>
                 <input id="pdf-wishes" className="input" value={wishes} placeholder="z. B. Seite 3 ist das Lösungsblatt; Aufgabe 5 weglassen" onChange={(e) => setWishes(e.target.value)} />
               </div>
               <ClassNotesLine subject={ai.module.subject} grade={ai.module.grade} />
             </>
           )}
 
-          {busy && <AiBusy busy={busy} hint="Ein Blatt mit zwei, drei Seiten dauert meist ein bis drei Minuten." onStop={job.stop} />}
           {cutting && (
             <div className="ai-busy" role="status">
               <span className="ai-spinner" />
@@ -235,7 +211,7 @@ export function PdfImportDialog({ file, doc, ai, onApply, onClose }: PdfImportDi
               )}
               <p className="ai-hint">
                 Die Vorschau zeigt die Lösungsfassung. {draft.figures} {draft.figures === 1 ? 'Abbildung' : 'Abbildungen'} aus dem PDF übernommen; einen schiefen Ausschnitt ersetzt du danach im Panel der Abbildung („Bild wählen“).
-                Prüfe die Lösungen, die Claude ergänzt hat.
+                Prüfe die Lösungen, die die KI ergänzt hat.
               </p>
               {draft.added.length > 0 && (
                 <p className="ai-hint">
@@ -252,16 +228,10 @@ export function PdfImportDialog({ file, doc, ai, onApply, onClose }: PdfImportDi
                   </ul>
                 </details>
               )}
-              {answer && (
-                <p className="ai-cost">
-                  Kosten etwa {dollars(answer.usd)} · {modelLabel(answer.model)}
-                  {settings ? ` · diesen Monat ${dollars(settings.spent)}` : ''}
-                </p>
-              )}
             </div>
           )}
 
-          {pdf && !draft && chatOpen && (
+          {pdf && !draft && (
             <ChatPath
               request={() => prompt(true)}
               what="Häng im Chat zusätzlich das PDF an; der Auftrag nennt die Bilder, die der Baukasten darin gefunden hat."
@@ -287,44 +257,19 @@ export function PdfImportDialog({ file, doc, ai, onApply, onClose }: PdfImportDi
               </>
             ) : (
               <>
-                {!chatOpen && (
-                  <button type="button" className="btn btn-secondary ui-btn" onClick={() => setChatOpen(true)} style={{ marginRight: 'auto' }} disabled={!pdf || !!busy || cutting}>
-                    <Icon icon={ClipboardCopy} />
-                    Über den Chat
-                  </button>
-                )}
-                {settings === null && !chatOpen && (
-                  <button type="button" className="btn btn-secondary ui-btn" onClick={() => setKeyOpen(true)}>
-                    <Icon icon={KeyRound} />
-                    Schlüssel einrichten …
-                  </button>
-                )}
                 <button type="button" className="btn btn-secondary ui-btn" onClick={close}>
                   Abbrechen
                 </button>
-                {chatOpen ? (
-                  <button type="button" className="btn btn-primary ui-btn" onClick={() => job.paste(pasted, read)} disabled={!pasted.trim() || cutting}>
-                    <Icon icon={ClipboardPaste} />
-                    Antwort einlesen
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn btn-primary ui-btn"
-                    onClick={run}
-                    disabled={!settings || !pdf || !!busy || cutting}
-                    title={settings ? undefined : 'Erst einen KI-Schlüssel einrichten oder „Über den Chat“ nehmen'}
-                  >
-                    <Icon icon={Sparkles} />
-                    Einpflegen
-                  </button>
-                )}
+                <button type="button" className="btn btn-primary ui-btn" onClick={() => job.paste(pasted, read)} disabled={!pasted.trim() || cutting}>
+                  <Icon icon={ClipboardPaste} />
+                  Antwort einlesen
+                </button>
+
               </>
             )}
           </div>
         </div>
       </div>
-      {keyOpen && <AiSettingsDialog onClose={() => setKeyOpen(false)} />}
     </>
   );
 }

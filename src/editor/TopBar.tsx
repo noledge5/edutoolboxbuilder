@@ -34,8 +34,6 @@ interface TopBarProps {
   onPresent?(): void;
   /** Number of slides of the lesson. */
   slideCount?: number;
-  /** The slides with "Mit KI bauen: Folien" open. */
-  onSlidesAi?(): void;
   onDeleteSlides?(): void;
   /** Earlier versions of the lesson (in the library). */
   onVersions?(): void;
@@ -134,7 +132,7 @@ export function TopBar(p: TopBarProps) {
           ]}
         />
       )}
-      {p.onSlides && <SlidesMenu count={p.slideCount ?? 0} onOpen={p.onSlides} onPresent={p.onPresent} onBuildAi={p.onSlidesAi} onDelete={p.onDeleteSlides} />}
+      {p.onSlides && <SlidesMenu count={p.slideCount ?? 0} onOpen={p.onSlides} onPresent={p.onPresent} onDelete={p.onDeleteSlides} />}
       <button type="button" className={'btn btn-secondary ui-btn' + (p.editing ? '' : ' is-on')} onClick={p.onTogglePreview}>
         <Icon icon={Eye} />
         <span className="btn-label">{p.editing ? 'Vorschau' : 'Bearbeiten'}</span>
@@ -200,12 +198,11 @@ export function Menu({ label, icon, items, className = '' }: { label: string; ic
   );
 }
 
-/** The slides of a lesson: open them, build them with KI, or delete them all. */
+/** The slides of a lesson: open them, present them, or delete them all. */
 export function SlidesMenu({
   count,
   onOpen,
   onPresent,
-  onBuildAi,
   onDelete,
   className = '',
 }: {
@@ -213,8 +210,6 @@ export function SlidesMenu({
   onOpen(): void;
   /** Opens the slides and starts presenting at once. */
   onPresent?(): void;
-  /** Opens the slides with "Mit KI bauen: Folien". */
-  onBuildAi?(): void;
   onDelete?(): void;
   className?: string;
 }) {
@@ -222,7 +217,6 @@ export function SlidesMenu({
     ...(onPresent && count ? [{ label: 'Präsentieren', icon: Play, onClick: onPresent }] : []),
     { label: count ? 'Folien öffnen' : 'Folien öffnen (noch keine)', icon: Presentation, onClick: onOpen },
   ];
-  if (onBuildAi) items.push({ label: 'Mit KI bauen …', icon: Sparkles, onClick: onBuildAi });
   if (onDelete && count) items.push({ label: `Alle ${count} Folien löschen …`, icon: Trash2, onClick: onDelete });
   return <Menu label={count ? `Folien · ${count}` : 'Folien'} icon={Presentation} items={items} className={className + (count ? '' : ' is-empty')} />;
 }

@@ -3,7 +3,7 @@
 // answers right here; without one the request is copied for a chat (Claude, ChatGPT …) and the answer pasted back.
 // Either way the result is shown before it is applied.
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ClipboardCopy, ClipboardPaste, KeyRound, Sparkles, X } from 'lucide-react';
+import { Check, ClipboardPaste, Sparkles, X } from 'lucide-react';
 import { SegField } from '../editor/fields';
 import { Icon } from '../icons';
 import type { Competence, Lesson, Module } from '../library/types';
@@ -13,13 +13,9 @@ import { BlockContent } from '../sheet/BlockContent';
 import { CompetenceNamesContext } from '../sheet/competences';
 import { PAGE_H, PAGE_W, SheetPage, taskNumbers } from '../sheet/SheetPage';
 import { SheetModeContext, type SheetMode } from '../sheet/sheetMode';
-import { AiSettingsDialog } from './AiSettingsDialog';
 import { ClassNotesLine } from './ClassNotesDialog';
-import { isTeacherPage, LESSON_TOKENS, lessonFromAnswer, lessonPrompt, lessonSystem, type LessonDraft, type LessonMode, hasBlocks } from './lesson';
-import { dollars } from './prices';
-import { modelLabel } from './settings';
-import { AiBusy, ChatPath, useAiJob } from './parts';
-import { useAiSettings } from './useAi';
+import { isTeacherPage, lessonFromAnswer, lessonPrompt, type LessonDraft, type LessonMode, hasBlocks } from './lesson';
+import { ChatPath, useAiJob } from './parts';
 
 /** What the editor knows about the lesson's place in the library. */
 export interface LessonAi {
@@ -91,17 +87,14 @@ export function PagePreview({ doc, p, scale }: { doc: Doc; p: number; scale: num
 }
 
 export function LessonAiDialog({ doc, ai, initial, onPdf, onVocab, onSlides, onApply, onClose }: LessonAiDialogProps) {
-  const settings = useAiSettings();
   const filled = doc.pages.filter(hasBlocks);
   const [mode, setMode] = useState<LessonMode>(initial?.mode ?? 'full');
   const [wishes, setWishes] = useState(initial?.wishes ?? '');
   const job = useAiJob();
   const [draft, setDraft] = useState<LessonDraft | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
   const [pasted, setPasted] = useState('');
-  const [keyOpen, setKeyOpen] = useState(false);
   const [big, setBig] = useState<number | null>(null);
-  const { busy, error, answer } = job;
+  const { error } = job;
 
   const modes = MODES.filter((x) => (x.v === 'sheet' || x.v === 'revise' ? filled.length > 0 : x.v === 'slides' ? !!onSlides && filled.length > 0 : x.v === 'pdf' ? !!onPdf : x.v === 'vocab' ? !!onVocab : true));
   const pick = (v: What) => {
@@ -116,13 +109,11 @@ export function LessonAiDialog({ doc, ai, initial, onPdf, onVocab, onSlides, onA
   const prompt = (chat: boolean) => lessonPrompt(ai.module, lessonNow, context, mode, chat);
 
   const close = () => {
-    if (busy && !window.confirm('Claude arbeitet noch. Abbrechen und schließen?')) return;
-    job.stop();
     onClose();
   };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape' || keyOpen) return;
+      if (e.key !== 'Escape') return;
       if (big !== null) setBig(null);
       else close();
     };
@@ -134,27 +125,13 @@ export function LessonAiDialog({ doc, ai, initial, onPdf, onVocab, onSlides, onA
     setDraft(lessonFromAnswer(raw, ai.module, lessonNow, doc, mode));
     setBig(null);
   };
-  const run = () => {
-    setDraft(null);
-    return job.run(
-      {
-        job: 'big',
-        what: mode === 'sheet' ? 'Arbeitsblatt dazu' : mode === 'revise' ? 'Stunde überarbeiten' : 'Stunde ausarbeiten',
-        system: lessonSystem(),
-        user: prompt(false),
-        maxTokens: LESSON_TOKENS[mode],
-        effort: 'high',
-      },
-      read,
-    );
-  };
 
   const names = useMemo(() => new Map([...ai.module.competences, ...(draft?.added ?? [])].map((c) => [c.id, c.area])), [ai.module.competences, draft]);
   const madeAt = draft ? draft.doc.pages.map((p, i) => (draft.made.includes(p) ? i : -1)).filter((i) => i >= 0) : [];
 
   return (
     <>
-    <div className="dialog-backdrop" onClick={() => !busy && !draft && close()}>
+    <div className="dialog-backdrop" onClick={() => !draft && close()}>
       <div className="dialog ai-dialog" role="dialog" aria-modal="true" aria-label="Mit KI bauen" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-title">
           <Icon icon={Sparkles} /> Mit KI bauen
@@ -189,7 +166,6 @@ export function LessonAiDialog({ doc, ai, initial, onPdf, onVocab, onSlides, onA
           </>
         )}
 
-        {busy && <AiBusy busy={busy} hint="Eine ganze Stunde dauert meist zwei bis vier Minuten." onStop={job.stop} />}
         {error && <p className="json-err">{error}</p>}
 
         {draft && (
@@ -234,16 +210,10 @@ export function LessonAiDialog({ doc, ai, initial, onPdf, onVocab, onSlides, onA
                 </ul>
               </details>
             )}
-            {answer && (
-              <p className="ai-cost">
-                Kosten etwa {dollars(answer.usd)} · {modelLabel(answer.model)}
-                {settings ? ` · diesen Monat ${dollars(settings.spent)}` : ''}
-              </p>
-            )}
           </div>
         )}
 
-        {!draft && chatOpen && (
+        {!draft && (
           <ChatPath request={() => prompt(true)} what="Er enthält die Stunde im Jahresplan und die Stunden davor und danach." pasted={pasted} onPaste={setPasted} onError={job.setError} />
         )}
 
@@ -263,41 +233,19 @@ export function LessonAiDialog({ doc, ai, initial, onPdf, onVocab, onSlides, onA
             </>
           ) : (
             <>
-              {!chatOpen && (
-                <button type="button" className="btn btn-secondary ui-btn" onClick={() => setChatOpen(true)} style={{ marginRight: 'auto' }} disabled={!!busy}>
-                  <Icon icon={ClipboardCopy} />
-                  Über den Chat
-                </button>
-              )}
-              {settings === null && !chatOpen && (
-                <button type="button" className="btn btn-secondary ui-btn" onClick={() => setKeyOpen(true)}>
-                  <Icon icon={KeyRound} />
-                  Schlüssel einrichten …
-                </button>
-              )}
               <button type="button" className="btn btn-secondary ui-btn" onClick={close}>
                 Abbrechen
               </button>
-              {chatOpen ? (
-                <button type="button" className="btn btn-primary ui-btn" onClick={() => job.paste(pasted, read)} disabled={!pasted.trim()}>
-                  <Icon icon={ClipboardPaste} />
-                  Antwort einlesen
-                </button>
-              ) : (
-                <button type="button" className="btn btn-primary ui-btn" onClick={run} disabled={!settings || !!busy} title={settings ? undefined : 'Erst einen KI-Schlüssel einrichten oder „Über den Chat“ nehmen'}>
-                  <Icon icon={Sparkles} />
-                  {mode === 'sheet' ? 'Blatt bauen' : mode === 'revise' ? 'Überarbeiten' : 'Ausarbeiten'}
-                </button>
-              )}
+              <button type="button" className="btn btn-primary ui-btn" onClick={() => job.paste(pasted, read)} disabled={!pasted.trim()}>
+                <Icon icon={ClipboardPaste} />
+                Antwort einlesen
+              </button>
+
             </>
           )}
         </div>
-        {!draft && !chatOpen && settings === null && (
-          <p className="sync-tip">Ohne eigenen KI-Schlüssel geht es über den Chat: Auftrag kopieren, bei Claude oder ChatGPT einfügen, Antwort hier einlesen.</p>
-        )}
       </div>
     </div>
-    {keyOpen && <AiSettingsDialog onClose={() => setKeyOpen(false)} />}
     </>
   );
 }

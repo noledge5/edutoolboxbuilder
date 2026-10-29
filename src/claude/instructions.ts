@@ -19,7 +19,7 @@ const BLOCK_USE: Record<BlockType, string> = {
   hint: 'Kasten mit Titel für Tipps, Sicherheitshinweise oder Einschränkungen.',
   merksatz: 'Hervorgehobener Merksatz zur Sicherung, gern mit Lücken.',
   wordbank: 'Begriffe als Hilfe für Lücken oder Beschriftungen.',
-  image: 'Platz für ein Bild mit Bildunterschrift; in `search` englische Suchwörter für die Bildsuche der Lehrkraft (Openverse, Wikimedia Commons), die Quelle trägt der Baukasten ein.',
+  image: 'Platz für ein Bild mit Bildunterschrift; in `search` englische Suchwörter für die Bildsuche der Lehrkraft (Openverse, Wikimedia Commons), die Quelle trägt der Baukasten ein. Beschriftungen in `labels`, ein Begriff je Zeile, nur die Wörter (die Lehrkraft setzt sie aufs Bild); `labelStyle` `"nummern"` (Nummern mit Legende), `"luecken"` (zum Ausfüllen, z. B. „Beschrifte M2“) oder `"text"` (Wörter im Bild).',
   flow: 'Fließschema: Stationen nebeneinander, mit Pfeilen verbunden (bis etwa 5 Schritte).',
   qr: 'QR-Code zu einem Link (Video, Simulation, Karte).',
   code: 'Programmcode mit Zeilennummern (Informatik), z. B. Python zum Lesen und Nachvollziehen; Schlüsselwörter und Werte werden hervorgehoben.',

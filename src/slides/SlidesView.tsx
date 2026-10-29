@@ -720,14 +720,8 @@ export function SlidesView(p: SlidesViewProps) {
             />
           ) : (
             <div className="sl-empty">
-              <p className="lib-empty">Noch keine Folien für diese Stunde.</p>
-              {p.ai && (
-                <button type="button" className="btn btn-primary ui-btn" onClick={() => setAiOpen('menu')}>
-                  <Icon icon={Sparkles} />
-                  Folien mit KI bauen
-                </button>
-              )}
-              <button type="button" className="btn btn-secondary ui-btn" onClick={suggest}>
+              <p className="lib-empty">Noch keine Folien für diese Stunde.{p.ai ? ' Mit KI: oben „Folien“ → „Mit KI bauen …“.' : ''}</p>
+              <button type="button" className="btn btn-primary ui-btn" onClick={suggest}>
                 <Icon icon={FileText} />
                 Aus dem Arbeitsblatt einfügen
               </button>

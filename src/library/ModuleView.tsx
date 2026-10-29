@@ -37,8 +37,6 @@ interface ModuleViewProps {
   onVocabLesson(pages: Page[]): void;
   /** Opens the lesson's slides and starts presenting. */
   onPresent(l: Lesson): void;
-  /** The lesson's slides with "Mit KI bauen: Folien" open. */
-  onSlidesAi(l: Lesson): void;
   onDeleteSlides(l: Lesson): void;
   onChangeLesson(l: Lesson): void;
   onDuplicateLesson(l: Lesson): void;
@@ -228,7 +226,7 @@ export function ModuleView(p: ModuleViewProps) {
         </div>
 
         {tab === 'inhalt' ? (
-          <LessonList {...p} onPlan={() => setPlanOpen(true)} onPdf={() => pdfInput.current?.click()} />
+          <LessonList {...p} />
         ) : (
           <section className="lib-section">
             <div className="lib-h2-row">
@@ -342,7 +340,7 @@ function LessonCompetences({ lesson: l, competences, onChange }: { lesson: Lesso
   );
 }
 
-function LessonList(p: ModuleViewProps & { onPlan(): void; onPdf(): void }) {
+function LessonList(p: ModuleViewProps) {
   const progress = progressOf(p.lessons);
   return (
     <section className="lib-section">
@@ -420,7 +418,7 @@ function LessonList(p: ModuleViewProps & { onPlan(): void; onPdf(): void }) {
                 <button type="button" className={'btn ui-btn ' + (planned ? 'btn-secondary' : 'btn-primary')} onClick={() => p.onOpenLesson(l)}>
                   {planned ? 'Ausarbeiten' : 'Öffnen'}
                 </button>
-                <SlidesMenu className="lib-slides-btn" count={l.slides.length} onOpen={() => p.onOpenSlides(l)} onPresent={() => p.onPresent(l)} onBuildAi={() => p.onSlidesAi(l)} onDelete={() => p.onDeleteSlides(l)} />
+                <SlidesMenu className="lib-slides-btn" count={l.slides.length} onOpen={() => p.onOpenSlides(l)} onPresent={() => p.onPresent(l)} onDelete={() => p.onDeleteSlides(l)} />
               <button type="button" className="iconbtn" title="Duplizieren" aria-label="Duplizieren" onClick={() => p.onDuplicateLesson(l)}>
                   <Icon icon={Copy} />
                 </button>
@@ -437,14 +435,6 @@ function LessonList(p: ModuleViewProps & { onPlan(): void; onPdf(): void }) {
         <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onAddLesson}>
           <Icon icon={Plus} />
           Neue Stunde
-        </button>
-        <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onPlan}>
-          <Icon icon={Sparkles} />
-          Modul mit KI bauen …
-        </button>
-        <button type="button" className="btn btn-secondary ui-btn lib-add" onClick={p.onPdf}>
-          <Icon icon={FileText} />
-          PDF als Stunde einpflegen …
         </button>
       </div>
     </section>

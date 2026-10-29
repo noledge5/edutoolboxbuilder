@@ -133,7 +133,7 @@ export function AiSettingsDialog({ onClose }: { onClose(): void }) {
       <div className="dialog sync-dialog ai-settings" role="dialog" aria-modal="true" aria-label="KI im Baukasten" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-title">KI im Baukasten</div>
         <p className="dialog-body">
-          Mit einem eigenen Schlüssel arbeitet Claude direkt im Baukasten: Stunden ausarbeiten, Jahrespläne entwerfen, Bausteine umformulieren. Ohne Schlüssel geht alles weiter über den Claude-Chat.
+          Gebaut wird über den Chat (Auftrag kopieren, Antwort einfügen). Ein eigener Schlüssel ist nur für zwei Dinge da: „Stunde prüfen“ direkt im Baukasten und „Mit KI erzeugen“ an Bildern. Ohne Schlüssel geht „Stunde prüfen“ auch über den Chat.
         </p>
         <SegField<Provider>
           label="Anbieter"
@@ -176,8 +176,7 @@ export function AiSettingsDialog({ onClose }: { onClose(): void }) {
           </div>
           {check && <p className={check.ok ? 'ai-ok' : 'json-err'}>{check.text}</p>}
         </div>
-        {modelField('big', 'Stunden und Jahrespläne')}
-        {modelField('small', 'Kleinere Aufträge (Vokabellisten)')}
+        {modelField('big', 'Stunde prüfen')}
         <div className="settings-ai">
           <div className="panel-section-label">Bilder mit KI (über OpenRouter)</div>
           <p className="ai-hint">

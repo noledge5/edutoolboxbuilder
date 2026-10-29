@@ -12,6 +12,7 @@ import { CompetenceNamesContext } from './competences';
 import { BLOCK_TYPES, HOOK_KINDS, LEVEL_NAMES } from '../model/blockTypes';
 import type { BlockType } from '../model/types';
 import { typo, useSheetDoc, useSheetLang, useSheetText } from './lang';
+import { Figure } from './Figure';
 import { LanguageBlock, LanguageTaskBody } from './LanguageBlocks';
 
 /** Block types drawn by LanguageBlocks.tsx. */
@@ -116,17 +117,7 @@ function BlockBody({ block, taskNum, editing, onImageFile, onPicFile }: BlockCon
         </div>
       );
     case 'image':
-      return (
-        <div className="ws-figure">
-          <ImageBox id={str(p.image)} height={num(p.height, 200)} fit={str(p.fit) === 'contain' ? 'contain' : 'cover'} editing={editing} onImageFile={onImageFile} />
-          <Editable className="ws-caption" target={t('caption')} value={str(p.caption)} />
-          {str(p.source).trim() && (
-            <div className="ws-source">
-              {txt.imageSource}: {str(p.source)}
-            </div>
-          )}
-        </div>
-      );
+      return <Figure block={block} editing={editing} onImageFile={onImageFile} />;
     case 'code':
       return <CodeBlock code={str(p.code)} python={str(p.language) !== 'plain'} />;
     case 'qr':
