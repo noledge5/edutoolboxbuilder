@@ -1,5 +1,5 @@
 // "Mit KI bauen" in the worksheet: the whole lesson, one more sheet or a revision, with the lesson's place in the
-// year plan; from here also "PDF einpflegen" and the vocabulary list. Two ways: with a key on this device Claude
+// year plan; from here also the slides, "PDF einpflegen" and the vocabulary list. Two ways: with a key on this device Claude
 // answers right here; without one the request is copied for a chat (Claude, ChatGPT …) and the answer pasted back.
 // Either way the result is shown before it is applied.
 import { useEffect, useMemo, useState } from 'react';
@@ -46,16 +46,19 @@ interface LessonAiDialogProps {
   onPdf?(): void;
   /** "Vokabelliste" (English modules). */
   onVocab?(): void;
+  /** "Folien": the slides view with "Mit KI bauen: Folien". */
+  onSlides?(): void;
   onApply(draft: LessonDraft): void;
   onClose(): void;
 }
 
-type What = LessonMode | 'pdf' | 'vocab';
+type What = LessonMode | 'slides' | 'pdf' | 'vocab';
 
 const MODES: { v: What; l: string }[] = [
   { v: 'full', l: 'Ganze Stunde' },
   { v: 'sheet', l: 'Ein Arbeitsblatt dazu' },
   { v: 'revise', l: 'Überarbeiten' },
+  { v: 'slides', l: 'Folien' },
   { v: 'pdf', l: 'PDF einpflegen' },
   { v: 'vocab', l: 'Vokabelliste' },
 ];
@@ -87,7 +90,7 @@ export function PagePreview({ doc, p, scale }: { doc: Doc; p: number; scale: num
   );
 }
 
-export function LessonAiDialog({ doc, ai, initial, onPdf, onVocab, onApply, onClose }: LessonAiDialogProps) {
+export function LessonAiDialog({ doc, ai, initial, onPdf, onVocab, onSlides, onApply, onClose }: LessonAiDialogProps) {
   const settings = useAiSettings();
   const filled = doc.pages.filter(hasBlocks);
   const [mode, setMode] = useState<LessonMode>(initial?.mode ?? 'full');
@@ -100,10 +103,11 @@ export function LessonAiDialog({ doc, ai, initial, onPdf, onVocab, onApply, onCl
   const [big, setBig] = useState<number | null>(null);
   const { busy, error, answer } = job;
 
-  const modes = MODES.filter((x) => (x.v === 'sheet' || x.v === 'revise' ? filled.length > 0 : x.v === 'pdf' ? !!onPdf : x.v === 'vocab' ? !!onVocab : true));
+  const modes = MODES.filter((x) => (x.v === 'sheet' || x.v === 'revise' ? filled.length > 0 : x.v === 'slides' ? !!onSlides && filled.length > 0 : x.v === 'pdf' ? !!onPdf : x.v === 'vocab' ? !!onVocab : true));
   const pick = (v: What) => {
     job.setError('');
-    if (v === 'pdf') onPdf?.();
+    if (v === 'slides') onSlides?.();
+    else if (v === 'pdf') onPdf?.();
     else if (v === 'vocab') onVocab?.();
     else setMode(v);
   };

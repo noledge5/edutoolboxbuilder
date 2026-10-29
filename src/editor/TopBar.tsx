@@ -34,8 +34,8 @@ interface TopBarProps {
   onPresent?(): void;
   /** Number of slides of the lesson. */
   slideCount?: number;
-  /** New slides from this worksheet, replacing the old ones. */
-  onRegenerateSlides?(): void;
+  /** The slides with "Mit KI bauen: Folien" open. */
+  onSlidesAi?(): void;
   onDeleteSlides?(): void;
   /** Earlier versions of the lesson (in the library). */
   onVersions?(): void;
@@ -134,7 +134,7 @@ export function TopBar(p: TopBarProps) {
           ]}
         />
       )}
-      {p.onSlides && <SlidesMenu count={p.slideCount ?? 0} onOpen={p.onSlides} onPresent={p.onPresent} onRegenerate={p.onRegenerateSlides} onDelete={p.onDeleteSlides} fromSheet="diesem Arbeitsblatt" />}
+      {p.onSlides && <SlidesMenu count={p.slideCount ?? 0} onOpen={p.onSlides} onPresent={p.onPresent} onBuildAi={p.onSlidesAi} onDelete={p.onDeleteSlides} />}
       <button type="button" className={'btn btn-secondary ui-btn' + (p.editing ? '' : ' is-on')} onClick={p.onTogglePreview}>
         <Icon icon={Eye} />
         <span className="btn-label">{p.editing ? 'Vorschau' : 'Bearbeiten'}</span>
@@ -200,30 +200,29 @@ export function Menu({ label, icon, items, className = '' }: { label: string; ic
   );
 }
 
-/** The slides of a lesson: open them, make them anew from the worksheet, or delete them all. */
+/** The slides of a lesson: open them, build them with KI, or delete them all. */
 export function SlidesMenu({
   count,
   onOpen,
   onPresent,
-  onRegenerate,
+  onBuildAi,
   onDelete,
-  fromSheet = 'dem Arbeitsblatt',
   className = '',
 }: {
   count: number;
   onOpen(): void;
   /** Opens the slides and starts presenting at once. */
   onPresent?(): void;
-  onRegenerate?(): void;
+  /** Opens the slides with "Mit KI bauen: Folien". */
+  onBuildAi?(): void;
   onDelete?(): void;
-  fromSheet?: string;
   className?: string;
 }) {
   const items: MenuItem[] = [
     ...(onPresent && count ? [{ label: 'Präsentieren', icon: Play, onClick: onPresent }] : []),
     { label: count ? 'Folien öffnen' : 'Folien öffnen (noch keine)', icon: Presentation, onClick: onOpen },
   ];
-  if (onRegenerate) items.push({ label: count ? `Neu aus ${fromSheet} erzeugen …` : `Aus ${fromSheet} erzeugen`, icon: Sparkles, onClick: onRegenerate });
+  if (onBuildAi) items.push({ label: 'Mit KI bauen …', icon: Sparkles, onClick: onBuildAi });
   if (onDelete && count) items.push({ label: `Alle ${count} Folien löschen …`, icon: Trash2, onClick: onDelete });
   return <Menu label={count ? `Folien · ${count}` : 'Folien'} icon={Presentation} items={items} className={className + (count ? '' : ' is-empty')} />;
 }

@@ -119,7 +119,8 @@ export interface EditorProps {
   onPresent?(): void;
   slideCount?: number;
   /** Makes the lesson's slides anew from this worksheet as it is now. */
-  onRegenerateSlides?(doc: Doc): void;
+  /** "Folien" in "Mit KI bauen": the slides view with "Mit KI bauen: Folien" open. */
+  onSlidesAi?(): void;
   onDeleteSlides?(): void;
   /** Earlier versions of the lesson. */
   onVersions?(): void;
@@ -151,7 +152,7 @@ export function Editor({
   onSlides,
   onPresent,
   slideCount = 0,
-  onRegenerateSlides,
+  onSlidesAi,
   onDeleteSlides,
   onVersions,
   focus,
@@ -836,7 +837,7 @@ export function Editor({
           onSlides={onSlides}
           onPresent={onPresent}
           slideCount={slideCount}
-          onRegenerateSlides={onRegenerateSlides && (() => onRegenerateSlides(doc))}
+          onSlidesAi={onSlidesAi}
           onDeleteSlides={onDeleteSlides}
           onVersions={onVersions}
           onShareAll={onShare && (() => onShare(doc, null))}
@@ -986,6 +987,14 @@ export function Editor({
               pdfInput.current?.click();
             }}
             onVocab={ai.module.lang === 'en' ? () => (setFixWishes(null), setAiOpen('vocab')) : undefined}
+            onSlides={
+              onSlidesAi &&
+              (() => {
+                setAiOpen(null);
+                setFixWishes(null);
+                onSlidesAi();
+              })
+            }
             onClose={() => {
               setAiOpen(null);
               setFixWishes(null);
