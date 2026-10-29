@@ -31,6 +31,7 @@ import type { EditorApi } from './api';
 import { Canvas } from './Canvas';
 import { dropTargetAt, sameDrop } from './drop';
 import { ghostBesideCursor } from './ghostModifier';
+import { coherence } from '../model/coherence';
 import { JsonDialog } from './JsonDialog';
 import { KeysDialog } from './KeysDialog';
 import { DEFAULT_PRINT, PrintDialog, type PrintMode } from './PrintDialog';
@@ -536,6 +537,12 @@ export function Editor({
     };
   }, [openFile]);
 
+  /** The notice after taking over a lesson, with the number of findings of the check without AI. */
+  const appliedNotice = (d: Doc, text: string) => {
+    const n = ai ? coherence(d).length : 0;
+    setNotice(n ? `${text} Die Prüfung ohne KI hat ${n === 1 ? 'einen Hinweis' : `${n} Hinweise`} zum Aufbau, siehe „Stunde prüfen“.`.trim() : text || null);
+  };
+
   useEffect(() => {
     if (!notice) return;
     const t = setTimeout(() => setNotice(null), 6000);
@@ -983,6 +990,7 @@ export function Editor({
               const { icon, code } = latest.current.doc;
               commit(codeLocked ? { ...next, icon, code } : next, { select: { kind: 'page', p: 0 } });
               setJsonOpen(false);
+              appliedNotice(next, '');
             }}
           />
         )}
@@ -1001,7 +1009,7 @@ export function Editor({
               const { icon, code } = latest.current.doc;
               commit({ ...draft.doc, icon, code }, { select: { kind: 'page', p: 0 } });
               setAiOpen(null);
-              setNotice('Von Claude übernommen. Mit Rückgängig oder unter „Frühere Fassungen“ kommst du zur vorherigen Fassung zurück.');
+              appliedNotice(draft.doc, 'Von Claude übernommen. Mit Rückgängig oder unter „Frühere Fassungen“ kommst du zur vorherigen Fassung zurück.');
             }}
           />
         )}
@@ -1021,7 +1029,7 @@ export function Editor({
               commit({ ...r.doc, icon, code }, { select: { kind: 'page', p: 0 } });
               ai.setSlides(r.slides);
               setAiOpen(null);
-              setNotice(`Stunde und ${r.slides.length} Folien von Claude übernommen. Die vorige Fassung liegt unter „Frühere Fassungen“.`);
+              appliedNotice(r.doc, `Stunde und ${r.slides.length} Folien von Claude übernommen. Die vorige Fassung liegt unter „Frühere Fassungen“.`);
             }}
           />
         )}
@@ -1038,7 +1046,7 @@ export function Editor({
               commit({ ...r.doc, icon, code }, { select: { kind: 'page', p: 0 } });
               if (r.title) ai.rename?.(r.title);
               setPdfFile(null);
-              setNotice('PDF eingepflegt. Mit Rückgängig oder unter „Frühere Fassungen“ kommst du zur vorherigen Fassung zurück.');
+              appliedNotice(r.doc, 'PDF eingepflegt. Mit Rückgängig oder unter „Frühere Fassungen“ kommst du zur vorherigen Fassung zurück.');
             }}
           />
         )}

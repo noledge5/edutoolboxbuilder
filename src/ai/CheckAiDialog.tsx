@@ -1,8 +1,10 @@
-// "Stunde prüfen": Claude lists what would break the lesson in class; each finding jumps to its block or opens
-// "Mit Anweisung neu machen" with Claude's fix as the instruction.
+// "Stunde prüfen": first the check without AI (material numbers, task types, learning path), right away and without
+// a key; then Claude lists what would break the lesson in class. Each finding jumps to its block; Claude's findings
+// also open "Mit Anweisung neu machen" with the fix as the instruction.
 import { useEffect, useMemo, useState } from 'react';
 import { ClipboardCopy, ClipboardPaste, KeyRound, ListChecks, Wand2 } from 'lucide-react';
 import { Icon } from '../icons';
+import { coherence, COHERENCE_KINDS } from '../model/coherence';
 import type { Doc } from '../model/types';
 import { AiSettingsDialog } from './AiSettingsDialog';
 import { checkPrompt, checkSystem, findingsFromAnswer, KINDS, type CheckContext, type Finding } from './check';
@@ -31,6 +33,7 @@ export function CheckAiDialog({ doc, context, findings, onFindings, onShow, onFi
   const [pasted, setPasted] = useState('');
   const [keyOpen, setKeyOpen] = useState(false);
   const prompt = useMemo(() => checkPrompt(doc, context), [doc, context]);
+  const local = useMemo(() => coherence(doc), [doc]);
   const read = (raw: unknown) => onFindings(findingsFromAnswer(raw, doc));
   const run = () => job.run({ job: 'big', what: 'Stunde prüfen', system: checkSystem(), user: prompt, maxTokens: 8000, effort: 'medium' }, read);
   const close = () => {
@@ -51,7 +54,30 @@ export function CheckAiDialog({ doc, context, findings, onFindings, onShow, onFi
           <div className="dialog-title">
             <Icon icon={ListChecks} /> Stunde prüfen
           </div>
-          <p className="dialog-body">Claude liest alle Seiten und sucht, was die Stunde scheitern lässt: Aufgaben ohne passendes Material, Wissen erst nach der Aufgabe, Aufgaben zu schwer oder zu leicht für die Klasse.</p>
+          <p className="dialog-body">Der Baukasten prüft sofort, ob Material und Aufgaben zusammenpassen. Claude liest danach alle Seiten und sucht, was die Stunde scheitern lässt: Aufgaben ohne passendes Material, Wissen erst nach der Aufgabe, Aufgaben zu schwer oder zu leicht für die Klasse.</p>
+          <div className="check-section">Ohne KI geprüft</div>
+          {local.length ? (
+            <ol className="check-list is-local">
+              {local.map((f, i) => (
+                <li key={i}>
+                  <div className="check-head">
+                    {f.blockId ? (
+                      <button type="button" className="check-ref" onClick={() => onShow(f.blockId!)} title="Baustein zeigen">
+                        {f.ref}
+                      </button>
+                    ) : (
+                      <span className="check-ref">Stunde</span>
+                    )}
+                    <span className="check-kind">{COHERENCE_KINDS[f.kind]}</span>
+                  </div>
+                  <p>{f.problem}</p>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="check-ok">Material und Aufgaben passen zusammen.</p>
+          )}
+          <div className="check-section">Mit Claude</div>
           {!findings && <ClassNotesLine subject={context.subject} grade={context.grade} />}
           {busy && <AiBusy busy={busy} hint="Das dauert meist dreißig bis sechzig Sekunden." onStop={job.stop} />}
           {findings && !busy && (

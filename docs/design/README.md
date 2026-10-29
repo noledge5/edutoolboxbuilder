@@ -94,6 +94,9 @@ All block data has the shape `{ id, type, span, props }`. Fields: `text` = input
 | table | Tabelle | 12 | prompt, cols, rows (one per line) | radius 18px, 2px #dcd3c4 border; header row bg #ebddc5 12px/700; first column shows the row labels (600), the other cells are empty for writing; row min-height 34px; columns `1.2fr repeat(n,1fr)` |
 | match | Zuordnen | 12 | prompt, left, right (one per line) | two columns of pills with a 64px gap; a 12px dot on the inner side of each pill for drawing lines |
 | draw | Zeichenfeld | 12 | prompt, height (160) | empty box, 2px dashed #c0b6a5, radius 20px |
+| path | Lernweg (teacher pages only) | 12 | steps: one line per step, `Material \| Lernschritt \| Aufgabe \| Erkenntnis` | the Stundenverlauf table (radius 18px, 2px neutral border, header row on the surface colour) with the columns `76px 1.3fr 112px 1fr`; the material column is bold |
+
+**Material number** (`mat` on Textblock, Hinweis-Box, Abbildung, Fließschema, Code, Lesetext, Hörverstehen, Vokabelliste, Grammatik-Box, Redemittel): when set (e.g. "M1"), a pill above the block (padding 2px 10px, 11px/700, letter-spacing 0.04em, colours of the sheet type's pill), 4px above the content. Tasks name the number in their instruction.
 
 ## Interactions & Behavior
 - **Selecting**: click a block to select it (2px solid #c67139 outline, offset 5px). Hovering shows a dashed #c0b6a5 outline. Clicking the header band selects the page; clicking empty canvas clears the selection.

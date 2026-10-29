@@ -30,6 +30,7 @@ export function checkSystem(): string {
     '- `reihenfolge`: Das Wissen steht zwar da, aber erst nach der Aufgabe, die es braucht, oder der Stundenverlauf passt nicht zur Reihenfolge der Blätter.',
     '- `niveau`: Eine Aufgabe passt nicht zur Klasse (Klassenprofil, Klassenstufe) oder nicht zu ihrem Niveau-Stern (G/M/E): zu schwer, zu leicht, zu viel Text.',
     '- `sonst`: Lösung falsch oder fehlt, Auftrag mehrdeutig, Bild nötig, aber nur als Platzhalter beschrieben.',
+    'Steht auf der Lehrkraft-Seite ein Lernweg, prüfe auch, ob die Blätter ihm folgen: Jeder Schritt hat sein Material und seine Aufgabe, die Schritte bauen aufeinander auf, und die Aufgaben nennen das Material (M1, M2 …), mit dem sie arbeiten. Melde Abweichungen als `reihenfolge`. Fehlt der Lernweg oder ist er unklar, melde das nicht; das prüft der Baukasten selbst.',
     'Bausteine heißen `S<Seite>.<Nummer>`, z. B. `S2.4`. Bilder siehst du nicht, nur ihre Beschreibung; sie gelten als vorhanden, wenn `image` gesetzt ist. Melde nur echte Probleme, keine Geschmacksfragen, höchstens zehn, die wichtigsten zuerst. Für jedes schreibst du `fix` als kurze Anweisung an den Baustein, die ein zweiter Schritt ausführt (z. B. „Ergänze vor der Aufgabe einen kurzen Infotext zu …“ oder „Stütze die Aufgabe auf Material M2 und frag nur nach …“).',
     DIDACTICS_BRIEF,
     'Antworte nur mit einem JSON-Codeblock: ```json\n{"findings": [{"ref": "S2.4", "kind": "loesbar", "problem": "…", "fix": "…"}]}\n``` Ist alles in Ordnung: `{"findings": []}`.',

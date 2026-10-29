@@ -35,6 +35,7 @@ export type BlockType =
   | 'goal'
   | 'hook'
   | 'expect'
+  | 'path'
   | 'recall'
   | 'vocab'
   | 'foldtest'

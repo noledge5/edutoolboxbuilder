@@ -40,6 +40,15 @@ const lesson = (m: Module, number: number, title: string, textbook: string, page
   updatedAt: time,
 });
 
+/** The teacher page and its back: goal, hook, learning path and course in front, expectations and recall behind. */
+function withBack(t: Page): Page[] {
+  const back = t.blocks.filter((x) => x.type === 'expect' || x.type === 'recall');
+  return [
+    { ...t, blocks: t.blocks.filter((x) => !back.includes(x)) },
+    { ...t, back: true, blocks: back },
+  ];
+}
+
 /** The package without the save time, so the text in the instructions stays the same. */
 function clean(p: PackageFile): PackageFile {
   delete p.savedAt;
@@ -105,6 +114,13 @@ export function englishExample(): PackageFile {
         answer: '',
         question: 'How can we introduce ourselves in English?',
       }),
+      b('path', {
+        steps: [
+          'M1 | Die Klasse hört und spricht die neuen Wörter und ordnet sie Bildern zu. | Task 1–2 (S. 1) | Ich kann Dinge im Klassenzimmer benennen.',
+          'M2 | Die Klasse entdeckt, welche Form von to be zu welcher Person gehört, und übt sie. | Task 1–3 (S. 2) | I am, he / she / it is, we / you / they are.',
+          'M3 | Die Paare stellen sich mit den Redemitteln vor und schreiben dann über sich. | Rollenkarten, Task 1 (S. 3) | Ich kann mich auf Englisch vorstellen.',
+        ].join('\n'),
+      }),
       b('plan', {
         rows: [
           '0–5 | Warm-up | Song „Hello, hello“, Begrüßung auf Englisch, Wörter sammeln. | Plenum | Audio',
@@ -135,6 +151,7 @@ export function englishExample(): PackageFile {
     nameField: 'name',
     blocks: [
       b('vocab', {
+        mat: 'M1',
         title: 'New words',
         rows: [
           'board | bɔːd | Tafel | Look at the board, please.',
@@ -146,8 +163,8 @@ export function englishExample(): PackageFile {
         ].join('\n'),
       }),
       b('picvocab', {
-        prompt: 'Label the pictures.',
-        help: 'Schreibe das englische Wort unter jedes Bild.',
+        prompt: 'Label the pictures. Use the words in M1.',
+        help: 'Schreibe das englische Wort aus M1 unter jedes Bild.',
         items: '📏 | ruler\n✏️ | pencil\n🎒 | schoolbag\n📖 | book',
         level: '1',
         competence: 'k1',
@@ -171,6 +188,7 @@ export function englishExample(): PackageFile {
     nameField: 'name',
     blocks: [
       b('grammar', {
+        mat: 'M2',
         title: 'to be',
         rule: 'to be heißt „sein“. Die Form hängt von der Person ab: I {{am}}, he / she / it {{is}}, we / you / they {{are}}.',
         signal: '',
@@ -178,8 +196,8 @@ export function englishExample(): PackageFile {
         variant: 'accent-3',
       }),
       b('jumble', {
-        prompt: 'Put the words in the right order.',
-        help: 'Bringe die Wörter in die richtige Reihenfolge.',
+        prompt: 'Look at M2. Put the words in the right order.',
+        help: 'Sieh dir M2 an. Bringe die Wörter in die richtige Reihenfolge.',
         items: 'My name is Emma.\nI am eleven years old.\nfriend / is / Ben / my = Ben is my friend.',
         level: '1',
         competence: 'k2',
@@ -187,7 +205,7 @@ export function englishExample(): PackageFile {
       b('transform', {
         prompt: 'Write the sentences with the short form.',
         help: 'Schreibe die Sätze mit der Kurzform.',
-        items: "I am Tom. | short form | I'm Tom.\nShe is my sister. | short form | She's my sister.\nWe are friends. | short form | We're friends.",
+        items: "I am Tom. | short form | I'm Tom.\nShe is my sister. | short form | She's my sister.",
         level: '2',
         competence: 'k2',
       }),
@@ -208,6 +226,7 @@ export function englishExample(): PackageFile {
     nameField: 'namen',
     blocks: [
       b('phrases', {
+        mat: 'M3',
         title: 'Useful phrases',
         items:
           'Hi, I’m … What’s your name? | Hallo, ich bin … Wie heißt du?\nHow old are you? | Wie alt bist du?\nThis is my friend … | Das ist mein Freund / meine Freundin …\nNice to meet you. | Schön, dich kennenzulernen.',
@@ -220,8 +239,8 @@ export function englishExample(): PackageFile {
         textB: 'You are Mia, 10.\nAsk your partner: name? age?\nIntroduce your friend Lucy (11).',
       }),
       b('writing', {
-        prompt: 'Write about you.',
-        help: 'Schreibe über dich. Nutze die Satzanfänge.',
+        prompt: 'Write about you. Use the phrases in M3.',
+        help: 'Schreibe über dich. Nutze die Satzanfänge und die Redemittel aus M3.',
         starters: 'My name is …\nI’m … years old.\nMy best friend is …\nMy favourite subject is …',
         lines: 1,
         checklist: 'I have written four sentences.\nI have used I’m and is.\nI have checked my spelling.',
@@ -273,7 +292,7 @@ export function englishExample(): PackageFile {
       notes: 'Ich-kann-Satz ankreuzen lassen.',
     }),
   ];
-  return clean(packageFromModules([{ module: m, lessons: [{ ...lesson(m, 1, 'Hello, I’m …', '', [teacher, vocab, grammar, speaking]), slides }] }]));
+  return clean(packageFromModules([{ module: m, lessons: [{ ...lesson(m, 1, 'Hello, I’m …', '', [...withBack(teacher), vocab, grammar, speaking]), slides }] }]));
 }
 
 /** A planned lesson of the year plan: title, planning note, role and competences, no pages yet. */
@@ -335,15 +354,24 @@ export function geographyExample(): PackageFile {
   const [k1, k2, k3] = m.competences;
   const l = { ...lessonsOf(lib, m.id)[0], number: 1 };
   const [versuch, sicherung] = l.doc.pages;
+  const tasks = (p: Page) => p.blocks.filter((x) => BLOCK_TYPES[x.type].task);
   const teacher: Page = {
     title: 'Der Treibhauseffekt',
     kicker: 'Klasse 9 · Stundenverlauf',
     type: 'lehrkraft',
     form: 'Plenum',
     nameField: 'aus',
-    blocks: [b('goal'), b('hook'), b('plan'), b('expect'), b('recall')],
+    blocks: [b('goal'), b('hook'), b('path'), b('plan'), b('expect'), b('recall')],
   };
-  const tasks = (p: Page) => p.blocks.filter((x) => BLOCK_TYPES[x.type].task);
+  // Material numbers, named in the tasks that use them; the number replaces the heading above the set-up.
+  versuch.blocks = versuch.blocks.filter((x) => x.type !== 'heading');
+  const [aufbau, abbildung] = versuch.blocks.filter((x) => x.type === 'text' || x.type === 'image');
+  aufbau.props.mat = 'M1';
+  abbildung.props.mat = 'M2';
+  tasks(versuch)[0].props.prompt = 'Lies M1 und sieh dir M2 an. Unsere Vorhersage: Welches Glas wird nach 15 Minuten wärmer sein?';
+  const schema = sicherung.blocks.find((x) => x.type === 'flow')!;
+  schema.props.mat = 'M3';
+  tasks(sicherung)[0].props.prompt = `Ergänze M3. ${tasks(sicherung)[0].props.prompt}`;
   const link = (p: Page, i: number, competence: string, level: string) => Object.assign(tasks(p)[i].props, { competence, level });
   link(versuch, 0, k3.id, '1');
   link(versuch, 1, k3.id, '1');
@@ -357,7 +385,7 @@ export function geographyExample(): PackageFile {
   const pkg = packageFromModules([
     {
       module: { ...m, competences: m.competences.map((c) => ({ ...c, id: ids.get(c.id)!, lessons: '' })) },
-      lessons: [{ ...l, doc: { ...l.doc, pages: [teacher, versuch, sicherung] } }],
+      lessons: [{ ...l, doc: { ...l.doc, pages: [...withBack(teacher), versuch, sicherung] } }],
     },
   ]);
   for (const pg of pkg.modules[0].lessons[0].pages ?? []) for (const x of pg.blocks) if (x.props.competence) x.props.competence = ids.get(String(x.props.competence));

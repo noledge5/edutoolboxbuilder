@@ -153,7 +153,7 @@ Entschieden mit Fragen und Vor- und Nachteilen:
 - Ältere Stunden laden weiter wie bisher; die Bedienung des Editors (Anordnen, iPad hochkant) kommt nach dieser Runde.
 
 Reihenfolge (je Schritt ein eigener PR):
-1. Format und Anleitung: Baustein „Lernweg“, Material-Nummern und Materialbezug der Aufgaben, Regeln „Material zuerst“ und Abwechslung, Prüfung ohne KI nach dem Einfügen; „Stunde prüfen“ liest den Lernweg mit.
+1. ✅ (29.10.2026) Format und Anleitung: Baustein „Lernweg“, Material-Nummern und Materialbezug der Aufgaben, Regeln „Material zuerst“ und Abwechslung, Prüfung ohne KI nach dem Einfügen; „Stunde prüfen“ liest den Lernweg mit. Umgesetzt: Feld „Material-Nummer“ (`mat`) an Text, Hinweis, Abbildung, Fließschema, Code, Lese- und Hörtext, Vokabelliste, Grammatik-Box und Redemittel, gedruckt als Marke „M1“ über dem Baustein; Aufgaben nennen das Material im Auftrag. Die Prüfung ohne KI steht oben in „Stunde prüfen“; nach dem Übernehmen nennt der Hinweis die Zahl der Befunde. In beiden Beispielen der Anleitung stehen Erwartungshorizont und Abruffragen jetzt auf der Rückseite der Lehrkraft-Seite (das Englisch-Beispiel lief vorher schon über).
 2. Ein Dialog „Mit KI bauen“ (Was × Weg), die alten Dialoge und Helfer fallen weg.
 3. Folien-KI als eigener Schritt aus Blatt und Lernweg; Regel-Vorschlag fällt weg.
 4. Beschriftete Abbildungen.

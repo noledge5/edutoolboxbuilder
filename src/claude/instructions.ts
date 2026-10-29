@@ -15,7 +15,7 @@ export const INSTRUCTIONS_FILE_NAME = 'Arbeitsblatt-Baukasten Anleitung fuer Cla
 /** What each block is for, in the words of the teacher. */
 const BLOCK_USE: Record<BlockType, string> = {
   heading: 'Zwischenüberschrift auf der Seite.',
-  text: 'Kurzer Informations- oder Materialtext.',
+  text: 'Kurzer Informations- oder Materialtext; als Material mit `mat` (z. B. `"M1"`).',
   hint: 'Kasten mit Titel für Tipps, Sicherheitshinweise oder Einschränkungen.',
   merksatz: 'Hervorgehobener Merksatz zur Sicherung, gern mit Lücken.',
   wordbank: 'Begriffe als Hilfe für Lücken oder Beschriftungen.',
@@ -33,6 +33,7 @@ const BLOCK_USE: Record<BlockType, string> = {
   plan: 'Nur Lehrkraft-Seite: Stundenverlauf als Tabelle.',
   goal: 'Nur Lehrkraft-Seite: Ziel der Stunde und Bildungsplanbezug.',
   hook: 'Nur Lehrkraft-Seite: der Einstieg mit seiner Art (`kind`), dem Impuls, der Auflösung, Bild oder Video und der Leitfrage. Daraus baut der Baukasten die Einstiegsfolie.',
+  path: 'Nur Lehrkraft-Seite: der Lernweg der Stunde, den du **vor** den Blättern planst. Je Zeile ein Lernschritt: welches Material (M1, M2 …), was die Klasse damit tut und daraus lernt, welche Aufgabe (mit Seite) und welche Erkenntnis am Ende steht. Blätter und Folien folgen ihm.',
   expect: 'Nur Lehrkraft-Seite: Erwartungshorizont mit typischen Schüleraussagen und ihrer Bewertung.',
   recall: 'Nur Lehrkraft-Seite: Abruffragen zum Stoff dieser Stunde, mit Antworten. Der Baukasten stellt sie in späteren Stunden zum Abrufen (verteiltes Wiederholen), nicht am Anfang dieser Stunde.',
   vocab: 'Vokabelliste mit den Spalten Englisch, Lautschrift (IPA), Deutsch und Beispielsatz. Leere Spalten fallen weg. Eine Liste je Wortfeld (Überschrift = Wortfeld). Für anschauliche Wörter (Dinge, Tiere, Orte, Essen) in `picwords` je Zeile ein englisches Suchwort fürs Bild, sonst eine leere Zeile; dann bekommt die Liste eine Bildspalte, die die Lehrkraft füllt. `pics` lässt du leer.',

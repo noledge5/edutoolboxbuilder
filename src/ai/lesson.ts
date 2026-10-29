@@ -23,11 +23,11 @@ const packagePages = (pages: Page[]) => pages.map((p) => ({ ...p, blocks: p.bloc
 
 const TASK: Record<LessonMode, string> = {
   full:
-    'Arbeite die Stunde vollständig aus: zuerst die Seite „Für die Lehrkraft“ (Ziel & Bildungsplan, ein Einstieg, der zu dieser Stunde passt, Stundenverlauf für 45 Minuten mit „AB S. 1“ usw., Erwartungshorizont, Abruffragen für spätere Stunden), dann ein bis drei Schülerseiten.',
+    'Arbeite die Stunde vollständig aus: zuerst die Seite „Für die Lehrkraft“ (Ziel & Bildungsplan, ein Einstieg, der zu dieser Stunde passt, der Lernweg, Stundenverlauf für 45 Minuten mit „AB S. 1“ usw., Erwartungshorizont, Abruffragen für spätere Stunden), dann ein bis drei Schülerseiten, die dem Lernweg folgen: Material (M1, M2 …) vor den Aufgaben, die es nennen.',
   scaffold:
-    'Erstelle nur das Gerüst der Stunde: die Seite „Für die Lehrkraft“ (Ziel & Bildungsplan, ein Einstieg, der zu dieser Stunde passt, Stundenverlauf für 45 Minuten, in dem die geplanten Schülerseiten als „AB S. 1“, „AB S. 2“ … mit ihrem Inhalt stehen, Erwartungshorizont, Abruffragen für spätere Stunden). Noch keine Schülerseiten; die baut die Lehrkraft danach.',
+    'Erstelle nur das Gerüst der Stunde: die Seite „Für die Lehrkraft“ (Ziel & Bildungsplan, ein Einstieg, der zu dieser Stunde passt, der Lernweg mit dem Material M1, M2 … und den Aufgaben je Schritt, Stundenverlauf für 45 Minuten, in dem die geplanten Schülerseiten als „AB S. 1“, „AB S. 2“ … mit ihrem Inhalt stehen, Erwartungshorizont, Abruffragen für spätere Stunden). Noch keine Schülerseiten; die baut die Lehrkraft danach.',
   sheets:
-    'Die Seite „Für die Lehrkraft“ steht schon (unten). Baue dazu die Schülerseiten, genau so, wie der Stundenverlauf sie vorsieht („AB S. 1“, „AB S. 2“ …), passend zu Ziel und Erwartungshorizont. Gib im Paket nur die Schülerseiten aus, ohne die Lehrkraft-Seite.',
+    'Die Seite „Für die Lehrkraft“ steht schon (unten). Baue dazu die Schülerseiten, genau so, wie Lernweg und Stundenverlauf sie vorsehen („AB S. 1“, „AB S. 2“ …), mit dem Material des Lernwegs (M1, M2 …) vor den Aufgaben, passend zu Ziel und Erwartungshorizont. Gib im Paket nur die Schülerseiten aus, ohne die Lehrkraft-Seite.',
   revise:
     'Die Stunde ist schon ausgearbeitet (unten). Überarbeite sie nach den Wünschen der Lehrkraft; behalte, was nicht betroffen ist, möglichst wörtlich. Gib die ganze Stunde mit allen Seiten zurück.',
 };

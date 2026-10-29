@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { FOREIGN_LANGUAGE_DOMAINS } from '../library/curriculum';
 import { addPackage, readPackage } from '../library/package';
 import { seedLibrary } from '../library/model';
+import { coherence } from '../model/coherence';
 import { docPoints } from '../model/language';
 import { BLOCK_ORDER, BLOCK_TYPES } from '../model/blockTypes';
 import { THEMES } from '../model/themes';
@@ -44,11 +45,18 @@ describe('Anleitung für Claude', () => {
     }
   });
 
+  it('examples pass the check without AI: material before the tasks, a learning path', () => {
+    for (const example of [englishExample(), geographyExample()]) {
+      const doc = readPackage(example).modules[0].lessons[0].doc;
+      expect(coherence(doc)).toEqual([]);
+    }
+  });
+
   it('English example: English sheets, help under every task, every competence linked', () => {
     const [m] = readPackage(englishExample()).modules;
     expect(m.module.lang).toBe('en');
     const pages = m.lessons[0].doc.pages;
-    expect(pages.map((pg) => pg.type)).toEqual(['lehrkraft', 'vocab', 'grammar', 'speaking']);
+    expect(pages.map((pg) => pg.type)).toEqual(['lehrkraft', 'lehrkraft', 'vocab', 'grammar', 'speaking']);
     const tasks = pages.flatMap((pg) => pg.blocks).filter((b) => BLOCK_TYPES[b.type].task);
     for (const t of tasks) expect(String(t.props.help), t.type).not.toBe('');
     expect(new Set(tasks.map((t) => t.props.competence).filter(Boolean)).size).toBe(m.module.competences.length);

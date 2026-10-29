@@ -1,4 +1,5 @@
 import {
+  Route,
   SquareCode,
   BadgeHelp,
   BookA,
@@ -64,6 +65,7 @@ export const BLOCK_ICONS: Record<BlockType, LucideIcon> = {
   goal: Target,
   hook: Zap,
   expect: ClipboardCheck,
+  path: Route,
   recall: MessageCircleQuestion,
   vocab: BookA,
   foldtest: FoldHorizontal,
