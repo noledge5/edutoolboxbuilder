@@ -8,7 +8,25 @@ import { THEMES, WORK_FORMS } from './themes';
 import type { SheetType, WorkForm } from './types';
 import { isObj } from './text';
 
-export type SlideLayout = 'title' | 'list' | 'task' | 'work' | 'quote' | 'statement' | 'compare' | 'flow' | 'words' | 'image' | 'full' | 'big' | 'exit' | 'blank';
+export type SlideLayout =
+  | 'title'
+  | 'list'
+  | 'bullets'
+  | 'text'
+  | 'task'
+  | 'quiz'
+  | 'sort'
+  | 'work'
+  | 'quote'
+  | 'statement'
+  | 'compare'
+  | 'flow'
+  | 'words'
+  | 'image'
+  | 'full'
+  | 'big'
+  | 'exit'
+  | 'blank';
 
 /** The look of all slides of a lesson: fonts, background, bars and boxes (see slides.css). */
 export type SlideDesign = 'organisch' | 'klar' | 'heft' | 'tafel' | 'kontrast';
@@ -132,6 +150,34 @@ export interface SlideLayoutInfo {
 export const SLIDE_LAYOUTS: Record<SlideLayout, SlideLayoutInfo> = {
   title: { label: 'Titel', use: 'Erste Folie der Stunde mit Thema und Leitfrage', items: '', text: 'Untertitel oder Leitfrage', labelHint: '' },
   list: { label: 'Fragen', use: 'Nummerierte Fragen oder Aufträge, Antworten auf Klick', items: 'Eine Frage je Zeile, Antwort nach „|“', text: 'Auftrag unter der Überschrift', labelHint: '' },
+  bullets: {
+    label: 'Aufzählung',
+    use: 'Stichpunkte, die nacheinander kommen können, je mit kleiner Erläuterung',
+    items: 'Ein Punkt je Zeile, Erläuterung nach „|“',
+    text: 'Satz unter der Überschrift',
+    labelHint: 'Kleine Zeile darüber, z. B. „M2“',
+  },
+  text: {
+    label: 'Text',
+    use: 'Ein Text zum gemeinsamen Lesen, groß und gut lesbar, z. B. eine Quelle oder ein Abschnitt aus M1; Wichtiges {{markiert}}',
+    items: '',
+    text: 'Der Text (Absätze mit Leerzeile, **fett**, {{markiert}})',
+    labelHint: 'Kleine Zeile darüber, z. B. „M1 · Quelle“',
+  },
+  quiz: {
+    label: 'Quiz',
+    use: 'Frage mit 2–4 Antworten A–D: die Klasse stimmt ab (Antippen zählt Hände), dann die richtige Antwort auf Klick',
+    items: 'Eine Antwort je Zeile, richtige mit „| richtig“',
+    text: 'Erklärung, die mit der Lösung kommt',
+    labelHint: 'Kleine Zeile darüber, z. B. „Was meint ihr?“',
+  },
+  sort: {
+    label: 'Ordnen',
+    use: 'Karten zum Zuordnen in 2–3 Spalten oder in die richtige Reihenfolge; beim Präsentieren Karte antippen, dann die Spalte (Reihenfolge: Karten nacheinander antippen); die Lösung auf Klick',
+    items: 'Eine Karte je Zeile, Spalte nach „|“ (ohne Spalten: Zeilen in der richtigen Reihenfolge)',
+    text: 'Auftrag unter der Überschrift',
+    labelHint: 'Kleine Zeile darüber',
+  },
   task: {
     label: 'Aufgabe',
     use: 'Eine Aufgabe des Arbeitsblatts: Nummer, Arbeitsauftrag, Einträge und Lösung, die auf Klick erscheint',
@@ -189,6 +235,10 @@ const LAYOUT_DEFAULTS: Record<SlideLayout, Partial<Slide>> = {
     items: 'Erste Frage? | Antwort\nZweite Frage? | Antwort\nDritte Frage? | Antwort',
     reveal: true,
   },
+  bullets: { type: 'uebung', phase: 'Erarbeitung', form: 'Plenum', title: 'Das Wichtigste', items: 'Erster Punkt | kurze Erläuterung\nZweiter Punkt | kurze Erläuterung\nDritter Punkt', build: true },
+  text: { type: 'uebung', phase: 'Erarbeitung', form: 'allein', label: 'M1', title: 'Lest den Text.', text: 'Hier steht ein Text zum gemeinsamen Lesen. {{Wichtige Stellen}} sind markiert.\n\nEin zweiter Absatz.' },
+  quiz: { type: 'lehrkraft', phase: 'Einstieg', form: 'Plenum', label: 'Was meint ihr?', title: 'Welche Antwort stimmt?', items: 'Antwort A\nAntwort B | richtig\nAntwort C', text: 'Kurze Erklärung zur Lösung.', reveal: true },
+  sort: { type: 'uebung', phase: 'Übung', form: 'Plenum', title: 'Ordnet zu.', items: 'Karte 1 | Gruppe A\nKarte 2 | Gruppe B\nKarte 3 | Gruppe A\nKarte 4 | Gruppe B', reveal: true },
   quote: { type: 'lehrkraft', phase: 'Einstieg', form: 'Plenum', minutes: 5, label: 'Aus Stunde 1', text: '„Ein Satz, der zum Nachdenken bringt.“', title: 'Leitfrage der Stunde?' },
   statement: { type: 'versuch', phase: 'Deutung', form: 'Plenum', label: 'Deutung', title: 'Eine Aussage, die die Klasse festhält.', text: '**Wichtiger Hinweis:** Was man dabei beachten muss.' },
   compare: { type: 'sicherung', phase: 'Sicherung', form: 'allein', title: 'Zwei Begriffe, ein Unterschied', items: 'Erster Begriff | Erklärung\nZweiter Begriff | Erklärung' },
@@ -480,13 +530,13 @@ export function setEditText(s: Slide, target: string, value: string): Partial<Sl
 }
 
 /** How many entries each layout shows (the rest are left out). */
-export const ITEM_LIMIT: Partial<Record<SlideLayout, number>> = { list: 8, task: 8, work: 5, compare: 3, flow: 5, words: 12 };
+export const ITEM_LIMIT: Partial<Record<SlideLayout, number>> = { list: 8, bullets: 7, task: 8, quiz: 4, sort: 10, work: 5, compare: 3, flow: 5, words: 12 };
 
 /** The entries a slide shows. */
 export const shownItems = (s: Slide) => (ITEM_LIMIT[s.layout] ? slideItems(s.items).slice(0, ITEM_LIMIT[s.layout]) : []);
 
 /** Layouts whose entries have a second part (answer, text of a box, detail of a step, meaning) that can come on a click. */
-const TWO_PART: SlideLayout[] = ['list', 'task', 'words', 'compare', 'flow'];
+const TWO_PART: SlideLayout[] = ['list', 'bullets', 'task', 'quiz', 'words', 'compare', 'flow'];
 
 /** A gap in an entry of a task slide or in a Merksatz: "The cat [[sits]] on the mat." */
 export const SLIDE_GAP = /\[\[(.+?)\]\]/g;
@@ -497,10 +547,11 @@ export const GAP_TITLE: SlideLayout[] = ['exit', 'statement'];
 const titleGaps = (s: Slide) => GAP_TITLE.includes(s.layout) && hasGap(s.title);
 
 /** Whether an entry has something that can come on a click: its second part, or the words in its gaps (task slides). */
-const hasAnswer = (s: Slide, [head, second]: [string, string]) => !!second || (s.layout === 'task' && hasGap(head));
+const hasAnswer = (s: Slide, [head, second]: [string, string]) => s.layout !== 'sort' && (!!second || (s.layout === 'task' && hasGap(head)));
 
 /** Whether a slide has answers, box texts, meanings or a task's solution to uncover while presenting. */
-export const hasReveal = (s: Slide) => s.reveal && ((TWO_PART.includes(s.layout) && shownItems(s).some((it) => hasAnswer(s, it))) || (s.layout === 'task' && !!s.text.trim()) || titleGaps(s));
+export const hasReveal = (s: Slide) =>
+  s.reveal && ((TWO_PART.includes(s.layout) && shownItems(s).some((it) => hasAnswer(s, it))) || (s.layout === 'task' && !!s.text.trim()) || (s.layout === 'sort' && shownItems(s).length > 0) || titleGaps(s));
 
 /**
  * On which click each entry and its second part appear by default (0 = with the slide). Entries one after
@@ -531,7 +582,10 @@ export interface SlidePart {
 
 const SECOND: Partial<Record<SlideLayout, [string, string]>> = {
   list: ['Frage', 'Antwort'],
+  bullets: ['Punkt', 'Erläuterung'],
   task: ['Eintrag', 'Lösung'],
+  quiz: ['Antwort', 'Richtig'],
+  sort: ['Karte', ''],
   words: ['Wort', 'Bedeutung'],
   compare: ['Kasten', 'Text im Kasten'],
   flow: ['Schritt', 'Erklärung im Schritt'],
@@ -544,13 +598,13 @@ export function slideParts(s: Slide): SlidePart[] {
   const parts: { key: string; label: string; answer?: boolean; step?: number; anim?: SlideAnim }[] = [];
   const t = !!s.text.trim();
   const titleLabel = s.layout === 'quote' ? 'Leitfrage' : s.layout === 'exit' ? 'Merksatz' : s.layout === 'task' ? 'Arbeitsauftrag' : s.layout === 'work' ? 'Kurzauftrag' : 'Überschrift';
-  const textLabel: Partial<Record<SlideLayout, string>> = { title: 'Untertitel', quote: 'Zitat', statement: 'Hinweis', image: 'Text neben dem Bild', full: 'Frage', big: 'Satz darunter', exit: 'Rückbezug', work: 'Hinweis' };
+  const textLabel: Partial<Record<SlideLayout, string>> = { text: 'Text', bullets: 'Satz darunter', title: 'Untertitel', quote: 'Zitat', statement: 'Hinweis', image: 'Text neben dem Bild', full: 'Frage', big: 'Satz darunter', exit: 'Rückbezug', work: 'Hinweis' };
   if (s.layout === 'quote' || s.layout === 'exit') {
     if (t) parts.push({ key: 'text', label: textLabel[s.layout]! });
     if (s.title.trim()) parts.push({ key: 'title', label: titleLabel });
   } else {
     if (s.title.trim()) parts.push({ key: 'title', label: titleLabel });
-    if (t && (s.layout === 'title' || s.layout === 'statement' || s.layout === 'list' || s.layout === 'words' || s.layout === 'work' || s.layout === 'full' || s.layout === 'big')) parts.push({ key: 'text', label: textLabel[s.layout] ?? 'Auftrag' });
+    if (t && (['title', 'statement', 'list', 'bullets', 'text', 'sort', 'words', 'work', 'full', 'big'] as SlideLayout[]).includes(s.layout)) parts.push({ key: 'text', label: textLabel[s.layout] ?? 'Auftrag' });
   }
   if (titleGaps(s)) parts.push({ key: 'gaps', label: s.layout === 'exit' ? 'Lücken im Merksatz' : 'Lücken', answer: true, step: s.reveal ? 1 : 0, anim: 'fade' });
   if (s.layout === 'image' || s.layout === 'full' || (s.layout === 'task' && s.image)) parts.push({ key: 'image', label: 'Bild' });
@@ -563,6 +617,9 @@ export function slideParts(s: Slide): SlidePart[] {
     });
   }
   if (t && (s.layout === 'compare' || s.layout === 'flow' || s.layout === 'image')) parts.push({ key: 'text', label: textLabel[s.layout] ?? 'Satz darunter' });
+  // Ordnen: the cards in their right places; Quiz: the explanation with the right answer.
+  if (s.layout === 'sort' && shownItems(s).length) parts.push({ key: 'solution', label: 'Lösung', answer: true, step: s.reveal ? 1 : 0, anim: 'fade' });
+  if (t && s.layout === 'quiz') parts.push({ key: 'text', label: 'Erklärung', answer: true, step: s.reveal ? 1 : 0, anim: 'fade' });
   if (t && s.layout === 'task') {
     // The solution of a task: after the entries' solutions, or with them.
     const last = parts.reduce((n, p) => Math.max(n, p.step ?? 0), 0);
@@ -661,4 +718,61 @@ export function leanSlide(s: Slide): Partial<Omit<Slide, 'elements'>> & { layout
       return lean;
     });
   return out as ReturnType<typeof leanSlide>;
+}
+
+/**
+ * Ordnen: the columns ("| Spalte" of the cards, in order of first use, at most 3); none means the cards are put in
+ * order, and the order of the lines is the right one.
+ */
+export function sortGroups(s: Slide): string[] {
+  const out: string[] = [];
+  for (const [, g] of shownItems(s)) if (g.trim() && !out.includes(g.trim()) && out.length < 3) out.push(g.trim());
+  return out;
+}
+
+/** The cards mixed, the same way every time for a slide (so the editor, the handout and the beamer agree). */
+export function sortMixed(s: Slide): number[] {
+  const n = shownItems(s).length;
+  let seed = [...s.id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) || 1;
+  const order = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    seed = (seed * 1103515245 + 12345) >>> 0;
+    const j = seed % (i + 1);
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  // Never the right order already.
+  if (n > 1 && order.every((v, i) => v === i)) order.push(order.shift()!);
+  return order;
+}
+
+/**
+ * What the class did on an Ordnen slide while presenting, kept in the slide's tap record (the votes): the picked
+ * card under SORT_PICK (card + 1, 0 = none) and each card's place under SORT_AT + card: its column + 1 or, without
+ * columns, its position in the order (0 = still in the pile).
+ */
+export const SORT_PICK = -1;
+export const SORT_AT = 1000;
+
+/** A tap on a card or a column of an Ordnen slide: the next tap record. */
+export function sortTap(s: Slide, taps: Record<number, number>, hit: { card: number } | { column: number }): Record<number, number> {
+  const next = { ...taps };
+  const groups = sortGroups(s);
+  const picked = (taps[SORT_PICK] ?? 0) - 1;
+  if ('card' in hit) {
+    if (!groups.length) {
+      // In order: a card from the pile gets the next place; a placed card goes back, the ones after it move up.
+      const at = taps[SORT_AT + hit.card] ?? 0;
+      if (at) {
+        next[SORT_AT + hit.card] = 0;
+        for (const [k, v] of Object.entries(taps)) if (Number(k) >= SORT_AT && v > at) next[Number(k)] = v - 1;
+      } else next[SORT_AT + hit.card] = 1 + Object.entries(taps).filter(([k, v]) => Number(k) >= SORT_AT && v > 0).length;
+      return next;
+    }
+    next[SORT_PICK] = picked === hit.card ? 0 : hit.card + 1;
+    return next;
+  }
+  if (picked < 0) return next;
+  next[SORT_AT + picked] = hit.column + 1;
+  next[SORT_PICK] = 0;
+  return next;
 }

@@ -74,4 +74,15 @@ describe('coherence', () => {
     const d = doc(page([b('text', { mat: 'M1' }), b('path', { steps: 'M1 | … | … | …' })], 'lehrkraft'), page([b('open', { prompt: 'M1' })]));
     expect(kinds(d)).toEqual(['material S2.1', 'lernweg S1.2']);
   });
+
+  it('finds words in a Merksatz the sheets did not have before', () => {
+    const d = doc(
+      page([
+        b('text', { mat: 'M1', text: 'Treibhausgase halten Wärmestrahlung zurück.' }),
+        b('open', { prompt: 'Erkläre mit M1.' }),
+        b('merksatz', { text: 'Treibhausgase halten [[Wärmestrahlung]] zurück, das heißt [[Absorption]].' }),
+      ]),
+    );
+    expect(coherence(d).map((f) => [f.kind, f.problem.slice(0, 13)])).toEqual([['merksatz', '„Absorption“ ']]);
+  });
 });

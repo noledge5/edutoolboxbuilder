@@ -5,6 +5,11 @@ import { seedDoc, seedSlides } from './seed';
 import type { Doc } from './types';
 import { videoInfo } from '../slides/elements';
 import {
+  SORT_AT,
+  SORT_PICK,
+  sortGroups,
+  sortMixed,
+  sortTap,
   createElement,
   createSlide,
   editText,
@@ -251,5 +256,45 @@ describe('single parts of a slide', () => {
     expect(labels(createSlide('quote'))).toEqual(['Zitat', 'Leitfrage']);
     expect(labels({ ...createSlide('image') })).toEqual(['Überschrift', 'Bild', 'Text neben dem Bild']);
     expect(labels(createSlide('compare'))).toEqual(['Überschrift', 'Kasten 1: Erster Begriff', 'Text im Kasten 1', 'Kasten 2: Zweiter Begriff', 'Text im Kasten 2']);
+  });
+});
+
+describe('Ordnen', () => {
+  const groups = { ...createSlide('sort'), id: 'abc', items: 'Krater | Vulkan\nDüne | Wüste\nSchlot | Vulkan\nOase | Wüste' };
+  const order = { ...createSlide('sort'), id: 'abc', items: 'erst\ndann\nzuletzt' };
+
+  it('finds the columns and mixes the cards, never in the right order', () => {
+    expect(sortGroups(groups)).toEqual(['Vulkan', 'Wüste']);
+    expect(sortGroups(order)).toEqual([]);
+    const m = sortMixed(order);
+    expect([...m].sort()).toEqual([0, 1, 2]);
+    expect(m).not.toEqual([0, 1, 2]);
+    expect(sortMixed(order)).toEqual(m);
+  });
+
+  it('puts a picked card in the column tapped', () => {
+    let t = sortTap(groups, {}, { card: 2 });
+    expect(t[SORT_PICK]).toBe(3);
+    t = sortTap(groups, t, { column: 0 });
+    expect(t[SORT_AT + 2]).toBe(1);
+    expect(t[SORT_PICK]).toBe(0);
+    // A column without a picked card does nothing.
+    expect(sortTap(groups, t, { column: 1 })).toEqual(t);
+  });
+
+  it('numbers cards in the order they are tapped; a placed card goes back', () => {
+    let t = sortTap(order, {}, { card: 2 });
+    t = sortTap(order, t, { card: 0 });
+    t = sortTap(order, t, { card: 1 });
+    expect([t[SORT_AT], t[SORT_AT + 1], t[SORT_AT + 2]]).toEqual([2, 3, 1]);
+    t = sortTap(order, t, { card: 2 });
+    expect([t[SORT_AT], t[SORT_AT + 1], t[SORT_AT + 2]]).toEqual([1, 2, 0]);
+  });
+
+  it('has a solution on a click, quiz answers too', () => {
+    expect(slideParts(groups).map((p) => p.key)).toContain('solution');
+    expect(stepCount(groups)).toBe(1);
+    const quiz = { ...createSlide('quiz') };
+    expect(slideParts(quiz).filter((p) => p.answer).map((p) => p.key)).toEqual(['answer:1', 'text']);
   });
 });

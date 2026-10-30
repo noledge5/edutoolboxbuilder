@@ -299,7 +299,7 @@
 .is-f-eng.is-age-1.is-x-sticker .ws-form-pill{box-shadow:0 2px 0 color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
 .is-f-eng.is-age-1.is-x-sticker .ws-num{box-shadow:0 0 0 2.5px var(--paper),0 2px 0 2.5px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
 .is-f-eng.is-age-1.is-x-sticker :is(.ws-word,.ws-option){box-shadow:0 2px 0 color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
-.is-f-eng.is-age-1.is-x-sticker .ws-merksatz{box-shadow:0 0 0 4px var(--paper),0 3px 0 4px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
+.is-f-eng.is-age-1.is-x-sticker .ws-merksatz{box-shadow:inset 0 0 0 3px var(--v-solid),0 0 0 4px var(--paper),0 3px 0 4px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
 .is-f-eng.is-age-1.is-x-sticker :is(.ws-hint-icon,.ws-merksatz-icon){box-shadow:0 0 0 2.5px var(--paper)}
 .is-f-eng.is-age-1.is-x-sticker .sl-bar{box-shadow:inset 0 0 0 3px var(--t-line),0 0 0 8px var(--paper),0 6px 0 8px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
 .is-f-eng.is-age-1.is-x-sticker :is(.sl-bar-icon,.sl-num,.sl-task-letter){box-shadow:0 0 0 5px var(--paper),0 4px 0 5px color-mix(in srgb,var(--fd-n-900) 16%,transparent)}
