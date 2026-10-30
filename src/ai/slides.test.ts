@@ -35,7 +35,7 @@ describe('Folien mit Claude', () => {
 
   it('builds new slides from the whole lesson: learning path, sheets, pictures, recall', () => {
     const p = buildSlidesPrompt(lesson, ctx, '');
-    expect(p).toContain('Folge dem Lernweg');
+    expect(p).toContain('Erst denken');
     expect(p).toContain('Die Klasse sieht den Vulkan.');
     expect(p).toContain('Beschreibe M1.');
     expect(p).toContain('`img-vulkan` (Abb. 1: Querschnitt)');

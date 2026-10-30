@@ -1,6 +1,7 @@
 // The check without AI ("Stunde prüfen" and after taking over a lesson): material numbers (M1, M2 …) on material
 // blocks, tasks that name them in their instruction, the learning path ("Lernweg") on the teacher page. It finds
-// references to material that is missing or comes only after the task, unused material and repeated task types.
+// references to material that is missing or comes only after the task, unused material, repeated task types and
+// words in a Merksatz the class has not met on the sheets before.
 import { BLOCK_TYPES } from './blockTypes';
 import { rows, str } from './text';
 import type { Block, Doc } from './types';
@@ -9,7 +10,7 @@ export interface CoherenceFinding {
   blockId: string | null;
   /** "S2.4": page 2, block 4; empty for the lesson as a whole. */
   ref: string;
-  kind: 'material' | 'reihenfolge' | 'unbenutzt' | 'doppelt' | 'abwechslung' | 'ohne-material' | 'lernweg';
+  kind: 'material' | 'reihenfolge' | 'unbenutzt' | 'doppelt' | 'abwechslung' | 'ohne-material' | 'lernweg' | 'merksatz';
   problem: string;
 }
 
@@ -21,7 +22,19 @@ export const COHERENCE_KINDS: Record<CoherenceFinding['kind'], string> = {
   abwechslung: 'Abwechslung',
   'ohne-material': 'Ohne Material',
   lernweg: 'Lernweg',
+  merksatz: 'Merksatz',
 };
+
+/** Lower case, letters and digits only: "Wärme-Strahlung!" → "wärme strahlung". */
+const words = (t: string) => t.toLowerCase().replace(/\[\[|\]\]|\{\{|\}\}|\*\*/g, ' ').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+/** The words of a block's texts (all text props), for "has the class met this word before?". */
+const blockWords = (b: Block) =>
+  words(
+    Object.values(b.props)
+      .filter((v): v is string => typeof v === 'string')
+      .join(' '),
+  );
 
 /** "m 1" → "M1"; anything else → "". */
 export const matNumber = (s: string) => {
@@ -83,6 +96,15 @@ export function coherence(doc: Doc): CoherenceFinding[] {
     if (run === (x.block.type === 'open' ? 3 : 2)) out.push({ blockId: x.block.id, ref: x.ref, kind: 'abwechslung', problem: `${taskLabel(x.block)} kommt mehrmals hintereinander. Wähle eine Aufgabenart, die zum Lernschritt passt.` });
     last = x.block;
     lastPage = x.pi;
+  });
+  // A Merksatz sums up what the sheets taught: the words in its gaps were on the sheets before it.
+  student.forEach((x, i) => {
+    if (x.block.type !== 'merksatz') return;
+    const before = ` ${student.slice(0, i).map((y) => blockWords(y.block)).join(' ')} `;
+    const fresh = [...str(x.block.props.text).matchAll(/\[\[(.+?)\]\]/g)]
+      .map((m) => m[1].split(' / ')[0].trim())
+      .filter((w) => w && !before.includes(` ${words(w)} `));
+    if (fresh.length) out.push({ blockId: x.block.id, ref: x.ref, kind: 'merksatz', problem: `${fresh.map((w) => `„${w}“`).join(', ')} steht vorher nirgends auf den Blättern. Der Merksatz nutzt nur Wörter, die die Klasse schon kennt.` });
   });
   out.sort((a, b) => order(a.ref) - order(b.ref));
   if (tasks >= 2 && where.size === 0) out.push({ blockId: null, ref: '', kind: 'ohne-material', problem: 'Kein Baustein hat eine Material-Nummer (M1, M2 …). Woran arbeiten die Aufgaben? Nummeriere Texte und Abbildungen und nenne sie in den Aufträgen.' });

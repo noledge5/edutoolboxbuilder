@@ -2,7 +2,7 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
 import { Check, Hand, Lightbulb, MessagesSquare, Star, Timer, User, Users, UsersRound } from 'lucide-react';
 import { Icon } from '../icons';
-import { partSteps, shownItems, workSteps, type Slide, type SlideAnim, type SlideDesign } from '../model/slides';
+import { partSteps, shownItems, SORT_AT, SORT_PICK, sortGroups, sortMixed, workSteps, type Slide, type SlideAnim, type SlideDesign } from '../model/slides';
 import { THEMES, WORK_FORMS_EN } from '../model/themes';
 import type { Lang, WorkForm } from '../model/types';
 import { typo } from '../sheet/lang';
@@ -544,6 +544,158 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
               </div>
             </div>
           )}
+        </>
+      );
+      break;
+    }
+    case 'bullets':
+      body = (
+        <>
+          <div className="sl-head">
+            {s.label && (
+              <div className="sl-label" {...ed('label')}>
+                {s.label}
+              </div>
+            )}
+            {h1()}
+            {sub()}
+          </div>
+          <div className={'sl-bullets' + (items.length > 5 ? ' is-many' : '')}>
+            {items.map(([point, detail], i) => {
+              const p = part(`item:${i}`);
+              return (
+                <div key={i} className={'sl-bullet' + p.cls} {...p.data}>
+                  {p.badge}
+                  <div className="sl-bullet-dot" />
+                  <div className="sl-bullet-body">
+                    <div className="sl-bullet-text" {...ed(`item:${i}`)}>
+                      <Rich text={point} lang={lang} />
+                    </div>
+                    {detail && second(i, 'sl-bullet-detail', detail)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      );
+      break;
+    case 'text': {
+      const x = part('text');
+      body = (
+        <>
+          <div className="sl-head">
+            {s.label && (
+              <div className="sl-label" {...ed('label')}>
+                {s.label}
+              </div>
+            )}
+            {h1()}
+          </div>
+          <div className={'sl-reading' + (s.text.length > 700 ? ' is-long' : '') + x.cls} {...x.data} {...ed('text')}>
+            {x.badge}
+            {s.text.split(/\n\s*\n/).map((para, k) => (
+              <p key={k}>
+                <Rich text={para} lang={lang} />
+              </p>
+            ))}
+          </div>
+        </>
+      );
+      break;
+    }
+    case 'quiz':
+      body = (
+        <>
+          <div className="sl-head">
+            {s.label && (
+              <div className="sl-label" {...ed('label')}>
+                {s.label}
+              </div>
+            )}
+            {h1()}
+          </div>
+          <div className={'sl-quiz' + (items.length > 2 ? ' is-grid' : '')}>
+            {items.map(([answer, right], i) => {
+              const p = part(`item:${i}`);
+              const r = part(`answer:${i}`);
+              const shown = right && !r.covered && !r.cls.includes('is-later');
+              return (
+                <div key={i} className={'sl-quiz-option' + (shown ? ' is-right' : '') + p.cls} {...p.data} {...(step !== null ? { 'data-vote': i } : {})}>
+                  {p.badge}
+                  <div className="sl-quiz-letter">{String.fromCharCode(65 + i)}</div>
+                  <div className="sl-quiz-text" {...ed(`item:${i}`)}>
+                    <Rich text={answer} lang={lang} />
+                  </div>
+                  {step !== null && (
+                    <div className="sl-quiz-votes" title={TEXT[lang].votes} data-unvote={i}>
+                      <Icon icon={Hand} size={30} />
+                      <b>{votes?.[i] ?? 0}</b>
+                    </div>
+                  )}
+                  {right && (
+                    <div className={'sl-quiz-check' + (ghost(i) ? ' is-ghost' : '') + r.cls} {...r.data}>
+                      {r.badge}
+                      ✓{r.covered && <Card k={`answer:${i}`} label={String.fromCharCode(65 + i)} />}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {sub()}
+        </>
+      );
+      break;
+    case 'sort': {
+      const sol = part('solution');
+      const solved = step === null ? !noAnswers : sol.at <= step || opened.has('solution');
+      const groups = sortGroups(s);
+      const mixed = sortMixed(s);
+      const taps = votes ?? {};
+      const picked = (taps[SORT_PICK] ?? 0) - 1;
+      const placeOf = (i: number) => (solved ? (groups.length ? groups.indexOf(items[i][1].trim()) + 1 : i + 1) : (taps[SORT_AT + i] ?? 0));
+      const card = (i: number, num?: number) => (
+        <div key={i} className={'sl-sort-card' + (picked === i && !solved ? ' is-picked' : '') + (solved && step !== null ? ' sl-anim-fade' : '')} {...(step !== null && !solved ? { 'data-sort-card': i } : {})} {...ed(`item:${i}`)}>
+          {num !== undefined && <span className="sl-sort-num">{num}</span>}
+          <Rich text={items[i][0]} lang={lang} />
+        </div>
+      );
+      const pile = mixed.filter((i) => !placeOf(i));
+      body = (
+        <>
+          <div className="sl-head">
+            {s.label && (
+              <div className="sl-label" {...ed('label')}>
+                {s.label}
+              </div>
+            )}
+            {h1()}
+            {sub()}
+          </div>
+          {groups.length ? (
+            <div className="sl-sort-cols" style={{ gridTemplateColumns: `repeat(${groups.length}, minmax(0, 1fr))` }} {...sol.data}>
+              {sol.badge}
+              {groups.map((g, c) => (
+                <div key={c} className={'sl-sort-col' + (picked >= 0 && !solved ? ' is-target' : '')} {...(step !== null && !solved ? { 'data-sort-col': c } : {})}>
+                  <div className="sl-sort-head">
+                    <Rich text={g} lang={lang} />
+                  </div>
+                  {items.map((_, i) => (placeOf(i) === c + 1 ? card(i) : null))}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="sl-sort-order" {...sol.data}>
+              {sol.badge}
+              {items
+                .map((_, i) => i)
+                .filter((i) => placeOf(i))
+                .sort((a, b) => placeOf(a) - placeOf(b))
+                .map((i) => card(i, placeOf(i)))}
+            </div>
+          )}
+          {pile.length > 0 && <div className="sl-sort-pile">{pile.map((i) => card(i))}</div>}
         </>
       );
       break;

@@ -21,7 +21,7 @@ export const packagePages = (pages: Page[]) => pages.map((p) => ({ ...p, blocks:
 
 const TASK: Record<LessonMode, string> = {
   full:
-    'Arbeite die Stunde vollständig aus: zuerst die Seite „Für die Lehrkraft“ (Ziel & Bildungsplan, ein Einstieg, der zu dieser Stunde passt, der Lernweg, Stundenverlauf für 45 Minuten mit „AB S. 1“ usw., Erwartungshorizont, Abruffragen für spätere Stunden), dann ein bis drei Schülerseiten, die dem Lernweg folgen: Material (M1, M2 …) vor den Aufgaben, die es nennen.',
+    'Arbeite die Stunde vollständig aus. Denk zuerst wie eine erfahrene Lehrkraft über diese Klasse und diese Stunde nach (siehe „Wie du planst“): Was ist das Wesentliche, was geht mit den Schülerinnen und Schülern in 45 Minuten, was ist lernwirksam? Dann die Seite „Für die Lehrkraft“ (Ziel & Bildungsplan, ein Einstieg, der zu dieser Stunde passt, der Lernweg, Stundenverlauf für 45 Minuten mit „AB S. 1“ usw., Erwartungshorizont, Abruffragen für spätere Stunden) und so viele Schülerseiten, wie die Stunde braucht, die dem Lernweg folgen: Material (M1, M2 …) vor den Aufgaben, die es nennen, ein Merksatz nur mit Wörtern der Blätter.',
   sheet:
     'Die Stunde steht schon (unten). Baue dazu ein weiteres Arbeitsblatt nach den Wünschen der Lehrkraft: eine Schülerseite, bei Bedarf mit Rückseite. Es passt zum Lernweg der Stunde (vertieft, übt oder führt ihn weiter), nutzt ihr Material (M1, M2 …) oder bringt eigenes Material mit der nächsten freien Nummer mit und nennt es in den Aufträgen. Gib im Paket nur die neuen Seiten aus, ohne die vorhandenen.',
   revise:

@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight, Maximize, Minus, NotebookText, PenLine, Plus
 import { Icon } from '../icons';
 import { boardFromInk, boardName, deckOrder, hasInk, inkFromBoard, type BlankBoard, type Board, type DeckItem, type Paper, type Stroke } from '../model/ink';
 import { uid } from '../model/ops';
-import { gapCount, nextStep, stepCount, workSteps, type Slide } from '../model/slides';
+import { gapCount, nextStep, sortTap, stepCount, workSteps, type Slide } from '../model/slides';
 import { gong, setSoundOn, soundOn, unlockSound } from './gong';
 import { BoardView, InkSvg } from './Ink';
 import { PenBar, pencilSeen, useInkInput, usePenSettings, type PenSettings } from './Pen';
@@ -123,13 +123,17 @@ function InkFrame({ ink, scale, design, className, style, busy, onClick, title, 
   );
 }
 
-/** Taps on a card, a cover or a vote while presenting: the key of the card, or the box voted for. */
-function tapTarget(t: EventTarget): { card: string } | { vote: number; by: 1 | -1 } | null {
+/** Taps on a card, a cover or a vote while presenting: the key of the card, or the box voted for; on an Ordnen slide a card or a column. */
+function tapTarget(t: EventTarget): { card: string } | { vote: number; by: 1 | -1 } | { sort: { card: number } | { column: number } } | null {
   // Duck-typed: in the second window elements come from another realm.
   const el = t as HTMLElement;
   if (typeof el.closest !== 'function') return null;
   const card = el.closest<HTMLElement>('[data-card]');
   if (card?.dataset.card) return { card: card.dataset.card };
+  const sortCard = el.closest<HTMLElement>('[data-sort-card]');
+  if (sortCard) return { sort: { card: Number(sortCard.dataset.sortCard) } };
+  const sortCol = el.closest<HTMLElement>('[data-sort-col]');
+  if (sortCol) return { sort: { column: Number(sortCol.dataset.sortCol) } };
   const minus = el.closest<HTMLElement>('[data-unvote]');
   if (minus) return { vote: Number(minus.dataset.unvote), by: -1 };
   const vote = el.closest<HTMLElement>('[data-vote]');
@@ -269,7 +273,9 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
     const hit = tapTarget(t);
     if (!hit) return false;
     if ('card' in hit) openCard(hit.card);
-    else vote(hit.vote, hit.by);
+    else if ('sort' in hit) {
+      if (slide) setVotes((v) => sortTap(slide, v, hit.sort));
+    } else vote(hit.vote, hit.by);
     return true;
   };
 

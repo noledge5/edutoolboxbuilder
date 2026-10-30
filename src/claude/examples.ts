@@ -372,6 +372,8 @@ export function geographyExample(): PackageFile {
   const schema = sicherung.blocks.find((x) => x.type === 'flow')!;
   schema.props.mat = 'M3';
   tasks(sicherung)[0].props.prompt = `Ergänze M3. ${tasks(sicherung)[0].props.prompt}`;
+  // The Merksatz only with words the sheets had before (here from M3).
+  sicherung.blocks.find((x) => x.type === 'merksatz')!.props.text = 'Treibhausgase halten einen Teil der [[Wärmestrahlung]] zurück: Die [[Erdoberfläche]] erwärmt sich zusätzlich.';
   const link = (p: Page, i: number, competence: string, level: string) => Object.assign(tasks(p)[i].props, { competence, level });
   link(versuch, 0, k3.id, '1');
   link(versuch, 1, k3.id, '1');

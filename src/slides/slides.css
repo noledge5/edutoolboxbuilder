@@ -102,8 +102,8 @@
 .sl-gap-word.is-ghost { outline-offset: 0; border-radius: 8px; }
 .sl-gap.is-empty { min-width: 4em; height: 1em; vertical-align: baseline; }
 .sl-exit-h1 .sl-gap, .sl-h1 .sl-gap { border-bottom-width: 6px; }
-.sl-slide.is-exit .sl-gap { border-bottom-color: var(--color-accent-2-300); }
-.sl-slide.is-exit .sl-gap-word { color: var(--color-accent-2-100); }
+.sl-slide.is-exit .sl-gap { border-bottom-color: var(--color-accent-2-500); }
+.sl-slide.is-exit .sl-gap-word { color: var(--color-accent-2-700); }
 .sl-solution { display: flex; flex-direction: column; gap: 8px; max-width: 1500px; padding: 30px 44px; border-radius: 40px; background: var(--color-accent-2-100); }
 .sl-solution-label { font-size: 24px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-2-800); }
 .sl-solution-text { font-size: 38px; line-height: 1.4; text-wrap: pretty; }
@@ -126,6 +126,47 @@
 .sl-box { display: flex; flex-direction: column; gap: 20px; padding: 48px 56px; border-radius: 56px; }
 .sl-box-head { font-size: 48px; font-weight: 700; line-height: 1.15; }
 .sl-box-text { font-size: 36px; line-height: 1.4; }
+
+/* Aufzählung: points with a dot, a small explanation under each */
+.sl-bullets { display: flex; flex-direction: column; gap: 30px; }
+.sl-bullet { display: flex; align-items: flex-start; gap: 32px; }
+.sl-bullet-dot { width: 28px; height: 28px; margin-top: 16px; flex: none; border-radius: 50%; background: var(--t-num); }
+.sl-bullet-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sl-bullet-text { font-size: 48px; font-weight: 700; line-height: 1.2; text-wrap: pretty; }
+.sl-bullet-detail { font-size: 34px; color: var(--color-neutral-800); text-wrap: pretty; }
+.sl-bullets.is-many { gap: 20px; }
+.sl-bullets.is-many .sl-bullet-text { font-size: 40px; }
+.sl-bullets.is-many .sl-bullet-detail { font-size: 30px; }
+
+/* Text zum Lesen: large, calm, with paragraphs */
+.sl-reading { display: flex; flex-direction: column; gap: 24px; max-width: 1560px; font-size: 42px; line-height: 1.5; text-wrap: pretty; }
+.sl-reading p { margin: 0; }
+.sl-reading.is-long { font-size: 34px; gap: 18px; }
+
+/* Quiz A–D: answers with a letter, hands counted, the right one marked on a click */
+.sl-quiz { display: grid; gap: 28px; }
+.sl-quiz.is-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.sl-quiz-option { position: relative; display: flex; align-items: center; gap: 28px; min-height: 150px; padding: 28px 40px; border-radius: 48px; background: var(--t-band); box-shadow: inset 0 0 0 0 transparent; transition: box-shadow 0.3s; }
+.sl-quiz-option[data-vote] { cursor: pointer; }
+.sl-quiz-option.is-right { box-shadow: inset 0 0 0 8px var(--color-accent-2-600); }
+.sl-quiz-letter { width: 84px; height: 84px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--t-num); color: var(--t-num-fg); font-size: 44px; font-weight: 800; }
+.sl-quiz-text { flex: 1; min-width: 0; font-size: 44px; font-weight: 700; line-height: 1.2; text-wrap: pretty; }
+.sl-quiz-votes { display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 999px; background: var(--paper); font-size: 40px; font-weight: 800; line-height: 1; }
+.sl-quiz-check { position: relative; width: 72px; height: 72px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--color-accent-2-600); color: var(--paper); font-size: 44px; font-weight: 800; }
+.sl-quiz-check.is-ghost { opacity: 0.45; }
+
+/* Ordnen: cards into columns or into an order; tap a card, then its column */
+.sl-sort-cols { display: grid; gap: 32px; flex: 1; min-height: 0; }
+.sl-sort-col { display: flex; flex-direction: column; gap: 16px; padding: 28px; border-radius: 40px; background: var(--t-band); min-height: 200px; }
+.sl-sort-col[data-sort-col] { cursor: pointer; }
+.sl-sort-col.is-target { box-shadow: inset 0 0 0 6px var(--t-num); }
+.sl-sort-head { font-size: 40px; font-weight: 800; text-align: center; }
+.sl-sort-order { display: flex; flex-direction: column; gap: 14px; }
+.sl-sort-pile { display: flex; flex-wrap: wrap; gap: 18px; padding-top: 8px; }
+.sl-sort-card { display: flex; align-items: center; gap: 18px; padding: 18px 30px; border-radius: 28px; background: var(--paper); box-shadow: inset 0 0 0 3px var(--color-neutral-300); font-size: 36px; font-weight: 700; line-height: 1.2; }
+.sl-sort-card[data-sort-card] { cursor: pointer; }
+.sl-sort-card.is-picked { box-shadow: inset 0 0 0 6px var(--t-num); transform: translateY(-6px); }
+.sl-sort-num { width: 56px; height: 56px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--t-num); color: var(--t-num-fg); font-size: 30px; }
 
 /* Flow chart with arrows */
 .sl-flow { display: grid; align-items: stretch; gap: 12px; }
@@ -180,14 +221,10 @@
 .sl-title-sub { position: relative; max-width: 1000px; font-size: 40px; text-wrap: pretty; }
 
 /* Exit: summary on the green of the Sicherung */
-.sl-slide.is-exit { background: var(--color-accent-2-600); color: var(--color-accent-2-100); }
-.sl-deco.is-exit { right: -200px; bottom: -260px; width: 760px; height: 760px; background: var(--color-accent-2-500); }
-.sl-slide.is-exit .sl-bar { background: var(--color-accent-2-700); }
-.sl-slide.is-exit .sl-bar-icon { background: var(--color-accent-2-100); color: var(--color-accent-2-700); }
-.sl-slide.is-exit .sl-bar-kicker { color: inherit; }
-.sl-slide.is-exit .sl-phase { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
-.sl-slide.is-exit .sl-form { background: var(--color-accent-2-800); color: inherit; }
-.sl-slide.is-exit .sl-foot { color: inherit; }
+/* The Merksatz slide: no coloured ground (hard to print, also as a handout), the Merksatz in a coloured frame. */
+.sl-deco.is-exit { display: none; }
+.sl-slide.is-exit .sl-exit-main { padding: 48px 64px; border-radius: 56px; box-shadow: inset 0 0 0 8px var(--color-accent-2-600); }
+.sl-slide.is-exit .sl-exit-label { color: var(--color-accent-2-700); }
 .sl-exit-text { position: relative; font-size: 36px; }
 .sl-exit-main { position: relative; display: flex; flex-direction: column; gap: 20px; }
 .sl-exit-label { font-size: 30px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -252,7 +289,7 @@
 .sl-solution > .sl-card { border-radius: 40px; font-size: 30px; letter-spacing: 0.08em; text-transform: uppercase; }
 :is(.sl-box-text, .sl-step-text, .sl-word-meaning) > .sl-card { border-radius: 24px; }
 .sl-gap > .sl-card { inset: -2px -6px 2px; min-width: 0; padding: 0 8px; border-radius: 14px; font-size: max(24px, 0.5em); }
-.sl-slide.is-exit .sl-card { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
+.sl-slide.is-exit .sl-card { background: var(--color-accent-2-600); color: var(--paper); }
 .sl-anim-flip { animation: sl-flip 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes sl-flip { from { opacity: 0; transform: perspective(900px) rotateX(-75deg); } }
 
@@ -314,7 +351,7 @@
 .sl-vote { position: absolute; top: 32px; right: 36px; display: flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 999px; background: var(--paper); color: var(--color-text); font-size: 52px; font-weight: 800; line-height: 1; }
 
 /* In the editor: the click on which something appears */
-.sl-item, .sl-task-item, .sl-box, .sl-step, .sl-word { position: relative; }
+.sl-item, .sl-task-item, .sl-box, .sl-step, .sl-word, .sl-bullet, .sl-sort-cols, .sl-sort-order { position: relative; }
 .sl-step-badge {
   position: absolute; top: -14px; left: -14px; z-index: 3; display: grid; place-items: center; min-width: 40px; height: 40px; padding: 0 8px; box-sizing: border-box;
   border-radius: 999px; background: var(--color-neutral-900); color: #fff; font-family: var(--font-ui, system-ui); font-size: 22px; font-weight: 700; line-height: 1;
@@ -342,9 +379,6 @@
 .sl-slide.is-d-klar .sl-wp-clock { border-radius: 28px; }
 .sl-slide.is-d-klar .sl-deco.is-one { left: 0; right: auto; top: 0; width: 40px; height: 100%; border-radius: 0; background: var(--color-accent); }
 .sl-slide.is-d-klar :is(.sl-deco.is-two, .sl-deco.is-exit) { display: none; }
-.sl-slide.is-d-klar.is-exit { background: var(--color-accent-2-700); }
-.sl-slide.is-d-klar.is-exit .sl-bar { background: none; border-bottom-color: var(--color-accent-2-300); }
-.sl-slide.is-d-klar.is-exit .sl-form { background: var(--color-accent-2-800); }
 
 /* Heft: squared exercise-book paper with a red margin, headings in handwriting */
 .sl-slide.is-d-heft {
@@ -428,6 +462,8 @@
 .sl-slide.is-d-tafel .sl-vote { background: var(--chalk-yellow); color: var(--color-neutral-900); }
 .sl-slide.is-d-tafel :is(.sl-deco.is-one, .sl-deco.is-two, .sl-deco.is-exit) { background: none; border: 6px solid var(--board-line); }
 .sl-slide.is-d-tafel.is-exit { background: color-mix(in srgb, var(--color-accent-2-800) 85%, var(--color-accent-6-900)); }
+.sl-slide.is-d-tafel.is-exit .sl-exit-main { box-shadow: inset 0 0 0 6px var(--chalk-yellow); }
+.sl-slide.is-d-tafel .sl-exit-label { color: var(--chalk-yellow); }
 .sl-slide.is-d-tafel.is-exit .sl-bar { background: var(--board-line); }
 .sl-slide.is-d-tafel.is-exit .sl-phase { background: var(--chalk-yellow); color: var(--color-neutral-900); }
 .sl-slide.is-d-tafel .sl-exit-label { color: var(--chalk-yellow); }
@@ -474,13 +510,8 @@
 .sl-slide.is-d-kontrast .sl-deco.is-one { left: 0; right: auto; top: 0; width: 40px; height: 100%; border-radius: 0; background: var(--ink); }
 .sl-slide.is-d-kontrast .sl-title-icon { background: var(--ink); color: var(--paper); }
 .sl-slide.is-d-kontrast .sl-title-kicker { color: var(--ink); }
-.sl-slide.is-d-kontrast.is-exit { background: var(--ink); color: var(--paper); }
-.sl-slide.is-d-kontrast.is-exit .sl-bar { background: var(--paper); }
-.sl-slide.is-d-kontrast.is-exit .sl-bar-icon { background: var(--ink); color: var(--paper); }
-.sl-slide.is-d-kontrast.is-exit .sl-bar-kicker { color: var(--ink); }
-.sl-slide.is-d-kontrast.is-exit .sl-phase { background: var(--signal); color: var(--ink); }
-.sl-slide.is-d-kontrast.is-exit .sl-form { background: var(--ink); color: var(--paper); }
-.sl-slide.is-d-kontrast .sl-exit-label { color: var(--signal); }
+.sl-slide.is-d-kontrast.is-exit .sl-exit-main { box-shadow: inset 0 0 0 8px var(--ink); }
+.sl-slide.is-d-kontrast .sl-exit-label { color: var(--ink); }
 .sl-slide.is-d-kontrast.is-exit .sl-gap { border-bottom-color: var(--signal); }
 .sl-slide.is-d-kontrast.is-exit .sl-gap-word { color: var(--ink); }
 
