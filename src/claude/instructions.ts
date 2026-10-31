@@ -1,5 +1,5 @@
 // The instructions for Claude ("Anleitung für Claude"): a hand-written guide (anleitung.md) with the block reference,
-// the icon list, the Bildungsplan areas, the school year and complete examples generated from the code, so they
+// the icon list, the Bildungsplan areas, the school year and a compact example generated from the code, so they
 // always match what the app accepts.
 import template from './anleitung.md?raw';
 import { FOREIGN_LANGUAGE_DOMAINS } from '../library/curriculum';
@@ -7,7 +7,7 @@ import { BW_2026_27, dayText, schoolWeekCount, schoolWeeks } from '../library/ye
 import { BLOCK_ORDER, BLOCK_TYPES, GROUPS, type FieldDef } from '../model/blockTypes';
 import type { BlockType } from '../model/types';
 import { TOPIC_ICONS } from '../topicIcons';
-import { englishExample, geographyExample, yearPlanExample } from './examples';
+import { lessonExample } from './examples';
 
 export const APP_URL = 'https://noledge5.github.io/edutoolboxbuilder/';
 export const INSTRUCTIONS_FILE_NAME = 'Arbeitsblatt-Baukasten Anleitung fuer Claude.md';
@@ -57,58 +57,37 @@ const BLOCK_USE: Record<BlockType, string> = {
   tipcards: 'Tippkarten zum Ausschneiden: sammelt die Tipps aller Aufgaben des Arbeitsblatts.',
 };
 
-const VARIANT_TEXT = '`"accent-2"` (grün), `"accent"` (orange), `"neutral"` (grau)';
+const VARIANT_TEXT = '`"accent-2"`, `"accent"`, `"neutral"`';
 
-function fieldType(f: FieldDef): string {
-  switch (f.kind) {
-    case 'text':
-      return 'Text';
-    case 'area':
-      return 'Text, mehrzeilig';
-    case 'number':
-      return `Zahl ${f.min}–${f.max}`;
-    case 'variant':
-      return VARIANT_TEXT;
-    case 'seg':
-      return f.options.map((o) => `\`${JSON.stringify(o.v)}\` (${o.l})`).join(', ');
-    case 'image':
-      return 'Bild-ID aus `images`';
-    case 'competence':
-      return '`id` aus `competences` des Moduls';
-    case 'ipa':
-      return 'Text, mehrzeilig (IPA-Zeichen erlaubt)';
-    case 'pics':
-      return 'Bild-IDs aus `images`, eine je Zeile';
-    case 'preset':
-      return 'keine Eigenschaft: Vorlagen ' + f.presets.map((p) => `„${p.l}“`).join(', ');
-  }
+/** Fields every task has, or every material block: described once, not with each block. */
+const COMMON = new Set(['level', 'points', 'langPoints', 'competence', 'tip', 'help', 'mat']);
+
+/** A field in short: its key, the format hint of its label, its values. */
+function fieldText(f: FieldDef): string {
+  const hint = /\(([^)]*)\)/.exec(f.label)?.[1];
+  const values =
+    f.kind === 'seg'
+      ? f.options.map((o) => `\`${JSON.stringify(o.v)}\``).join('/')
+      : f.kind === 'number'
+        ? `${f.min}–${f.max}`
+        : f.kind === 'variant'
+          ? VARIANT_TEXT
+          : f.kind === 'image'
+            ? 'Bild-ID'
+            : f.kind === 'pics'
+              ? 'Bild-IDs je Zeile'
+              : '';
+  const more = [hint, values].filter(Boolean).join('; ');
+  return `\`${f.key}\`${more ? ` (${more})` : ''}`;
 }
 
-const cell = (s: string) => s.replace(/\|/g, '\\|').replace(/\n/g, ' ');
-
-function defaultText(v: unknown): string {
-  if (v === '' || v === undefined) return '–';
-  const json = JSON.stringify(v);
-  return '`' + cell(json.length > 70 ? json.slice(0, 67) + '…"' : json) + '`';
-}
-
-/** One block type in the reference: what it is for and its fields. */
+/** One block type in the reference, one line: what it is for and its own fields. */
 export function blockEntry(t: BlockType): string {
   const T = BLOCK_TYPES[t];
-  const rows = T.fields.map((f) => `| \`${f.key}\` | ${cell(f.label)} | ${fieldType(f)} | ${defaultText(T.defaults[f.key])} |`);
-  return [
-    `#### \`${t}\` · ${T.label}${T.task ? ' (Aufgabe, wird nummeriert)' : ''}`,
-    '',
-    `${BLOCK_USE[t]} Standardbreite: ${T.span}.`,
-    '',
-    '| Feld | Bedeutung | Werte | Standard |',
-    '|---|---|---|---|',
-    ...rows,
-  ].join('\n');
+  const fields = T.fields.filter((f) => f.kind !== 'preset' && !COMMON.has(f.key)).map(fieldText);
+  const mat = T.fields.some((f) => f.key === 'mat') ? ' Material: `mat`.' : '';
+  return `- **\`${t}\`** ${T.label}${T.task ? ' (Aufgabe)' : ''}, Breite ${T.span}. ${BLOCK_USE[t]} Felder: ${fields.join(', ') || '–'}.${mat}`;
 }
-
-/** The reference of all blocks with their fields (also the system prompt for tasks made by instruction). */
-export const blockReferenceText = () => blockReference();
 
 /** The didactic guidelines in short, for the requests that do not carry the whole Anleitung (Stunde prüfen). */
 export const DIDACTICS_BRIEF =
@@ -122,38 +101,30 @@ export const DIDACTICS_BRIEF =
 function blockReference(): string {
   return GROUPS.map((g, gi) => {
     const types = BLOCK_ORDER.filter((t) => BLOCK_TYPES[t].group === gi);
-    return `### ${g.label}\n\n${types.map(blockEntry).join('\n\n')}`;
+    return `**${g.label}**\n${types.map(blockEntry).join('\n')}`;
   }).join('\n\n');
 }
 
-function iconList(): string {
-  return TOPIC_ICONS.map((i) => `- \`${i.key}\`: ${i.label}${i.words ? ` (${i.words.split(' ').join(', ')})` : ''}`).join('\n');
-}
-
-const holidayTable = () =>
-  ['| Ferien | von | bis |', '|---|---|---|', ...BW_2026_27.holidays.map((h) => `| ${h.name} | ${dayText(h.from, true)} | ${dayText(h.to, true)} |`)].join('\n') +
-  `\n\nErster Schultag: ${dayText(BW_2026_27.start, true)}, letzter Schultag: ${dayText(BW_2026_27.end, true)}.`;
-
-const json = (x: unknown) => JSON.stringify(x, null, 2);
+const holidays = () =>
+  BW_2026_27.holidays.map((h) => `${h.name} ${dayText(h.from, true)}–${dayText(h.to, true)}`).join(', ') +
+  `; erster Schultag ${dayText(BW_2026_27.start, true)}, letzter ${dayText(BW_2026_27.end, true)}.`;
 
 /** The full instructions as Markdown. */
 export function claudeInstructions(): string {
   const fill: Record<string, string> = {
     APP_URL,
-    BEREICHE: FOREIGN_LANGUAGE_DOMAINS.map((d) => `- ${d}`).join('\n'),
+    BEREICHE: FOREIGN_LANGUAGE_DOMAINS.map((d) => `„${d}“`).join(', '),
     SCHULJAHR: BW_2026_27.name,
     SCHULWOCHEN: String(schoolWeekCount(schoolWeeks(BW_2026_27))),
-    FERIEN: holidayTable(),
+    FERIEN: holidays(),
     BAUSTEINE: blockReference(),
-    SYMBOLE: iconList(),
-    BEISPIEL_EN: json(englishExample()),
-    BEISPIEL_PLAN: json(yearPlanExample()),
-    BEISPIEL_GEO: json(geographyExample()),
+    SYMBOLE: TOPIC_ICONS.map((i) => i.key).join(', '),
+    BEISPIEL: JSON.stringify(lessonExample()),
   };
   // Only the known placeholders: {{s}} and the like in the text are examples of the highlight syntax.
   return template.replace(/\{\{([A-Z_]+)\}\}/g, (all, key: string) => fill[key] ?? all);
 }
 
 /** The placeholders the template must contain (checked by the tests). */
-export const PLACEHOLDERS = ['APP_URL', 'BEREICHE', 'SCHULJAHR', 'SCHULWOCHEN', 'FERIEN', 'BAUSTEINE', 'SYMBOLE', 'BEISPIEL_EN', 'BEISPIEL_PLAN', 'BEISPIEL_GEO'];
+export const PLACEHOLDERS = ['APP_URL', 'BEREICHE', 'SCHULJAHR', 'SCHULWOCHEN', 'FERIEN', 'BAUSTEINE', 'SYMBOLE', 'BEISPIEL'];
 export { template as instructionsTemplate };

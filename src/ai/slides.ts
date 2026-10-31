@@ -2,13 +2,11 @@
 // whole lesson (teacher page with learning path, course and hook, the sheets, recall questions of earlier lessons);
 // "rework": the slides there are, after the teacher's wish. Pictures: the sheet's own (by id) or search words and a
 // description for the teacher to fill in.
-import { claudeInstructions } from '../claude/instructions';
 import { blockText } from '../library/search';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { DocFormatError } from '../model/normalize';
 import { normalizeSlides, type Slide } from '../model/slides';
 import type { Doc } from '../model/types';
-import { packagePages } from './lesson';
 
 export type SlidesAiMode = 'build' | 'rework';
 
@@ -30,32 +28,32 @@ export function sheetImages(doc: Doc): Map<string, string> {
   return out;
 }
 
-/** The request for new slides from the whole lesson. */
+/** The pages of the lesson for the request: only what is filled in and differs from a block's defaults. */
+const leanPages = (doc: Doc) =>
+  doc.pages
+    .filter((p) => p.blocks.length)
+    .map((p) => ({
+      title: p.title,
+      type: p.type,
+      ...(p.back ? { back: true } : {}),
+      blocks: p.blocks.map((b) => ({ type: b.type, ...Object.fromEntries(Object.entries(b.props).filter(([k, v]) => v !== '' && v !== BLOCK_TYPES[b.type].defaults[k])) })),
+    }));
+
+/** The request for new slides from the whole lesson (the Anleitung is in the chat project). */
 export function buildSlidesPrompt(doc: Doc, c: SlidesAiContext, wish: string): string {
   const images = [...sheetImages(doc)];
   return [
-    `**Auftrag:** Gestalte die Präsentation der Stunde „${c.lessonTitle}“ (${c.subject}, Klasse ${c.grade}, Modul „${c.topic}“). Das Arbeitsblatt ist fertig; die Folien begleiten die Klasse durch dieselbe Stunde.`,
-    '- **Erst denken:** Sieh dir die Lehrkraft-Seite (Lernweg, Verlauf, Einstieg) und die Arbeitsblätter genau an und überlege selbst, wie diese Stunde mit dieser Klasse im Raum am besten läuft (siehe „Folien“ → „Erst denken, dann Folien“): Was müssen alle gemeinsam sehen, wo braucht es einen Impuls, eine klare Anweisung, eine Besprechung, wo wird die Klasse an der Wand aktiv (Quiz, Ordnen, Aufdecken), was ist für dieses Alter angemessen? Es gibt keinen festen Ablauf und keine feste Zahl an Folien.',
-    '- **Frei in der Form:** Nutze die Folienarten als Werkzeugkasten (auch `quiz`, `sort`, `bullets`, `text`, `full`, `big`, Abdeckungen und Schritte), knapp und gut lesbar, Sprechernotizen (`notes`) auf Deutsch. Lösungen und Merksatz wie auf dem Blatt. In die Notizen der ersten Folie schreibst du in zwei, drei Sätzen deine Idee für die Präsentation.',
-    images.length
-      ? `- **Bilder des Blatts:** Diese Bilder darfst du auf Folien zeigen (Feld \`image\` mit der ID): ${images.map(([id, cap]) => `\`${id}\`${cap ? ` (${cap})` : ''}`).join(', ')}. Für andere Bilder schreib \`search\` und \`describe\`.`
-      : '- **Bilder:** Das Blatt hat noch keine Bilder; schreib für Bildfolien `search` und `describe`.',
-    c.recall?.length ? `- **Abruffragen aus früheren Stunden** (für eine Abrufphase): ${c.recall.map((r) => `${r.q} | ${r.a} (${r.where})`).join(' · ')}` : '',
-    wish.trim() ? `- **Wunsch der Lehrkraft:** ${wish.trim()}` : '',
-    c.notes ? `\n${c.notes}` : '',
-    '',
-    'Antworte nur mit einem JSON-Codeblock: ```json\n{"slides": [ … ]}\n```',
-    '',
-    '**Die Stunde (Lehrkraft-Seite und Arbeitsblätter):**',
-    '```json',
-    JSON.stringify(packagePages(doc.pages.filter((p) => p.blocks.length))),
-    '```',
+    `Bitte nach der Anleitung „Arbeitsblatt-Baukasten“ (Abschnitt „Folien“): Gestalte die Präsentation der Stunde „${c.lessonTitle}“ (${c.subject}, Klasse ${c.grade}, Modul „${c.topic}“). Erst denken: Wie läuft diese Stunde mit dieser Klasse im Raum am besten? Dann so viele Folien, wie sie braucht, aus dem Werkzeugkasten. Lösungen und Merksatz wie auf dem Blatt.`,
+    images.length ? `Bilder des Blatts (\`image\` mit ID): ${images.map(([id, cap]) => `\`${id}\`${cap ? ` ${cap}` : ''}`).join(', ')}.` : '',
+    c.recall?.length ? `Abruffragen früherer Stunden: ${c.recall.map((r) => `${r.q} | ${r.a}`).join(' · ')}` : '',
+    wish.trim() ? `Wunsch der Lehrkraft: ${wish.trim()}` : '',
+    c.notes,
+    'Antworte nur mit einem JSON-Codeblock `{"slides": […]}`. Die Stunde:',
+    JSON.stringify(leanPages(doc)),
   ]
-    .filter((x) => x !== '')
-    .join('\n');
+    .filter(Boolean)
+    .join('\n\n');
 }
-
-export const slidesSystem = () => claudeInstructions();
 
 /** A slide without what Claude does not need (ids, empty fields). */
 const leanSlide = (s: Slide) =>
@@ -66,25 +64,16 @@ export function slidesPrompt(slides: Slide[], doc: Doc, c: SlidesAiContext, wish
     .map((p, i) => `### Seite ${i + 1}: ${p.title}\n${p.blocks.map((b) => `- ${BLOCK_TYPES[b.type].label}: ${blockText(b).join(' / ').slice(0, 300)}`).join('\n')}`)
     .join('\n');
   return [
-    `**Auftrag:** Überarbeite die Folien der Stunde „${c.lessonTitle}“ (${c.subject}, Klasse ${c.grade}, Modul „${c.topic}“), damit sie abwechslungsreich sind und zur Klasse passen.`,
-    '- Behalte Ablauf, Inhalte, Aufgaben und Lösungen; ändere Art (`layout`), Wortlaut der Überschriften und Impulse, Bilder und Animationen.',
-    '- Wechsle die Arten ab (siehe „Abwechslung“): ein starkes Bild (`full`) oder eine große Zahl oder Frage (`big`) zum Einstieg, Bilder (`image`, `full`) dort, wo Anschauung hilft, mit `search` und `describe`. Folien mit `image` behalten ihr Bild.',
-    '- Arbeitsaufträge (`work`) und Aufgaben (`task`) bleiben, wie sie sind, bis auf Bilder und Wortlaut.',
-    wish.trim() ? `- **Wunsch der Lehrkraft:** ${wish.trim()}` : '',
-    c.notes ? `\n${c.notes}` : '',
-    '',
-    'Antworte nur mit einem JSON-Codeblock: ```json\n{"slides": [ … ]}\n```',
-    '',
-    '**Die Folien bisher:**',
-    '```json',
+    `Bitte nach der Anleitung „Arbeitsblatt-Baukasten“ (Abschnitt „Folien“): Überarbeite die Folien der Stunde „${c.lessonTitle}“ (${c.subject}, Klasse ${c.grade}, Modul „${c.topic}“), damit sie abwechslungsreich sind und zur Klasse passen. Inhalte, Aufgaben und Lösungen bleiben; Art, Wortlaut, Bilder und Schritte dürfen sich ändern; Folien mit \`image\` behalten ihr Bild.`,
+    wish.trim() ? `Wunsch der Lehrkraft: ${wish.trim()}` : '',
+    c.notes,
+    'Antworte nur mit einem JSON-Codeblock `{"slides": […]}`. Die Folien bisher:',
     JSON.stringify(slides.map(leanSlide)),
-    '```',
-    '',
-    '**Das Arbeitsblatt der Stunde (gekürzt):**',
+    'Das Arbeitsblatt (gekürzt):',
     sheet,
   ]
-    .filter((x) => x !== '')
-    .join('\n');
+    .filter(Boolean)
+    .join('\n\n');
 }
 
 /** Claude's slides; pictures only the old slides' own or the sheet's (Claude cannot make new ones). */

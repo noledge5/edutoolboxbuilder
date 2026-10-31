@@ -1,395 +1,86 @@
-// Complete Stundenpakete for the instructions: an English lesson (Klasse 5), a year plan and the Geography sample.
-// Built with the app's own functions, so the tests can check that the Baukasten reads them without a single note.
-import { lessonsOf, plannedDoc, seedLibrary } from '../library/model';
+// The example in the instructions: one compact lesson (Geographie, Klasse 7) with a teacher page and one sheet.
+// Built with the app's own functions, so the tests can check that the Baukasten reads it without a single note and
+// that it passes the check without AI.
 import { packageFromModules, type PackageFile } from '../library/package';
-import type { Lesson, LessonRole, Module } from '../library/types';
-import { BW_2026_27 } from '../library/yearplan';
-import { BLOCK_TYPES } from '../model/blockTypes';
+import type { Lesson, Module } from '../library/types';
 import { createBlock as b } from '../model/ops';
-import { createElement, SLIDE_DEFAULTS, type Slide, type SlideLayout } from '../model/slides';
-import type { Doc, Page } from '../model/types';
+import type { Page } from '../model/types';
 
-const time = 0;
-
-const module = (m: Partial<Module> & Pick<Module, 'subject' | 'grade' | 'number' | 'title' | 'icon'>): Module => ({
-  id: 'm' + m.number,
-  description: '',
-  competences: [],
+const m: Module = {
+  id: 'm3',
+  subject: 'Geographie',
+  grade: 7,
+  number: 3,
+  title: 'Vulkane',
+  icon: 'mountain',
+  description: 'Am Ende erklärt die Klasse an einem Vulkan der Wahl, wie er ausbricht.',
+  competences: [
+    { id: 'k1', domain: 'Erklären', area: 'Aufbau eines Vulkans', g: 'Ich kann Teile eines Vulkans benennen.', m: 'Ich kann den Weg des Magmas beschreiben.', e: 'Ich kann einen Ausbruch erklären.', lessons: '' },
+  ],
   lang: 'de',
   help: true,
   textbook: '',
-  weeks: 0,
+  weeks: 3,
   start: '',
-  updatedAt: time,
-  ...m,
-});
+  updatedAt: 0,
+};
 
-const lesson = (m: Module, number: number, title: string, textbook: string, pages: Page[]): Lesson => ({
-  id: `${m.id}-s${number}`,
+const teacher: Page = {
+  title: 'Wie bricht ein Vulkan aus?',
+  kicker: 'Klasse 7 · Stundenverlauf',
+  type: 'lehrkraft',
+  form: 'Plenum',
+  nameField: 'aus',
+  blocks: [
+    b('goal', { goal: 'Die Klasse beschreibt den Weg des Magmas von der Magmakammer bis zum Krater.', curriculum: '3.2.1 Naturräume · Erklären' }),
+    b('hook', { kind: 'bild', impulse: 'Was ist hier passiert?', question: 'Wie kommt das Magma nach oben?' }),
+    b('path', {
+      steps: 'M1 | Die Klasse liest, woher das Magma kommt. | Aufgabe 1 | Magma sammelt sich in der Magmakammer.\nM2 | Die Klasse beschriftet den Vulkan mit den Wörtern aus M1. | Aufgabe 2 | Krater, Schlot, Magmakammer.\nM1, M2 | Die Paare beschreiben den Weg des Magmas. | Aufgabe 3 | Das Magma steigt durch den Schlot zum Krater.',
+    }),
+    b('plan', {
+      rows: '0–5 | Einstieg | Bild zeigen, Vermutungen, Leitfrage | Plenum | Folie\n5–20 | Erarbeitung | Lies M1, beschrifte M2. | Einzel | AB S. 1\n20–35 | Erarbeitung | Beschreibt den Weg des Magmas. | Partner | AB S. 1\n35–45 | Sicherung | Merksatz ergänzen, Leitfrage beantworten | Plenum | AB S. 1',
+    }),
+    b('expect', { items: 'Falsch | „Die Lava kommt aus dem Erdkern.“ | Das Magma sammelt sich in der Magmakammer, weit über dem Kern.' }),
+    b('recall', { items: 'Wo sammelt sich das Magma? | in der Magmakammer\nWie heißt die Öffnung oben? | Krater' }),
+  ],
+};
+
+const sheet: Page = {
+  title: 'Wie bricht ein Vulkan aus?',
+  kicker: 'Klasse 7 · Vulkane',
+  type: 'uebung',
+  form: 'allein',
+  nameField: 'name',
+  blocks: [
+    b('text', { mat: 'M1', text: 'Tief unter dem Vulkan liegt die **Magmakammer**. Dort sammelt sich heißes, flüssiges Gestein, das Magma. Steigt der Druck, drückt es das Magma durch den **Schlot** nach oben. Oben tritt es am **Krater** aus und heißt dann Lava.' }, 7),
+    b('image', { mat: 'M2', caption: 'M2: Schnitt durch einen Vulkan', height: 220, search: 'volcano cross section', describe: 'simple cross section of a volcano with magma chamber, vent and crater, no text', labels: 'Krater\nSchlot\nMagmakammer', labelStyle: 'luecken' }, 5),
+    b('open', { prompt: 'Lies M1. Nenne, wo sich das Magma sammelt.', lines: 1, solution: 'In der Magmakammer.', level: '1', competence: 'k1' }),
+    b('wordbank', { words: 'Krater\nSchlot\nMagmakammer' }),
+    b('match', { prompt: 'Ordne in M2 die Begriffe den Nummern zu.', left: '1\n2\n3', right: 'Magmakammer\nKrater\nSchlot', solution: '2, 3, 1', level: '1', competence: 'k1' }),
+    b('open', { prompt: 'Beschreibt zu zweit mit M1 und M2 den Weg des Magmas.', lines: 3, solution: 'Das Magma sammelt sich in der Magmakammer, steigt durch den Schlot und tritt am Krater als Lava aus.', level: '2', competence: 'k1', tip: 'Beginne unten bei der Magmakammer.' }),
+    b('merksatz', { text: 'Das Magma sammelt sich in der [[Magmakammer]] und steigt durch den [[Schlot]] zum [[Krater]].' }),
+  ],
+};
+
+const lesson: Lesson = {
+  id: 'm3-s2',
   moduleId: m.id,
-  number,
-  title,
-  textbook,
+  number: 2,
+  title: 'Wie bricht ein Vulkan aus?',
+  textbook: '',
   plan: '',
-  role: '',
-  competences: [],
-  doc: { icon: m.icon, lang: m.lang, help: m.help, footer: '', code: '', pages } satisfies Doc,
+  role: 'erarbeitung',
+  competences: ['k1'],
+  doc: { icon: m.icon, lang: m.lang, help: m.help, footer: '', code: '', pages: [teacher, sheet] },
   slides: [],
   slideDesign: 'organisch',
   boards: [],
-  updatedAt: time,
-});
+  updatedAt: 0,
+};
 
-/** The teacher page and its back: goal, hook, learning path and course in front, expectations and recall behind. */
-function withBack(t: Page): Page[] {
-  const back = t.blocks.filter((x) => x.type === 'expect' || x.type === 'recall');
-  return [
-    { ...t, blocks: t.blocks.filter((x) => !back.includes(x)) },
-    { ...t, back: true, blocks: back },
-  ];
-}
-
-/** The package without the save time, so the text in the instructions stays the same. */
-function clean(p: PackageFile): PackageFile {
+/** The example of the instructions, without the save time so the text stays the same. */
+export function lessonExample(): PackageFile {
+  const p = packageFromModules([{ module: m, lessons: [lesson] }]);
   delete p.savedAt;
   return p;
-}
-
-/** Englisch Klasse 5, Unit 1: a lesson with a teacher page, vocabulary, grammar and speaking/writing. */
-export function englishExample(): PackageFile {
-  const m = module({
-    subject: 'Englisch',
-    grade: 5,
-    number: 1,
-    title: 'Hello, school!',
-    icon: 'school',
-    lang: 'en',
-    help: true,
-    weeks: 5,
-    description: 'Sich vorstellen, die neue Schule · Grammatik: to be, Personalpronomen',
-    competences: [
-      {
-        id: 'k1',
-        domain: 'Sprachliche Mittel: Wortschatz',
-        area: 'Wörter rund um die Schule',
-        g: 'Ich kann Dinge im Klassenzimmer auf Englisch benennen.',
-        m: 'Ich kann die Wörter in kurzen Sätzen verwenden.',
-        e: 'Ich kann ein Wort auf Englisch umschreiben, wenn es mir fehlt.',
-        lessons: '',
-      },
-      {
-        id: 'k2',
-        domain: 'Sprachliche Mittel: Grammatik',
-        area: 'to be verwenden',
-        g: 'Ich kann die Formen von to be nennen.',
-        m: 'Ich kann to be in Sätzen richtig verwenden.',
-        e: 'Ich kann mit to be verneinen und Fragen stellen.',
-        lessons: '',
-      },
-      {
-        id: 'k3',
-        domain: 'Sprechen – an Gesprächen teilnehmen',
-        area: 'Sich und andere vorstellen',
-        g: 'Ich kann sagen, wie ich heiße und wie alt ich bin.',
-        m: 'Ich kann mich und andere vorstellen.',
-        e: 'Ich kann ein kurzes Gespräch beginnen und Fragen stellen.',
-        lessons: '',
-      },
-    ],
-  });
-  const teacher: Page = {
-    title: 'Hello, I’m …',
-    kicker: 'Klasse 5 · Stundenverlauf',
-    type: 'lehrkraft',
-    form: 'Plenum',
-    nameField: 'aus',
-    blocks: [
-      b('goal', {
-        goal: 'Die Klasse stellt sich auf Englisch vor und festigt die Formen von to be.',
-        curriculum: '3.1.3.3 Sprechen – an Gesprächen teilnehmen · 3.1.3.7 Verfügbarkeit sprachlicher Mittel (Wortschatz, Grammatik)',
-      }),
-      b('hook', {
-        kind: 'vorwissen',
-        impulse: 'Hello! Which English words for saying hello do you know?',
-        answer: '',
-        question: 'How can we introduce ourselves in English?',
-      }),
-      b('path', {
-        steps: [
-          'M1 | Die Klasse hört und spricht die neuen Wörter und ordnet sie Bildern zu. | Task 1–2 (S. 1) | Ich kann Dinge im Klassenzimmer benennen.',
-          'M2 | Die Klasse entdeckt, welche Form von to be zu welcher Person gehört, und übt sie. | Task 1–3 (S. 2) | I am, he / she / it is, we / you / they are.',
-          'M3 | Die Paare stellen sich mit den Redemitteln vor und schreiben dann über sich. | Rollenkarten, Task 1 (S. 3) | Ich kann mich auf Englisch vorstellen.',
-        ].join('\n'),
-      }),
-      b('plan', {
-        rows: [
-          '0–5 | Warm-up | Song „Hello, hello“, Begrüßung auf Englisch, Wörter sammeln. | Plenum | Audio',
-          '5–15 | Vocabulary | Neue Wörter mit Bildkarten einführen, Aussprache chorisch üben. | Plenum | Bildkarten, AB S. 1',
-          '15–25 | Grammar | to be an der Tafel entdecken, Regel gemeinsam formulieren. | Plenum | Tafel, AB S. 2',
-          '25–40 | Speaking | Rollenkarten: sich zu zweit vorstellen, dann Partner vorstellen. | Partner | AB S. 3',
-          '40–45 | Check | „Ich kann …“ ankreuzen, Hausaufgabe: Knicktest. | Einzel | AB S. 3',
-        ].join('\n'),
-      }),
-      b('expect', {
-        items: [
-          'Richtig | „My name is Tom. I’m eleven.“ | Vollständige Vorstellung mit Kurzform.',
-          'Falsch | „I am eleven years.“ | Es fehlt old: I’m eleven (years old).',
-          'Vorsicht | „He are my friend.“ | he / she / it → is. Auf die Grammatik-Box verweisen.',
-        ].join('\n'),
-      }),
-      b('recall', {
-        title: 'Abruffragen für spätere Stunden',
-        items: 'Wie sagt man „Tafel“ auf Englisch? | board\nWelche Form von to be gehört zu she? | is\nWie fragst du nach dem Alter? | How old are you?',
-      }),
-    ],
-  };
-  const vocab: Page = {
-    title: 'My classroom',
-    kicker: 'Class 5 · Unit 1',
-    type: 'vocab',
-    form: 'allein',
-    nameField: 'name',
-    blocks: [
-      b('vocab', {
-        mat: 'M1',
-        title: 'New words',
-        rows: [
-          'board | bɔːd | Tafel | Look at the board, please.',
-          'pencil case | ˈpensl keɪs | Federmäppchen | My pencil case is blue.',
-          'rubber | ˈrʌbə | Radiergummi | Can I have a rubber, please?',
-          'schoolbag | ˈskuːlbæɡ | Schultasche | My schoolbag is heavy.',
-          'desk | desk | Schreibtisch, Pult | The book is on my desk.',
-          'classmate | ˈklɑːsmeɪt | Mitschüler/in | Ben is my classmate.',
-        ].join('\n'),
-      }),
-      b('picvocab', {
-        prompt: 'Label the pictures. Use the words in M1.',
-        help: 'Schreibe das englische Wort aus M1 unter jedes Bild.',
-        items: '📏 | ruler\n✏️ | pencil\n🎒 | schoolbag\n📖 | book',
-        level: '1',
-        competence: 'k1',
-      }),
-      b('foldtest', {
-        prompt: 'Fold the page. Write the English words. Then check.',
-        help: 'Knicke das Blatt an der gestrichelten Linie. Schreibe die englischen Wörter und kontrolliere dann.',
-        rows: 'Tafel | board\nFedermäppchen | pencil case\nRadiergummi | rubber\nMitschüler/in | classmate',
-        mode: 'knick',
-        level: '2',
-        competence: 'k1',
-        tip: 'Look at the list “New words” at the top of the page.',
-      }),
-    ],
-  };
-  const grammar: Page = {
-    title: 'I am, you are …',
-    kicker: 'Class 5 · Unit 1 · Grammar',
-    type: 'grammar',
-    form: 'allein',
-    nameField: 'name',
-    blocks: [
-      b('grammar', {
-        mat: 'M2',
-        title: 'to be',
-        rule: 'to be heißt „sein“. Die Form hängt von der Person ab: I {{am}}, he / she / it {{is}}, we / you / they {{are}}.',
-        signal: '',
-        examples: 'I{{’m}} Emma.\nShe{{’s}} my friend.\nWe{{’re}} in class 5b.',
-        variant: 'accent-3',
-      }),
-      b('jumble', {
-        prompt: 'Look at M2. Put the words in the right order.',
-        help: 'Sieh dir M2 an. Bringe die Wörter in die richtige Reihenfolge.',
-        items: 'My name is Emma.\nI am eleven years old.\nfriend / is / Ben / my = Ben is my friend.',
-        level: '1',
-        competence: 'k2',
-      }),
-      b('transform', {
-        prompt: 'Write the sentences with the short form.',
-        help: 'Schreibe die Sätze mit der Kurzform.',
-        items: "I am Tom. | short form | I'm Tom.\nShe is my sister. | short form | She's my sister.",
-        level: '2',
-        competence: 'k2',
-      }),
-      b('gap', {
-        prompt: 'Fill in am, is or are.',
-        help: 'Setze am, is oder are ein.',
-        text: 'Hi, I [[am]] Emma. This [[is]] Ben. We [[are]] in class 5b. Our teacher [[is]] Mr Clark.',
-        level: '3',
-        competence: 'k2',
-      }),
-    ],
-  };
-  const speaking: Page = {
-    title: 'Let’s meet!',
-    kicker: 'Class 5 · Unit 1 · Speaking and writing',
-    type: 'speaking',
-    form: 'zu zweit',
-    nameField: 'namen',
-    blocks: [
-      b('phrases', {
-        mat: 'M3',
-        title: 'Useful phrases',
-        items:
-          'Hi, I’m … What’s your name? | Hallo, ich bin … Wie heißt du?\nHow old are you? | Wie alt bist du?\nThis is my friend … | Das ist mein Freund / meine Freundin …\nNice to meet you. | Schön, dich kennenzulernen.',
-        variant: 'accent-6',
-      }),
-      b('rolecards', {
-        titleA: 'Partner A',
-        textA: 'You are Tom, 11.\nAsk your partner: name? age?\nIntroduce your friend Ben (12).',
-        titleB: 'Partner B',
-        textB: 'You are Mia, 10.\nAsk your partner: name? age?\nIntroduce your friend Lucy (11).',
-      }),
-      b('writing', {
-        prompt: 'Write about you. Use the phrases in M3.',
-        help: 'Schreibe über dich. Nutze die Satzanfänge und die Redemittel aus M3.',
-        starters: 'My name is …\nI’m … years old.\nMy best friend is …\nMy favourite subject is …',
-        lines: 1,
-        checklist: 'I have written four sentences.\nI have used I’m and is.\nI have checked my spelling.',
-        level: '2',
-        competence: 'k3',
-      }),
-      b('selfcheck', {
-        title: 'I can …',
-        items: 'Ich kann Dinge im Klassenzimmer auf Englisch benennen.\nIch kann mich auf Englisch vorstellen.\nIch kann die Formen von to be verwenden.',
-      }),
-    ],
-  };
-  const slide = (id: string, layout: SlideLayout, fields: Partial<Slide>): Slide => ({ ...SLIDE_DEFAULTS, id, layout, ...fields });
-  const slides: Slide[] = [
-    slide('f1', 'title', { type: 'vocab', title: 'Hello, I’m …', text: 'How do we say who we are?', notes: 'Begrüßung auf Englisch, Song „Hello, hello“.' }),
-    slide('f2', 'words', {
-      type: 'vocab',
-      phase: 'Vocabulary',
-      form: 'Plenum',
-      minutes: 10,
-      title: 'My classroom',
-      items: 'board | Tafel\npencil case | Federmäppchen\nrubber | Radiergummi\nschoolbag | Schultasche',
-      reveal: true,
-      notes: 'Bildkarten zeigen, chorisch nachsprechen, dann Bedeutungen aufdecken.',
-    }),
-    slide('f3', 'task', {
-      type: 'grammar',
-      phase: 'Grammar',
-      form: 'zu zweit',
-      minutes: 10,
-      label: 'Task 3 · p. 2 · ★★★',
-      title: 'Fill in am, is or are.',
-      help: 'Setze am, is oder are ein.',
-      items: 'Hi, I [[am]] Emma.\nThis [[is]] Ben.\nWe [[are]] in class 5b.',
-      reveal: true,
-      build: true,
-      elements: [createElement('text', { id: 'e1', text: '**he / she / it** → is', style: 'note', x: 1240, y: 760, w: 580, h: 180, step: 7, anim: 'zoom' })],
-      notes: 'Aufgabe 3 vom Arbeitsblatt gemeinsam vergleichen: Satz für Satz zeigen, dann die Lösung aufdecken; zum Schluss der Merkzettel.',
-    }),
-    slide('f4', 'exit', {
-      type: 'sicherung',
-      phase: 'Exit',
-      form: 'allein',
-      minutes: 3,
-      text: 'Tell your partner: My name is … I am … years old.',
-      label: 'Remember',
-      title: 'I [[am]] · you [[are]] · he / she / it [[is]]',
-      reveal: true,
-      notes: 'Ich-kann-Satz ankreuzen lassen.',
-    }),
-  ];
-  return clean(packageFromModules([{ module: m, lessons: [{ ...lesson(m, 1, 'Hello, I’m …', '', [...withBack(teacher), vocab, grammar, speaking]), slides }] }]));
-}
-
-/** A planned lesson of the year plan: title, planning note, role and competences, no pages yet. */
-const planned = (m: Module, number: number, title: string, plan: string, role: LessonRole, competences: string[] = []): Lesson => ({
-  ...lesson(m, number, title, '', []),
-  plan,
-  role,
-  competences,
-  doc: plannedDoc(m, title),
-});
-
-/**
- * A year plan without a textbook: the units of Englisch Klasse 5 with their focus and weeks, the school year,
- * and planned lessons (title and note, no pages) where they are already known.
- */
-export function yearPlanExample(): PackageFile {
-  const units: [string, string, number, string][] = [
-    ['Hello, school!', 'school', 5, 'Sich vorstellen, Schule und Klassenzimmer · Grammatik: to be, Personalpronomen'],
-    ['My family and me', 'home', 6, 'Familie, Haustiere, Zuhause · Grammatik: have got, Plural, Possessivbegleiter'],
-    ['A day in my life', 'clock', 6, 'Tagesablauf, Uhrzeit, Schulfächer · Grammatik: simple present'],
-    ['Birthdays and parties', 'cake', 5, 'Geburtstage, Monate, Einladungen · Grammatik: can, Imperativ'],
-  ];
-  const modules = units.map(([title, icon, weeks, description], i) => module({ subject: 'Englisch', grade: 5, number: i + 1, title, icon, lang: 'en', weeks, description }));
-  modules[1].competences = [
-    {
-      id: 'k1',
-      domain: 'Hör-/Hörsehverstehen',
-      area: 'Familienmitglieder in Gesprächen erkennen',
-      g: 'Ich kann Namen und Familienwörter heraushören.',
-      m: 'Ich kann verstehen, wer mit wem verwandt ist.',
-      e: 'Ich kann Einzelheiten zu Personen heraushören.',
-      lessons: '',
-    },
-  ];
-  const [m1, m2] = modules;
-  const lessons: Record<string, Lesson[]> = {
-    [m1.id]: [
-      planned(m1, 1, 'Hello, I’m …', 'Sich begrüßen und vorstellen; Kennenlernspiel; Lernaufgabe der Unit vorstellen: ein Steckbrief über mich.', 'einstieg'),
-      planned(m1, 2, 'My classroom', 'Schulsachen benennen; Hörverstehen: What’s in your school bag?', 'erarbeitung'),
-      planned(m1, 3, 'I am, you are …', 'Formen von to be an Beispielen entdecken, Regel sichern, gelenkt üben.', 'erarbeitung'),
-    ],
-    [m2.id]: [
-      planned(m2, 1, 'This is my family', 'Bildimpuls Familienfoto; Familienwörter; Stammbaum beschriften.', 'einstieg', ['k1']),
-      planned(m2, 2, 'Meet the Parkers', 'Hörtext über eine Familie: pre, while, post; Possessivbegleiter my/your.', 'erarbeitung', ['k1']),
-    ],
-  };
-  return clean(
-    packageFromModules(
-      modules.map((m) => ({ module: m, lessons: lessons[m.id] ?? [] })),
-      BW_2026_27,
-    ),
-  );
-}
-
-/** The Geography sample (Sachfach): teacher page, experiment and summary, tasks linked to the competences. */
-export function geographyExample(): PackageFile {
-  const lib = seedLibrary();
-  const m = lib.modules[0];
-  const [k1, k2, k3] = m.competences;
-  const l = { ...lessonsOf(lib, m.id)[0], number: 1 };
-  const [versuch, sicherung] = l.doc.pages;
-  const tasks = (p: Page) => p.blocks.filter((x) => BLOCK_TYPES[x.type].task);
-  const teacher: Page = {
-    title: 'Der Treibhauseffekt',
-    kicker: 'Klasse 9 · Stundenverlauf',
-    type: 'lehrkraft',
-    form: 'Plenum',
-    nameField: 'aus',
-    blocks: [b('goal'), b('hook'), b('path'), b('plan'), b('expect'), b('recall')],
-  };
-  // Material numbers, named in the tasks that use them; the number replaces the heading above the set-up.
-  versuch.blocks = versuch.blocks.filter((x) => x.type !== 'heading');
-  const [aufbau, abbildung] = versuch.blocks.filter((x) => x.type === 'text' || x.type === 'image');
-  aufbau.props.mat = 'M1';
-  abbildung.props.mat = 'M2';
-  tasks(versuch)[0].props.prompt = 'Lies M1 und sieh dir M2 an. Unsere Vorhersage: Welches Glas wird nach 15 Minuten wärmer sein?';
-  const schema = sicherung.blocks.find((x) => x.type === 'flow')!;
-  schema.props.mat = 'M3';
-  tasks(sicherung)[0].props.prompt = `Ergänze M3. ${tasks(sicherung)[0].props.prompt}`;
-  // The Merksatz only with words the sheets had before (here from M3).
-  sicherung.blocks.find((x) => x.type === 'merksatz')!.props.text = 'Treibhausgase halten einen Teil der [[Wärmestrahlung]] zurück: Die [[Erdoberfläche]] erwärmt sich zusätzlich.';
-  const link = (p: Page, i: number, competence: string, level: string) => Object.assign(tasks(p)[i].props, { competence, level });
-  link(versuch, 0, k3.id, '1');
-  link(versuch, 1, k3.id, '1');
-  link(versuch, 2, k1.id, '2');
-  link(versuch, 3, k3.id, '3');
-  link(sicherung, 0, k2.id, '2');
-  link(sicherung, 1, k2.id, '1');
-  link(sicherung, 2, k2.id, '3');
-  sicherung.blocks.push(b('selfcheck'));
-  const ids = new Map(m.competences.map((c, i) => [c.id, `k${i + 1}`]));
-  const pkg = packageFromModules([
-    {
-      module: { ...m, competences: m.competences.map((c) => ({ ...c, id: ids.get(c.id)!, lessons: '' })) },
-      lessons: [{ ...l, doc: { ...l.doc, pages: [...withBack(teacher), versuch, sicherung] } }],
-    },
-  ]);
-  for (const pg of pkg.modules[0].lessons[0].pages ?? []) for (const x of pg.blocks) if (x.props.competence) x.props.competence = ids.get(String(x.props.competence));
-  return clean(pkg);
 }
