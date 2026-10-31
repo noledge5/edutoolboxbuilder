@@ -38,8 +38,11 @@ describe('Folien mit Claude', () => {
     expect(p).toContain('Erst denken');
     expect(p).toContain('Die Klasse sieht den Vulkan.');
     expect(p).toContain('Beschreibe M1.');
-    expect(p).toContain('`img-vulkan` (Abb. 1: Querschnitt)');
-    expect(p).toContain('Was ist Magma? | Gesteinsschmelze (Stunde 1)');
+    expect(p).toContain('`img-vulkan` Abb. 1: Querschnitt');
+    expect(p).toContain('Was ist Magma? | Gesteinsschmelze');
+    // Short: no Anleitung inside, no default fields.
+    expect(p.length).toBeLessThan(1500);
+    expect(p).not.toContain('"height":200');
   });
 
   it('lets new slides show the pictures of the sheet', () => {
