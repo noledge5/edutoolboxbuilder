@@ -15,8 +15,13 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
 
 ## Read first
 - `docs/design/README.md`: the design spec. The prototype `docs/design/Arbeitsblatt-Baukasten.dc.html` is the functional spec.
-- `docs/roadmap.md`: decisions made with the user, their reasons and the phase plan. Stay within the current phase unless
-  asked; new decisions go there (this repo keeps no `docs/adr/`).
+- `docs/roadmap.md`: a short index of the decisions made with the user and the phase plan, one line per note. Read it,
+  then only the note in `docs/entscheidungen/` for the area touched. Stay within the current phase unless asked.
+  Whoever changes or records a decision updates the note (date, decision, reason) and its index line in the same
+  commit (this repo keeps no `docs/adr/`).
+- `docs/` is an Obsidian vault the user edits and pushes to `main` directly, so fetch `main` before changing notes. Links
+  are relative Markdown links (`[Titel](datei.md)`), never `[[Wikilinks]]`; only `docs/.obsidian/app.json` is in git.
+  A push that touches only `docs/` does not deploy (`paths-ignore` in `deploy.yml`); the CI still runs.
 
 ## Rules
 - UI text is German and follows the labels in the design spec exactly. Code, identifiers and comments are English.

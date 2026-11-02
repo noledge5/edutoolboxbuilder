@@ -1,164 +1,24 @@
 # Roadmap und Entscheidungen
 
-## Entscheidungen (September 2026)
+Index: eine Zeile pro Notiz. Erst hier lesen, dann nur die Notiz zum Thema. Neue oder geänderte Entscheidungen: Notiz und Zeile hier im selben Commit pflegen.
 
-| Thema | Entscheidung |
-|---|---|
-| Nutzer und Speicherung | Nur eine Lehrkraft, lokal im Browser (IndexedDB), kein Login, kein Server. Sicherung und Austausch zwischen Geräten über Export-Dateien. |
-| Geräte | Laptop/Desktop und iPad (Touch-Drag-and-Drop, Hochformat mit ausklappbarer Toolbox und Panel). |
-| Hosting | GitHub Pages, statisch. Alles läuft im Browser. |
-| Bibliothek | Stundenpakete: Klasse › Modul › Stunde. Ein Paket enthält Lehrkraft-Seiten, Schülerblätter und Folien. Kürzel (z. B. „K9 · M1 · S2“) und Themen-Icon kommen aus Klasse/Modul/Stunde. |
-| KI | Festes Handoff-Format (JSON bzw. ZIP mit Bildern) plus Anleitung/Skill für Claude. Claude erzeugt Dateien, die der Baukasten importiert. Ab Runde 6 zusätzlich KI im Baukasten mit eigenem Schlüssel (Claude direkt oder OpenRouter, wählbar; Schlüssel nur auf dem Gerät, Schülernamen gehen nie an die KI). Ohne Schlüssel bleibt alles wie bisher. |
-| Folien | Entstehen per Claude im Handoff-Format. Die App zeigt sie an, erlaubt leichte Textkorrekturen und einen Präsentationsmodus. |
-| Papier und Oberfläche | Weiß statt Creme (abweichend vom Design-Handoff, Wunsch vom 26.09.2026): Arbeitsblätter über `--paper` in `src/sheet/sheet.css`, Toolbox, obere Leiste und Panel über `--color-ui` in `src/styles/app.css`. Die Fläche hinter den Seiten bleibt grau-beige, damit sich die weißen Blätter abheben. |
-| Druck | Farbdruck und S/W-Kopiervorlage, Schüler- oder Lösungsfassung. |
-| Übersicht | Startseite: Fach → Jahrgang → Modul (Thema). Je Modul eine Inhaltsübersicht (Stunden) und ein Kompetenzraster mit den Niveaus G/M/E des Bildungsplans BW, beide druckbar. Eine Stunde ist ein Arbeitsblatt-Dokument (mehrere Seiten). |
-| Mac ↔ iPad | Abgleich über eine Sicherungsdatei in iCloud Drive (immer derselbe Dateiname), kein Server, kein Konto. Je Modul und Stunde gewinnt die neuere Fassung, Löschungen werden mitgenommen. Als App (Home-Bildschirm/Dock) installierbar und offline nutzbar. |
-| Niveaus | Die Sterne einer Aufgabe sind die Niveaus des Kompetenzrasters: ★ = G, ★★ = M, ★★★ = E. |
-| Lehrkraft-Seiten | Blatt-Typ „Für die Lehrkraft“: keine Seitenzahl (Schülerseiten zählen ab 1) und nur in der Lösungsfassung gedruckt. |
-| Englisch | Sprache pro Modul (`lang`): englische Beschriftungen auf den Schülerblättern, Lehrkraft-Seiten bleiben deutsch. Deutsche Hilfe unter englischen Aufträgen, pro Modul abschaltbar. Eigene Blatt-Typen (Wortschatz, Grammatik, Hören, Sprechen, Test) mit zusätzlichen Farbverläufen in der Tonalität des Design-Systems. Lautschrift in Noto Sans, weil Figtree die IPA-Zeichen nicht hat. |
-| Jahresplan | Schuljahr mit Ferien in den Einstellungen (BW 2026/27 laut Kultusministerium als Vorschlag). Module haben Dauer in Schulwochen und optional einen Beginn; sie folgen in der Reihenfolge ihrer Nummer, Ferienwochen (ab 3 freien Tagen) werden übersprungen. Stundenpakete ab Version 2 enthalten mehrere Module und optional das Schuljahr. |
-| Handoff-Format | „Stundenpaket“ (`arbeitsblatt-baukasten-paket`, Version 1): ein Modul mit Kompetenzen und Stunden, die Seiten im selben Format wie ein Arbeitsblatt. Der Import repariert, was geht, und zählt auf, was er geändert hat. Die Anleitung für Claude entsteht aus `src/claude/anleitung.md` plus Bausteinliste, Symbolen und Beispiel aus dem Code. |
-| Arbeitsweise | 21.10.2026: schlank statt Regelwerk (vorher noledge5/based, dann noledge5/hierarchie). Die CLAUDE.md enthält nur Zweck, harte Regeln und Fallstricke; keine kopierten Arbeitsweise-Skills und Worker mehr. Grund: neuere Modelle arbeiten mit weniger Vorgaben besser, prüfbare Regeln gehören in Tests und CI. Bleibt: Skill `aufgabe`, eigene Hooks (Typprüfung, Tests vor dem Ende), `main` nur auf Wunsch, Entscheidungen hier im Log. 02.11.2026: Regeln stehen in `AGENTS.md` (gemeinsame Regeldatei, die auch Codex und andere Werkzeuge lesen); `CLAUDE.md` holt sie nur mit `@AGENTS.md` herein. Grund: die Nutzerin will auch andere Programmier-Werkzeuge einsetzen. Die gemeinsame „Arbeitsweise“ steht gleich in allen drei Repos (edutoolboxbuilder, baukasten-aufgaben, generalwork). |
+## Entscheidungen
 
-## Endziele bis Sommer 2027 (festgelegt am 01.10.2026)
+- [Speicherung, Geräte und Abgleich](entscheidungen/speicherung-und-geraete.md): eine Lehrkraft, lokal im Browser, GitHub Pages, Mac ↔ iPad.
+- [Bibliothek, Übersicht und Jahresplan](entscheidungen/bibliothek-und-planung.md): Klasse › Modul › Stunde, Kompetenzraster, Niveaus, Lehrkraft-Seiten, Schuljahr.
+- [KI, Handoff-Format und Folien](entscheidungen/ki-und-handoff.md): Stundenpaket als Austauschformat, KI mit eigenem Schlüssel, Folien per Claude.
+- [Papier, Oberfläche und Druck](entscheidungen/papier-und-druck.md): weiß statt Creme, Farb- und S/W-Druck.
+- [Englisch](entscheidungen/englisch.md): Sprache pro Modul, eigene Blatt-Typen, Lautschrift.
+- [Arbeitsweise](entscheidungen/arbeitsweise.md): schlank statt Regelwerk, Regeln in `AGENTS.md`.
+- [Roadmap als Index, docs/ als Obsidian-Vault](entscheidungen/notizen-und-obsidian.md): Notizen statt einer langen Datei, Notizen ohne Veröffentlichung (02.11.2026).
 
-1. **Unterricht ganz vom iPad:** präsentieren, mit dem Stift schreiben, Lösungen antippen, Aufgaben austeilen und Ergebnisse sehen, ohne Mac. Präsentieren am Mac bleibt genauso möglich (iPad vergessen, Akku leer).
-2. **Stunde in 15 Minuten:** die KI im Baukasten macht aus einer geplanten Stunde Blatt, Folien und digitale Fassung; die Lehrkraft prüft und ändert nur.
-3. **Naturwissenschaft zum Anfassen:** interaktive Modelle und Simulationen mit Aufgaben darin, austeilbar und ausgewertet.
-4. Später, erst wenn das Werkzeug rundum ausgereift ist: Diagnose über das Schuljahr (Klassen, Kompetenzen je Kind, Förderaufgaben).
+## Ziele und Phasen
 
-Reihenfolge der Runden: 5 Folien (Stift, Antippen, klügerer Vorschlag) → 6 KI im Baukasten → 7 interaktive Modelle → danach Klassen/Kalender, Druckhelfer und Vorlesen, automatischer Abgleich; Diagnose zuletzt.
-
-## Phasen
-
-### Phase 1 – Editor-Fundament ✅
-- Vite, React, TypeScript, Design-Tokens, selbst gehostete Schriften
-- A4-Seite pixelgenau nach Design: Kopfband, Namensfeld, 12er-Raster, Fußband, 4 Blatt-Typen
-- Alle 13 Blocktypen des Prototyps
-- Drag-and-Drop mit Maus und Touch (auch über Seitengrenzen), Klick zum Einfügen, schwebende Werkzeugleiste
-- Eigenschaften-Panel für Blöcke und Seiten, Zoom, Vorschau, „Seite ist voll“-Warnung
-- Rückgängig/Wiederholen
-- Themen-Symbol im Kopfband wählbar (gilt für alle Seiten, Auswahl mit Suche)
-- JSON-Dialog mit Prüfung
-- Speicherung in IndexedDB, Bilder verkleinert gespeichert
-- Druck/PDF: eine A4-Seite pro Blatt, weißes Papier
-- GitHub Pages Deployment, CI
-
-### Phase 1.5 – Ausbau nach dem ersten Audit ✅
-- Übersicht mit Fach, Jahrgang und Modulen; Modulseite mit Stunden, Kompetenzraster (G/M/E) und Druck von Inhaltsübersicht und Kompetenzraster; Kürzel und Symbol kommen aus dem Modul; das bisherige Einzelblatt wurde automatisch übernommen
-- Sichern/Öffnen als Datei: ganze Bibliothek bzw. einzelnes Arbeitsblatt, jeweils mit Bildern; Import einer Datei als neue Stunde
-- Text direkt auf der Seite bearbeiten (Doppelklick oder erneutes Antippen)
-- „Überlauf auf neue Seite“; neue Seiten übernehmen die Kopfband-Einstellungen
-- Aufgaben mit Niveau (★–★★★) und Punkten; Namensfeld-Varianten (Name · Namen · Name + Klasse · aus)
-- Neue Bausteine: QR-Code, „Ich kann …“; Zeichenfeld mit Karo/Linien/Punkten; Quellenangabe unter Bildern
-- Warnung bei zweitem Tab; Zoom merken und „Seite einpassen“; Strg+D, Pfeiltasten, Alt+Pfeiltasten
-
-### Phase 2 – Bibliothek, Geräte, Lösungen, Claude ✅
-- Abgleich Mac ↔ iPad über eine Datei in iCloud Drive (neuere Fassung gewinnt, Löschungen werden übernommen), Hinweis auf nicht gesicherte Änderungen
-- Installierbar als App (Home-Bildschirm, Dock), offline nutzbar (Service Worker)
-- Aufgaben mit Kompetenzen verknüpfen; das Kompetenzraster zeigt die verknüpften Aufgaben, die Lösungsfassung Kompetenz und Niveau
-- Lehrkraft-Bausteine: Stundenverlauf, Ziel & Bildungsplan, Erwartungshorizont (Richtig/Falsch/Vorsicht), Abruffragen
-- Lösungen in Lücken (`[[−18]]`), Ankreuzen (`*`), Offener Frage, Tabelle und Zuordnen; Druckdialog mit Schüler-/Lösungsfassung und Farbe/S-W-Kopiervorlage
-- Stundenpaket als Datei: Import (Datei, Ziehen, Einfügen aus dem Chat) mit deutschen Fehlermeldungen und Hinweisen, Export eines Moduls
-- Anleitung für Claude mit allen Bausteinen, Symbolen, Platzregeln und dem Treibhauseffekt-Paket als Beispiel
-
-### Phase 3 – Englisch und Jahresplan ✅
-- Sprache pro Modul, englische Kopfzeile, typografische Anführungszeichen, deutsche Hilfe unter Aufträgen
-- Blatt-Typen Wortschatz, Grammatik, Hören, Sprechen, Test
-- Bausteine: Vokabelliste (IPA), Knick-Vokabeltest, Bild-Vokabeln, Wortnetz, Grammatik-Box, Formentabelle mit Vorlagen, Wörter ordnen, Umformen, Satzbaustellen, Hörverstehen, Lesetext mit Zeilennummern und Glossar, Richtig/Falsch/Not in the text, Redemittel, Rollenkarten, Bingo/Find someone who, Schreibrahmen, Sprachmittlung, Notenschlüssel, Tippkarten
-- Punkte getrennt nach Inhalt und Sprache, Vokabeltest-Generator, Vokabel-Export als CSV
-- Kompetenzbereiche des Bildungsplans als Vorlage im Kompetenzraster, Lehrwerksbezug je Modul und Stunde
-- Jahresplan mit Schulwochen und Ferien, druckbar, als Stundenpaket (mehrere Module) für Claude
-- Neue Themen-Symbole für Englisch-Units; Claude-Anleitung neu mit drei Beispielen
-
-### Phase 4 – Planung, Bilder, Folien ✅
-- Mehr Themen-Symbole (232, in zehn Gruppen); Kompetenzraster als Übersicht und druckbares Schülerblatt, Seitenumbruch durch Ausmessen
-- Jahresplan importieren (Claude-JSON oder Text/Tabelle), geplante Stunden mit Planungsnotiz, blass bis ausgearbeitet; Pakete ergänzen Module mit derselben Nummer, ohne Ausgearbeitetes zu überschreiben
-- Bildsuche in Openverse und Wikimedia Commons mit automatischer Quellenangabe; Suchwörter im Baustein „Abbildung“; transparenter Rand bei „Ganz zeigen“
-- Rückseiten doppelseitiger Blätter mit schmaler Kopfzeile der Vorderseite
-- Farbe je Fach in der App (die Blätter bleiben orange); Toolbox-Gruppe „Oft in <Fach>“
-- Folien je Stunde (16:9, nach `docs/design/referenz/Präsentation Treibhauseffekt.dc.html`): neun Arten, Editor, Vorschlag aus dem Arbeitsblatt, Präsentationsmodus (Vollbild, Tasten, Wischen, Antworten auf Klick, Sprechernotizen, Zeit), Handout, Notizfassung, PDF quer; Folien im Stundenpaket und in der Claude-Anleitung
-- Folien flexibler: Textfelder, Bilder, Videos (YouTube, Vimeo, MP4) und QR-Codes frei platzieren (ziehen, Größe ändern, auch per Finger), freie Folie „Leer“, Einträge und Elemente schrittweise einblenden, Animationen beim Erscheinen, Übergänge zwischen Folien, Fett/Marker-Knöpfe
-- Folien direkt auf der Folie beschreiben (Doppelklick, auf dem iPad zweimal tippen), fünf Designs je Stunde (Organisch, Klar, Heft, Tafel, Kontrast), PowerPoint-Export (bearbeitbar, im Design, Lösungen als Klick-Animation, Notizen, Übergänge) und -Import (passende Folienarten; eigene Folien kommen unverändert zurück)
-- Folien begleiten das Arbeitsblatt: jede Aufgabe auf einer eigenen Folie „Aufgabe“ (Nummer, Niveau, Punkte, Auftrag, Hilfe, Einträge, Bild) mit ihrer Lösung auf Klick, Lücken, die sich füllen, auch im Merksatz; Abbildungen, Schemata, Vokabeln und Regeln in der Reihenfolge des Blatts; Handout ohne Lösungen
-
-### Phase 5 – Feinschliff
-- Referentenansicht in einem zweiten Fenster (Notizen und nächste Folie auf dem Mac, Folie auf dem Beamer)
-- Vorlagen je Blatt-Typ
-- Bilder im Stundenpaket als ZIP statt data-URL (für große Fotos)
-- Test auf echtem iPad und Mac (Safari), Rückmeldungen einarbeiten
-- Leichte Textkorrektur in der App
-
-### Phase 6 – Alltag und Differenzierung (nach dem Audit)
-- ✅ Sicherheitsnetz: Papierkorb (30 Tage, Rückgängig), frühere Fassungen je Stunde, Safari-Hinweis und Erinnerung an die Sicherung
-- ✅ Niveau-Fassungen (G/M/E) und Testgruppen A/B beim Drucken
-- ✅ Suche (⌘K und Lupe in jeder Kopfzeile) über alle Fächer und Klassen, Titel und Inhalte von Modulen, Stunden, Bausteinen und Folien, die aktuellen zuerst; leer „Zuletzt geöffnet“; ein Treffer springt hin und markiert das Wort. Suchfeld in der Toolbox. Mehrfachauswahl (⇧/⌘-Klick, „Mehrere auswählen“ am iPad) und Ablage in der Toolbox (⌘C/⌘X/⌘V, antippen oder ziehen; die letzten 20, bis zum Leeren, nur auf diesem Gerät). Entschieden in Runde 2 (Fragen mit Vor- und Nachteilen): nur Bausteine in die Ablage, keine ganzen Seiten, Folien oder Stunden.
-- ✅ Werkzeuge beim Präsentieren (Runde 3): Timer (Minuten der Folie vorgeschlagen, Schnellwahl, Balken am unteren Rand, Gong wählbar, läuft über Folienwechsel), Lautstärke-Ampel mit 3 Farben, Schwarz-/Weißbild, Leiste unten, die sich ausblendet; Referentenansicht wie Keynote im zweiten Fenster (Chrome legt die Folien selbst auf den Beamer, Safari: Fenster ziehen). Bewusst nicht gewählt: Zufallsname, Stift auf der Folie, Folienübersicht, Laserpointer
-- Klassen und Kalender („Diese Woche“, gehalten, Nachbereitung), neues Schuljahr übernehmen
-- Vorlesen (Aussprache, Hörtexte), zwei Seiten auf ein Blatt/A5, Korrekturbogen, lesefreundliche Fassung
-- Größere Schritte: KI direkt im Baukasten (optional, eigener Schlüssel), automatischer Abgleich über eine eigene Cloud
-
-### Phase 7 – Digital austeilen (Runde 4, nach dem Vorbild eduki Interactive)
-Entschieden mit Fragen und Vor- und Nachteilen:
-- ✅ Aufgaben aus den vorhandenen Bausteinen am Gerät lösbar; austeilen als einzelne Aufgabe, ausgewählte Bausteine oder ganzes Arbeitsblatt, per Link und QR-Code, ohne Konto: Schüler geben Vorname + ersten Buchstaben des Nachnamens ein.
-- ✅ Aufträge liegen im eigenen öffentlichen Repository `noledge5/baukasten-aufgaben` (GitHub-Schlüssel je Gerät, darf nur dort schreiben); die Schüleransicht lädt sie von raw.githubusercontent.com.
-- ✅ Ergebnisse Ende-zu-Ende-verschlüsselt (ECDH P-256 + AES-GCM, ein Schlüsselpaar je Auftrag, der private Schlüssel reist mit dem Abgleich) auf Supabase in Frankfurt (Projekt „baukasten“), nur über zwei Funktionen erreichbar, Löschung nach 14 Tagen (pg_cron), täglicher Weckruf per GitHub Action.
-- ✅ Übung (selbst prüfen, Lösung zeigen; Lehrkraft sieht ersten Versuch und Ende) oder Test (ohne Lösungen im veröffentlichten Auftrag).
-- ✅ Auswertung: Live-Tabelle, häufige Fehler, Kompetenz-Übersicht (mit Niveau), Ansicht ohne Namen für den Beamer.
-- Als Nächstes: interaktive Modelle für die Naturwissenschaften (Simulationen mit eingebauten Aufgaben, über dieselbe Auswertung), danach ggf. Zeichenfeld digital.
-
-### Phase 8 – Folien 2.0 (Runde 5) ✅
-Entschieden mit Fragen und Vor- und Nachteilen, alles umgesetzt (dazu: Abdeckungen und Skizzen im PowerPoint-Export, neuer Baustein „Einstieg“ auf der Lehrkraft-Seite, Anleitung für Claude mit Einstiegsarten, Abruf und Verlauf):
-- Stift beim Präsentieren: am iPad schreibt der Pencil sofort, der Finger blättert und tippt weiter (Finger zeichnen zuschaltbar); am Mac Knopf oder Taste P, Maus oder Trackpad. Stift, Marker, Radierer, Farben, Rückgängig; Strich halten macht ihn gerade, Pfeil-Knopf setzt Pfeilspitzen; leere Tafel (weiß, kariert, liniert) einschieben.
-- Tafelbild: bleibt während der Stunde je Folie, beim Beenden „Tafelbild sichern?“; gesicherte Tafelbilder wieder einblenden oder als PDF drucken. Im Folieneditor vorzeichnen: Skizzen als Element, die auf Klick erscheinen.
-- Antippen: Lösungen liegen unter Karten in der Phasenfarbe mit Nummer (bzw. Buchstabe der Teilaufgabe); Antippen deckt genau diese auf, Weiter deckt der Reihe nach auf. Abdeckungen über Bildteilen (z. B. stumme Karte), Antippen nimmt sie weg.
-- Folienvorschlag nach dem Stundenverlauf statt als Spiegel des Blatts: Einstieg nach Einstiegsart (Bildimpuls, Schätzfrage, Zitat/Karikatur, Problem/Fall, Video, Experiment/Gegenstand, Abstimmung, Rätsel, Vorwissen), je Arbeitsphase eine Auftragsfolie (Kurzauftrag, Zeit, Sozialform, Ich–Du–Wir-Schritte mit Timer je Schritt), Besprechung mit Lösungen zum Antippen, Sicherung, Exit. Vorher eine Liste zum Abhaken; einzelne Folien lassen sich aus dem Blatt nachholen.
-- Abruf nur, wo der Verlauf eine Abrufphase hat, und nur mit Stoff aus früheren Stunden (verteiltes Wiederholen: letzte Stunde, frühere Stunde, früheres Modul). Grund: Abruffragen einer Stunde sind für spätere Stunden gedacht, standen aber am Anfang derselben Stunde.
-
-### Phase 9 – KI im Baukasten (Runde 6) ✅
-- Wunsch der Lehrkraft (01.10.2026): der ganze Weg mit Claude. Claude macht den Stoffverteilungsplan fürs Schuljahr, die Stunden sind dann als geplante Stunden angelegt. Danach wird jede Stunde in der Arbeitsblatt-Ansicht mit Claude ausgearbeitet, und zwar eingebettet in ihre Lage im Jahresplan: Fach, Klasse, Modul, Woche und Termin, die Stunden davor (Titel, Merksätze, Abruffragen) und danach, die Kompetenzen des Moduls und die Planungsnotiz der Stunde.
-- Zwei Wege: ohne Schlüssel kopiert der Baukasten den fertigen Auftrag samt Kontext für den Claude-Chat und nimmt die Antwort für genau diese Stunde zurück; mit Schlüssel (Claude direkt oder OpenRouter) geschieht das im Baukasten.
-Entschieden mit Fragen und Vor- und Nachteilen:
-- Ausarbeiten einer geplanten Stunde im Arbeitsblatt: „ganze Stunde“ in einem Schritt, oder „erst Gerüst“ (Lehrkraft-Seite mit Ziel, Einstieg, Verlauf, Aufgabenideen), das die Lehrkraft ändert, dann die Blätter dazu; ohne Schlüssel als Auftrag für den Chat mit Rückweg. Folien macht danach der Folienvorschlag.
-- Kontext für Claude: Modul (Thema, Kompetenzraster), Schulwoche und Datum mit Ferien, die Stunden davor (Ziel, Einstiegsart, Merksatz, Abruffragen, Aufgabenarten) und danach (Planungsnotizen).
-- Modelle: Claude Opus 5.5 für Stunden und Jahrespläne, Claude Sonnet 5.5 für die Helfer, je Aufgabe wählbar. Ergebnisse erst als Vorschau, dann übernehmen (die vorige Fassung wird gesichert).
-- Jahresplan: Assistent in der Jahresplan-Ansicht (Fach, Klasse, Stunden pro Woche, Lehrwerk, Schwerpunkte → Module mit Wochen und geplanten Stunden, Vorschau, übernehmen) und Auftrag für den Chat.
-- Helfer am Baustein: umformulieren (einfacher, fachlicher, kürzer, Englisch/Deutsch), G-/M-/E-Fassung, Lösung und Tipps ergänzen.
-- Kosten: je Anfrage und je Monat angezeigt, Monatslimit, ab dem der Baukasten vorher fragt. Der Schlüssel bleibt nur auf dem Gerät.
-- Umgesetzt (01.10.2026): Claude direkt (Anthropic SDK im Browser, lange Anleitung als zwischengespeicherter Systemprompt, adaptives Denken, Ausweichmodell bei Ablehnungen) und OpenRouter; „Stunde mit Claude“ mit ganzer Stunde, Gerüst, Blättern zum Gerüst und Überarbeiten; Jahresplan-Assistent; Helfer im Panel; alles auch über den Chat.
-
-### Als Nächstes
-- Runde 7 (interaktive Modelle) in der nächsten Woche.
-- ✅ (04.10.2026, nach dem Entwurf von Claude Design; Entscheidungen: alle drei Englisch-Varianten wählbar, Überschrift Vorschlag A als Vorgabe und umschaltbar, Einstellung je Modul mit dem Fach als Vorgabe, Code-Baustein dazu) Fachdesigns für Arbeitsblatt und Folien (Wunsch vom 02.10.2026): Geographie, Englisch, Informatik, je für Klasse 5–6 und 7–10; das Design darf Kopfband, Farben, Muster und Kästen ändern, Schriften, Raster und Maße bleiben (kein neuer Umbruch), mit S/W-Fassung. Entwurf durch Claude Design nach `docs/design/handoff-fachdesigns.md`, danach Einbau.
-- ✅ (05.10.2026) Vokabellisten mit Claude aus den Arbeitsblättern (Entscheidungen: je Stunde als Seite und je Unit als Stunde; je Wortfeld eine Liste plus Wortnetz; Bildspalte mit Suchwörtern, Bilder setzt die Lehrkraft; nur neue Wörter des Jahrgangs, Vorschau zum Abwählen).
-- ✅ (06.10.2026) Bilder mit KI und Aufgaben nach Anweisung (Wunsch: bessere Wege zu Bildern, Klasse-5-Blätter weniger steril, einzelne Aufgaben mit eigener Anweisung neu machen statt nur „einfacher, kürzer“). Entscheidungen: „Mit KI erzeugen“ an jedem Bildfeld (OpenRouter, Nano Banana 2 als Vorgabe); Vorgabe-Stil für 5–6 „Freundliche Illustration“; in Klasse 5–6 baut Claude mehr Bilder ein (mit Bildbeschreibung als Platzhalter); Aufgaben nach Anweisung frei, auch mit neuem Typ und bis zu drei Bausteinen, mit Vorher/Nachher und Rückgängig, auch als neue Aufgabe an der Einfügestelle.
-- ✅ (06.10.2026) Audit vor Runde 7 und didaktische Leitlinien für die KI (Wunsch: pädagogisch-didaktische Prinzipien, die den LLMs mitgegeben werden; Anleitung für Jahrespläne und Module verfeinern). Befunde: Drucken-Knopf am iPad quer nicht erreichbar, KI-Bilder als 1,5-MB-PNG gespeichert, Titel hochkant unlesbar, Didaktik in den Aufträgen nur in Stichworten, keine Modulebene zwischen Jahresplan und Stunde, kein Wissen über die Klasse. Entscheidungen: allgemeine Leitlinien (vom Ziel her, Kernziel, AFB I–III mit Operatoren, kognitive Aktivierung, Fehlvorstellungen, kleine Schritte, gestufte Hilfen, sprachsensibel, kooperativ, Sicherung und Rückmeldung) und Fachdidaktik für Geographie, Englisch und Informatik in der gemeinsamen Anleitung (ohne BW-Sonderteil und ohne Quellenangaben); Klassenprofil je Fach und Jahrgang plus Grundsätze der Lehrkraft, mit jeder Anfrage; „Modul mit Claude planen“ (rückwärts, Lernweg als geplante Stunden, noch ohne Ausarbeiten aller Stunden); Jahresplan-Assistent mit Klassenarbeiten, festen Terminen und Rolle und Kompetenzen je Stunde; die kleinen Fehler behoben.
-- ✅ (06.10.2026) PDF einpflegen (Wunsch: Material von anderen ins Baukasten-Format bringen, Abbildungen übernehmen). Entscheidungen: Claude liest die Seiten (Bild und Text), der Baukasten schneidet die Abbildungen aus (eingebettete Bilder genau, sonst nach Claudes Rahmen, auch bei Scans); treu mit Lösungen; nur PDF, eine Datei je Stunde; Lehrkraft-Seite und Kompetenzen dazu; keine Quellenzeile unter den Bildern.
-- ✅ (06.10.2026) Automatischer Abgleich Mac ↔ iPad (Wunsch: das wichtigste offene Audit-Thema). Entscheidungen: eigener Server (Supabase Frankfurt), Ende-zu-Ende-verschlüsselt, ohne Konto; Kopplung per Code/QR-Code; laufend (beim Öffnen, nach Änderungen, alle 3 Minuten); bei Konflikten gewinnt die neuere Fassung, die andere bleibt als frühere Fassung. Der Abgleich per Datei bleibt. Noch offen: Löschen der Daten auf dem Server und Aufräumen alter Kopplungen (die Server-Funktion braucht eine Freigabe im Supabase-Werkzeug).
-- Offen aus dem Audit: Klassenarbeit mit Claude aus dem Kompetenzraster, Didaktik-Check für fertige Stunden, Browser-Tests im CI.
-- Offen beim automatischen Abgleich: Daten auf dem Server löschen und alte Kopplungen aufräumen (braucht Freigabe im Supabase-Werkzeug).
-- ✅ (08.10.2026, Befragung zu Zeitfressern: Feinschliff im Editor, KI-Fehler beheben, Folien eigen und passend) Tastenkürzel-Übersicht (?), ↵ bearbeitet auf dem Blatt, 1/2/3/0 Niveau, ⌘P; „Stunde prüfen“ mit Claude (nicht lösbar mit dem Blatt, Reihenfolge, Niveau) mit „Beheben …“ über „Mit Anweisung neu machen“ und Grundsatz „Lösbar mit dem Blatt“ in der Anleitung; Antworten, Tabellen, Zuordnungen, Wortspeicher, Schemata direkt auf dem Blatt bearbeiten; Kopfzeile zeigt die Stunde; Folienarten „Vollbild“ und „Groß“, Suchwörter und Bildbeschreibung je Folie, „Folien mit Claude abwechslungsreicher“. Entscheidungen: Prüfen in Regel und Knopf; Folien erst Regeln, dann Claude obendrauf.
-- ✅ (08.10.2026) „Stunde komplett mit Claude“ (Endziel 2, Stunde in 15 Minuten): ausarbeiten, prüfen, beheben, Folien vorschlagen und abwechslungsreich machen in einem Lauf, am Ende einmal übernehmen. Nur mit Schlüssel (vier Anfragen nacheinander; über den Chat bleiben die einzelnen Dialoge).
-
-### Runde 8 – Stunden, die Sinn ergeben (Umbau, entschieden am 29.10.2026)
-Rückmeldung der Lehrkraft nach vielen echten Stunden: Der Baukasten selbst ist brauchbar, aber die Blätter ergeben für die Schüler oft keinen Sinn. Aufgaben sind zu kurz und wiederholen sich, Material zum Anschauen fehlt (Texte, beschriftete Bilder), die Folien passen nicht zum Blatt, und es gibt zu viele Wege, eine Stunde zu bauen. Ziel ist **Kohärenz**: Material und Aufgaben folgen den Lernschritten der Schüler, die Folien folgen dem Blatt.
-Entschieden mit Fragen und Vor- und Nachteilen:
-- **Zwei Wege statt vieler:** ein Dialog „Mit KI bauen“ für Arbeitsblatt, Stunde, Modul, Jahresplan oder Folien. Entweder den Auftrag kopieren (Claude, ChatGPT o. a.) und die Antwort einfügen, oder derselbe Auftrag direkt im Baukasten mit eigenem Schlüssel. Er ersetzt „Stunde mit Claude“ (ganz/Gerüst), „Stunde komplett“, „Modul mit Claude planen“, den Jahresplan-Assistenten und „Folien mit Claude“. Die Anleitung wird genauer, das Format zwingend.
-- **Bleiben:** „Mit KI erzeugen“ am Bildfeld, „PDF einpflegen“ und Vokabellisten (als Punkte im neuen Dialog), „Stunde prüfen“. **Fallen weg:** die Helfer am Baustein (umformulieren, G/M/E-Fassung, Tipps, „Mit Anweisung neu machen“, „Neue Aufgabe mit Claude“). „Beheben …“ aus „Stunde prüfen“ läuft künftig als Überarbeitung über den neuen Dialog.
-- **Erst Lernweg, dann Blatt:** Die KI schreibt zuerst den Lernweg der Stunde, Schritt für Schritt (Material → was die Schüler daraus lernen → Aufgabe → Erkenntnis), und baut Blatt und Folien daraus. Er steht als neuer Baustein „Lernweg“ auf der Lehrkraft-Seite, wird gedruckt und lässt sich ändern. Jede Aufgabe nennt ihr Material (M1, M2 …); der Baukasten prüft ohne KI, dass es davor steht.
-- **Material zuerst:** Jede Stunde hat einen Materialteil (Infotexte, beschriftete Bilder, Karten, Diagramme, M1–M3) und wenige, größere Aufgaben (etwa 3–5), die damit arbeiten; die Aufgabenart passt zum Lernschritt, keine Art zweimal hintereinander. Lieber eine Seite mehr.
-- **Folien als eigener Schritt:** erst ist das Blatt fertig und von der Lehrkraft korrigiert, dann baut eine eigene Folien-Anfrage aus Blatt und Lernweg die Präsentation (Einstieg, Material groß, Aufträge, Besprechung). Der Folienvorschlag nach Regeln ohne KI fällt weg.
-- **Beschriftete Abbildungen:** Die KI liefert die Beschriftungen einer Abbildung; die Lehrkraft zieht sie als nummerierte Punkte oder Pfeile aufs Bild (auch am iPad), auch als Aufgabe „Beschrifte“.
-- Ältere Stunden laden weiter wie bisher; die Bedienung des Editors (Anordnen, iPad hochkant) kommt nach dieser Runde.
-
-Reihenfolge (je Schritt ein eigener PR):
-1. ✅ (29.10.2026) Format und Anleitung: Baustein „Lernweg“, Material-Nummern und Materialbezug der Aufgaben, Regeln „Material zuerst“ und Abwechslung, Prüfung ohne KI nach dem Einfügen; „Stunde prüfen“ liest den Lernweg mit. Umgesetzt: Feld „Material-Nummer“ (`mat`) an Text, Hinweis, Abbildung, Fließschema, Code, Lese- und Hörtext, Vokabelliste, Grammatik-Box und Redemittel, gedruckt als Marke „M1“ über dem Baustein; Aufgaben nennen das Material im Auftrag. Die Prüfung ohne KI steht oben in „Stunde prüfen“; nach dem Übernehmen nennt der Hinweis die Zahl der Befunde. In beiden Beispielen der Anleitung stehen Erwartungshorizont und Abruffragen jetzt auf der Rückseite der Lehrkraft-Seite (das Englisch-Beispiel lief vorher schon über).
-2. ✅ (29.10.2026) Ein Dialog „Mit KI bauen“ (Was × Weg), die alten Dialoge und Helfer fallen weg. Umgesetzt: im Arbeitsblatt Menü „KI“ mit „Mit KI bauen …“ (Ganze Stunde, Ein Arbeitsblatt dazu, Überarbeiten, PDF einpflegen, Vokabelliste), „Stunde prüfen …“ und „KI im Baukasten …“; jeweils „Über den Chat“ (auch ChatGPT) oder direkt mit Schlüssel. „Beheben …“ und „Alle beheben …“ öffnen „Überarbeiten“ mit den Befunden. Weg sind „Stunde komplett“, „Erst das Gerüst“/„Blätter zum Gerüst“, „Neue Aufgabe mit Claude“ und die Helfer am Baustein. Modul und Jahresplan behalten ihre eigenen Angaben (Wochen, Stunden pro Woche), heißen aber auch „Mit KI bauen“; ebenso die Übersicht (Anleitung laden, Paket einfügen).
-3. ✅ (29.10.2026) Folien-KI als eigener Schritt aus Blatt und Lernweg; Regel-Vorschlag fällt weg. Umgesetzt: „Mit KI bauen: Folien“ (in der Folienansicht unter „Folien“, als erster Knopf ohne Folien, im Folien-Menü von Arbeitsblatt und Modul und als „Folien“ in „Mit KI bauen“ des Arbeitsblatts) mit „Neu aus Blatt und Lernweg“ (die ganze Stunde mit Lernweg, Verlauf, Einstieg, Blättern und den Abruffragen früherer Stunden; Bilder des Blatts per ID, sonst Suchwörter) und „Überarbeiten“; über den Chat oder mit Schlüssel. „Folien vorschlagen“ und „Aus dem Arbeitsblatt erzeugen“ sind weg; einzelne Folien holt „Aus dem Arbeitsblatt einfügen …“ weiter nach Regeln.
-4. ✅ (29.10.2026) Beschriftete Abbildungen. Umgesetzt: Feld „Beschriftungen“ der Abbildung (ein Begriff je Zeile; die KI schreibt nur die Wörter), auf dem Blatt eine Nummer antippen, dann die Stelle im Bild, gesetzte Punkte mit Finger, Pencil oder Maus verschieben (Rückgängig nimmt ein Ziehen in einem Schritt zurück). Arten: „Nummern mit Legende“, „Zum Ausfüllen“ (Schreiblinien, Wörter nur in der Lösungsfassung und nicht im digital ausgeteilten Test) und „Text im Bild“.
-- (29.10.2026, Wunsch der Lehrkraft) **Bauen nur noch über den Chat:** alle „Mit KI bauen“-Dialoge (Stunde, Blatt, Überarbeiten, Folien, Modul, Jahresplan, PDF, Vokabeln) zeigen nur „Auftrag kopieren“ und „Antwort einlesen“; ein Schlüssel dient nur noch „Stunde prüfen“ (geht auch über den Chat) und „Mit KI erzeugen“ an Bildern. Ein KI-Einstieg je Ansicht: Übersicht, Jahresplan, Modul (Menü „Modul“), Arbeitsblatt (Menü „KI“), Folien (Menü „Folien“); weg sind „Mit KI ausarbeiten“ in der Planungszeile, „Mit KI bauen“ im kleinen Folien-Menü und die Knöpfe unten im Modul. Dazu in den Einstellungen „Version“ (PR-Nummer des Merges, Datum, Commit), damit klar ist, welcher Stand live ist.
-- (30.10.2026, Wunsch der Lehrkraft) **Mehr Freiheit für die KI, Folien vielfältiger, Merksätze aus der Stunde.** Die Anleitung macht die KI zur erfahrenen Lehrkraft und Planerin: fest ist nur das Format, frei sind Aufbau, Methoden, Medien und Zahl der Blätter und Folien; dazu Leitfragen (geht das mit dieser Klasse, didaktische Reduktion, angemessene Länge nach Alter, lernwirksam, schlüssig, Methode, Medium) statt Pflichtlisten. Folien: erst nachdenken, wie die Stunde im Raum läuft, dann Folien aus einem Werkzeugkasten, kein fester Ablauf. Neue Folienarten „Aufzählung“, „Text“, „Quiz“ (A–D, Hände zählen, richtige Antwort auf Klick) und „Ordnen“ (Karten in Spalten oder Reihenfolge, beim Präsentieren antippen; Antippen statt Ziehen, weil Ziehen mit Wischen und Stift kollidiert). Merksätze: kein farbiger Hintergrund mehr (Druck), auf Blatt und Folie Papiergrund mit farbigem Rahmen; nur Wörter, die vorher auf den Blättern standen (Regel in der Anleitung, Prüfung ohne KI meldet neue Lückenwörter).
-- (31.10.2026, Befragung) **Anleitung kürzer:** von 145.000 auf etwa 34.000 Zeichen, weil Modelle die lange Datei nicht zu Ende lasen. Entscheidungen: Ziel etwa 35.000 Zeichen; ein kompaktes Beispiel statt drei (Jahresplan nur als Schnipsel); Didaktik als sieben Leitfragen plus wenige feste Regeln, Leitlinien und Fachdidaktik in Stichworten; Folien als kurzer eigener Abschnitt mit allen Folienarten; Symbole nur als Schlüssel; Bausteine eine Zeile je Baustein (gemeinsame Aufgabenfelder einmal erklärt). Der Folien-Auftrag zum Kopieren enthält die Anleitung nicht mehr (sie liegt im Projekt), nur den Auftrag und die Stunde ohne Standardwerte (Beispielstunde: 2.400 statt über 150.000 Zeichen). Ein Test hält die Anleitung unter 40.000 Zeichen.
-- (02.11.2026, Wunsch der Lehrkraft) **Lösungsblätter digital austeilen:** dritte Art „Lösungsblatt“ beim Austeilen (neben Übung und Test). Die Schüler sehen die Seiten wie die gedruckte Lösungsfassung, zum Vergleichen und Berichtigen; kein Name, keine Abgabe, keine Auswertung (im Menü „Digital“ als „Lösungsblatt: …“ mit Link und QR-Code).
-
+- [Endziele bis Sommer 2027](entscheidungen/endziele-2027.md): Unterricht vom iPad, Stunde in 15 Minuten, Modelle zum Anfassen; Reihenfolge der Runden.
+- [Phasen 1 bis 5](entscheidungen/phasen-1-bis-5.md): Editor, Bibliothek, Englisch, Jahresplan, Folien; offener Feinschliff.
+- [Phase 6 – Alltag und Differenzierung](entscheidungen/phase-6-alltag.md): Papierkorb, Niveau-Fassungen, Suche, Werkzeuge beim Präsentieren.
+- [Phase 7 – Digital austeilen](entscheidungen/phase-7-digital-austeilen.md): Aufgaben per Link, verschlüsselte Ergebnisse, Auswertung.
+- [Phase 8 – Folien 2.0](entscheidungen/phase-8-folien.md): Stift, Tafelbild, Antippen, Folien nach dem Stundenverlauf.
+- [Phase 9 – KI im Baukasten](entscheidungen/phase-9-ki.md): Stunden und Jahresplan mit Claude, Kontext, Modelle, Kosten.
+- [Als Nächstes (Oktober 2026)](entscheidungen/als-naechstes-oktober-2026.md): Fachdesigns, Vokabellisten, KI-Bilder, Didaktik, PDF, automatischer Abgleich; Offenes.
+- [Runde 8 – Stunden, die Sinn ergeben](entscheidungen/runde-8-kohaerenz.md): neueste Runde (29.10.2026): Lernweg, Material zuerst, ein Dialog „Mit KI bauen“, Bauen nur über den Chat.

@@ -7,3 +7,8 @@ coverage
 
 # Screenshots from checks belong in the scratchpad, not here
 /*.png
+
+# Obsidian (vault: docs/): only the shared settings in app.json belong in git.
+# Workspace, cache and plugins stay on each device (plugin settings can hold a GitHub token).
+docs/.obsidian/*
+!docs/.obsidian/app.json
