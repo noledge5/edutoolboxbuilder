@@ -5,6 +5,7 @@ import { handoutPages, handoutTasks, handoutTitle, readAssignment, studentPages,
 import { newKeyPair, open, randomId, seal } from './crypto';
 import { evaluate, latestSubmissions } from './evaluate';
 import { gradeTask, isRight, normalize, stripSolutions, taskSlots } from './grade';
+import { readHandout } from '../library/read';
 
 const gap = createBlock('gap', { prompt: 'Ergänze.', text: 'Die [[Sonne]] wärmt die [[Erde / Erdoberfläche]]. Dann ___.' });
 const mc = createBlock('mc', { prompt: 'Welches Glas?', options: 'Glas A\n*Glas B\ngleich' });
@@ -80,6 +81,13 @@ describe('handing out', () => {
     expect(studentPages(pages, 'uebung')).toBe(pages);
     expect(readAssignment({ format: 'baukasten-auftrag', id: 'x', pages: [], key: {} })?.mode).toBe('uebung');
     expect(readAssignment({ format: 'anders' })).toBeNull();
+  });
+
+  it('hands out a solution sheet with its solutions, and keeps it one when read back', () => {
+    const pages = handoutPages(seedDoc(), null);
+    expect(studentPages(pages, 'loesung')).toBe(pages);
+    expect(readAssignment({ format: 'baukasten-auftrag', id: 'x', pages: [], key: {}, mode: 'loesung' })?.mode).toBe('loesung');
+    expect(readHandout({ id: 'h', privateKey: {}, pages, mode: 'loesung' })?.mode).toBe('loesung');
   });
 });
 

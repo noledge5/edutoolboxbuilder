@@ -94,7 +94,7 @@ export function readHandout(raw: unknown): Handout | null {
       id: raw.id,
       lessonId: str(raw.lessonId),
       title: str(raw.title),
-      mode: raw.mode === 'test' ? 'test' : 'uebung',
+      mode: raw.mode === 'test' || raw.mode === 'loesung' ? raw.mode : 'uebung',
       url: str(raw.url),
       pages,
       privateKey: raw.privateKey as JsonWebKey,

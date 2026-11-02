@@ -8,8 +8,11 @@ import { stripSolutions, type Answers } from './grade';
 
 export const ASSIGNMENT_FORMAT = 'baukasten-auftrag';
 
-/** Practice: students check each task and try again. Test: they hand in, without solutions. */
-export type HandoutMode = 'uebung' | 'test';
+/**
+ * Practice: students check each task and try again. Test: they hand in, without solutions. Solution sheet: the
+ * pages with their solutions to read and compare (after work on paper); nothing is handed in.
+ */
+export type HandoutMode = 'uebung' | 'test' | 'loesung';
 
 export interface AssignmentPage {
   title: string;
@@ -95,7 +98,7 @@ export const handoutImages = (pages: AssignmentPage[]) => [...new Set(pages.flat
 
 /** The copy for the class: in a test without solutions. */
 export function studentPages(pages: AssignmentPage[], mode: HandoutMode): AssignmentPage[] {
-  if (mode === 'uebung') return pages;
+  if (mode !== 'test') return pages;
   return pages.map((pg) => ({ ...pg, blocks: pg.blocks.map(stripSolutions) }));
 }
 
@@ -119,7 +122,7 @@ export function readAssignment(raw: unknown): Assignment | null {
     v: 1,
     id: String(a.id),
     title: String(a.title ?? ''),
-    mode: a.mode === 'test' ? 'test' : 'uebung',
+    mode: a.mode === 'test' || a.mode === 'loesung' ? a.mode : 'uebung',
     lang: a.lang === 'en' ? 'en' : 'de',
     help: a.help !== false,
     icon: String(a.icon ?? ''),
