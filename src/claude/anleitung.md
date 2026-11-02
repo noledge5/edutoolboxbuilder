@@ -26,8 +26,8 @@ Frag dich vor dem Schreiben und vor der Ausgabe:
 - **Lernweg zuerst:** Plane jede Stunde als Lernschritte und schreib sie als Baustein `path` auf die Lehrkraft-Seite, je Zeile `Material | Lernschritt | Aufgabe | Erkenntnis`. Die Blätter folgen ihm.
 - **Material vor der Aufgabe:** Material (Text, Abbildung, Karte, Diagramm, Quelle; Englisch: Vokabeln, Grammatik-Box, Redemittel, Hör- und Lesetext) bekommt `mat` (`"M1"`, `"M2"` …, fortlaufend über die Stunde) und steht vor den Aufgaben, die es nennen („Lies M1 …“). Lieber wenige größere Aufgaben, die mit Material arbeiten, als viele kurze Abfragen.
 - **Lösbar mit dem Blatt:** Was eine Aufgabe braucht, steht vorher auf den Blättern oder ist sicher aus früheren Stunden bekannt.
-- **Merksatz aus der Stunde:** nur Wörter, die vorher auf den Blättern standen; keine neuen Fachwörter oder Vokabeln, Lücken nur mit solchen Wörtern.
-- **Lösungen:** jede Aufgabe mit eindeutiger Lösung (`[[…]]`, `*`, `T/F/NG`, `solution`), Varianten mit ` / `. Die Schülerfassung zeigt sie nie.
+- **Merksatz aus der Stunde:** nur Wörter, die vorher auf den Blättern standen; keine neuen Fachwörter oder Vokabeln, Lücken nur mit solchen Wörtern, in genau derselben Wortform (die Prüfung vergleicht Wörter: „wahrscheinlichsten“ ist nicht „wahrscheinlichste“).
+- **Lösungen:** jede Aufgabe mit eindeutiger Lösung (`[[…]]`, `*`, `T/F/NG`, `solution`), Varianten mit ` / `. Die Schülerfassung zeigt sie nie. Nur der Schreibrahmen hat keine Lösung; Satzanfänge und Checkliste leiten an.
 - **Abruf:** Abruffragen (`recall`) fragen den Stoff **dieser** Stunde; der Baukasten stellt sie in späteren Stunden.
 - **Klassenprofil und Grundsätze** der Lehrkraft im Auftrag gehen allem anderen vor.
 - **Folien** sind ein eigener Schritt (siehe „Folien“); beim Ausarbeiten einer Stunde lässt du `slides` weg.
@@ -62,9 +62,9 @@ Blatt-Typen (`type`): `uebung`, `versuch`, `sicherung`, `vocab`, `grammar`, `lis
 **Schreibweisen:**
 - Listen: eine Zeile je Eintrag (`\n`) oder eine JSON-Liste. Spalten in einer Zeile mit ` | `.
 - Lücken: `___` leer, `[[Wort]]` mit Lösung (Lückentext, Merksatz, Formentabelle, Satzbaustellen, Wortnetz, Rollenkarten); mehrere richtige mit ` / `.
-- `**fett**`, `{{markiert}}` (farbig, z. B. `play{{s}}`).
+- `{{markiert}}` (farbig, z. B. `play{{s}}` oder ein Fachwort). `**fett**` nur auf Folien; auf Blättern stehen sonst die Sternchen im Text.
 - Ankreuzen: `*` vor der richtigen Antwort. Richtig/Falsch: `Aussage | T`, `| F`, `| NG`. Wörter ordnen: der richtige Satz oder `school / I / go = I go to school.`
-- `solution`: Offene Frage und Sprachmittlung (ein, zwei Sätze), Tabelle (Zeilen mit ` | `), Zuordnen (Nummern der passenden linken Einträge, z. B. `"2, 3, 1"`).
+- `solution`: Offene Frage und Sprachmittlung (ein, zwei Sätze), Tabelle (eine Zeile je Tabellenzeile, Zellen mit ` | `, ohne die vorgegebene erste Spalte), Zuordnen (Nummern der passenden linken Einträge, z. B. `"2, 3, 1"`).
 - Typografisch: Deutsch „…“ und –, Englisch “…” und ’.
 
 **Kompetenzen:** je Eintrag `id` (z. B. `"k1"`), `domain`, `area`, `g`, `m`, `e` (je ein „Ich kann …“-Satz). Bereiche für Fremdsprachen genau so: {{BEREICHE}}. In anderen Fächern ist `domain` frei.
@@ -99,11 +99,11 @@ Keine Fotos: eine Abbildung (`image`) mit Bildunterschrift (`caption`), englisch
 
 ## Digital lösbar
 
-Die Lehrkraft teilt Aufgaben auch digital aus. Automatisch ausgewertet werden Ankreuzen, Lückentext, Richtig/Falsch, Zuordnen, Tabelle, Wörter ordnen, Umformen, Knick-Vokabeltest, Bild-Vokabeln, Wortnetz und Satzbaustellen: Lösungen dort kurz und eindeutig, nie „z. B.“ in `[[…]]`. Frei geschrieben (Offene Frage, Schreibrahmen, Sprachmittlung) zeigt die Übung danach die `solution`. Zeichenfeld und Bingo gehen nur auf Papier.
+Die Lehrkraft teilt Aufgaben auch digital aus. Automatisch ausgewertet werden Ankreuzen, Lückentext, Richtig/Falsch, Zuordnen, Tabelle, Wörter ordnen, Umformen, Knick-Vokabeltest, Bild-Vokabeln, Wortnetz und Satzbaustellen: Lösungen dort kurz und eindeutig, nie „z. B.“ in `[[…]]`. Frei geschrieben (Offene Frage, Sprachmittlung) zeigt die Übung danach die `solution`; der Schreibrahmen bleibt ohne Lösung. Zeichenfeld und Bingo gehen nur auf Papier.
 
 ## Platz auf der Seite
 
-Was nicht passt, wird abgeschnitten. Eine Seite hat etwa **840 px** (Rückseite 950), zwischen Bausteinen 18 px. Richtwerte bei voller Breite: Überschrift 25; Textblock 22 je Zeile (100 Zeichen, halbe Breite 50); Hinweis, Merksatz 90; Abbildung `height` + 25 (+ 22 je Reihe Beschriftungen); Aufgabe 35 für den Auftrag (+ 22 je weitere Zeile, + 18 mit Hilfe); Offene Frage + 28 je Linie; Ankreuzen 70; Lückentext + 31 je Zeile; Tabelle 60 + 30 je Zeile; Zuordnen + 40 je Paar; Vokabelliste 65 + 32 je Wort; Lesetext 60 + 22 je Zeile; Richtig/Falsch 65 + 37 je Aussage; Lernweg 40 + 55 je Schritt; Stundenverlauf 40 + 50 je Phase; Material mit `mat` + 22. `6`+`6` zählt einmal. Lieber eine Seite mehr (Rückseite mit `"back": true`).
+Was nicht passt, wird abgeschnitten (die Lehrkraft sieht „Seite ist voll“). Eine Seite hat etwa **840 px** (Rückseite 950), zwischen Bausteinen 18 px. Gemessene Richtwerte bei voller Breite, Aufgaben einschließlich Auftrag und Kompetenz-Zeile: Überschrift 25; Textblock 22 je Zeile (100 Zeichen, halbe Breite 50); Hinweis 70 + 22 je weitere Zeile; Merksatz 85 + 30 je weitere Zeile (etwa 60 Zeichen je Zeile); Fließschema 105, + 22 wenn ein Schritt umbricht (bei 5 Schritten etwa 14 Zeichen je Zeile); Abbildung `height` + 25 (+ 22 je Reihe Beschriftungen); Aufgabe 35 für den Auftrag (+ 22 je weitere Zeile, + 18 mit Hilfe); Offene Frage + 28 je Linie; Ankreuzen + 40 je Antwort (nur sehr kurze Antworten stehen nebeneinander); Lückentext + 33 je Zeile; Tabelle 75 + 34 je Zeile; Zuordnen + 42 je Paar; Schreibrahmen + 29 je Linie (Satzanfänge × `lines`), Checkliste + 45 und 23 je Punkt; Vokabelliste 65 + 32 je Wort; Lesetext 60 + 22 je Zeile; Richtig/Falsch 90 + 35 je Aussage; Ziel 65 + 22 je weitere Zeile; Einstieg 150; Lernweg 40 + 55 je Schritt; Stundenverlauf 40 + 50 je Phase; Erwartungshorizont 70 je Aussage (+ 22, wenn sie umbricht); Abruffragen 45 + 30 je Frage; Material mit `mat` + 22. `6`+`6` zählt einmal. Lieber eine Seite mehr (Rückseite mit `"back": true`).
 
 ## Folien
 

@@ -44,6 +44,12 @@ describe('Anleitung für Claude', () => {
     expect(JSON.parse(block)).toEqual(example);
   });
 
+  // The sheet draws {{markiert}} but not **fett** (only slides do), so the example must not teach it.
+  it('uses no **bold** on the sheets of the example', () => {
+    const sheets = JSON.stringify(lessonExample().modules.flatMap((m) => m.lessons.flatMap((l) => l.pages ?? [])));
+    expect(sheets).not.toMatch(/\*\*/);
+  });
+
   // The copy in docs/ is for reading on GitHub; `npm run anleitung` updates it.
   it('matches the copy in docs/claude', async () => {
     await expect(text).toMatchFileSnapshot('../../docs/claude/anleitung-fuer-claude.md');

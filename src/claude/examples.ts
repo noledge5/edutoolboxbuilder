@@ -52,7 +52,7 @@ const sheet: Page = {
   form: 'allein',
   nameField: 'name',
   blocks: [
-    b('text', { mat: 'M1', text: 'Tief unter dem Vulkan liegt die **Magmakammer**. Dort sammelt sich heißes, flüssiges Gestein, das Magma. Steigt der Druck, drückt es das Magma durch den **Schlot** nach oben. Oben tritt es am **Krater** aus und heißt dann Lava.' }, 7),
+    b('text', { mat: 'M1', text: 'Tief unter dem Vulkan liegt die {{Magmakammer}}. Dort sammelt sich heißes, flüssiges Gestein, das Magma. Steigt der Druck, drückt es das Magma durch den {{Schlot}} nach oben. Oben tritt es am {{Krater}} aus und heißt dann Lava.' }, 7),
     b('image', { mat: 'M2', caption: 'M2: Schnitt durch einen Vulkan', height: 220, search: 'volcano cross section', describe: 'simple cross section of a volcano with magma chamber, vent and crater, no text', labels: 'Krater\nSchlot\nMagmakammer', labelStyle: 'luecken' }, 5),
     b('open', { prompt: 'Lies M1. Nenne, wo sich das Magma sammelt.', lines: 1, solution: 'In der Magmakammer.', level: '1', competence: 'k1' }),
     b('wordbank', { words: 'Krater\nSchlot\nMagmakammer' }),
