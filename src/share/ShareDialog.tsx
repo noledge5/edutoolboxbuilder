@@ -209,16 +209,26 @@ export function ShareDialog({ pages, defaultTitle, lessonId, meta, onDone, onOpe
               options={[
                 { v: 'uebung', l: 'Übung' },
                 { v: 'test', l: 'Test' },
+                { v: 'loesung', l: 'Lösungsblatt' },
               ]}
               onPick={setMode}
             />
             <p className="dialog-body print-hint">
-              {mode === 'uebung'
-                ? 'Übung: Die Schüler prüfen jede Aufgabe selbst, versuchen es nochmal und können danach die Lösung sehen. Du siehst den ersten Versuch und das Endergebnis.'
-                : 'Test: Die Schüler sehen keine Lösungen und geben am Ende ab; die Lösungen werden gar nicht erst mitgeschickt.'}{' '}
-              {blocks === 1 ? 'Ein Baustein' : `${blocks} Bausteine`}, davon {tasks.length === 1 ? 'eine Aufgabe' : `${tasks.length} Aufgaben`}
-              {digital < tasks.length ? ` (${tasks.length - digital} nur auf Papier)` : ''}. Die Schüler geben Vorname und ersten Buchstaben des Nachnamens ein, ohne Konto. Ihre Antworten kommen
-              verschlüsselt an, nur du kannst sie lesen; der Server löscht sie nach {KEEP_DAYS} Tagen.
+              {mode === 'loesung' ? (
+                <>
+                  Lösungsblatt: Die Schüler sehen die Seiten mit allen Lösungen, wie in der gedruckten Lösungsfassung, zum Vergleichen und Berichtigen. Kein Name, keine Abgabe, keine Auswertung.{' '}
+                  {blocks === 1 ? 'Ein Baustein' : `${blocks} Bausteine`}, davon {tasks.length === 1 ? 'eine Aufgabe' : `${tasks.length} Aufgaben`}. Der Link ist öffentlich: Teile ihn erst, wenn die Klasse fertig ist.
+                </>
+              ) : (
+                <>
+                  {mode === 'uebung'
+                    ? 'Übung: Die Schüler prüfen jede Aufgabe selbst, versuchen es nochmal und können danach die Lösung sehen. Du siehst den ersten Versuch und das Endergebnis.'
+                    : 'Test: Die Schüler sehen keine Lösungen und geben am Ende ab; die Lösungen werden gar nicht erst mitgeschickt.'}{' '}
+                  {blocks === 1 ? 'Ein Baustein' : `${blocks} Bausteine`}, davon {tasks.length === 1 ? 'eine Aufgabe' : `${tasks.length} Aufgaben`}
+                  {digital < tasks.length ? ` (${tasks.length - digital} nur auf Papier)` : ''}. Die Schüler geben Vorname und ersten Buchstaben des Nachnamens ein, ohne Konto. Ihre Antworten
+                  kommen verschlüsselt an, nur du kannst sie lesen; der Server löscht sie nach {KEEP_DAYS} Tagen.
+                </>
+              )}
             </p>
             {step.error && <p className="dialog-body share-error">{step.error}</p>}
             <div className="dialog-actions">
@@ -238,7 +248,7 @@ export function ShareDialog({ pages, defaultTitle, lessonId, meta, onDone, onOpe
             <p className="dialog-body">
               <Icon icon={QrCode} size={16} /> „{step.handout.title}“ ist ausgeteilt. Zeig den QR-Code oder schick den Link (z. B. über Moodle oder den Klassenchat).
             </p>
-            <ShareResult handout={step.handout} onOpenResults={() => onOpenResults(step.handout.id)} />
+            <ShareResult handout={step.handout} onOpenResults={step.handout.mode === 'loesung' ? undefined : () => onOpenResults(step.handout.id)} />
           </>
         )}
       </div>

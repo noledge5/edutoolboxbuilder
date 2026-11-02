@@ -30,7 +30,35 @@ const pct = (x: number | null) => (x === null ? '–' : `${Math.round(x * 100)} 
 const tone = (x: number | null) => (x === null ? '' : x >= 0.8 ? ' is-good' : x >= 0.5 ? ' is-mid' : ' is-low');
 const clock = (t: number) => new Date(t).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
-export function EvaluationView({ handout, competences, place, onBack }: EvaluationViewProps) {
+export function EvaluationView(p: EvaluationViewProps) {
+  return p.handout.mode === 'loesung' ? <SolutionHandout {...p} /> : <Results {...p} />;
+}
+
+/** A solution sheet handed out: nothing comes back, so only its link and QR code. */
+function SolutionHandout({ handout, place, onBack }: EvaluationViewProps) {
+  return (
+    <div className="app ev-app">
+      <header className="topbar">
+        <button type="button" className="iconbtn topbar-back" onClick={onBack} title="Zurück" aria-label="Zurück">
+          <Icon icon={ArrowLeft} size={18} />
+        </button>
+        <div className="topbar-name">
+          <div className="topbar-title">Lösungsblatt: {handout.title}</div>
+          <div className="topbar-place">
+            {place} · ausgeteilt {new Date(handout.createdAt).toLocaleDateString('de-DE')}
+          </div>
+        </div>
+        <SearchButton />
+      </header>
+      <main className="ev-main">
+        <p className="lib-empty">Ein Lösungsblatt hat keine Auswertung: Die Schüler sehen nur die Lösungen und geben nichts ab.</p>
+        <ShareResult handout={handout} />
+      </main>
+    </div>
+  );
+}
+
+function Results({ handout, competences, place, onBack }: EvaluationViewProps) {
   const [rows, setRows] = useState<StoredResult[]>([]);
   const [status, setStatus] = useState<{ at: number; error: boolean }>({ at: 0, error: false });
   const [tab, setTab] = useState<Tab>('klasse');

@@ -125,7 +125,7 @@ export function TopBar(p: TopBarProps) {
           items={[
             { label: 'Ganzes Arbeitsblatt austeilen …', icon: Send, onClick: p.onShareAll },
             ...(p.handouts ?? []).slice(0, 8).map((h) => ({
-              label: `Auswertung: ${h.title.length > 30 ? h.title.slice(0, 29) + '…' : h.title} · ${new Date(h.createdAt).toLocaleString('de-DE', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
+              label: `${h.mode === 'loesung' ? 'Lösungsblatt' : 'Auswertung'}: ${h.title.length > 30 ? h.title.slice(0, 29) + '…' : h.title} · ${new Date(h.createdAt).toLocaleString('de-DE', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
               icon: BarChart3,
               onClick: () => p.onOpenHandout?.(h.id),
             })),

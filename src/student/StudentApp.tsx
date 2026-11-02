@@ -7,7 +7,8 @@ import { Icon } from '../icons';
 import type { Doc } from '../model/types';
 import { BlockContent } from '../sheet/BlockContent';
 import { SheetDocContext } from '../sheet/lang';
-import { themeOf, themeVars } from '../sheet/SheetPage';
+import { taskNumbers, themeOf, themeVars } from '../sheet/SheetPage';
+import { SheetModeContext } from '../sheet/sheetMode';
 import { provideImages } from '../storage/images';
 import { topicIcon } from '../topicIcons';
 import { handoutTasks, readAssignment, type Assignment, type Submission } from '../share/assignment';
@@ -158,6 +159,7 @@ export function StudentApp() {
   const tasks = handoutTasks(a.pages);
   const doc: Doc = { icon: a.icon, lang: a.lang, help: a.help, footer: '', code: a.code, pages: a.pages.map((p) => ({ ...p, form: 'allein', nameField: 'aus', blocks: p.blocks })) };
   const practice = a.mode === 'uebung';
+  if (a.mode === 'loesung') return <SolutionSheet a={a} doc={doc} />;
 
   if (!work)
     return (
@@ -306,6 +308,52 @@ export function StudentApp() {
     </div>
   );
 }
+
+/** A solution sheet: the pages as on the printed solution sheet, to read; no name, nothing handed in. */
+function SolutionSheet({ a, doc }: { a: Assignment; doc: Doc }) {
+  const t = STUDENT_TEXT[a.lang];
+  return (
+    <div className="st-app" lang={a.lang}>
+      <header className="st-top">
+        <span className="st-top-icon">
+          <Icon icon={topicIcon(a.icon)} size={18} />
+        </span>
+        <div className="st-top-text">
+          <b>{a.title}</b>
+          <span>
+            {t.solutions} · {t.solutionsHint}
+          </span>
+        </div>
+      </header>
+      <main className="st-main">
+        <SheetDocContext.Provider value={doc}>
+          <SheetModeContext.Provider value={SOLUTIONS_SHOWN}>
+            {doc.pages.map((page, pi) => {
+              const nums = taskNumbers(page);
+              return (
+                <section key={pi} className="ws-page st-sheet" style={themeVars(themeOf(page))}>
+                  <div className="st-band">
+                    <span className="st-band-kicker">{page.kicker}</span>
+                    <h2 className="st-band-title">{page.title}</h2>
+                  </div>
+                  <div className="st-blocks">
+                    {page.blocks.map((b, i) => (
+                      <div key={b.id} className="st-block" style={{ gridColumn: `span ${b.span}` }}>
+                        <BlockContent block={b} taskNum={nums[i]} editing={false} />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </SheetModeContext.Provider>
+        </SheetDocContext.Provider>
+      </main>
+    </div>
+  );
+}
+
+const SOLUTIONS_SHOWN = { solutions: 'shown', bw: false } as const;
 
 function Start({ a, onStart }: { a: Assignment; onStart(name: string): void }) {
   const t = STUDENT_TEXT[a.lang];
