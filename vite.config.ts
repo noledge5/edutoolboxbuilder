@@ -2,6 +2,12 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { execSync } from 'node:child_process';
 
+/** PR number from a merge commit ("Merge pull request #12 …") or a squash merge ("Titel (#13)"). */
+const prNumber = (subject: string) => {
+  const m = /^Merge pull request #(\d+)/.exec(subject) ?? /\(#(\d+)\)$/.exec(subject);
+  return m?.[1] ?? '';
+};
+
 /** The commit being built: short id, commit time and, for a merge on main, the number of the pull request. */
 function version() {
   const git = (args: string) => {
@@ -12,7 +18,7 @@ function version() {
     }
   };
   const subject = git('log -1 --format=%s');
-  return { sha: git('rev-parse --short HEAD'), date: git('log -1 --format=%cI'), pr: /Merge pull request #(\d+)/.exec(subject)?.[1] ?? '' };
+  return { sha: git('rev-parse --short HEAD'), date: git('log -1 --format=%cI'), pr: prNumber(subject) };
 }
 
 // Relative base so the build works on GitHub Pages under /<repo>/ and anywhere else.
