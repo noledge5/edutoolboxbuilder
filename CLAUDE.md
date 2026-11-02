@@ -3,6 +3,16 @@
 Browser tool for a German Realschule teacher to build printable A4 worksheets, slides and year plans from blocks.
 Vite + React + TypeScript, no backend of its own (Supabase only for sync and for handing out tasks), deployed to GitHub Pages.
 
+## Arbeitsweise (gilt für alle Repos von noledge5)
+- Deutsch, schlicht, kurz. Fachwörter beim ersten Mal kurz erklären.
+- Ich entscheide, was gebaut wird; wie, entscheidest du.
+- In GitHub-Repos jede Aufgabe auf einem eigenen Branch, nie direkt auf den Standard-Branch.
+  PR nur auf Wunsch, mergen tue ich. In manchen Repos heißt Mergen veröffentlichen (steht in der CLAUDE.md).
+- Vorher fragen bei allem, was ich sehe oder merke, und bei Daten, Geld, Löschen, Veröffentlichen.
+- Mit den Tests des Projekts prüfen, nach dem Push die CI ansehen. Ehrlich sagen, was geprüft ist und was nicht.
+- Sicheren Code schreiben; sicherheitskritische Stellen (Anmeldung, Rechte, Schlüssel, Eingaben) gezielt prüfen.
+- Pro-Abo: sparsam, für getrennte Themen getrennte Sitzungen.
+
 ## Read first
 - `docs/design/README.md`: the design spec. The prototype `docs/design/Arbeitsblatt-Baukasten.dc.html` is the functional spec.
 - `docs/roadmap.md`: decisions made with the user, their reasons and the phase plan. Stay within the current phase unless
