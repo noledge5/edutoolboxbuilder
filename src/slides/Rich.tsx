@@ -1,5 +1,6 @@
-// Slide text: **bold** and {{marked}} parts, typographic quotes and line breaks.
+// Slide text: **bold** and {{marked}} parts (as on the sheets, `inlineRuns`), typographic quotes and line breaks.
 import { Fragment } from 'react';
+import { inlineRuns, type Run } from '../model/text';
 import type { Lang } from '../model/types';
 import { typo } from '../sheet/lang';
 
@@ -10,19 +11,23 @@ export function Rich({ text, lang }: { text: string; lang: Lang }) {
       {lines.map((line, i) => (
         <Fragment key={i}>
           {i > 0 && <br />}
-          {line.split(/(\*\*[^*]+\*\*|\{\{[^}]+\}\})/).map((part, k) =>
-            part.startsWith('**') && part.endsWith('**') ? (
-              <strong key={k}>{part.slice(2, -2)}</strong>
-            ) : part.startsWith('{{') && part.endsWith('}}') ? (
-              <mark key={k} className="sl-mark">
-                {part.slice(2, -2)}
-              </mark>
-            ) : (
-              part
-            ),
-          )}
+          {inlineRuns(line).map((r, k) => (
+            <RichRun key={k} run={r} />
+          ))}
         </Fragment>
       ))}
     </>
   );
+}
+
+/** A run of slide text that is already typographic: bold, marked, line breaks. */
+export function RichRun({ run }: { run: Run }) {
+  const text = run.text.split('\n').map((l, i) => (
+    <Fragment key={i}>
+      {i > 0 && <br />}
+      {l}
+    </Fragment>
+  ));
+  const inner = run.mark ? <mark className="sl-mark">{text}</mark> : text;
+  return run.bold ? <strong>{inner}</strong> : <>{inner}</>;
 }

@@ -3,6 +3,7 @@
 // multi-line field is "<blockId>:<prop>#<n>", a cell of it "#<n>.<c>" ("!" instead of "#" counts empty lines too).
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ElementType, type ReactNode } from 'react';
 import { typo, useSheetLang } from './lang';
+import { Marked } from './parts';
 
 export interface InlineEdit {
   /** The target being edited, if any. */
@@ -37,7 +38,7 @@ export function Editable({ as: Tag = 'div', className, target, value, multiline,
   }
   return (
     <Tag className={className} data-edit={ctx ? target : undefined}>
-      {children ?? typo(value, lang)}
+      {children ?? <Marked text={typo(value, lang)} />}
     </Tag>
   );
 }

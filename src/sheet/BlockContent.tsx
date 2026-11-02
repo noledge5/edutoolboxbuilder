@@ -331,7 +331,7 @@ function BlockBody({ block, taskNum, editing, onImageFile, onPicFile }: BlockCon
             </div>
             {help && doc?.help !== false && (
               <div className="ws-help" lang="de">
-                {typo(help, 'de')}
+                <Marked text={typo(help, 'de')} />
               </div>
             )}
             {LANGUAGE_BLOCKS.has(block.type) ? <LanguageTaskBody block={block} target={t} editing={editing} onPicFile={onPicFile} /> : <TaskBody block={block} target={t} />}
@@ -354,7 +354,7 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
           {Array.from({ length: Math.min(20, Math.max(0, num(p.lines, 3))) }, (_, k) => (
             <div key={k} />
           ))}
-          {answers && str(p.solution).trim() && <div className={'ws-lines-answer' + answerClass(solutions)}>{str(p.solution)}</div>}
+          {answers && str(p.solution).trim() && <div className={'ws-lines-answer' + answerClass(solutions)}><Marked text={str(p.solution)} /></div>}
         </div>
       );
     case 'mc':

@@ -4,9 +4,9 @@ import { useState, type ReactNode } from 'react';
 import { Check, Star } from 'lucide-react';
 import { Icon } from '../icons';
 import { jumble, statements } from '../model/language';
-import { lines, num, rows, segments, str } from '../model/text';
+import { gapRuns, lines, num, rows, segments, str } from '../model/text';
 import type { Block } from '../model/types';
-import { Marked } from '../sheet/parts';
+import { Marked, RunText } from '../sheet/parts';
 import { typo } from '../sheet/lang';
 import { useImageUrl } from '../storage/images';
 import { taskSlots, type Answers, type Slot } from '../share/grade';
@@ -91,7 +91,7 @@ function Choices({ c, k, multi = false }: { c: Ctx; k: string; multi?: boolean }
         return (
           <button key={o.v} type="button" role={multi ? 'checkbox' : 'radio'} aria-checked={on} className={'st-choice' + (on ? ' is-on' : '') + mark} onClick={() => pick(o.v)} disabled={c.locked}>
             <span className={'st-box' + (multi ? '' : ' is-round')}>{on && <Icon icon={Check} size={14} />}</span>
-            <span>{typo(o.l, c.lang)}</span>
+            <span><Marked text={typo(o.l, c.lang)} /></span>
           </button>
         );
       })}
@@ -151,7 +151,7 @@ function OrderParts({ c, k }: { c: Ctx; k: string }) {
 /** A line of text with its gaps as inputs; `prefix` keys the gaps (g0, g1 … over the whole text). */
 function GapLine({ c, text, start, prefix }: { c: Ctx; text: string; start: number; prefix: string }) {
   let i = start;
-  return <>{segments(text).map((s, k) => (s.blank ? <TextInput key={k} c={c} k={`${prefix}${i++}`} /> : <Marked key={k} text={typo(s.text, c.lang)} />))}</>;
+  return <>{gapRuns(typo(text, c.lang)).map((r, k) => (r.gap ? <TextInput key={k} c={c} k={`${prefix}${i++}`} /> : <RunText key={k} run={r} />))}</>;
 }
 
 function Picture({ id, emoji }: { id: string; emoji: string }) {
@@ -188,7 +188,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
         <div className="st-rows">
           {statements(str(p.items)).map((s, i) => (
             <div key={i} className="st-row">
-              <div className="st-row-text">{typo(s.text, c.lang)}</div>
+              <div className="st-row-text"><Marked text={typo(s.text, c.lang)} /></div>
               <Choices c={c} k={`s${i}`} />
             </div>
           ))}
@@ -201,7 +201,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
           <ol className="st-match-left">
             {left.map((l, i) => (
               <li key={i}>
-                <b>{i + 1}</b> {typo(l, c.lang)}
+                <b>{i + 1}</b> <Marked text={typo(l, c.lang)} />
               </li>
             ))}
           </ol>
@@ -210,7 +210,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
               const k = `m${j}`;
               return (
                 <label key={j} className="st-row">
-                  <span className="st-row-text">{typo(r, c.lang)}</span>
+                  <span className="st-row-text"><Marked text={typo(r, c.lang)} /></span>
                   <select className={'st-select' + state(c, k)} value={c.answers[k] ?? ''} disabled={c.locked} onChange={(e) => c.onAnswer(k, e.target.value)}>
                     <option value="">{c.t.choose}</option>
                     {left.map((l, i) => (
@@ -262,7 +262,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
     case 'mediation':
       return (
         <>
-          <div className="st-source">{typo(str(p.source), 'de')}</div>
+          <div className="st-source"><Marked text={typo(str(p.source), 'de')} /></div>
           <TextInput c={c} k="a" wide area />
         </>
       );
@@ -272,7 +272,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
           {lines(p.starters).length > 0 && (
             <ul className="st-starters">
               {lines(p.starters).map((s, k) => (
-                <li key={k}>{typo(s, c.lang)} …</li>
+                <li key={k}><Marked text={typo(s, c.lang)} /> …</li>
               ))}
             </ul>
           )}
@@ -280,7 +280,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
           {lines(p.checklist).length > 0 && (
             <ul className="st-checklist">
               {lines(p.checklist).map((s, k) => (
-                <li key={k}>☐ {typo(s, c.lang)}</li>
+                <li key={k}>☐ <Marked text={typo(s, c.lang)} /></li>
               ))}
             </ul>
           )}
@@ -300,7 +300,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
           {rows(p.items).map(([source = '', target = ''], i) => (
             <div key={i} className="st-row is-stack">
               <div className="st-row-text">
-                {typo(source, c.lang)} {target && <span className="st-target">→ {target}</span>}
+                <Marked text={typo(source, c.lang)} /> {target && <span className="st-target">→ {target}</span>}
               </div>
               <TextInput c={c} k={`x${i}`} wide />
             </div>
@@ -404,11 +404,11 @@ export function Task({ block, num: n, help, t, ...rest }: TaskProps) {
               ))}
             </span>
           )}
-          <div className="ws-prompt">{typo(str(p.prompt), rest.lang)}</div>
+          <div className="ws-prompt"><Marked text={typo(str(p.prompt), rest.lang)} /></div>
         </div>
         {helpText && help && (
           <div className="ws-help" lang="de">
-            {typo(helpText, 'de')}
+            <Marked text={typo(helpText, 'de')} />
           </div>
         )}
         <div className="st-body">

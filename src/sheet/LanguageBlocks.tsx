@@ -26,7 +26,7 @@ const Cell = ({ text }: { text: string }) => <GapText text={text} blankClass="ws
 function AnswerLine({ answer, className = '' }: { answer?: string; className?: string }) {
   const { solutions } = useContext(SheetModeContext);
   const lang = useSheetLang();
-  return <div className={'ws-wline ' + className}>{answer && solutions !== 'hidden' && <span className={'ws-wline-answer' + answerClass(solutions)}>{typo(answer, lang)}</span>}</div>;
+  return <div className={'ws-wline ' + className}>{answer && solutions !== 'hidden' && <span className={'ws-wline-answer' + answerClass(solutions)}><Marked text={typo(answer, lang)} /></span>}</div>;
 }
 
 const withBrackets = (ipa: string) => (!ipa || /^[[/]/.test(ipa) ? ipa : `[${ipa}]`);
@@ -226,12 +226,12 @@ function FoldTest({ rows: data, fold }: { rows: string[][]; fold: boolean }) {
       )}
       {data.map(([given = '', answer = ''], k) => (
         <div key={k} className="ws-fold-row">
-          <div className="ws-fold-given">{typo(given, lang)}</div>
+          <div className="ws-fold-given"><Marked text={typo(given, lang)} /></div>
           <AnswerLine answer={fold ? undefined : answer} />
           {fold && (
             <>
               <div className="ws-fold-line" />
-              <div className="ws-fold-answer">{typo(answer, lang)}</div>
+              <div className="ws-fold-answer"><Marked text={typo(answer, lang)} /></div>
             </>
           )}
         </div>
@@ -399,7 +399,7 @@ function Jumbles({ items }: { items: string[] }) {
             <div className="ws-jumble-parts">
               {j.parts.map((part, i) => (
                 <span key={i} className="ws-jumble-part">
-                  {typo(part, lang)}
+                  <Marked text={typo(part, lang)} />
                 </span>
               ))}
             </div>
@@ -418,7 +418,7 @@ function Transforms({ items }: { items: string[][] }) {
       {items.map(([from = '', to = '', answer = ''], k) => (
         <li key={k} className="ws-transform">
           <div className="ws-transform-from">
-            <span>{typo(from, lang)}</span>
+            <span><Marked text={typo(from, lang)} /></span>
             {to && <span className="ws-transform-to">→ {to}</span>}
           </div>
           <AnswerLine answer={answer} />
@@ -493,7 +493,7 @@ function Listening({ block, target: t, editing }: { block: Block; target(key: st
       {transcript && solutions !== 'hidden' && (
         <div className={'ws-listen-transcript' + answerClass(solutions)}>
           <div className="ws-label">{txt.transcript}</div>
-          {typo(transcript, lang)}
+          <Marked text={typo(transcript, lang)} />
         </div>
       )}
     </div>
@@ -571,7 +571,7 @@ function Reading({ block, target: t }: { block: Block; target(key: string): stri
                   {txt.line} {layout.wordLines[k]}
                 </span>
               )}
-              <b>{word}</b> {typo(meaning, lang)}
+              <b>{word}</b> <Marked text={typo(meaning, lang)} />
             </span>
           ))}
         </div>
@@ -596,7 +596,7 @@ function TrueFalse({ items, withNg }: { items: ReturnType<typeof statements>; wi
       </div>
       {items.map((s, k) => (
         <div key={k} className="ws-tf-row" style={template}>
-          <div>{typo(s.text, lang)}</div>
+          <div><Marked text={typo(s.text, lang)} /></div>
           {keys.map((key) => (
             <div key={key}>
               <span className={'ws-check' + (solutions !== 'hidden' && s.answer === key ? ' is-correct' + answerClass(solutions) : '')} />
@@ -617,8 +617,8 @@ function Phrases({ block, target: t }: { block: Block; target(key: string): stri
       <Editable className="ws-phrases-title" target={t('title')} value={str(p.title)} />
       {rows(p.items).map(([en = '', de = ''], k) => (
         <div key={k} className="ws-phrase">
-          <span className="ws-phrase-en">{typo(en, 'en')}</span>
-          <span className="ws-phrase-de">{typo(de, lang === 'en' ? 'de' : lang)}</span>
+          <span className="ws-phrase-en"><Marked text={typo(en, 'en')} /></span>
+          <span className="ws-phrase-de"><Marked text={typo(de, lang === 'en' ? 'de' : lang)} /></span>
         </div>
       ))}
     </div>
@@ -658,7 +658,7 @@ function Bingo({ items, cols, find }: { items: string[]; cols: number; find: boo
     <div className={'ws-bingo' + (find ? ' is-find' : '')} style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
       {items.map((item, k) => (
         <div key={k} className="ws-bingo-cell">
-          <div className="ws-bingo-text">{typo(item, lang)}</div>
+          <div className="ws-bingo-text"><Marked text={typo(item, lang)} /></div>
           {find && (
             <div className="ws-bingo-name">
               <span>{txt.nameLine}:</span>
@@ -680,7 +680,7 @@ function WritingFrame({ starters, lines: per, checklist }: { starters: string[];
       {starters.map((s, k) => (
         <div key={k} className="ws-starter">
           <div className="ws-starter-first">
-            <span>{typo(s, lang)}</span>
+            <span><Marked text={typo(s, lang)} /></span>
             <div className="ws-wline" />
           </div>
           {Array.from({ length: extra }, (_, j) => (
@@ -694,7 +694,7 @@ function WritingFrame({ starters, lines: per, checklist }: { starters: string[];
           {checklist.map((c, k) => (
             <div key={k} className="ws-checklist-item">
               <span className="ws-box" />
-              {typo(c, lang)}
+              <Marked text={typo(c, lang)} />
             </div>
           ))}
         </div>
@@ -717,7 +717,7 @@ function Mediation({ block, target: t }: { block: Block; target(key: string): st
         {Array.from({ length: Math.min(20, Math.max(0, num(p.lines, 4))) }, (_, k) => (
           <div key={k} />
         ))}
-        {solutions !== 'hidden' && str(p.solution).trim() && <div className={'ws-lines-answer' + answerClass(solutions)}>{str(p.solution)}</div>}
+        {solutions !== 'hidden' && str(p.solution).trim() && <div className={'ws-lines-answer' + answerClass(solutions)}><Marked text={str(p.solution)} /></div>}
       </div>
     </div>
   );
@@ -787,7 +787,7 @@ function TipCards({ cols, editing }: { cols: number; editing: boolean }) {
               </span>
             )}
           </div>
-          <div className="ws-tip-text">{typo(tip.text, lang)}</div>
+          <div className="ws-tip-text"><Marked text={typo(tip.text, lang)} /></div>
         </div>
       ))}
     </div>

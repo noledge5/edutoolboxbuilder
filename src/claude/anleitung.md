@@ -62,7 +62,7 @@ Blatt-Typen (`type`): `uebung`, `versuch`, `sicherung`, `vocab`, `grammar`, `lis
 **Schreibweisen:**
 - Listen: eine Zeile je Eintrag (`\n`) oder eine JSON-Liste. Spalten in einer Zeile mit ` | `.
 - Lücken: `___` leer, `[[Wort]]` mit Lösung (Lückentext, Merksatz, Formentabelle, Satzbaustellen, Wortnetz, Rollenkarten); mehrere richtige mit ` / `.
-- `**fett**`, `{{markiert}}` (farbig, z. B. `play{{s}}`).
+- `**fett**` und `{{markiert}}` (farbig, z. B. `play{{s}}`), auf Blättern wie auf Folien, auch über eine Lücke hinweg.
 - Ankreuzen: `*` vor der richtigen Antwort. Richtig/Falsch: `Aussage | T`, `| F`, `| NG`. Wörter ordnen: der richtige Satz oder `school / I / go = I go to school.`
 - `solution`: Offene Frage und Sprachmittlung (ein, zwei Sätze), Tabelle (Zeilen mit ` | `), Zuordnen (Nummern der passenden linken Einträge, z. B. `"2, 3, 1"`).
 - Typografisch: Deutsch „…“ und –, Englisch “…” und ’.

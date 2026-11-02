@@ -4,7 +4,7 @@ import { Image as ImageIcon } from 'lucide-react';
 import { encode } from 'uqr';
 import { Icon } from '../icons';
 import { VARIANTS } from '../model/themes';
-import { segments, type Segment } from '../model/text';
+import { gapRuns, inlineRuns, plain, type Run, type Segment } from '../model/text';
 import type { Variant } from '../model/types';
 import { useImageUrl } from '../storage/images';
 import { variantClass, type Look } from '../model/look';
@@ -34,37 +34,38 @@ export const variantVars = (v: Variant): CSSProperties => {
 export const answerClass = (view: SolutionView) => (view === 'ghost' ? ' is-ghost' : '');
 
 /** A gap to write in; wide enough for its answer, which shows on the solution sheet. */
-export function Blank({ seg, cls, view }: { seg: Segment; cls: string; view: SolutionView }) {
+export function Blank({ seg, cls, view, bold }: { seg: Segment; cls: string; view: SolutionView; bold?: boolean }) {
   const answer = seg.solution;
   const show = !!answer && view !== 'hidden';
-  const style = answer ? ({ '--w': `${answer.length * 0.6 + 1.4}em` } as CSSProperties) : undefined;
+  const style = answer ? ({ '--w': `${plain(answer).length * 0.6 + 1.4}em` } as CSSProperties) : undefined;
   return (
-    <span className={cls + (show ? ' has-answer' + answerClass(view) : '')} style={style}>
-      {show ? answer : null}
+    <span className={cls + (show ? ' has-answer' + answerClass(view) : '') + (bold ? ' ws-bold' : '')} style={style}>
+      {show ? <Marked text={answer} /> : null}
     </span>
   );
 }
 
+/** Text with gaps; **bold** and {{marked}} parts may run across a gap. */
 export function GapText({ text, blankClass }: { text: string; blankClass: string }) {
   const { solutions } = useContext(SheetModeContext);
   const lang = useSheetLang();
-  return <>{segments(text).map((s, k) => (s.blank ? <Blank key={k} seg={s} cls={blankClass} view={solutions} /> : <Marked key={k} text={typo(s.text, lang)} />))}</>;
+  return <>{gapRuns(typo(text, lang)).map((r, k) => (r.gap ? <Blank key={k} seg={r.gap} cls={blankClass} view={solutions} bold={r.bold} /> : <RunText key={k} run={r} />))}</>;
 }
 
-/** Text with {{…}} parts highlighted, e.g. "he play{{s}}" for the -s of the simple present. */
+/** One run of text: bold as a weight only, marked as on the sheet. */
+export function RunText({ run }: { run: Run }) {
+  const inner = run.mark ? <mark className="ws-mark">{run.text}</mark> : run.text;
+  return run.bold ? <strong className="ws-bold">{inner}</strong> : <>{inner}</>;
+}
+
+/** Text with **bold** and {{marked}} parts, e.g. "he play{{s}}" for the -s of the simple present. */
 export function Marked({ text }: { text: string }) {
-  if (!text.includes('{{')) return <>{text}</>;
+  if (!text.includes('{{') && !text.includes('**')) return <>{text}</>;
   return (
     <>
-      {text.split(/\{\{(.*?)\}\}/).map((part, k) =>
-        k % 2 ? (
-          <mark key={k} className="ws-mark">
-            {part}
-          </mark>
-        ) : (
-          part
-        ),
-      )}
+      {inlineRuns(text).map((r, k) => (
+        <RunText key={k} run={r} />
+      ))}
     </>
   );
 }

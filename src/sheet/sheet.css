@@ -620,6 +620,9 @@ button.ws-label-num.is-on { box-shadow: 0 0 0 3px var(--color-accent-700); }
 /* Hyphenation follows the page's lang attribute (German or English). */
 .ws-text, .ws-reading-text { hyphens: auto; -webkit-hyphens: auto; }
 .ws-mark { padding: 0 1px; border-radius: 3px; background: var(--color-accent-200); color: var(--color-accent-800); font-weight: 700; }
+/* **bold** in a text: a weight only, nothing synthesised (a font without the weight, e.g. Caprasimo, stays as it is). */
+.ws-bold { font-weight: 700; font-synthesis-weight: none; }
+.ws-prompt .ws-bold, .ws-merksatz-text .ws-bold, .ws-mark .ws-bold, .ws-bold .ws-mark { font-weight: 800; }
 .ws-help { margin-top: -6px; font-size: 12px; font-style: italic; color: var(--color-neutral-700); white-space: pre-wrap; }
 .ws-num { position: relative; }
 .ws-tip-badge {

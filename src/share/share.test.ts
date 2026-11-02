@@ -45,6 +45,14 @@ describe('slots and grading', () => {
     expect([g.right, g.total]).toEqual([1, 2]);
   });
 
+  it('expects gap answers without their **bold** or {{marks}}', () => {
+    const b = createBlock('gap', { prompt: 'Ergänze.', text: '**Die [[**Sonne**]]** wärmt [[play{{s}}]].' });
+    const [sun, plays] = taskSlots(b);
+    expect([sun.expected, plays.expected]).toEqual(['Sonne', 'plays']);
+    expect(isRight(sun, 'Sonne')).toBe(true);
+    expect(isRight(plays, 'plays')).toBe(true);
+  });
+
   it('takes the solutions out for a test, keeping the structure', () => {
     expect(stripSolutions(gap).props.text).toBe('Die [[]] wärmt die [[]]. Dann ___.');
     expect(stripSolutions(mc).props.options).toBe('Glas A\nGlas B\ngleich');

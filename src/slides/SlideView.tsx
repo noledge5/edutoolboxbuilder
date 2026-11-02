@@ -5,13 +5,14 @@ import { Icon } from '../icons';
 import { partSteps, shownItems, SORT_AT, SORT_PICK, sortGroups, sortMixed, workSteps, type Slide, type SlideAnim, type SlideDesign } from '../model/slides';
 import { THEMES, WORK_FORMS_EN } from '../model/themes';
 import type { Lang, WorkForm } from '../model/types';
-import { typo } from '../sheet/lang';
 import { themeVars } from '../sheet/SheetPage';
 import { lookClasses, typeClass, type Look } from '../model/look';
 import { useImageUrl } from '../storage/images';
 import { topicIcon } from '../topicIcons';
 import { ElementView } from './elements';
-import { Rich } from './Rich';
+import { Rich, RichRun } from './Rich';
+import { gapRuns, type Segment } from '../model/text';
+import { typo } from '../sheet/lang';
 
 export { Rich };
 
@@ -156,17 +157,20 @@ type GapLook = (n: number, total: number) => { cls: string; card: { k: string; l
  * without a given word. With cards each gap lies under its own card.
  */
 function GapText({ text, lang, ghost, data, gap }: { text: string; lang: Lang; ghost: boolean; data: Record<string, string>; gap: GapLook }) {
-  const total = (text.match(/\[\[.+?\]\]/g) ?? []).length;
+  // Bold or marked text may run across a gap ("**Die [[Sonne]] wärmt**"), as on the sheets.
+  const runs = gapRuns(typo(text, lang), slideSegments);
+  const total = runs.filter((r) => r.gap?.solution !== undefined).length;
   let n = -1;
   return (
     <>
-      {text.split(/(\[\[.+?\]\]|_{3,})/).map((bit, k) => {
-        if (k % 2 === 0) return <Rich key={k} text={bit} lang={lang} />;
-        if (bit.startsWith('_')) return <span key={k} className="sl-gap is-empty" />;
+      {runs.map((r, k) => {
+        if (!r.gap) return <RichRun key={k} run={r} />;
+        if (r.gap.solution === undefined) return <span key={k} className="sl-gap is-empty" />;
         const g = gap(++n, total);
+        const word = <Rich text={r.gap.solution} lang={lang} />;
         return (
           <span key={k} className={'sl-gap' + (g.card ? ' is-covered' : '')} {...data}>
-            <span className={'sl-gap-word' + (ghost ? ' is-ghost' : '') + g.cls}>{typo(bit.slice(2, -2), lang)}</span>
+            <span className={'sl-gap-word' + (ghost ? ' is-ghost' : '') + g.cls}>{r.bold ? <strong>{word}</strong> : word}</span>
             {g.card && <Card k={g.card.k} label={g.card.label} />}
           </span>
         );
@@ -174,6 +178,13 @@ function GapText({ text, lang, ghost, data, gap }: { text: string; lang: Lang; g
     </>
   );
 }
+
+/** Gaps as slides find them: "[[word]]" (anything but a line break inside) or "___". */
+const slideSegments = (text: string): Segment[] =>
+  text
+    .split(/(\[\[.+?\]\]|_{3,})/)
+    .map((bit, k) => (k % 2 === 0 ? { text: bit, blank: false } : bit.startsWith('_') ? { text: bit, blank: true } : { text: bit, blank: true, solution: bit.slice(2, -2) }))
+    .filter((s) => s.text !== '');
 
 const BOX_COLORS = ['var(--color-surface)', 'var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-3-200)'];
 const FD_BOX_COLORS = ['var(--fd-surface)', 'var(--fd-p-200)', 'var(--fd-s-200)', 'var(--fd-t-200)'];

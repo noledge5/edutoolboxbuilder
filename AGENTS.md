@@ -31,6 +31,8 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
   the numbers); a task block also `taskSlots`, `stripSolutions`, the student `Body` (`src/student/Tasks.tsx`) and
   `taskBody` (`src/slides/fromDoc.ts`). After changing blocks, fields or icons run `npm run anleitung` (a test fails
   otherwise).
+- `**bold**` and `{{marked}}` are parsed once, by `inlineRuns`/`gapRuns` (`src/model/text.ts`), for sheets, the student view
+  and slides; sheet text goes through `Marked`/`GapText` (`src/sheet/parts.tsx`), not bare `typo()`.
 - Topic icons are a curated list in `src/topicIcons.ts`; never import all of Lucide. Fixed sheet texts go through
   `SHEET_TEXT` (`src/sheet/lang.ts`), quotation marks through `typo()`; teacher pages stay German.
 - Everything must work with touch on an iPad (long-press to drag) and in print (one A4 page per sheet).

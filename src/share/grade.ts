@@ -4,7 +4,7 @@
 import { labelsWithoutWords } from '../model/labels';
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { jumble, statements } from '../model/language';
-import { cellRows, choices, lines, matchNumbers, rows, segments, str } from '../model/text';
+import { cellRows, choices, lines, matchNumbers, plain, rows, segments, str } from '../model/text';
 import type { Block } from '../model/types';
 
 export type SlotKind =
@@ -34,7 +34,11 @@ export interface Slot {
 export const DIGITAL_TASKS = new Set(['mc', 'gap', 'truefalse', 'match', 'table', 'open', 'jumble', 'transform', 'foldtest', 'picvocab', 'wordweb', 'syntax', 'mediation', 'writing']);
 
 /** Gaps in a line: `[[answer]]`, or `___` without an answer. */
-const gapsOf = (text: string) => segments(text).filter((s) => s.blank);
+/** The gaps of a text; an answer is kept without its `**` and `{{ }}` ("[[**Hund**]]" expects "Hund"). */
+const gapsOf = (text: string) =>
+  segments(text)
+    .filter((s) => s.blank)
+    .map((s) => (s.solution ? { ...s, solution: plain(s.solution) } : s));
 
 /** All slots of a task block, in reading order. */
 export function taskSlots(b: Block): Slot[] {
@@ -108,7 +112,7 @@ export function taskSlots(b: Block): Slot[] {
 
 /** A typed answer as compared: no case, no outer spaces or end punctuation, one kind of apostrophe and quote. */
 export const normalize = (s: string) =>
-  s
+  plain(s)
     .normalize('NFC')
     .replace(/[’‘´`]/g, "'")
     .replace(/[„“”]/g, '"')

@@ -101,3 +101,72 @@ export const flowSteps = (x: PropValue | undefined): FlowStep[] =>
     const [title = '', sub = ''] = l.split('|').map((s) => s.trim());
     return { title, sub };
   });
+
+/** A piece of text with its look: **bold** and/or {{marked}}. */
+export interface Run {
+  text: string;
+  bold: boolean;
+  mark: boolean;
+}
+
+const BOLD = /\*\*([^*\n]+)\*\*/g;
+const MARK = /\{\{(.*?)\}\}/g;
+
+/**
+ * Text split into runs: `**…**` is bold, `{{…}}` marked (both may nest). The same on sheets and slides; a lone `**`
+ * or `{{` stays as written. Bold does not cross a line break.
+ */
+export function inlineRuns(text: string): Run[] {
+  if (!text.includes('**') && !text.includes('{{')) return text ? [{ text, bold: false, mark: false }] : [];
+  const n = text.length;
+  const bold = new Uint8Array(n);
+  const mark = new Uint8Array(n);
+  const hide = new Uint8Array(n);
+  const flag = (re: RegExp, on: Uint8Array) => {
+    for (const m of text.matchAll(re)) {
+      const a = m.index ?? 0;
+      const b = a + m[0].length;
+      hide[a] = hide[a + 1] = hide[b - 2] = hide[b - 1] = 1;
+      on.fill(1, a + 2, b - 2);
+    }
+  };
+  flag(BOLD, bold);
+  flag(MARK, mark);
+  const runs: Run[] = [];
+  for (let i = 0; i < n; i++) {
+    if (hide[i]) continue;
+    const last = runs[runs.length - 1];
+    if (last && last.bold === !!bold[i] && last.mark === !!mark[i]) last.text += text[i];
+    else runs.push({ text: text[i], bold: !!bold[i], mark: !!mark[i] });
+  }
+  return runs;
+}
+
+/** The text without its `**` and `{{ }}` (for widths and comparing answers). */
+export const plain = (text: string): string => inlineRuns(text).map((r) => r.text).join('');
+
+/** A run of text, or a gap that sits in bold or marked text. */
+export type GapRun = ({ gap?: undefined } & Run) | { gap: Segment; bold: boolean; mark: boolean };
+
+const GAP_SLOT = '';
+
+/**
+ * Text with gaps (`___`, `[[…]]`) split into runs; bold or marked text may run across a gap
+ * ("**Der [[Hund]] bellt.**"). Gaps keep their segment, so `[[**Hund**]]` still has the answer "**Hund**".
+ * `split` finds the gaps (slides have their own, `slideSegments`).
+ */
+export function gapRuns(text: string, split: (text: string) => Segment[] = segments): GapRun[] {
+  const segs = split(text);
+  const gaps = segs.filter((s) => s.blank);
+  if (!gaps.length) return inlineRuns(text);
+  const runs = inlineRuns(segs.map((s) => (s.blank ? GAP_SLOT : s.text.replaceAll(GAP_SLOT, ''))).join(''));
+  const out: GapRun[] = [];
+  let g = 0;
+  for (const r of runs) {
+    r.text.split(GAP_SLOT).forEach((part, k) => {
+      if (k > 0) out.push({ gap: gaps[g++], bold: r.bold, mark: r.mark });
+      if (part) out.push({ ...r, text: part });
+    });
+  }
+  return out;
+}
