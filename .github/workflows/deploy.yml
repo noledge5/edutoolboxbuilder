@@ -5,6 +5,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    # Notes edited in Obsidian (docs/) do not publish the app; ci.yml still checks every push.
+    paths-ignore: ['docs/**']
   workflow_dispatch:
 
 permissions:

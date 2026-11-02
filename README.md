@@ -202,6 +202,8 @@ src/
 docs/
   design/     Design-Handoff (Spezifikation, Prototyp, Referenzen, Tokens)
   claude/     Kopie der Anleitung für Claude (wird von einem Test aktuell gehalten)
-  roadmap.md  Entscheidungen und Phasen
+  roadmap.md  Index der Entscheidungen und Phasen
+  entscheidungen/  eine Notiz je Entscheidung bzw. Phase
+  OBSIDIAN.md  docs/ als Obsidian-Vault am Mac und iPad
 public/       App-Symbol, Manifest und Service Worker (offline nutzbar)
 ```
