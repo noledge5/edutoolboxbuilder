@@ -9,7 +9,7 @@ import type { Block } from '../model/types';
 import { Marked } from '../sheet/parts';
 import { typo } from '../sheet/lang';
 import { useImageUrl } from '../storage/images';
-import { taskSlots, type Answers, type Slot } from '../share/grade';
+import { taskSlots, type Answers, type Slot, type WordBank } from '../share/grade';
 import type { StudentText } from './text';
 
 export interface TaskProps {
@@ -24,10 +24,12 @@ export interface TaskProps {
   locked: boolean;
   lang: 'de' | 'en';
   help: boolean;
+  /** Words to choose from for the typed slots, when the handout has them. */
+  bank?: WordBank;
   t: StudentText;
 }
 
-type Ctx = Omit<TaskProps, 'block' | 'num' | 'help' | 't'> & { slots: Map<string, Slot>; t: StudentText };
+type Ctx = Omit<TaskProps, 'block' | 'num' | 'help' | 't' | 'bank'> & { slots: Map<string, Slot>; t: StudentText; bank?: WordBank };
 
 const state = (c: Ctx, key: string) => {
   const m = c.marks?.[key];
@@ -49,6 +51,7 @@ function Expected({ c, k }: { c: Ctx; k: string }) {
 }
 
 function TextInput({ c, k, wide = false, area = false }: { c: Ctx; k: string; wide?: boolean; area?: boolean }) {
+  if (!area && c.bank?.slots.includes(k)) return <WordPick c={c} k={k} wide={wide} />;
   const props = {
     className: 'st-input' + (wide ? ' is-wide' : '') + state(c, k),
     value: c.answers[k] ?? '',
@@ -68,6 +71,33 @@ function TextInput({ c, k, wide = false, area = false }: { c: Ctx; k: string; wi
         // A gap grows with what is typed (in a test there is no solution to measure it by).
         <input {...props} style={wide ? undefined : { width: `${Math.min(28, Math.max(7, (c.slots.get(k)?.expected.length ?? 0) + 2, (c.answers[k] ?? '').length + 2))}ch` }} />
       )}
+      <Expected c={c} k={k} />
+    </>
+  );
+}
+
+/** A gap to fill by choosing from the words of the task, so a typo or another word does not count as wrong. */
+function WordPick({ c, k, wide }: { c: Ctx; k: string; wide: boolean }) {
+  const given = c.answers[k] ?? '';
+  const words = c.bank!.words;
+  return (
+    <>
+      <select
+        className={'st-select st-pick' + (wide ? ' is-wide' : '') + state(c, k)}
+        value={given}
+        disabled={c.locked}
+        aria-label={c.slots.get(k)?.label}
+        onChange={(e) => c.onAnswer(k, e.target.value)}
+      >
+        <option value="">{c.t.choose}</option>
+        {/* Something typed before the handout had choices stays visible. */}
+        {given && !words.includes(given) && <option value={given}>{given}</option>}
+        {words.map((w) => (
+          <option key={w} value={w}>
+            {typo(w, c.lang)}
+          </option>
+        ))}
+      </select>
       <Expected c={c} k={k} />
     </>
   );
@@ -386,11 +416,11 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
   }
 }
 
-export function Task({ block, num: n, help, t, ...rest }: TaskProps) {
+export function Task({ block, num: n, help, t, bank, ...rest }: TaskProps) {
   const p = block.props;
   const level = num(p.level, 0);
   const slots = new Map(taskSlots(block).map((s) => [s.key, s]));
-  const c: Ctx = { ...rest, slots, t };
+  const c: Ctx = { ...rest, slots, t, bank };
   const helpText = str(p.help).trim();
   return (
     <div className="ws-task st-task">

@@ -132,6 +132,41 @@ export function isRight(slot: Slot, given: string | undefined): boolean | null {
   return alts.some((a) => normalize(a) === normalize(g));
 }
 
+/** Choices for typed slots: the slots that get a list to choose from, and the words in it. */
+export interface WordBank {
+  slots: string[];
+  words: string[];
+}
+
+/** At least this many words in a list, padded from the other tasks when a task has fewer answers. */
+const BANK_MIN = 3;
+
+/**
+ * Word banks for the typed slots of the tasks handed out, so students choose instead of typing (a typo or another
+ * word would count as wrong). Each list holds the answers of its task (an alternative "a / b" by its first form),
+ * without twins and sorted, so the order gives nothing away; a task with few answers takes more from the others.
+ * Computed from the blocks with solutions; a task with fewer than two words to choose from stays typed.
+ */
+export function wordBanks(blocks: Block[]): Record<string, WordBank> {
+  const typed = blocks.map((b) => ({ b, slots: taskSlots(b).filter((s) => s.kind === 'text' && s.expected.trim()) }));
+  const first = (s: Slot) => s.expected.split(/\s+\/\s+/)[0].trim();
+  const add = (into: string[], w: string) => {
+    if (w && !into.some((x) => normalize(x) === normalize(w))) into.push(w);
+  };
+  const out: Record<string, WordBank> = {};
+  for (const { b, slots } of typed) {
+    if (!slots.length) continue;
+    const words: string[] = [];
+    for (const s of slots) add(words, first(s));
+    // Padding: same kind of task first, then any other, in the order of the handout.
+    const others = [...typed.filter((t) => t.b !== b && t.b.type === b.type), ...typed.filter((t) => t.b.type !== b.type)];
+    for (const t of others) for (const s of t.slots) if (words.length < BANK_MIN) add(words, first(s));
+    if (words.length < 2) continue;
+    out[b.id] = { slots: slots.map((s) => s.key), words: words.sort((x, y) => x.localeCompare(y, 'de')) };
+  }
+  return out;
+}
+
 export type Answers = Record<string, string>;
 
 export interface TaskGrade {

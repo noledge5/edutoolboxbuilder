@@ -4,7 +4,7 @@
 import { BLOCK_TYPES } from '../model/blockTypes';
 import { blockImages } from '../model/ops';
 import type { Block, Doc, Lang, SheetType } from '../model/types';
-import { stripSolutions, type Answers } from './grade';
+import { stripSolutions, type Answers, type WordBank } from './grade';
 
 export const ASSIGNMENT_FORMAT = 'baukasten-auftrag';
 
@@ -37,6 +37,8 @@ export interface Assignment {
   pages: AssignmentPage[];
   /** Pictures of the blocks as data URLs, by image id. */
   images: Record<string, string>;
+  /** Block id → words to choose from instead of typing (`wordBanks`); empty in assignments made before. */
+  picks: Record<string, WordBank>;
   createdAt: number;
 }
 
@@ -130,6 +132,20 @@ export function readAssignment(raw: unknown): Assignment | null {
     key: a.key,
     pages: a.pages,
     images: a.images && typeof a.images === 'object' ? a.images : {},
+    picks: readPicks(a.picks),
     createdAt: Number(a.createdAt) || 0,
   };
+}
+
+const strings = (v: unknown): v is string[] => Array.isArray(v) && v.every((x) => typeof x === 'string');
+
+/** Word banks as read from the net: anything malformed is left out (that task stays typed). */
+function readPicks(raw: unknown): Record<string, WordBank> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const out: Record<string, WordBank> = {};
+  for (const [id, v] of Object.entries(raw as Record<string, unknown>)) {
+    const w = v as Partial<WordBank> | null;
+    if (w && strings(w.slots) && strings(w.words) && w.words.length > 1) out[id] = { slots: w.slots, words: w.words };
+  }
+  return out;
 }

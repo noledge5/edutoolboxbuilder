@@ -106,6 +106,7 @@ Entschieden mit Fragen und Vor- und Nachteilen:
 - ✅ Ergebnisse Ende-zu-Ende-verschlüsselt (ECDH P-256 + AES-GCM, ein Schlüsselpaar je Auftrag, der private Schlüssel reist mit dem Abgleich) auf Supabase in Frankfurt (Projekt „baukasten“), nur über zwei Funktionen erreichbar, Löschung nach 14 Tagen (pg_cron), täglicher Weckruf per GitHub Action.
 - ✅ Übung (selbst prüfen, Lösung zeigen; Lehrkraft sieht ersten Versuch und Ende) oder Test (ohne Lösungen im veröffentlichten Auftrag).
 - ✅ Auswertung: Live-Tabelle, häufige Fehler, Kompetenz-Übersicht (mit Niveau), Ansicht ohne Namen für den Beamer.
+- ✅ (03.11.2026, Wunsch der Lehrkraft) Auswählen statt Eintippen: Lücken mit Lösung (Lückentext, Tabelle, Umformen, Faltblatt-Test, Bildvokabeln, Wortnetz, Satzbaustelle) sind beim Schüler ein Aufklappmenü mit den Lösungswörtern der Aufgabe (alphabetisch, wie ein Wortspeicher; unter 3 Wörtern aufgefüllt aus den anderen Aufgaben). Grund: Tippfehler und andere Wortwahl wurden als falsch gewertet. Automatisch, ohne Mehrarbeit; Lücken ohne Lösung und freies Schreiben bleiben Eintippen, ältere Aufträge auch.
 - Als Nächstes: interaktive Modelle für die Naturwissenschaften (Simulationen mit eingebauten Aufgaben, über dieselbe Auswertung), danach ggf. Zeichenfeld digital.
 
 ### Phase 8 – Folien 2.0 (Runde 5) ✅
