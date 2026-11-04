@@ -26,7 +26,6 @@ import {
   QrCode,
   Redo2,
   SendToBack,
-  Sparkles,
   SquareDashed,
   Trash2,
   Type,
@@ -85,8 +84,6 @@ import { SlideStage } from './SlideStage';
 import { SLIDE_H, SLIDE_W, SlideBox, type SlideContext } from './SlideView';
 import { videoInfo } from './elements';
 import type { Doc } from '../model/types';
-import { SlidesAiDialog } from '../ai/SlidesAiDialog';
-import type { SlidesAiContext } from '../ai/slides';
 
 interface SlidesViewProps {
   slides: Slide[];
@@ -112,11 +109,6 @@ interface SlidesViewProps {
   /** Start presenting right away (from a "Präsentieren" in the module or the worksheet). */
   present?: boolean;
   onPresentStarted?(): void;
-  /** Context for "Mit KI bauen: Folien"; absent where there is no module. */
-  ai?: () => SlidesAiContext;
-  /** Open "Mit KI bauen: Folien" right away (from "Mit KI bauen" in the worksheet). */
-  buildAi?: boolean;
-  onBuildAiStarted?(): void;
 }
 
 const MAX_HISTORY = 60;
@@ -195,7 +187,6 @@ export function SlidesView(p: SlidesViewProps) {
   const [presenting, setPresenting] = useState<number | null>(p.present && p.slides.length ? 0 : null);
   useEffect(() => {
     if (p.present) p.onPresentStarted?.();
-    if (p.buildAi) p.onBuildAiStarted?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   /** The second window of the Referentenansicht. */
@@ -232,8 +223,6 @@ export function SlidesView(p: SlidesViewProps) {
     pick(at);
     setImported(null);
   };
-  /** "Mit KI bauen: Folien" is open; from the worksheet it starts with new slides. */
-  const [aiOpen, setAiOpen] = useState<false | 'menu' | 'sheet'>(p.buildAi && p.ai ? 'sheet' : false);
   const [searching, setSearching] = useState<'slide' | 'slide-ai' | 'element' | null>(null);
   const [selEl, setSelEl] = useState<string | null>(null);
   const [selPart, setSelPart] = useState<string | null>(null);
@@ -553,7 +542,6 @@ export function SlidesView(p: SlidesViewProps) {
           items={[
             { label: 'Folie löschen', icon: Trash2, onClick: () => slides.length && remove() },
             { label: 'Alle Folien löschen …', icon: Trash2, onClick: removeAll },
-            ...(p.ai ? [{ label: 'Mit KI bauen …', icon: Sparkles, onClick: () => setAiOpen('menu') }] : []),
             { label: 'Aus dem Arbeitsblatt einfügen …', icon: FileText, onClick: suggest },
             { label: `Tafelbilder${p.boards.length ? ` · ${p.boards.length}` : ''} …`, icon: PenLine, onClick: () => setShowBoards(true) },
             { label: 'PowerPoint öffnen …', icon: FileUp, onClick: () => pptxInput.current?.click() },
@@ -720,7 +708,7 @@ export function SlidesView(p: SlidesViewProps) {
             />
           ) : (
             <div className="sl-empty">
-              <p className="lib-empty">Noch keine Folien für diese Stunde.{p.ai ? ' Mit KI: oben „Folien“ → „Mit KI bauen …“.' : ''}</p>
+              <p className="lib-empty">Noch keine Folien für diese Stunde. Neue Präsentationen entstehen in Canva: im Arbeitsblatt „KI“ → „Präsi in Canva …“.</p>
               <button type="button" className="btn btn-primary ui-btn" onClick={suggest}>
                 <Icon icon={FileText} />
                 Aus dem Arbeitsblatt einfügen
@@ -994,19 +982,6 @@ export function SlidesView(p: SlidesViewProps) {
           onAppend={() => takeImported(false)}
           onReplace={() => takeImported(true)}
           onClose={() => setImported(null)}
-        />
-      )}
-      {aiOpen && p.ai && (
-        <SlidesAiDialog
-          slides={slides}
-          doc={p.doc}
-          context={p.ai()}
-          initialMode={aiOpen === 'sheet' ? 'build' : undefined}
-          onApply={(next) => {
-            setAiOpen(false);
-            commit(next);
-          }}
-          onClose={() => setAiOpen(false)}
         />
       )}
       {searching && slide && (

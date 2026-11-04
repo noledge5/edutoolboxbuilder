@@ -31,7 +31,7 @@ import { VersionsDialog } from './library/VersionsDialog';
 import { whenText } from './library/when';
 import { SlidesView } from './slides/SlidesView';
 import { enterFullscreen } from './slides/Presenter';
-import { recallQuestions } from './slides/fromDoc';
+import { CanvaDialog } from './canva/CanvaDialog';
 import type { Slide } from './model/slides';
 import { subjectColor, subjectVars } from './library/subjectColor';
 import { ModuleView } from './library/ModuleView';
@@ -113,8 +113,8 @@ export function App() {
   const [jump, setJump] = useState<Jump | null>(null);
   /** A lesson whose slides start presenting when they open ("Präsentieren" in the module or worksheet). */
   const [presentNext, setPresentNext] = useState<string | null>(null);
-  /** A lesson whose slides open with "Mit KI bauen: Folien" ("Folien" in "Mit KI bauen" of the worksheet). */
-  const [slidesAiNext, setSlidesAiNext] = useState<string | null>(null);
+  /** The lesson whose "Präsi in Canva" dialog is open. */
+  const [canvaFor, setCanvaFor] = useState<string | null>(null);
   const present = (lessonId: string) => {
     // Full screen needs the tap itself (the iPad allows it only then), so before the slides open.
     enterFullscreen();
@@ -522,6 +522,37 @@ export function App() {
   if (loadError) return <div className="lib-error">Die gespeicherten Daten konnten nicht geladen werden: {loadError}</div>;
   if (!lib) return <div className="app-loading" />;
 
+  const canvaDialog = canvaFor && (() => {
+        const le = lib.lessons.find((x) => x.id === canvaFor);
+        const mo = le && lib.modules.find((x) => x.id === le.moduleId);
+        if (!le || !mo) return null;
+        return (
+          <CanvaDialog
+            settings={lib.settings}
+            module={mo}
+            lesson={le}
+            onSave={(c) => {
+              const cur = libRef.current ?? lib;
+              if (c.subjectTemplate !== undefined) {
+                const rest = Object.fromEntries(Object.entries(cur.settings.canvaTemplates ?? {}).filter(([k]) => k !== mo.subject));
+                putSettings({ ...cur.settings, canvaTemplates: c.subjectTemplate ? { ...rest, [mo.subject]: c.subjectTemplate } : rest });
+              }
+              const curM = cur.modules.find((x) => x.id === mo.id);
+              if (c.moduleTemplate !== undefined && curM) {
+                const { canvaTemplate: _t, ...base } = curM;
+                putModule({ ...base, ...(c.moduleTemplate ? { canvaTemplate: c.moduleTemplate } : {}), updatedAt: Date.now() });
+              }
+              const curL = cur.lessons.find((x) => x.id === le.id);
+              if (c.link !== undefined && curL) {
+                const { canvaUrl: _u, ...base } = curL;
+                putLesson({ ...base, ...(c.link ? { canvaUrl: c.link } : {}), updatedAt: Date.now() }).catch(failed);
+              }
+            }}
+            onClose={() => setCanvaFor(null)}
+          />
+        );
+  })();
+
   const toasts = (
     <div className="toasts" data-noprint="1">
       {otherTab && (
@@ -573,10 +604,7 @@ export function App() {
         onSlides={() => go({ view: 'slides', id: lesson.id })}
         onPresent={() => present(lesson.id)}
         slideCount={lesson.slides.length}
-        onSlidesAi={() => {
-          setSlidesAiNext(lesson.id);
-          go({ view: 'slides', id: lesson.id });
-        }}
+        onCanva={() => setCanvaFor(lesson.id)}
         onDeleteSlides={() => deleteSlides(lesson.id)}
         onVersions={() => setVersionsOf(lesson.id)}
         focus={jump?.lessonId === lesson.id && jump.blockId ? { id: jump.blockId, query: jump.query, n: jump.n } : undefined}
@@ -642,16 +670,6 @@ export function App() {
           putLesson({ ...current, slides, updatedAt: Date.now() }).catch(failed);
         }}
         onVersions={() => setVersionsOf(lesson.id)}
-        ai={() => ({
-          subject: m.subject,
-          grade: m.grade,
-          topic: m.title,
-          lessonTitle: lesson.title,
-          notes: classNotes(libRef.current!.settings, m.subject, m.grade),
-          recall: recallQuestions(earlierLessons(libRef.current!, m, lesson), lesson.number),
-        })}
-        buildAi={slidesAiNext === lesson.id}
-        onBuildAiStarted={() => setSlidesAiNext(null)}
         boards={lesson.boards}
         onBoards={(boards) => {
           const current = libRef.current?.lessons.find((l) => l.id === lesson.id) ?? lesson;
@@ -871,6 +889,7 @@ export function App() {
         />
       )}
       {toasts}
+      {canvaDialog}
     </SearchContext.Provider>
   );
 }

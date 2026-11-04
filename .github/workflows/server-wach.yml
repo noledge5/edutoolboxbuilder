@@ -1,10 +1,11 @@
 # Keeps the free results server (Supabase) awake: free projects pause after a week without use, and students could
-# not hand in during the holidays. One harmless read a day is enough.
+# not hand in during the holidays. One harmless read a day is enough. Every six hours it also asks the picture function
+# of "Präsi in Canva" to delete pictures older than 18 hours, so none stays longer than about a day.
 name: Ergebnis-Server wach halten
 
 on:
   schedule:
-    - cron: '23 5 * * *'
+    - cron: '23 */6 * * *'
   workflow_dispatch:
 
 permissions: {}
@@ -17,3 +18,6 @@ jobs:
           curl -sf -X POST "https://txafdkaeotgekoxzgcxd.supabase.co/rest/v1/rpc/ergebnisse_holen" \
             -H "apikey: sb_publishable_956BMuhr1RsRXwF3gQ4-3Q_bMXrUxFS" -H "Content-Type: application/json" \
             -d '{"p_auftrag":"Wachhalten1"}'
+      - run: |
+          curl -sf -X POST "https://txafdkaeotgekoxzgcxd.supabase.co/functions/v1/praesi-bild?aufraeumen=1" \
+            -H "apikey: sb_publishable_956BMuhr1RsRXwF3gQ4-3Q_bMXrUxFS"

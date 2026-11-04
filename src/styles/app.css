@@ -1127,3 +1127,8 @@ span.check-ref { cursor: default; }
 .ai-ideas { display: flex; flex-wrap: wrap; gap: 6px; }
 .ai-ideas .seg-pill { font-size: 12.5px; }
 .settings-version p { margin: 4px 0 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* "Präsi in Canva" (Runde 9) */
+.canva-dialog { max-width: 560px; }
+.canva-link-row { display: flex; gap: 8px; margin-top: 6px; }
+.canva-link-row .input { flex: 1; min-width: 0; }

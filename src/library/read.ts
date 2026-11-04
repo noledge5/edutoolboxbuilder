@@ -40,6 +40,17 @@ export function readCompetence(raw: unknown): Competence | null {
   };
 }
 
+/** A Canva design link ("https://www.canva.com/design/…"), else ''. Only Canva, so a synced file cannot plant other links. */
+export function canvaLink(raw: unknown): string {
+  if (typeof raw !== 'string') return '';
+  try {
+    const u = new URL(raw.trim());
+    return u.protocol === 'https:' && (u.hostname === 'www.canva.com' || u.hostname === 'canva.com') && u.pathname.startsWith('/design/') ? u.href : '';
+  } catch {
+    return '';
+  }
+}
+
 export function readModule(raw: unknown): Module | null {
   if (!isObj(raw) || typeof raw.id !== 'string') return null;
   return {
@@ -57,6 +68,7 @@ export function readModule(raw: unknown): Module | null {
     weeks: Math.max(0, int(raw.weeks)),
     start: readDay(raw.start),
     ...(readModuleLook(raw.look) ? { look: readModuleLook(raw.look) } : {}),
+    ...(canvaLink(raw.canvaTemplate) ? { canvaTemplate: canvaLink(raw.canvaTemplate) } : {}),
     updatedAt: Number(raw.updatedAt) || 0,
   };
 }
@@ -77,6 +89,7 @@ export function readLesson(raw: unknown): Lesson | null {
       slides: normalizeSlides(raw.slides),
       slideDesign: isSlideDesign(raw.slideDesign) ? raw.slideDesign : 'organisch',
       boards: normalizeBoards(raw.boards),
+      ...(canvaLink(raw.canvaUrl) ? { canvaUrl: canvaLink(raw.canvaUrl) } : {}),
       updatedAt: Number(raw.updatedAt) || 0,
     };
   } catch {
@@ -134,6 +147,7 @@ export function readSettings(raw: unknown): Settings {
     subjectColors: readSubjectColors(s.subjectColors),
     principles: typeof s.principles === 'string' ? s.principles : '',
     classProfiles: isObj(s.classProfiles) ? Object.fromEntries(Object.entries(s.classProfiles).filter((e): e is [string, string] => typeof e[1] === 'string' && e[1].trim() !== '')) : {},
+    ...(isObj(s.canvaTemplates) ? { canvaTemplates: Object.fromEntries(Object.entries(s.canvaTemplates).flatMap(([k, v]) => (canvaLink(v) ? [[k, canvaLink(v)]] : []))) } : {}),
     updatedAt: Number(s.updatedAt) || 0,
   };
 }

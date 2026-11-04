@@ -112,11 +112,12 @@ describe('taking in', () => {
   });
   it('merges settings changed on both devices', () => {
     const l = lib();
-    l.settings = { ...l.settings, subjects: ['Englisch'], classProfiles: { 'Englisch · 5': 'hier' }, updatedAt: 300 };
-    const there = { ...l.settings, subjects: ['Geographie'], classProfiles: { 'Geographie · 9': 'dort' }, principles: 'Ich-Du-Wir', updatedAt: 400 };
+    l.settings = { ...l.settings, subjects: ['Englisch'], classProfiles: { 'Englisch · 5': 'hier' }, canvaTemplates: { Englisch: 'https://www.canva.com/design/E' }, updatedAt: 300 };
+    const there = { ...l.settings, subjects: ['Geographie'], classProfiles: { 'Geographie · 9': 'dort' }, canvaTemplates: { Geographie: 'https://www.canva.com/design/G' }, principles: 'Ich-Du-Wir', updatedAt: 400 };
     const r = mergeRemote(l, remoteOf([['s', there]]), { s: 100 }, 999);
     expect(r.library.settings.subjects).toEqual(['Geographie', 'Englisch']);
     expect(r.library.settings.classProfiles).toEqual({ 'Englisch · 5': 'hier', 'Geographie · 9': 'dort' });
+    expect(r.library.settings.canvaTemplates).toEqual({ Englisch: 'https://www.canva.com/design/E', Geographie: 'https://www.canva.com/design/G' });
     expect(r.library.settings.principles).toBe('Ich-Du-Wir');
     expect(r.library.settings.updatedAt).toBe(999);
     expect(toSend(r.library, r.base).map((e) => e.key)).toContain('s');

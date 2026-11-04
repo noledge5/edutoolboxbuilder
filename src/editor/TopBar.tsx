@@ -45,6 +45,8 @@ interface TopBarProps {
   onClaude?(): void;
   /** Claude's key and costs on this device. */
   onAiSettings?(): void;
+  /** "Präsi in Canva …" (Runde 9). */
+  onCanva?(): void;
   handouts?: Handout[];
   onOpenHandout?(id: string): void;
 }
@@ -113,6 +115,7 @@ export function TopBar(p: TopBarProps) {
           className="menu-claude"
           items={[
             { label: 'Mit KI bauen …', icon: Sparkles, onClick: p.onClaude },
+            ...(p.onCanva ? [{ label: 'Präsi in Canva …', icon: Presentation, onClick: p.onCanva }] : []),
             ...(p.onCheckAi ? [{ label: 'Stunde prüfen …', icon: ListChecks, onClick: p.onCheckAi }] : []),
             ...(p.onAiSettings ? [{ label: 'KI im Baukasten …', icon: KeyRound, onClick: p.onAiSettings }] : []),
           ]}

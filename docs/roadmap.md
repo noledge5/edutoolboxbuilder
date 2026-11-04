@@ -180,4 +180,4 @@ Entschieden mit Fragen und Empfehlungen:
 
 Reihenfolge (je Schritt ein PR):
 1. ✅ (04.11.2026) Schülerblatt schlicht und Anleitung freier (mit Erst fragen, dann bauen). Die neue Anleitung muss einmal ins Claude-Projekt geladen werden.
-2. „Präsi in Canva …“ mit Bild-Links über Supabase und Vorlage je Fach; eigene Folien einfrieren (neue Sitzung).
+2. „Präsi in Canva …“ mit Bild-Links über Supabase und Vorlage je Fach; eigene Folien einfrieren. Umgesetzt (04.11.2026): im Arbeitsblatt „KI“ → „Präsi in Canva …“ (auch „Präsi in Canva“ in „Mit KI bauen“): Vorlage je Fach und optional je Modul, „Auftrag vorbereiten“ (lädt bis zu 10 Bilder, Material zuerst, SVG als PNG), „Auftrag kopieren“, Link der fertigen Präsi an der Stunde. Server-Funktion `praesi-bild` (privater Bucket `praesi-bilder`, nur PNG/JPEG/GIF/WebP bis 4 MB, höchstens 150 Dateien, Links 1 Stunde, Löschung nach 18 Stunden bei jedem Aufruf und alle 6 Stunden über die Action „Ergebnis-Server wach halten“). „Mit KI bauen: Folien“ ist entfernt; vorhandene Folien bleiben.

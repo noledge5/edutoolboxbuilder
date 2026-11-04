@@ -119,8 +119,8 @@ export interface EditorProps {
   onPresent?(): void;
   slideCount?: number;
   /** Makes the lesson's slides anew from this worksheet as it is now. */
-  /** "Folien" in "Mit KI bauen": the slides view with "Mit KI bauen: Folien" open. */
-  onSlidesAi?(): void;
+  /** "Präsi in Canva …" (KI menu, and "Präsi in Canva" in "Mit KI bauen"). */
+  onCanva?(): void;
   onDeleteSlides?(): void;
   /** Earlier versions of the lesson. */
   onVersions?(): void;
@@ -152,7 +152,7 @@ export function Editor({
   onSlides,
   onPresent,
   slideCount = 0,
-  onSlidesAi,
+  onCanva,
   onDeleteSlides,
   onVersions,
   focus,
@@ -845,6 +845,7 @@ export function Editor({
           onClaude={ai && (() => setAiOpen('lesson'))}
           onCheckAi={ai && (() => setAiOpen('check'))}
           onAiSettings={() => setAiOpen('settings')}
+          onCanva={onCanva}
         />
         <input
           ref={fileInput}
@@ -981,11 +982,11 @@ export function Editor({
             }}
             onVocab={ai.module.lang === 'en' ? () => (setFixWishes(null), setAiOpen('vocab')) : undefined}
             onSlides={
-              onSlidesAi &&
+              onCanva &&
               (() => {
                 setAiOpen(null);
                 setFixWishes(null);
-                onSlidesAi();
+                onCanva();
               })
             }
             onClose={() => {

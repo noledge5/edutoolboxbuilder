@@ -41,6 +41,9 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
 - Privacy: keys and tokens (AI key, GitHub token, pairing code) stay on the device (`geraet:*`), never in backups, sync
   files, logs or commits. Student names and answers never go to the AI; a class profile holds no names.
 - Wikimedia thumbnails exist only in its standard widths (330, 1280 …).
+- New presentations are made in Canva (`src/canva/`, Runde 9); the own slides are frozen (show, present, edit, no AI).
+  Pictures reach Canva only through the edge function `supabase/functions/praesi-bild` (private bucket, signed links,
+  deleted after 18 h); the repo holds its source, it is deployed with the Supabase tools, and only after asking the user.
 
 ## Commands and checks
 - `npm run dev`, `npm run typecheck`, `npm test` (Vitest), `npm run build`; the CI (`.github/workflows/ci.yml`) runs the same.

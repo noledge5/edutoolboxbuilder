@@ -42,7 +42,7 @@ interface LessonAiDialogProps {
   onPdf?(): void;
   /** "Vokabelliste" (English modules). */
   onVocab?(): void;
-  /** "Folien": the slides view with "Mit KI bauen: Folien". */
+  /** "Präsi in Canva" (Runde 9): new presentations are made in Canva. */
   onSlides?(): void;
   onApply(draft: LessonDraft): void;
   onClose(): void;
@@ -54,7 +54,7 @@ const MODES: { v: What; l: string }[] = [
   { v: 'full', l: 'Ganze Stunde' },
   { v: 'sheet', l: 'Ein Arbeitsblatt dazu' },
   { v: 'revise', l: 'Überarbeiten' },
-  { v: 'slides', l: 'Folien' },
+  { v: 'slides', l: 'Präsi in Canva' },
   { v: 'pdf', l: 'PDF einpflegen' },
   { v: 'vocab', l: 'Vokabelliste' },
 ];
