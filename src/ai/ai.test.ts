@@ -101,7 +101,9 @@ describe('lesson context', () => {
   it('sums up a worked-out lesson', () => {
     const s = lessonSummary(seedLibrary().lessons[0].doc);
     expect(s).toContain('Merksatz: Beobachtung + Mechanismus');
-    expect(s).toContain('Aufgabenarten: Ankreuzen');
+    // Runde 9: hook and task types of earlier lessons stay out, so the AI is not pushed to vary for its own sake.
+    expect(s).not.toContain('Aufgabenarten');
+    expect(s).not.toContain('Einstieg');
   });
   it('has no week without a school year', () => {
     const lib = seedLibrary();

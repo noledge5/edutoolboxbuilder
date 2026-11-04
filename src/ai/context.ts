@@ -1,6 +1,5 @@
 // What Claude is told about a lesson's place in the school year: subject, grade and module with its competences, the
 // school week (and holidays around it), the lessons before (what they did) and after (what they are to do).
-import { BLOCK_TYPES, HOOK_KINDS } from '../model/blockTypes';
 import { rows, str, flat, clip } from '../model/text';
 import type { Doc } from '../model/types';
 import { isWorkedOut, lessonsOf } from '../library/model';
@@ -39,23 +38,18 @@ const compNames = (m: Module, l: Lesson) =>
     .map((c) => `\`${c.id}\` ${c.area}`)
     .join(' · ');
 
-/** What a worked-out lesson did, in one line for Claude. */
+/** What a worked-out lesson did, in one line for Claude. Its hook and task types stay out on purpose (Runde 9): no pressure to vary. */
 export function lessonSummary(doc: Doc): string {
   const all = doc.pages.flatMap((p) => p.blocks);
   const goal = flat(str(all.find((b) => b.type === 'goal')?.props.goal));
-  const hook = all.find((b) => b.type === 'hook');
-  const kind = hook ? HOOK_KINDS.find((k) => k.v === str(hook.props.kind))?.l : '';
   const merksatz = all.filter((b) => b.type === 'merksatz').map((b) => flat(str(b.props.text).replace(/\[\[(.*?)\]\]/g, '$1')));
   const recall = rows(all.find((b) => b.type === 'recall')?.props.items)
     .map(([q = '']) => flat(q))
     .filter(Boolean);
-  const tasks = [...new Set(all.filter((b) => BLOCK_TYPES[b.type]?.task).map((b) => BLOCK_TYPES[b.type].label))];
   return [
     goal && `Ziel: ${clip(goal)}`,
-    kind && `Einstieg: ${kind}`,
     merksatz.length && `Merksatz: ${clip(merksatz.join(' / '), 220)}`,
     recall.length && `Abruffragen: ${clip(recall.join(' · '), 220)}`,
-    tasks.length && `Aufgabenarten: ${tasks.join(', ')}`,
   ]
     .filter(Boolean)
     .join('; ');

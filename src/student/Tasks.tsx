@@ -1,7 +1,7 @@
 // A task as students do it on a device: the frame of the sheet (number, stars, instruction, help) with inputs instead
 // of blanks. Practice shows right and wrong after "Prüfen"; the solution can be shown after a check.
 import { useState, type ReactNode } from 'react';
-import { Check, Star } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Icon } from '../icons';
 import { jumble, statements } from '../model/language';
 import { lines, num, richParts, rows, segments, str } from '../model/text';
@@ -421,7 +421,6 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
 
 export function Task({ block, num: n, help, t, bank, ...rest }: TaskProps) {
   const p = block.props;
-  const level = num(p.level, 0);
   const slots = new Map(taskSlots(block).map((s) => [s.key, s]));
   const c: Ctx = { ...rest, slots, t, bank };
   const helpText = str(p.help).trim();
@@ -430,13 +429,6 @@ export function Task({ block, num: n, help, t, bank, ...rest }: TaskProps) {
       <div className="ws-num">{n}</div>
       <div className="ws-task-main">
         <div className="ws-task-head">
-          {level > 0 && (
-            <span className="ws-level" aria-label={`Niveau ${level} von 3`}>
-              {[1, 2, 3].map((k) => (
-                <Star key={k} size={13} strokeWidth={2.5} fill={k <= level ? 'currentColor' : 'none'} className={k <= level ? '' : 'is-off'} aria-hidden="true" />
-              ))}
-            </span>
-          )}
           <div className="ws-prompt"><Marked text={typo(str(p.prompt), rest.lang)} /></div>
         </div>
         {helpText && help && (
