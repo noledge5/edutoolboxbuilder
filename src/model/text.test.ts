@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cellRows, choices, flowSteps, lines, matchNumbers, segments, setPart } from './text';
+import { cellRows, choices, flowSteps, lines, matchNumbers, richParts, segments, setPart } from './text';
 
 describe('text helpers', () => {
   it('splits one-per-line fields and skips empty lines', () => {
@@ -56,5 +56,20 @@ describe('setPart (editing on the page)', () => {
   });
   it('counts empty lines with raw (table solutions)', () => {
     expect(setPart('1 | 2\n', 2, '5', 1, true)).toBe('1 | 2\n\n | 5');
+  });
+
+  it('reads **bold** and {{marked}} parts, also inside each other', () => {
+    expect(richParts('ohne')).toEqual([{ text: 'ohne' }]);
+    expect(richParts('etwa **−18 °C**, he play{{s}}.')).toEqual([{ text: 'etwa ' }, { text: '−18 °C', bold: true }, { text: ', he play' }, { text: 's', mark: true }, { text: '.' }]);
+    expect(richParts('**a {{b}}**')).toEqual([{ text: 'a ', bold: true }, { text: 'b', bold: true, mark: true }]);
+    // Lone or empty stars stay as written (2 * 3, ****).
+    expect(richParts('2 * 3 = 6 ****')).toEqual([{ text: '2 * 3 = 6 ****' }]);
+  });
+
+  it('takes a bold start of a choice for bold, not for the right answer', () => {
+    expect(choices('**Glas** A\n***Glas** B')).toEqual([
+      { text: '**Glas** A', correct: false },
+      { text: '**Glas** B', correct: true },
+    ]);
   });
 });

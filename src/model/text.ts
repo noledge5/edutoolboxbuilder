@@ -46,7 +46,8 @@ export interface Choice {
 
 /** Answer options, one per line; a leading `*` marks a correct one. */
 export const choices = (x: PropValue | undefined): Choice[] =>
-  lines(x).map((l) => (l.startsWith('*') ? { text: l.slice(1).trim(), correct: true } : { text: l, correct: false }));
+  // A star marks the right answer; "**word**" at the start is bold, not a mark ("***word**" is both).
+  lines(x).map((l) => (l.startsWith('*') && !/^\*\*[^*]/.test(l) ? { text: l.slice(1).trim(), correct: true } : { text: l, correct: false }));
 
 /** Table solutions: one line per table row, cells separated by `|` (the row label column is not repeated). */
 export const cellRows = (x: PropValue | undefined): string[][] =>
@@ -101,3 +102,22 @@ export const flowSteps = (x: PropValue | undefined): FlowStep[] =>
     const [title = '', sub = ''] = l.split('|').map((s) => s.trim());
     return { title, sub };
   });
+
+/** A part of a text with **bold** and {{marked}} words. */
+export interface RichPart {
+  text: string;
+  bold?: boolean;
+  mark?: boolean;
+}
+
+/** Splits a text into plain, **bold** and {{marked}} parts (marked inside bold works too; markup does not span lines). */
+export function richParts(text: string, bold = false): RichPart[] {
+  const out: RichPart[] = [];
+  const push = (p: RichPart) => p.text && out.push(p);
+  text.split(/(\*\*[^*\n]+?\*\*|\{\{[^\n]*?\}\})/).forEach((part, k) => {
+    if (k % 2 === 0) push(bold ? { text: part, bold } : { text: part });
+    else if (part.startsWith('**')) out.push(...richParts(part.slice(2, -2), true));
+    else push(bold ? { text: part.slice(2, -2), bold, mark: true } : { text: part.slice(2, -2), mark: true });
+  });
+  return out.length ? out : [{ text }];
+}
