@@ -1,10 +1,10 @@
 // Pieces shared by the block renderers: gaps with answers, highlighted text, colour variants, image boxes, QR codes.
-import { useContext, useRef, useState, type CSSProperties } from 'react';
+import { Fragment, useContext, useRef, useState, type CSSProperties } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 import { encode } from 'uqr';
 import { Icon } from '../icons';
 import { VARIANTS } from '../model/themes';
-import { segments, type Segment } from '../model/text';
+import { richParts, segments, type Segment } from '../model/text';
 import type { Variant } from '../model/types';
 import { useImageUrl } from '../storage/images';
 import { variantClass, type Look } from '../model/look';
@@ -51,20 +51,15 @@ export function GapText({ text, blankClass }: { text: string; blankClass: string
   return <>{segments(text).map((s, k) => (s.blank ? <Blank key={k} seg={s} cls={blankClass} view={solutions} /> : <Marked key={k} text={typo(s.text, lang)} />))}</>;
 }
 
-/** Text with {{…}} parts highlighted, e.g. "he play{{s}}" for the -s of the simple present. */
+/** Text with **bold** and {{…}} highlighted parts, e.g. "he play{{s}}" for the -s of the simple present. */
 export function Marked({ text }: { text: string }) {
-  if (!text.includes('{{')) return <>{text}</>;
+  if (!text.includes('{{') && !text.includes('**')) return <>{text}</>;
   return (
     <>
-      {text.split(/\{\{(.*?)\}\}/).map((part, k) =>
-        k % 2 ? (
-          <mark key={k} className="ws-mark">
-            {part}
-          </mark>
-        ) : (
-          part
-        ),
-      )}
+      {richParts(text).map((part, k) => {
+        const inner = part.mark ? <mark className="ws-mark">{part.text}</mark> : part.text;
+        return part.bold ? <strong key={k}>{inner}</strong> : <Fragment key={k}>{inner}</Fragment>;
+      })}
     </>
   );
 }

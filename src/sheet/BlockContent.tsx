@@ -219,11 +219,11 @@ function BlockBody({ block, taskNum, editing, onImageFile, onPicFile }: BlockCon
                 <span className={'ws-verdict ' + kind}>{verdict || 'Richtig'}</span>
                 <div>
                   <Editable className="ws-expect-quote" target={t(`items#${k}.1`)} value={quote}>
-                    {quote}
+                    <Marked text={quote} />
                   </Editable>
                   {text && (
                     <Editable className="ws-expect-text" target={t(`items#${k}.2`)} value={text}>
-                      {text}
+                      <Marked text={text} />
                     </Editable>
                   )}
                 </div>
@@ -248,7 +248,7 @@ function BlockBody({ block, taskNum, editing, onImageFile, onPicFile }: BlockCon
           {lines(p.items).map((item, k) => (
             <div key={k} className="ws-self-row">
               <Editable as="span" className="ws-self-text" target={t(`items#${k}`)} value={item}>
-                {item}
+                <Marked text={item} />
               </Editable>
               {[0, 1, 2].map((j) => (
                 <span key={j} className="ws-self-mark">
@@ -268,12 +268,12 @@ function BlockBody({ block, taskNum, editing, onImageFile, onPicFile }: BlockCon
             return [
               <div key={'s' + k} className={'ws-flow-step' + (doc?.look ? ` is-c${(k % 4) + 1}` : '')} style={doc?.look ? undefined : { background: bg }}>
                 <Editable className="ws-flow-title" target={t(`steps#${k}.0`)} value={s.title}>
-                  {s.title}
+                  <Marked text={s.title} />
                 </Editable>
                 {s.sub && (
                   <div className="ws-flow-sub" style={doc?.look ? undefined : { color: fg }}>
                     <Editable as="span" target={t(`steps#${k}.1`)} value={s.sub}>
-                      {s.sub}
+                      <Marked text={s.sub} />
                     </Editable>
                   </div>
                 )}
@@ -331,7 +331,7 @@ function BlockBody({ block, taskNum, editing, onImageFile, onPicFile }: BlockCon
             </div>
             {help && doc?.help !== false && (
               <div className="ws-help" lang="de">
-                {typo(help, 'de')}
+                <Marked text={typo(help, 'de')} />
               </div>
             )}
             {LANGUAGE_BLOCKS.has(block.type) ? <LanguageTaskBody block={block} target={t} editing={editing} onPicFile={onPicFile} /> : <TaskBody block={block} target={t} />}
@@ -364,7 +364,7 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
             <div key={k} className="ws-option">
               <span className={'ws-check' + (answers && o.correct ? ' is-correct' + answerClass(solutions) : '')} />
               <Editable as="span" target={target(`options#${k}`)} value={lines(p.options)[k]}>
-                {o.text}
+                <Marked text={o.text} />
               </Editable>
             </div>
           ))}
@@ -386,7 +386,7 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
             <div className="ws-table-head" style={template}>
               {cols.map((c, k) => (
                 <Editable key={k} target={target(`cols#${k}`)} value={c}>
-                  {c}
+                  <Marked text={c} />
                 </Editable>
               ))}
             </div>
@@ -394,7 +394,7 @@ function TaskBody({ block, target }: { block: Block; target(key: string): string
           {lines(p.rows).map((r, k) => (
             <div key={k} className="ws-table-row" style={template}>
               <Editable className="ws-table-label" target={target(`rows#${k}`)} value={r}>
-                {r}
+                <Marked text={r} />
               </Editable>
               {cols.slice(1).map((_, j) => (
                 <Editable key={j} className="ws-table-cell" target={target(`solution!${k}.${j}`)} value={sol[k]?.[j] ?? ''}>
@@ -454,7 +454,7 @@ function MatchBody({ left: L, right: R, solution, view, target }: { left: string
           {L[k] ? (
             <div className="ws-match-item">
               <Editable as="span" target={target(`left#${k}`)} value={L[k]}>
-                {L[k]}
+                <Marked text={L[k]} />
               </Editable>
               <span className="ws-dot" data-dot="l" />
             </div>
@@ -466,7 +466,7 @@ function MatchBody({ left: L, right: R, solution, view, target }: { left: string
             <div className="ws-match-item is-right">
               <span className="ws-dot" data-dot="r" />
               <Editable as="span" target={target(`right#${k}`)} value={R[k]}>
-                {R[k]}
+                <Marked text={R[k]} />
               </Editable>
             </div>
           ) : (
@@ -510,7 +510,7 @@ function RecallBlock({ title, items, always, titleTarget }: { title: string; ite
         <div key={k} className="ws-recall-row">
           <span className="ws-recall-num">{k + 1}</span>
           <span>
-            {q}
+            <Marked text={q} />
             {a && view !== 'hidden' && <span className={'ws-recall-answer' + answerClass(view)}> ({a})</span>}
           </span>
         </div>

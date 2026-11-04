@@ -4,12 +4,12 @@ import { useState, type ReactNode } from 'react';
 import { Check, Star } from 'lucide-react';
 import { Icon } from '../icons';
 import { jumble, statements } from '../model/language';
-import { lines, num, rows, segments, str } from '../model/text';
+import { lines, num, richParts, rows, segments, str } from '../model/text';
 import type { Block } from '../model/types';
 import { Marked } from '../sheet/parts';
 import { typo } from '../sheet/lang';
 import { useImageUrl } from '../storage/images';
-import { taskSlots, type Answers, type Slot } from '../share/grade';
+import { taskSlots, type Answers, type Slot, type WordBank } from '../share/grade';
 import type { StudentText } from './text';
 
 export interface TaskProps {
@@ -24,10 +24,15 @@ export interface TaskProps {
   locked: boolean;
   lang: 'de' | 'en';
   help: boolean;
+  /** Words to choose from for the typed slots, when the handout has them. */
+  bank?: WordBank;
   t: StudentText;
 }
 
-type Ctx = Omit<TaskProps, 'block' | 'num' | 'help' | 't'> & { slots: Map<string, Slot>; t: StudentText };
+type Ctx = Omit<TaskProps, 'block' | 'num' | 'help' | 't' | 'bank'> & { slots: Map<string, Slot>; t: StudentText; bank?: WordBank };
+
+/** Text for places that cannot show bold or marks (choices in a list). */
+const plain = (s: string) => richParts(s).map((p) => p.text).join('');
 
 const state = (c: Ctx, key: string) => {
   const m = c.marks?.[key];
@@ -49,6 +54,7 @@ function Expected({ c, k }: { c: Ctx; k: string }) {
 }
 
 function TextInput({ c, k, wide = false, area = false }: { c: Ctx; k: string; wide?: boolean; area?: boolean }) {
+  if (!area && c.bank?.slots.includes(k)) return <WordPick c={c} k={k} wide={wide} />;
   const props = {
     className: 'st-input' + (wide ? ' is-wide' : '') + state(c, k),
     value: c.answers[k] ?? '',
@@ -73,6 +79,33 @@ function TextInput({ c, k, wide = false, area = false }: { c: Ctx; k: string; wi
   );
 }
 
+/** A gap to fill by choosing from the words of the task, so a typo or another word does not count as wrong. */
+function WordPick({ c, k, wide }: { c: Ctx; k: string; wide: boolean }) {
+  const given = c.answers[k] ?? '';
+  const words = c.bank!.words;
+  return (
+    <>
+      <select
+        className={'st-select st-pick' + (wide ? ' is-wide' : '') + state(c, k)}
+        value={given}
+        disabled={c.locked}
+        aria-label={c.slots.get(k)?.label}
+        onChange={(e) => c.onAnswer(k, e.target.value)}
+      >
+        <option value="">{c.t.choose}</option>
+        {/* Something typed before the handout had choices stays visible. */}
+        {given && !words.includes(given) && <option value={given}>{given}</option>}
+        {words.map((w) => (
+          <option key={w} value={w}>
+            {plain(typo(w, c.lang))}
+          </option>
+        ))}
+      </select>
+      <Expected c={c} k={k} />
+    </>
+  );
+}
+
 function Choices({ c, k, multi = false }: { c: Ctx; k: string; multi?: boolean }) {
   const slot = c.slots.get(k)!;
   const chosen = (c.answers[k] ?? '').split('|').filter(Boolean);
@@ -91,7 +124,7 @@ function Choices({ c, k, multi = false }: { c: Ctx; k: string; multi?: boolean }
         return (
           <button key={o.v} type="button" role={multi ? 'checkbox' : 'radio'} aria-checked={on} className={'st-choice' + (on ? ' is-on' : '') + mark} onClick={() => pick(o.v)} disabled={c.locked}>
             <span className={'st-box' + (multi ? '' : ' is-round')}>{on && <Icon icon={Check} size={14} />}</span>
-            <span>{typo(o.l, c.lang)}</span>
+            <span><Marked text={typo(o.l, c.lang)} /></span>
           </button>
         );
       })}
@@ -188,7 +221,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
         <div className="st-rows">
           {statements(str(p.items)).map((s, i) => (
             <div key={i} className="st-row">
-              <div className="st-row-text">{typo(s.text, c.lang)}</div>
+              <div className="st-row-text"><Marked text={typo(s.text, c.lang)} /></div>
               <Choices c={c} k={`s${i}`} />
             </div>
           ))}
@@ -201,7 +234,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
           <ol className="st-match-left">
             {left.map((l, i) => (
               <li key={i}>
-                <b>{i + 1}</b> {typo(l, c.lang)}
+                <b>{i + 1}</b> <Marked text={typo(l, c.lang)} />
               </li>
             ))}
           </ol>
@@ -210,12 +243,12 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
               const k = `m${j}`;
               return (
                 <label key={j} className="st-row">
-                  <span className="st-row-text">{typo(r, c.lang)}</span>
+                  <span className="st-row-text"><Marked text={typo(r, c.lang)} /></span>
                   <select className={'st-select' + state(c, k)} value={c.answers[k] ?? ''} disabled={c.locked} onChange={(e) => c.onAnswer(k, e.target.value)}>
                     <option value="">{c.t.choose}</option>
                     {left.map((l, i) => (
                       <option key={i} value={String(i + 1)}>
-                        {i + 1} · {l}
+                        {i + 1} · {plain(l)}
                       </option>
                     ))}
                   </select>
@@ -262,7 +295,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
     case 'mediation':
       return (
         <>
-          <div className="st-source">{typo(str(p.source), 'de')}</div>
+          <div className="st-source"><Marked text={typo(str(p.source), 'de')} /></div>
           <TextInput c={c} k="a" wide area />
         </>
       );
@@ -272,7 +305,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
           {lines(p.starters).length > 0 && (
             <ul className="st-starters">
               {lines(p.starters).map((s, k) => (
-                <li key={k}>{typo(s, c.lang)} …</li>
+                <li key={k}><Marked text={typo(s, c.lang)} /> …</li>
               ))}
             </ul>
           )}
@@ -280,7 +313,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
           {lines(p.checklist).length > 0 && (
             <ul className="st-checklist">
               {lines(p.checklist).map((s, k) => (
-                <li key={k}>☐ {typo(s, c.lang)}</li>
+                <li key={k}>☐ <Marked text={typo(s, c.lang)} /></li>
               ))}
             </ul>
           )}
@@ -300,7 +333,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
           {rows(p.items).map(([source = '', target = ''], i) => (
             <div key={i} className="st-row is-stack">
               <div className="st-row-text">
-                {typo(source, c.lang)} {target && <span className="st-target">→ {target}</span>}
+                <Marked text={typo(source, c.lang)} /> {target && <span className="st-target">→ {target}</span>}
               </div>
               <TextInput c={c} k={`x${i}`} wide />
             </div>
@@ -312,7 +345,7 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
         <div className="st-rows">
           {rows(p.rows).map(([given = ''], i) => (
             <div key={i} className="st-row">
-              <div className="st-row-text">{given}</div>
+              <div className="st-row-text"><Marked text={given} /></div>
               <TextInput c={c} k={`f${i}`} />
             </div>
           ))}
@@ -386,11 +419,11 @@ function Body({ block, c }: { block: Block; c: Ctx }): ReactNode {
   }
 }
 
-export function Task({ block, num: n, help, t, ...rest }: TaskProps) {
+export function Task({ block, num: n, help, t, bank, ...rest }: TaskProps) {
   const p = block.props;
   const level = num(p.level, 0);
   const slots = new Map(taskSlots(block).map((s) => [s.key, s]));
-  const c: Ctx = { ...rest, slots, t };
+  const c: Ctx = { ...rest, slots, t, bank };
   const helpText = str(p.help).trim();
   return (
     <div className="ws-task st-task">
@@ -404,11 +437,11 @@ export function Task({ block, num: n, help, t, ...rest }: TaskProps) {
               ))}
             </span>
           )}
-          <div className="ws-prompt">{typo(str(p.prompt), rest.lang)}</div>
+          <div className="ws-prompt"><Marked text={typo(str(p.prompt), rest.lang)} /></div>
         </div>
         {helpText && help && (
           <div className="ws-help" lang="de">
-            {typo(helpText, 'de')}
+            <Marked text={typo(helpText, 'de')} />
           </div>
         )}
         <div className="st-body">

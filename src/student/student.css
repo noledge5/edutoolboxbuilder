@@ -88,6 +88,8 @@ textarea.st-input { display: block; border-radius: 10px; border: 2px solid var(-
 .st-row-text { flex: 1 1 220px; min-width: 0; }
 .st-target { color: var(--color-accent-1-800); font-weight: 700; }
 .st-select { min-height: 44px; max-width: 100%; padding: 0 10px; border: 2px solid var(--color-divider); border-radius: 12px; background: white; font: inherit; font-size: 15px; font-weight: 600; color: var(--color-text); }
+.st-pick { margin: 2px 2px; vertical-align: baseline; }
+.st-pick.is-wide { width: 100%; }
 .st-match { display: flex; flex-direction: column; gap: 12px; }
 .st-match-left { margin: 0; padding: 10px 14px; list-style: none; border-radius: 12px; background: var(--color-neutral-100); display: flex; flex-direction: column; gap: 4px; }
 .st-match-left b { display: inline-grid; place-items: center; width: 24px; height: 24px; margin-right: 6px; border-radius: 50%; background: var(--color-text); color: white; font-size: 13px; }

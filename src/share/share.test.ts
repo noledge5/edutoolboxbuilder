@@ -4,7 +4,7 @@ import { seedDoc } from '../model/seed';
 import { handoutPages, handoutTasks, handoutTitle, readAssignment, studentPages, type Handout, type Submission } from './assignment';
 import { newKeyPair, open, randomId, seal } from './crypto';
 import { evaluate, latestSubmissions } from './evaluate';
-import { gradeTask, isRight, normalize, stripSolutions, taskSlots } from './grade';
+import { gradeTask, isRight, normalize, stripSolutions, taskSlots, wordBanks } from './grade';
 import { readHandout } from '../library/read';
 
 const gap = createBlock('gap', { prompt: 'Ergänze.', text: 'Die [[Sonne]] wärmt die [[Erde / Erdoberfläche]]. Dann ___.' });
@@ -62,6 +62,39 @@ describe('slots and grading', () => {
     // The parts stay answerable: same slots, no expected answers.
     expect(taskSlots(stripSolutions(gap)).map((s) => s.expected)).toEqual(['', '', '']);
     expect(taskSlots(stripSolutions(jumble))[0].options?.length).toBe(5);
+  });
+});
+
+describe('choices instead of typing', () => {
+  it('offers the answers of a task as a word bank, sorted, without twins, padded from other tasks', () => {
+    const banks = wordBanks([gap, table, mc, open1]);
+    // The gap without an answer stays typed; alternatives show their first form.
+    expect(banks[gap.id].slots).toEqual(['g0', 'g1']);
+    expect(banks[gap.id].words).toEqual(['20', 'Erde', 'Sonne']);
+    expect(banks[table.id]).toEqual({ slots: ['t0-0', 't0-1', 't1-0', 't1-1'], words: ['20', '24', '27'] });
+    expect(banks[mc.id]).toBeUndefined();
+    expect(banks[open1.id]).toBeUndefined();
+    // A chosen word is graded like a typed one.
+    expect(isRight(taskSlots(gap)[1], 'Erde')).toBe(true);
+  });
+
+  it('keeps typing when there is nothing to choose between', () => {
+    const one = createBlock('gap', { text: 'Die [[Sonne]] scheint.' });
+    expect(wordBanks([one])).toEqual({});
+    const twins = createBlock('gap', { text: '[[ja]] oder [[Ja]]' });
+    expect(wordBanks([twins])).toEqual({});
+  });
+
+  it('survives into the test copy and back from the net', () => {
+    const pages = [{ title: '', kicker: '', type: 'uebung' as const, blocks: [gap, table] }];
+    const banks = wordBanks(pages.flatMap((p) => p.blocks));
+    const test = studentPages(pages, 'test');
+    // The test copy has no solutions but the same slot keys, so the bank still fits.
+    expect(taskSlots(test[0].blocks[0]).map((s) => s.key)).toEqual(expect.arrayContaining(banks[gap.id].slots));
+    const raw = { format: 'baukasten-auftrag', id: 'x', pages: test, key: {}, picks: banks };
+    expect(readAssignment(raw)?.picks).toEqual(banks);
+    expect(readAssignment({ ...raw, picks: undefined })?.picks).toEqual({});
+    expect(readAssignment({ ...raw, picks: { [gap.id]: { slots: 'g0', words: [1] } } })?.picks).toEqual({});
   });
 });
 

@@ -10,7 +10,7 @@ import { getImage } from '../storage/db';
 import { loadGithub, saveGithub, type GithubSettings } from '../storage/library';
 import { ASSIGNMENT_FORMAT, handoutImages, handoutTasks, studentPages, type Assignment, type AssignmentPage, type Handout, type HandoutMode } from './assignment';
 import { newKeyPair, randomId } from './crypto';
-import { DIGITAL_TASKS } from './grade';
+import { DIGITAL_TASKS, wordBanks } from './grade';
 import { DEFAULT_REPO, assignmentPath, checkSetup, publishFiles } from './github';
 import { KEEP_DAYS } from './server';
 
@@ -142,7 +142,7 @@ export function ShareDialog({ pages, defaultTitle, lessonId, meta, onDone, onOpe
       }
       const now = Date.now();
       const name = title.trim() || defaultTitle;
-      const assignment: Assignment = { format: ASSIGNMENT_FORMAT, v: 1, id, title: name, mode, ...meta, key: keys.publicKey, pages: studentPages(pages, mode), images, createdAt: now };
+      const assignment: Assignment = { format: ASSIGNMENT_FORMAT, v: 1, id, title: name, mode, ...meta, key: keys.publicKey, pages: studentPages(pages, mode), images, picks: mode === 'loesung' ? {} : wordBanks(pages.flatMap((p) => p.blocks)), createdAt: now };
       await publishFiles(github, { [assignmentPath(id)]: JSON.stringify(assignment) }, `Aufgabe: ${name}`);
       const handout: Handout = { id, lessonId, title: name, mode, url: studentUrl(github.repo, id), pages, privateKey: keys.privateKey, createdAt: now, updatedAt: now };
       onDone(handout);

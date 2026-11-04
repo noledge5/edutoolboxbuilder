@@ -33,6 +33,8 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
   otherwise).
 - Topic icons are a curated list in `src/topicIcons.ts`; never import all of Lucide. Fixed sheet texts go through
   `SHEET_TEXT` (`src/sheet/lang.ts`), quotation marks through `typo()`; teacher pages stay German.
+- Text on the sheet and in the student view is drawn through `Editable` or `<Marked>` (`richParts`), never as a bare
+  string, so `**bold**` and `{{marked}}` work everywhere (only `<option>` gets plain text).
 - Everything must work with touch on an iPad (long-press to drag) and in print (one A4 page per sheet).
 - Never simplify away: repairs for older data, print values in `sheet.css`, touch handling, the encryption in
   `src/sync/` and `src/share/`, the trash and earlier versions.

@@ -266,6 +266,7 @@ export function StudentApp() {
                         locked={work.done}
                         lang={a.lang}
                         help={a.help}
+                        bank={a.picks[b.id]}
                         t={t}
                       />
                       {practice && !work.done && (graded || sample) && (
