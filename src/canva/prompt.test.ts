@@ -50,6 +50,7 @@ describe('Präsi in Canva', () => {
     const text = canvaPrompt(lib.modules[0], lib.lessons[0], 'https://www.canva.com/design/DAGvorlage/edit', [{ label: 'M1: Karte', url: 'https://x.supabase.co/s/1?token=t' }]);
     expect(text).toContain('Canva-Design `DAGvorlage`');
     expect(text).toContain('1. M1: Karte: https://x.supabase.co/s/1?token=t');
+    expect(text).toContain('Lade das Bild unten mit seinem Link');
     expect(text).toContain('Zwillingsfolie');
     expect(text).toContain('Nicht auf die Folien: Niveaus');
     expect(text).toContain('"title":"Versuchsprotokoll: Wärme einfangen"');

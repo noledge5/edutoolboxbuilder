@@ -62,7 +62,7 @@ export function canvaPrompt(m: Module, l: Lesson, template: string, links: { lab
     '',
     '## So gehst du vor',
     links.length
-      ? `1. Lade die ${links.length} Bilder unten mit ihren Links in Canva hoch (die Links gelten nur etwa eine Stunde). Es sind die Bilder vom Arbeitsblatt; sie gehören groß auf die Folien.`
+      ? `1. Lade ${links.length === 1 ? 'das Bild' : `die ${links.length} Bilder`} unten mit ${links.length === 1 ? 'seinem Link' : 'ihren Links'} in Canva hoch (die Links gelten nur etwa eine Stunde). Es sind die Bilder vom Arbeitsblatt; sie gehören groß auf die Folien.`
       : '1. Die Stunde hat keine eigenen Bilder. Nimm passende Bilder aus Canva.',
     '2. Überlege kurz, wie die Stunde im Raum läuft, und zeig mir die Gliederung zum Prüfen. Frag höchstens ein, zwei Dinge, wenn etwas wirklich unklar ist.',
     `3. Erzeuge danach die Präsentation${links.length ? ' mit den hochgeladenen Bildern' : ''}${id ? ` im Stil meiner Vorlage (Canva-Design \`${id}\`)` : ''}. Fehlt ein Bild auf der passenden Folie, setz es danach ein.`,
