@@ -779,8 +779,8 @@ function TipCards({ cols, editing }: { cols: number; editing: boolean }) {
           <div className="ws-tip-head">
             <Icon icon={Lightbulb} size={14} />
             <span>{txt.tip(tip.num, tip.page)}</span>
-            {Number(tip.level) > 0 && (
-              <span className="ws-level">
+            {editing && Number(tip.level) > 0 && (
+              <span className="ws-level" data-noprint>
                 {Array.from({ length: Number(tip.level) }, (_, i) => (
                   <Star key={i} size={11} strokeWidth={2.5} fill="currentColor" aria-hidden="true" />
                 ))}

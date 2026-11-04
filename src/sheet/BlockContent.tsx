@@ -305,8 +305,9 @@ function BlockBody({ block, taskNum, editing, onImageFile, onPicFile }: BlockCon
           </div>
           <div className="ws-task-main">
             <div className="ws-task-head">
-              {level > 0 && (
-                <span className="ws-level" aria-label={`Niveau ${level} von 3`}>
+              {/* Level, work form and competence are planning data: shown while editing, never printed or in the preview. */}
+              {editing && level > 0 && (
+                <span className="ws-level" data-noprint aria-label={`Niveau ${level} von 3`}>
                   {[1, 2, 3].map((k) => (
                     <Star key={k} size={13} strokeWidth={2.5} fill={k <= level ? 'currentColor' : 'none'} className={k <= level ? '' : 'is-off'} aria-hidden="true" />
                   ))}
@@ -335,7 +336,7 @@ function BlockBody({ block, taskNum, editing, onImageFile, onPicFile }: BlockCon
               </div>
             )}
             {LANGUAGE_BLOCKS.has(block.type) ? <LanguageTaskBody block={block} target={t} editing={editing} onPicFile={onPicFile} /> : <TaskBody block={block} target={t} />}
-            <CompetenceTag id={str(p.competence)} level={str(p.level)} />
+            {editing && <CompetenceTag id={str(p.competence)} level={str(p.level)} />}
           </div>
         </div>
       );
@@ -485,14 +486,14 @@ function MatchBody({ left: L, right: R, solution, view, target }: { left: string
   );
 }
 
-/** Which competence (and level) a task practises: on the solution sheet, and faintly while editing. */
+/** Which competence (and level) a task practises: only in the editor, never printed. */
 function CompetenceTag({ id, level }: { id: string; level: string }) {
   const names = useContext(CompetenceNamesContext);
   const { solutions } = useContext(SheetModeContext);
   const name = id && names.get(id);
   if (!name || solutions === 'hidden') return null;
   return (
-    <div className={'ws-comp-tag' + answerClass(solutions)}>
+    <div className={'ws-comp-tag' + answerClass(solutions)} data-noprint>
       Kompetenz: {name}
       {LEVEL_NAMES[level] ? ` · Niveau ${LEVEL_NAMES[level]}` : ''}
     </div>

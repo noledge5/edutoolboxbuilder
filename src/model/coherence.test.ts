@@ -59,9 +59,9 @@ describe('coherence', () => {
     expect(kinds(halves)).toEqual([]);
   });
 
-  it('asks for material when a lesson has tasks but no numbered material', () => {
+  it('accepts a lesson without numbered material (Runde 9: numbers only where a task refers to them)', () => {
     const d = doc(page([b('open'), b('mc')]));
-    expect(kinds(d)).toEqual(['ohne-material ']);
+    expect(kinds(d)).toEqual([]);
   });
 
   it('checks the learning path: missing on the teacher page, unknown material', () => {

@@ -66,8 +66,9 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
   // A back page shows the front's title in a slim header, so it is clear which sheet it belongs to.
   const f = frontOf(doc.pages, index);
   const front = f === null ? null : doc.pages[f];
-  const formPill = !hideForm && (
-    <div className="ws-form-pill">
+  // The work form is planning data for the teacher: shown while editing, never printed or in the preview.
+  const formPill = !hideForm && editing && (
+    <div className="ws-form-pill" data-noprint>
       <Icon icon={page.form === 'allein' ? User : Users} size={front ? 12 : 14} />
       {en ? WORK_FORMS_EN[page.form] : page.form}
     </div>

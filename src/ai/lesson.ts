@@ -21,7 +21,7 @@ export const packagePages = (pages: Page[]) => pages.map((p) => ({ ...p, blocks:
 
 const TASK: Record<LessonMode, string> = {
   full:
-    'Arbeite die Stunde vollständig aus. Denk zuerst wie eine erfahrene Lehrkraft über diese Klasse und diese Stunde nach (siehe „Wie du planst“): Was ist das Wesentliche, was geht mit den Schülerinnen und Schülern in 45 Minuten, was ist lernwirksam? Dann die Seite „Für die Lehrkraft“ (Ziel & Bildungsplan, ein Einstieg, der zu dieser Stunde passt, der Lernweg, Stundenverlauf für 45 Minuten mit „AB S. 1“ usw., Erwartungshorizont, Abruffragen für spätere Stunden) und so viele Schülerseiten, wie die Stunde braucht, die dem Lernweg folgen: Material (M1, M2 …) vor den Aufgaben, die es nennen, ein Merksatz nur mit Wörtern der Blätter.',
+    'Arbeite die Stunde aus. Denk zuerst wie eine erfahrene Lehrkraft über diese Klasse und diese Stunde nach (siehe „Wie du planst“): Was ist die Kernidee, was geht mit diesen Schülerinnen und Schülern in 45 Minuten, was ist lernwirksam? Dann die Seite „Für die Lehrkraft“ (Ziel in einem Satz, Einstieg, ein kurzer Lernweg als roter Faden, grober Verlauf) und so viele Schülerseiten, wie die Stunde braucht, die dem Lernweg folgen. Auf die Schülerseiten kommt nur, was die Schüler zum Arbeiten brauchen.',
   sheet:
     'Die Stunde steht schon (unten). Baue dazu ein weiteres Arbeitsblatt nach den Wünschen der Lehrkraft: eine Schülerseite, bei Bedarf mit Rückseite. Es passt zum Lernweg der Stunde (vertieft, übt oder führt ihn weiter), nutzt ihr Material (M1, M2 …) oder bringt eigenes Material mit der nächsten freien Nummer mit und nennt es in den Aufträgen. Gib im Paket nur die neuen Seiten aus, ohne die vorhandenen.',
   revise:
@@ -31,7 +31,15 @@ const TASK: Record<LessonMode, string> = {
 /** The request for one lesson. `context` is `lessonContext()`; `chat`: for pasting into a Claude project. */
 export function lessonPrompt(m: Module, l: Lesson, context: string, mode: LessonMode, chat = false): string {
   const out: string[] = [];
-  if (chat) out.push(`Bitte nach der Anleitung „Arbeitsblatt-Baukasten“ (im Projektwissen oder als Datei angehängt): ${TASK[mode]}`);
+  if (chat) {
+    out.push(`Bitte nach der Anleitung „Arbeitsblatt-Baukasten“ (im Projektwissen oder als Datei angehängt): ${TASK[mode]}`);
+    out.push(
+      '',
+      mode === 'revise'
+        ? 'Ist ein Wunsch unklar, frag kurz nach (höchstens zwei Fragen), sonst überarbeite gleich.'
+        : '**Frag mich zuerst aus** (siehe „Erst fragen, dann bauen“): eine Frage nach der anderen, jede mit deinem Vorschlag; erst nach meinem „ok“ zur Zusammenfassung baust du. Mit „bau einfach“ entscheidest du selbst.',
+    );
+  }
   else
     out.push(
       'Du arbeitest diesmal direkt im Baukasten, nicht im Chat: Es gibt keine Rückfragen und keine Dateien. Entscheide selbst, was fehlt, im Sinne der Anleitung.',
