@@ -57,13 +57,14 @@ export interface MergeResult {
 }
 
 
-/** Settings changed on both devices: the newer ones, with the subjects and class profiles of both. */
+/** Settings changed on both devices: the newer ones, with the subjects, class profiles and Canva templates of both. */
 function mergeSettings(here: Settings, there: Settings, now: number): Settings {
   const subjects = [...there.subjects];
   for (const s of here.subjects) if (!subjects.includes(s)) subjects.push(s);
   const newer = there.updatedAt > here.updatedAt ? there : here;
   const older = newer === there ? here : there;
-  return { ...newer, subjects, classProfiles: { ...older.classProfiles, ...newer.classProfiles }, updatedAt: now };
+  const templates = older.canvaTemplates || newer.canvaTemplates ? { canvaTemplates: { ...older.canvaTemplates, ...newer.canvaTemplates } } : {};
+  return { ...newer, subjects, classProfiles: { ...older.classProfiles, ...newer.classProfiles }, ...templates, updatedAt: now };
 }
 
 /**

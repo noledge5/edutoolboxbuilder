@@ -43,6 +43,8 @@ export interface Module {
   textbook: string;
   /** Subject design of its sheets and slides (absent: follows the subject). */
   look?: ModuleLook;
+  /** Canva presentation whose style new presentations of this module follow (overrides the subject's). */
+  canvaTemplate?: string;
   /** Planned length in school weeks, for the year plan (0 = not planned). */
   weeks: number;
   /** Monday of the first week ("2026-09-14"); empty = right after the previous module. */
@@ -74,6 +76,8 @@ export interface Lesson {
   slideDesign: SlideDesign;
   /** Tafelbilder: what was written on the slides while presenting, kept to show again or print (newest first). */
   boards: Board[];
+  /** The lesson's presentation in Canva (Runde 9: new presentations are made there). */
+  canvaUrl?: string;
   updatedAt: number;
 }
 
@@ -90,6 +94,8 @@ export interface Settings {
   principles: string;
   /** About the class of a subject and grade (key `classKey`), without names: level, DaZ, LRS …; goes to Claude. */
   classProfiles: Record<string, string>;
+  /** Canva presentation per subject whose style new presentations follow (see `Module.canvaTemplate`). */
+  canvaTemplates?: Record<string, string>;
   /** When the settings last changed (for the Mac ↔ iPad sync); 0 = never. */
   updatedAt: number;
 }
