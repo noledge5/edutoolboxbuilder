@@ -181,3 +181,11 @@ Entschieden mit Fragen und Empfehlungen:
 Reihenfolge (je Schritt ein PR):
 1. ✅ (04.11.2026) Schülerblatt schlicht und Anleitung freier (mit Erst fragen, dann bauen). Die neue Anleitung muss einmal ins Claude-Projekt geladen werden.
 2. „Präsi in Canva …“ mit Bild-Links über Supabase und Vorlage je Fach; eigene Folien einfrieren. Umgesetzt (04.11.2026): im Arbeitsblatt „KI“ → „Präsi in Canva …“ (auch „Präsi in Canva“ in „Mit KI bauen“): Vorlage je Fach und optional je Modul, „Auftrag vorbereiten“ (lädt bis zu 10 Bilder, Material zuerst, SVG als PNG), „Auftrag kopieren“, Link der fertigen Präsi an der Stunde. Server-Funktion `praesi-bild` (privater Bucket `praesi-bilder`, nur PNG/JPEG/GIF/WebP bis 4 MB, höchstens 150 Dateien, Links 1 Stunde, Löschung nach 18 Stunden bei jedem Aufruf und alle 6 Stunden über die Action „Ergebnis-Server wach halten“). „Mit KI bauen: Folien“ ist entfernt; vorhandene Folien bleiben.
+
+### Runde 10 – Design-Runde Arbeitsblatt (entschieden am 05.11.2026)
+Rückmeldung der Lehrkraft (Screenshots aus dem Editor, Geographie K5 „Luftbild und Karte“): Die Blätter sehen immer noch schlecht aus und sollen minimalistischer werden; im Editor stehen Sterne, Kompetenz-Schilder und graue Lösungen, die nicht zum Druck passen.
+Entschieden mit Fragen und Empfehlungen:
+- **Editor:** ein Schalter „Planung“ an/aus blendet Sterne, Kompetenz-Schild und Lösungen ein oder aus; aus ist der Normalfall, dann sieht das Blatt im Editor aus wie gedruckt.
+- **Druckbild schlichter:** weniger Farbflächen (weiß statt hellblauer Kästen, Material mit dünner Linie oder ohne Rahmen), schlichtere Aufgabennummern (klein und flach statt großem Kreis mit Ring), kein Rastermuster (Streifen und Karo) im Hintergrund. Schriftgröße bleibt vorerst.
+- **Fehler:** Im Editor überlappt die Lösungszeile einer Aufgabe die nächste Aufgabe und deren gestrichelten Rahmen (Aufgabe 1/2 unter M3).
+- **Vorgehen:** erst 2–3 Entwürfe desselben Blatts (Bild/PDF), die Lehrkraft wählt, dann Umsetzung. Die Entwürfe ändern auch die Design-Spec (`docs/design/`), das wird mit der Lehrkraft abgestimmt.
