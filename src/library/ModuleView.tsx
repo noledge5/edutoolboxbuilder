@@ -557,31 +557,32 @@ function CompetenceGrid({ competences, domains, links, onChange }: CompetenceGri
   );
 }
 
-/** Design of the module's sheets and slides: the subject's own (by grade), another subject's, or "Organisch". */
+/** Design of the module's sheets and slides: the subject's form (by grade), another subject's, or neutral ("Organisch" on slides). */
 function LookFields({ m, onChange }: { m: Module; onChange(look: ModuleLook): void }) {
   const ml = m.look ?? DEFAULT_MODULE_LOOK;
   const own = fachOf(m.subject);
   const age = ageOf(m.grade);
   const look = lookFor(m);
-  const nameOf = (f: Fach) => (f === 'eng' && age === 1 ? 'Englisch 5–6' : LOOK_NAMES[f][age - 1]);
+  // Sheets take the subject's form; the names of the old designs only matter for the slides.
+  const nameOf = (f: Fach) => `${FACH_LABELS[f]} (Folien: ${f === 'eng' && age === 1 ? 'Englisch 5–6' : LOOK_NAMES[f][age - 1]})`;
   const fonts = look ? HEAD_FONTS[lookKey(look)] : null;
   return (
     <>
       <div className="field">
-        <label htmlFor="m-look">Design der Blätter und Folien</label>
+        <label htmlFor="m-look">Fach-Design der Blätter und Folien</label>
         <select id="m-look" className="input" value={ml.theme} onChange={(e) => onChange({ ...ml, theme: e.target.value as ModuleLook['theme'] })}>
-          <option value="auto">{own ? `Wie das Fach: ${nameOf(own)}` : 'Wie das Fach: Organisch'}</option>
-          <option value="organisch">Organisch</option>
+          <option value="auto">{own ? `Wie das Fach: ${nameOf(own)}` : 'Wie das Fach: neutral (Folien: Organisch)'}</option>
+          <option value="organisch">Neutral (Folien: Organisch)</option>
           {(Object.keys(FACH_LABELS) as Fach[]).map((f) => (
             <option key={f} value={f}>
-              {FACH_LABELS[f]}: {nameOf(f)}
+              {nameOf(f)}
             </option>
           ))}
         </select>
       </div>
       {look?.fach === 'eng' && look.age === 1 && (
         <div className="field">
-          <label htmlFor="m-look-x">Variante</label>
+          <label htmlFor="m-look-x">Variante der Folien</label>
           <select id="m-look-x" className="input" value={ml.variant} onChange={(e) => onChange({ ...ml, variant: e.target.value as EngVariant })}>
             {ENG_VARIANTS.map((v) => (
               <option key={v.v} value={v.v}>
@@ -593,7 +594,7 @@ function LookFields({ m, onChange }: { m: Module; onChange(look: ModuleLook): vo
       )}
       {fonts && (
         <div className="field">
-          <label htmlFor="m-look-h">Schrift der Überschriften</label>
+          <label htmlFor="m-look-h">Schrift der Folien-Überschriften</label>
           <select id="m-look-h" className="input" value={ml.head} onChange={(e) => onChange({ ...ml, head: e.target.value as HeadFont })}>
             <option value="a">{fonts[0]}</option>
             <option value="b">{fonts[1]}</option>
