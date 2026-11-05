@@ -122,3 +122,44 @@ export function readLook(x: unknown): Look | undefined {
   if (!FACHE.includes(r.fach as Fach)) return undefined;
   return { fach: r.fach as Fach, age: r.age === 1 ? 1 : 2, variant: VARIANTS.includes(r.variant as EngVariant) ? (r.variant as EngVariant) : 'bubble', head: r.head === 'b' || r.head === 'o' ? r.head : 'a' };
 }
+
+// — Sheet design (since 05.11.2026, replaces the subject designs on sheets; slides keep them) —
+// One calm layout for all sheets: a flat header box with the module's icon, the subject and the name field. Each subject
+// has its own heading font, header shape, task numbers, tables and notes, so it is recognisable on a black-and-white copy
+// too (src/sheet/faecher.css). Body text is Figtree everywhere, so line breaks stay the same.
+
+/** The subject form of a sheet; `org` is the neutral one for subjects without their own. */
+export type SheetForm = Fach | 'org';
+
+export interface SheetLook {
+  form: SheetForm;
+  /** 1: grades 5–6 (rounder, lighter), 2: grades 7–10. */
+  age: 1 | 2;
+  /** The module's subject, shown in the header. */
+  subject: string;
+}
+
+/** The sheet design of a module: the subject's form (or the one chosen for the module), its age group and subject. */
+export function sheetLookFor(m: { subject: string; grade: number; look?: ModuleLook }): SheetLook {
+  return { form: lookFor(m)?.fach ?? 'org', age: ageOf(m.grade), subject: m.subject.trim() };
+}
+
+/** CSS classes for a sheet page (absent: neutral form, grades 7–10). */
+export const sheetClasses = (s: SheetLook | undefined): string => ` is-k-${s?.form ?? 'org'} is-age-${s?.age ?? 2}`;
+
+/** The subject to put in front of the header line; empty when the line already names it. */
+export const subjectLabel = (kicker: string, subject: string): string =>
+  subject && !kicker.toLocaleLowerCase('de').includes(subject.toLocaleLowerCase('de')) ? subject : '';
+
+const FORMS: SheetForm[] = ['geo', 'eng', 'inf', 'org'];
+
+/** Reads a document's sheet design (from JSON). */
+export function readSheetLook(x: unknown): SheetLook | undefined {
+  if (!x || typeof x !== 'object') return undefined;
+  const r = x as Partial<SheetLook>;
+  return {
+    form: FORMS.includes(r.form as SheetForm) ? (r.form as SheetForm) : 'org',
+    age: r.age === 1 ? 1 : 2,
+    subject: typeof r.subject === 'string' ? r.subject.slice(0, 80) : '',
+  };
+}

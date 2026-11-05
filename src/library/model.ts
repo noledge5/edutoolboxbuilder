@@ -1,5 +1,5 @@
 // Pure library helpers: codes, new modules and lessons, migration of the old single worksheet, sample data.
-import { lookFor } from '../model/look';
+import { lookFor, sheetLookFor } from '../model/look';
 import { BLOCK_TYPES, LEVEL_NAMES } from '../model/blockTypes';
 import { createBlock, createPage, sheetNumbers, uid } from '../model/ops';
 import { seedDoc, seedSlides } from '../model/seed';
@@ -21,9 +21,9 @@ export const footerFor = (settings: Settings, subject: string) => [settings.foot
 
 /** The lesson's document with icon, code, language and help switch taken from its module, so they are always consistent. */
 export const docForLesson = (m: Module, l: Lesson): Doc => {
-  const { look: _old, ...doc } = l.doc;
+  const { look: _old, sheet: _oldSheet, ...doc } = l.doc;
   const look = lookFor(m);
-  return { ...doc, icon: m.icon, lang: m.lang, help: m.help, code: lessonCode(m, l.number), ...(look ? { look } : {}) };
+  return { ...doc, icon: m.icon, lang: m.lang, help: m.help, code: lessonCode(m, l.number), ...(look ? { look } : {}), sheet: sheetLookFor(m) };
 };
 
 /** What all slides of a lesson show: icon, language, header line, title line and footer. */

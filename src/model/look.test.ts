@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeDoc } from './normalize';
-import { ageOf, fachOf, lookClasses, lookFor, readModuleLook, typeClass, variantClass } from './look';
+import { ageOf, fachOf, lookClasses, lookFor, readModuleLook, readSheetLook, sheetClasses, sheetLookFor, subjectLabel, typeClass, variantClass } from './look';
 
 describe('subject designs', () => {
   it('follow the subject and the grade', () => {
@@ -36,5 +36,32 @@ describe('subject designs', () => {
     const doc = normalizeDoc({ pages: [{ title: 'A', blocks: [] }], look: { fach: 'inf', age: 1, variant: 'sticker', head: 'o' } });
     expect(doc.look).toEqual({ fach: 'inf', age: 1, variant: 'sticker', head: 'o' });
     expect(normalizeDoc({ pages: [{ title: 'A', blocks: [] }], look: { fach: 'x' } }).look).toBeUndefined();
+  });
+});
+
+describe('sheet design', () => {
+  it('takes form, age and subject from the module', () => {
+    expect(sheetLookFor({ subject: 'Geographie', grade: 9 })).toEqual({ form: 'geo', age: 2, subject: 'Geographie' });
+    expect(sheetLookFor({ subject: ' Englisch ', grade: 5 })).toEqual({ form: 'eng', age: 1, subject: 'Englisch' });
+    expect(sheetLookFor({ subject: 'Mathematik', grade: 8 })).toEqual({ form: 'org', age: 2, subject: 'Mathematik' });
+    expect(sheetLookFor({ subject: 'Geographie', grade: 6, look: { theme: 'organisch', variant: 'bubble', head: 'a' } }).form).toBe('org');
+    expect(sheetLookFor({ subject: 'Mathematik', grade: 7, look: { theme: 'inf', variant: 'bubble', head: 'a' } }).form).toBe('inf');
+  });
+  it('becomes classes on the page', () => {
+    expect(sheetClasses({ form: 'inf', age: 1, subject: 'Informatik' })).toBe(' is-k-inf is-age-1');
+    expect(sheetClasses(undefined)).toBe(' is-k-org is-age-2');
+  });
+  it('names the subject in the header once', () => {
+    expect(subjectLabel('Klasse 9 · Modellversuch', 'Geographie')).toBe('Geographie');
+    expect(subjectLabel('Klasse 9 · Geographie · Modul 1', 'Geographie')).toBe('');
+    expect(subjectLabel('Klasse 9', '')).toBe('');
+  });
+  it('reads stored values leniently', () => {
+    expect(readSheetLook({ form: 'eng', age: 1, subject: 'Englisch' })).toEqual({ form: 'eng', age: 1, subject: 'Englisch' });
+    expect(readSheetLook({ form: 'x', age: 7, subject: 3 })).toEqual({ form: 'org', age: 2, subject: '' });
+    expect(readSheetLook(null)).toBeUndefined();
+    const doc = normalizeDoc({ pages: [{ title: 'A', blocks: [] }], sheet: { form: 'geo', age: 2, subject: 'Geographie' } });
+    expect(doc.sheet).toEqual({ form: 'geo', age: 2, subject: 'Geographie' });
+    expect(normalizeDoc({ pages: [{ title: 'A', blocks: [] }] }).sheet).toBeUndefined();
   });
 });

@@ -48,6 +48,12 @@ Full viewport height. CSS grid: `grid-template-rows: auto minmax(0,1fr)`. App ba
 - Field styling: Organic `.field` label plus a pill `.input` (14px, min-height 36px, 1px border `--color-divider`, focus border `--color-accent`). Textareas have radius 16px and 4 rows. Segmented options are pills (padding 6px 13px, 13px/600); selected = bg #c67139 with text #f5ead8, unselected = transparent with a border in `--color-divider`.
 
 ### 2. A4 page (the printed artefact)
+> **Changed on 05.11.2026 (design B1, see `docs/roadmap.md` „Blatt-Design“):** padding 26px 34px 20px, gap 14px. The
+> Kopfband is a flat box (radius 10px, 16px for grades 5–6) with a colour edge, a 44px icon field, the subject in the
+> kicker line, a 22px title, small tags and the Namensfeld on the right (a „LÖSUNG“ stamp on the solution sheet). The
+> Fußband is one quiet 10.5px line. Subject forms (fonts, shapes, colours): `src/sheet/faecher.css`. The values below
+> describe the original „Organisch“ page; the block types still follow them.
+
 - Size **794 × 1123 px** (A4 at 96 dpi), `box-sizing:border-box`, padding **30px 36px 24px**, flex column, gap 16px, bg `--color-bg` #f5ead8, `overflow:hidden`. On screen: radius 8px, `--shadow-md`. In print: no radius, no shadow, one page per sheet (`@page{size:A4;margin:0}`, `break-after:page`).
 - Base text: Figtree 14px, line-height 1.55, colour #201e1d.
 

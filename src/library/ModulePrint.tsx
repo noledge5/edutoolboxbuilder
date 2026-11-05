@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { ArrowLeft, Printer } from 'lucide-react';
 import { Icon } from '../icons';
 import type { Doc, Page } from '../model/types';
-import { lookFor } from '../model/look';
+import { lookFor, sheetLookFor } from '../model/look';
 import { THEMES } from '../model/themes';
 import { PAGE_H, PAGE_W, SheetPage } from '../sheet/SheetPage';
 import { topicIcon } from '../topicIcons';
@@ -38,6 +38,7 @@ export function ModulePages({ kind, module: m, lessons, settings, scale = 1 }: M
     footer: footerFor(settings, m.subject),
     code: moduleCode(m),
     ...(lookFor(m) ? { look: lookFor(m)! } : {}),
+    sheet: sheetLookFor(m),
     pages: [],
   };
   const kicker = `Klasse ${m.grade} · ${m.subject} · Modul ${m.number}`;

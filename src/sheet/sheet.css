@@ -24,8 +24,8 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 30px 36px 24px;
+  gap: 14px;
+  padding: 26px 34px 20px;
   background: var(--paper);
   border-radius: 8px;
   box-shadow: var(--shadow-md);
@@ -41,32 +41,56 @@
   print-color-adjust: exact;
 }
 
-/* — Kopfband — */
+/* — Kopfband: a flat header box with a colour edge, the module icon, subject line, title, tags and the name field.
+   Colours and shapes per subject come from faecher.css through these variables (default: the neutral form). — */
+.ws-page {
+  --k-acc: var(--color-accent-700);
+  --k-soft: var(--color-accent-100);
+  --k-mid: var(--color-accent-300);
+  --k-r: 10px;
+  --k-head: var(--font-heading);
+  --k-head-weight: 400;
+  --t-band: var(--k-soft);
+  --t-circle: var(--paper);
+  --t-circle-fg: var(--k-acc);
+  --t-pill: var(--paper);
+  --t-pill-fg: var(--k-acc);
+  --t-kicker: var(--k-acc);
+  --t-num: var(--k-acc);
+  --t-num-fg: var(--paper);
+}
+.ws-page h1, .ws-page .ws-h3 { font-family: var(--k-head); font-weight: var(--k-head-weight); }
 .ws-band {
+  position: relative;
+  /* Own stacking context: the subject's decoration (::after, z-index -1) lies on the box but under the text. */
+  isolation: isolate;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  border-radius: 28px;
+  gap: 14px;
+  min-height: 86px;
+  padding: 10px 16px 10px 22px;
+  border-radius: var(--k-r);
   background: var(--t-band);
+  /* The colour edge on the left, drawn inside so it takes no room. */
+  box-shadow: inset 8px 0 0 var(--k-acc);
   outline: 2px solid transparent;
   outline-offset: 4px;
 }
 .ws-band.is-selected { outline-color: var(--color-accent); }
 /* Back of a double-sided sheet: a slim header with the front's title, clearly the same sheet but quiet. */
-.ws-band.is-back { gap: 10px; padding: 5px 8px 5px 5px; border-radius: 999px; }
-.ws-band.is-back .ws-band-icon { width: 28px; height: 28px; }
-.ws-back-title { flex: 1; min-width: 0; font-family: var(--font-heading); font-size: 15px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text); }
-.ws-band.is-back .ws-band-side { flex-direction: row; align-items: center; gap: 6px; }
-.ws-band.is-back .ws-type-pill, .ws-band.is-back .ws-solution-pill { padding: 2px 10px; font-size: 10px; }
+.ws-band.is-back { gap: 10px; min-height: 0; padding: 5px 8px 5px 16px; }
+.ws-band.is-back .ws-band-icon { width: 28px; height: 28px; border-radius: 6px; }
+.ws-back-title { flex: 1; min-width: 0; font-family: var(--k-head); font-weight: var(--k-head-weight); font-size: 15px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text); }
+.ws-band.is-back .ws-band-side { flex-direction: row; align-items: center; gap: 6px; width: auto; }
+.ws-band.is-back .ws-type-pill, .ws-band.is-back .ws-solution-pill { padding: 2px 8px; font-size: 10px; }
 .ws-solution-pill.is-group { border-color: var(--t-kicker); color: var(--t-kicker); }
-.ws-band.is-back .ws-form-pill { padding: 2px 10px; font-size: 11px; gap: 4px; }
-.ws-back-pill { padding: 2px 10px; border-radius: 999px; border: 1.5px solid var(--t-kicker); color: var(--t-kicker); font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.ws-band.is-back .ws-form-pill { padding: 2px 8px; font-size: 11px; gap: 4px; }
+.ws-back-pill { padding: 2px 8px; border-radius: 4px; box-shadow: inset 0 0 0 1.5px var(--t-kicker); color: var(--t-kicker); font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
 .ws-band-icon {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   flex: none;
-  border-radius: 50%;
+  border-radius: var(--k-r);
   display: grid;
   place-items: center;
   background: var(--t-circle);
@@ -74,20 +98,22 @@
 }
 .ws-band-text { flex: 1; min-width: 0; }
 .ws-kicker {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--t-kicker);
 }
-.ws-title { font-size: 28px; margin: 2px 0 0; }
-.ws-band-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.ws-subject { color: var(--color-text); }
+.ws-title { font-size: 22px; line-height: 1.15; margin: 2px 0 0; }
+.ws-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
+.ws-band-side { flex: none; width: 190px; display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
 .ws-type-pill {
-  padding: 5px 14px;
-  border-radius: 999px;
+  padding: 2px 8px;
+  border-radius: 4px;
   background: var(--t-pill);
   color: var(--t-pill-fg);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -96,21 +122,36 @@
 .ws-form-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 999px;
+  gap: 5px;
+  padding: 1px 8px;
+  border-radius: 4px;
   background: var(--paper);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--t-kicker);
   white-space: nowrap;
 }
 
-/* — Namensfeld — */
-.ws-names { display: flex; align-items: flex-end; gap: 12px; padding: 0 6px; }
-.ws-names b { font-weight: 700; }
-.ws-line { flex: 1; height: 22px; border-bottom: 2px solid var(--color-neutral-400); }
-.ws-line.is-date { flex: none; width: 130px; }
+/* — Namensfeld, inside the header box — */
+.ws-names { display: flex; flex-direction: column; gap: 7px; }
+.ws-name-row { display: flex; align-items: flex-end; gap: 6px; font-size: 11.5px; color: var(--color-neutral-700); }
+.ws-name-row b { font-weight: 600; }
+.ws-line { flex: 1; height: 16px; border-bottom: 1.5px solid var(--k-mid); }
+
+/* — Stamp on the solution sheet, where the name field would be — */
+.ws-stamp {
+  align-self: center;
+  padding: 4px 14px;
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 2.5px var(--k-acc);
+  color: var(--k-acc);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+}
 
 /* — Body grid — */
 .ws-body {
@@ -147,20 +188,18 @@
 }
 .ws-drop-end { grid-column: 1 / -1; position: relative; height: 4px; border-radius: 4px; background: var(--color-accent); }
 
-/* — Fußband — */
+/* — Fußband: one quiet line — */
 .ws-foot {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 8px 8px 18px;
-  border-radius: 999px;
-  background: var(--color-neutral-200);
-  font-size: 11px;
-  color: var(--color-neutral-800);
+  padding: 4px 2px 0;
+  font-size: 10.5px;
+  color: var(--color-neutral-700);
 }
 .ws-foot-text { flex: 1; }
 .ws-foot-code { font-weight: 700; letter-spacing: 0.06em; }
-.ws-foot-page { padding: 3px 12px; border-radius: 999px; background: var(--paper); font-weight: 700; white-space: nowrap; }
+.ws-foot-page { font-weight: 700; white-space: nowrap; }
 
 /* — Blocks: text & structure — */
 .ws-h3 { margin: 0; font-size: 21px; }
@@ -508,10 +547,10 @@ button.ws-label-num.is-on { box-shadow: 0 0 0 3px var(--color-accent-700); }
   --color-surface: var(--paper);
   --color-accent-700: var(--color-text);
 }
-.is-bw .ws-band { border: 2px solid var(--color-text); }
-.is-bw .ws-band-icon, .is-bw .ws-type-pill { border: 1.5px solid var(--color-text); }
-.is-bw .ws-form-pill { border: 1.5px solid var(--color-neutral-500); }
-.is-bw .ws-band.is-back { border-width: 1.5px; }
+.is-bw .ws-band { box-shadow: inset 8px 0 0 var(--color-text), inset 0 0 0 2px var(--color-text); }
+.is-bw .ws-band-icon, .is-bw .ws-type-pill { box-shadow: inset 0 0 0 1.5px var(--color-text); }
+.is-bw .ws-form-pill { box-shadow: inset 0 0 0 1.5px var(--color-neutral-500); }
+.is-bw .ws-band.is-back { box-shadow: inset 6px 0 0 var(--color-text), inset 0 0 0 1.5px var(--color-text); }
 .is-bw .ws-hint,
 .is-bw .ws-merksatz {
   --v-bg: var(--paper) !important;
@@ -528,8 +567,6 @@ button.ws-label-num.is-on { box-shadow: 0 0 0 3px var(--color-accent-700); }
 .is-bw .ws-flow-sub { color: var(--color-neutral-800) !important; }
 .is-bw .ws-word, .is-bw .ws-option, .is-bw .ws-match-item, .is-bw .ws-points { border: 1.5px solid var(--color-neutral-600); }
 .is-bw .ws-table-head, .is-bw .ws-self-row.is-head { border-bottom: 1.5px solid var(--color-neutral-600); }
-.is-bw .ws-foot { background: var(--paper); border: 1.5px solid var(--color-neutral-600); }
-.is-bw .ws-foot-page { border: 1.5px solid var(--color-neutral-600); }
 .is-bw .ws-image:not(.has-image) { border: 1.5px solid var(--color-neutral-500); }
 .is-bw .ws-level .is-off { color: var(--color-neutral-400); }
 
