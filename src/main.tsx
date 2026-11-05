@@ -46,6 +46,7 @@ import './styles/tokens.css';
 import './sheet/sheet.css';
 import './slides/slides.css';
 import './sheet/fachdesigns.css';
+import './sheet/faecher.css';
 import './styles/app.css';
 import './library/library.css';
 import './styles/print.css';

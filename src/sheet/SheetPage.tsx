@@ -1,4 +1,5 @@
-// One printed A4 page: header band (Kopfband), optional name field, 12-column body grid, footer band (Fußband).
+// One printed A4 page: header box (Kopfband) with the module icon, subject, title and name field, 12-column body grid,
+// footer line (Fußband). Its look per subject comes from src/sheet/faecher.css (classes from sheetClasses).
 import { useContext, useMemo, type CSSProperties, type MouseEvent, type ReactNode, type Ref } from 'react';
 import { User, Users } from 'lucide-react';
 import { Icon } from '../icons';
@@ -6,7 +7,7 @@ import { BLOCK_TYPES } from '../model/blockTypes';
 import { frontOf } from '../model/ops';
 import { THEMES, WORK_FORMS_EN, type SheetTheme } from '../model/themes';
 import type { Doc, Page } from '../model/types';
-import { lookClasses, typeClass } from '../model/look';
+import { sheetClasses, subjectLabel } from '../model/look';
 import { topicIcon } from '../topicIcons';
 import { Editable } from './inlineEdit';
 import { SheetModeContext } from './sheetMode';
@@ -60,7 +61,12 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
   const mode = useContext(SheetModeContext);
   // Pages for the teacher stay German, also in English modules.
   const lang = page.type === 'lehrkraft' ? 'de' : doc.lang;
-  const sheetDoc = useMemo(() => (lang === doc.lang ? doc : { ...doc, lang }), [doc, lang]);
+  // Blocks see the document without the slides' subject design (doc.look): on sheets, colour variants stay inline and
+  // the subject's colour comes from faecher.css.
+  const sheetDoc = useMemo(() => {
+    const { look: _slides, ...rest } = doc;
+    return { ...rest, lang };
+  }, [doc, lang]);
   const en = lang === 'en';
   const txt = SHEET_TEXT[lang];
   // A back page shows the front's title in a slim header, so it is clear which sheet it belongs to.
@@ -73,11 +79,36 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
       {en ? WORK_FORMS_EN[page.form] : page.form}
     </div>
   );
+  const shown = mode.solutions === 'shown';
+  const subject = subjectLabel(page.kicker, doc.sheet?.subject ?? '');
+  // The name field sits in the header box; the solution sheet shows a stamp there instead.
+  const side = shown ? (
+    <div className="ws-stamp">{txt.solution}</div>
+  ) : (
+    page.nameField !== 'aus' && (
+      <div className="ws-names">
+        <div className="ws-name-row">
+          <b>{page.nameField === 'namen' ? txt.names : txt.name}</b>
+          <div className="ws-line" />
+        </div>
+        {page.nameField === 'klasse' && (
+          <div className="ws-name-row">
+            <b>{txt.klasse}</b>
+            <div className="ws-line" />
+          </div>
+        )}
+        <div className="ws-name-row">
+          <b>{txt.date}</b>
+          <div className="ws-line" />
+        </div>
+      </div>
+    )
+  );
   return (
     <SheetDocContext.Provider value={sheetDoc}>
       <div
-        className={'ws-page' + (mode.bw ? ' is-bw' : '') + (doc.look ? lookClasses(doc.look) + typeClass(page.type) : '')}
-        style={doc.look ? style : { ...themeVars(t), ...style }}
+        className={'ws-page' + sheetClasses(doc.sheet) + (shown ? ' is-solution' : '') + (mode.bw ? ' is-bw' : '')}
+        style={style}
         data-page={index}
         lang={lang}
       >
@@ -89,7 +120,7 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
             <div className="ws-back-title">{front.title}</div>
             <div className="ws-band-side">
               {mode.group && <div className="ws-solution-pill is-group">{txt.group(mode.group)}</div>}
-              {mode.solutions === 'shown' && <div className="ws-solution-pill">{txt.solution}</div>}
+              {shown && <div className="ws-solution-pill">{txt.solution}</div>}
               {page.type !== front.type && <div className="ws-type-pill">{en ? t.labelEn : t.label}</div>}
               {formPill}
               <div className="ws-back-pill">{txt.back}</div>
@@ -98,32 +129,21 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
         ) : (
           <div className={'ws-band' + (headerSelected ? ' is-selected' : '')} onClick={onHeaderClick}>
             <div className="ws-band-icon">
-              <Icon icon={topicIcon(doc.icon)} size={26} />
+              <Icon icon={topicIcon(doc.icon)} size={22} />
             </div>
             <div className="ws-band-text">
-              <Editable className="ws-kicker" target={`page${index}:kicker`} value={page.kicker} />
+              <div className="ws-kicker">
+                {subject && <span className="ws-subject">{subject} · </span>}
+                <Editable as="span" target={`page${index}:kicker`} value={page.kicker} />
+              </div>
               <Editable as="h1" className="ws-title" target={`page${index}:title`} value={page.title} />
+              <div className="ws-tags">
+                <div className="ws-type-pill">{en ? t.labelEn : t.label}</div>
+                {mode.group && <div className="ws-solution-pill is-group">{txt.group(mode.group)}</div>}
+                {formPill}
+              </div>
             </div>
-            <div className="ws-band-side">
-              {mode.group && <div className="ws-solution-pill is-group">{txt.group(mode.group)}</div>}
-              {mode.solutions === 'shown' && <div className="ws-solution-pill">{txt.solution}</div>}
-              <div className="ws-type-pill">{en ? t.labelEn : t.label}</div>
-              {formPill}
-            </div>
-          </div>
-        )}
-        {page.nameField !== 'aus' && (
-          <div className="ws-names">
-            <b>{page.nameField === 'namen' ? txt.names : txt.name}</b>
-            <div className="ws-line" />
-            {page.nameField === 'klasse' && (
-              <>
-                <b>{txt.klasse}</b>
-                <div className="ws-line is-short" />
-              </>
-            )}
-            <b>{txt.date}</b>
-            <div className="ws-line is-date" />
+            {side && <div className="ws-band-side">{side}</div>}
           </div>
         )}
         <div className="ws-body" ref={bodyRef} onClick={onBodyClick} data-page-body={index}>

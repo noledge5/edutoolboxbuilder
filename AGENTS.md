@@ -22,7 +22,9 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
 - UI text is German and follows the labels in the design spec exactly. Code, identifiers and comments are English.
 - `src/sheet/` is the printed page (Caprasimo headings, Figtree body) and must stay pixel-accurate to the spec; the editor
   chrome uses the Helvetica Neue UI font, never Caprasimo. Colours only as CSS variables from `src/styles/tokens.css`.
-- Subject designs (`src/model/look.ts`) must not change geometry: no `border`, only inset shadows.
+- Sheets: one design, per-subject forms in `src/sheet/faecher.css` (classes from `sheetClasses`, `Doc.sheet` from the
+  module); the forms differ in heading font and shapes but never in sizes (no `border`, only inset shadows). The old
+  subject designs (`look`, `fachdesigns.css`) now only dress the slides; blocks on a sheet never see `doc.look`.
 - `Doc` is also the import/export format: older data must keep loading (`normalizeDoc`, `src/library/read.ts`).
   Document changes go through the pure functions in `src/model/ops.ts`, so undo/redo keeps working.
 - Every change to a module or lesson sets `updatedAt` (sync: newest wins per entry, deletions travel as tombstones).

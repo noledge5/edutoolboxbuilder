@@ -1,6 +1,6 @@
 // Data model of a worksheet document. The same shape is the JSON import/export format
 // (see docs/design/README.md, "State Management").
-import type { Look } from './look';
+import type { Look, SheetLook } from './look';
 
 export type SheetType = 'uebung' | 'versuch' | 'sicherung' | 'lehrkraft' | 'vocab' | 'grammar' | 'listening' | 'speaking' | 'test';
 
@@ -89,6 +89,8 @@ export interface Doc {
   help: boolean;
   /** Subject design (from the module); absent: "Organisch". */
   look?: Look;
+  /** Sheet design: subject form, age group and subject (from the module); absent: neutral form. */
+  sheet?: SheetLook;
   /** Footer text, shared by all pages. */
   footer: string;
   /** Short code such as "K9 · M1 · S2", shared by all pages. */

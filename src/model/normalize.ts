@@ -1,6 +1,6 @@
 // Validates and repairs a document coming from outside (JSON dialog, storage, later Claude handoffs).
 // Unknown block types are dropped and missing props are filled from the defaults.
-import { readLook } from './look';
+import { readLook, readSheetLook } from './look';
 import { BLOCK_TYPES, isBlockType } from './blockTypes';
 import { uid } from './ops';
 import { THEMES, VARIANTS, WORK_FORMS } from './themes';
@@ -87,6 +87,7 @@ export function normalizeDoc(raw: unknown): Doc {
     footer: asStr(raw.footer, ''),
     code: asStr(raw.code, ''),
     ...(readLook(raw.look) ? { look: readLook(raw.look) } : {}),
+    ...(readSheetLook(raw.sheet) ? { sheet: readSheetLook(raw.sheet) } : {}),
     pages: raw.pages.map((p, i) => normalizePage(p, i, seen)),
   };
 }

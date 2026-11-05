@@ -108,6 +108,45 @@
   --color-accent-7-800: #5f343e;
   --color-accent-7-900: #3e2128;
 
+  /* Added (05.11.2026): sheet colours per subject (from the subject designs, grades 7–10) and the red pen of the
+     solution sheet. Used by src/sheet/faecher.css. */
+  --color-geo-100: #eef6ff;
+  --color-geo-200: #d8eafe;
+  --color-geo-300: #b9d8f8;
+  --color-geo-400: #94bce5;
+  --color-geo-500: #6f9dcb;
+  --color-geo-600: #527eab;
+  --color-geo-700: #396088;
+  --color-geo-800: #254565;
+  --color-geo-900: #162d44;
+  --color-eng-100: #f0f5ff;
+  --color-eng-200: #dee8fe;
+  --color-eng-300: #c1d4ff;
+  --color-eng-400: #9bb6f5;
+  --color-eng-500: #7896dd;
+  --color-eng-600: #5b78bb;
+  --color-eng-700: #425a96;
+  --color-eng-800: #2d4070;
+  --color-eng-900: #1c2a4c;
+  --color-inf-100: #e6f9fc;
+  --color-inf-200: #ccf0f5;
+  --color-inf-300: #a7e0e9;
+  --color-inf-400: #79c6d1;
+  --color-inf-500: #4aa8b5;
+  --color-inf-600: #248996;
+  --color-inf-700: #066a75;
+  --color-inf-800: #034c54;
+  --color-inf-900: #003238;
+  --color-pen-100: #fdf1ee;
+  --color-pen-200: #fbe0d9;
+  --color-pen-300: #f3c2b6;
+  --color-pen-400: #e69a87;
+  --color-pen-500: #d06f58;
+  --color-pen-600: #b4452f;
+  --color-pen-700: #933522;
+  --color-pen-800: #6e2617;
+  --color-pen-900: #4a190e;
+
   /* Added: pen colours for writing on slides. Stronger than the ramps, so handwriting reads on a projector. */
   --ink-dark: var(--color-text);
   --ink-red: #d1392e;

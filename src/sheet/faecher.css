@@ -1,0 +1,165 @@
+/* Sheet forms per subject (since 05.11.2026, replaces the subject designs on sheets; slides keep fachdesigns.css).
+   The page gets .is-k-<geo|eng|inf|org> .is-age-<1|2> (sheetClasses in src/model/look.ts), the solution sheet also
+   .is-solution. Each subject differs not only in colour but in heading font, header shape, task numbers, tables and
+   notes, so it is recognisable on a black-and-white copy. Body text stays Figtree and all sizes stay the same, so a
+   sheet breaks the same way in every form; frames are inset shadows, never borders. */
+
+/* — Colours: the subject's ramp becomes the page accent, so every block follows — */
+.ws-page.is-k-geo, .ws-page.is-k-eng, .ws-page.is-k-inf, .ws-page.is-solution {
+  --color-accent: var(--k-ramp-600);
+  --color-accent-100: var(--k-ramp-100);
+  --color-accent-200: var(--k-ramp-200);
+  --color-accent-300: var(--k-ramp-300);
+  --color-accent-400: var(--k-ramp-400);
+  --color-accent-500: var(--k-ramp-500);
+  --color-accent-600: var(--k-ramp-600);
+  --color-accent-700: var(--k-ramp-700);
+  --color-accent-800: var(--k-ramp-800);
+  --color-accent-900: var(--k-ramp-900);
+  --color-surface: var(--k-ramp-100);
+}
+.ws-page.is-k-geo {
+  --k-ramp-100: var(--color-geo-100); --k-ramp-200: var(--color-geo-200); --k-ramp-300: var(--color-geo-300);
+  --k-ramp-400: var(--color-geo-400); --k-ramp-500: var(--color-geo-500); --k-ramp-600: var(--color-geo-600);
+  --k-ramp-700: var(--color-geo-700); --k-ramp-800: var(--color-geo-800); --k-ramp-900: var(--color-geo-900);
+}
+.ws-page.is-k-eng {
+  --k-ramp-100: var(--color-eng-100); --k-ramp-200: var(--color-eng-200); --k-ramp-300: var(--color-eng-300);
+  --k-ramp-400: var(--color-eng-400); --k-ramp-500: var(--color-eng-500); --k-ramp-600: var(--color-eng-600);
+  --k-ramp-700: var(--color-eng-700); --k-ramp-800: var(--color-eng-800); --k-ramp-900: var(--color-eng-900);
+}
+.ws-page.is-k-inf {
+  --k-ramp-100: var(--color-inf-100); --k-ramp-200: var(--color-inf-200); --k-ramp-300: var(--color-inf-300);
+  --k-ramp-400: var(--color-inf-400); --k-ramp-500: var(--color-inf-500); --k-ramp-600: var(--color-inf-600);
+  --k-ramp-700: var(--color-inf-700); --k-ramp-800: var(--color-inf-800); --k-ramp-900: var(--color-inf-900);
+}
+/* Solution sheet: the red pen instead of the subject colour (subject and icon stay). Comes after the subjects. */
+.ws-page.is-solution {
+  --k-ramp-100: var(--color-pen-100); --k-ramp-200: var(--color-pen-200); --k-ramp-300: var(--color-pen-300);
+  --k-ramp-400: var(--color-pen-400); --k-ramp-500: var(--color-pen-500); --k-ramp-600: var(--color-pen-600);
+  --k-ramp-700: var(--color-pen-700); --k-ramp-800: var(--color-pen-800); --k-ramp-900: var(--color-pen-900);
+}
+.ws-page.is-k-geo, .ws-page.is-k-eng, .ws-page.is-k-inf, .ws-page.is-solution {
+  --k-acc: var(--k-ramp-700);
+  --k-soft: var(--k-ramp-100);
+  --k-mid: var(--k-ramp-300);
+}
+.ws-page.is-solution { --k-acc: var(--k-ramp-600); }
+
+/* — Grades 5–6: rounder and a little lighter — */
+.ws-page.is-age-1 { --k-r: 16px; }
+.ws-page.is-age-1:not(.is-solution) { --k-acc: var(--color-accent-600); }
+.ws-page.is-age-1 .ws-num { border-radius: 50%; }
+
+/* — Shared shapes (neutral form and Geographie): square filled numbers, framed tables — */
+.ws-page .ws-num {
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  border-radius: 5px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+}
+.ws-page .ws-table { position: relative; border: 0; border-radius: var(--k-r); --k-frame: var(--k-mid); }
+/* The frame lies over the cells (an inset shadow on the table itself would be hidden by the coloured head row). */
+.ws-page .ws-table::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1.5px var(--k-frame); pointer-events: none; }
+.ws-page .ws-table-head { background: var(--k-soft); }
+.ws-page .ws-table-row { border-top-color: var(--k-mid); }
+.ws-page .ws-table-cell { border-left-color: var(--k-mid); }
+/* Calmer boxes: every box takes the form's radius instead of the old large round corners. */
+.ws-page { --k-box: var(--k-r); }
+.is-k-inf { --k-box: 2px; }
+.ws-page :is(.ws-hint, .ws-merksatz, .ws-image, .ws-flow, .ws-flow-step, .ws-draw, .ws-self, .ws-plan, .ws-goal-box, .ws-hook,
+  .ws-expect-row, .ws-recall, .ws-vocab, .ws-web, .ws-grammar, .ws-forms, .ws-phrases, .ws-listen, .ws-grades) { border-radius: var(--k-box); }
+
+/* Geographie: fine contour lines in the header corner (decoration only, kept away from the name field). */
+.is-k-geo .ws-band:not(.is-back)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 210px;
+  width: 150px;
+  height: 100%;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(ellipse at 100% 50%, transparent 30%, var(--k-mid) 31%, transparent 33%, transparent 46%, var(--k-mid) 47%, transparent 49%, transparent 62%, var(--k-mid) 63%, transparent 65%);
+}
+
+/* — Englisch: serif headings, round header with the edge on top, round outlined numbers, open tables, speech-bubble notes — */
+.is-k-eng { --k-head: "DM Serif Display", var(--font-heading); }
+.is-k-eng .ws-band { border-radius: calc(var(--k-r) + 10px); box-shadow: inset 0 5px 0 var(--k-acc); }
+.is-k-eng .ws-band-icon { border-radius: 50%; }
+.is-k-eng .ws-type-pill, .is-k-eng .ws-form-pill { border-radius: 999px; }
+.is-k-eng .ws-num { border-radius: 50%; background: var(--paper); color: var(--k-acc); box-shadow: inset 0 0 0 2px var(--k-acc); font-family: "DM Serif Display", var(--font-body); font-weight: 400; font-size: 14px; }
+.is-k-eng .ws-table { border-radius: 0; }
+.is-k-eng .ws-table::after { display: none; }
+.is-k-eng .ws-table-head { background: none; box-shadow: inset 0 -2px 0 var(--k-acc); }
+.is-k-eng .ws-table-cell { border-left-color: transparent; }
+.ws-page.is-k-eng .ws-hint { border-radius: 18px 18px 18px 4px; }
+.is-k-eng .ws-hint-body { font-style: italic; }
+.is-k-eng .ws-band:not(.is-back)::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  right: 210px;
+  width: 110px;
+  height: calc(100% - 28px);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: -1;
+  background: repeating-linear-gradient(transparent 0 11px, var(--k-mid) 11px 12px);
+}
+
+/* — Informatik: code font, square framed header, [1] numbers, dark table head, notes as // comments — */
+.is-k-inf { --k-head: "JetBrains Mono", var(--font-heading); --k-head-weight: 700; }
+.is-k-inf .ws-title { font-size: 19px; letter-spacing: -0.01em; }
+.is-k-inf .ws-h3 { font-size: 18px; }
+.is-k-inf .ws-h3::before { content: "> "; color: var(--k-acc); }
+.is-k-inf .ws-kicker, .is-k-inf .ws-type-pill, .is-k-inf .ws-num { font-family: "JetBrains Mono", var(--font-body); }
+.is-k-inf .ws-band { border-radius: calc(var(--k-r) - 8px); background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--k-acc); }
+.is-k-inf .ws-band-icon { border-radius: 2px; background: var(--k-acc); color: var(--paper); }
+.is-k-inf .ws-type-pill, .is-k-inf .ws-form-pill { border-radius: 0; box-shadow: inset 0 0 0 1px var(--k-acc); }
+.is-k-inf .ws-num { background: none; color: var(--k-acc); width: 30px; justify-content: start; font-size: 13px; border-radius: 0; }
+.is-k-inf .ws-num::before { content: "["; }
+.is-k-inf .ws-num::after { content: "]"; }
+.is-k-inf .ws-num { display: flex; align-items: center; }
+.is-k-inf .ws-table { border-radius: 0; --k-frame: var(--color-text); }
+.is-k-inf .ws-table-head { background: var(--k-acc); color: var(--paper); }
+.ws-page.is-k-inf .ws-hint { background: var(--paper); box-shadow: inset 3px 0 0 var(--v-title); }
+.is-k-inf .ws-hint-title { font-family: "JetBrains Mono", var(--font-body); }
+.is-k-inf .ws-hint-title::before { content: "// "; }
+.is-k-inf .ws-band:not(.is-back)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 210px;
+  width: 130px;
+  height: 100%;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(var(--k-mid) 1.2px, transparent 1.6px) 0 0 / 12px 12px;
+}
+
+/* — Solution sheet: recognisable also on a copy — a red edge down the page, the stamp, answers in italics — */
+.ws-page.is-solution { background-image: linear-gradient(to right, var(--k-acc) 6px, transparent 6px); }
+.is-solution .ws-band::after { display: none; }
+.is-solution .has-answer, .is-solution .ws-answer, .is-solution .ws-lines-answer { font-style: italic; }
+
+/* — Black-and-white copy master: the forms stay, colours become black — */
+/* Same specificity as the subject rules above, later in the file, so it wins over them. */
+.ws-page.is-bw {
+  --k-acc: var(--color-text);
+  --k-mid: var(--color-neutral-500);
+  --k-soft: var(--paper);
+  --color-surface: var(--paper);
+  --color-accent-700: var(--color-text);
+}
+.is-bw .ws-band::after { display: none; }
+.is-bw.is-k-eng .ws-band { box-shadow: inset 0 5px 0 var(--color-text), inset 0 0 0 2px var(--color-text); }
+.is-bw.is-k-inf .ws-band { box-shadow: inset 0 0 0 2px var(--color-text); }
+.is-bw.is-k-inf .ws-band-icon { background: var(--color-text); color: var(--paper); }
+.is-bw.is-k-inf .ws-table-head { background: var(--color-text); color: var(--paper); }
+.ws-page.is-bw.is-solution { background-image: linear-gradient(to right, var(--color-text) 6px, transparent 6px); }
