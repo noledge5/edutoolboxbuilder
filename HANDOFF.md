@@ -18,6 +18,14 @@ gebaut** auf Branch `claude/stufe-5-handoff-b9odwp`, noch nicht auf `main` (Merg
 - **Nicht geprüft:** echter Aufruf an Claude mit Schlüssel (kein Schlüssel in der Sitzung, der Chat-Weg ist geprüft);
   Vorlesen mit echter Stimme (am iPad anhören); Bild-Vokabeln mit eigenen Fotos im echten Baukasten.
 
+## Neu: Bilder für Held und Teile (Branch `claude/eager-lamport-r82nq1`)
+- Vorbereitet für Krea 2 in ComfyUI: Stil „weich gemalt“, Prompts für alle 40 Teile und die Grundfigur, Schablonen,
+  `npm run lq:bilder` (freistellen, einpassen, 6 Hauttöne), App nimmt `src/lernquest/app/teile/<id>.webp`, sonst Vektor.
+  Anleitung: `docs/design/lernquest/bilder.md`.
+- Geprüft mit Testbildern (Skript, Tests, Build). Nicht geprüft: echte Krea-Bilder, Einstellungen in ComfyUI.
+- Nächster Schritt: Lehrkraft malt Grundfigur und erste Teile; Rohbilder in eine Sitzung laden, Skript laufen lassen,
+  Übersicht ansehen, `anpassen.json` nachjustieren.
+
 ## Nächste Schritte
 1. Lehrkraft schaut Stufe 5 an; bei „passt“ PR nach `main` (= veröffentlichen), danach
    `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run lq:testlauf`.

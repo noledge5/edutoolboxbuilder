@@ -4,6 +4,7 @@
 // Part colours are fixed values here, not UI tokens. Higher rarity = more detail, gold from Episch, sparkle for Legendär.
 import type { ReactNode } from 'react';
 import { angelegt, HAUT, type Avatar, type Slot, type Teil } from '../teile';
+import { koerperBild, teilBild } from './teilBilder';
 
 /** Shadow tone per skin tone (`HAUT`). */
 const HAUT_SCHATTEN = ['#DDAE80', '#D29A6E', '#AE744A', '#8E5833', '#5F3A20', '#E8C3A2'];
@@ -479,11 +480,43 @@ function Koerper({ haut }: { haut: number }) {
 /** Back to front; the body sits between companion and clothes. */
 const EBENEN: (Slot | 'koerper')[] = ['hintergrund', 'begleiter', 'koerper', 'kleidung', 'augen', 'kopf', 'werkzeug'];
 
+/** Where a painted Legendär part gets its sparkle (the vector parts draw their own). */
+const FUNKELN: Record<Slot, [number, number]> = {
+  hintergrund: [206, 36],
+  begleiter: [80, 162],
+  kleidung: [150, 146],
+  augen: [154, 90],
+  kopf: [158, 18],
+  werkzeug: [212, 104],
+};
+
+/** A whole-canvas layer picture (teilBilder.ts). */
+const ebene = (href: string) => <image href={href} width="240" height="240" />;
+
+/** One part: its painted picture when there is one (src/lernquest/app/teile/), else its vector drawing. */
+function Zeichnung({ teil }: { teil: Teil | undefined }) {
+  if (!teil) return null;
+  const bild = teilBild(teil.id);
+  if (!bild) return <>{ZEICHNUNG[teil.id] ?? null}</>;
+  return (
+    <>
+      {ebene(bild)}
+      {teil.seltenheit >= 4 && funkeln(...FUNKELN[teil.slot])}
+    </>
+  );
+}
+
+/** The base figure: painted (in the chosen skin tone) when there is one, else drawn. */
+function Grundfigur({ haut }: { haut: number }) {
+  const bild = koerperBild(haut);
+  return bild ? ebene(bild) : <Koerper haut={haut} />;
+}
+
 /** The whole hero as worn. Decorative (the page names the hero in text), so hidden from screen readers. */
 export function AvatarBild({ avatar, className }: { avatar: Avatar; className?: string }) {
   return (
     <svg className={className} viewBox="0 0 240 240" aria-hidden focusable="false">
-      {EBENEN.map((e) => (e === 'koerper' ? <Koerper key={e} haut={avatar.haut ?? 0} /> : <g key={e}>{ZEICHNUNG[angelegt(avatar, e)?.id ?? ''] ?? null}</g>))}
+      {EBENEN.map((e) => (e === 'koerper' ? <Grundfigur key={e} haut={avatar.haut ?? 0} /> : <g key={e}><Zeichnung teil={angelegt(avatar, e)} /></g>))}
     </svg>
   );
 }
@@ -502,8 +535,8 @@ const AUSSCHNITT: Record<Slot, string> = {
 export function TeilBild({ teil, haut = 0, className }: { teil: Teil; haut?: number; className?: string }) {
   return (
     <svg className={className} viewBox={AUSSCHNITT[teil.slot]} aria-hidden focusable="false">
-      {teil.slot === 'augen' && <circle cx="120" cy="100" r="44" fill={HAUT[haut] ?? HAUT[0]} />}
-      {ZEICHNUNG[teil.id]}
+      {teil.slot === 'augen' && (koerperBild(haut) ? <Grundfigur haut={haut} /> : <circle cx="120" cy="100" r="44" fill={HAUT[haut] ?? HAUT[0]} />)}
+      <Zeichnung teil={teil} />
     </svg>
   );
 }

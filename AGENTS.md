@@ -65,6 +65,9 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
   with pgcrypto and `cron.schedule`) before they go to the server. If the Supabase tool's apply times out waiting
   for a confirmation, ask the user to run the migration file in the dashboard's SQL Editor, then check it through the
   public functions.
+  Painted hero pictures (`docs/design/lernquest/bilder.md`): file name = part id in `src/lernquest/app/teile/`, made
+  by `npm run lq:bilder`; a new part also needs `BESCHREIBUNG` (`src/lernquest/bilder/vorlagen.ts`) and
+  `npm run lq:bilder -- --prompts`.
   Open exercises without sign-in (`lernquest/#probe=<id>`, `src/lernquest/probe.ts`, content in `proben/`) never call
   the server; a new set is registered in `PROBEN` and checked by `probe.test.ts`.
 

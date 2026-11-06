@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "anleitung": "vitest run src/claude -u",
+    "lq:bilder": "node scripts/lq-bilder.ts",
     "lq:testlauf": "vite build && LQ_TESTLAUF=1 vitest run src/lernquest/testlauf.live.test.ts"
   },
   "dependencies": {
@@ -53,6 +54,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "fake-indexeddb": "^6.2.5",
+    "sharp": "^0.35.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
     "vitest": "^5.0.2"

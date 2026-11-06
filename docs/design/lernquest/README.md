@@ -97,3 +97,5 @@ Jedes antippbare Teil hat dieselben Zustände, nie nur über Farbe unterschieden
   Akzent in Gold, Legendär mit kleinem Funkeln (still bei „Bewegung reduzieren“).
 - Vorschaubild im Raster: dasselbe SVG mit einem Ausschnitt je Ebene, kein zweites Bild.
 - Teile-Farben sind feste Werte in den Zeichnungen (TypeScript), nicht in den UI-Tokens.
+- Gemalte Bilder (Krea 2 in ComfyUI) ersetzen die Vektorteile nach und nach, Stil „weich gemalt“, gleiche Ebenen und
+  Fläche: `docs/design/lernquest/bilder.md`.

@@ -1,0 +1,220 @@
+// Painted pictures for the hero (docs/design/lernquest/bilder.md): the art style, the prompt templates for Krea 2 in
+// ComfyUI and where each place sits on the avatar canvas (viewBox 0 0 240 240). Used by `npm run lq:bilder`
+// (scripts/lq-bilder.ts), which runs in plain Node, so imports here carry their `.ts` extension.
+import { SLOTS, TEILE, type Slot, type Teil } from '../teile.ts';
+
+/** How a raw picture becomes a layer: placed into a box (`einzeln`), or painted on the base figure (`figur`). */
+export type Weg = 'einzeln' | 'figur' | 'flaeche';
+
+/** Where a part sits on the 240 canvas when it is made on its own: scaled to `breite` (or less, so it stays within
+ *  `hoehe`), then its bottom middle (`unten`) or its centre (`mitte`) goes to (x, y). */
+export interface Platz {
+  weg: Weg;
+  x: number;
+  y: number;
+  breite: number;
+  hoehe: number;
+  anker: 'unten' | 'mitte';
+}
+
+export const PLAETZE: Record<Slot, Platz> = {
+  hintergrund: {
+    weg: 'flaeche',
+    x: 120,
+    y: 120,
+    breite: 240,
+    hoehe: 240,
+    anker: 'mitte',
+  },
+  begleiter: {
+    weg: 'einzeln',
+    x: 48,
+    y: 230,
+    breite: 70,
+    hoehe: 70,
+    anker: 'unten',
+  },
+  kleidung: {
+    weg: 'figur',
+    x: 120,
+    y: 170,
+    breite: 88,
+    hoehe: 92,
+    anker: 'mitte',
+  },
+  augen: {
+    weg: 'einzeln',
+    x: 120,
+    y: 100,
+    breite: 64,
+    hoehe: 30,
+    anker: 'mitte',
+  },
+  kopf: {
+    weg: 'einzeln',
+    x: 120,
+    y: 84,
+    breite: 100,
+    hoehe: 80,
+    anker: 'unten',
+  },
+  werkzeug: {
+    weg: 'einzeln',
+    x: 182,
+    y: 208,
+    breite: 64,
+    hoehe: 112,
+    anker: 'unten',
+  },
+};
+
+/** The clothes mask on the base figure (canvas units): the torso, a little wider so the edges are covered. */
+export const KLEIDUNG_MASKE = { x: 80, y: 126, width: 80, height: 84, rx: 30 };
+/** The eye area, used to paint painted eyes away on the base figure. */
+export const AUGEN_MASKE = { cx: 120, cy: 101, rx: 34, ry: 16 };
+/** Points on the base figure that are bare skin (face centre, both hands): the skin colour is measured there. */
+export const HAUT_PUNKTE: [number, number][] = [
+  [120, 108],
+  [112, 104],
+  [128, 104],
+  [78, 186],
+  [162, 186],
+];
+
+/** Size of the raw pictures from ComfyUI and of the finished layers (twice the canvas, sharp on phones and iPads). */
+export const ROH_GROESSE = 1024;
+export const EBENE_GROESSE = 480;
+/** The flat background the parts are generated on, so it can be cut away when there is no transparency. */
+export const HINTERGRUND_FARBE = '#D9D9D9';
+
+/** The style sentence that ends every prompt: the same words every time keep the 40 parts in one look. */
+export const STIL =
+  'Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. ' +
+  'Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle ' +
+  'gradients, light from the upper left, a subtle warm rim light, no hard black outlines (edges are a slightly darker ' +
+  'shade of the fill colour). Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, ' +
+  'no watermark, no frame.';
+
+/** What a rarity adds to the picture (Gewöhnlich plain … Legendär gold and sparkle), as in the vector set. */
+export const SELTENHEIT_DETAILS = [
+  'Simple and plain, one or two colours, no decoration.',
+  'A few nice details and one small decoration.',
+  'Detailed, with a pattern and one small gem or emblem.',
+  'Richly detailed and a little magical, with gold accents and a soft glow.',
+  'A legendary treasure: ornate gold details, a warm glow and a few tiny sparkles, the most precious looking version.',
+];
+
+/** What each part shows, in English (the model reads English best). Every catalogue part needs one (test). */
+export const BESCHREIBUNG: Record<string, string> = {
+  // Kopf
+  wollmuetze: 'a knitted wool beanie hat in red with a fluffy white pompom',
+  stirnband: 'a sporty terry headband in teal, seen as a ring from the front',
+  ritterhelm: 'a small rounded knight’s helmet in silver steel with an open face and a short red plume',
+  entdeckerhut: 'an explorer’s safari hat in khaki with a brown band and a small compass pin',
+  piratenhut: 'a black pirate tricorn hat with gold trim and a small white anchor emblem',
+  zauberhut: 'a tall pointy wizard hat in deep purple with golden stars and a moon, the tip bent a little',
+  krone: 'a royal golden crown with five points, red and blue jewels and a velvet inside',
+  // Augen
+  punktaugen: 'a pair of simple round black dot eyes with a tiny white highlight each',
+  froehlich: 'a pair of happy curved smiling eyes (closed upward arcs) in dark brown',
+  brille: 'a pair of round reading glasses with thin dark blue frames and clear lenses with a light reflection',
+  sternaugen: 'a pair of big shining eyes with yellow star-shaped pupils',
+  sonnenbrille: 'a pair of cool rectangular sunglasses with black frames and dark lenses with a light reflection',
+  funkelaugen: 'a pair of big sparkling anime-style eyes with purple irises and several white star highlights',
+  // Kleidung
+  tshirt: 'a plain blue t-shirt',
+  pulli: 'a cosy knitted green sweater with a simple stripe',
+  latzhose: 'blue denim dungarees over a yellow shirt',
+  weste: 'an explorer’s khaki vest with many pockets over a white shirt',
+  ruestung: 'a knight’s silver plate armour with round shoulder plates and a red shield emblem on the chest',
+  sternenmantel: 'a dark blue cloak sprinkled with little silver stars, closed with a round clasp',
+  zauberrobe: 'a purple wizard robe with golden trim and a golden moon emblem on the chest',
+  goldruestung: 'a shining golden plate armour with a blue diamond emblem on the chest',
+  // Werkzeug
+  lupe: 'a magnifying glass with a wooden handle and a brass rim',
+  buch: 'a thick closed adventure book with a red leather cover and a golden bookmark ribbon',
+  fernrohr: 'a brass telescope with leather grip, slightly extended',
+  kompass: 'an old brass compass with a red needle, held upright on a short chain',
+  zauberstab: 'a magic wand of dark wood with a glowing golden star on its tip',
+  sternenschwert: 'a heroic sword with a pale blue crystal blade, golden crossguard and a blue star gem',
+  // Begleiter
+  schnecke: 'a tiny smiling snail with a spiral orange shell',
+  katze: 'a small cute orange tabby cat sitting',
+  eule: 'a small round brown owl with big eyes sitting',
+  fuchs: 'a small cute red fox sitting with its fluffy tail curled around',
+  roboter: 'a small friendly round robot with a single antenna and glowing blue eyes, standing',
+  drache: 'a small cute baby dragon in green with tiny wings and a golden belly, sitting',
+  // Hintergrund
+  wiese: 'a sunny green meadow with a few flowers, soft rolling hills and a blue sky with one small cloud',
+  strand: 'a sunny beach with soft sand, gentle blue sea waves and a bright sky',
+  wald: 'a friendly green forest clearing with round trees on both sides and soft light',
+  berge: 'a mountain valley with snowy peaks in the distance, a green meadow in front and a clear sky',
+  nacht: 'a calm night meadow under a deep blue sky full of stars and a crescent moon',
+  weltall: 'outer space with colourful planets, a purple nebula and many stars, a small rocky ground in front',
+  regenbogen: 'a magical meadow under a big bright rainbow, golden light and tiny sparkles in the air',
+};
+
+/** The sentence about the picture's layout, by place. */
+const AUFBAU: Record<Slot, string> = {
+  kopf:
+    'Only the headwear, as if worn on an invisible head, seen straight from the front, fully visible and centred with ' +
+    'empty space around it, on a plain flat light grey background. No head, no face, no hair, no person, no shadow on the ground.',
+  augen:
+    'Only the eyes as a flat sticker, seen straight from the front, both eyes side by side and centred, on a plain flat ' +
+    'light grey background. No face, no skin, no eyebrows, no nose, no head.',
+  werkzeug:
+    'Only the object, standing upright and tilted slightly to the right, fully visible and centred with empty space ' +
+    'around it, on a plain flat light grey background. No hand, no person, no shadow on the ground.',
+  begleiter:
+    'A small pet companion, full body, facing the viewer, fully visible and centred with empty space around it, on a ' +
+    'plain flat light grey background. No person, no shadow on the ground.',
+  hintergrund:
+    'A square game background scene seen from the front, simple shapes and gentle depth, with a calm empty spot in the ' +
+    'lower middle where a character will stand. No characters, no animals, no people.',
+  kleidung:
+    'The same cute child hero, standing front-facing with arms down at the sides, now wearing this clothing on the ' +
+    'torso. Keep the pose, the body and the plain background unchanged.',
+};
+
+/** The full prompt for one part: what it is, the layout, the rarity and the shared style. */
+export function prompt(t: Teil): string {
+  const was = BESCHREIBUNG[t.id] ?? t.name;
+  const satz = t.slot === 'hintergrund' ? `A background: ${was}.` : `${gross(was)}.`;
+  return [satz, AUFBAU[t.slot], SELTENHEIT_DETAILS[t.seltenheit] ?? '', STIL].join(' ');
+}
+
+const gross = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** The base figure every part sits on: painted from the vector figure (picture to picture), without eyes. */
+export const GRUNDFIGUR =
+  'A cute chibi child hero standing front-facing with arms down at the sides, big round head, short simple brown hair, ' +
+  'rosy cheeks and a small smile, a smooth blank face with no eyes and no eyebrows, a plain white sleeveless ' +
+  'undershirt, dark brown trousers, a little space between the legs. Gender-neutral, friendly. The whole figure is ' +
+  `visible on a plain flat light grey background, no shadow on the ground. ${STIL}`;
+
+/** All prompts in catalogue order, grouped by place (for docs/design/lernquest/bilder/prompts.md). */
+export function promptListe(): string {
+  const out = [
+    '# Lernquest-Bilder: alle Prompts',
+    '',
+    'Erzeugt mit `npm run lq:bilder -- --prompts` aus `src/lernquest/bilder/vorlagen.ts`; nicht von Hand ändern.',
+    'Dateiname des fertigen Bildes = ID (z. B. `krone.png`). Ablauf und Einstellungen: `docs/design/lernquest/bilder.md`.',
+    '',
+    '## Grundfigur (`koerper.png`, Bild zu Bild aus `schablonen/grundfigur-vorlage.png`)',
+    '',
+    '```text',
+    GRUNDFIGUR,
+    '```',
+  ];
+  for (const { slot, label } of SLOTS) {
+    const weg = PLAETZE[slot].weg;
+    out.push(
+      '',
+      `## ${label} (${weg === 'figur' ? 'auf der Grundfigur mit `schablonen/kleidung-maske.png`' : weg === 'flaeche' ? 'ganzes Bild' : 'einzeln, grauer Hintergrund'})`,
+    );
+    for (const t of TEILE.filter((x) => x.slot === slot)) {
+      out.push('', `### \`${t.id}\` – ${t.name}`, '', '```text', prompt(t), '```');
+    }
+  }
+  return out.join('\n') + '\n';
+}

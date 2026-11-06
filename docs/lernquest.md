@@ -94,6 +94,16 @@ Mit der Lehrkraft entschieden (Fragerunde 06.11.2026):
 - **Vorlesen:** Stimme des Geräts (Browser-Sprachausgabe), keine Ton-Dateien.
 - **Karte/Bild-Punkte:** Bild vom Arbeitsblatt, Punkte setzt und benennt die Lehrkraft im Baukasten.
 
+## Gemalte Bilder für Held und Teile (06.11.2026)
+
+- Wunsch: Grundfigur und Teile mit Krea 2 lokal in ComfyUI malen. Entscheidungen der Lehrkraft: **Ebenen bleiben**
+  (jede Kombination passt weiter), Stil **„weich gemalt“** (runde Formen, weiche Schatten, Licht von links oben,
+  keine schwarzen Umrisse).
+- Verknüpfung über den Dateinamen: `src/lernquest/app/teile/<Teil-ID>.webp`, Grundfigur als `koerper-0 … 5.webp`
+  (Skript färbt die Haut in die sechs Hauttöne um). Ohne Bild bleibt die Vektorzeichnung. Keine Serveränderung.
+- Werkzeug: Prompts, Schablonen und `npm run lq:bilder` (Anleitung `docs/design/lernquest/bilder.md`). Geprüft mit
+  Testbildern (Freistellen, Einpassen, Hautton, Build); mit echten Krea-Bildern noch nicht.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.
