@@ -30,3 +30,5 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 ## Designrunde 06.11.2026 (Entscheidungen)
 - **Geräte:** Handy zuerst, das bleibt so. Auf iPad/Laptop kein eigenes Layout, nur breitere Spalte (etwa 720 px),
   Antwortkacheln zweispaltig, alles etwas größer. Einzige Ausnahme: Bosskampf am Beamer (eigener Bildschirm).
+- **Schriftgrößen:** 7 Stufen als Tokens `--lq-fs-*`: klein 13, neben 15, text 17, knopf 20, titel-s 24, titel 30,
+  zahl 44 px. Nichts unter 13 px. iPad/Laptop: alles × 1,125. Zeilenhöhe 1,4 (Text), 1,15 (Überschriften).
