@@ -44,9 +44,9 @@ export function lqText(e: unknown): string {
     code: 'Diesen Klassencode gibt es nicht.',
     gesperrt: 'Das Konto ist gesperrt. Deine Lehrkraft kann es wieder freigeben.',
     sitzung: 'Bitte melde dich neu an.',
-    zugang: 'Der Server kennt diese Klasse auf diesem Gerät nicht.',
-    voll: 'Es ist kein Platz mehr frei.',
-    ungueltig: 'Das hat der Server nicht angenommen.',
+    zugang: 'Dieses Gerät hat keinen gültigen Lehrkraft-Schlüssel für diese Klasse.',
+    voll: 'Grenze erreicht: höchstens 40 Klassen, 40 Kinder je Klasse und 200 Stationen je Klasse.',
+    ungueltig: 'Der Server hat die Daten abgelehnt (fehlerhaft oder zu groß).',
   };
   return texts[code] ?? `Der Server antwortet nicht wie erwartet (${code || String(e)}).`;
 }

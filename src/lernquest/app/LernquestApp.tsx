@@ -497,7 +497,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </strong>
           </div>
         </div>
-        {!screen.plus && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.</p>}
+        {!screen.plus && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr. Deine Antworten zählen trotzdem fürs Wiederholen.</p>}
         {w.diese >= WOCHENZIEL && (
           <div className="lq-hinweis-gold">
             <strong>Wochenziel erreicht!</strong>
