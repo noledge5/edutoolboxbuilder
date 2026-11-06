@@ -51,7 +51,14 @@ export interface Paket {
   stunde: string;
   nummer: number;
   titel: string;
-  modul: { id: string; nummer: number; titel: string; icon: string };
+  modul: {
+    id: string;
+    nummer: number;
+    titel: string;
+    icon: string;
+    /** All lessons of the module (number and title only), so the map shows the locked ones too; absent in older packages. */
+    stunden?: { nummer: number; titel: string }[];
+  };
   fach: string;
   /** English module: read aloud in English, English labels where the sheet has them. */
   lang: 'de' | 'en';

@@ -218,14 +218,19 @@ export function exercisesOf(pages: Page[]): Uebung[] {
   return student.flatMap((page) => page.blocks.flatMap((b) => fromBlock(b, page, pool)));
 }
 
-export function buildPaket(m: Module, l: Lesson): Paket {
+/** The Lernpaket of a lesson; `lessons` are the module's lessons, for the locked stations on the map. */
+export function buildPaket(m: Module, l: Lesson, lessons: Lesson[] = [l]): Paket {
+  const stunden = lessons
+    .filter((x) => x.moduleId === m.id)
+    .sort((a, b) => a.number - b.number)
+    .map((x) => ({ nummer: x.number, titel: x.title }));
   return {
     format: PAKET_FORMAT,
     v: 1,
     stunde: l.id,
     nummer: l.number,
     titel: l.title,
-    modul: { id: m.id, nummer: m.number, titel: m.title, icon: m.icon },
+    modul: { id: m.id, nummer: m.number, titel: m.title, icon: m.icon, stunden },
     fach: m.subject,
     lang: m.lang,
     uebungen: exercisesOf(l.doc.pages),

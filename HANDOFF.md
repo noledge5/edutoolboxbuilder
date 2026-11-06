@@ -15,6 +15,6 @@ Runde 10: **Lernquest**, Lern-Web-App für die Schüler, verbunden mit den Modul
 2. Danach Stufe 2 (Held und Beute). Server-Änderungen dafür vorher ankündigen.
 
 ## Wichtig zu wissen
-- Klarnamen auf dem Server: vor dem ersten echten Einsatz Freigabe der Schule nötig.
+- Klarnamen auf dem Server: Freigabe der Schule liegt vor.
 - Belohnungsregeln stehen doppelt (TS und SQL), beide zusammen ändern.
 - Auf Halde: Editor-Bedienung (Anordnen, iPad hochkant), interaktive Modelle (Runde 7).

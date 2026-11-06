@@ -3,7 +3,8 @@ import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
 import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, XP_TAG } from './rules';
-import type { Uebung } from './types';
+import { codeAus, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
+import { LEERER_STAND, type Paket, type Uebung } from './types';
 
 const block = (type: Block['type'], props: Block['props']): Block => createBlock(type, props);
 const page = (blocks: Block[], type: Page['type'] = 'uebung'): Page => ({
@@ -230,5 +231,51 @@ describe('Runde auf dem Gerät', () => {
         tage: ['2026-11-06', '2026-11-07'],
       },
     });
+  });
+});
+
+describe('Weltkarte', () => {
+  const pk = (stunde: string, nummer: number, modul: { id: string; nummer: number; stunden?: { nummer: number; titel: string }[] }, n = 3): Paket => ({
+    format: 'lernquest-paket',
+    v: 1,
+    stunde,
+    nummer,
+    titel: `Stunde ${nummer}`,
+    modul: { titel: 'M', icon: 'book-open', ...modul },
+    fach: 'Erdkunde',
+    lang: 'de',
+    uebungen: Array.from({ length: n }, (_, i) => ({ art: 'richtigfalsch', id: `u${i}`, frage: '', aussage: '', richtig: true }) as Uebung),
+  });
+  const m1 = { id: 'm1', nummer: 1, stunden: [1, 2, 3, 4].map((n) => ({ nummer: n, titel: `Titel ${n}` })) };
+
+  it('zeigt erledigte, aktuelle, offene und gesperrte Stationen', () => {
+    const stand = { ...LEERER_STAND, bestwerte: { a: [100] } };
+    const [r] = regionenVon([pk('a', 1, m1), pk('b', 2, m1), pk('c', 3, m1)], 'Erdkunde', stand);
+    expect(r.stationen.map((s) => [s.nummer, s.zustand, s.sterne])).toEqual([
+      [1, 'erledigt', 3],
+      [2, 'aktuell', 0],
+      [3, 'offen', 0],
+      [4, 'gesperrt', 0],
+    ]);
+    expect(r.stationen[3].titel).toBe('Titel 4');
+  });
+
+  it('kommt mit älteren Paketen ohne Stundenliste aus und ordnet Regionen nach Modul', () => {
+    const rs = regionenVon([pk('x', 2, { id: 'm2', nummer: 2 }), pk('a', 1, m1)], 'Erdkunde', LEERER_STAND);
+    expect(rs.map((r) => r.nummer)).toEqual([1, 2]);
+    expect(rs[1].stationen.map((s) => s.zustand)).toEqual(['offen']);
+  });
+
+  it('zeigt die Woche von Montag bis Sonntag', () => {
+    const w = wochenTage(['2026-11-03', '2026-11-04', '2026-10-30'], '2026-11-06');
+    expect(w.map((d) => d.label + (d.gelernt ? '+' : '') + (d.heute ? '!' : ''))).toEqual(['Mo', 'Di+', 'Mi+', 'Do', 'Fr!', 'Sa', 'So']);
+  });
+
+  it('liest den Klassencode aus dem QR-Link oder dem getippten Text', () => {
+    expect(codeAus('https://noledge5.github.io/edutoolboxbuilder/lernquest/#7A2E2GJ9')).toBe('7A2E2GJ9');
+    expect(codeAus(' 7a2e-2gj9 ')).toBe('7A2E2GJ9');
+    expect(codeAus('https://example.com')).toBe('');
+    expect(vorname('Mia K.')).toBe('Mia');
+    expect(namensFarbe('Mia K.')).toBe(namensFarbe('Mia K.'));
   });
 });

@@ -120,9 +120,7 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
         <SearchButton />
       </header>
       <main className="lqt-main">
-        <p className="lqt-note">
-          Die Kinder melden sich mit Klassencode, Namen und PIN an. Namen liegen dafür auf dem Server (Supabase, Frankfurt): vor dem ersten echten Einsatz braucht es die Freigabe der Schule.
-        </p>
+        <p className="lqt-note">Die Kinder melden sich mit Klassencode, Namen und PIN an. Namen liegen dafür auf dem Server (Supabase, Frankfurt), mit Freigabe der Schule.</p>
         {msg && (
           <p className="lqt-error" role="alert">
             {msg}
@@ -401,7 +399,7 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
                   for (const id of klasse.stunden) {
                     const l = lib.lessons.find((x) => x.id === id);
                     const m = l && lib.modules.find((x) => x.id === l.moduleId);
-                    if (l && m) await freischalten(keys, klasse.id, l.id, buildPaket(m, l));
+                    if (l && m) await freischalten(keys, klasse.id, l.id, buildPaket(m, l, lib.lessons));
                   }
                 })
               }
@@ -448,7 +446,9 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
                           onChange={(e) => {
                             const yes = e.target.checked;
                             setWant((w) => ({ ...w, [l.id]: yes }));
-                            void act((keys) => (yes ? freischalten(keys, klasse.id, l.id, buildPaket(m, l)) : sperren(keys, klasse.id, l.id))).finally(() => setWant(({ [l.id]: _, ...rest }) => rest));
+                            void act((keys) => (yes ? freischalten(keys, klasse.id, l.id, buildPaket(m, l, lib.lessons)) : sperren(keys, klasse.id, l.id))).finally(() =>
+                              setWant(({ [l.id]: _, ...rest }) => rest),
+                            );
                           }}
                         />
                         <span>

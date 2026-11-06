@@ -821,3 +821,572 @@ mark {
     padding-top: 32px;
   }
 }
+
+/* ===== Prototype screens (docs/design/lernquest/Main.dc.html) ===== */
+
+.lq-knopf {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.lq-knopf.lq-hell {
+  background: var(--lq-card);
+  color: var(--lq-green-2);
+  box-shadow:
+    inset 0 0 0 2px var(--lq-line),
+    0 4px 0 var(--lq-line);
+}
+.lq-knopf.lq-hell:disabled {
+  color: var(--lq-muted);
+}
+.lq-mitte {
+  text-align: center;
+  margin: 0;
+}
+.lq-platz {
+  flex: 1;
+}
+.lq-kicker {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--lq-green-2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* — Start — */
+.lq-start {
+  padding-top: max(40px, env(safe-area-inset-top));
+}
+.lq-start-kopf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  margin: 24px 0 auto;
+}
+.lq-start .lq-logo {
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--lq-ink);
+}
+.lq-start .lq-tagline {
+  margin: 0;
+  font-size: 17px;
+}
+.lq-oder {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--lq-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+.lq-oder span {
+  flex: 1;
+  height: 2px;
+  background: var(--lq-line);
+}
+.lq-code-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lq-code-form label {
+  font-size: 14px;
+  color: var(--lq-muted);
+}
+.lq-code {
+  background: var(--lq-card);
+}
+.lq-scan {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lq-scan video {
+  width: 100%;
+  border-radius: var(--lq-radius);
+  background: var(--lq-ink);
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+/* — Names and PIN — */
+.lq-titelzeile {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.lq-titelzeile > div {
+  display: flex;
+  flex-direction: column;
+}
+.lq-titelzeile h2 {
+  font-size: 26px;
+}
+.lq-zurueck {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--lq-muted);
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  flex: none;
+}
+.lq-namen {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.lq-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--lq-card);
+  border: 0;
+  box-shadow:
+    inset 0 0 0 2px var(--lq-line),
+    0 3px 0 var(--lq-line);
+  border-radius: 16px;
+  padding: 10px 12px;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: left;
+  min-height: 58px;
+  overflow-wrap: anywhere;
+}
+.lq-ini {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font:
+    600 16px Fredoka,
+    sans-serif;
+  color: #fff;
+  flex: none;
+}
+.lq-ini.gross {
+  width: 72px;
+  height: 72px;
+  font-size: 30px;
+}
+.lq-pin-seite {
+  gap: 18px;
+}
+.lq-hallo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.lq-hallo h2 {
+  font-size: 28px;
+}
+.lq-hallo p {
+  margin: 0;
+  color: var(--lq-muted);
+}
+.lq-pin span {
+  width: 18px;
+  height: 18px;
+  box-shadow: inset 0 0 0 3px var(--lq-green-2);
+}
+.lq-pin span.voll {
+  background: var(--lq-green-2);
+}
+.lq-pin-seite .lq-ziffern {
+  max-width: none;
+  gap: 12px;
+}
+.lq-pin-seite .lq-ziffer {
+  aspect-ratio: auto;
+  height: 62px;
+  border-radius: 16px;
+  background: var(--lq-card);
+  box-shadow: 0 3px 0 var(--lq-line);
+  display: grid;
+  place-items: center;
+}
+.lq-pin-seite .lq-meldung {
+  text-align: center;
+}
+
+/* — Frame with top bar and bottom bar — */
+.lq-mit-leiste {
+  padding: 0;
+  gap: 0;
+  height: 100dvh;
+  min-height: 0;
+}
+.lq-mit-leiste .lq-kopf {
+  background: var(--lq-card);
+  border-bottom: 2px solid var(--lq-line);
+  padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+  grid-template-columns: auto 1fr;
+}
+.lq-avatar {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.lq-avatar .lq-ini {
+  width: 44px;
+  height: 44px;
+  font-size: 19px;
+}
+.lq-held strong {
+  font-size: 15px;
+}
+.lq-xp {
+  height: 10px;
+  background: var(--lq-sky);
+}
+.lq-xp > span {
+  background: var(--lq-green-2);
+}
+.lq-held .lq-klein {
+  font-size: 12px;
+}
+.lq-inhalt {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.lq-leiste {
+  display: flex;
+  background: var(--lq-card);
+  border-top: 2px solid var(--lq-line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.lq-leiste button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 0 10px;
+  font:
+    700 11px Nunito,
+    sans-serif;
+  color: var(--lq-muted);
+  border: 0;
+  background: none;
+  position: relative;
+}
+.lq-leiste button.an {
+  color: var(--lq-green-2);
+}
+.lq-zahl {
+  position: absolute;
+  top: 4px;
+  left: 54%;
+  background: var(--lq-red);
+  color: #fff;
+  border-radius: 99px;
+  font-size: 11px;
+  padding: 1px 6px;
+}
+.lq-box {
+  background: var(--lq-card);
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 2px var(--lq-line);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lq-box h2 {
+  font-size: 17px;
+}
+.lq-box p {
+  margin: 0;
+}
+.lq-zeile-zwischen {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.lq-zeile-zwischen strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--lq-green-2);
+}
+.lq-tage {
+  display: flex;
+  justify-content: space-between;
+}
+.lq-tage span {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font:
+    700 12px Nunito,
+    sans-serif;
+  color: var(--lq-muted);
+  background: var(--lq-card);
+  box-shadow: inset 0 0 0 2px var(--lq-line);
+}
+.lq-tage span.ok {
+  background: var(--lq-gold);
+  box-shadow: none;
+  color: #4a3300;
+}
+.lq-tage span.heute {
+  box-shadow: inset 0 0 0 2px var(--lq-green-2);
+  color: var(--lq-green-2);
+}
+.lq-tage span.ok.heute {
+  color: #4a3300;
+}
+.lq-wiederholen-box .lq-knopf {
+  margin-top: 4px;
+}
+
+/* — Map — */
+.lq-region {
+  background: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lq-region-band {
+  background: var(--lq-green-2);
+  color: #fff;
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 0 var(--lq-green);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lq-region-band span {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+.lq-region-band h2 {
+  font-size: 21px;
+}
+.lq-pfad {
+  align-items: center;
+  gap: 22px;
+  padding: 34px 0 10px;
+}
+.lq-pfad li {
+  width: auto;
+  max-width: 180px;
+  position: relative;
+}
+.lq-versatz-l {
+  transform: translateX(-60px);
+}
+.lq-versatz-r {
+  transform: translateX(60px);
+}
+.lq-knoten {
+  width: 76px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  background: var(--lq-green-2);
+  box-shadow: 0 6px 0 var(--lq-green);
+}
+.lq-knoten.erledigt {
+  background: var(--lq-gold);
+  color: #5a3e00;
+  box-shadow: 0 6px 0 var(--lq-gold-2);
+}
+.lq-knoten.aktuell {
+  animation: lq-puls 1.6s infinite;
+}
+.lq-knoten.aktuell svg {
+  width: 34px;
+  height: 34px;
+}
+.lq-knoten.gesperrt,
+.lq-knoten:disabled {
+  background: #e4e0f3;
+  color: #77729a;
+  box-shadow: 0 6px 0 #cfc9e6;
+  cursor: default;
+}
+/* A glowing ring, not a size change: the station stays still under the finger. */
+@keyframes lq-puls {
+  50% {
+    box-shadow:
+      0 6px 0 var(--lq-green),
+      0 0 0 10px color-mix(in srgb, var(--lq-green-2) 22%, transparent);
+  }
+}
+.lq-blase {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--lq-card);
+  color: var(--lq-green-2);
+  box-shadow: inset 0 0 0 2px var(--lq-line);
+  border-radius: 10px;
+  padding: 3px 12px;
+  font:
+    600 15px Fredoka,
+    sans-serif;
+  white-space: nowrap;
+}
+.lq-knoten-titel {
+  font-size: 14px;
+  font-weight: 800;
+}
+.lq-pfad .lq-klein {
+  font-size: 12px;
+  line-height: 1.3;
+}
+.lq-sterne {
+  display: inline-flex;
+  gap: 2px;
+  color: #cfc9e6;
+}
+.lq-sterne svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.lq-sterne .an {
+  color: var(--lq-gold-2);
+}
+.lq-sterne.gross {
+  align-items: flex-end;
+  gap: 6px;
+}
+.lq-sterne.gross svg {
+  width: 64px;
+  height: 64px;
+}
+.lq-sterne.gross span:nth-child(2) svg {
+  width: 84px;
+  height: 84px;
+}
+.lq-sterne.gross .an {
+  color: var(--lq-gold);
+}
+
+/* — Round — */
+.lq-fortschritt .lq-balken > span {
+  background: var(--lq-gold);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.12);
+}
+.lq-spiel .lq-kicker {
+  margin-bottom: -10px;
+}
+.lq-x {
+  display: grid;
+  place-items: center;
+}
+.lq-rueckmeldung strong {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lq-zeichen {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--lq-right);
+  flex: none;
+}
+.lq-fuss.nein .lq-zeichen {
+  background: var(--lq-red);
+}
+
+/* — Result — */
+.lq-ergebnis {
+  justify-content: flex-start;
+  padding-top: max(56px, env(safe-area-inset-top));
+  gap: 16px;
+}
+.lq-ergebnis h1 {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--lq-ink);
+}
+.lq-untertitel {
+  margin: 0;
+  font-size: 17px;
+  color: var(--lq-muted);
+}
+.lq-kacheln-ergebnis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+.lq-kacheln-ergebnis div {
+  background: var(--lq-card);
+  box-shadow: inset 0 0 0 2px var(--lq-line);
+  border-radius: 16px;
+  padding: 14px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.lq-kacheln-ergebnis span {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--lq-muted);
+  text-transform: uppercase;
+}
+.lq-kacheln-ergebnis strong {
+  font:
+    600 24px Fredoka,
+    sans-serif;
+}
+.lq-violett {
+  color: var(--lq-green-2);
+}
+.lq-gruen {
+  color: var(--lq-right);
+}
+.lq-hinweis-gold {
+  width: 100%;
+  background: #fff4d1;
+  box-shadow: inset 0 0 0 2px var(--lq-gold);
+  border-radius: 18px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+.lq-hinweis-gold strong {
+  font:
+    600 18px Fredoka,
+    sans-serif;
+}
+.lq-hinweis-gold span {
+  font-size: 14px;
+  color: var(--lq-muted);
+}
+.lq-ergebnis .lq-knopf {
+  width: 100%;
+}

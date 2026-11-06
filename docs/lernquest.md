@@ -93,13 +93,17 @@ Gebaut und geprüft (Tests, Rechte-Test gegen den Server, Durchlauf im Browser a
   300 am Tag; Stufe n → n+1 braucht 50 + 50·n; Sterne: 1 = alle Runden gespielt, 2 = Schnitt ≥ 80 %, 3 = jede Runde
   einmal fehlerfrei; Wochenziel 3 Lerntage, gezählt werden geschaffte Wochen (keine Serie, die reißt); Wiederholen mit
   5 Kästen (1, 3, 7, 14, 30 Tage), falsch → Kasten 1.
+- **Aussehen nach dem Prototyp** (`docs/design/lernquest/Main.dc.html`): Start mit Wappen und „Klassen-QR scannen“,
+  Namen mit farbigen Anfangsbuchstaben, Karte mit Kopfleiste, Wochenziel-Karte (Mo–So), Regions-Band, Stationen
+  erledigt / aktuell / offen / gesperrt (das Lernpaket trägt dafür Nummer und Titel aller Stunden des Moduls),
+  Leiste unten mit Karte und Wiederholen. Münzen, Truhe, Held, Klasse, Herzen und Boss folgen in Stufe 2 und 3.
 - **Lehrkraft-Seite** (Übersicht → „Lernquest“): PINs am Bildschirm verborgen, bis „PINs zeigen“ (Beamer).
 - **Noch nicht:** Vorlesen, Ton-Dateien, App-Hülle offline (Daten sind offline da, die Seite selbst braucht beim
   ersten Öffnen Netz), Bild-Aufgaben (Bildvokabeln, Tabelle, Wortnetz, Satzbaustellen kommen in Stufe 5).
 
 ## Offene Punkte
 
-- Freigabe der Schule für Klarnamen auf dem Server (vor dem ersten echten Einsatz).
+- ✅ Freigabe der Schule für Klarnamen auf dem Server: liegt vor (Lehrkraft, 06.11.2026).
 - Supabase-Tabellen und -Funktionen für Stufe 1: von der Lehrkraft am 06.11.2026 freigegeben (Projekt „baukasten“).
   Spätere Stufen, die den Server ändern, wieder kurz ankündigen.
 - Lernquest ist erst nach dem Merge nach `main` für Kinder erreichbar; bis dahin Test über die Vorschau.
