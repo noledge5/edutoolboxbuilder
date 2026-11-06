@@ -228,8 +228,8 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
             }
             placeholder="z. B. K7QF9MXA"
           />
-          <button className="lq-knopf lq-hell" disabled={code.length !== 8 || busy}>
-            Weiter
+          <button className="lq-knopf lq-hell" disabled={code.length !== 8 || busy} aria-busy={busy}>
+            {busy ? 'Einen Moment …' : 'Weiter'}
           </button>
         </form>
         {fehler}
@@ -283,8 +283,13 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
         ))}
       </div>
       {fehler}
+      {busy && (
+        <p className="lq-klein lq-mitte" role="status">
+          Einen Moment …
+        </p>
+      )}
       <div className="lq-platz" />
-      <div className="lq-ziffern">
+      <div className="lq-ziffern" aria-busy={busy}>
         {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map((d, i) =>
           d === '' ? (
             <span key={i} />
@@ -604,57 +609,62 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     else setScreen({ kind: 'station', stunde: p.stunde });
   };
 
+  // From 1024 px (iPad landscape, laptop) two columns: the week goal beside the map; on a phone one after the other.
   return rahmen(
-    <>
-      <Wochenziel tage={stand.tage} />
-      {faecher.length > 1 && (
-        <nav className="lq-faecher" aria-label="Fächer">
-          {faecher.map((f) => (
-            <button key={f} type="button" className={f === aktiv ? 'an' : ''} aria-pressed={f === aktiv} onClick={() => setFach(f)}>
-              {f}
-            </button>
-          ))}
-        </nav>
-      )}
-      {!pakete.length && <p className="lq-leer">Deine Lehrkraft hat noch keine Station freigeschaltet. Schau bald wieder vorbei!</p>}
-      {regionen.map((r) => (
-        <section key={r.id} className="lq-region">
-          <div className="lq-region-band">
-            <span>
-              {aktiv} · Region {r.nummer}
-            </span>
-            <h2>{r.titel}</h2>
-          </div>
-          <ol className="lq-pfad">
-            {r.stationen.map((st, i) => (
-              <li key={st.nummer} className={`lq-versatz-${['0', 'l', '0', 'r'][i % 4]}`}>
-                {st.zustand === 'aktuell' && <span className="lq-blase">Los geht’s!</span>}
-                <button
-                  type="button"
-                  className={`lq-knoten ${st.zustand}`}
-                  disabled={st.zustand === 'gesperrt'}
-                  aria-label={`${st.zustand === 'gesperrt' ? 'Gesperrt' : st.zustand === 'aktuell' ? 'Station starten' : 'Station'}: ${st.titel}`}
-                  onClick={() => tippen(st)}
-                >
-                  {st.zustand === 'erledigt' ? (
-                    <HakenIcon />
-                  ) : st.zustand === 'gesperrt' ? (
-                    <SchlossIcon />
-                  ) : st.zustand === 'aktuell' ? (
-                    <SternIcon />
-                  ) : (
-                    <span className="lq-knoten-nr">{st.nummer}</span>
-                  )}
-                </button>
-                <span className="lq-knoten-titel">{st.titel}</span>
-                {st.zustand === 'erledigt' && <Sterne n={st.sterne} />}
-                {st.zustand === 'gesperrt' && <span className="lq-klein">Öffnet sich, sobald ihr es im Unterricht hattet.</span>}
-              </li>
+    <div className="lq-karte-raster">
+      <aside className="lq-karte-seite">
+        <Wochenziel tage={stand.tage} />
+      </aside>
+      <div className="lq-karte-haupt">
+        {faecher.length > 1 && (
+          <nav className="lq-faecher" aria-label="Fächer">
+            {faecher.map((f) => (
+              <button key={f} type="button" className={f === aktiv ? 'an' : ''} aria-pressed={f === aktiv} onClick={() => setFach(f)}>
+                {f}
+              </button>
             ))}
-          </ol>
-        </section>
-      ))}
-    </>,
+          </nav>
+        )}
+        {!pakete.length && <p className="lq-leer">Deine Lehrkraft hat noch keine Station freigeschaltet. Schau bald wieder vorbei!</p>}
+        {regionen.map((r) => (
+          <section key={r.id} className="lq-region">
+            <div className="lq-region-band">
+              <span>
+                {aktiv} · Region {r.nummer}
+              </span>
+              <h2>{r.titel}</h2>
+            </div>
+            <ol className="lq-pfad">
+              {r.stationen.map((st, i) => (
+                <li key={st.nummer} className={`lq-versatz-${['0', 'l', '0', 'r'][i % 4]}${st.zustand === 'aktuell' ? ' mit-blase' : ''}`}>
+                  {st.zustand === 'aktuell' && <span className="lq-blase">Los geht’s!</span>}
+                  <button
+                    type="button"
+                    className={`lq-knoten ${st.zustand}`}
+                    disabled={st.zustand === 'gesperrt'}
+                    aria-label={`${st.zustand === 'gesperrt' ? 'Gesperrt' : st.zustand === 'aktuell' ? 'Station starten' : 'Station'}: ${st.titel}`}
+                    onClick={() => tippen(st)}
+                  >
+                    {st.zustand === 'erledigt' ? (
+                      <HakenIcon />
+                    ) : st.zustand === 'gesperrt' ? (
+                      <SchlossIcon />
+                    ) : st.zustand === 'aktuell' ? (
+                      <SternIcon />
+                    ) : (
+                      <span className="lq-knoten-nr">{st.nummer}</span>
+                    )}
+                  </button>
+                  <span className="lq-knoten-titel">{st.titel}</span>
+                  {st.zustand === 'erledigt' && <Sterne n={st.sterne} />}
+                  {st.zustand === 'gesperrt' && <span className="lq-klein">Öffnet sich, sobald ihr es im Unterricht hattet.</span>}
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))}
+      </div>
+    </div>,
   );
 }
 

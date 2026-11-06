@@ -18,11 +18,10 @@ zur Professionalisierung des Lernquest-Designs mit Grill-Session** (Skill `grill
 - Letzter Commit: siehe `git log -1` (wip Stufe 2).
 
 ## Nächste Schritte
-1. ✅ Designrunde erledigt: Regeln in `docs/design/lernquest/README.md` („Designregeln“). Noch nicht in
-   `lernquest.css` umgesetzt (Tokens umbenennen, Typo-Skala, Raster, `:focus-visible`, Kontrastfarben, 2 Spalten ab
-   1024 px, Test „keine festen Farben außerhalb `:root`“). Gefunden: Laptop-Karte – Blase „Los geht’s!“ verdeckt die
-   Sterne der Station darüber.
-2. Erst die Designregeln auf die Stufe-1-App anwenden, danach Stufe 2 Oberfläche nach dem geschärften Design bauen (Held.dc.html, Truhe.dc.html als Vorlage).
+1. ✅ Designrunde erledigt, Regeln in `docs/design/lernquest/README.md` und in `lernquest.css` umgesetzt (Tokens,
+   Typo-Skala, Raster, Fokus, Kontrast, zwei Spalten ab 1024 px); `lernquest.css.test.ts` wacht darüber.
+   Offen aus den Regeln: Hinweis „Nochmal“ nach 10 s Laden.
+2. Stufe 2 Oberfläche nach dem geschärften Design bauen (Held.dc.html, Truhe.dc.html als Vorlage).
 3. Browser-Check wie bisher (Skript-Idee: Playwright, Supabase über Node-`fetch` in `page.route`), dann PR nach Freigabe.
 
 ## Wichtig zu wissen
