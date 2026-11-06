@@ -61,3 +61,5 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 - **Frisur:** frei wählbar wie die Hautfarbe, keine Beute: ~8 Frisuren (kurz, lang, Locken, Zöpfe, Dutt, Kopftuch,
   Afro, Iro) und 6 Haarfarben. Unter einem Hut die kurze Version; zum Kopftuch nur flache Kopfteile (Stirnband,
   Krone). Braucht eine kleine Migration (`frisur`, `haar` neben `haut`), einspielen erst nach Freigabe.
+- **Abstände:** 4-px-Skala als Tokens `--lq-sp-1…7` = 4, 8, 12, 16, 24, 32, 48 px (Seitenrand Handy 16, iPad 24).
+  Radien `--lq-r-s` 10 px, `--lq-r` 18 px, `--lq-r-full`. Krumme Werte (10, 14, 22, 34 …) auf die nächste Stufe.
