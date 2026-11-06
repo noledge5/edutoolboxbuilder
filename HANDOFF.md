@@ -1,8 +1,8 @@
 # Handoff – 06.11.2026 (Nachmittag)
 
 ## Ziel
-Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Nächste Sitzung: **Stufe 2 „Held und Beute“ Oberfläche**
-bauen. Im Moment sieht ein Kind nur den Lernweg, noch keinen Avatar, keine Münzen, Truhen oder den Laden.
+Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Stufe 2 „Held und Beute“ ist auf dem Branch `claude/lernquest-stufe2` fertig gebaut
+(Server-Aufrufe, Oberfläche, Avatar, Testlauf); wartet auf Freigabe.
 
 ## Stand
 - **Live seit 06.11.2026** (Merge nach `main` = veröffentlichen, auf Wunsch der Lehrkraft):
@@ -21,13 +21,15 @@ bauen. Im Moment sieht ein Kind nur den Lernweg, noch keinen Avatar, keine Münz
 - Tests: Typprüfung grün, 285 Tests grün (Live-Tests nur mit `LQ_LIVE=1` bzw. `LQ_TESTLAUF=1`).
 
 ## Nächste Schritte
-1. `server.ts`: Aufrufe für Stufe 2 (Truhe öffnen, kaufen, anlegen, Klassen-Ansicht) nach den Funktionen in
-   `20261106b_lernquest_held.sql`; Live-Test dafür ergänzen.
-2. Oberfläche nach den Designregeln und den Vorlagen `docs/design/lernquest/Held.dc.html` und `Truhe.dc.html`:
-   Münzen im Kopf, Held-Seite (Avatar links, Teile-Raster rechts ab 1024 px), Truhe öffnen (höchstens 2 s,
-   überspringbar), Laden, Klasse, Herzen in der Runde, Kacheln im Ergebnis. Dunkles Set `.lq-nacht` ist angelegt.
-3. Avatar-Zeichnungen: 40 Teile als SVG nach dem Avatar-Stil (gemeinsame `viewBox` 0 0 240 240, feste Ebenen).
-4. Testlauf erweitern (Truhe öffnen, Teil anlegen, Bilder der neuen Seiten), dann PR; Merge nur nach Freigabe.
+1. ✅ `server.ts`: `truheOeffnen`, `kaufen`, `avatarSetzen`, `klasseAnsicht`, `rundeMelden` mit Münzen/Truhen;
+   Live-Test (`LQ_LIVE=1`) grün. Branch `claude/lernquest-stufe2`.
+2. ✅ Oberfläche (`app/Held.tsx`): Münzen im Kopf, Held-Seite, Truhe, Laden, Klasse, Herzen in der Runde, Kacheln im
+   Ergebnis; Leiste mit Karte, Wiederholen, Held, Klasse.
+3. ✅ Avatar-Zeichnungen: 40 Teile in `app/avatar.tsx` (Test: jedes Teil hat eine Zeichnung).
+4. ✅ Testlauf erweitert (Truhe öffnen, Teil anlegen, Klasse; Bilder Held auf allen Größen), lokal gegen den echten
+   Server grün.
+5. Offen: PR und Merge nur nach Freigabe der Lehrkraft; danach `LQ_URL=…/lernquest/ npm run lq:testlauf` gegen die
+   Live-Seite. Hinweis „Nochmal“ nach 10 s Laden fehlt weiter. Danach Stufe 3 (Bosskampf).
 
 ## Wichtig zu wissen
 - `main` = veröffentlichen. Arbeits-Branch der Sitzung nutzen, PR und Merge nur auf Wunsch.

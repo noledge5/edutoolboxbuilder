@@ -3,8 +3,13 @@
 // two test classes with fresh teacher keys and deletes them for good at the end.
 import { afterAll, describe, expect, it } from 'vitest';
 import { newKey } from './lehrkraft';
+import { muenzenFuerRunde } from './rules';
+import { TEILE, teil } from './teile';
 import {
   anmelden,
+  avatarSetzen,
+  kaufen,
+  klasseAnsicht,
   entsperren,
   freischalten,
   kindAnlegen,
@@ -19,6 +24,7 @@ import {
   pinSetzen,
   rundeMelden,
   sperren,
+  truheOeffnen,
 } from './server';
 
 const live = process.env.LQ_LIVE === '1';
@@ -129,5 +135,80 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     await klasseLoeschen(keyB, b.id, true);
     expect(await code(klasseOeffnen(b.code))).toBe('code');
     expect(await code(anmelden(b.code, ben, '1111'))).toBe('code');
+  }, 60_000);
+
+  it('Stufe 2: Truhe, Laden, Avatar und Klassen-Ansicht', async () => {
+    const keyC = [newKey()];
+    const keyD = [newKey()];
+    const c = await klasseAnlegen(keyC, 'Held C');
+    made.push({ keys: keyC, id: c.id });
+    const d = await klasseAnlegen(keyD, 'Held D');
+    made.push({ keys: keyD, id: d.id });
+    const mia = await kindAnlegen(keyC, c.id, 'Mia H.', '1234');
+    await kindAnlegen(keyC, c.id, 'Tom H.', '5678');
+    const ben = await kindAnlegen(keyD, d.id, 'Ben H.', '1111');
+    // Five exercises: one round makes the station complete.
+    await freischalten(keyC, c.id, 'sH', { format: 'lernquest-paket', stunde: 'sH', uebungen: [{}, {}, {}, {}, {}], modul: { id: 'm' } });
+    const ok = await anmelden(c.code, mia, '1234');
+    const okBen = await anmelden(d.code, ben, '1111');
+    if (!ok.ok || !okBen.ok) throw new Error('Anmeldung fehlgeschlagen');
+    const token = ok.token;
+
+    // Nothing to open or buy at the start.
+    expect(await code(truheOeffnen(token))).toBe('ungueltig');
+    expect(await code(kaufen(token, 'lupe'))).toBe('muenzen');
+
+    // The first complete station gives a chest, the second time not; coins as in rules.ts.
+    const r1 = await rundeMelden(token, 'sH', 0, 5, 5, {});
+    expect(r1).toMatchObject({ muenzenPlus: muenzenFuerRunde(5, 5, 3, 0, 0), truhenPlus: 1 });
+    expect(r1.stand).toMatchObject({ truhen: 1, muenzen: r1.muenzenPlus, inventar: [] });
+    const r2 = await rundeMelden(token, 'sH', 0, 5, 5, {});
+    expect(r2.truhenPlus).toBe(0);
+
+    // A chest gives one part that is no start part; a new part is never a double.
+    const t = await truheOeffnen(token);
+    const gefunden = teil(t.teil);
+    expect(gefunden && !gefunden.start).toBe(true);
+    expect(t).toMatchObject({ seltenheit: gefunden?.seltenheit, doppelt: false, muenzen: 0 });
+    expect(t.stand).toMatchObject({ truhen: 0, inventar: [t.teil], pech: t.seltenheit >= 2 ? 0 : 1 });
+    expect(await code(truheOeffnen(token))).toBe('ungueltig');
+
+    // Shop: a common part costs 40.
+    const r3 = await rundeMelden(token, '', 0, 5, 5, {});
+    const muenzen = r3.stand.muenzen;
+    expect(muenzen).toBeGreaterThanOrEqual(40);
+    const [ware, zweite] = TEILE.filter((x) => x.seltenheit === 0 && !x.start && x.id !== t.teil);
+    const nachKauf = await kaufen(token, ware.id);
+    expect(nachKauf.muenzen).toBe(muenzen - 40);
+    expect(nachKauf.inventar).toEqual([t.teil, ware.id]);
+    expect(await code(kaufen(token, ware.id))).toBe('ungueltig');
+    expect(await code(kaufen(token, 'tshirt'))).toBe('ungueltig');
+    expect(await code(kaufen(token, 'gibt-es-nicht'))).toBe('ungueltig');
+    if (nachKauf.muenzen < 40) expect(await code(kaufen(token, zweite.id))).toBe('muenzen');
+
+    // Avatar: only owned or start parts, each in its own place, skin tone 0–5.
+    const avatar = { kleidung: 'tshirt', augen: 'punktaugen', [ware.slot]: ware.id, begleiter: '', haut: 2 };
+    expect((await avatarSetzen(token, avatar)).avatar).toEqual(avatar);
+    const fremd = TEILE.find((x) => x.seltenheit === 4 && x.id !== t.teil);
+    if (!fremd) throw new Error('Katalog');
+    expect(await code(avatarSetzen(token, { [fremd.slot]: fremd.id }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { kopf: 'tshirt' }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { haut: 6 }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { name: 'x' } as never))).toBe('ungueltig');
+    expect((await meinStand(token, null)).stand.avatar).toEqual(avatar);
+
+    // The class view: names and avatars of the own class only, no experience, coins or PINs.
+    const ansicht = await klasseAnsicht(token);
+    expect(ansicht).toEqual({
+      klasse: 'Held C',
+      tage: 1,
+      kinder: [
+        { name: 'Mia H.', avatar, ich: true },
+        { name: 'Tom H.', avatar: {}, ich: false },
+      ],
+    });
+    expect(JSON.stringify(ansicht)).not.toMatch(/pin|hash|xp|muenzen|inventar|truhen/i);
+    expect((await klasseAnsicht(okBen.token)).kinder.map((k) => k.name)).toEqual(['Ben H.']);
+    expect(await code(klasseAnsicht('falsch'))).not.toBe('ok');
   }, 60_000);
 });

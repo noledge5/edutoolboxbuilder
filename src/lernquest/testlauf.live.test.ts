@@ -3,7 +3,8 @@
 //   1. makes a throwaway teacher key, a test class, a test child with PIN and one made-up lesson with one exercise of
 //      every kind; the key sees only this class, never the real ones;
 //   2. drives Lernquest in Chromium (Playwright): class code, name, PIN, map, one round with one answer wrong on purpose;
-//   3. checks what the server stored against the rules in `rules.ts` (XP, best value, coins, chest);
+//      then opens the chest it earned, wears the part and looks at the class (Stufe 2);
+//   3. checks what the server stored against the rules in `rules.ts` (XP, best value, coins, chest, part worn);
 //   4. takes screenshots (phone, iPad, laptop) and fails on any script error in the page;
 //   5. deletes the class for good.
 // Only runs with LQ_TESTLAUF=1. LQ_URL=<…/lernquest/> plays the live site instead of the local build; LQ_BILDER=<dir>
@@ -17,6 +18,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { newKey } from './lehrkraft';
 import { freischalten, kindAnlegen, klasseAnlegen, klasseEndgueltig, klasseLoeschen, klassen, meinStand } from './server';
 import { muenzenFuerRunde, xpFuerRunde } from './rules';
+import { TEILE } from './teile';
 import { PAKET_FORMAT, type Paket, type Uebung } from './types';
 
 const an = process.env.LQ_TESTLAUF === '1';
@@ -197,6 +199,20 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
       await page.locator('.lq-ergebnis').first().waitFor({ timeout: 15_000 });
       await page.waitForTimeout(800);
       await page.screenshot({ path: join(BILDER, 'handy-3-ergebnis.png') });
+      // Stufe 2: the chest of the first complete station, the part worn at once, the class.
+      await page.getByRole('button', { name: exact('Truhe öffnen') }).click();
+      await page.getByRole('button', { name: exact('Öffnen') }).click();
+      await page.locator('.lq-truhe-buehne.da').first().waitFor({ timeout: 15_000 });
+      await page.waitForTimeout(700);
+      await page.screenshot({ path: join(BILDER, 'handy-4-truhe.png') });
+      const gefunden = ((await page.locator('.lq-truhe-text h1').first().textContent()) ?? '').trim();
+      await page.getByRole('button', { name: exact('Gleich anlegen') }).click();
+      await page.locator('.lq-held-raster').first().waitFor({ timeout: 15_000 });
+      await page.waitForTimeout(500);
+      await page.screenshot({ path: join(BILDER, 'handy-5-held.png') });
+      await page.locator('.lq-leiste button').filter({ hasText: 'Klasse' }).first().click();
+      await page.locator('.lq-helden li').first().waitFor({ timeout: 15_000 });
+      await page.screenshot({ path: join(BILDER, 'handy-6-klasse.png') });
       const sitzung = await page.evaluate(() => localStorage.getItem('lernquest:sitzung') ?? '');
       await ctx.close();
 
@@ -209,12 +225,17 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
         ({ stand } = await meinStand(token, null));
       }
       const richtig = UEBUNGEN.length - 1;
-      const bericht = { url, xp: stand.xp, bestwerte: stand.bestwerte, muenzen: stand.muenzen, truhen: stand.truhen, fehler };
+      const bericht = { url, xp: stand.xp, bestwerte: stand.bestwerte, muenzen: stand.muenzen, truhen: stand.truhen, inventar: stand.inventar, avatar: stand.avatar, fehler };
       writeFileSync(join(BILDER, 'ergebnis.json'), JSON.stringify(bericht, null, 2));
       expect(stand.xp).toBe(xpFuerRunde(richtig, UEBUNGEN.length));
       expect(stand.bestwerte[STUNDE]?.[0]).toBe(Math.round((100 * richtig) / UEBUNGEN.length));
       expect(stand.muenzen).toBe(muenzenFuerRunde(richtig, UEBUNGEN.length, 3, 0));
-      expect(stand.truhen).toBe(1);
+      // The one chest is open; its part (never a twin the first time) is owned and worn.
+      const teil = TEILE.find((t) => t.name === gefunden);
+      expect(teil, `Teil aus der Truhe: „${gefunden}“`).toBeDefined();
+      expect(stand.truhen).toBe(0);
+      expect(stand.inventar).toEqual([teil!.id]);
+      expect(stand.avatar[teil!.slot]).toBe(teil!.id);
 
       // 4. The map after the round, on the other sizes (same session, fresh device).
       const groessen: [string, Record<string, unknown>][] = [
@@ -232,6 +253,10 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
         await p.locator('.lq-knoten').first().waitFor({ timeout: 20_000 });
         await p.waitForTimeout(500);
         await p.screenshot({ path: join(BILDER, `${name}-karte.png`) });
+        await p.locator('.lq-leiste button').filter({ hasText: 'Held' }).first().click();
+        await p.locator('.lq-held-raster').first().waitFor({ timeout: 15_000 });
+        await p.waitForTimeout(300);
+        await p.screenshot({ path: join(BILDER, `${name}-held.png`) });
         await c.close();
       }
     } finally {
