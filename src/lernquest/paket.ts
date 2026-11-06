@@ -53,7 +53,15 @@ function fromBlock(b: Block, page: Page, pool: string[]): Uebung[] {
       const cs = choices(p.options);
       const richtig = cs.flatMap((c, i) => (c.correct ? [i] : []));
       if (cs.length < 2 || !richtig.length) return [];
-      return [{ art: 'waehlen', id: b.id, frage: prompt(b, 'Tippe die richtige Antwort an.'), optionen: cs.map((c) => c.text), richtig }];
+      return [
+        {
+          art: 'waehlen',
+          id: b.id,
+          frage: prompt(b, 'Tippe die richtige Antwort an.'),
+          optionen: cs.map((c) => c.text),
+          richtig,
+        },
+      ];
     }
     case 'truefalse': {
       // Statements about a reading or listening text cannot be answered without it.
@@ -62,9 +70,26 @@ function fromBlock(b: Block, page: Page, pool: string[]): Uebung[] {
         if (!s.text || !s.answer) return [];
         if (str(p.mode) !== 'tf') {
           const optionen = ['richtig', 'falsch', 'steht nicht im Text'];
-          return [{ art: 'waehlen', id: `${b.id}:${i}`, frage: prompt(b, 'Stimmt das?'), aussage: s.text, optionen, richtig: [{ T: 0, F: 1, NG: 2 }[s.answer]] }];
+          return [
+            {
+              art: 'waehlen',
+              id: `${b.id}:${i}`,
+              frage: prompt(b, 'Stimmt das?'),
+              aussage: s.text,
+              optionen,
+              richtig: [{ T: 0, F: 1, NG: 2 }[s.answer]],
+            },
+          ];
         }
-        return [{ art: 'richtigfalsch', id: `${b.id}:${i}`, frage: prompt(b, 'Stimmt das?'), aussage: s.text, richtig: s.answer === 'T' }];
+        return [
+          {
+            art: 'richtigfalsch',
+            id: `${b.id}:${i}`,
+            frage: prompt(b, 'Stimmt das?'),
+            aussage: s.text,
+            richtig: s.answer === 'T',
+          },
+        ];
       });
     }
     case 'match': {
@@ -77,7 +102,13 @@ function fromBlock(b: Block, page: Page, pool: string[]): Uebung[] {
       // Chunks of at most PAARE_MAX, the last one not smaller than 2.
       const n = Math.ceil(paare.length / PAARE_MAX);
       const size = Math.ceil(paare.length / n);
-      for (let k = 0; k < n; k++) out.push({ art: 'paare', id: n > 1 ? `${b.id}:${k}` : b.id, frage: prompt(b, 'Finde die Paare.'), paare: paare.slice(k * size, (k + 1) * size) });
+      for (let k = 0; k < n; k++)
+        out.push({
+          art: 'paare',
+          id: n > 1 ? `${b.id}:${k}` : b.id,
+          frage: prompt(b, 'Finde die Paare.'),
+          paare: paare.slice(k * size, (k + 1) * size),
+        });
       return out.filter((u) => u.art !== 'paare' || u.paare.length >= 2);
     }
     case 'gap': {
@@ -99,20 +130,46 @@ function fromBlock(b: Block, page: Page, pool: string[]): Uebung[] {
           teile.push(text);
           const answers = gaps.map((g) => firstForm(g.solution!));
           const kacheln = shuffle([...answers, ...pick(pool, answers, ABLENKER, `${b.id}:${i}`)], seeded(`${b.id}:${i}:k`));
-          return [{ art: 'luecke', id: `${b.id}:${i}`, frage: prompt(b, 'Ergänze die Lücken.'), teile, kacheln }];
+          return [
+            {
+              art: 'luecke',
+              id: `${b.id}:${i}`,
+              frage: prompt(b, 'Ergänze die Lücken.'),
+              teile,
+              kacheln,
+            },
+          ];
         });
     }
     case 'jumble':
       return lines(p.items).flatMap((line, i): Uebung[] => {
         const j = jumble(line);
         if (!j.solution || j.parts.length < 2) return [];
-        return [{ art: 'reihenfolge', id: `${b.id}:${i}`, frage: prompt(b, 'Bring die Wörter in die richtige Reihenfolge.'), hinweis: '', kacheln: j.parts, loesung: j.solution }];
+        return [
+          {
+            art: 'reihenfolge',
+            id: `${b.id}:${i}`,
+            frage: prompt(b, 'Bring die Wörter in die richtige Reihenfolge.'),
+            hinweis: '',
+            kacheln: j.parts,
+            loesung: j.solution,
+          },
+        ];
       });
     case 'transform':
       return rows(p.items).flatMap(([source = '', target = '', solution = ''], i): Uebung[] => {
         const words = sentenceTiles(firstForm(solution));
         if (words.length < 2) return [];
-        return [{ art: 'reihenfolge', id: `${b.id}:${i}`, frage: prompt(b, 'Forme um.'), hinweis: target ? `${source} → ${target}` : source, kacheln: shuffledTiles(words, `${b.id}:${i}`), loesung: firstForm(solution) }];
+        return [
+          {
+            art: 'reihenfolge',
+            id: `${b.id}:${i}`,
+            frage: prompt(b, 'Forme um.'),
+            hinweis: target ? `${source} → ${target}` : source,
+            kacheln: shuffledTiles(words, `${b.id}:${i}`),
+            loesung: firstForm(solution),
+          },
+        ];
       });
     case 'foldtest': {
       const pairs = rows(p.rows).filter(([g = '', w = '']) => g && w);
@@ -122,7 +179,15 @@ function fromBlock(b: Block, page: Page, pool: string[]): Uebung[] {
         const wrong = pick(unique([...answers, ...pool]), [right], 3, `${b.id}:${i}`);
         if (wrong.length < 1) return [];
         const optionen = shuffle([right, ...wrong], seeded(`${b.id}:${i}:o`));
-        return [{ art: 'waehlen', id: `${b.id}:${i}`, frage: given, optionen, richtig: [optionen.indexOf(right)] }];
+        return [
+          {
+            art: 'waehlen',
+            id: `${b.id}:${i}`,
+            frage: given,
+            optionen,
+            richtig: [optionen.indexOf(right)],
+          },
+        ];
       });
     }
     default:

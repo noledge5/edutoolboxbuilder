@@ -39,7 +39,12 @@ export function rundeVon(uebungen: Uebung[], r: number): Uebung[] {
 // — Checking —
 
 /** What a child gave: chosen option indexes, true/false, pairs matched (left index → right index), tiles laid. */
-export type Antwort = { art: 'waehlen'; gewaehlt: number[] } | { art: 'richtigfalsch'; wert: boolean } | { art: 'paare'; fehler: number } | { art: 'luecke'; gelegt: string[] } | { art: 'reihenfolge'; gelegt: string[] };
+export type Antwort =
+  | { art: 'waehlen'; gewaehlt: number[] }
+  | { art: 'richtigfalsch'; wert: boolean }
+  | { art: 'paare'; fehler: number }
+  | { art: 'luecke'; gelegt: string[] }
+  | { art: 'reihenfolge'; gelegt: string[] };
 
 /** A sentence from tiles: spaces before end marks and commas go. */
 export const satz = (tiles: string[]) => tiles.join(' ').replace(/\s+([.,!?;:])/g, '$1');
@@ -80,7 +85,7 @@ export function loesungText(u: Uebung): string {
 }
 
 /** Order of the options or tiles on screen, the same for the same exercise and try. */
-export const gemischt = <T,>(xs: T[], seed: string) => shuffle(xs, seeded(seed));
+export const gemischt = <T>(xs: T[], seed: string) => shuffle(xs, seeded(seed));
 
 // — Experience and hero level —
 
@@ -97,7 +102,11 @@ export function xpFuerRunde(richtig: number, gesamt: number, heuteSchon = 0): nu
 export const xpFuerStufe = (n: number) => 50 + 50 * n;
 
 /** Hero level (from 1) and the experience into it. */
-export function heldenstufe(xp: number): { stufe: number; drin: number; noetig: number } {
+export function heldenstufe(xp: number): {
+  stufe: number;
+  drin: number;
+  noetig: number;
+} {
   let stufe = 1;
   let rest = Math.max(0, xp);
   while (rest >= xpFuerStufe(stufe)) {
@@ -162,7 +171,10 @@ export function woche(tage: string[], tag = heute()): { diese: number; geschafft
   const start = wochenStart(tag);
   const proWoche = new Map<string, number>();
   for (const t of new Set(tage)) proWoche.set(wochenStart(t), (proWoche.get(wochenStart(t)) ?? 0) + 1);
-  return { diese: proWoche.get(start) ?? 0, geschafft: [...proWoche.values()].filter((n) => n >= WOCHENZIEL).length };
+  return {
+    diese: proWoche.get(start) ?? 0,
+    geschafft: [...proWoche.values()].filter((n) => n >= WOCHENZIEL).length,
+  };
 }
 
 // — Repetition (Leitner boxes) —
@@ -195,7 +207,17 @@ export function faellig(leitner: Stand['leitner'], heuteNr: number, gueltig?: Se
  * The Spielstand after a round, as the server will count it (`lq_runde_melden`): experience, the round's best,
  * today as a learning day and the changed cards. Used to show the result at once, also offline.
  */
-export function rundeAnwenden(s: Stand, m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] }, tag = heute()): { plus: number; stand: Stand } {
+export function rundeAnwenden(
+  s: Stand,
+  m: {
+    stunde: string;
+    runde: number;
+    richtig: number;
+    gesamt: number;
+    leitner: Stand['leitner'];
+  },
+  tag = heute(),
+): { plus: number; stand: Stand } {
   const schon = s.tage.includes(tag) ? s.xpHeute : 0;
   const plus = xpFuerRunde(m.richtig, m.gesamt, schon);
   const bestwerte = { ...s.bestwerte };
@@ -206,5 +228,14 @@ export function rundeAnwenden(s: Stand, m: { stunde: string; runde: number; rich
     bestwerte[m.stunde] = best;
   }
   const tage = s.tage.includes(tag) ? s.tage : [...s.tage, tag].sort().slice(-70);
-  return { plus, stand: { xp: s.xp + plus, xpHeute: schon + plus, bestwerte, tage, leitner: { ...s.leitner, ...m.leitner } } };
+  return {
+    plus,
+    stand: {
+      xp: s.xp + plus,
+      xpHeute: schon + plus,
+      bestwerte,
+      tage,
+      leitner: { ...s.leitner, ...m.leitner },
+    },
+  };
 }

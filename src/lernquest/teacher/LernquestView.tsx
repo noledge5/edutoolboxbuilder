@@ -37,7 +37,13 @@ interface Props {
 /** The address of Lernquest for a class: next to the Baukasten, `lernquest/#<code>`. */
 export const lernquestLink = (code: string, base = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}`) => `${base}lernquest/#${code}`;
 
-const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' }) : '–');
+const when = (iso: string | null) =>
+  iso
+    ? new Date(iso).toLocaleDateString('de-DE', {
+        day: 'numeric',
+        month: 'numeric',
+      })
+    : '–';
 
 export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
   const [me, setMe] = useState<Lehrkraft | null>(null);
@@ -48,17 +54,20 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
   const [newName, setNewName] = useState('');
   const [printing, setPrinting] = useState(false);
 
-  const load = useCallback(async (l?: Lehrkraft) => {
-    const keys = (l ?? me)?.keys;
-    if (!keys) return;
-    try {
-      const r = await klassen(keys);
-      setList(r);
-      setMsg('');
-    } catch (e) {
-      setMsg(lqText(e));
-    }
-  }, [me]);
+  const load = useCallback(
+    async (l?: Lehrkraft) => {
+      const keys = (l ?? me)?.keys;
+      if (!keys) return;
+      try {
+        const r = await klassen(keys);
+        setList(r);
+        setMsg('');
+      } catch (e) {
+        setMsg(lqText(e));
+      }
+    },
+    [me],
+  );
 
   useEffect(() => {
     void ensureLehrkraft().then((l) => {
@@ -84,7 +93,10 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
   };
 
   const savePins = async (pins: Record<string, string>) => {
-    const l = await updateLehrkraft((x) => ({ ...x, pins: { ...x.pins, ...pins } }));
+    const l = await updateLehrkraft((x) => ({
+      ...x,
+      pins: { ...x.pins, ...pins },
+    }));
     setMe(l);
     onDeviceChange();
   };
@@ -257,7 +269,10 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
           <div>
             <h2>{klasse.name}</h2>
             <p className="lqt-hint">
-              Klassencode <strong className="lqt-code">{klasse.code}</strong> · Adresse für die Kinder: <a href={lernquestLink(klasse.code)} target="_blank" rel="noreferrer">{lernquestLink(klasse.code)}</a>
+              Klassencode <strong className="lqt-code">{klasse.code}</strong> · Adresse für die Kinder:{' '}
+              <a href={lernquestLink(klasse.code)} target="_blank" rel="noreferrer">
+                {lernquestLink(klasse.code)}
+              </a>
             </p>
           </div>
           <div className="lqt-actions">
@@ -276,7 +291,11 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
             </button>
           </div>
         </div>
-        {missingPins > 0 && <p className="lqt-hint">{missingPins === 1 ? 'Ein Kind hat' : `${missingPins} Kinder haben`} auf diesem Gerät keine PIN zum Drucken (angelegt auf einem anderen Gerät ohne Abgleich): „Neue PIN“ setzt eine.</p>}
+        {missingPins > 0 && (
+          <p className="lqt-hint">
+            {missingPins === 1 ? 'Ein Kind hat' : `${missingPins} Kinder haben`} auf diesem Gerät keine PIN zum Drucken (angelegt auf einem anderen Gerät ohne Abgleich): „Neue PIN“ setzt eine.
+          </p>
+        )}
 
         <div className="ev-table-wrap">
           <table className="ev-table lqt-table">
@@ -321,7 +340,14 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
                       <button type="button" className="btn btn-secondary ui-btn is-small" disabled={busy} onClick={() => newPin(k)}>
                         Neue PIN
                       </button>
-                      <button type="button" className="btn btn-secondary ui-btn is-small is-danger" disabled={busy} title={`${k.name} löschen`} aria-label={`${k.name} löschen`} onClick={() => window.confirm(`${k.name} löschen? 30 Tage lang lässt es sich zurückholen.`) && void act((keys) => kindLoeschen(keys, k.id, true))}>
+                      <button
+                        type="button"
+                        className="btn btn-secondary ui-btn is-small is-danger"
+                        disabled={busy}
+                        title={`${k.name} löschen`}
+                        aria-label={`${k.name} löschen`}
+                        onClick={() => window.confirm(`${k.name} löschen? 30 Tage lang lässt es sich zurückholen.`) && void act((keys) => kindLoeschen(keys, k.id, true))}
+                      >
                         <Icon icon={Trash2} />
                       </button>
                     </td>
@@ -422,9 +448,7 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
                           onChange={(e) => {
                             const yes = e.target.checked;
                             setWant((w) => ({ ...w, [l.id]: yes }));
-                            void act((keys) => (yes ? freischalten(keys, klasse.id, l.id, buildPaket(m, l)) : sperren(keys, klasse.id, l.id))).finally(() =>
-                              setWant(({ [l.id]: _, ...rest }) => rest),
-                            );
+                            void act((keys) => (yes ? freischalten(keys, klasse.id, l.id, buildPaket(m, l)) : sperren(keys, klasse.id, l.id))).finally(() => setWant(({ [l.id]: _, ...rest }) => rest));
                           }}
                         />
                         <span>

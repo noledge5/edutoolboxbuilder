@@ -6,15 +6,41 @@ export const PAKET_FORMAT = 'lernquest-paket';
 /** One exercise in the style of Anton/Duolingo, made from a task block of a lesson. */
 export type Uebung =
   /** Tap the right answer (or all right ones, when `richtig` has more than one). */
-  | { art: 'waehlen'; id: string; frage: string; aussage?: string; optionen: string[]; richtig: number[] }
+  | {
+      art: 'waehlen';
+      id: string;
+      frage: string;
+      aussage?: string;
+      optionen: string[];
+      richtig: number[];
+    }
   /** True or false, two big buttons. */
-  | { art: 'richtigfalsch'; id: string; frage: string; aussage: string; richtig: boolean }
+  | {
+      art: 'richtigfalsch';
+      id: string;
+      frage: string;
+      aussage: string;
+      richtig: boolean;
+    }
   /** Find the pairs: each left with its right. */
   | { art: 'paare'; id: string; frage: string; paare: [string, string][] }
   /** A sentence with gaps, filled by tapping tiles; `teile` alternate text and gap (odd indexes are gaps). */
-  | { art: 'luecke'; id: string; frage: string; teile: string[]; kacheln: string[] }
+  | {
+      art: 'luecke';
+      id: string;
+      frage: string;
+      teile: string[];
+      kacheln: string[];
+    }
   /** Word tiles put in order to make `loesung`. */
-  | { art: 'reihenfolge'; id: string; frage: string; hinweis: string; kacheln: string[]; loesung: string };
+  | {
+      art: 'reihenfolge';
+      id: string;
+      frage: string;
+      hinweis: string;
+      kacheln: string[];
+      loesung: string;
+    };
 
 export type UebungsArt = Uebung['art'];
 
@@ -45,4 +71,10 @@ export interface Stand {
   leitner: Record<string, [number, number]>;
 }
 
-export const LEERER_STAND: Stand = { xp: 0, xpHeute: 0, bestwerte: {}, tage: [], leitner: {} };
+export const LEERER_STAND: Stand = {
+  xp: 0,
+  xpHeute: 0,
+  bestwerte: {},
+  tage: [],
+  leitner: {},
+};

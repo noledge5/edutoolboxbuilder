@@ -33,8 +33,21 @@ import { Rich, UebungView } from './Uebungen';
 type Screen =
   | { kind: 'karte' }
   | { kind: 'station'; stunde: string }
-  | { kind: 'runde'; stunde: string; runde: number; uebungen: { u: Uebung; stunde: string }[] }
-  | { kind: 'ergebnis'; stunde: string; richtig: number; gesamt: number; plus: number; sterneVorher: number; sterneJetzt: number };
+  | {
+      kind: 'runde';
+      stunde: string;
+      runde: number;
+      uebungen: { u: Uebung; stunde: string }[];
+    }
+  | {
+      kind: 'ergebnis';
+      stunde: string;
+      richtig: number;
+      gesamt: number;
+      plus: number;
+      sterneVorher: number;
+      sterneJetzt: number;
+    };
 
 const codeFromUrl = () => {
   const h = location.hash.replace(/^#\/?/, '');
@@ -126,6 +139,7 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
   return (
     <main className="lq-app lq-login">
       <h1 className="lq-logo">Lernquest</h1>
+      <p className="lq-tagline">Üben, was ihr im Unterricht hattet – und dabei stärker werden.</p>
       {!klasse ? (
         <form
           className="lq-karte-box"
@@ -134,7 +148,7 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
             void open(code);
           }}
         >
-          <label htmlFor="lq-code">Klassencode</label>
+          <label htmlFor="lq-code">Klassencode von deiner Lehrkraft</label>
           <input
             id="lq-code"
             className="lq-code"
@@ -152,8 +166,8 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
         </form>
       ) : !kind ? (
         <section className="lq-karte-box">
-          <h2>{klasse.name}</h2>
-          <p>Tippe deinen Namen an.</p>
+          <h2>Wer bist du?</h2>
+          <p>{klasse.name}</p>
           <div className="lq-namen">
             {klasse.kinder.map((k) => (
               <button
@@ -169,6 +183,7 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
               </button>
             ))}
           </div>
+          <p className="lq-klein">Dein Name fehlt? Sag deiner Lehrkraft Bescheid.</p>
           <button type="button" className="lq-link" onClick={() => setKlasse(null)}>
             Anderer Klassencode
           </button>
@@ -176,7 +191,7 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
       ) : (
         <section className="lq-karte-box">
           <h2>Hallo {kind.name}!</h2>
-          <p>Gib deine PIN ein.</p>
+          <p>Gib deine 4-stellige PIN ein.</p>
           <div className="lq-pin" aria-label={`${pin.length} von 4 Ziffern`}>
             {[0, 1, 2, 3].map((i) => (
               <span key={i} className={i < pin.length ? 'voll' : ''} />
@@ -204,6 +219,7 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
           >
             Das bin ich nicht
           </button>
+          <p className="lq-klein">PIN vergessen? Deine Lehrkraft kann sie neu setzen.</p>
         </section>
       )}
       {msg && (
@@ -330,7 +346,13 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
 
   /** A round is over: shown at once, sent now or later. */
   const fertig = (stunde: string, runde: number, ergebnisse: boolean[], leitner: Stand['leitner']) => {
-    const m: Meldung = { stunde, runde, richtig: ergebnisse.filter(Boolean).length, gesamt: ergebnisse.length, leitner };
+    const m: Meldung = {
+      stunde,
+      runde,
+      richtig: ergebnisse.filter(Boolean).length,
+      gesamt: ergebnisse.length,
+      leitner,
+    };
     const paket = daten.pakete[stunde];
     const runden = paket ? rundenZahl(paket.uebungen.length) : 0;
     const vorher = sterne(stand.bestwerte[stunde], runden);
@@ -339,28 +361,49 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     speichereWarteschlange([...ladeWarteschlange(), m]);
     void flush();
     ton('fertig');
-    setScreen({ kind: 'ergebnis', stunde, richtig: m.richtig, gesamt: m.gesamt, plus: r.plus, sterneVorher: vorher, sterneJetzt: sterne(r.stand.bestwerte[stunde], runden) });
+    setScreen({
+      kind: 'ergebnis',
+      stunde,
+      richtig: m.richtig,
+      gesamt: m.gesamt,
+      plus: r.plus,
+      sterneVorher: vorher,
+      sterneJetzt: sterne(r.stand.bestwerte[stunde], runden),
+    });
   };
 
   const wiederholen = () => {
     const karten = new Map<string, { u: Uebung; stunde: string }>();
     for (const p of pakete) for (const u of p.uebungen) karten.set(karteKey(p.stunde, u.id), { u, stunde: p.stunde });
     const due = faellig(stand.leitner, tagNummer(heute()), new Set(karten.keys())).slice(0, RUNDE_MAX);
-    setScreen({ kind: 'runde', stunde: '', runde: 0, uebungen: due.map((k) => karten.get(k)!) });
+    setScreen({
+      kind: 'runde',
+      stunde: '',
+      runde: 0,
+      uebungen: due.map((k) => karten.get(k)!),
+    });
   };
 
   if (screen.kind === 'runde') {
-    return <Runde key={`${screen.stunde}:${screen.runde}`} screen={screen} stand={stand} onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })} onFertig={fertig} />;
+    return (
+      <Runde
+        key={`${screen.stunde}:${screen.runde}`}
+        screen={screen}
+        stand={stand}
+        onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
+        onFertig={fertig}
+      />
+    );
   }
 
   if (screen.kind === 'ergebnis') {
     return (
       <main className="lq-app lq-ergebnis">
-        <h1>{screen.richtig === screen.gesamt ? 'Perfekt!' : screen.richtig >= screen.gesamt / 2 ? 'Gut gemacht!' : 'Weiter üben!'}</h1>
+        <h1>{!screen.stunde ? 'Wiederholt!' : screen.sterneJetzt > 0 && screen.sterneVorher === 0 ? 'Station geschafft!' : screen.richtig === screen.gesamt ? 'Perfekt!' : 'Runde geschafft!'}</h1>
         <p className="lq-gross-zahl">
           {screen.richtig} von {screen.gesamt} richtig
         </p>
-        <p className="lq-xp-plus">{screen.plus ? `+${screen.plus} Erfahrung` : 'Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.'}</p>
+        <p className="lq-xp-plus">{screen.plus ? `+${screen.plus} EP` : 'Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.'}</p>
         {screen.stunde && <Sterne n={screen.sterneJetzt} neu={screen.sterneJetzt > screen.sterneVorher} gross />}
         <button type="button" className="lq-knopf" onClick={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}>
           Weiter
@@ -391,7 +434,21 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           <ol className="lq-runden">
             {Array.from({ length: runden }, (_, r) => (
               <li key={r}>
-                <button type="button" className={`lq-runde ${best[r] > 0 ? 'geschafft' : ''} ${r === naechste ? 'naechste' : ''}`} onClick={() => setScreen({ kind: 'runde', stunde: paket.stunde, runde: r, uebungen: rundeVon(paket.uebungen, r).map((u) => ({ u, stunde: paket.stunde })) })}>
+                <button
+                  type="button"
+                  className={`lq-runde ${best[r] > 0 ? 'geschafft' : ''} ${r === naechste ? 'naechste' : ''}`}
+                  onClick={() =>
+                    setScreen({
+                      kind: 'runde',
+                      stunde: paket.stunde,
+                      runde: r,
+                      uebungen: rundeVon(paket.uebungen, r).map((u) => ({
+                        u,
+                        stunde: paket.stunde,
+                      })),
+                    })
+                  }
+                >
                   <span className="lq-runde-nr">{best[r] >= 100 ? '★' : best[r] > 0 ? '✓' : r + 1}</span>
                   <span>
                     Runde {r + 1}
@@ -401,6 +458,23 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
               </li>
             ))}
           </ol>
+          <button
+            type="button"
+            className="lq-knopf"
+            onClick={() =>
+              setScreen({
+                kind: 'runde',
+                stunde: paket.stunde,
+                runde: naechste,
+                uebungen: rundeVon(paket.uebungen, naechste).map((u) => ({
+                  u,
+                  stunde: paket.stunde,
+                })),
+              })
+            }
+          >
+            Los geht’s!
+          </button>
         </section>
       </main>
     );
@@ -455,7 +529,12 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
                 const angefangen = rundenGeschafft(best, runden) > 0;
                 return (
                   <li key={p.stunde} className={`lq-station-${i % 2 ? 'rechts' : 'links'}`}>
-                    <button type="button" className={`lq-knoten ${n === 3 ? 'gold' : angefangen ? 'angefangen' : ''}`} disabled={!runden} onClick={() => setScreen({ kind: 'station', stunde: p.stunde })}>
+                    <button
+                      type="button"
+                      className={`lq-knoten ${n === 3 ? 'gold' : angefangen ? 'angefangen' : ''}`}
+                      disabled={!runden}
+                      onClick={() => setScreen({ kind: 'station', stunde: p.stunde })}
+                    >
                       <span className="lq-knoten-nr">{p.nummer}</span>
                     </button>
                     <span className="lq-knoten-titel">{p.titel}</span>
@@ -496,7 +575,7 @@ function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; o
       <div className="lq-held">
         <strong>{daten.name}</strong>
         <span>
-          Stufe {h.stufe} · {titel(h.stufe)}
+          Heldenstufe {h.stufe} · {titel(h.stufe)}
         </span>
         <span className="lq-xp" role="progressbar" aria-valuemin={0} aria-valuemax={h.noetig} aria-valuenow={h.drin} aria-label="Erfahrung bis zur nächsten Stufe">
           <span style={{ width: `${(100 * h.drin) / h.noetig}%` }} />
@@ -508,7 +587,7 @@ function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; o
             <span key={i} className={i < w.diese ? 'an' : ''} />
           ))}
         </span>
-        <small>{w.diese >= WOCHENZIEL ? 'Wochenziel geschafft!' : 'Wochenziel'}</small>
+        <small>{w.diese >= WOCHENZIEL ? 'Wochenziel erreicht!' : 'Wochenziel'}</small>
       </div>
       {offline && <p className="lq-offline">Offline – deine Runden werden später gesendet.</p>}
       {menu && (
@@ -516,6 +595,7 @@ function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; o
           <p>
             {daten.klasse} · {w.geschafft} {w.geschafft === 1 ? 'Woche' : 'Wochen'} mit Wochenziel
           </p>
+          <p className="lq-klein">Wochenenden und Ferien setzen nichts zurück.</p>
           <label>
             <input
               type="checkbox"
@@ -561,7 +641,10 @@ function Runde({ screen, stand, onAbbruch, onFertig }: RundeProps) {
     setOk(right);
     setErgebnisse([...ergebnisse, right]);
     const key = karteKey(item.stunde, item.u.id);
-    setLeitner({ ...leitner, [key]: karteNach(leitner[key] ?? stand.leitner[key], right, tagNummer(heute())) });
+    setLeitner({
+      ...leitner,
+      [key]: karteNach(leitner[key] ?? stand.leitner[key], right, tagNummer(heute())),
+    });
   };
 
   const weiter = () => {
@@ -589,7 +672,11 @@ function Runde({ screen, stand, onAbbruch, onFertig }: RundeProps) {
           ✕
         </button>
         <span className="lq-balken">
-          <span style={{ width: `${(100 * (i + (ok !== null ? 1 : 0))) / screen.uebungen.length}%` }} />
+          <span
+            style={{
+              width: `${(100 * (i + (ok !== null ? 1 : 0))) / screen.uebungen.length}%`,
+            }}
+          />
         </span>
       </div>
       <UebungView

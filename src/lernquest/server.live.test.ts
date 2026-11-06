@@ -53,7 +53,12 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     const tom = await kindAnlegen(keyA, a.id, 'Tom T.', '5678');
     const ben = await kindAnlegen(keyB, b.id, 'Ben T.', '1111');
     expect(await code(anmelden(a.code, ben, '1111'))).toBe('code');
-    const paketA = { format: 'lernquest-paket', stunde: 'sA', uebungen: [], modul: { id: 'm' } };
+    const paketA = {
+      format: 'lernquest-paket',
+      stunde: 'sA',
+      uebungen: [],
+      modul: { id: 'm' },
+    };
     await freischalten(keyA, a.id, 'sA', paketA);
     await freischalten(keyB, b.id, 'sB', { ...paketA, stunde: 'sB' });
 
@@ -86,7 +91,10 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     // A second device of the same child sees the same.
     const ok2 = await anmelden(a.code, mia, '1234');
     if (!ok2.ok) throw new Error('Zweite Anmeldung fehlgeschlagen');
-    expect((await meinStand(ok2.token, null)).stand).toMatchObject({ xp: 25, bestwerte: { sA: [100] } });
+    expect((await meinStand(ok2.token, null)).stand).toMatchObject({
+      xp: 25,
+      bestwerte: { sA: [100] },
+    });
     // … and the other child nothing of it.
     const tomIn = await anmelden(a.code, tom, '5678');
     if (!tomIn.ok) throw new Error('Tom');
@@ -97,8 +105,17 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(table.ok ? await table.json() : []).toEqual([]);
 
     // Five wrong PINs lock; the teacher unlocks.
-    for (const rest of [4, 3, 2, 1]) expect(await anmelden(a.code, tom, '0000')).toEqual({ ok: false, gesperrt: false, rest });
-    expect(await anmelden(a.code, tom, '0000')).toEqual({ ok: false, gesperrt: true, rest: 0 });
+    for (const rest of [4, 3, 2, 1])
+      expect(await anmelden(a.code, tom, '0000')).toEqual({
+        ok: false,
+        gesperrt: false,
+        rest,
+      });
+    expect(await anmelden(a.code, tom, '0000')).toEqual({
+      ok: false,
+      gesperrt: true,
+      rest: 0,
+    });
     expect(await code(anmelden(a.code, tom, '5678'))).toBe('gesperrt');
     expect(await code(meinStand(tomIn.token, null))).toBe('gesperrt');
     await entsperren(keyA, tom);

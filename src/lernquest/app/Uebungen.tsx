@@ -50,10 +50,19 @@ export function UebungView(props: Props) {
   );
 }
 
-type P<A extends Uebung['art']> = Omit<Props, 'u'> & { u: Extract<Uebung, { art: A }> };
+type P<A extends Uebung['art']> = Omit<Props, 'u'> & {
+  u: Extract<Uebung, { art: A }>;
+};
 
 function Waehlen({ u, seed, locked, onChange }: P<'waehlen'>) {
-  const order = useMemo(() => gemischt(u.optionen.map((_, i) => i), seed), [u, seed]);
+  const order = useMemo(
+    () =>
+      gemischt(
+        u.optionen.map((_, i) => i),
+        seed,
+      ),
+    [u, seed],
+  );
   const [chosen, setChosen] = useState<number[]>([]);
   const multi = u.richtig.length > 1;
   const tap = (i: number) => {
@@ -113,8 +122,22 @@ function RichtigFalsch({ u, locked, onChange }: P<'richtigfalsch'>) {
 }
 
 function Paare({ u, seed, locked, onChange }: P<'paare'>) {
-  const left = useMemo(() => gemischt(u.paare.map((_, i) => i), `${seed}:l`), [u, seed]);
-  const right = useMemo(() => gemischt(u.paare.map((_, i) => i), `${seed}:r`), [u, seed]);
+  const left = useMemo(
+    () =>
+      gemischt(
+        u.paare.map((_, i) => i),
+        `${seed}:l`,
+      ),
+    [u, seed],
+  );
+  const right = useMemo(
+    () =>
+      gemischt(
+        u.paare.map((_, i) => i),
+        `${seed}:r`,
+      ),
+    [u, seed],
+  );
   const [sel, setSel] = useState<{ side: 'l' | 'r'; i: number } | null>(null);
   const [done, setDone] = useState<number[]>([]);
   const [wrong, setWrong] = useState<{ l: number; r: number } | null>(null);
@@ -141,25 +164,27 @@ function Paare({ u, seed, locked, onChange }: P<'paare'>) {
       window.setTimeout(() => setWrong(null), 600);
     }
   };
-  const cls = (side: 'l' | 'r', i: number) =>
-    done.includes(i) ? 'ok fertig' : wrong && wrong[side] === i ? 'nein wackeln' : sel?.side === side && sel.i === i ? 'an' : '';
+  const cls = (side: 'l' | 'r', i: number) => (done.includes(i) ? 'ok fertig' : wrong && wrong[side] === i ? 'nein wackeln' : sel?.side === side && sel.i === i ? 'an' : '');
   return (
-    <div className="lq-paare">
-      <div>
-        {left.map((i) => (
-          <button key={i} type="button" className={`lq-option ${cls('l', i)}`} disabled={done.includes(i)} onClick={() => tap('l', i)}>
-            <Rich text={u.paare[i][0]} />
-          </button>
-        ))}
+    <>
+      <p className="lq-hinweis">Tippe links, dann das passende Wort rechts.</p>
+      <div className="lq-paare">
+        <div>
+          {left.map((i) => (
+            <button key={i} type="button" className={`lq-option ${cls('l', i)}`} disabled={done.includes(i)} onClick={() => tap('l', i)}>
+              <Rich text={u.paare[i][0]} />
+            </button>
+          ))}
+        </div>
+        <div>
+          {right.map((i) => (
+            <button key={i} type="button" className={`lq-option ${cls('r', i)}`} disabled={done.includes(i)} onClick={() => tap('r', i)}>
+              <Rich text={u.paare[i][1]} />
+            </button>
+          ))}
+        </div>
       </div>
-      <div>
-        {right.map((i) => (
-          <button key={i} type="button" className={`lq-option ${cls('r', i)}`} disabled={done.includes(i)} onClick={() => tap('r', i)}>
-            <Rich text={u.paare[i][1]} />
-          </button>
-        ))}
-      </div>
-    </div>
+    </>
   );
 }
 

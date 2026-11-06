@@ -29,14 +29,22 @@ export function readLehrkraft(x: unknown): Lehrkraft | null {
   if (!keys.length) return null;
   const pins: Record<string, string> = {};
   if (r.pins && typeof r.pins === 'object') for (const [id, p] of Object.entries(r.pins)) if (typeof p === 'string' && /^\d{4}$/.test(p)) pins[id] = p;
-  return { keys: [...new Set(keys)].sort(), pins, updatedAt: Number(r.updatedAt) || 0 };
+  return {
+    keys: [...new Set(keys)].sort(),
+    pins,
+    updatedAt: Number(r.updatedAt) || 0,
+  };
 }
 
 /** Both records together: all keys (at most 10, the server's limit), the PINs of the newer one winning. */
 export function mergeLehrkraft(a: Lehrkraft, b: Lehrkraft): Lehrkraft {
   const [older, newer] = a.updatedAt <= b.updatedAt ? [a, b] : [b, a];
   const keys = [...new Set([...a.keys, ...b.keys])].sort().slice(0, 10);
-  return { keys, pins: { ...older.pins, ...newer.pins }, updatedAt: Math.max(a.updatedAt, b.updatedAt) };
+  return {
+    keys,
+    pins: { ...older.pins, ...newer.pins },
+    updatedAt: Math.max(a.updatedAt, b.updatedAt),
+  };
 }
 
 /** Same keys and PINs (then nothing needs storing or sending). */

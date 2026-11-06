@@ -2,37 +2,47 @@ import { describe, expect, it } from 'vitest';
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import {
-  faellig,
-  heldenstufe,
-  istRichtig,
-  karteNach,
-  rundeVon,
-  rundenZahl,
-  satz,
-  sterne,
-  tagNummer,
-  titel,
-  woche,
-  wochenStart,
-  xpFuerRunde,
-  rundeAnwenden,
-  XP_TAG,
-} from './rules';
+import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, XP_TAG } from './rules';
 import type { Uebung } from './types';
 
 const block = (type: Block['type'], props: Block['props']): Block => createBlock(type, props);
-const page = (blocks: Block[], type: Page['type'] = 'uebung'): Page => ({ title: 'S', kicker: '', type, form: 'allein', nameField: 'name', blocks });
+const page = (blocks: Block[], type: Page['type'] = 'uebung'): Page => ({
+  title: 'S',
+  kicker: '',
+  type,
+  form: 'allein',
+  nameField: 'name',
+  blocks,
+});
 
 describe('Lernpaket aus Bausteinen', () => {
   it('macht aus Ankreuzen eine Antippen-Übung, nur mit Lösung', () => {
-    const [u] = exercisesOf([page([block('mc', { prompt: 'Was ist rot?', options: 'Gras\n*Tomate\nHimmel' }), block('mc', { options: 'A\nB' })])]);
-    expect(u).toMatchObject({ art: 'waehlen', frage: 'Was ist rot?', optionen: ['Gras', 'Tomate', 'Himmel'], richtig: [1] });
+    const [u] = exercisesOf([
+      page([
+        block('mc', {
+          prompt: 'Was ist rot?',
+          options: 'Gras\n*Tomate\nHimmel',
+        }),
+        block('mc', { options: 'A\nB' }),
+      ]),
+    ]);
+    expect(u).toMatchObject({
+      art: 'waehlen',
+      frage: 'Was ist rot?',
+      optionen: ['Gras', 'Tomate', 'Himmel'],
+      richtig: [1],
+    });
     expect(exercisesOf([page([block('mc', { options: 'A\nB' })])])).toEqual([]);
   });
 
   it('macht aus dem Lückentext je Zeile eine Lücke mit Kacheln und Ablenkern', () => {
-    const ex = exercisesOf([page([block('gap', { text: 'Die Sonne ist ein [[Stern]].\nDer Mond kreist um die [[Erde / Welt]].\nOhne ___ Lösung.' })])]);
+    const ex = exercisesOf([
+      page([
+        block('gap', {
+          text: 'Die Sonne ist ein [[Stern]].\nDer Mond kreist um die [[Erde / Welt]].\nOhne ___ Lösung.',
+        }),
+      ]),
+    ]);
     expect(ex).toHaveLength(2);
     const u = ex[0] as Extract<Uebung, { art: 'luecke' }>;
     expect(u.teile).toEqual(['Die Sonne ist ein ', 'Stern', '.']);
@@ -45,17 +55,38 @@ describe('Lernpaket aus Bausteinen', () => {
   it('macht Paare, richtig/falsch, Satzbau und Vokabeln; Lehrkraft-Seiten bleiben draußen', () => {
     const ex = exercisesOf([
       page([
-        block('match', { left: 'Hund\nKatze', right: 'miaut\nbellt', solution: '2, 1' }),
-        block('truefalse', { items: 'Emma is 11. | T\nBen is sad. | F', mode: 'tf' }),
-        block('jumble', { items: 'friend / is / my / Tom = Tom is my friend.' }),
-        block('foldtest', { rows: 'Haus | house\nSchule | school\nFreund | friend' }),
+        block('match', {
+          left: 'Hund\nKatze',
+          right: 'miaut\nbellt',
+          solution: '2, 1',
+        }),
+        block('truefalse', {
+          items: 'Emma is 11. | T\nBen is sad. | F',
+          mode: 'tf',
+        }),
+        block('jumble', {
+          items: 'friend / is / my / Tom = Tom is my friend.',
+        }),
+        block('foldtest', {
+          rows: 'Haus | house\nSchule | school\nFreund | friend',
+        }),
       ]),
       page([block('mc', { options: '*A\nB' })], 'lehrkraft'),
     ]);
     expect(ex.map((u) => u.art)).toEqual(['paare', 'richtigfalsch', 'richtigfalsch', 'reihenfolge', 'waehlen', 'waehlen', 'waehlen']);
-    expect(ex[0]).toMatchObject({ paare: [['Katze', 'miaut'], ['Hund', 'bellt']] });
+    expect(ex[0]).toMatchObject({
+      paare: [
+        ['Katze', 'miaut'],
+        ['Hund', 'bellt'],
+      ],
+    });
     const order = ex[3] as Extract<Uebung, { art: 'reihenfolge' }>;
-    expect(istRichtig(order, { art: 'reihenfolge', gelegt: ['Tom', 'is', 'my', 'friend'] })).toBe(true);
+    expect(
+      istRichtig(order, {
+        art: 'reihenfolge',
+        gelegt: ['Tom', 'is', 'my', 'friend'],
+      }),
+    ).toBe(true);
     const vocab = ex[4] as Extract<Uebung, { art: 'waehlen' }>;
     expect(vocab.optionen[vocab.richtig[0]]).toBe('house');
   });
@@ -66,12 +97,30 @@ describe('Lernpaket aus Bausteinen', () => {
 
   it('erkennt nur echte Lernpakete', () => {
     expect(readPaket({ format: 'x' })).toBeNull();
-    expect(readPaket({ format: 'lernquest-paket', stunde: 's', uebungen: [], modul: { id: 'm' } })).not.toBeNull();
+    expect(
+      readPaket({
+        format: 'lernquest-paket',
+        stunde: 's',
+        uebungen: [],
+        modul: { id: 'm' },
+      }),
+    ).not.toBeNull();
   });
 });
 
 describe('Runden', () => {
-  const ex = (n: number) => Array.from({ length: n }, (_, i) => ({ art: 'richtigfalsch', id: `u${i}`, frage: '', aussage: '', richtig: true }) as Uebung);
+  const ex = (n: number) =>
+    Array.from(
+      { length: n },
+      (_, i) =>
+        ({
+          art: 'richtigfalsch',
+          id: `u${i}`,
+          frage: '',
+          aussage: '',
+          richtig: true,
+        }) as Uebung,
+    );
 
   it('hat 1 Runde bis 5 Übungen, sonst 3–5', () => {
     expect([0, 3, 5, 6, 15, 16, 40].map(rundenZahl)).toEqual([0, 1, 1, 3, 3, 4, 5]);
@@ -129,7 +178,12 @@ describe('Wiederholen', () => {
   });
 
   it('nimmt fällige Karten, die ältesten zuerst, nur aus freigeschalteten Stunden', () => {
-    const l = { 'a/1': [2, t - 3], 'a/2': [1, t + 1], 'b/1': [1, t], 'c/1': [1, t - 9] } as Record<string, [number, number]>;
+    const l = {
+      'a/1': [2, t - 3],
+      'a/2': [1, t + 1],
+      'b/1': [1, t],
+      'c/1': [1, t - 9],
+    } as Record<string, [number, number]>;
     expect(faellig(l, t)).toEqual(['c/1', 'a/1', 'b/1']);
     expect(faellig(l, t, new Set(['a/1', 'b/1']))).toEqual(['a/1', 'b/1']);
   });
@@ -141,11 +195,40 @@ describe('Wiederholen', () => {
 
 describe('Runde auf dem Gerät', () => {
   it('rechnet wie der Server: Erfahrung, Bestwert, Lerntag, Karten', () => {
-    const s0 = { xp: 40, xpHeute: 290, bestwerte: { s1: [60] }, tage: ['2026-11-06'], leitner: { 'a/1': [1, 5] as [number, number] } };
-    const r = rundeAnwenden(s0, { stunde: 's1', runde: 1, richtig: 5, gesamt: 5, leitner: { 'a/2': [2, 9] } }, '2026-11-06');
+    const s0 = {
+      xp: 40,
+      xpHeute: 290,
+      bestwerte: { s1: [60] },
+      tage: ['2026-11-06'],
+      leitner: { 'a/1': [1, 5] as [number, number] },
+    };
+    const r = rundeAnwenden(
+      s0,
+      {
+        stunde: 's1',
+        runde: 1,
+        richtig: 5,
+        gesamt: 5,
+        leitner: { 'a/2': [2, 9] },
+      },
+      '2026-11-06',
+    );
     expect(r.plus).toBe(10);
-    expect(r.stand).toEqual({ xp: 50, xpHeute: 300, bestwerte: { s1: [60, 100] }, tage: ['2026-11-06'], leitner: { 'a/1': [1, 5], 'a/2': [2, 9] } });
+    expect(r.stand).toEqual({
+      xp: 50,
+      xpHeute: 300,
+      bestwerte: { s1: [60, 100] },
+      tage: ['2026-11-06'],
+      leitner: { 'a/1': [1, 5], 'a/2': [2, 9] },
+    });
     const next = rundeAnwenden(r.stand, { stunde: 's1', runde: 0, richtig: 1, gesamt: 5, leitner: {} }, '2026-11-07');
-    expect(next).toMatchObject({ plus: 12, stand: { xpHeute: 12, bestwerte: { s1: [60, 100] }, tage: ['2026-11-06', '2026-11-07'] } });
+    expect(next).toMatchObject({
+      plus: 12,
+      stand: {
+        xpHeute: 12,
+        bestwerte: { s1: [60, 100] },
+        tage: ['2026-11-06', '2026-11-07'],
+      },
+    });
   });
 });

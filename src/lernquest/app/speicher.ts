@@ -66,7 +66,13 @@ export function ladeDaten(): Daten | null {
     const p = readPaket(v);
     if (p) pakete[k] = p;
   }
-  return { name: String(d.name ?? ''), klasse: String(d.klasse ?? ''), stand: { ...LEERER_STAND, ...d.stand }, pakete, seit: d.seit ?? null };
+  return {
+    name: String(d.name ?? ''),
+    klasse: String(d.klasse ?? ''),
+    stand: { ...LEERER_STAND, ...d.stand },
+    pakete,
+    seit: d.seit ?? null,
+  };
 }
 export const speichereDaten = (d: Daten | null) => write(K_DATEN, d);
 
