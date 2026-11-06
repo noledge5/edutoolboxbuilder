@@ -28,9 +28,11 @@ gebaut** auf Branch `claude/stufe-5-handoff-b9odwp`, noch nicht auf `main` (Merg
 
 ## Neu: Mehr Beute (gleicher Branch, `docs/lernquest.md` „Mehr Beute“)
 - 16 neue Teile (56), Truhen in 40 % nur Münzen, Laden doppelt so teuer, Frisur wählbar (3 Grundfiguren).
-- **Server-Änderung:** `supabase/migrations/20261109_lernquest_beute.sql` ist lokal geprüft (Wegwerf-Postgres), aber
-  **noch nicht auf dem echten Server**. Muss vor dem Merge eingespielt werden, sonst lehnt der Server die Frisur ab
-  und Preise passen nicht. Danach `LQ_LIVE=1 npx vitest run src/lernquest/server.live.test.ts` und `npm run lq:testlauf`.
+- **Server-Änderung** `supabase/migrations/20261109_lernquest_beute.sql` ist am 06.11.2026 auf dem echten Server
+  eingespielt (mit OK der Lehrkraft). Server-Tests (`LQ_LIVE=1`) und `npm run lq:testlauf` grün.
+- **Bis zum Merge** passt die Live-App nicht zum Server: Sie zeigt die alten Preise, und bei einer Münz-Truhe fehlt
+  die Anzeige („Gleich anlegen“ geht dann schief). Darum bald mergen; danach
+  `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run lq:testlauf`.
 
 ## Nächste Schritte
 1. Lehrkraft schaut Stufe 5 an; bei „passt“ PR nach `main` (= veröffentlichen), danach
