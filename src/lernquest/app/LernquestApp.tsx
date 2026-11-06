@@ -33,6 +33,7 @@ import type { Paket, Stand, Uebung } from '../types';
 import { HeldIcon, HeldSeite, Herzen, KlasseIcon, KlasseSeite, LadenSeite, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
 import { allesWeg, ladeDaten, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereSitzung, speichereWarteschlange, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
+import { GutscheineSeite, TicketIcon } from './Gutscheine';
 import { Rich, UebungView } from './Uebungen';
 
 type Screen =
@@ -41,6 +42,7 @@ type Screen =
   | { kind: 'wiederholen' }
   | { kind: 'held' }
   | { kind: 'laden' }
+  | { kind: 'gutscheine' }
   | { kind: 'truhe'; zurueck: 'held' | 'karte' }
   | { kind: 'klasse' }
   | { kind: 'boss'; id: string }
@@ -58,6 +60,7 @@ type Screen =
       plus: number;
       muenzenPlus: number;
       truhenPlus: number;
+      punktePlus: number;
       sterneVorher: number;
       sterneJetzt: number;
     };
@@ -518,6 +521,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       plus: r.plus,
       muenzenPlus: r.muenzenPlus,
       truhenPlus: r.truhenPlus,
+      punktePlus: r.punktePlus,
       sterneVorher: vorher,
       sterneJetzt: sterne(r.stand.bestwerte[stunde], runden),
     });
@@ -616,6 +620,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </div>
         </div>
         {!screen.plus && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.</p>}
+        {screen.punktePlus > 0 && (
+          <p className="lq-punkte-plus" role="status">
+            <TicketIcon /> +{screen.punktePlus} Klassenpunkte fürs Wochenziel – einlösbar unter „Held“ → „Gutscheine“.
+          </p>
+        )}
         {screen.truhenPlus > 0 ? (
           <div className="lq-hinweis-gold lq-mit-icon">
             <TruheIcon />
@@ -652,7 +661,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
 
   const karten = new Set(pakete.flatMap((p) => p.uebungen.map((u) => karteKey(p.stunde, u.id))));
   const dueCount = faellig(stand.leitner, tagNummer(heute()), karten).length;
-  const tab = screen.kind === 'wiederholen' ? 'wiederholen' : screen.kind === 'held' || screen.kind === 'laden' ? 'held' : screen.kind === 'klasse' ? 'klasse' : 'karte';
+  const tab = screen.kind === 'wiederholen' ? 'wiederholen' : screen.kind === 'held' || screen.kind === 'laden' || screen.kind === 'gutscheine' ? 'held' : screen.kind === 'klasse' ? 'klasse' : 'karte';
   const rahmen = (inhalt: React.ReactNode) => (
     <main className="lq-app lq-mit-leiste">
       <Kopf daten={daten} offline={offline} onSignOut={() => onSignOut()} />
@@ -697,7 +706,10 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   );
 
   if (screen.kind === 'held') {
-    return rahmen(<HeldSeite daten={daten} aktion={aktion} setStand={setStand} onTruhe={() => setScreen({ kind: 'truhe', zurueck: 'held' })} onLaden={() => setScreen({ kind: 'laden' })} />);
+    return rahmen(<HeldSeite daten={daten} aktion={aktion} setStand={setStand} onTruhe={() => setScreen({ kind: 'truhe', zurueck: 'held' })} onLaden={() => setScreen({ kind: 'laden' })} onGutscheine={() => setScreen({ kind: 'gutscheine' })} />);
+  }
+  if (screen.kind === 'gutscheine') {
+    return rahmen(<GutscheineSeite daten={daten} aktion={aktion} setStand={setStand} onZurueck={() => setScreen({ kind: 'held' })} />);
   }
   if (screen.kind === 'laden') {
     return rahmen(<LadenSeite daten={daten} aktion={aktion} setStand={setStand} onZurueck={() => setScreen({ kind: 'held' })} />);

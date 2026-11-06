@@ -7,6 +7,7 @@ import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseA
 import { bonusText, bonusVon, CHANCEN, GARANTIE, HAUT, hat, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, TeilBild } from './avatar';
+import { GutscheinLeiste } from './Gutscheine';
 import type { Daten } from './speicher';
 import { ton } from './ton';
 
@@ -57,7 +58,7 @@ export function Herzen({ voll, von }: { voll: number; von: number }) {
 }
 
 /** A small bar that says what went wrong, with „Nochmal“ when trying again can help. */
-function Meldung({ text, nochmal }: { text: string; nochmal?: () => void }) {
+export function Meldung({ text, nochmal }: { text: string; nochmal?: () => void }) {
   if (!text) return null;
   return (
     <p className="lq-band" role="alert">
@@ -79,9 +80,10 @@ interface HeldProps {
   setStand: (s: Stand) => void;
   onTruhe: () => void;
   onLaden: () => void;
+  onGutscheine: () => void;
 }
 
-export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden }: HeldProps) {
+export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutscheine }: HeldProps) {
   const { stand } = daten;
   const [slot, setSlot] = useState<Slot>('kopf');
   const [msg, setMsg] = useState('');
@@ -149,6 +151,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden }: HeldPro
             Laden
           </button>
         </section>
+        <GutscheinLeiste punkte={stand.klassenpunkte ?? 0} onOeffnen={onGutscheine} />
       </div>
       <div className="lq-held-rechts">
         <SlotTabs slot={slot} setSlot={setSlot} label="Teile" />
@@ -554,7 +557,7 @@ export const KlasseIcon = () => (
     <path d="M17 14.5c2.4 0 4.2 1.5 4.6 4" />
   </svg>
 );
-const SchlossIcon = () => (
+export const SchlossIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
     <rect x="5" y="10.5" width="14" height="10" rx="2.5" />
     <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />

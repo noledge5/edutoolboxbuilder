@@ -170,6 +170,51 @@
   cursor: default;
 }
 
+/* — Stufe 4: class points, vouchers and requests, progress per competence — */
+.lqt-tabs small.lqt-badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-accent-5-200);
+  color: var(--color-accent-5-900);
+  font-weight: 700;
+}
+.lqt-card h3.lqt-sub {
+  margin: 4px 0 0;
+}
+.lqt-punkte {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.lqt-gutscheine .input {
+  width: 100%;
+  min-width: 180px;
+}
+.lqt-gutscheine .input.lqt-zahl {
+  width: 64px;
+  min-width: 0;
+}
+.lqt-gutscheine .input[aria-invalid='true'] {
+  box-shadow: inset 0 0 0 2px var(--color-accent-700);
+}
+.lqt-gutschein-neu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-x: auto;
+}
+.lqt-details summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.lqt-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--color-neutral-700);
+}
+
 @media (max-width: 720px) {
   .lqt-main {
     padding: 14px 12px 60px;

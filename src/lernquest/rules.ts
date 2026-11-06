@@ -239,7 +239,7 @@ export function rundeAnwenden(
   m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] },
   tag = heute(),
   k: RundenKontext = { herzen: 3, bonusProzent: 0, runden: 0, stationSchonBelohnt: true },
-): { plus: number; muenzenPlus: number; truhenPlus: number; stand: Stand } {
+): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; stand: Stand } {
   const neuerTag = !s.tage.includes(tag);
   const schon = neuerTag ? 0 : s.xpHeute;
   const plus = xpFuerRunde(m.richtig, m.gesamt, schon);
@@ -255,11 +255,15 @@ export function rundeAnwenden(
     if (!k.stationSchonBelohnt && k.runden > 0 && Array.from({ length: k.runden }, (_, i) => best[i] ?? 0).every((x) => x > 0)) truhenPlus++;
   }
   const tage = neuerTag ? [...s.tage, tag].sort().slice(-70) : s.tage;
-  if (neuerTag && woche(s.tage, tag).diese === WOCHENZIEL - 1) truhenPlus++;
+  // Weekly goal reached now: a chest and class points (the server gives both once per week).
+  const ziel = neuerTag && woche(s.tage, tag).diese === WOCHENZIEL - 1;
+  if (ziel) truhenPlus++;
+  const punktePlus = ziel ? PUNKTE_WOCHENZIEL : 0;
   return {
     plus,
     muenzenPlus,
     truhenPlus,
+    punktePlus,
     stand: {
       ...s,
       xp: s.xp + plus,
@@ -267,6 +271,7 @@ export function rundeAnwenden(
       muenzen: s.muenzen + muenzenPlus,
       muenzenHeute: mSchon + muenzenPlus,
       truhen: s.truhen + truhenPlus,
+      klassenpunkte: (s.klassenpunkte ?? 0) + punktePlus,
       bestwerte,
       tage,
       leitner: { ...s.leitner, ...m.leitner },
@@ -300,3 +305,35 @@ export const bossLp = (kinder: number, fragen: number) => Math.max(1, kinder * f
 
 /** The boss hits the class (one heart) when fewer than half of the children who joined answered right. */
 export const bossTrifft = (richtig: number, kinder: number) => richtig * 2 < kinder;
+
+// — Echte Belohnungen (Stufe 4), as lq_runde_melden, lq_boss_ticken, lq_punkte_geben and lq_anfragen on the server —
+
+/** Class points for the weekly goal (once a week, with its chest) and for a boss win (once per region, with its chest). */
+export const PUNKTE_WOCHENZIEL = 3;
+export const PUNKTE_BOSS = 2;
+/** Most class points a teacher gives a child by hand per week (1–5 at a time). */
+export const PUNKTE_HAND_WOCHE = 5;
+/** Most open requests per child. */
+export const ANFRAGEN_OFFEN_MAX = 10;
+
+/** A voucher as the child sees it: `ich` and `klasse` count this week's open and redeemed requests. */
+export interface GutscheinSicht {
+  preis: number;
+  /** Limits per week; null = none. */
+  jeKind: number | null;
+  jeKlasse: number | null;
+  ich: number;
+  klasse: number;
+}
+
+/** Whether a child can ask for a voucher now, in the order the server checks: points, own limit, class limit, open requests. */
+export function gutscheinFrei(g: GutscheinSicht, punkte: number, offen: number): 'ok' | 'punkte' | 'grenze' | 'voll' {
+  if (punkte < g.preis) return 'punkte';
+  if (g.jeKind !== null && g.ich >= g.jeKind) return 'grenze';
+  if (g.jeKlasse !== null && g.klasse >= g.jeKlasse) return 'grenze';
+  if (offen >= ANFRAGEN_OFFEN_MAX) return 'voll';
+  return 'ok';
+}
+
+/** How many class points the teacher can still give a child this week. */
+export const punkteHandRest = (schonDieseWoche: number) => Math.max(0, PUNKTE_HAND_WOCHE - schonDieseWoche);

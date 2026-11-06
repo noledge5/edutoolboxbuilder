@@ -1,6 +1,7 @@
 // The teacher's Lernquest page in the Baukasten (#/lernquest): classes and children with PINs, cards with QR code
 // to print, lessons to unlock (their Lernpaket goes to the class), progress at a glance, unlock locked accounts, and
-// the boss fight on the projector (Stufe 3: the questions are made here, the projector view is Lernquest's #beamer=).
+// the boss fight on the projector (Stufe 3: the questions are made here, the projector view is Lernquest's #beamer=),
+// class points, vouchers and requests, and progress per competence (Stufe 4: `Belohnungen.tsx`, `Auswertung.tsx`).
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Lock, Plus, Printer, RefreshCw, RotateCcw, Swords, Trash2, Unlock } from 'lucide-react';
 import { Icon } from '../../icons';
@@ -9,7 +10,7 @@ import type { Library } from '../../library/types';
 import { ensureLehrkraft, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
 import { BOSS_FRAGEN_MIN, bossFragen, bossVon } from '../boss';
 import { buildPaket, exercisesOf } from '../paket';
-import { BOSS_FRAGEN, heldenstufe, rundenZahl, sterne, woche } from '../rules';
+import { BOSS_FRAGEN, heldenstufe, punkteHandRest, PUNKTE_HAND_WOCHE, rundenZahl, sterne, woche } from '../rules';
 import {
   bossStarten,
   entsperren,
@@ -23,10 +24,13 @@ import {
   lqText,
   neuePin,
   pinSetzen,
+  punkteGeben,
   sperren,
   type KindInfo,
   type KlasseInfo,
 } from '../server';
+import { Auswertung } from './Auswertung';
+import { Belohnungen } from './Belohnungen';
 import { PinCards } from './PinCards';
 import './lernquest-lehrkraft.css';
 
@@ -140,6 +144,11 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
                 <button key={k.id} type="button" className={`btn btn-secondary ui-btn ${k.id === klasse?.id ? 'is-on' : ''}`} onClick={() => setSel(k.id)}>
                   {k.name}
                   <small>{k.kinder.filter((c) => !c.geloescht).length}</small>
+                  {(k.anfragen ?? 0) > 0 && (
+                    <small className="lqt-badge" title="Offene Gutschein-Anfragen">
+                      {k.anfragen} {k.anfragen === 1 ? 'Anfrage' : 'Anfragen'}
+                    </small>
+                  )}
                 </button>
               ))}
               <form
@@ -163,7 +172,7 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
               </form>
             </nav>
             {klasse ? (
-              <KlasseView key={klasse.id} lib={lib} klasse={klasse} pins={me?.pins ?? {}} busy={busy} act={act} savePins={savePins} onPrint={() => setPrinting(true)} />
+              <KlasseView key={klasse.id} lib={lib} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} busy={busy} act={act} savePins={savePins} onPrint={() => setPrinting(true)} />
             ) : (
               <p className="lib-empty">Lege zuerst eine Klasse an.</p>
             )}
@@ -202,6 +211,7 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
 interface KlasseProps {
   lib: Library;
   klasse: KlasseInfo;
+  keys: string[];
   pins: Record<string, string>;
   busy: boolean;
   act(f: (keys: string[]) => Promise<unknown>): Promise<void>;
@@ -209,7 +219,7 @@ interface KlasseProps {
   onPrint(): void;
 }
 
-function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseProps) {
+function KlasseView({ lib, klasse, keys, pins, busy, act, savePins, onPrint }: KlasseProps) {
   const [names, setNames] = useState('');
   /** Lessons being unlocked or locked: the box shows the wish at once, the server follows. */
   const [want, setWant] = useState<Record<string, boolean>>({});
@@ -265,6 +275,19 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
 
   const missingPins = kinder.filter((k) => !pins[k.id]).length;
 
+  const givePoints = (k: KindInfo) => {
+    const rest = punkteHandRest(k.punkteHand ?? 0);
+    if (!rest) return;
+    const text = window.prompt(`Wie viele Klassenpunkte bekommt ${k.name}? (1–${rest}; höchstens ${PUNKTE_HAND_WOCHE} je Woche von Hand)`, '1');
+    if (text === null) return;
+    const n = Number(text.trim());
+    if (!Number.isInteger(n) || n < 1 || n > rest) {
+      window.alert(`Bitte eine Zahl von 1 bis ${rest}.`);
+      return;
+    }
+    void act((keys) => punkteGeben(keys, k.id, n));
+  };
+
   return (
     <>
       <section className="lqt-card">
@@ -313,6 +336,7 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
                 <th>Heldenstufe</th>
                 <th>Sterne</th>
                 <th>Lerntage diese Woche</th>
+                <th>Klassenpunkte</th>
                 <th>Zuletzt da</th>
                 <th />
               </tr>
@@ -332,6 +356,19 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
                       {stars} <small>von {Object.keys(rounds).length * 3}</small>
                     </td>
                     <td>{woche(k.tage).diese}</td>
+                    <td className="lqt-punkte">
+                      {k.klassenpunkte ?? 0}
+                      <button
+                        type="button"
+                        className="btn btn-ghost ui-btn is-small"
+                        disabled={busy || !punkteHandRest(k.punkteHand ?? 0)}
+                        title={punkteHandRest(k.punkteHand ?? 0) ? `${k.name} Klassenpunkte geben` : `Diese Woche schon ${PUNKTE_HAND_WOCHE} von Hand gegeben`}
+                        aria-label={`${k.name} Klassenpunkte geben`}
+                        onClick={() => givePoints(k)}
+                      >
+                        <Icon icon={Plus} />
+                      </button>
+                    </td>
                     <td>{when(k.zuletzt)}</td>
                     <td className="lqt-row-actions">
                       {k.gesperrt && (
@@ -360,7 +397,7 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
               {geloescht.map((k) => (
                 <tr key={k.id} className="is-deleted">
                   <th>{k.name}</th>
-                  <td colSpan={5}>gelöscht am {when(k.geloescht)}, nach 30 Tagen endgültig weg</td>
+                  <td colSpan={6}>gelöscht am {when(k.geloescht)}, nach 30 Tagen endgültig weg</td>
                   <td>
                     <button type="button" className="btn btn-secondary ui-btn is-small" disabled={busy} onClick={() => void act((keys) => kindLoeschen(keys, k.id, false))}>
                       <Icon icon={RotateCcw} />
@@ -386,6 +423,10 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
           </button>
         </div>
       </section>
+
+      <Belohnungen klasse={klasse} keys={keys} busy={busy} act={act} />
+
+      <Auswertung lib={lib} klasse={klasse} />
 
       <BossStart lib={lib} klasse={klasse} busy={busy} act={act} />
 
