@@ -79,5 +79,6 @@ Jede Stufe ist für sich im Unterricht nutzbar und wird einzeln freigegeben.
 ## Offene Punkte
 
 - Freigabe der Schule für Klarnamen auf dem Server (vor dem ersten echten Einsatz).
-- Supabase-Tabellen und -Funktionen einspielen: vor Stufe 1 nach Rückfrage.
+- Supabase-Tabellen und -Funktionen für Stufe 1: von der Lehrkraft am 06.11.2026 freigegeben (Projekt „baukasten“).
+  Spätere Stufen, die den Server ändern, wieder kurz ankündigen.
 - Lernquest ist erst nach dem Merge nach `main` für Kinder erreichbar; bis dahin Test über die Vorschau.
