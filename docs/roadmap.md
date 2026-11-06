@@ -182,3 +182,11 @@ Entschieden mit Fragen und Empfehlungen:
 Reihenfolge (je Schritt ein PR):
 1. ✅ (04.11.2026) Schülerblatt schlicht und Anleitung freier (mit Erst fragen, dann bauen). Die neue Anleitung muss einmal ins Claude-Projekt geladen werden.
 2. „Präsi in Canva …“ mit Bild-Links über Supabase und Vorlage je Fach; eigene Folien einfrieren. Umgesetzt (04.11.2026): im Arbeitsblatt „KI“ → „Präsi in Canva …“ (auch „Präsi in Canva“ in „Mit KI bauen“): Vorlage je Fach und optional je Modul, „Auftrag vorbereiten“ (lädt bis zu 10 Bilder, Material zuerst, SVG als PNG), „Auftrag kopieren“, Link der fertigen Präsi an der Stunde. Server-Funktion `praesi-bild` (privater Bucket `praesi-bilder`, nur PNG/JPEG/GIF/WebP bis 4 MB, höchstens 150 Dateien, Links 1 Stunde, Löschung nach 18 Stunden bei jedem Aufruf und alle 6 Stunden über die Action „Ergebnis-Server wach halten“). „Mit KI bauen: Folien“ ist entfernt; vorhandene Folien bleiben.
+
+### Runde 10 – Lernquest (entschieden am 06.11.2026)
+Wunsch der Lehrkraft: ein Lerntool, verbunden mit den Modulen, Mischung aus Duolingo und Anton, mit Anmeldung über Name und Zugangscode, langfristigem Fortschritt, Avatar, Truhen, echten Belohnungen und Bosskämpfen im Klassenzimmer, gern mit RPG-Gefühl. Plan und alle Entscheidungen: `docs/lernquest.md`. Gebaut auf dem langen Branch `lernquest`, jede Stufe einzeln nach `main`.
+1. Lernen (Klassen, Anmeldung, Weltkarte, Übungsformate, Erfahrung, Wochenziel, Wiederholen)
+2. Held und Beute (Avatar, Truhen, Laden)
+3. Bosskampf am Beamer
+4. Echte Belohnungen und Auswertung
+5. KI-Fragenpool und mehr Formate
