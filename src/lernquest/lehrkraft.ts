@@ -3,7 +3,7 @@
 // it travels encrypted with the Mac ↔ iPad sync as the entry `g:lernquest` (see src/sync/engine.ts). Both devices end
 // up with all keys, so a class made on either device can be managed on both.
 import { get, set } from 'idb-keyval';
-import { kv } from '../storage/db';
+import { kv } from '../storage/kv';
 
 export const LEHRKRAFT_KEY = 'geraet:lernquest';
 /** Name of the entry in the sync. */

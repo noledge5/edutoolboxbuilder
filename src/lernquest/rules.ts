@@ -273,3 +273,30 @@ export function rundeAnwenden(
     },
   };
 }
+
+// — Bosskampf (Stufe 3), as the lq_boss_* functions on the server —
+
+/** Questions per fight, seconds per question, hearts of the class. */
+export const BOSS_FRAGEN = 10;
+export const BOSS_ZEIT_MS = 20_000;
+export const BOSS_HERZEN = 5;
+/** Answers still taken after the time is up (the network is slower than the clock on the projector). */
+export const BOSS_NACHFRIST_MS = 1_500;
+/**
+ * Life points per child and question. A right answer does 10 to 20 (faster = more), doubled from the third right one in
+ * a row; at middle speed that is ~14.6 per answer with 70 % right and ~11.6 with 60 %, so 13 lets a class win from
+ * about two thirds right.
+ */
+export const BOSS_LP_JE = 13;
+
+/** Damage of a right answer given `ms` after the question showed; `serie` = right answers in a row, this one included. */
+export function bossSchaden(ms: number, serie: number): number {
+  const tempo = Math.round(10 * Math.max(0, 1 - Math.max(0, ms) / BOSS_ZEIT_MS));
+  return (10 + tempo) * (serie >= 3 ? 2 : 1);
+}
+
+/** The boss's life points for `kinder` children and `fragen` questions. */
+export const bossLp = (kinder: number, fragen: number) => Math.max(1, kinder * fragen * BOSS_LP_JE);
+
+/** The boss hits the class (one heart) when fewer than half of the children who joined answered right. */
+export const bossTrifft = (richtig: number, kinder: number) => richtig * 2 < kinder;

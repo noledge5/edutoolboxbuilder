@@ -185,8 +185,8 @@ Reihenfolge (je Schritt ein PR):
 
 ### Runde 10 – Lernquest (entschieden am 06.11.2026)
 Wunsch der Lehrkraft: ein Lerntool, verbunden mit den Modulen, Mischung aus Duolingo und Anton, mit Anmeldung über Name und Zugangscode, langfristigem Fortschritt, Avatar, Truhen, echten Belohnungen und Bosskämpfen im Klassenzimmer, gern mit RPG-Gefühl. Plan und alle Entscheidungen: `docs/lernquest.md`. Gebaut auf dem langen Branch `lernquest`, jede Stufe einzeln nach `main`.
-1. Lernen (Klassen, Anmeldung, Weltkarte, Übungsformate, Erfahrung, Wochenziel, Wiederholen). Gebaut am 06.11.2026 auf `lernquest`, noch nicht auf `main`; Einzelheiten unter „Stand Stufe 1“ in `docs/lernquest.md`.
-2. Held und Beute (Avatar, Truhen, Laden)
-3. Bosskampf am Beamer
+1. Lernen (Klassen, Anmeldung, Weltkarte, Übungsformate, Erfahrung, Wochenziel, Wiederholen). Live seit 06.11.2026; Einzelheiten unter „Stand Stufe 1“ in `docs/lernquest.md`.
+2. Held und Beute (Avatar, Truhen, Laden). Live seit 06.11.2026 (PR #23).
+3. Bosskampf am Beamer. Entschieden mit der Lehrkraft am 06.11.2026: 10 Fragen, 20 s je Frage, Schaden 10 + bis 10 fürs Tempo, ab 3 richtig in Folge doppelt, Lebenspunkte so, dass die Klasse mit etwa 70 % richtig gewinnt, 5 Klassen-Herzen (eins weg bei weniger als der Hälfte richtig); Truhe für alle, die mitgemacht haben, nur beim ersten Sieg je Region. Server-Teil eingespielt am 06.11.2026, App auf Branch `claude/lernquest-stufe3`.
 4. Echte Belohnungen und Auswertung
 5. KI-Fragenpool und mehr Formate

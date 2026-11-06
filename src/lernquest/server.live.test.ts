@@ -3,11 +3,19 @@
 // two test classes with fresh teacher keys and deletes them for good at the end.
 import { afterAll, describe, expect, it } from 'vitest';
 import { newKey } from './lehrkraft';
-import { muenzenFuerRunde } from './rules';
+import { bossLp, bossSchaden, muenzenFuerRunde } from './rules';
+import type { BossFrage } from './boss';
 import { TEILE, teil } from './teile';
 import {
   anmelden,
   avatarSetzen,
+  bossAntworten,
+  bossBeamer,
+  bossBeenden,
+  bossOffen,
+  bossStand,
+  bossStarten,
+  bossWeiter,
   kaufen,
   klasseAnsicht,
   entsperren,
@@ -210,5 +218,75 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(JSON.stringify(ansicht)).not.toMatch(/pin|hash|xp|muenzen|inventar|truhen/i);
     expect((await klasseAnsicht(okBen.token)).kinder.map((k) => k.name)).toEqual(['Ben H.']);
     expect(await code(klasseAnsicht('falsch'))).not.toBe('ok');
+  }, 60_000);
+
+  it('Stufe 3: Bosskampf – Lösungen verborgen, Schaden, Herzen, Truhe einmal je Region', async () => {
+    const keyE = [newKey()];
+    const keyF = [newKey()];
+    const e = await klasseAnlegen(keyE, 'Boss E');
+    made.push({ keys: keyE, id: e.id });
+    const f = await klasseAnlegen(keyF, 'Boss F');
+    made.push({ keys: keyF, id: f.id });
+    const mia = await kindAnlegen(keyE, e.id, 'Mia B.', '1234');
+    const tom = await kindAnlegen(keyE, e.id, 'Tom B.', '5678');
+    const ben = await kindAnlegen(keyF, f.id, 'Ben B.', '1111');
+    const [m, t, b] = await Promise.all([anmelden(e.code, mia, '1234'), anmelden(e.code, tom, '5678'), anmelden(f.code, ben, '1111')]);
+    if (!m.ok || !t.ok || !b.ok) throw new Error('Anmeldung fehlgeschlagen');
+    const fragen: BossFrage[] = [
+      { frage: 'F1', aussage: 'A1', optionen: ['a', 'b', 'c', 'd'], richtig: 2 },
+      { frage: 'F2', aussage: '', optionen: ['richtig', 'falsch'], richtig: 0 },
+      { frage: 'F3', aussage: '', optionen: ['x', 'y', 'z'], richtig: 1 },
+    ];
+    expect(await code(bossStarten(keyF, e.id, 'm1', 'T', 0, fragen))).toBe('zugang');
+    expect(await code(bossStarten(keyE, e.id, 'm1', 'T', 0, fragen.slice(0, 2)))).toBe('ungueltig');
+    const id = await bossStarten(keyE, e.id, 'm1', 'Erdkunde · Region 1', 0, fragen);
+
+    // Only the own class sees and joins the fight; the teacher of another class sees nothing.
+    expect(await bossOffen(m.token)).toEqual({ id, titel: 'Erdkunde · Region 1', boss: 0 });
+    expect(await bossOffen(b.token)).toBeNull();
+    expect(await code(bossStand(b.token, id))).toBe('ungueltig');
+    expect(await code(bossBeamer(keyF, id))).toBe('zugang');
+    expect(await code(bossWeiter(keyE, id))).toBe('leer');
+    await bossStand(m.token, id);
+    await bossStand(t.token, id);
+    const los = await bossWeiter(keyE, id);
+    expect(los).toMatchObject({ phase: 'frage', frage: 0, kinder: 2, lpMax: bossLp(2, 3), herzen: 5, aussage: 'A1' });
+
+    // While the question runs the phones get the options, never the solution.
+    const handy = await bossStand(m.token, id);
+    expect(handy.optionen).toEqual(['a', 'b', 'c', 'd']);
+    expect(handy.richtig).toBeNull();
+    expect(JSON.stringify(handy)).not.toMatch(/A1|F1|"text"/);
+
+    // Mia right (fast), Tom wrong: half right, no heart lost; all answered, so it resolves.
+    expect(await bossAntworten(m.token, id, 0, 2)).toEqual({ angenommen: true });
+    expect(await bossAntworten(m.token, id, 0, 1)).toEqual({ angenommen: false });
+    expect(await code(bossAntworten(t.token, id, 0, 9))).toBe('ungueltig');
+    expect(await bossAntworten(t.token, id, 0, 0)).toEqual({ angenommen: true });
+    const auf = await bossBeamer(keyE, id);
+    expect(auf).toMatchObject({ phase: 'aufloesung', richtig: 2, herzen: 5, verteilung: [1, 0, 1, 0] });
+    const nachMia = await bossStand(m.token, id);
+    expect(nachMia).toMatchObject({ richtig: 2, wahl: 2, serie: 1 });
+    // The server's damage follows bossSchaden: between a slow and an instant answer.
+    expect(nachMia.schaden).toBeGreaterThanOrEqual(bossSchaden(5000, 1));
+    expect(nachMia.schaden).toBeLessThanOrEqual(bossSchaden(0, 1));
+    expect(auf.lp).toBe(bossLp(2, 3) - (nachMia.schaden ?? 0));
+
+    // Question 2: both wrong -> the boss hits; question 3 resolved early by the teacher -> lost, no chest.
+    await bossWeiter(keyE, id);
+    await bossAntworten(m.token, id, 1, 1);
+    await bossAntworten(t.token, id, 1, 1);
+    expect((await bossBeamer(keyE, id)).herzen).toBe(4);
+    await bossWeiter(keyE, id);
+    const ende = await bossWeiter(keyE, id);
+    expect(ende).toMatchObject({ phase: 'ende', sieg: false, truhen: 0 });
+    expect(await bossOffen(m.token)).toBeNull();
+    expect((await meinStand(m.token, null)).stand.truhen).toBe(0);
+
+    // A new fight for the same region; a fight ended by the teacher gives nothing.
+    const id2 = await bossStarten(keyE, e.id, 'm1', 'R1', 1, fragen);
+    await bossStand(m.token, id2);
+    expect((await bossBeenden(keyE, id2)).phase).toBe('ende');
+    expect(await bossOffen(m.token)).toBeNull();
   }, 60_000);
 });

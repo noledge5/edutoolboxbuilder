@@ -6,7 +6,9 @@
 //      then opens the chest it earned, wears the part and looks at the class (Stufe 2);
 //   3. checks what the server stored against the rules in `rules.ts` (XP, best value, coins, chest, part worn);
 //   4. takes screenshots (phone, iPad, laptop) and fails on any script error in the page;
-//   5. deletes the class for good.
+//   5. fights a boss (Stufe 3): the projector (1440 × 810, teacher key put into this browser) and the child's phone,
+//      every answer right until the boss falls; checks the chest on the server;
+//   6. deletes the class for good.
 // Only runs with LQ_TESTLAUF=1. LQ_URL=<…/lernquest/> plays the live site instead of the local build; LQ_BILDER=<dir>
 // sets where the screenshots go (default: the temp folder, never the repo). Playwright is not a dependency of the
 // project: it is used from the machine (preinstalled in Claude's cloud sessions).
@@ -16,7 +18,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { newKey } from './lehrkraft';
-import { freischalten, kindAnlegen, klasseAnlegen, klasseEndgueltig, klasseLoeschen, klassen, meinStand } from './server';
+import { bossBeamer, bossStarten, freischalten, kindAnlegen, klasseAnlegen, klasseEndgueltig, klasseLoeschen, klassen, meinStand } from './server';
+import { bossFragen } from './boss';
 import { muenzenFuerRunde, xpFuerRunde } from './rules';
 import { TEILE } from './teile';
 import { PAKET_FORMAT, type Paket, type Uebung } from './types';
@@ -42,7 +45,7 @@ interface Page {
   locator(sel: string, o?: { hasText?: RegExp | string }): Locator;
   getByRole(role: string, o: { name: string | RegExp; exact?: boolean }): Locator;
   screenshot(o: { path: string; fullPage?: boolean }): Promise<unknown>;
-  evaluate<T>(fn: () => T): Promise<T>;
+  evaluate<T>(fn: (() => T) | string): Promise<T>;
   waitForTimeout(ms: number): Promise<void>;
   on(ev: 'pageerror', fn: (e: Error) => void): void;
   on(ev: 'console', fn: (m: { type(): string; text(): string }) => void): void;
@@ -259,6 +262,75 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
         await p.screenshot({ path: join(BILDER, `${name}-held.png`) });
         await c.close();
       }
+
+      // 5. Boss fight: three questions from the made-up lesson, one child, every answer right.
+      const fragen = bossFragen([PAKET], 'testlauf', 3);
+      const bossId = await bossStarten(keys, klasse, PAKET.modul.id, 'Erdkunde · Region 1', 0, fragen);
+      const handyCtx = await browser.newContext({ ...devices['iPhone 13'], locale: 'de-DE' });
+      await serverDurchNode(handyCtx);
+      await handyCtx.addInitScript((s) => localStorage.setItem('lernquest:sitzung', s), sitzung);
+      const handy = await handyCtx.newPage();
+      handy.on('pageerror', (e) => fehler.push(`Skriptfehler (Boss, Handy): ${e.message}`));
+      await handy.goto(url);
+      await handy.locator('.lq-boss-band').first().waitFor({ timeout: 25_000 });
+      await handy.screenshot({ path: join(BILDER, 'boss-1-handy-karte.png') });
+      await handy.locator('.lq-boss-band').first().click();
+      await handy.locator('.lq-boss-handy').first().waitFor({ timeout: 15_000 });
+
+      const beamerCtx = await browser.newContext({ viewport: { width: 1440, height: 810 }, locale: 'de-DE' });
+      await serverDurchNode(beamerCtx);
+      const beamer = await beamerCtx.newPage();
+      beamer.on('pageerror', (e) => fehler.push(`Skriptfehler (Beamer): ${e.message}`));
+      await beamer.goto(url);
+      // The teacher key as the Baukasten keeps it (same origin): IndexedDB „arbeitsblatt-baukasten“, store „daten“.
+      const lehrkraft = JSON.stringify({ keys, pins: {}, updatedAt: Date.now() });
+      await beamer.evaluate(`new Promise((ok, no) => { const r = indexedDB.open('arbeitsblatt-baukasten'); r.onupgradeneeded = () => r.result.createObjectStore('daten'); r.onerror = () => no(r.error); r.onsuccess = () => { const tx = r.result.transaction('daten', 'readwrite'); tx.objectStore('daten').put(${lehrkraft}, 'geraet:lernquest'); tx.oncomplete = () => { r.result.close(); ok(1); }; tx.onerror = () => no(tx.error); }; })`);
+      await beamer.goto('about:blank');
+      await beamer.goto(`${url}#beamer=${bossId}`);
+      const losKnopf = beamer.getByRole('button', { name: exact('Los geht’s!') }).first();
+      await losKnopf.waitFor({ timeout: 20_000 });
+      await beamer.waitForTimeout(1500);
+      await beamer.screenshot({ path: join(BILDER, 'boss-2-beamer-warten.png') });
+      await losKnopf.click();
+      // The test follows what the projector shows (the server may move on between a poll and a click).
+      const naechste = beamer.getByRole('button', { name: exact('Nächste Frage') }).first();
+      const schliessen = beamer.getByRole('button', { name: exact('Schließen') }).first();
+      for (let i = 0; i < fragen.length; i++) {
+        await handy.locator(`.lq-pad.a${fragen[i].richtig}:not([disabled])`).first().waitFor({ timeout: 20_000 });
+        if (i === 0) {
+          await beamer.waitForTimeout(1200);
+          await beamer.screenshot({ path: join(BILDER, 'boss-3-beamer-frage.png') });
+          await handy.screenshot({ path: join(BILDER, 'boss-4-handy-frage.png') });
+        }
+        await handy.locator(`.lq-pad.a${fragen[i].richtig}`).first().click();
+        // All (one) answered: the question resolves at the next poll; wait for its result on the projector.
+        let weiter = false;
+        for (let w = 0; w < 60; w++) {
+          if (await schliessen.count()) break;
+          if (await naechste.count()) {
+            weiter = true;
+            break;
+          }
+          await beamer.waitForTimeout(500);
+        }
+        await beamer.waitForTimeout(1200);
+        if (i === 0) {
+          await beamer.screenshot({ path: join(BILDER, 'boss-5-beamer-aufloesung.png') });
+          await handy.screenshot({ path: join(BILDER, 'boss-6-handy-aufloesung.png') });
+        }
+        if (!weiter) break;
+        await naechste.click();
+      }
+      const bossEnde = await bossBeamer(keys, bossId);
+      await beamer.waitForTimeout(1500);
+      await handy.waitForTimeout(1500);
+      await beamer.screenshot({ path: join(BILDER, 'boss-7-beamer-ende.png') });
+      await handy.screenshot({ path: join(BILDER, 'boss-8-handy-ende.png') });
+      expect(bossEnde).toMatchObject({ phase: 'ende', sieg: true, truhen: 1 });
+      expect((await meinStand(token, null)).stand.truhen).toBe(1);
+      await handy.getByRole('button', { name: exact('Truhe öffnen') }).first().waitFor({ timeout: 10_000 });
+      await handyCtx.close();
+      await beamerCtx.close();
     } finally {
       await browser.close();
       console.log(`Testlauf: Bilder in ${BILDER}`);
