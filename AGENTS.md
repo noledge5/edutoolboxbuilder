@@ -49,15 +49,17 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
   deleted after 18 h); the repo holds its source, it is deployed with the Supabase tools, and only after asking the user.
 - Lernquest (`docs/lernquest.md`) is the third page (`lernquest/index.html`, `src/lernquest/`, own game look, no
   `src/sheet/`). Reward rules live twice, in `src/lernquest/rules.ts` and in `lq_runde_melden`
-  (`supabase/migrations/`): change both. A new task block that should become an exercise also touches
-  `src/lernquest/paket.ts`. The server test `src/lernquest/server.live.test.ts` runs only with `LQ_LIVE=1`.
+  (`supabase/migrations/`): change both (class points also in `lq_boss_ticken`, voucher limits in `lq_anfragen`).
+  A new task block that should become an exercise also touches `src/lernquest/paket.ts`. The server test `src/lernquest/server.live.test.ts` runs only with `LQ_LIVE=1`.
   To try a Lernquest change end to end: `npm run lq:testlauf` (build, throwaway teacher key, test class and child on the
   real server, one round played in Chromium, server state checked against `rules.ts`, screenshots to the temp folder,
   class deleted). `LQ_URL=…/lernquest/` plays the live site. Never read the `lq_*` tables directly (real names).
   The boss projector (`lernquest/#beamer=<id>`) reads the teacher keys from the Baukasten's IndexedDB (same origin,
   `src/storage/kv.ts`); boss rules live in `rules.ts` (`bossSchaden`, `bossLp`, `bossTrifft`) and in the `lq_boss_*`
   SQL: change both. Try SQL changes first in a throwaway local Postgres (`/usr/lib/postgresql/16`, stub `extensions`
-  with pgcrypto and `cron.schedule`) before they go to the server.
+  with pgcrypto and `cron.schedule`) before they go to the server. If the Supabase tool's apply times out waiting
+  for a confirmation, ask the user to run the migration file in the dashboard's SQL Editor, then check it through the
+  public functions.
 
 ## Commands and checks
 - `npm run dev`, `npm run typecheck`, `npm test` (Vitest), `npm run build`; the CI (`.github/workflows/ci.yml`) runs the same.

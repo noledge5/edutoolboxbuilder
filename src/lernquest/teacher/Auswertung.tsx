@@ -82,7 +82,7 @@ export function Auswertung({ lib, klasse }: { lib: Library; klasse: KlasseInfo }
           </div>
           {r.ohneKompetenz > 0 && (
             <p className="lqt-hint">
-              {r.ohneKompetenz} {r.ohneKompetenz === 1 ? 'Übung ist' : 'Übungen sind'} keiner Kompetenz dieses Moduls zugeordnet und fehlen hier.
+              {r.ohneKompetenz === 1 ? '1 Übung ist keiner Kompetenz dieses Moduls zugeordnet und fehlt hier.' : `${r.ohneKompetenz} Übungen sind keiner Kompetenz dieses Moduls zugeordnet und fehlen hier.`}
             </p>
           )}
         </>

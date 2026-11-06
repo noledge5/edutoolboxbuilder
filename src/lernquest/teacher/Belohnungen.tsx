@@ -133,8 +133,8 @@ export function Belohnungen({ klasse, keys, busy, act }: Props) {
                   <tr>
                     <th>Gutschein</th>
                     <th>Preis</th>
-                    <th>Je Kind und Woche</th>
-                    <th>Klasse je Woche</th>
+                    <th>Pro Kind und Woche</th>
+                    <th>Klasse pro Woche</th>
                     <th>Diese Woche</th>
                     <th>An</th>
                     <th />
@@ -317,8 +317,8 @@ function NeuerGutschein({ busy, tun, klasse }: { busy: boolean; tun: Tun; klasse
           <tr>
             <th>Neuer Gutschein</th>
             <th>Preis</th>
-            <th>Je Kind und Woche</th>
-            <th>Klasse je Woche</th>
+            <th>Pro Kind und Woche</th>
+            <th>Klasse pro Woche</th>
             <th />
           </tr>
         </thead>
