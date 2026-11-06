@@ -1,13 +1,12 @@
 # Handoff – 06.11.2026 (Abend)
 
 ## Ziel
-Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Stufe 3 „Bosskampf“ ist auf dem Branch
-`claude/lernquest-stufe3` gebaut; der Server-Teil ist schon im Projekt „baukasten“ eingespielt (freigegeben),
-die App wartet auf PR und Merge (Merge = veröffentlichen, nur auf Wunsch der Lehrkraft).
+Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Stufe 3 „Bosskampf“ ist fertig und auf Wunsch der
+Lehrkraft nach `main` gebracht (PR „Lernquest Stufe 3: Bosskampf am Beamer“, Merge = veröffentlichen). Nächstes
+Thema: Stufe 4 „Echte Belohnungen und Auswertung“ (`docs/lernquest.md`, „Stufen“).
 
 ## Stand
-- **Live seit 06.11.2026:** Stufe 1 und Stufe 2 „Held und Beute“ (PR #23 gemergt, GitHub Pages veröffentlicht,
-  Testlauf gegen die Live-Seite grün). https://noledge5.github.io/edutoolboxbuilder/lernquest/, Lehrkraft-Bereich im
+- **Live seit 06.11.2026:** Stufe 1, Stufe 2 „Held und Beute“ (PR #23) und Stufe 3 „Bosskampf“ (PR nach #23). https://noledge5.github.io/edutoolboxbuilder/lernquest/, Lehrkraft-Bereich im
   Baukasten unter Übersicht → „Lernquest“.
 - **Stufe 3 Bosskampf** (Einzelheiten in `docs/lernquest.md`, „Stufe 3“):
   - Server: `supabase/migrations/20261107_lernquest_boss.sql`, eingespielt als `lernquest_stufe3_boss`. Vorher lokal in
@@ -21,12 +20,14 @@ die App wartet auf PR und Merge (Merge = veröffentlichen, nur auf Wunsch der Le
   mit Beamer (1440 × 810) und Handy bis zum Sieg und prüft die Truhe.
 
 ## Nächste Schritte
-1. Lehrkraft schaut den Bosskampf an (Bilder vom Testlauf), dann PR nach `main` nur auf Wunsch; nach dem Merge
-   `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run lq:testlauf` gegen die Live-Seite.
+1. Gleich nach dem Merge hat die Sitzung `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run
+   lq:testlauf` gegen die Live-Seite laufen lassen; das Ergebnis steht im Chat der Lehrkraft. Wenn unklar: einmal
+   wiederholen (dauert ~1 min, hinterlässt nichts auf dem Server).
 2. Nicht geprüft: die neue Karte „Bosskampf am Beamer“ auf der Lehrkraft-Seite im Browser (nur Typprüfung und Build);
    ein echter Kampf mit vielen Geräten gleichzeitig.
-3. Offen: „+Schaden“ als Ausrüstungs-Bonus (Katalog-Änderung, eigener Schritt). Danach Stufe 4 (echte Belohnungen
-   und Auswertung).
+3. Stufe 4 planen (Gutscheine je Klasse mit „Klassenpunkten“, Anfragen, Abhaken, Grenzen je Woche; Fortschritt je
+   Kind und Kompetenz). Braucht wieder eine Server-Änderung: vorher ankündigen und freigeben lassen.
+4. Offen: „+Schaden“ als Ausrüstungs-Bonus (Katalog-Änderung, eigener Schritt).
 
 ## Wichtig zu wissen
 - `main` = veröffentlichen. Arbeits-Branch der Sitzung nutzen, PR und Merge nur auf Wunsch.
