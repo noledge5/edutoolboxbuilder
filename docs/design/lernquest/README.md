@@ -26,3 +26,7 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 - Rückmeldung nie nur über Farbe: Haken/Kreuz und Text; Antworten im Bosskampf mit Form (Dreieck, Raute, Kreis,
   Quadrat).
 - Inhalte sind Beispiele (Erdkunde, Klasse 5b, erfundene Namen).
+
+## Designrunde 06.11.2026 (Entscheidungen)
+- **Geräte:** Handy zuerst, das bleibt so. Auf iPad/Laptop kein eigenes Layout, nur breitere Spalte (etwa 720 px),
+  Antwortkacheln zweispaltig, alles etwas größer. Einzige Ausnahme: Bosskampf am Beamer (eigener Bildschirm).
