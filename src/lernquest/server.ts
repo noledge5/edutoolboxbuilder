@@ -132,8 +132,8 @@ export async function rundeMelden(token: string, stunde: string, runde: number, 
 }
 
 export interface TruheInhalt {
-  /** Part id (`TEILE`) and its rarity 0–4. */
-  teil: string;
+  /** Part id (`TEILE`) and its rarity 0–4; null when the chest held only coins (`muenzen`). */
+  teil: string | null;
   seltenheit: number;
   /** Already owned: became `muenzen` coins instead. */
   doppelt: boolean;
@@ -150,7 +150,7 @@ export async function truheOeffnen(token: string): Promise<TruheInhalt> {
 /** Buys a part in the shop. 'muenzen' when the coins do not reach, 'ungueltig' for owned or start parts. */
 export const kaufen = async (token: string, teil: string) => voll(await lq<Stand>('lq_kaufen', { p_token: token, p_teil: teil }));
 
-/** Wears parts: per place an owned or start part, '' for nothing, and the skin tone 0–5. Replaces the whole avatar. */
+/** Wears parts: per place an owned or start part, '' for nothing, the skin tone 0–5 and the figure 0–2. Replaces the whole avatar. */
 export const avatarSetzen = async (token: string, avatar: Avatar) => voll(await lq<Stand>('lq_avatar_setzen', { p_token: token, p_avatar: avatar }));
 
 export interface KlasseAnsicht {

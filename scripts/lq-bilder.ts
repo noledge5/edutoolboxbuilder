@@ -22,6 +22,7 @@ import {
 import {
   AUGEN_MASKE,
   EBENE_GROESSE as G,
+  HAAR_MASKE,
   HAUT_PUNKTE,
   HINTERGRUND_FARBE,
   KLEIDUNG_MASKE,
@@ -29,7 +30,7 @@ import {
   promptListe,
   ROH_GROESSE,
 } from '../src/lernquest/bilder/vorlagen.ts';
-import { HAUT, teil, TEILE } from '../src/lernquest/teile.ts';
+import { FIGUR_DATEI, HAUT, teil, TEILE } from '../src/lernquest/teile.ts';
 
 const WURZEL = resolve(import.meta.dirname, '..');
 const ZIEL = join(WURZEL, 'src/lernquest/app/teile');
@@ -128,7 +129,7 @@ async function bauen() {
   const anpassen: Record<string, Anpassungen> = JSON.parse(
     await readFile(join(WURZEL, 'src/lernquest/bilder/anpassen.json'), 'utf8'),
   );
-  const gueltig = new Set(['koerper', ...TEILE.map((t) => t.id)]);
+  const gueltig = new Set([...FIGUR_DATEI, ...TEILE.map((t) => t.id)]);
   const je = new Map<string, string[]>();
   const fremd: string[] = [];
   for (const name of (await readdir(ordner)).sort()) {
@@ -146,7 +147,7 @@ async function bauen() {
   const fehler: string[] = [];
   const kleidungsMaske = await maske(kleidungForm(), G);
   // The base figure first, so the overview can use it.
-  for (const id of ['koerper', ...TEILE.map((t) => t.id)]) {
+  for (const id of [...FIGUR_DATEI, ...TEILE.map((t) => t.id)]) {
     const namen = je.get(id);
     if (!namen) continue;
     if (namen.length > 1) {
@@ -156,16 +157,16 @@ async function bauen() {
     try {
       const r = await laden(join(ordner, namen[0]));
       const a = anpassen[id] ?? {};
-      if (id === 'koerper') {
+      if (FIGUR_DATEI.includes(id)) {
         if (!hatTransparenz(r.data)) freistellen(r.data, r.w, r.h, a.toleranz, a.loecher);
         const e = await aufEbene(r);
         const haut = hautMessen(e.data, G, HAUT_PUNKTE);
         for (let i = 0; i < HAUT.length; i++)
-          await speichern(`koerper-${i}`, {
+          await speichern(`${id}-${i}`, {
             ...e,
             data: hautUmfaerben(e.data, haut, hexRgb(HAUT[i])),
           });
-        fertig.push(`koerper (Haut gemessen: rgb(${haut.join(', ')}), ${HAUT.length} Hauttöne)`);
+        fertig.push(`${id} (Haut gemessen: rgb(${haut.join(', ')}), ${HAUT.length} Hauttöne)`);
         continue;
       }
       const weg = PLAETZE[teil(id)!.slot].weg;
@@ -258,12 +259,24 @@ async function schablonen() {
   };
   await weiss(kleidungForm(), 'kleidung-maske.png');
   await weiss(augenForm(), 'augen-maske.png');
-  const figur = (await readFile(join(ordner, 'figur.svg'), 'utf8')).replace(/^<svg[^>]*>|<\/svg>\s*$/g, '');
+  const h = HAAR_MASKE;
+  await weiss(
+    `<ellipse cx="${h.kopf.cx}" cy="${h.kopf.cy}" rx="${h.kopf.rx}" ry="${h.kopf.ry}" fill="#fff"/><rect x="${h.zopf.x}" y="${h.zopf.y}" width="${h.zopf.width}" height="${h.zopf.height}" rx="${h.zopf.rx}" fill="#fff"/>`,
+    'haar-maske.png',
+  );
   const leinwand = (inhalt: string) =>
     `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 240 240"><rect width="240" height="240" fill="${HINTERGRUND_FARBE}"/>${inhalt}</svg>`;
-  await sharp(Buffer.from(leinwand(figur)))
-    .png()
-    .toFile(join(ordner, 'grundfigur-vorlage.png'));
+  // One vector figure per hair (figur.svg, figur2.svg, figur3.svg, drawn by avatar.tsx) → its starting picture.
+  const figuren: string[] = [];
+  for (let i = 0; i < FIGUR_DATEI.length; i++) {
+    const nr = i ? String(i + 1) : '';
+    const svg = (await readFile(join(ordner, `figur${nr}.svg`), 'utf8')).replace(/^<svg[^>]*>|<\/svg>\s*$/g, '');
+    figuren.push(svg);
+    await sharp(Buffer.from(leinwand(svg)))
+      .png()
+      .toFile(join(ordner, `grundfigur-vorlage${nr}.png`));
+  }
+  const figur = figuren[0];
   const farben: Record<string, string> = {
     kopf: '#C4321F',
     augen: '#2F6FDB',

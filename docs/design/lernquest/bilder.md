@@ -1,6 +1,6 @@
 # Lernquest: gemalte Bilder für Held und Teile
 
-Anleitung, um die Grundfigur und die 40 Teile mit **Krea 2** in **ComfyUI** (lokal) zu malen und in die App zu bringen.
+Anleitung, um die drei Grundfiguren und die 56 Teile mit **Krea 2** in **ComfyUI** (lokal) zu malen und in die App zu bringen.
 Bis ein Teil ein Bild hat, zeichnet die App es weiter als Vektor. Man kann also Teil für Teil austauschen.
 
 ## So hängt alles zusammen
@@ -17,8 +17,9 @@ koerper.png               koerper.png               6 Hauttöne                 
 - **Ebenen bleiben.** Jedes fertige Bild ist eine ganze Ebene (480 × 480 Pixel, durchsichtig, wo nichts ist). Die App
   legt sie wie bisher übereinander: Hintergrund, Begleiter, Grundfigur, Kleidung, Augen, Kopf, Werkzeug. Darum passt
   jede Kombination.
-- **Hautton bleibt frei wählbar.** Du malst die Grundfigur einmal. Das Skript misst die Haut und färbt sie in die
-  sechs Hauttöne um, die Schattierung bleibt dabei erhalten.
+- **Hautton und Frisur bleiben frei wählbar.** Du malst jede Grundfigur einmal: `koerper.png` (kurze Haare),
+  `koerper2.png` (Zopf), `koerper3.png` (Locken). Das Skript misst die Haut und färbt sie in die sechs Hauttöne um,
+  die Schattierung bleibt dabei erhalten. Körper und Haltung sind bei allen drei gleich, darum passt jedes Teil.
 - **Offline und aktuell.** Beim Bauen bekommen die Bilder einen Namen mit Prüfsumme (`assets/krone-Ab12.webp`). Der
   Offline-Speicher hält sie, und ein neues Bild ersetzt das alte sofort.
 
@@ -43,12 +44,13 @@ Alle liegen in `docs/design/lernquest/bilder/schablonen/` und sind 1024 × 1024 
 
 | Datei | Wofür |
 | - | - |
-| `grundfigur-vorlage.png` | Die heutige Vektorfigur auf grauem Grund. Startbild für die Grundfigur (Bild zu Bild). |
+| `grundfigur-vorlage.png`, `…2.png`, `…3.png` | Die Vektorfiguren (kurze Haare, Zopf, Locken) auf grauem Grund. Startbilder für die Grundfiguren (Bild zu Bild). |
+| `haar-maske.png` | Weiß = Haare und der Platz für den Zopf. Damit machst du aus `koerper.png` die anderen Frisuren. |
 | `kleidung-maske.png` | Weiß = Rumpf. Maske zum Übermalen auf der Grundfigur. Das Skript schneidet die Kleidung genau so aus. |
 | `augen-maske.png` | Weiß = Augenbereich. Damit übermalst du Augen, falls Krea der Grundfigur welche malt. |
 | `plaetze.png` | Übersicht: Kasten je Platz, Punkt = Ankerpunkt. So setzt das Skript einzeln gemalte Teile ein. |
 
-Die Prompts für alle 40 Teile und die Grundfigur stehen fertig in [`bilder/prompts.md`](bilder/prompts.md).
+Die Prompts für alle 56 Teile und die drei Grundfiguren stehen fertig in [`bilder/prompts.md`](bilder/prompts.md).
 
 ## Einstellungen in ComfyUI
 
@@ -70,6 +72,10 @@ Die Prompts für alle 40 Teile und die Grundfigur stehen fertig in [`bilder/prom
 4. Malt Krea Augen dazu: dasselbe Bild noch einmal mit `augen-maske.png` übermalen (wie in Schritt 3 unten), Prompt
    „smooth skin, no eyes, no eyebrows“. Die Augen kommen später als eigenes Teil.
 5. Das beste Bild als `koerper.png` speichern. Seed (Startzahl) und Einstellungen notieren.
+6. **Zopf und Locken:** Am besten `koerper.png` mit `haar-maske.png` übermalen (wie bei der Kleidung in Schritt 3),
+   Prompt „Oder besser …“ aus `prompts.md`. Dann bleiben Gesicht und Körper genau gleich. Speichern als
+   `koerper2.png` (Zopf) und `koerper3.png` (Locken). Notfalls geht auch Bild zu Bild aus `grundfigur-vorlage2.png`
+   bzw. `…3.png`.
 
 ### 2. Stil festhalten
 
@@ -77,7 +83,7 @@ Für alle weiteren Teile die Vorlage **„Image Style Reference (Krea-2 Turbo)�
 nehmen. Dann sehen Farben und Pinselstrich gleich aus. Pro Platz einen festen Seed verwenden. Ein Bild, das sehr gut
 gelungen ist, kann später als zweite Referenz dienen.
 
-### 3. Kleidung (8 Teile): auf der Grundfigur übermalen
+### 3. Kleidung (11 Teile): auf der Grundfigur übermalen
 
 1. `Load Image` mit `koerper.png` → `VAE Encode`.
 2. `Load Image` mit `kleidung-maske.png` → `Convert Image to Mask` (Kanal *red*).
@@ -87,7 +93,7 @@ gelungen ist, kann später als zweite Referenz dienen.
 Das Skript nimmt von diesem Bild nur den Rumpf (Maske). Darum muss es genau so groß sein wie `koerper.png` und darf
 nicht verschoben sein.
 
-### 4. Kopf, Augen, Werkzeug, Begleiter (26 Teile): einzeln
+### 4. Kopf, Augen, Werkzeug, Begleiter (36 Teile): einzeln
 
 Text zu Bild, Prompt aus `prompts.md`. Das Teil steht allein und mittig auf hellgrauem Grund.
 
@@ -98,7 +104,7 @@ Text zu Bild, Prompt aus `prompts.md`. Das Teil steht allein und mittig auf hell
   (`plaetze.png`): Hüte mit der Unterkante auf die Stirn, Werkzeug mit dem unteren Ende an die rechte Hand,
   Begleiter unten links auf den Boden, Augen mittig ins Gesicht.
 
-### 5. Hintergründe (7 Teile)
+### 5. Hintergründe (9 Teile)
 
 Text zu Bild, 1024 × 1024, Prompt aus `prompts.md`. Das ganze Bild wird übernommen.
 
@@ -125,7 +131,8 @@ Text zu Bild, 1024 × 1024, Prompt aus `prompts.md`. Das ganze Bild wird überno
    `s` = Größe (1 = wie der Platz vorgibt), `dx`/`dy` = verschieben in App-Punkten (240 = ganze Breite, minus = nach
    links bzw. oben), `toleranz` = wie grau noch als Hintergrund gilt (Standard 36, kleiner bei hellgrauen Teilen),
    `loecher` = auch eingeschlossenen grauen Grund entfernen (zwischen den Beinen, in einem Henkel).
-5. `npm test` prüft Namen, Größe (480 × 480, unter 150 KB) und dass die Grundfigur in allen sechs Hauttönen da ist.
+5. `npm test` prüft Namen, Größe (480 × 480, unter 150 KB) und dass jede Grundfigur in allen sechs Hauttönen da ist.
+   Fehlt eine Frisur als Bild, zeichnet die App sie weiter als Vektor.
 
 Ohne eigenen Rechner mit dem Projekt: Lade die Rohbilder in eine Claude-Sitzung hoch. Claude führt das Skript aus,
 schickt dir die Übersicht und legt die fertigen Bilder auf einen Branch.

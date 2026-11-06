@@ -1,7 +1,7 @@
 // Painted pictures for the hero (docs/design/lernquest/bilder.md): the art style, the prompt templates for Krea 2 in
 // ComfyUI and where each place sits on the avatar canvas (viewBox 0 0 240 240). Used by `npm run lq:bilder`
 // (scripts/lq-bilder.ts), which runs in plain Node, so imports here carry their `.ts` extension.
-import { SLOTS, TEILE, type Slot, type Teil } from '../teile.ts';
+import { FIGUR_DATEI, FIGUREN, SLOTS, TEILE, type Slot, type Teil } from '../teile.ts';
 
 /** How a raw picture becomes a layer: placed into a box (`einzeln`), or painted on the base figure (`figur`). */
 export type Weg = 'einzeln' | 'figur' | 'flaeche';
@@ -152,6 +152,23 @@ export const BESCHREIBUNG: Record<string, string> = {
   nacht: 'a calm night meadow under a deep blue sky full of stars and a crescent moon',
   weltall: 'outer space with colourful planets, a purple nebula and many stars, a small rocky ground in front',
   regenbogen: 'a magical meadow under a big bright rainbow, golden light and tiny sparkles in the air',
+  // Added 06.11.2026
+  kappe: 'a sporty red baseball cap with the visor pointing to the right and a small yellow button on top',
+  blumenkranz: 'a flower crown of pink, yellow and light blue flowers on a ring of green leaves',
+  wikingerhelm: 'a round steel viking helmet with two curved cream horns and a leather band, cartoon style',
+  herzaugen: 'a pair of pink heart-shaped eyes with a tiny white highlight each',
+  taucherbrille: 'a pair of turquoise diving goggles with two clear lenses and a short strap on each side',
+  kapuzenpulli: 'a cosy purple hoodie with the hood lying around the neck, two cream drawstrings and a front pocket',
+  trikot: 'a red football jersey with two white stripes across the chest and a small yellow badge',
+  drachenruestung: 'a green dragon-scale armour with golden round shoulder plates and a red gem on the chest',
+  pinsel: 'a big artist paintbrush with a wooden handle, a silver ferrule and blue paint on the bristles',
+  laterne: 'a small dark metal lantern with a handle on top and a warm glowing candle flame inside',
+  dreizack: 'a golden trident with three sharp prongs and a small turquoise gem',
+  hamster: 'a small chubby golden hamster with round cheeks, sitting',
+  pinguin: 'a small cute penguin with a white belly and orange feet, standing',
+  phoenix: 'a small cute phoenix bird with red and orange feathers, a golden flame tail and a golden crest, sitting',
+  unterwasser: 'an underwater scene with blue water, light rays from above, green seaweed, bubbles and a sandy ground',
+  burg: 'the courtyard of a friendly stone castle with two round towers, a wooden gate, a golden flag and green grass',
 };
 
 /** The sentence about the picture's layout, by place. */
@@ -185,12 +202,27 @@ export function prompt(t: Teil): string {
 
 const gross = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** The base figure every part sits on: painted from the vector figure (picture to picture), without eyes. */
-export const GRUNDFIGUR =
-  'A cute chibi child hero standing front-facing with arms down at the sides, big round head, short simple brown hair, ' +
+/** The hair of each base figure (`FIGUREN`); body, face and pose stay the same, so every part fits each figure. */
+const FRISUR = [
+  'short simple brown hair',
+  'brown hair tied into one ponytail with a small red hair tie, the ponytail hangs down behind the head on the right side',
+  'fluffy round curly dark brown hair',
+];
+
+/** A base figure every part sits on: painted from the vector figure (picture to picture), without eyes. */
+export const grundfigur = (figur: number) =>
+  `A cute chibi child hero standing front-facing with arms down at the sides, big round head, ${FRISUR[figur]}, ` +
   'rosy cheeks and a small smile, a smooth blank face with no eyes and no eyebrows, a plain white sleeveless ' +
   'undershirt, dark brown trousers, a little space between the legs. Gender-neutral, friendly. The whole figure is ' +
   `visible on a plain flat light grey background, no shadow on the ground. ${STIL}`;
+
+/** Only the hair changed on the finished first figure (masked with `schablonen/haar-maske.png`). */
+export const nurFrisur = (figur: number) =>
+  `The same cute chibi child hero, now with ${FRISUR[figur]}. Keep the face, the skin colour, the body and the plain ` +
+  `background unchanged, no eyes. ${STIL}`;
+
+/** The hair mask (canvas units): top of the head and the space on the right where a ponytail hangs. */
+export const HAAR_MASKE = { kopf: { cx: 120, cy: 66, rx: 60, ry: 34 }, zopf: { x: 150, y: 48, width: 42, height: 92, rx: 16 } };
 
 /** All prompts in catalogue order, grouped by place (for docs/design/lernquest/bilder/prompts.md). */
 export function promptListe(): string {
@@ -199,13 +231,29 @@ export function promptListe(): string {
     '',
     'Erzeugt mit `npm run lq:bilder -- --prompts` aus `src/lernquest/bilder/vorlagen.ts`; nicht von Hand ändern.',
     'Dateiname des fertigen Bildes = ID (z. B. `krone.png`). Ablauf und Einstellungen: `docs/design/lernquest/bilder.md`.',
-    '',
-    '## Grundfigur (`koerper.png`, Bild zu Bild aus `schablonen/grundfigur-vorlage.png`)',
-    '',
-    '```text',
-    GRUNDFIGUR,
-    '```',
   ];
+  FIGUREN.forEach((name, i) => {
+    const datei = FIGUR_DATEI[i];
+    out.push(
+      '',
+      `## Grundfigur ${i + 1}: ${name} (\`${datei}.png\`)`,
+      '',
+      `Bild zu Bild aus \`schablonen/grundfigur-vorlage${i ? i + 1 : ''}.png\`:`,
+      '',
+      '```text',
+      grundfigur(i),
+      '```',
+    );
+    if (i)
+      out.push(
+        '',
+        `Oder besser (gleicher Körper wie Figur 1): \`koerper.png\` mit \`schablonen/haar-maske.png\` übermalen:`,
+        '',
+        '```text',
+        nurFrisur(i),
+        '```',
+      );
+  });
   for (const { slot, label } of SLOTS) {
     const weg = PLAETZE[slot].weg;
     out.push(

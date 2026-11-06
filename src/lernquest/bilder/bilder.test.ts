@@ -2,7 +2,7 @@
 // `npm run lq:bilder`, and the finished files in src/lernquest/app/teile/.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { HAUT, TEILE } from '../teile';
+import { FIGUR_DATEI, HAUT, TEILE } from '../teile';
 import { einpassen, freistellen, hautUmfaerben, istHaut, sichtbar, type Rgb } from './pixel';
 import { BESCHREIBUNG, EBENE_GROESSE, PLAETZE, prompt, promptListe } from './vorlagen';
 
@@ -96,12 +96,11 @@ describe('Finished pictures (src/lernquest/app/teile/)', () => {
   const ordner = new URL('../app/teile/', import.meta.url);
   const dateien = readdirSync(ordner).filter((f) => f.endsWith('.webp'));
   it('are named after a part or the base figure', () => {
-    const erlaubt = new Set([...TEILE.map((t) => t.id), ...HAUT.map((_, i) => `koerper-${i}`)]);
+    const erlaubt = new Set([...TEILE.map((t) => t.id), ...FIGUR_DATEI.flatMap((f) => HAUT.map((_, i) => `${f}-${i}`))]);
     expect(dateien.filter((f) => !erlaubt.has(f.slice(0, -5)))).toEqual([]);
   });
-  it('have the base figure in every skin tone or not at all', () => {
-    const koerper = dateien.filter((f) => f.startsWith('koerper-')).length;
-    expect([0, HAUT.length]).toContain(koerper);
+  it('have each base figure in every skin tone or not at all', () => {
+    for (const figur of FIGUR_DATEI) expect([0, HAUT.length], figur).toContain(dateien.filter((f) => f.startsWith(`${figur}-`)).length);
   });
   it('are whole layers of 480 × 480 and small enough for phones', () => {
     for (const f of dateien) {

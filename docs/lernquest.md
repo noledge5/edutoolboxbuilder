@@ -104,6 +104,19 @@ Mit der Lehrkraft entschieden (Fragerunde 06.11.2026):
 - Werkzeug: Prompts, Schablonen und `npm run lq:bilder` (Anleitung `docs/design/lernquest/bilder.md`). Geprüft mit
   Testbildern (Freistellen, Einpassen, Hautton, Build); mit echten Krea-Bildern noch nicht.
 
+## Mehr Beute (06.11.2026)
+
+Entscheidungen der Lehrkraft (Vorschläge von Claude): Migration `20261109_lernquest_beute.sql`, Regeln gleich in
+`src/lernquest/teile.ts`.
+- **16 neue Teile** (jetzt 56): Schirmmütze, Blumenkranz, Wikingerhelm, Herzaugen, Taucherbrille, Kapuzenpulli,
+  Trikot, Drachenrüstung, Pinsel, Laterne, Dreizack, Hamster, Pinguin, Phönix, Unterwasser, Burghof.
+- **Truhen geben in 40 % nur Münzen** (26 % 25 Münzen, 14 % 40 Münzen), sonst ein Teil (29 / 14 / 12 / 4 / 1 %).
+  Münzen zählen für die Garantie wie ein gewöhnlicher Fund. Weil die Garantie dann öfter greift, sind es in
+  Wirklichkeit etwa 35 % Münz-Truhen (3000 Truhen in einer lokalen Datenbank).
+- **Laden doppelt so teuer:** 80 / 160 / 320 / 640 / 1600 Münzen.
+- **Frisur frei wählbar** wie der Hautton: Kurze Haare, Zopf, Locken (`avatar.figur` 0–2). Körper und Haltung
+  bleiben gleich, damit jedes Teil zu jeder Figur passt. Gemalte Grundfiguren: `koerper`, `koerper2`, `koerper3`.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.
