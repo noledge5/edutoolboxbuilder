@@ -28,6 +28,16 @@
   --lq-nacht: #1f1a3d;
   --lq-nacht-ink: #f3f0ff;
   --lq-herz: #e0344b;
+  /* Boss fight: muted ink on the dark ground, and the four answers (each also has a shape) */
+  --lq-nacht-gedaempft: #c9c2f2;
+  --lq-antwort-1: #2459b8;
+  --lq-antwort-1-tief: #173c80;
+  --lq-antwort-2: #b5541c;
+  --lq-antwort-2-tief: #7a3610;
+  --lq-antwort-3: #13804a;
+  --lq-antwort-3-tief: #0b5e35;
+  --lq-antwort-4: #6a2fc4;
+  --lq-antwort-4-tief: #45208a;
   /* Rarities, same values as SELTENHEIT in src/lernquest/teile.ts */
   --lq-selten-1: #6e6990;
   --lq-selten-2: #13804a;
@@ -2245,4 +2255,482 @@ button.lq-teil:active {
   .lq-helden {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
+}
+
+/* ===== Boss fight (Stufe 3): docs/design/lernquest/Boss-Beamer.dc.html and Boss-Handy.dc.html ===== */
+
+.lq-form {
+  fill: currentColor;
+  flex: none;
+}
+
+.lq-zeitring {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex: none;
+}
+.lq-zeitring.gross {
+  width: 80px;
+  height: 80px;
+}
+.lq-zeitring svg {
+  width: 100%;
+  height: 100%;
+}
+.lq-zeitring circle {
+  fill: none;
+  stroke-width: 10;
+}
+.lq-zeitring .spur {
+  stroke: color-mix(in srgb, var(--lq-nacht-ink) 15%, transparent);
+}
+.lq-zeitring .rest {
+  stroke: var(--lq-gold);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 250ms linear;
+}
+.lq-zeitring span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-knopf);
+}
+.lq-zeitring.gross span {
+  font-size: var(--lq-t-h3);
+}
+
+.lq-lebensbalken {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+  width: 100%;
+}
+.lq-lebensbalken-kopf {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--lq-t-klein);
+  font-weight: 800;
+  color: var(--lq-nacht-gedaempft);
+}
+.lq-lebensbalken-zahl {
+  text-align: center;
+  font-size: var(--lq-t-klein);
+  font-weight: 800;
+  color: var(--lq-nacht-gedaempft);
+}
+.lq-balken {
+  height: 12px;
+  border-radius: var(--lq-r-pille);
+  background: color-mix(in srgb, var(--lq-nacht-ink) 12%, transparent);
+  overflow: hidden;
+}
+.lq-lebensbalken.gross .lq-balken {
+  height: 20px;
+}
+.lq-balken > div {
+  height: 100%;
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-herz);
+  transform-origin: left;
+  transition: transform var(--lq-dauer-lang) ease-out;
+}
+.lq-balken.hell > div {
+  background: var(--lq-nacht-gedaempft);
+}
+
+.lq-klassen-herzen {
+  display: flex;
+  gap: var(--lq-a-1);
+}
+.lq-klassen-herzen svg {
+  width: 30px;
+  height: 30px;
+}
+.lq-klassen-herzen .voll {
+  fill: var(--lq-herz);
+}
+.lq-klassen-herzen .leer {
+  fill: color-mix(in srgb, var(--lq-nacht-ink) 20%, transparent);
+}
+
+.lq-boss-bild {
+  max-width: 100%;
+  height: auto;
+  transition:
+    transform var(--lq-dauer-lang) ease-out,
+    opacity var(--lq-dauer-lang) ease-out;
+}
+.lq-boss-bild.gefallen {
+  transform: rotate(-12deg) translateY(12%) scale(0.9);
+  opacity: 0.45;
+}
+.lq-schweben {
+  animation: lq-schweben 2.4s ease-in-out infinite;
+}
+@keyframes lq-schweben {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* The band on the map: a fight is on. */
+.lq-boss-band {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-3);
+  width: 100%;
+  min-height: var(--lq-tippen-haupt);
+  border: 0;
+  border-radius: var(--lq-r);
+  padding: var(--lq-a-2) var(--lq-a-4);
+  background: var(--lq-nacht);
+  color: var(--lq-nacht-ink);
+  text-align: left;
+  box-shadow: 0 4px 0 var(--lq-primary-tief);
+  transition: transform var(--lq-dauer-kurz);
+}
+.lq-boss-band:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+.lq-boss-band .lq-boss-bild {
+  flex: none;
+}
+.lq-boss-band > span:nth-child(2) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.lq-boss-band strong {
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-gross);
+}
+.lq-boss-band small {
+  font-size: var(--lq-t-klein);
+  color: var(--lq-nacht-gedaempft);
+}
+.lq-boss-band-los {
+  flex: none;
+  padding: var(--lq-a-2) var(--lq-a-4);
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-gold);
+  color: var(--lq-auf-gold);
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+}
+
+/* — The phone — */
+.lq-boss-handy {
+  min-height: 100dvh;
+  max-width: none;
+  gap: var(--lq-a-4);
+}
+.lq-boss-handy > * {
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+}
+.lq-boss-kopf {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-3);
+}
+.lq-boss-kopf > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.lq-boss-kopf h1 {
+  font-size: var(--lq-t-h3);
+}
+.lq-boss-mitte {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lq-a-4);
+  text-align: center;
+}
+.lq-boss-handy .lq-meldung {
+  color: var(--lq-nacht-ink);
+}
+.lq-pads {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(120px, 1fr);
+  gap: var(--lq-a-3);
+}
+.lq-pad {
+  position: relative;
+  border: 0;
+  border-radius: var(--lq-r);
+  padding: var(--lq-a-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lq-a-2);
+  color: var(--lq-auf-farbe);
+  font-size: var(--lq-t-gross);
+  overflow-wrap: anywhere;
+  transition:
+    transform var(--lq-dauer-kurz),
+    opacity var(--lq-dauer);
+}
+.lq-pad:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+.lq-pad:disabled {
+  cursor: default;
+}
+.lq-pad.a0,
+.lq-antwort.a0 {
+  background: var(--lq-antwort-1);
+  box-shadow: 0 4px 0 var(--lq-antwort-1-tief);
+}
+.lq-pad.a1,
+.lq-antwort.a1 {
+  background: var(--lq-antwort-2);
+  box-shadow: 0 4px 0 var(--lq-antwort-2-tief);
+}
+.lq-pad.a2,
+.lq-antwort.a2 {
+  background: var(--lq-antwort-3);
+  box-shadow: 0 4px 0 var(--lq-antwort-3-tief);
+}
+.lq-pad.a3,
+.lq-antwort.a3 {
+  background: var(--lq-antwort-4);
+  box-shadow: 0 4px 0 var(--lq-antwort-4-tief);
+}
+.lq-pad.gewaehlt {
+  outline: 4px solid var(--lq-gold);
+  outline-offset: 3px;
+}
+.lq-pad.aus,
+.lq-antwort.aus {
+  opacity: 0.35;
+}
+.lq-pad.richtig,
+.lq-antwort.richtig {
+  outline: 4px solid var(--lq-nacht-ink);
+  outline-offset: 3px;
+}
+.lq-pad-marke {
+  position: absolute;
+  top: var(--lq-a-2);
+  right: var(--lq-a-3);
+  font-size: var(--lq-t-h3);
+}
+.lq-boss-serie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lq-a-1) var(--lq-a-3);
+  padding: var(--lq-a-3) var(--lq-a-4);
+  border-radius: var(--lq-r);
+  background: color-mix(in srgb, var(--lq-nacht-ink) 8%, transparent);
+}
+.lq-boss-serie .fd {
+  flex: 1 1 60%;
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-text);
+}
+.lq-boss-serie[hidden] {
+  display: none;
+}
+.lq-boss-serie small {
+  order: 3;
+  flex-basis: 100%;
+  font-size: var(--lq-t-klein);
+  color: var(--lq-nacht-gedaempft);
+}
+.lq-serie-marke {
+  padding: var(--lq-a-1) var(--lq-a-3);
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-gold);
+  color: var(--lq-auf-gold);
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+}
+.lq-boss-handy .lq-band {
+  justify-content: center;
+}
+
+/* — The projector: a 1080 × 608 stage, scaled to the window — */
+.lq-beamer-rahmen {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--lq-nacht);
+}
+.lq-beamer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1080px;
+  height: 608px;
+  transform-origin: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-4);
+  padding: var(--lq-a-5) var(--lq-a-6);
+}
+.lq-beamer-kopf {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-5);
+}
+.lq-beamer-kopf > div:first-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.lq-beamer-kopf h1 {
+  font-size: var(--lq-t-h3);
+}
+.lq-beamer-kicker {
+  font-size: var(--lq-t-klein);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--lq-nacht-gedaempft);
+}
+.lq-beamer-mitmachen {
+  padding: var(--lq-a-2) var(--lq-a-4);
+  border-radius: var(--lq-r);
+  background: color-mix(in srgb, var(--lq-nacht-ink) 8%, transparent);
+  font-size: var(--lq-t-klein);
+  color: var(--lq-nacht-gedaempft);
+}
+.lq-beamer-mitmachen strong {
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-gross);
+  color: var(--lq-nacht-ink);
+}
+.lq-beamer-mitte {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: var(--lq-a-6);
+}
+.lq-beamer-boss {
+  width: 300px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lq-a-3);
+}
+.lq-beamer-frage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-4);
+}
+.lq-beamer-karte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-2);
+  padding: var(--lq-a-5);
+  border-radius: var(--lq-r);
+  background: var(--lq-karte);
+  color: var(--lq-schrift);
+  box-shadow: 0 4px 0 var(--lq-nacht-gedaempft);
+}
+.lq-beamer-text {
+  margin: 0;
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-h2);
+  line-height: 1.2;
+}
+.lq-beamer-klein {
+  margin: 0;
+  font-size: var(--lq-t-text);
+  color: inherit;
+  opacity: 0.85;
+}
+.lq-beamer-antworten {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--lq-a-3);
+}
+.lq-antwort {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-3);
+  min-height: 72px;
+  padding: var(--lq-a-2) var(--lq-a-4);
+  border-radius: var(--lq-r);
+  color: var(--lq-auf-farbe);
+  font-size: var(--lq-t-h3);
+  line-height: 1.15;
+  transition: opacity var(--lq-dauer);
+}
+.lq-antwort-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.lq-antwort-zahl {
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+}
+.lq-beamer-geantwortet {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-4);
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-gross);
+}
+.lq-beamer-geantwortet .lq-balken {
+  flex: 1;
+}
+.lq-beamer-fuss {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-4);
+  padding: var(--lq-a-2) var(--lq-a-4);
+  border-radius: var(--lq-r);
+  background: color-mix(in srgb, var(--lq-nacht-ink) 7%, transparent);
+}
+.lq-beamer-klasse {
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-gross);
+}
+.lq-beamer-fuss .lq-knopf {
+  width: auto;
+  min-height: var(--lq-tippen);
+  padding: var(--lq-a-2) var(--lq-a-5);
+}
+.lq-beamer-hinweis {
+  justify-content: center;
+  text-align: center;
+  max-width: none;
 }

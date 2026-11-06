@@ -1,14 +1,17 @@
 // The teacher's Lernquest page in the Baukasten (#/lernquest): classes and children with PINs, cards with QR code
-// to print, lessons to unlock (their Lernpaket goes to the class), progress at a glance, unlock locked accounts.
+// to print, lessons to unlock (their Lernpaket goes to the class), progress at a glance, unlock locked accounts, and
+// the boss fight on the projector (Stufe 3: the questions are made here, the projector view is Lernquest's #beamer=).
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Lock, Plus, Printer, RefreshCw, RotateCcw, Trash2, Unlock } from 'lucide-react';
+import { ArrowLeft, Lock, Plus, Printer, RefreshCw, RotateCcw, Swords, Trash2, Unlock } from 'lucide-react';
 import { Icon } from '../../icons';
 import { SearchButton } from '../../library/SearchDialog';
 import type { Library } from '../../library/types';
 import { ensureLehrkraft, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
+import { BOSS_FRAGEN_MIN, bossFragen, bossVon } from '../boss';
 import { buildPaket, exercisesOf } from '../paket';
-import { heldenstufe, rundenZahl, sterne, woche } from '../rules';
+import { BOSS_FRAGEN, heldenstufe, rundenZahl, sterne, woche } from '../rules';
 import {
+  bossStarten,
   entsperren,
   freischalten,
   kindAnlegen,
@@ -36,6 +39,8 @@ interface Props {
 
 /** The address of Lernquest for a class: next to the Baukasten, `lernquest/#<code>`. */
 export const lernquestLink = (code: string, base = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}`) => `${base}lernquest/#${code}`;
+/** The projector view of a boss fight (same origin, so it finds the teacher keys of this device). */
+export const beamerLink = (id: string, base = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}`) => `${base}lernquest/#beamer=${id}`;
 
 const when = (iso: string | null) =>
   iso
@@ -382,6 +387,8 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
         </div>
       </section>
 
+      <BossStart lib={lib} klasse={klasse} busy={busy} act={act} />
+
       <section className="lqt-card">
         <div className="lqt-head">
           <div>
@@ -464,5 +471,76 @@ function KlasseView({ lib, klasse, pins, busy, act, savePins, onPrint }: KlasseP
         ))}
       </section>
     </>
+  );
+}
+
+/** Starts a boss fight for one region (module with unlocked lessons) and opens the projector view in a new tab. */
+function BossStart({ lib, klasse, busy, act }: Pick<KlasseProps, 'lib' | 'klasse' | 'busy' | 'act'>) {
+  const regionen = lib.modules
+    .filter((m) => lib.lessons.some((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)))
+    .sort((a, b) => a.subject.localeCompare(b.subject, 'de') || a.grade - b.grade || a.number - b.number);
+  const [wahl, setWahl] = useState('');
+  const [hinweis, setHinweis] = useState('');
+  const m = regionen.find((x) => x.id === wahl) ?? regionen[0];
+  const pakete = useMemo(
+    () => (m ? lib.lessons.filter((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)).map((l) => buildPaket(m, l, lib.lessons)) : []),
+    [m, lib.lessons, klasse.stunden],
+  );
+  const moeglich = useMemo(() => bossFragen(pakete, 'zaehlen', 1000).length, [pakete]);
+
+  const starten = () => {
+    if (!m) return;
+    const fragen = bossFragen(pakete, `${Date.now()}`);
+    if (fragen.length < BOSS_FRAGEN_MIN) return;
+    setHinweis('');
+    // Opened now (in the click), filled when the server answered: a later window.open would be blocked.
+    const fenster = window.open('', '_blank');
+    void act(async (keys) => {
+      try {
+        const id = await bossStarten(keys, klasse.id, m.id, `${m.subject} · Region ${m.number}`.slice(0, 120), bossVon(m.number), fragen);
+        if (fenster) fenster.location.href = beamerLink(id);
+        else setHinweis(`Neuer Tab war blockiert. Beamer-Ansicht: ${beamerLink(id)}`);
+      } catch (e) {
+        fenster?.close();
+        throw e;
+      }
+    });
+  };
+
+  return (
+    <section className="lqt-card">
+      <div className="lqt-head">
+        <div>
+          <h2>Bosskampf am Beamer</h2>
+          <p className="lqt-hint">
+            Die Klasse kämpft gemeinsam: Die Frage steht am Beamer, die Kinder antworten am Gerät (Lernquest öffnen → „Bosskampf“). Fragen kommen aus den freigeschalteten Stunden der Region (Antippen, Richtig/Falsch, Paare, Lücken). Fällt der Boss, gibt es beim ersten Sieg eine Truhe für alle, die mitgemacht haben.
+          </p>
+        </div>
+      </div>
+      {!regionen.length ? (
+        <p className="lib-empty">Schalte zuerst Stunden frei: Jedes Modul mit freigeschalteten Stunden wird eine Region mit Boss.</p>
+      ) : (
+        <div className="lqt-filter">
+          <select className="input" value={m?.id ?? ''} onChange={(e) => setWahl(e.target.value)} aria-label="Region">
+            {regionen.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.subject} {x.grade} · Modul {x.number}: {x.title}
+              </option>
+            ))}
+          </select>
+          <button type="button" className="btn btn-primary ui-btn" disabled={busy || moeglich < BOSS_FRAGEN_MIN} onClick={starten}>
+            <Icon icon={Swords} />
+            Bosskampf starten
+          </button>
+        </div>
+      )}
+      {m && moeglich < BOSS_FRAGEN_MIN && <p className="lqt-hint">Zu wenige Fragen in dieser Region (mindestens {BOSS_FRAGEN_MIN} aus Antippen, Richtig/Falsch, Paaren oder Lücken).</p>}
+      {m && moeglich >= BOSS_FRAGEN_MIN && (
+        <p className="lqt-hint">
+          {Math.min(moeglich, BOSS_FRAGEN)} von {moeglich} möglichen Fragen, jedes Mal neu gemischt. Ein laufender Kampf der Klasse endet beim Start eines neuen.
+        </p>
+      )}
+      {hinweis && <p className="lqt-hint">{hinweis}</p>}
+    </section>
   );
 }

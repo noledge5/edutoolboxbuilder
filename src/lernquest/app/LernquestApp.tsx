@@ -1,6 +1,7 @@
 // Lernquest for the children (…/lernquest/#<Klassencode>): sign in with the class list and a PIN, then the world map
 // (subject → module regions → lesson stations), rounds of short exercises, experience, stars, the weekly goal and
-// „Wiederholen“. Works on a phone held upright first; offline with what was loaded last.
+// „Wiederholen“, the hero and the boss fight. Works on a phone held upright first; offline with what was loaded last.
+// `#beamer=<id>` is the teacher's projector view of a boss fight (teacher keys from this device, see Boss.tsx).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QrScanner } from '../../sync/QrScanner';
 import { codeAus, faecherVon, namensFarbe, regionenVon, vorname, wochenTage, type Station } from '../karte';
@@ -23,7 +24,9 @@ import {
   WOCHENZIEL,
   type Antwort,
 } from '../rules';
-import { abmelden, anmelden, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, type KlasseOffen } from '../server';
+import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, type BossOffen, type KlasseOffen } from '../server';
+import { BOSSE } from '../boss';
+import { BossBeamer, BossBild, BossKind, useLangsam } from './Boss';
 import { readPaket } from '../paket';
 import { bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
@@ -40,6 +43,7 @@ type Screen =
   | { kind: 'laden' }
   | { kind: 'truhe'; zurueck: 'held' | 'karte' }
   | { kind: 'klasse' }
+  | { kind: 'boss'; id: string }
   | {
       kind: 'runde';
       stunde: string;
@@ -63,7 +67,15 @@ const codeFromUrl = () => {
   return /^[0-9A-Za-z]{8}$/.test(h) ? h.toUpperCase() : '';
 };
 
+const beamerFromUrl = () => /^#beamer=([0-9a-f-]{36})$/.exec(location.hash)?.[1] ?? '';
+
 export function LernquestApp() {
+  const beamer = beamerFromUrl();
+  if (beamer) return <BossBeamer id={beamer} />;
+  return <KinderApp />;
+}
+
+function KinderApp() {
   const [sitzung, setSitzung] = useState<Sitzung | null>(ladeSitzung);
   const [daten, setDaten] = useState<Daten | null>(ladeDaten);
   const [hinweis, setHinweis] = useState('');
@@ -441,11 +453,40 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const stand = daten?.stand;
   const pakete = useMemo(() => Object.values(daten?.pakete ?? {}), [daten]);
 
+  // A boss fight of the class: asked for every 15 s while the child is on the map, hero or class pages.
+  const [boss, setBoss] = useState<BossOffen | null>(null);
+  const schauNachBoss = ['karte', 'station', 'wiederholen', 'held', 'klasse', 'ergebnis'].includes(screen.kind);
+  useEffect(() => {
+    if (!schauNachBoss) return;
+    let weg = false;
+    const frag = () =>
+      document.visibilityState === 'visible' &&
+      void bossOffen(sitzung.token)
+        .then((b) => !weg && setBoss(b))
+        .catch(() => {});
+    frag();
+    const t = window.setInterval(frag, 15_000);
+    document.addEventListener('visibilitychange', frag);
+    return () => {
+      weg = true;
+      window.clearInterval(t);
+      document.removeEventListener('visibilitychange', frag);
+    };
+  }, [schauNachBoss, sitzung.token]);
+
+  const langsam = useLangsam(!daten && !offline);
   if (!daten || !stand) {
     return (
       <main className="lq-app lq-login">
         <h1 className="lq-logo">Lernquest</h1>
-        <p className="lq-meldung">{offline ? 'Keine Verbindung zum Server. Prüfe das Internet.' : 'Lädt …'}</p>
+        <p className="lq-meldung" aria-busy={!offline}>
+          {offline ? 'Keine Verbindung zum Server. Prüfe das Internet.' : langsam ? 'Das dauert länger als sonst.' : 'Lädt …'}
+        </p>
+        {(offline || langsam) && (
+          <button type="button" className="lq-knopf" onClick={() => void laden()}>
+            Nochmal
+          </button>
+        )}
       </main>
     );
   }
@@ -504,6 +545,26 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         titel={screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : 'Wiederholen'}
         onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
         onFertig={fertig}
+      />
+    );
+  }
+
+  if (screen.kind === 'boss') {
+    return (
+      <BossKind
+        token={sitzung.token}
+        id={screen.id}
+        klasse={daten.klasse}
+        fail={fail}
+        onFertig={(truhe) => {
+          setBoss(null);
+          if (truhe) void laden();
+          setScreen({ kind: 'karte' });
+        }}
+        onTruhe={() => {
+          setBoss(null);
+          void laden().then(() => setScreen({ kind: 'truhe', zurueck: 'karte' }));
+        }}
       />
     );
   }
@@ -595,6 +656,18 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const rahmen = (inhalt: React.ReactNode) => (
     <main className="lq-app lq-mit-leiste">
       <Kopf daten={daten} offline={offline} onSignOut={() => onSignOut()} />
+      {boss && (
+        <button type="button" className="lq-boss-band" onClick={() => setScreen({ kind: 'boss', id: boss.id })}>
+          <BossBild boss={boss.boss} size={56} />
+          <span>
+            <strong>Bosskampf läuft!</strong>
+            <small>
+              {BOSSE[boss.boss]?.name ?? 'Boss'} · {boss.titel}
+            </small>
+          </span>
+          <span className="lq-boss-band-los">Mitmachen</span>
+        </button>
+      )}
       <div className="lq-inhalt">{inhalt}</div>
       <nav className="lq-leiste" aria-label="Hauptmenü">
         <button type="button" className={tab === 'karte' ? 'an' : ''} aria-current={tab === 'karte' ? 'page' : undefined} onClick={() => setScreen({ kind: 'karte' })}>

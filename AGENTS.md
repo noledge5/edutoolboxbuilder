@@ -54,6 +54,10 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
   To try a Lernquest change end to end: `npm run lq:testlauf` (build, throwaway teacher key, test class and child on the
   real server, one round played in Chromium, server state checked against `rules.ts`, screenshots to the temp folder,
   class deleted). `LQ_URL=…/lernquest/` plays the live site. Never read the `lq_*` tables directly (real names).
+  The boss projector (`lernquest/#beamer=<id>`) reads the teacher keys from the Baukasten's IndexedDB (same origin,
+  `src/storage/kv.ts`); boss rules live in `rules.ts` (`bossSchaden`, `bossLp`, `bossTrifft`) and in the `lq_boss_*`
+  SQL: change both. Try SQL changes first in a throwaway local Postgres (`/usr/lib/postgresql/16`, stub `extensions`
+  with pgcrypto and `cron.schedule`) before they go to the server.
 
 ## Commands and checks
 - `npm run dev`, `npm run typecheck`, `npm test` (Vitest), `npm run build`; the CI (`.github/workflows/ci.yml`) runs the same.

@@ -102,7 +102,7 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
 - **Aussehen nach dem Prototyp** (`docs/design/lernquest/Main.dc.html`): Start mit Wappen und „Klassen-QR scannen“,
   Namen mit farbigen Anfangsbuchstaben, Karte mit Kopfleiste, Wochenziel-Karte (Mo–So), Regions-Band, Stationen
   erledigt / aktuell / offen / gesperrt (das Lernpaket trägt dafür Nummer und Titel aller Stunden des Moduls),
-  Leiste unten mit Karte, Wiederholen, Held und Klasse. Der Boss folgt in Stufe 3.
+  Leiste unten mit Karte, Wiederholen, Held und Klasse.
 - **Stufe 2 „Held und Beute“ in der App** (nach `Held.dc.html` und `Truhe.dc.html`, Seiten in
   `src/lernquest/app/Held.tsx`): Münzen im Kopf; Held-Seite mit Avatar, Teile-Raster je Platz (nicht gefundene als „?“
   mit Seltenheit), Hautfarbe und Truhen-Leiste; Laden (Teil wählen, dann kaufen; fehlen Münzen, steht da, wie viele);
@@ -111,6 +111,25 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   (40 Teile, eine Zeichenfläche, feste Ebenen) in `src/lernquest/app/avatar.tsx`. Münzen, Truhen und Teile ändern
   sich nur über den Server; offline gesperrt, bis die wartenden Runden gesendet sind.
 - **Lehrkraft-Seite** (Übersicht → „Lernquest“): PINs am Bildschirm verborgen, bis „PINs zeigen“ (Beamer).
+- **Stufe 3 „Bosskampf“** (live geschaltet am Server am 06.11.2026, `supabase/migrations/20261107_lernquest_boss.sql`;
+  App nach `Boss-Beamer.dc.html` und `Boss-Handy.dc.html` in `src/lernquest/app/Boss.tsx`):
+  - Lehrkraft: Übersicht → „Lernquest“ → „Bosskampf am Beamer“, Region (Modul mit freigeschalteten Stunden) wählen,
+    „Bosskampf starten“. Die Fragen macht das Gerät der Lehrkraft (`src/lernquest/boss.ts`: Antippen mit einer
+    richtigen Antwort, Richtig/Falsch, je Paar eine Frage, Lücke mit einer Lücke; höchstens 4 Antworten, 10 Fragen,
+    jedes Mal neu gemischt). Der Beamer öffnet sich als `lernquest/#beamer=<id>` in einem neuen Tab und findet die
+    Lehrkraft-Schlüssel im Speicher des Geräts (gleiche Adresse wie der Baukasten). Bühne 1080 × 608, auf jede
+    Fenstergröße gezoomt; „Los geht’s!“, „Auflösen“, „Nächste Frage“ auch mit Leertaste oder →.
+  - Kinder: Läuft ein Kampf, steht auf Karte, Held und Klasse ein Band „Bosskampf läuft! – Mitmachen“ (Abfrage alle
+    15 s). Am Handy nur die Antworten mit Form; Ergebnis, Schaden und Serie nach der Frage.
+  - Regeln (`rules.ts`, gleich im SQL): 20 s je Frage (+1,5 s Nachfrist), Schaden 10 + bis 10 fürs Tempo, ab 3 richtig
+    in Folge doppelt; Lebenspunkte 13 je Kind und Frage (wer später kommt, macht den Boss größer); 5 Klassen-Herzen,
+    eins weg, wenn weniger als die Hälfte der Beigetretenen richtig liegt. Sieg = Truhe für alle mit mindestens einer
+    Antwort, nur beim ersten Sieg je Region und Kind. Keine Namen am Beamer, nur Zahlen.
+  - Verbindung: Beamer und Handys fragen jede Sekunde (kein Realtime-Kanal, der ohne Anmeldung mitlesbar wäre). Die
+    Lösung verlässt den Server erst nach der Frage. Kämpfe enden nach 3 Stunden von selbst und werden nach 2 Tagen
+    gelöscht; die Siege je Region bleiben.
+  - Noch nicht: „+Schaden“ als Ausrüstungs-Bonus (bräuchte eine Änderung am Teile-Katalog).
+- **Lädt:** Dauert das erste Laden oder der Beamer länger als 10 s, steht „Nochmal“ da (Designregel „Lädt“).
 - **Noch nicht:** Vorlesen, Ton-Dateien, App-Hülle offline (Daten sind offline da, die Seite selbst braucht beim
   ersten Öffnen Netz), Bild-Aufgaben (Bildvokabeln, Tabelle, Wortnetz, Satzbaustellen kommen in Stufe 5).
 

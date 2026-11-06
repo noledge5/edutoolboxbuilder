@@ -1,13 +1,15 @@
 // Lernquest on the server (Supabase, Frankfurt): only database functions (RPC), no direct table access, like the
 // handouts. Children prove themselves with a session token, the teacher with the teacher keys of the device.
-// The SQL is in supabase/migrations/20261106_lernquest.sql and 20261106b_lernquest_held.sql (Stufe 2).
+// The SQL is in supabase/migrations/20261106_lernquest.sql, 20261106b_lernquest_held.sql (Stufe 2) and
+// 20261107_lernquest_boss.sql (Stufe 3).
 import { SERVER } from '../share/server';
+import type { BossFrage } from './boss';
 import type { Avatar } from './teile';
 import { LEERER_STAND, type Stand } from './types';
 
 /**
  * A refusal of the server: 'code' (class or child unknown), 'pin', 'gesperrt', 'sitzung', 'zugang', 'voll',
- * 'ungueltig', 'muenzen' (not enough coins in the shop).
+ * 'ungueltig', 'muenzen' (not enough coins in the shop), 'leer' (a boss fight nobody joined yet).
  */
 export class LqError extends Error {
   constructor(public code: string) {
@@ -52,6 +54,7 @@ export function lqText(e: unknown): string {
     voll: 'Es ist kein Platz mehr frei.',
     ungueltig: 'Das hat der Server nicht angenommen.',
     muenzen: 'Dafür reichen deine Münzen noch nicht.',
+    leer: 'Noch ist niemand beigetreten.',
   };
   return texts[code] ?? `Der Server antwortet nicht wie erwartet (${code || String(e)}).`;
 }
@@ -154,6 +157,77 @@ export interface KlasseAnsicht {
 }
 
 export const klasseAnsicht = (token: string) => lq<KlasseAnsicht>('lq_klasse_ansicht', { p_token: token });
+
+// — Bosskampf (Stufe 3) —
+
+export type BossPhase = 'warten' | 'frage' | 'aufloesung' | 'ende';
+
+/** A fight as everyone sees it (`lq_boss_json`); the right answer only after the question. */
+export interface BossStand {
+  id: string;
+  titel: string;
+  /** Index in `BOSSE`. */
+  boss: number;
+  phase: BossPhase;
+  /** Current question (0-based), -1 while waiting. */
+  frage: number;
+  fragen: number;
+  lp: number;
+  lpMax: number;
+  herzen: number;
+  /** Set when the fight is over. */
+  sieg: boolean | null;
+  /** Milliseconds left for the question (server clock). */
+  rest: number;
+  /** Children who joined, and those who answered the current question. */
+  kinder: number;
+  antworten: number;
+  optionen: string[];
+  richtig: number | null;
+}
+
+/** What a child's phone gets in addition. */
+export interface BossKindStand extends BossStand {
+  dabei: boolean;
+  serie: number;
+  /** This child got a chest from this fight. */
+  truhe: boolean;
+  /** The own answer to the current question, and its damage after the question. */
+  wahl: number | null;
+  schaden: number | null;
+}
+
+/** What the projector gets in addition. */
+export interface BossBeamerStand extends BossStand {
+  klasse: string;
+  text: string;
+  aussage: string;
+  /** Answers per option, after the question. */
+  verteilung: number[] | null;
+  /** Children who got a chest. */
+  truhen: number;
+}
+
+export interface BossOffen {
+  id: string;
+  titel: string;
+  boss: number;
+}
+
+/** The running fight of the child's class, or null. */
+export const bossOffen = (token: string) => lq<BossOffen | null>('lq_boss_offen', { p_token: token });
+/** The fight for the child; the first call joins it. */
+export const bossStand = (token: string, boss: string) => lq<BossKindStand>('lq_boss_stand', { p_token: token, p_boss: boss });
+/** An answer to question `frage`; `angenommen` is false when it came too late or twice. */
+export const bossAntworten = (token: string, boss: string, frage: number, wahl: number) =>
+  lq<{ angenommen: boolean }>('lq_boss_antworten', { p_token: token, p_boss: boss, p_frage: frage, p_wahl: wahl });
+
+export const bossStarten = (keys: string[], klasse: string, region: string, titel: string, boss: number, fragen: BossFrage[]) =>
+  lq<string>('lq_boss_starten', { p_schluessel: keys, p_klasse: klasse, p_region: region, p_titel: titel, p_boss: boss, p_fragen: fragen });
+export const bossBeamer = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_beamer', { p_schluessel: keys, p_boss: boss });
+/** Next step: first question (error 'leer' while nobody joined), next question, or resolve the running one now. */
+export const bossWeiter = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_weiter', { p_schluessel: keys, p_boss: boss });
+export const bossBeenden = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_beenden', { p_schluessel: keys, p_boss: boss });
 
 // — Teacher —
 
