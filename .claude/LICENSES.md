@@ -25,3 +25,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## unslop
+
+Der Skill unslop in `.claude/skills/unslop` stammt aus heydamir/unslop (https://github.com/heydamir/unslop, Stand a6f121e), von Damir Sokolovsky (https://heydamir.design/unslop). Lizenz: CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). Unverändert übernommen.
