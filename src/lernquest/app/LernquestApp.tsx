@@ -34,9 +34,11 @@ import { HeldIcon, HeldSeite, Herzen, KlasseIcon, KlasseSeite, LadenSeite, Muenz
 import { allesWeg, ladeDaten, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereSitzung, speichereWarteschlange, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
 import { GutscheineSeite, TicketIcon } from './Gutscheine';
+import { ProbeApp } from './Probe';
+import { probeAusUrl } from '../probe';
 import { Rich, UebungView } from './Uebungen';
 
-type Screen =
+export type Screen =
   | { kind: 'karte' }
   | { kind: 'station'; stunde: string }
   | { kind: 'wiederholen' }
@@ -75,6 +77,9 @@ const beamerFromUrl = () => /^#beamer=([0-9a-f-]{36})$/.exec(location.hash)?.[1]
 export function LernquestApp() {
   const beamer = beamerFromUrl();
   if (beamer) return <BossBeamer id={beamer} />;
+  // Open exercises from a public link: no sign-in, no server (`probe.ts`).
+  const probe = probeAusUrl();
+  if (probe) return <ProbeApp id={probe} />;
   return <KinderApp />;
 }
 
@@ -843,7 +848,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   );
 }
 
-function Sterne({ n, neu = false, gross = false }: { n: number; neu?: boolean; gross?: boolean }) {
+export function Sterne({ n, neu = false, gross = false }: { n: number; neu?: boolean; gross?: boolean }) {
   return (
     <span className={`lq-sterne ${gross ? 'gross' : ''} ${neu ? 'neu' : ''}`} aria-label={`${n} von 3 Sternen`}>
       {[0, 1, 2].map((i) => (
@@ -953,7 +958,7 @@ const LoeschIcon = () => (
     <path d="m12 9 6 6M18 9l-6 6" />
   </svg>
 );
-const HakenIcon = () => (
+export const HakenIcon = () => (
   <svg {...svg} width={34} height={34} strokeWidth={3.2}>
     <path d="m5 12.5 4.5 4.5L19 7.5" />
   </svg>
@@ -969,7 +974,7 @@ const SchlossIcon = () => (
     <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
   </svg>
 );
-const SternIcon = () => (
+export const SternIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden>
     <path fill="currentColor" d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8Z" />
   </svg>
@@ -1000,7 +1005,7 @@ function Wappen() {
 
 // — A round —
 
-interface RundeProps {
+export interface RundeProps {
   screen: Extract<Screen, { kind: 'runde' }>;
   stand: Stand;
   /** Hearts at the start (3 + bonus): a mistake costs one, none left ends nothing. */
@@ -1011,7 +1016,7 @@ interface RundeProps {
   onFertig: (stunde: string, runde: number, ergebnisse: boolean[], leitner: Stand['leitner']) => void;
 }
 
-function Runde({ screen, stand, herzen, titel: kicker, onAbbruch, onFertig }: RundeProps) {
+export function Runde({ screen, stand, herzen, titel: kicker, onAbbruch, onFertig }: RundeProps) {
   const [i, setI] = useState(0);
   const [antwort, setAntwort] = useState<Antwort | null>(null);
   const [ok, setOk] = useState<boolean | null>(null);
