@@ -37,3 +37,9 @@ Gelten für den Nachbau in `src/lernquest/app/lernquest.css`; der Prototyp bleib
 - Seltenheiten `--lq-selten-1` … `--lq-selten-5` (Werte wie `SELTENHEIT` in `src/lernquest/teile.ts`); dunkles Set
   für Truhe und Bosskampf `--lq-nacht` `#1F1A3D`, `--lq-nacht-ink`.
 - Außerhalb von `:root` keine festen Farbwerte im CSS; ein Test prüft das.
+
+### Schrift
+- Sieben Stufen als Tokens, keine anderen Größen: `--lq-t-klein` 13 px (Untergrenze), `--lq-t-text` 16,
+  `--lq-t-gross` 19 (Kacheln, Namen, Lückensatz), `--lq-t-knopf` 20, `--lq-t-h3` 24, `--lq-t-h2` 30, `--lq-t-h1` 40.
+- Fredoka 600 für Überschriften und Knöpfe, Nunito 700 für Text, 800 zum Hervorheben.
+- Ab 700 px Breite wachsen nur die Stufen ab `--lq-t-h3` um etwa 15 %; Lesegrößen bleiben gleich.
