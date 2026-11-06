@@ -1,8 +1,10 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { angelegt, bonusText, bonusVon, CHANCEN, TEILE } from './teile';
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, XP_TAG } from './rules';
+import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, muenzenFuerRunde, XP_TAG } from './rules';
 import { codeAus, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
 import { LEERER_STAND, type Paket, type Uebung } from './types';
 
@@ -196,41 +198,49 @@ describe('Wiederholen', () => {
 
 describe('Runde auf dem Gerät', () => {
   it('rechnet wie der Server: Erfahrung, Bestwert, Lerntag, Karten', () => {
-    const s0 = {
-      xp: 40,
-      xpHeute: 290,
-      bestwerte: { s1: [60] },
-      tage: ['2026-11-06'],
-      leitner: { 'a/1': [1, 5] as [number, number] },
-    };
-    const r = rundeAnwenden(
-      s0,
-      {
-        stunde: 's1',
-        runde: 1,
-        richtig: 5,
-        gesamt: 5,
-        leitner: { 'a/2': [2, 9] },
-      },
-      '2026-11-06',
-    );
+    const s0 = { ...LEERER_STAND, xp: 40, xpHeute: 290, bestwerte: { s1: [60] }, tage: ['2026-11-06'], leitner: { 'a/1': [1, 5] as [number, number] } };
+    const r = rundeAnwenden(s0, { stunde: 's1', runde: 1, richtig: 5, gesamt: 5, leitner: { 'a/2': [2, 9] } }, '2026-11-06');
     expect(r.plus).toBe(10);
-    expect(r.stand).toEqual({
-      xp: 50,
-      xpHeute: 300,
-      bestwerte: { s1: [60, 100] },
-      tage: ['2026-11-06'],
-      leitner: { 'a/1': [1, 5], 'a/2': [2, 9] },
-    });
+    expect(r.stand).toMatchObject({ xp: 50, xpHeute: 300, bestwerte: { s1: [60, 100] }, tage: ['2026-11-06'], leitner: { 'a/1': [1, 5], 'a/2': [2, 9] } });
     const next = rundeAnwenden(r.stand, { stunde: 's1', runde: 0, richtig: 1, gesamt: 5, leitner: {} }, '2026-11-07');
-    expect(next).toMatchObject({
-      plus: 12,
-      stand: {
-        xpHeute: 12,
-        bestwerte: { s1: [60, 100] },
-        tage: ['2026-11-06', '2026-11-07'],
-      },
-    });
+    expect(next).toMatchObject({ plus: 12, stand: { xpHeute: 12, bestwerte: { s1: [60, 100] }, tage: ['2026-11-06', '2026-11-07'] } });
+  });
+
+  it('gibt Münzen mit Herzen und Bonus, gedeckelt am Tag', () => {
+    expect(muenzenFuerRunde(5, 5, 3, 0)).toBe(16);
+    expect(muenzenFuerRunde(3, 5, 3, 0)).toBe(10);
+    expect(muenzenFuerRunde(0, 5, 3, 0)).toBe(5);
+    expect(muenzenFuerRunde(5, 5, 5, 20)).toBe(24);
+    expect(muenzenFuerRunde(5, 5, 3, 0, 195)).toBe(5);
+  });
+
+  it('gibt eine Truhe für die erste ganz gespielte Station und fürs Wochenziel', () => {
+    const k = { herzen: 3, bonusProzent: 0, runden: 2, stationSchonBelohnt: false };
+    const s0 = { ...LEERER_STAND, bestwerte: { s1: [80] }, tage: ['2026-11-02', '2026-11-03'] };
+    const r = rundeAnwenden(s0, { stunde: 's1', runde: 1, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-04', k);
+    expect(r.truhenPlus).toBe(2);
+    expect(r.stand.truhen).toBe(2);
+    expect(r.muenzenPlus).toBe(10);
+    expect(rundeAnwenden(r.stand, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', { ...k, stationSchonBelohnt: true }).truhenPlus).toBe(0);
+  });
+});
+
+describe('Held und Beute', () => {
+  it('hat denselben Katalog wie der Server', () => {
+    const sql = readFileSync(new URL('../../supabase/migrations/20261106b_lernquest_held.sql', import.meta.url), 'utf8');
+    const rows = [...sql.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+)\)/g)].map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]);
+    expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, !!t.start, t.muenzen ?? 0, t.herz ?? 0]));
+    expect(TEILE).toHaveLength(40);
+    expect(CHANCEN.reduce((a, b) => a + b, 0)).toBe(100);
+  });
+
+  it('deckelt die Boni und kennt Startteile', () => {
+    expect(bonusVon({ kopf: 'krone', kleidung: 'goldruestung', werkzeug: 'sternenschwert', begleiter: 'drache' })).toEqual({ muenzen: 20, herz: 2 });
+    expect(bonusVon({})).toEqual({ muenzen: 0, herz: 0 });
+    expect(angelegt({}, 'kleidung')?.id).toBe('tshirt');
+    expect(angelegt({ kleidung: 'pulli' }, 'kleidung')?.id).toBe('pulli');
+    expect(angelegt({}, 'kopf')).toBeUndefined();
+    expect(bonusText({ muenzen: 5, herz: 1 })).toBe('+5 % Münzen, +1 Herz');
   });
 });
 

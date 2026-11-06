@@ -76,12 +76,15 @@ export interface Stand {
   tage: string[];
   /** Exercise key (`karteKey`) → [box 1–5, due as day number since 1970]. */
   leitner: Record<string, [number, number]>;
+  /** Stufe 2: coins, coins earned today, chests waiting, chests in a row without a rare part. */
+  muenzen: number;
+  muenzenHeute: number;
+  truhen: number;
+  pech: number;
+  /** Parts found or bought (ids from `TEILE`). */
+  inventar: string[];
+  /** What is worn: part id per place ('' = nothing) and the skin tone. */
+  avatar: Partial<Record<'kopf' | 'augen' | 'kleidung' | 'werkzeug' | 'begleiter' | 'hintergrund', string>> & { haut?: number };
 }
 
-export const LEERER_STAND: Stand = {
-  xp: 0,
-  xpHeute: 0,
-  bestwerte: {},
-  tage: [],
-  leitner: {},
-};
+export const LEERER_STAND: Stand = { xp: 0, xpHeute: 0, bestwerte: {}, tage: [], leitner: {}, muenzen: 0, muenzenHeute: 0, truhen: 0, pech: 0, inventar: [], avatar: {} };

@@ -201,38 +201,72 @@ export function faellig(leitner: Stand['leitner'], heuteNr: number, gueltig?: Se
     .map(([k]) => k);
 }
 
-// — A round on this device, before the server answers —
+// — Coins (Stufe 2) —
+
+/** Most coins per day. */
+export const MUENZEN_TAG = 200;
 
 /**
- * The Spielstand after a round, as the server will count it (`lq_runde_melden`): experience, the round's best,
- * today as a learning day and the changed cards. Used to show the result at once, also offline.
+ * Coins for a round: 5, 1 per right answer, 2 per heart left (every mistake costs a heart; empty hearts end nothing),
+ * then the bonus percent (rounded down); capped by what is left today. As `lq_runde_melden`.
+ */
+export function muenzenFuerRunde(richtig: number, gesamt: number, herzen: number, bonusProzent: number, heuteSchon = 0): number {
+  const uebrig = Math.max(0, herzen - (gesamt - richtig));
+  let roh = 5 + richtig + 2 * uebrig;
+  roh += Math.floor((roh * bonusProzent) / 100);
+  return Math.max(0, Math.min(roh, MUENZEN_TAG - heuteSchon));
+}
+
+// — A round on this device, before the server answers —
+
+export interface RundenKontext {
+  /** Hearts and coin bonus of what the child wears. */
+  herzen: number;
+  bonusProzent: number;
+  /** Rounds of the station (0 for „Wiederholen“). */
+  runden: number;
+  /** A chest for this station was given already (it shows stars). */
+  stationSchonBelohnt: boolean;
+}
+
+/**
+ * The Spielstand after a round, as the server will count it (`lq_runde_melden`): experience, coins, the round's best,
+ * today as a learning day, the changed cards and new chests (station done for the first time, weekly goal reached
+ * this week). Used to show the result at once, also offline.
  */
 export function rundeAnwenden(
   s: Stand,
-  m: {
-    stunde: string;
-    runde: number;
-    richtig: number;
-    gesamt: number;
-    leitner: Stand['leitner'];
-  },
+  m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] },
   tag = heute(),
-): { plus: number; stand: Stand } {
-  const schon = s.tage.includes(tag) ? s.xpHeute : 0;
+  k: RundenKontext = { herzen: 3, bonusProzent: 0, runden: 0, stationSchonBelohnt: true },
+): { plus: number; muenzenPlus: number; truhenPlus: number; stand: Stand } {
+  const neuerTag = !s.tage.includes(tag);
+  const schon = neuerTag ? 0 : s.xpHeute;
   const plus = xpFuerRunde(m.richtig, m.gesamt, schon);
+  const mSchon = neuerTag ? 0 : s.muenzenHeute;
+  const muenzenPlus = muenzenFuerRunde(m.richtig, m.gesamt, k.herzen, k.bonusProzent, mSchon);
   const bestwerte = { ...s.bestwerte };
+  let truhenPlus = 0;
   if (m.stunde) {
     const best = [...(bestwerte[m.stunde] ?? [])];
     while (best.length <= m.runde) best.push(0);
     best[m.runde] = Math.max(best[m.runde], Math.round((100 * m.richtig) / m.gesamt));
     bestwerte[m.stunde] = best;
+    if (!k.stationSchonBelohnt && k.runden > 0 && Array.from({ length: k.runden }, (_, i) => best[i] ?? 0).every((x) => x > 0)) truhenPlus++;
   }
-  const tage = s.tage.includes(tag) ? s.tage : [...s.tage, tag].sort().slice(-70);
+  const tage = neuerTag ? [...s.tage, tag].sort().slice(-70) : s.tage;
+  if (neuerTag && woche(s.tage, tag).diese === WOCHENZIEL - 1) truhenPlus++;
   return {
     plus,
+    muenzenPlus,
+    truhenPlus,
     stand: {
+      ...s,
       xp: s.xp + plus,
       xpHeute: schon + plus,
+      muenzen: s.muenzen + muenzenPlus,
+      muenzenHeute: mSchon + muenzenPlus,
+      truhen: s.truhen + truhenPlus,
       bestwerte,
       tage,
       leitner: { ...s.leitner, ...m.leitner },
