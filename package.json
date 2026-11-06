@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "anleitung": "vitest run src/claude -u"
+    "anleitung": "vitest run src/claude -u",
+    "lq:testlauf": "vite build && LQ_TESTLAUF=1 vitest run src/lernquest/testlauf.live.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
