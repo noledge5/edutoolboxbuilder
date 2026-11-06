@@ -46,8 +46,8 @@ export function fragenAus(u: Uebung, seed = u.id): BossFrage[] {
     case 'waehlen': {
       if (u.richtig.length !== 1) return [];
       const right = u.optionen[u.richtig[0]];
-      if (u.optionen.length <= OPTIONEN_MAX) return make(u.frage, u.aussage ?? '', { optionen: u.optionen, richtig: u.richtig[0] });
-      return make(u.frage, u.aussage ?? '', mit(right, u.optionen.filter((_, i) => i !== u.richtig[0]), seed));
+      if (u.optionen.length <= OPTIONEN_MAX) return make(u.frage, u.aussage || u.hoeren || '', { optionen: u.optionen, richtig: u.richtig[0] });
+      return make(u.frage, u.aussage || u.hoeren || '', mit(right, u.optionen.filter((_, i) => i !== u.richtig[0]), seed));
     }
     case 'richtigfalsch':
       return make(u.frage, u.aussage, { optionen: ['richtig', 'falsch'], richtig: u.richtig ? 0 : 1 });
@@ -68,7 +68,12 @@ export function fragenAus(u: Uebung, seed = u.id): BossFrage[] {
       const [vor, right, nach] = u.teile;
       return make(u.frage, `${vor}___${nach}`.trim(), mit(right, u.kacheln, seed));
     }
+    case 'gruppen':
+      // Each card a question „Wohin gehört …?“, as long as the groups fit as answers.
+      if (u.gruppen.length > OPTIONEN_MAX) return [];
+      return u.karten.flatMap(([text, g]) => make(u.frage, text, { optionen: u.gruppen, richtig: g }));
     case 'reihenfolge':
+    case 'bild':
       return [];
   }
 }

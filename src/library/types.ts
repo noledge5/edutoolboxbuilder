@@ -5,6 +5,7 @@ import type { Board } from '../model/ink';
 import type { ModuleLook } from '../model/look';
 import type { Slide, SlideDesign } from '../model/slides';
 import type { Doc, Lang } from '../model/types';
+import type { PoolEintrag } from '../lernquest/types';
 
 export const GRADES = [5, 6, 7, 8, 9, 10] as const;
 
@@ -78,6 +79,8 @@ export interface Lesson {
   boards: Board[];
   /** The lesson's presentation in Canva (Runde 9: new presentations are made there). */
   canvaUrl?: string;
+  /** Lernquest (Stufe 5): the KI-Fragenpool, exercises Claude wrote from the lesson; released ones go to the class. */
+  pool?: PoolEintrag[];
   updatedAt: number;
 }
 

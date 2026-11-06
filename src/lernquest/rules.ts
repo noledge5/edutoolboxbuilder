@@ -44,7 +44,10 @@ export type Antwort =
   | { art: 'richtigfalsch'; wert: boolean }
   | { art: 'paare'; fehler: number }
   | { art: 'luecke'; gelegt: string[] }
-  | { art: 'reihenfolge'; gelegt: string[] };
+  | { art: 'reihenfolge'; gelegt: string[] }
+  /** Group index chosen for each card, in the order of `karten`. */
+  | { art: 'gruppen'; zuordnung: number[] }
+  | { art: 'bild'; gewaehlt: number };
 
 /** A sentence from tiles: spaces before end marks and commas go. */
 export const satz = (tiles: string[]) => tiles.join(' ').replace(/\s+([.,!?;:])/g, '$1');
@@ -65,7 +68,38 @@ export function istRichtig(u: Uebung, a: Antwort): boolean {
     }
     case 'reihenfolge':
       return a.art === 'reihenfolge' && normalize(satz(a.gelegt)) === normalize(u.loesung);
+    case 'gruppen':
+      return a.art === 'gruppen' && a.zuordnung.length === u.karten.length && u.karten.every(([, g], i) => a.zuordnung[i] === g);
+    case 'bild':
+      return a.art === 'bild' && a.gewaehlt === u.richtig;
   }
+}
+
+/** The answer of a child who knows it (for tests and the check of what Claude wrote). */
+export function richtigeAntwort(u: Uebung): Antwort {
+  switch (u.art) {
+    case 'waehlen':
+      return { art: 'waehlen', gewaehlt: u.richtig };
+    case 'richtigfalsch':
+      return { art: 'richtigfalsch', wert: u.richtig };
+    case 'paare':
+      return { art: 'paare', fehler: 0 };
+    case 'luecke':
+      return { art: 'luecke', gelegt: u.teile.filter((_, i) => i % 2 === 1) };
+    case 'reihenfolge':
+      return { art: 'reihenfolge', gelegt: satzKacheln(u.loesung) };
+    case 'gruppen':
+      return { art: 'gruppen', zuordnung: u.karten.map(([, g]) => g) };
+    case 'bild':
+      return { art: 'bild', gewaehlt: u.richtig };
+  }
+}
+
+/** A sentence as tiles: words, the end mark on its own. */
+function satzKacheln(s: string): string[] {
+  const end = /[.?!]$/.exec(s)?.[0] ?? '';
+  const words = (end ? s.slice(0, -1) : s).split(/\s+/).filter(Boolean);
+  return end ? [...words, end] : words;
 }
 
 /** The right answer as a child reads it after a mistake. */
@@ -81,6 +115,10 @@ export function loesungText(u: Uebung): string {
       return u.teile.map((t, i) => (i % 2 ? `[${t}]` : t)).join('');
     case 'reihenfolge':
       return u.loesung;
+    case 'gruppen':
+      return u.gruppen.map((g, gi) => `${g}: ${u.karten.filter(([, k]) => k === gi).map(([t]) => t).join(', ')}`).join('; ');
+    case 'bild':
+      return u.wort;
   }
 }
 

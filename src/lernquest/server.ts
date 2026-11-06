@@ -58,6 +58,7 @@ export function lqText(e: unknown): string {
     leer: 'Noch ist niemand beigetreten.',
     punkte: 'Dafür reichen deine Klassenpunkte noch nicht.',
     grenze: 'Für diese Woche ist die Grenze erreicht.',
+    gross: 'Das Lernpaket dieser Stunde ist zu groß für den Server. Nimm ein paar Bilder oder Pool-Aufgaben heraus.',
   };
   return texts[code] ?? `Der Server antwortet nicht wie erwartet (${code || String(e)}).`;
 }

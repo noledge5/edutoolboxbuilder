@@ -654,7 +654,7 @@ export function App() {
       here = { subject, grade: m.grade };
     }
   } else if (route.view === 'lernquest') {
-    view = <LernquestView lib={lib} onBack={() => go({ view: 'overview' })} onDeviceChange={() => autoSync.current?.poke(1000)} />;
+    view = <LernquestView lib={lib} onBack={() => go({ view: 'overview' })} onDeviceChange={() => autoSync.current?.poke(1000)} onLessonChange={(l) => putLesson({ ...l, updatedAt: Date.now() }).catch(failed)} />;
   } else if (route.view === 'slides') {
     const lesson = lib.lessons.find((l) => l.id === route.id);
     const m = lesson && lib.modules.find((x) => x.id === lesson.moduleId);

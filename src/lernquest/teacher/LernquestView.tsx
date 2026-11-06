@@ -3,10 +3,13 @@
 // the boss fight on the projector (Stufe 3: the questions are made here, the projector view is Lernquest's #beamer=),
 // class points, vouchers and requests, and progress per competence (Stufe 4: `Belohnungen.tsx`, `Auswertung.tsx`).
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Lock, Plus, Printer, RefreshCw, RotateCcw, Swords, Trash2, Unlock } from 'lucide-react';
+import { ArrowLeft, Lock, Plus, Printer, RefreshCw, RotateCcw, Sparkles, Swords, Trash2, Unlock } from 'lucide-react';
 import { Icon } from '../../icons';
 import { SearchButton } from '../../library/SearchDialog';
-import type { Library } from '../../library/types';
+import type { Lesson, Library } from '../../library/types';
+import { freigegeben } from '../fragenpool';
+import { FragenpoolDialog } from './Fragenpool';
+import { paketSenden } from './senden';
 import { ensureLehrkraft, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
 import { BOSS_FRAGEN_MIN, bossFragen, bossVon } from '../boss';
 import { buildPaket, exercisesOf } from '../paket';
@@ -14,7 +17,6 @@ import { BOSS_FRAGEN, heldenstufe, punkteHandRest, PUNKTE_HAND_WOCHE, rundenZahl
 import {
   bossStarten,
   entsperren,
-  freischalten,
   kindAnlegen,
   kindLoeschen,
   klasseAnlegen,
@@ -39,6 +41,8 @@ interface Props {
   onBack(): void;
   /** The teacher record changed (new PIN): the sync takes it to the other device. */
   onDeviceChange(): void;
+  /** A lesson changed (its KI-Fragenpool); the caller sets `updatedAt` and saves it. */
+  onLessonChange(l: Lesson): void;
 }
 
 /** The address of Lernquest for a class: next to the Baukasten, `lernquest/#<code>`. */
@@ -54,7 +58,7 @@ const when = (iso: string | null) =>
       })
     : '–';
 
-export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
+export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: Props) {
   const [me, setMe] = useState<Lehrkraft | null>(null);
   const [list, setList] = useState<KlasseInfo[] | null>(null);
   const [sel, setSel] = useState('');
@@ -172,7 +176,7 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
               </form>
             </nav>
             {klasse ? (
-              <KlasseView key={klasse.id} lib={lib} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} busy={busy} act={act} savePins={savePins} onPrint={() => setPrinting(true)} />
+              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} busy={busy} act={act} savePins={savePins} onPrint={() => setPrinting(true)} />
             ) : (
               <p className="lib-empty">Lege zuerst eine Klasse an.</p>
             )}
@@ -210,6 +214,7 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
 
 interface KlasseProps {
   lib: Library;
+  onLessonChange(l: Lesson): void;
   klasse: KlasseInfo;
   keys: string[];
   pins: Record<string, string>;
@@ -219,7 +224,9 @@ interface KlasseProps {
   onPrint(): void;
 }
 
-function KlasseView({ lib, klasse, keys, pins, busy, act, savePins, onPrint }: KlasseProps) {
+function KlasseView({ lib, onLessonChange, klasse, keys, pins, busy, act, savePins, onPrint }: KlasseProps) {
+  /** Lesson whose KI-Fragenpool is open. */
+  const [poolOf, setPoolOf] = useState<string | null>(null);
   const [names, setNames] = useState('');
   /** Lessons being unlocked or locked: the box shows the wish at once, the server follows. */
   const [want, setWant] = useState<Record<string, boolean>>({});
@@ -447,7 +454,7 @@ function KlasseView({ lib, klasse, keys, pins, busy, act, savePins, onPrint }: K
                   for (const id of klasse.stunden) {
                     const l = lib.lessons.find((x) => x.id === id);
                     const m = l && lib.modules.find((x) => x.id === l.moduleId);
-                    if (l && m) await freischalten(keys, klasse.id, l.id, buildPaket(m, l, lib.lessons));
+                    if (l && m) await paketSenden(keys, klasse.id, m, l, lib.lessons);
                   }
                 })
               }
@@ -482,7 +489,8 @@ function KlasseView({ lib, klasse, keys, pins, busy, act, savePins, onPrint }: K
                 .filter((l) => l.moduleId === m.id)
                 .sort((a, b) => a.number - b.number)
                 .map((l) => {
-                  const n = exercisesOf(l.doc.pages).length;
+                  const n = exercisesOf(l.doc.pages).length + freigegeben(l.pool).length;
+                  const imPool = l.pool?.length ?? 0;
                   const on = want[l.id] ?? klasse.stunden.includes(l.id);
                   return (
                     <li key={l.id}>
@@ -494,7 +502,7 @@ function KlasseView({ lib, klasse, keys, pins, busy, act, savePins, onPrint }: K
                           onChange={(e) => {
                             const yes = e.target.checked;
                             setWant((w) => ({ ...w, [l.id]: yes }));
-                            void act((keys) => (yes ? freischalten(keys, klasse.id, l.id, buildPaket(m, l, lib.lessons)) : sperren(keys, klasse.id, l.id))).finally(() =>
+                            void act((keys) => (yes ? paketSenden(keys, klasse.id, m, l, lib.lessons) : sperren(keys, klasse.id, l.id))).finally(() =>
                               setWant(({ [l.id]: _, ...rest }) => rest),
                             );
                           }}
@@ -504,6 +512,10 @@ function KlasseView({ lib, klasse, keys, pins, busy, act, savePins, onPrint }: K
                         </span>
                         <small>{n ? `${n} ${n === 1 ? 'Übung' : 'Übungen'} · ${rundenZahl(n)} ${rundenZahl(n) === 1 ? 'Runde' : 'Runden'}` : 'keine lösbaren Aufgaben'}</small>
                       </label>
+                      <button type="button" className="btn btn-secondary ui-btn lqt-pool-knopf" onClick={() => setPoolOf(l.id)} title="Weitere Übungen mit KI erzeugen, prüfen und freigeben">
+                        <Icon icon={Sparkles} />
+                        Fragenpool{imPool ? ` (${freigegeben(l.pool).length}/${imPool})` : ''}
+                      </button>
                     </li>
                   );
                 })}
@@ -511,8 +523,17 @@ function KlasseView({ lib, klasse, keys, pins, busy, act, savePins, onPrint }: K
           </div>
         ))}
       </section>
+      {poolOf && <PoolFuer lib={lib} id={poolOf} onLessonChange={onLessonChange} onClose={() => setPoolOf(null)} />}
     </>
   );
+}
+
+/** The pool dialog of one lesson, on the newest version of it (the library updates after each change). */
+function PoolFuer({ lib, id, onLessonChange, onClose }: { lib: Library; id: string; onLessonChange(l: Lesson): void; onClose(): void }) {
+  const l = lib.lessons.find((x) => x.id === id);
+  const m = l && lib.modules.find((x) => x.id === l.moduleId);
+  if (!l || !m) return null;
+  return <FragenpoolDialog modul={m} stunde={l} settings={lib.settings} onChange={(pool) => onLessonChange({ ...l, pool })} onClose={onClose} />;
 }
 
 /** Starts a boss fight for one region (module with unlocked lessons) and opens the projector view in a new tab. */
