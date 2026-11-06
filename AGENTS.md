@@ -41,11 +41,16 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
 - Never simplify away: repairs for older data, print values in `sheet.css`, touch handling, the encryption in
   `src/sync/` and `src/share/`, the trash and earlier versions.
 - Privacy: keys and tokens (AI key, GitHub token, pairing code) stay on the device (`geraet:*`), never in backups, sync
-  files, logs or commits. Student names and answers never go to the AI; a class profile holds no names.
+  files, logs or commits (decided exception: the Lernquest teacher keys travel encrypted in the sync as `g:lernquest`,
+  never in backups). Student names and answers never go to the AI; a class profile holds no names.
 - Wikimedia thumbnails exist only in its standard widths (330, 1280 …).
 - New presentations are made in Canva (`src/canva/`, Runde 9); the own slides are frozen (show, present, edit, no AI).
   Pictures reach Canva only through the edge function `supabase/functions/praesi-bild` (private bucket, signed links,
   deleted after 18 h); the repo holds its source, it is deployed with the Supabase tools, and only after asking the user.
+- Lernquest (`docs/lernquest.md`) is the third page (`lernquest/index.html`, `src/lernquest/`, own game look, no
+  `src/sheet/`). Reward rules live twice, in `src/lernquest/rules.ts` and in `lq_runde_melden`
+  (`supabase/migrations/`): change both. A new task block that should become an exercise also touches
+  `src/lernquest/paket.ts`. The server test `src/lernquest/server.live.test.ts` runs only with `LQ_LIVE=1`.
 
 ## Commands and checks
 - `npm run dev`, `npm run typecheck`, `npm test` (Vitest), `npm run build`; the CI (`.github/workflows/ci.yml`) runs the same.

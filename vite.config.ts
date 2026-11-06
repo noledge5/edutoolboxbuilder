@@ -28,8 +28,8 @@ export default defineConfig({
   // Build id for the service worker URL, so every deployment refreshes the offline copy.
   // The version shown in the settings ("Version").
   define: { __BUILD_ID__: JSON.stringify(Date.now().toString(36)), __APP_VERSION__: JSON.stringify(version()) },
-  // Two pages: the Baukasten, and the student view for tasks handed out by link (a/#<id>).
-  build: { rollupOptions: { input: { main: 'index.html', aufgabe: 'a/index.html' } } },
+  // Three pages: the Baukasten, the student view for tasks handed out by link (a/#<id>) and Lernquest (lernquest/#<code>).
+  build: { rollupOptions: { input: { main: 'index.html', aufgabe: 'a/index.html', lernquest: 'lernquest/index.html' } } },
   test: {
     environment: 'node',
   },

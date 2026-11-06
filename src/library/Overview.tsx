@@ -1,6 +1,6 @@
 // Start page: choose subject and grade, then a module; recently edited lessons for quick access.
 import { useState, type DragEvent } from 'react';
-import { Blocks, CalendarRange, FolderSync, Plus, Settings as SettingsIcon, Sparkles, Trash2, Users, X } from 'lucide-react';
+import { Blocks, CalendarRange, FolderSync, Map as MapIcon, Plus, Settings as SettingsIcon, Sparkles, Trash2, Users, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
 import { AiSettingsDialog } from '../ai/AiSettingsDialog';
@@ -42,6 +42,7 @@ interface OverviewProps {
   /** A file opened or dropped here: Stundenpaket, library backup or worksheet. */
   onOpenFile(file: File): void;
   onOpenPlan(subject: string, grade: number): void;
+  onOpenLernquest(): void;
 }
 
 export function Overview(p: OverviewProps) {
@@ -133,6 +134,10 @@ export function Overview(p: OverviewProps) {
             <span className={'sync-dot' + (p.pending > 0 ? ' is-open' : '')} aria-label={p.pending > 0 ? 'nicht gesichert' : 'gesichert'} />
           </button>
         )}
+        <button type="button" className="btn btn-secondary ui-btn" title="Lernquest: Klassen, Freischalten, Fortschritt" onClick={p.onOpenLernquest}>
+          <Icon icon={MapIcon} />
+          <span className="btn-label">Lernquest</span>
+        </button>
         <button type="button" className="btn btn-secondary ui-btn" title="Mit KI bauen" onClick={() => setClaudeOpen(true)}>
           <Icon icon={Sparkles} />
           <span className="btn-label">Mit KI bauen</span>

@@ -26,6 +26,7 @@ import { SearchContext, SearchDialog } from './library/SearchDialog';
 import { TrashDialog } from './library/TrashDialog';
 import { handoutPages, handoutTitle, type AssignmentPage, type Handout } from './share/assignment';
 import { EvaluationView } from './share/EvaluationView';
+import { LernquestView } from './lernquest/teacher/LernquestView';
 import { ShareDialog } from './share/ShareDialog';
 import { VersionsDialog } from './library/VersionsDialog';
 import { whenText } from './library/when';
@@ -652,6 +653,8 @@ export function App() {
       subject = m.subject;
       here = { subject, grade: m.grade };
     }
+  } else if (route.view === 'lernquest') {
+    view = <LernquestView lib={lib} onBack={() => go({ view: 'overview' })} onDeviceChange={() => autoSync.current?.poke(1000)} />;
   } else if (route.view === 'slides') {
     const lesson = lib.lessons.find((l) => l.id === route.id);
     const m = lesson && lib.modules.find((x) => x.id === lesson.moduleId);
@@ -817,6 +820,7 @@ export function App() {
         onSync={() => setSyncOpen(true)}
         onOpenFile={(file) => openFile(file)}
         onOpenPlan={(subject, grade) => go({ view: 'plan', subject, grade })}
+        onOpenLernquest={() => go({ view: 'lernquest' })}
       />
     );
   }
