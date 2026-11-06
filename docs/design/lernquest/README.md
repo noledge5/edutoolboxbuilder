@@ -51,3 +51,7 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 - **Barrierefreiheit:** Tippflächen ≥ 48 px, ≥ 8 px Abstand; Zoom bleibt erlaubt; Rückmeldungen über `aria-live`;
   Symbole ohne Text mit Beschriftung; Tab-Reihenfolge wie Bildschirm; Ziehen immer auch per Antippen lösbar.
   Vorlese-Knopf (Lautsprecher) an jeder Aufgabe, je Klasse abschaltbar, Standard an, nicht im Bosskampf.
+- **Avatar-Stil:** Sticker-Look – flache Formen, Umriss 3 px `--lq-ink`, je Teil ≤ 3 Farben + ein Schattenton aus
+  einer Avatar-Palette (~12 Töne), keine Verläufe. Alle Teile auf 200 × 200 mit festen Ankern je Ebene (Werkzeug
+  rechte Hand, Begleiter unten links). Seltenheit über Rahmen und Punkte, nur Episch/Legendär mit Funkeln. Eigene
+  SVGs in `src/lernquest/avatar/`, keine fremden oder KI-Bilder. Erst 5 Probeteile zur Abnahme, dann die übrigen 35.
