@@ -54,4 +54,7 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 - **Avatar-Stil:** Sticker-Look – flache Formen, Umriss 3 px `--lq-ink`, je Teil ≤ 3 Farben + ein Schattenton aus
   einer Avatar-Palette (~12 Töne), keine Verläufe. Alle Teile auf 200 × 200 mit festen Ankern je Ebene (Werkzeug
   rechte Hand, Begleiter unten links). Seltenheit über Rahmen und Punkte, nur Episch/Legendär mit Funkeln. Eigene
-  SVGs in `src/lernquest/avatar/`, keine fremden oder KI-Bilder. Erst 5 Probeteile zur Abnahme, dann die übrigen 35.
+  SVGs in `src/lernquest/avatar/` als **Vorlage**: Grundfigur, Anker und 5 Probeteile. Die endgültigen Teile erzeugt
+  die Lehrkraft später selbst mit einem Bildmodell (Vorlage + Prompt, img2img/Denoise). Deshalb kann jedes Teil
+  entweder SVG oder Bild sein: PNG/WebP 512 × 512, transparenter Grund, gleiches Raster wie die Vorlage (200 × 200
+  skaliert). Fehlt ein Bild, gilt die SVG-Vorlage.
