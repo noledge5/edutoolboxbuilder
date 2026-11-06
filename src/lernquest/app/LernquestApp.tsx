@@ -25,7 +25,9 @@ import {
 } from '../rules';
 import { abmelden, anmelden, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, type KlasseOffen } from '../server';
 import { readPaket } from '../paket';
+import { bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
+import { HeldIcon, HeldSeite, Herzen, KlasseIcon, KlasseSeite, LadenSeite, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
 import { allesWeg, ladeDaten, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereSitzung, speichereWarteschlange, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
 import { Rich, UebungView } from './Uebungen';
@@ -34,6 +36,10 @@ type Screen =
   | { kind: 'karte' }
   | { kind: 'station'; stunde: string }
   | { kind: 'wiederholen' }
+  | { kind: 'held' }
+  | { kind: 'laden' }
+  | { kind: 'truhe'; zurueck: 'held' | 'karte' }
+  | { kind: 'klasse' }
   | {
       kind: 'runde';
       stunde: string;
@@ -46,6 +52,8 @@ type Screen =
       richtig: number;
       gesamt: number;
       plus: number;
+      muenzenPlus: number;
+      truhenPlus: number;
       sterneVorher: number;
       sterneJetzt: number;
     };
@@ -406,6 +414,30 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     };
   }, [laden]);
 
+  /** Coins, chests and parts change only on the server: rounds waiting on this device go first, offline nothing. */
+  const aktion: Aktion = useCallback(
+    async (f) => {
+      await flush();
+      if (ladeWarteschlange().length) throw new TypeError('offline');
+      try {
+        const r = await f(sitzung.token);
+        setOffline(false);
+        return r;
+      } catch (e) {
+        fail(e);
+        throw e;
+      }
+    },
+    [flush, fail, sitzung.token],
+  );
+  const setStand = useCallback(
+    (s: Stand) => {
+      const d = datenRef.current;
+      if (d) store({ ...d, stand: s });
+    },
+    [store],
+  );
+
   const stand = daten?.stand;
   const pakete = useMemo(() => Object.values(daten?.pakete ?? {}), [daten]);
 
@@ -430,7 +462,9 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     const paket = daten.pakete[stunde];
     const runden = paket ? rundenZahl(paket.uebungen.length) : 0;
     const vorher = sterne(stand.bestwerte[stunde], runden);
-    const r = rundeAnwenden(stand, m);
+    const bonus = bonusVon(stand.avatar);
+    // A station that shows stars was played through before, so its chest is given already.
+    const r = rundeAnwenden(stand, m, heute(), { herzen: HERZEN + bonus.herz, bonusProzent: bonus.muenzen, runden, stationSchonBelohnt: vorher > 0 });
     store({ ...daten, stand: r.stand });
     speichereWarteschlange([...ladeWarteschlange(), m]);
     void flush();
@@ -441,6 +475,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       richtig: m.richtig,
       gesamt: m.gesamt,
       plus: r.plus,
+      muenzenPlus: r.muenzenPlus,
+      truhenPlus: r.truhenPlus,
       sterneVorher: vorher,
       sterneJetzt: sterne(r.stand.bestwerte[stunde], runden),
     });
@@ -464,9 +500,21 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         key={`${screen.stunde}:${screen.runde}`}
         screen={screen}
         stand={stand}
+        herzen={HERZEN + bonusVon(stand.avatar).herz}
         titel={screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : 'Wiederholen'}
         onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
         onFertig={fertig}
+      />
+    );
+  }
+
+  if (screen.kind === 'truhe') {
+    return (
+      <TruheSeite
+        daten={daten}
+        aktion={aktion}
+        setStand={setStand}
+        onFertig={(angelegt) => setScreen(angelegt || screen.zurueck === 'held' ? { kind: 'held' } : { kind: 'karte' })}
       />
     );
   }
@@ -496,6 +544,10 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             <strong className="lq-violett">+{screen.plus} EP</strong>
           </div>
           <div>
+            <span>Münzen</span>
+            <strong className="lq-gold-zahl">+{screen.muenzenPlus}</strong>
+          </div>
+          <div>
             <span>Woche</span>
             <strong className="lq-gruen">
               {Math.min(w.diese, WOCHENZIEL)} / {WOCHENZIEL}
@@ -503,13 +555,28 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </div>
         </div>
         {!screen.plus && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.</p>}
-        {w.diese >= WOCHENZIEL && (
-          <div className="lq-hinweis-gold">
-            <strong>Wochenziel erreicht!</strong>
-            <span>Wochenenden und Ferien setzen nichts zurück.</span>
+        {screen.truhenPlus > 0 ? (
+          <div className="lq-hinweis-gold lq-mit-icon">
+            <TruheIcon />
+            <div>
+              <strong>{screen.truhenPlus > 1 ? `${screen.truhenPlus} Truhen verdient!` : w.diese >= WOCHENZIEL && !(screen.sterneJetzt > 0 && screen.sterneVorher === 0) ? 'Wochenziel erreicht!' : 'Truhe verdient!'}</strong>
+              <span>{screen.truhenPlus > 1 ? 'Sie warten beim Helden.' : 'Eine Truhe wartet beim Helden.'}</span>
+            </div>
           </div>
+        ) : (
+          w.diese >= WOCHENZIEL && (
+            <div className="lq-hinweis-gold">
+              <strong>Wochenziel erreicht!</strong>
+              <span>Wochenenden und Ferien setzen nichts zurück.</span>
+            </div>
+          )
         )}
         <div className="lq-platz" />
+        {screen.truhenPlus > 0 && (
+          <button type="button" className="lq-knopf lq-gold" onClick={() => setScreen({ kind: 'truhe', zurueck: 'karte' })}>
+            Truhe öffnen
+          </button>
+        )}
         {screen.stunde && p && (
           <button type="button" className="lq-knopf lq-hell" onClick={() => setScreen({ kind: 'station', stunde: screen.stunde })}>
             Zur Station
@@ -524,7 +591,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
 
   const karten = new Set(pakete.flatMap((p) => p.uebungen.map((u) => karteKey(p.stunde, u.id))));
   const dueCount = faellig(stand.leitner, tagNummer(heute()), karten).length;
-  const tab = screen.kind === 'wiederholen' ? 'wiederholen' : 'karte';
+  const tab = screen.kind === 'wiederholen' ? 'wiederholen' : screen.kind === 'held' || screen.kind === 'laden' ? 'held' : screen.kind === 'klasse' ? 'klasse' : 'karte';
   const rahmen = (inhalt: React.ReactNode) => (
     <main className="lq-app lq-mit-leiste">
       <Kopf daten={daten} offline={offline} onSignOut={() => onSignOut()} />
@@ -539,9 +606,32 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           Wiederholen
           {dueCount > 0 && <span className="lq-zahl">{dueCount}</span>}
         </button>
+        <button type="button" className={tab === 'held' ? 'an' : ''} aria-current={tab === 'held' ? 'page' : undefined} onClick={() => setScreen({ kind: 'held' })}>
+          <HeldIcon />
+          Held
+          {stand.truhen > 0 && (
+            <span className="lq-zahl lq-zahl-gold" aria-label={`${stand.truhen} ${stand.truhen === 1 ? 'Truhe' : 'Truhen'} bereit`}>
+              {stand.truhen}
+            </span>
+          )}
+        </button>
+        <button type="button" className={tab === 'klasse' ? 'an' : ''} aria-current={tab === 'klasse' ? 'page' : undefined} onClick={() => setScreen({ kind: 'klasse' })}>
+          <KlasseIcon />
+          Klasse
+        </button>
       </nav>
     </main>
   );
+
+  if (screen.kind === 'held') {
+    return rahmen(<HeldSeite daten={daten} aktion={aktion} setStand={setStand} onTruhe={() => setScreen({ kind: 'truhe', zurueck: 'held' })} onLaden={() => setScreen({ kind: 'laden' })} />);
+  }
+  if (screen.kind === 'laden') {
+    return rahmen(<LadenSeite daten={daten} aktion={aktion} setStand={setStand} onZurueck={() => setScreen({ kind: 'held' })} />);
+  }
+  if (screen.kind === 'klasse') {
+    return rahmen(<KlasseSeite aktion={aktion} />);
+  }
 
   if (screen.kind === 'wiederholen') {
     return rahmen(
@@ -729,6 +819,7 @@ function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; o
           {h.drin} / {h.noetig} EP bis Stufe {h.stufe + 1}
         </span>
       </div>
+      <Muenzen n={daten.stand.muenzen} />
       {offline && <p className="lq-offline">Offline – deine Runden werden später gesendet.</p>}
       {menu && (
         <div className="lq-menu">
@@ -827,13 +918,15 @@ function Wappen() {
 interface RundeProps {
   screen: Extract<Screen, { kind: 'runde' }>;
   stand: Stand;
+  /** Hearts at the start (3 + bonus): a mistake costs one, none left ends nothing. */
+  herzen: number;
   /** Above the exercise: „Station 3 · Himmelsrichtungen“ or „Wiederholen“. */
   titel: string;
   onAbbruch: () => void;
   onFertig: (stunde: string, runde: number, ergebnisse: boolean[], leitner: Stand['leitner']) => void;
 }
 
-function Runde({ screen, stand, titel: kicker, onAbbruch, onFertig }: RundeProps) {
+function Runde({ screen, stand, herzen, titel: kicker, onAbbruch, onFertig }: RundeProps) {
   const [i, setI] = useState(0);
   const [antwort, setAntwort] = useState<Antwort | null>(null);
   const [ok, setOk] = useState<boolean | null>(null);
@@ -886,6 +979,7 @@ function Runde({ screen, stand, titel: kicker, onAbbruch, onFertig }: RundeProps
             }}
           />
         </span>
+        <Herzen voll={Math.max(0, herzen - ergebnisse.filter((x) => !x).length)} von={herzen} />
       </div>
       <span className="lq-kicker">{kicker}</span>
       <UebungView

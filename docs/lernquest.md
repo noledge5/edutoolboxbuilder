@@ -102,7 +102,14 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
 - **Aussehen nach dem Prototyp** (`docs/design/lernquest/Main.dc.html`): Start mit Wappen und „Klassen-QR scannen“,
   Namen mit farbigen Anfangsbuchstaben, Karte mit Kopfleiste, Wochenziel-Karte (Mo–So), Regions-Band, Stationen
   erledigt / aktuell / offen / gesperrt (das Lernpaket trägt dafür Nummer und Titel aller Stunden des Moduls),
-  Leiste unten mit Karte und Wiederholen. Münzen, Truhe, Held, Klasse, Herzen und Boss folgen in Stufe 2 und 3.
+  Leiste unten mit Karte, Wiederholen, Held und Klasse. Der Boss folgt in Stufe 3.
+- **Stufe 2 „Held und Beute“ in der App** (nach `Held.dc.html` und `Truhe.dc.html`, Seiten in
+  `src/lernquest/app/Held.tsx`): Münzen im Kopf; Held-Seite mit Avatar, Teile-Raster je Platz (nicht gefundene als „?“
+  mit Seltenheit), Hautfarbe und Truhen-Leiste; Laden (Teil wählen, dann kaufen; fehlen Münzen, steht da, wie viele);
+  Truhe auf dunklem Grund mit sichtbaren Chancen, Öffnen höchstens ~1,2 s, antippen überspringt; Klasse mit Namen,
+  Avataren und Lerntagen der Woche; Herzen in der Runde; Münzen und verdiente Truhe im Ergebnis. Avatar-Zeichnungen
+  (40 Teile, eine Zeichenfläche, feste Ebenen) in `src/lernquest/app/avatar.tsx`. Münzen, Truhen und Teile ändern
+  sich nur über den Server; offline gesperrt, bis die wartenden Runden gesendet sind.
 - **Lehrkraft-Seite** (Übersicht → „Lernquest“): PINs am Bildschirm verborgen, bis „PINs zeigen“ (Beamer).
 - **Noch nicht:** Vorlesen, Ton-Dateien, App-Hülle offline (Daten sind offline da, die Seite selbst braucht beim
   ersten Öffnen Netz), Bild-Aufgaben (Bildvokabeln, Tabelle, Wortnetz, Satzbaustellen kommen in Stufe 5).
