@@ -10,6 +10,7 @@ import { getImage, kv, putImageAs } from '../storage/db';
 import { imagesArrived } from '../storage/images';
 import { decryptBlob, decryptJson, deriveKeys, encryptBlob, encryptJson, serverName, type SyncKeys } from './keys';
 import { mergeRemote, toSend, type Base, type MergeResult } from './merge';
+import { loadLehrkraft, SYNC_KEY as LERNQUEST, takeLehrkraft, readLehrkraft } from '../lernquest/lehrkraft';
 
 /** On this device only (never in backups): the pairing code and how far the sync got. */
 export interface SyncState {
@@ -178,6 +179,13 @@ export class AutoSync {
       if (rows.length < 100) break;
       this.progress(`Holt Änderungen … ${remote.size}`);
     }
+    // The Lernquest teacher keys travel beside the library (they are kept on the device, not in it).
+    if (remote.has(LERNQUEST)) {
+      const there = remote.get(LERNQUEST);
+      remote.delete(LERNQUEST);
+      await takeLehrkraft(there);
+      state.base[LERNQUEST] = Math.max(state.base[LERNQUEST] ?? 0, readLehrkraft(there)?.updatedAt ?? 0);
+    }
     if (remote.size) {
       const lib = this.host.getLib();
       if (lib) {
@@ -193,6 +201,8 @@ export class AutoSync {
     const lib = this.host.getLib();
     if (!lib) return;
     const send = toSend(lib, state.base);
+    const lq = await loadLehrkraft();
+    if (lq && lq.updatedAt > (state.base[LERNQUEST] ?? 0)) send.push({ key: LERNQUEST, updatedAt: lq.updatedAt, value: lq });
     if (send.length) {
       const items = await Promise.all(send.map(async (e) => ({ k: await serverName(k, e.key), d: await encryptJson(k, { k: e.key, v: e.value }), e })));
       let done = 0;

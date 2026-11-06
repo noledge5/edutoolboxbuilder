@@ -185,7 +185,7 @@ Reihenfolge (je Schritt ein PR):
 
 ### Runde 10 – Lernquest (entschieden am 06.11.2026)
 Wunsch der Lehrkraft: ein Lerntool, verbunden mit den Modulen, Mischung aus Duolingo und Anton, mit Anmeldung über Name und Zugangscode, langfristigem Fortschritt, Avatar, Truhen, echten Belohnungen und Bosskämpfen im Klassenzimmer, gern mit RPG-Gefühl. Plan und alle Entscheidungen: `docs/lernquest.md`. Gebaut auf dem langen Branch `lernquest`, jede Stufe einzeln nach `main`.
-1. Lernen (Klassen, Anmeldung, Weltkarte, Übungsformate, Erfahrung, Wochenziel, Wiederholen)
+1. Lernen (Klassen, Anmeldung, Weltkarte, Übungsformate, Erfahrung, Wochenziel, Wiederholen). Gebaut am 06.11.2026 auf `lernquest`, noch nicht auf `main`; Einzelheiten unter „Stand Stufe 1“ in `docs/lernquest.md`.
 2. Held und Beute (Avatar, Truhen, Laden)
 3. Bosskampf am Beamer
 4. Echte Belohnungen und Auswertung

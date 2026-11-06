@@ -1,0 +1,261 @@
+/* The teacher's Lernquest page in the Baukasten: editor chrome (UI font), tokens only. */
+
+.lqt-main {
+  min-height: 0;
+  overflow: auto;
+  padding: 20px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+.lqt-note,
+.lqt-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-neutral-700);
+}
+.lqt-error {
+  margin: 0;
+  color: var(--color-accent-700);
+  font-weight: 600;
+}
+.lqt-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.lqt-tabs small {
+  margin-left: 6px;
+  color: var(--color-neutral-600);
+}
+.lqt-new {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+.lqt-new .input {
+  width: 240px;
+}
+.lqt-card {
+  background: var(--color-neutral-100);
+  border-radius: 18px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lqt-card h2,
+.lqt-card h3 {
+  font-family: var(--font-ui);
+}
+.lqt-card h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.lqt-card h3 {
+  font-size: 14px;
+  margin: 0 0 6px;
+}
+.lqt-head {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.lqt-head > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 320px;
+}
+.lqt-head a {
+  color: var(--color-accent-700);
+  word-break: break-all;
+}
+.lqt-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lqt-code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 1px;
+}
+.lqt-table td {
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+.lqt-inline {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.lqt-table small {
+  color: var(--color-neutral-600);
+}
+.lqt-table tr.is-locked th {
+  color: var(--color-accent-700);
+}
+.lqt-table tr.is-deleted {
+  color: var(--color-neutral-600);
+}
+.lqt-row-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.lqt-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.lqt-row > span {
+  flex: 1;
+}
+.lqt-add {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: 520px;
+}
+.lqt-filter {
+  display: flex;
+  gap: 8px;
+}
+.lqt-filter .input {
+  width: auto;
+}
+.lqt-module ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lqt-lesson {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 40px;
+}
+.lqt-lesson:hover {
+  background: color-mix(in srgb, var(--color-text) 6%, transparent);
+}
+.lqt-lesson input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-accent);
+}
+.lqt-lesson small {
+  margin-left: auto;
+  color: var(--color-neutral-600);
+  white-space: nowrap;
+}
+.lqt-lesson.is-empty {
+  color: var(--color-neutral-600);
+  cursor: default;
+}
+
+@media (max-width: 720px) {
+  .lqt-main {
+    padding: 14px 12px 60px;
+  }
+  .lqt-new {
+    margin-left: 0;
+    width: 100%;
+  }
+  .lqt-new .input {
+    flex: 1;
+    width: auto;
+  }
+}
+
+/* — Cards to print: 2 × 4 per A4 page — */
+
+.lqt-print-pages {
+  min-height: 0;
+  overflow: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.lqt-sheet {
+  width: 210mm;
+  height: 297mm;
+  padding: 12mm;
+  background: #fff;
+  color: #000;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 0;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--color-text) 18%, transparent);
+  font-family: var(--font-ui);
+  flex: none;
+}
+.lqt-pincard {
+  display: flex;
+  gap: 5mm;
+  align-items: center;
+  padding: 5mm;
+  border: 0.3mm dashed var(--color-neutral-500);
+  margin: -0.15mm;
+}
+.lqt-pincard-qr svg {
+  width: 32mm;
+  height: 32mm;
+  display: block;
+}
+.lqt-pincard-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2mm;
+  font-size: 10.5pt;
+  min-width: 0;
+}
+.lqt-pincard-title {
+  font-size: 14pt;
+}
+.lqt-pincard-name {
+  font-size: 13pt;
+  font-weight: 700;
+}
+.lqt-pincard-pin {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 15pt;
+  letter-spacing: 1.5mm;
+}
+
+@media print {
+  .lqt-print-app,
+  .lqt-print-pages {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    background: none !important;
+  }
+  .lqt-sheet {
+    box-shadow: none;
+    break-after: page;
+  }
+  .lqt-sheet:last-child {
+    break-after: auto;
+  }
+}
