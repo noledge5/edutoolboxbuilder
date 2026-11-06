@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BOSSE, FORMEN } from '../boss';
 import { loadLehrkraft } from '../lehrkraft';
-import { BOSS_HERZEN, BOSS_ZEIT_MS } from '../rules';
+import { BOSS_HERZEN, BOSS_ZEIT_MS, PUNKTE_BOSS } from '../rules';
 import { bossAntworten, bossBeamer, bossBeenden, bossStand, bossWeiter, LqError, lqText, type BossBeamerStand, type BossKindStand, type BossStand } from '../server';
 import { ton } from './ton';
 import { Rich } from './Uebungen';
@@ -323,8 +323,8 @@ export function BossBeamer({ id }: { id: string }) {
                   {s.sieg
                     ? s.truhen
                       ? s.truhen === 1
-                        ? 'Eine Truhe ist verteilt – sie wartet beim Helden.'
-                        : `${s.truhen} Truhen sind verteilt – sie warten beim Helden.`
+                        ? `Eine Truhe und ${PUNKTE_BOSS} Klassenpunkte sind verteilt – sie warten beim Helden.`
+                        : `${s.truhen} Truhen und je ${PUNKTE_BOSS} Klassenpunkte sind verteilt – sie warten beim Helden.`
                       : 'Diesen Boss habt ihr schon besiegt: keine neue Truhe, aber gut geübt!'
                     : 'Übt die Stationen der Region und fordert ihn noch einmal heraus.'}
                 </p>
@@ -501,7 +501,7 @@ export function BossKind({ token, id, klasse, onFertig, onTruhe, fail }: KindPro
         <div className="lq-boss-mitte">
           <BossBild boss={s.boss} size={200} gefallen={!!s.sieg} />
           <p className="lq-meldung">
-            {s.sieg ? (s.truhe ? 'Ihr habt ihn besiegt! Eine Truhe wartet beim Helden.' : 'Ihr habt ihn besiegt!') : 'Übt die Stationen der Region – dann klappt es beim nächsten Mal.'}
+            {s.sieg ? (s.truhe ? `Ihr habt ihn besiegt! Eine Truhe und ${PUNKTE_BOSS} Klassenpunkte warten beim Helden.` : 'Ihr habt ihn besiegt!') : 'Übt die Stationen der Region – dann klappt es beim nächsten Mal.'}
           </p>
         </div>
       )}

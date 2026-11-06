@@ -1,7 +1,7 @@
 // Lernquest on the server (Supabase, Frankfurt): only database functions (RPC), no direct table access, like the
 // handouts. Children prove themselves with a session token, the teacher with the teacher keys of the device.
 // The SQL is in supabase/migrations/20261106_lernquest.sql, 20261106b_lernquest_held.sql (Stufe 2) and
-// 20261107_lernquest_boss.sql (Stufe 3).
+// 20261107_lernquest_boss.sql (Stufe 3) and 20261108_lernquest_belohnungen.sql (Stufe 4).
 import { SERVER } from '../share/server';
 import type { BossFrage } from './boss';
 import type { Avatar } from './teile';
@@ -9,7 +9,8 @@ import { LEERER_STAND, type Stand } from './types';
 
 /**
  * A refusal of the server: 'code' (class or child unknown), 'pin', 'gesperrt', 'sitzung', 'zugang', 'voll',
- * 'ungueltig', 'muenzen' (not enough coins in the shop), 'leer' (a boss fight nobody joined yet).
+ * 'ungueltig', 'muenzen' (not enough coins in the shop), 'leer' (a boss fight nobody joined yet), 'punkte' (not enough
+ * class points for a voucher), 'grenze' (a weekly limit is reached).
  */
 export class LqError extends Error {
   constructor(public code: string) {
@@ -55,6 +56,8 @@ export function lqText(e: unknown): string {
     ungueltig: 'Das hat der Server nicht angenommen.',
     muenzen: 'Dafür reichen deine Münzen noch nicht.',
     leer: 'Noch ist niemand beigetreten.',
+    punkte: 'Dafür reichen deine Klassenpunkte noch nicht.',
+    grenze: 'Für diese Woche ist die Grenze erreicht.',
   };
   return texts[code] ?? `Der Server antwortet nicht wie erwartet (${code || String(e)}).`;
 }
@@ -107,10 +110,11 @@ export async function meinStand(token: string, seit: string | null): Promise<Mei
 const voll = (s: Partial<Stand> | null | undefined): Stand => ({ ...LEERER_STAND, ...s });
 
 export interface RundeErgebnis {
-  /** Experience, coins and chests this round earned. */
+  /** Experience, coins, chests and class points this round earned. */
   plus: number;
   muenzenPlus: number;
   truhenPlus: number;
+  punktePlus: number;
   stand: Stand;
 }
 
@@ -123,7 +127,7 @@ export async function rundeMelden(token: string, stunde: string, runde: number, 
     p_gesamt: gesamt,
     p_leitner: leitner,
   });
-  return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, stand: voll(r.stand) };
+  return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, stand: voll(r.stand) };
 }
 
 export interface TruheInhalt {
@@ -229,6 +233,68 @@ export const bossBeamer = (keys: string[], boss: string) => lq<BossBeamerStand>(
 export const bossWeiter = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_weiter', { p_schluessel: keys, p_boss: boss });
 export const bossBeenden = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_beenden', { p_schluessel: keys, p_boss: boss });
 
+// — Echte Belohnungen (Stufe 4) —
+
+export type AnfrageZustand = 'offen' | 'eingeloest' | 'abgelehnt' | 'zurueck';
+
+/** What the child sees: own class points, the class's active vouchers with this week's counts, own requests (14 days). */
+export interface Gutscheine {
+  punkte: number;
+  gutscheine: { id: string; name: string; preis: number; jeKind: number | null; jeKlasse: number | null; ich: number; klasse: number }[];
+  anfragen: { id: string; name: string; preis: number; zustand: AnfrageZustand; erstellt: string; erledigt: string | null }[];
+}
+
+export const gutscheine = (token: string) => lq<Gutscheine>('lq_gutscheine', { p_token: token });
+/** Asks for a voucher and sets its points aside; refusals 'punkte', 'grenze', 'voll', 'ungueltig'. */
+export const anfragen = (token: string, gutschein: string) => lq<Gutscheine>('lq_anfragen', { p_token: token, p_gutschein: gutschein });
+/** Takes back an own open request; the points come back. */
+export const anfrageZurueck = (token: string, anfrage: string) => lq<Gutscheine>('lq_anfrage_zurueck', { p_token: token, p_anfrage: anfrage });
+
+export interface GutscheinInfo {
+  id: string;
+  name: string;
+  preis: number;
+  jeKind: number | null;
+  jeKlasse: number | null;
+  aktiv: boolean;
+  /** Open and redeemed requests this week. */
+  woche: number;
+}
+
+export interface AnfrageInfo {
+  id: string;
+  gutschein: string;
+  /** Voucher name and child id (the name comes from the class list). */
+  name: string;
+  kind: string;
+  preis: number;
+  zustand: AnfrageZustand;
+  erstellt: string;
+  erledigt: string | null;
+}
+
+/** The class's vouchers and its requests (open ones and those of the last 30 days). */
+export const belohnungen = (keys: string[], klasse: string) => lq<{ gutscheine: GutscheinInfo[]; anfragen: AnfrageInfo[] }>('lq_belohnungen', { p_schluessel: keys, p_klasse: klasse });
+/** New voucher (`id` null) or changed one; limits null = none. */
+export const gutscheinSpeichern = (keys: string[], klasse: string, id: string | null, g: Pick<GutscheinInfo, 'name' | 'preis' | 'jeKind' | 'jeKlasse' | 'aktiv'>) =>
+  lq<string>('lq_gutschein_speichern', {
+    p_schluessel: keys,
+    p_klasse: klasse,
+    p_id: id,
+    p_name: g.name,
+    p_preis: g.preis,
+    p_je_kind: g.jeKind,
+    p_je_klasse: g.jeKlasse,
+    p_aktiv: g.aktiv,
+  });
+/** Deletes a voucher; open requests give their points back. */
+export const gutscheinLoeschen = (keys: string[], gutschein: string) => lq<null>('lq_gutschein_loeschen', { p_schluessel: keys, p_gutschein: gutschein });
+/** Redeemed (points used) or refused (points back). 'ungueltig' when it is no longer open. */
+export const anfrageErledigen = (keys: string[], anfrage: string, eingeloest: boolean) =>
+  lq<null>('lq_anfrage_erledigen', { p_schluessel: keys, p_anfrage: anfrage, p_eingeloest: eingeloest });
+/** 1–5 class points by hand, at most `PUNKTE_HAND_WOCHE` per child and week ('grenze'); returns the child's points. */
+export const punkteGeben = (keys: string[], kind: string, punkte: number) => lq<number>('lq_punkte_geben', { p_schluessel: keys, p_kind: kind, p_punkte: punkte });
+
 // — Teacher —
 
 export interface KindInfo {
@@ -240,6 +306,10 @@ export interface KindInfo {
   xp: number;
   bestwerte: Record<string, number[]>;
   tage: string[];
+  /** Stufe 4: review cards (for progress per competence), class points, points given by hand this week. */
+  leitner?: Stand['leitner'];
+  klassenpunkte?: number;
+  punkteHand?: number;
 }
 
 export interface KlasseInfo {
@@ -250,6 +320,8 @@ export interface KlasseInfo {
   /** Unlocked lessons. */
   stunden: string[];
   kinder: KindInfo[];
+  /** Stufe 4: open voucher requests. */
+  anfragen?: number;
 }
 
 export const klassen = (keys: string[]) => lq<KlasseInfo[]>('lq_klassen', { p_schluessel: keys });

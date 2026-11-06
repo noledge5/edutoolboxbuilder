@@ -85,6 +85,8 @@ export interface Stand {
   inventar: string[];
   /** What is worn: part id per place ('' = nothing) and the skin tone. */
   avatar: Partial<Record<'kopf' | 'augen' | 'kleidung' | 'werkzeug' | 'begleiter' | 'hintergrund', string>> & { haut?: number };
+  /** Stufe 4: points for real rewards in class (not the coins); points of open requests are set aside already. */
+  klassenpunkte: number;
 }
 
-export const LEERER_STAND: Stand = { xp: 0, xpHeute: 0, bestwerte: {}, tage: [], leitner: {}, muenzen: 0, muenzenHeute: 0, truhen: 0, pech: 0, inventar: [], avatar: {} };
+export const LEERER_STAND: Stand = { xp: 0, xpHeute: 0, bestwerte: {}, tage: [], leitner: {}, muenzen: 0, muenzenHeute: 0, truhen: 0, pech: 0, inventar: [], avatar: {}, klassenpunkte: 0 };

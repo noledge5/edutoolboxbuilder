@@ -1,38 +1,31 @@
-# Handoff – 06.11.2026 (Abend)
+# Handoff – 06.11.2026 (spät)
 
 ## Ziel
-Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Stufe 3 „Bosskampf“ ist fertig und auf Wunsch der
-Lehrkraft nach `main` gebracht (PR „Lernquest Stufe 3: Bosskampf am Beamer“, Merge = veröffentlichen). Nächstes
-Thema: Stufe 4 „Echte Belohnungen und Auswertung“ (`docs/lernquest.md`, „Stufen“).
+Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Stufe 4 „Echte Belohnungen und Auswertung“ ist fertig und
+auf Wunsch der Lehrkraft nach `main` gebracht (PR „Lernquest Stufe 4“, Merge = veröffentlichen). Nächstes Thema:
+Stufe 5 „KI-Fragenpool und mehr Formate“.
 
 ## Stand
-- **Live seit 06.11.2026:** Stufe 1, Stufe 2 „Held und Beute“ (PR #23) und Stufe 3 „Bosskampf“ (PR nach #23). https://noledge5.github.io/edutoolboxbuilder/lernquest/, Lehrkraft-Bereich im
-  Baukasten unter Übersicht → „Lernquest“.
-- **Stufe 3 Bosskampf** (Einzelheiten in `docs/lernquest.md`, „Stufe 3“):
-  - Server: `supabase/migrations/20261107_lernquest_boss.sql`, eingespielt als `lernquest_stufe3_boss`. Vorher lokal in
-    einer Wegwerf-Postgres-Datenbank mit 44 Prüfungen durchgespielt (Rechte, Zeit, Schaden, Herzen, Sieg, Truhe einmal
-    je Region, Ablauf nach 3 h). Supabase-Sicherheitsprüfung: nur die gewollt öffentlichen Funktionen.
-  - Browser: Regeln und Fragen in `rules.ts` und `boss.ts` (Tests in `boss.test.ts`), Aufrufe in `server.ts`,
-    Beamer und Handy in `app/Boss.tsx`, Start im Baukasten in `teacher/LernquestView.tsx` („Bosskampf am Beamer“).
-  - Hinweis „Nochmal“ nach 10 s Laden ist jetzt da (erstes Laden, Beamer, Handy im Kampf).
-- Tests: Typprüfung, 293 Tests und Build grün. Live-Test (`LQ_LIVE=1`) mit neuem Bosskampf-Test grün. Testlauf
-  (`npm run lq:testlauf`) lokal gegen den echten Server zweimal hintereinander grün: spielt jetzt auch einen Bosskampf
-  mit Beamer (1440 × 810) und Handy bis zum Sieg und prüft die Truhe.
+- **Live:** Stufen 1–4. Lehrkraft-Bereich im Baukasten unter Übersicht → „Lernquest“.
+- **Stufe 4** (Entscheidungen und Stand in `docs/lernquest.md`, „Stufe 4“):
+  - Server: `supabase/migrations/20261108_lernquest_belohnungen.sql`, von der Lehrkraft im SQL Editor eingespielt
+    (die Bestätigung des Supabase-Werkzeugs kam dreimal nicht an). Geprüft über die öffentlichen Funktionen.
+  - Klassenpunkte je Kind: Wochenziel 3, Bosssieg 2 (einmal je Region), von Hand höchstens 5 je Woche.
+    Gutscheine je Klasse mit Preis, Grenze je Kind und je Klasse pro Woche; Anfrage legt Punkte zurück.
+  - Auswertung je Kompetenz aus den Wiederhol-Kästen (sitzt ab Kasten 3), Zuordnung nur im Browser der Lehrkraft.
+- Tests: Typprüfung, 298 Tests, Build, CI grün. Lokale SQL-Prüfung (76), Live-Test (`LQ_LIVE=1`, 4 Tests) und
+  Testlauf (`npm run lq:testlauf`, jetzt mit Gutschein anfragen und einlösen) grün. Lehrkraft-Seite mit einer
+  Wegwerf-Klasse im Browser angesehen (Laptop und iPad).
 
 ## Nächste Schritte
-1. Gleich nach dem Merge hat die Sitzung `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run
-   lq:testlauf` gegen die Live-Seite laufen lassen; das Ergebnis steht im Chat der Lehrkraft. Wenn unklar: einmal
-   wiederholen (dauert ~1 min, hinterlässt nichts auf dem Server).
-2. Nicht geprüft: die neue Karte „Bosskampf am Beamer“ auf der Lehrkraft-Seite im Browser (nur Typprüfung und Build);
-   ein echter Kampf mit vielen Geräten gleichzeitig.
-3. Stufe 4 planen (Gutscheine je Klasse mit „Klassenpunkten“, Anfragen, Abhaken, Grenzen je Woche; Fortschritt je
-   Kind und Kompetenz). Braucht wieder eine Server-Änderung: vorher ankündigen und freigeben lassen.
-4. Offen: „+Schaden“ als Ausrüstungs-Bonus (Katalog-Änderung, eigener Schritt).
+1. Nach dem Deploy `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run lq:testlauf` (Ergebnis steht
+   im Chat der Lehrkraft).
+2. Nicht geprüft: Gutscheine mit vielen Kindern gleichzeitig; „Punkte geben“ fragt mit `window.prompt` (am iPad
+   ansehen).
+3. Offen: „+Schaden“ als Ausrüstungs-Bonus (Katalog-Änderung, eigener Schritt).
+4. Stufe 5 planen (KI-Fragenpool je Stunde mit Prüfen/Freigeben; Karte/Bild-Punkte, Sortieren, Vorlesen).
 
 ## Wichtig zu wissen
-- `main` = veröffentlichen. Arbeits-Branch der Sitzung nutzen, PR und Merge nur auf Wunsch.
-- Bosskampf-Regeln doppelt (TS + SQL): 20 s je Frage (+1,5 s Nachfrist), Schaden 10 + bis 10 fürs Tempo, ab 3 in
-  Folge doppelt, 13 Lebenspunkte je Kind und Frage, 5 Herzen.
-- Der Beamer liest die Lehrkraft-Schlüssel aus dem Speicher des Geräts: Er muss im selben Browser laufen wie der
-  Baukasten.
+- `main` = veröffentlichen. Arbeits-Branch nutzen, PR und Merge nur auf Wunsch.
+- Belohnungsregeln doppelt (TS + SQL): `rules.ts` und `lq_runde_melden`, `lq_boss_ticken`, `lq_anfragen`.
 - Die `lq_*`-Tabellen nie direkt lesen (echte Kindernamen); nur über die Server-Funktionen mit Wegwerf-Schlüssel.

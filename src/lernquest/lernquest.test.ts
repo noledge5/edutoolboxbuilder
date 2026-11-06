@@ -4,7 +4,9 @@ import { angelegt, bonusText, bonusVon, CHANCEN, TEILE } from './teile';
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, muenzenFuerRunde, XP_TAG } from './rules';
+import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, muenzenFuerRunde, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
+import { auswerten, kartenJeKompetenz } from './auswertung';
+import type { Lesson, Module } from '../library/types';
 import { codeAus, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
 import { LEERER_STAND, type Paket, type Uebung } from './types';
 
@@ -287,5 +289,80 @@ describe('Weltkarte', () => {
     expect(codeAus('https://example.com')).toBe('');
     expect(vorname('Mia K.')).toBe('Mia');
     expect(namensFarbe('Mia K.')).toBe(namensFarbe('Mia K.'));
+  });
+});
+
+describe('Echte Belohnungen (Stufe 4)', () => {
+  it('gibt fürs Wochenziel 3 Klassenpunkte, einmal je Woche', () => {
+    const s0 = { ...LEERER_STAND, tage: ['2026-11-02', '2026-11-03'] };
+    const r = rundeAnwenden(s0, { stunde: '', runde: 0, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-04');
+    expect(r.punktePlus).toBe(PUNKTE_WOCHENZIEL);
+    expect(r.stand.klassenpunkte).toBe(3);
+    expect(rundeAnwenden(r.stand, { stunde: '', runde: 0, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-05').punktePlus).toBe(0);
+    expect(rundeAnwenden(r.stand, { stunde: '', runde: 0, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-04').punktePlus).toBe(0);
+    // An older Stand without class points counts from 0.
+    const alt = { ...s0 } as Partial<typeof s0>;
+    delete alt.klassenpunkte;
+    expect(rundeAnwenden(alt as typeof s0, { stunde: '', runde: 0, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-04').stand.klassenpunkte).toBe(3);
+  });
+
+  it('prüft Gutscheine wie der Server: Punkte, Grenze je Kind, Grenze der Klasse, offene Anfragen', () => {
+    const g = { preis: 5, jeKind: 1, jeKlasse: 3, ich: 0, klasse: 0 };
+    expect(gutscheinFrei(g, 4, 0)).toBe('punkte');
+    expect(gutscheinFrei(g, 5, 0)).toBe('ok');
+    expect(gutscheinFrei({ ...g, ich: 1 }, 5, 0)).toBe('grenze');
+    expect(gutscheinFrei({ ...g, klasse: 3 }, 5, 0)).toBe('grenze');
+    expect(gutscheinFrei({ ...g, jeKind: null, jeKlasse: null, ich: 9, klasse: 99 }, 5, 0)).toBe('ok');
+    expect(gutscheinFrei(g, 5, 10)).toBe('voll');
+    expect(punkteHandRest(3)).toBe(2);
+    expect(punkteHandRest(7)).toBe(0);
+  });
+});
+
+describe('Auswertung je Kind und Kompetenz', () => {
+  const m = {
+    id: 'm1',
+    competences: [
+      { id: 'k1', area: 'Karten lesen', g: '', m: '', e: '', lessons: '', domain: '' },
+      { id: 'k2', area: 'Klima erklären', g: '', m: '', e: '', lessons: '', domain: '' },
+      { id: 'k3', area: 'Ohne Aufgaben', g: '', m: '', e: '', lessons: '', domain: '' },
+    ],
+  } as unknown as Module;
+  const a = block('mc', { options: 'A\n*B', competence: 'k1' });
+  const b = block('truefalse', { items: 'Erde ist rund | R\nMond ist Käse | F', competence: 'k1' });
+  const c = block('mc', { options: '*A\nB', competence: 'k2' });
+  const d = block('mc', { options: '*A\nB' });
+  const l = { id: 'l1', moduleId: 'm1', doc: { pages: [page([a, b, c, d])] } } as unknown as Lesson;
+  const keys = (blockId: string) => exercisesOf(l.doc.pages).filter((u) => u.id === blockId || u.id.startsWith(`${blockId}:`)).map((u) => `l1/${u.id}`);
+
+  it('ordnet Übungen über die Aufgabe einer Kompetenz zu', () => {
+    const { je, ohne } = kartenJeKompetenz([l]);
+    expect(je.get('k1')).toEqual([...keys(a.id), ...keys(b.id)]);
+    expect(je.get('k2')).toEqual(keys(c.id));
+    expect(ohne).toBe(keys(d.id).length);
+  });
+
+  it('zeigt je Kind, was sitzt, was wackelt und wer Hilfe braucht', () => {
+    const k1 = [...keys(a.id), ...keys(b.id)];
+    const leitner = Object.fromEntries(k1.map((k, i) => [k, [i === 0 ? 1 : 3, 0] as [number, number]]));
+    const r = auswerten(m, [l], [
+      { id: 'anna', leitner },
+      { id: 'ben', leitner: { [k1[0]]: [1, 0] } },
+      { id: 'cem', leitner: {} },
+    ]);
+    expect(r.zeilen.map((z) => z.id)).toEqual(['k1', 'k2']);
+    const z = r.zeilen[0];
+    expect(z.kinder.anna).toMatchObject({ aufgaben: k1.length, geuebt: k1.length, sitzt: k1.length - 1, wackelt: 1, hilfe: false });
+    expect(z.kinder.ben).toMatchObject({ geuebt: 1, sitzt: 0, anteil: 0, hilfe: true });
+    expect(z.kinder.cem).toMatchObject({ geuebt: 0, anteil: null, hilfe: false });
+    expect(z.anteil).toBeCloseTo((k1.length - 1) / k1.length / 2);
+    expect(r.zeilen[1].anteil).toBeNull();
+    expect(r.ohneKompetenz).toBe(keys(d.id).length);
+  });
+
+  it('zählt Links auf gelöschte Kompetenzen und andere Module nicht mit', () => {
+    const fremd = { ...m, competences: m.competences.filter((x) => x.id !== 'k2') } as Module;
+    expect(auswerten(fremd, [l], []).ohneKompetenz).toBe(keys(d.id).length + keys(c.id).length);
+    expect(auswerten(m, [{ ...l, moduleId: 'm2' } as Lesson], []).zeilen).toEqual([]);
   });
 });

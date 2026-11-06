@@ -7,6 +7,14 @@ import { bossLp, bossSchaden, muenzenFuerRunde } from './rules';
 import type { BossFrage } from './boss';
 import { TEILE, teil } from './teile';
 import {
+  anfrageErledigen,
+  anfrageZurueck,
+  anfragen,
+  belohnungen,
+  gutscheinLoeschen,
+  gutscheinSpeichern,
+  gutscheine,
+  punkteGeben,
   anmelden,
   avatarSetzen,
   bossAntworten,
@@ -288,5 +296,81 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     await bossStand(m.token, id2);
     expect((await bossBeenden(keyE, id2)).phase).toBe('ende');
     expect(await bossOffen(m.token)).toBeNull();
+  }, 60_000);
+  it('Stufe 4: Klassenpunkte, Gutscheine, Grenzen, Anfragen abhaken', async () => {
+    const keyG = [newKey()];
+    const keyH = [newKey()];
+    const g = await klasseAnlegen(keyG, 'Belohnung G');
+    made.push({ keys: keyG, id: g.id });
+    const h = await klasseAnlegen(keyH, 'Belohnung H');
+    made.push({ keys: keyH, id: h.id });
+    const ida = await kindAnlegen(keyG, g.id, 'Ida T.', '1111');
+    const jan = await kindAnlegen(keyG, g.id, 'Jan T.', '2222');
+    const kai = await kindAnlegen(keyH, h.id, 'Kai T.', '3333');
+    const login = async (code: string, kind: string, pin: string) => {
+      const r = await anmelden(code, kind, pin);
+      if (!r.ok) throw new Error('Anmeldung fehlgeschlagen');
+      return r.token;
+    };
+    const ti = await login(g.code, ida, '1111');
+    const tj = await login(g.code, jan, '2222');
+    const tk = await login(h.code, kai, '3333');
+
+    // Vouchers belong to the class of the teacher key.
+    const gs = await gutscheinSpeichern(keyG, g.id, null, { name: 'Sitzplatz', preis: 2, jeKind: 1, jeKlasse: 1, aktiv: true });
+    expect(await code(gutscheinSpeichern(keyH, g.id, null, { name: 'X', preis: 1, jeKind: null, jeKlasse: null, aktiv: true }))).toBe('zugang');
+    expect(await code(gutscheinLoeschen(keyH, gs))).toBe('zugang');
+    expect(await code(belohnungen(keyH, g.id))).toBe('zugang');
+    expect((await gutscheine(tk)).gutscheine).toEqual([]);
+    expect(await code(anfragen(tk, gs))).toBe('ungueltig');
+
+    // Points by hand: own children only, at most 5 a week.
+    expect(await code(anfragen(ti, gs))).toBe('punkte');
+    expect(await code(punkteGeben(keyH, ida, 1))).toBe('zugang');
+    expect(await punkteGeben(keyG, ida, 3)).toBe(3);
+    expect(await code(punkteGeben(keyG, ida, 3))).toBe('grenze');
+    expect(await punkteGeben(keyG, jan, 5)).toBe(5);
+    expect((await klassen(keyG))[0].kinder.find((k) => k.id === ida)).toMatchObject({ klassenpunkte: 3, punkteHand: 3, leitner: {} });
+
+    // Asking sets the points aside; limits per child and for the class.
+    const nachIda = await anfragen(ti, gs);
+    expect(nachIda.punkte).toBe(1);
+    expect(nachIda.gutscheine[0]).toMatchObject({ ich: 1, klasse: 1 });
+    expect((await meinStand(ti, null)).stand.klassenpunkte).toBe(1);
+    expect(await code(anfragen(tj, gs))).toBe('grenze');
+    expect((await klassen(keyG))[0].anfragen).toBe(1);
+
+    // Taking back gives the points back and frees the class limit; another child cannot take it back.
+    const offen = nachIda.anfragen[0];
+    expect(await code(anfrageZurueck(tj, offen.id))).toBe('ungueltig');
+    expect((await anfrageZurueck(ti, offen.id)).punkte).toBe(3);
+    const nachJan = await anfragen(tj, gs);
+    expect(nachJan.punkte).toBe(3);
+
+    // The teacher ticks off: refused gives back, redeemed uses up, twice is refused.
+    const liste = await belohnungen(keyG, g.id);
+    const jansAnfrage = liste.anfragen.find((a) => a.kind === jan && a.zustand === 'offen');
+    expect(jansAnfrage).toBeDefined();
+    expect(await code(anfrageErledigen(keyH, jansAnfrage!.id, true))).toBe('zugang');
+    await anfrageErledigen(keyG, jansAnfrage!.id, false);
+    expect((await gutscheine(tj)).punkte).toBe(5);
+    expect(await code(anfrageErledigen(keyG, jansAnfrage!.id, true))).toBe('ungueltig');
+    const zweite = (await anfragen(tj, gs)).anfragen.find((a) => a.zustand === 'offen')!;
+    await anfrageErledigen(keyG, zweite.id, true);
+    const jetzt = await gutscheine(tj);
+    expect(jetzt.punkte).toBe(3);
+    expect(jetzt.anfragen.map((a) => a.zustand)).toEqual(['eingeloest', 'abgelehnt']);
+    // Redeemed still counts for this week's limit.
+    expect(await code(anfragen(tj, gs))).toBe('grenze');
+
+    // Off: hidden and not askable; deleting gives open requests back.
+    const joker = await gutscheinSpeichern(keyG, g.id, null, { name: 'Joker', preis: 1, jeKind: null, jeKlasse: null, aktiv: true });
+    expect((await anfragen(ti, joker)).punkte).toBe(2);
+    await gutscheinSpeichern(keyG, g.id, joker, { name: 'Joker', preis: 1, jeKind: null, jeKlasse: null, aktiv: false });
+    expect((await gutscheine(ti)).gutscheine.map((x) => x.name)).toEqual(['Sitzplatz']);
+    expect(await code(anfragen(ti, joker))).toBe('ungueltig');
+    await gutscheinLoeschen(keyG, joker);
+    expect((await gutscheine(ti)).punkte).toBe(3);
+    expect((await belohnungen(keyG, g.id)).gutscheine.map((x) => x.name)).toEqual(['Sitzplatz']);
   }, 60_000);
 });

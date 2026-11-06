@@ -8,7 +8,8 @@
 //   4. takes screenshots (phone, iPad, laptop) and fails on any script error in the page;
 //   5. fights a boss (Stufe 3): the projector (1440 × 810, teacher key put into this browser) and the child's phone,
 //      every answer right until the boss falls; checks the chest on the server;
-//   6. deletes the class for good.
+//   6. Stufe 4: checks the class points of the win, asks for a voucher on the phone, redeems it as the teacher;
+//   7. deletes the class for good.
 // Only runs with LQ_TESTLAUF=1. LQ_URL=<…/lernquest/> plays the live site instead of the local build; LQ_BILDER=<dir>
 // sets where the screenshots go (default: the temp folder, never the repo). Playwright is not a dependency of the
 // project: it is used from the machine (preinstalled in Claude's cloud sessions).
@@ -18,9 +19,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { newKey } from './lehrkraft';
-import { bossBeamer, bossStarten, freischalten, kindAnlegen, klasseAnlegen, klasseEndgueltig, klasseLoeschen, klassen, meinStand } from './server';
+import { anfrageErledigen, belohnungen, bossBeamer, bossStarten, freischalten, gutscheinSpeichern, kindAnlegen, klasseAnlegen, klasseEndgueltig, klasseLoeschen, klassen, meinStand } from './server';
 import { bossFragen } from './boss';
-import { muenzenFuerRunde, xpFuerRunde } from './rules';
+import { muenzenFuerRunde, PUNKTE_BOSS, xpFuerRunde } from './rules';
 import { TEILE } from './teile';
 import { PAKET_FORMAT, type Paket, type Uebung } from './types';
 
@@ -329,6 +330,29 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
       expect(bossEnde).toMatchObject({ phase: 'ende', sieg: true, truhen: 1 });
       expect((await meinStand(token, null)).stand.truhen).toBe(1);
       await handy.getByRole('button', { name: exact('Truhe öffnen') }).first().waitFor({ timeout: 10_000 });
+
+      // 6. Stufe 4: the win brought class points; a voucher asked for on the phone, redeemed by the teacher.
+      expect((await meinStand(token, null)).stand.klassenpunkte).toBe(PUNKTE_BOSS);
+      await gutscheinSpeichern(keys, klasse, null, { name: 'Testlauf-Gutschein', preis: PUNKTE_BOSS, jeKind: 1, jeKlasse: null, aktiv: true });
+      const zuGutscheinen = async () => {
+        await handy.goto(url);
+        await handy.locator('.lq-leiste button').filter({ hasText: 'Held' }).first().click();
+        await handy.getByRole('button', { name: exact('Gutscheine') }).first().click();
+        await handy.locator('.lq-gutschein').first().waitFor({ timeout: 15_000 });
+      };
+      await zuGutscheinen();
+      await handy.screenshot({ path: join(BILDER, 'gutschein-1-liste.png') });
+      await handy.locator('.lq-gutschein').first().click();
+      await handy.getByRole('button', { name: /^Testlauf-Gutschein anfragen/ }).first().click();
+      await handy.locator('.lq-anfrage.offen').first().waitFor({ timeout: 15_000 });
+      await handy.screenshot({ path: join(BILDER, 'gutschein-2-angefragt.png') });
+      const offen = (await belohnungen(keys, klasse)).anfragen.filter((a) => a.zustand === 'offen');
+      expect(offen).toHaveLength(1);
+      expect((await meinStand(token, null)).stand.klassenpunkte).toBe(0);
+      await anfrageErledigen(keys, offen[0].id, true);
+      await zuGutscheinen();
+      await handy.locator('.lq-anfrage.eingeloest').first().waitFor({ timeout: 15_000 });
+      await handy.screenshot({ path: join(BILDER, 'gutschein-3-eingeloest.png') });
       await handyCtx.close();
       await beamerCtx.close();
     } finally {

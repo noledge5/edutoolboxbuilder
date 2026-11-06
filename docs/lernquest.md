@@ -21,7 +21,7 @@ dieses Dokuments ist der Plan vor dem Bau.
 | Designregeln | Tokens für Farbe, Schrift, Abstände; feste Zustände, Bewegung, Kontrast nach WCAG AA, Layout für Handy/iPad/Laptop und Avatar-Stil in `docs/design/lernquest/README.md` (Designrunde 06.11.2026, Empfehlungen von Claude, von der Lehrkraft so freigegeben). | Einheitlicher, professioneller Look vor dem Bau von Stufe 2. |
 | Ausrüstung | Kleine, gedeckelte Boni nur im Spiel (+Münzen, +Schaden im Bosskampf, ein Herz mehr). Nie Einfluss auf Noten oder echte Belohnungen. | RPG-Gefühl, ohne dass Sammeln wichtiger wird als Lernen. |
 | Truhen | Nur fürs Lernen (Station, Wochenziel, Boss), nie für Geld. Inhalt zufällig, Chancen sichtbar, doppelte Teile → Münzen, Garantie nach einigen Truhen ohne Seltenes. Laden für gezielte Käufe mit Münzen. | Spannung ohne Glücksspiel-Mechanik. |
-| Echte Belohnungen | Gutscheine je Klasse mit Preis (eigene Währung „Klassenpunkte“, nicht die Münzen), z. B. Sitzplatz wählen, Hausaufgaben-Joker. Kind fragt an, Lehrkraft hakt „eingelöst“ ab; Grenzen je Woche. | Echte Wirkung, Lehrkraft behält die Hand drauf. |
+| Echte Belohnungen | Gutscheine je Klasse mit Preis (eigene Währung „Klassenpunkte“, nicht die Münzen), z. B. Sitzplatz wählen, Hausaufgaben-Joker. Kind fragt an, Lehrkraft hakt „eingelöst“ ab; Grenzen je Woche. Genauer in „Stufe 4“. | Echte Wirkung, Lehrkraft behält die Hand drauf. |
 | Bosskampf | Klasse gemeinsam gegen einen Boss: Lehrkraft startet am Beamer, Kinder treten mit ihrem Konto bei, Frage am Beamer, Antwort am Gerät mit Zeitlimit; Richtig = Schaden (schneller und in Serie mehr), Falsch = Boss trifft den Klassen-Lebensbalken. Fällt der Boss, gibt es eine Truhe für alle. Keine Einzel-Rangliste. | Teamaufgabe statt Einzelquest, niemand wird bloßgestellt. |
 | Miteinander | Klassen-Ansicht mit Avataren und gemeinsamem Wochenfortschritt, ohne Rangliste und ohne Chat. | Vorschlag, keine Antwort der Lehrkraft; änderbar. |
 | Geräte | Zuerst fürs Handy (hochkant, große Knöpfe), genauso iPad und Laptop; als App auf den Home-Bildschirm legbar. | Zuhause Handy, in der Schule iPad. |
@@ -67,6 +67,21 @@ Jede Stufe ist für sich im Unterricht nutzbar und wird einzeln freigegeben.
 3. **Bosskampf:** Beamer-Ansicht, Beitritt, Fragen aus den Regionen, Schaden/Lebensbalken, Truhe für alle.
 4. **Echte Belohnungen und Auswertung:** Gutscheine, Anfragen, Abhaken, Grenzen; Fortschritt je Kind und Kompetenz.
 5. **KI-Fragenpool und mehr Formate:** Pool je Stunde mit Prüfen/Freigeben; Karte/Bild-Punkte, Sortieren, Vorlesen.
+
+## Stufe 4: Entscheidungen (06.11.2026)
+
+Fragerunde mit der Lehrkraft vor dem Bau; Zahlen sind Vorschläge von Claude und änderbar.
+- **Klassenpunkte gehören jedem Kind selbst** (keine Klassenkasse); andere Kinder sehen den Stand nicht.
+- **Verdienen:** Wochenziel erreicht (3 Punkte, einmal je Woche), Bosskampf gewonnen (2 Punkte für alle, die dabei
+  waren, einmal je Region wie die Truhe), Lehrkraft von Hand (gedeckelt, Vorschlag 5 je Kind und Woche). Nicht für
+  einzelne Stationen. Münzen bleiben getrennt und werden nie zu Klassenpunkten.
+- **Gutscheine je Klasse:** Name, Preis, an/aus und zwei Grenzen je Woche: höchstens x-mal je Kind und höchstens
+  y-mal für die ganze Klasse (leer = ohne Grenze). Vorschlagsliste zum Start.
+- **Anfragen:** Beim Anfragen werden die Punkte zurückgelegt; „Eingelöst“ verbraucht sie, „Ablehnen“ oder Zurückziehen
+  durch das Kind gibt sie zurück. Offene und eingelöste Anfragen zählen für die Grenzen.
+- **Auswertung je Kind und Kompetenz:** aus dem Wiederhol-Kasten (Leitner-Kasten 1–5 je Aufgabe), keine neuen
+  Kinderdaten. Die Zuordnung Aufgabe → Kompetenz rechnet der Browser der Lehrkraft aus dem Modul; sie geht nicht an
+  den Server.
 
 ## Erfolgskriterien Stufe 1
 
@@ -132,6 +147,17 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
 - **Lädt:** Dauert das erste Laden oder der Beamer länger als 10 s, steht „Nochmal“ da (Designregel „Lädt“).
 - **Noch nicht:** Vorlesen, Ton-Dateien, App-Hülle offline (Daten sind offline da, die Seite selbst braucht beim
   ersten Öffnen Netz), Bild-Aufgaben (Bildvokabeln, Tabelle, Wortnetz, Satzbaustellen kommen in Stufe 5).
+- **Stufe 4 „Echte Belohnungen und Auswertung“ (06.11.2026):**
+  - Server: `supabase/migrations/20261108_lernquest_belohnungen.sql` (eingespielt von der Lehrkraft im SQL Editor, weil
+    die Bestätigung der Supabase-Verbindung nicht ankam). Klassenpunkte am Kind, `lq_gutschein`, `lq_anfrage`; Punkte
+    fürs Wochenziel in `lq_runde_melden`, für den Bosssieg in `lq_boss_ticken`; erledigte Anfragen nach 90 Tagen weg.
+    Vorher lokal mit 76 Prüfungen durchgespielt; Live-Test „Stufe 4“ und Testlauf (Bosssieg → Punkte → Gutschein
+    anfragen → einlösen) grün.
+  - Regeln doppelt: `PUNKTE_WOCHENZIEL`, `PUNKTE_BOSS`, `PUNKTE_HAND_WOCHE`, `gutscheinFrei` in `rules.ts`.
+  - Kind: „Held“ → Leiste „Klassenpunkte“ → „Gutscheine“ (`app/Gutscheine.tsx`); Ticket-Zeichen in Violett, damit es
+    nicht mit den Münzen verwechselt wird.
+  - Lehrkraft: Spalte „Klassenpunkte“ mit „+“, Karte „Gutscheine und Anfragen“ (`teacher/Belohnungen.tsx`), Karte
+    „Fortschritt je Kompetenz“ (`teacher/Auswertung.tsx`, Rechnung in `auswertung.ts`: eine Übung sitzt ab Kasten 3).
 
 ## Offene Punkte
 
