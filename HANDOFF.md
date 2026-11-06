@@ -21,8 +21,8 @@ bauen. Im Moment sieht ein Kind nur den Lernweg, noch keinen Avatar, keine Münz
 - Tests: Typprüfung grün, 285 Tests grün (Live-Tests nur mit `LQ_LIVE=1` bzw. `LQ_TESTLAUF=1`).
 
 ## Nächste Schritte
-1. `server.ts`: Aufrufe für Stufe 2 (Truhe öffnen, kaufen, anlegen, Klassen-Ansicht) nach den Funktionen in
-   `20261106b_lernquest_held.sql`; Live-Test dafür ergänzen.
+1. ✅ `server.ts`: `truheOeffnen`, `kaufen`, `avatarSetzen`, `klasseAnsicht`, `rundeMelden` mit Münzen/Truhen;
+   Live-Test (`LQ_LIVE=1`) grün. Branch `claude/lernquest-stufe2`.
 2. Oberfläche nach den Designregeln und den Vorlagen `docs/design/lernquest/Held.dc.html` und `Truhe.dc.html`:
    Münzen im Kopf, Held-Seite (Avatar links, Teile-Raster rechts ab 1024 px), Truhe öffnen (höchstens 2 s,
    überspringbar), Laden, Klasse, Herzen in der Runde, Kacheln im Ergebnis. Dunkles Set `.lq-nacht` ist angelegt.

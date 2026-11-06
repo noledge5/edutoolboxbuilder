@@ -84,6 +84,10 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
 - **Server:** `supabase/migrations/20261106_lernquest.sql` (eingespielt ins Projekt „baukasten“). Tabellen `lq_klasse`,
   `lq_kind`, `lq_sitzung`, `lq_paket`; nur Funktionen `lq_*`. Aufräumen nachts per `pg_cron` (Papierkorb 30 Tage,
   gesperrte nie benutzte Konten 90 Tage, abgelaufene Sitzungen). Sitzung 180 Tage, höchstens 5 Geräte je Kind.
+  Stufe 2 in `20261106b_lernquest_held.sql` (Katalog `lq_teil`, Münzen, Truhen, Inventar, Avatar); im Browser über
+  `server.ts`: `truheOeffnen`, `kaufen` (Fehler `muenzen`, wenn es nicht reicht), `avatarSetzen` (ersetzt den ganzen
+  Avatar), `klasseAnsicht` (nur Namen, Avatare und die Lerntage der Woche); `rundeMelden` liefert auch
+  `muenzenPlus` und `truhenPlus`.
 - **Lehrkraft-Schlüssel:** mehrere möglich (je Gerät einer, bis der Abgleich sie zusammenführt). Sie liegen mit den
   zuletzt vergebenen PINs als `geraet:lernquest` und reisen verschlüsselt als Eintrag `g:lernquest` im Abgleich mit.
   Jede Lehrkraft-Funktion bekommt die Liste und erlaubt, was einem der Schlüssel gehört.
