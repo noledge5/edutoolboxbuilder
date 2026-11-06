@@ -2861,3 +2861,24 @@ button.lq-teil:active {
   background: var(--lq-primary-flaeche);
   text-align: left;
 }
+
+/* ===== Offene Übungen (#probe=…): stations and a mixed test without signing in ===== */
+.lq-probe-kopf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+  padding-top: var(--lq-a-3);
+}
+.lq-probe-kopf h1 {
+  font:
+    600 var(--lq-t-h2) Fredoka,
+    sans-serif;
+  margin: 0;
+}
+.lq-probe-kopf p {
+  margin: 0;
+  color: var(--lq-gedaempft);
+}
+.lq-probe-test .lq-knopf {
+  min-height: var(--lq-tippen-haupt);
+}
