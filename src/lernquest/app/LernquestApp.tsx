@@ -121,7 +121,7 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
       if (r.ok) return onDone({ code, kind: kind.id, name: kind.name, token: r.token });
       ton('falsch');
       setPin('');
-      setMsg(r.gesperrt ? 'Das Konto ist jetzt gesperrt. Deine Lehrkraft kann es wieder freigeben.' : `Falsche PIN. Noch ${r.rest} ${r.rest === 1 ? 'Versuch' : 'Versuche'}.`);
+      setMsg(r.gesperrt ? 'Das Konto ist gesperrt. Deine Lehrkraft kann es wieder freigeben.' : `Falsche PIN. Noch ${r.rest} ${r.rest === 1 ? 'Versuch' : 'Versuche'}.`);
     } catch (e) {
       setPin('');
       setMsg(lqText(e));
@@ -501,7 +501,6 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         {w.diese >= WOCHENZIEL && (
           <div className="lq-hinweis-gold">
             <strong>Wochenziel erreicht!</strong>
-            <span>Wochenenden und Ferien setzen nichts zurück.</span>
           </div>
         )}
         <div className="lq-platz" />
@@ -616,7 +615,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           ))}
         </nav>
       )}
-      {!pakete.length && <p className="lq-leer">Deine Lehrkraft hat noch keine Station freigeschaltet. Schau bald wieder vorbei!</p>}
+      {!pakete.length && <p className="lq-leer">Deine Lehrkraft hat noch keine Station freigeschaltet.</p>}
       {regionen.map((r) => (
         <section key={r.id} className="lq-region">
           <div className="lq-region-band">
@@ -648,7 +647,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
                 </button>
                 <span className="lq-knoten-titel">{st.titel}</span>
                 {st.zustand === 'erledigt' && <Sterne n={st.sterne} />}
-                {st.zustand === 'gesperrt' && <span className="lq-klein">Öffnet sich, sobald ihr es im Unterricht hattet.</span>}
+                {st.zustand === 'gesperrt' && <span className="lq-klein">Deine Lehrkraft schaltet die Station frei, wenn ihr das Thema hattet.</span>}
               </li>
             ))}
           </ol>
