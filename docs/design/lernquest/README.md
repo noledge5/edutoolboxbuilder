@@ -32,3 +32,9 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
   Antwortkacheln zweispaltig, alles etwas größer. Einzige Ausnahme: Bosskampf am Beamer (eigener Bildschirm).
 - **Schriftgrößen:** 7 Stufen als Tokens `--lq-fs-*`: klein 13, neben 15, text 17, knopf 20, titel-s 24, titel 30,
   zahl 44 px. Nichts unter 13 px. iPad/Laptop: alles × 1,125. Zeilenhöhe 1,4 (Text), 1,15 (Überschriften).
+- **Farb-Tokens** nach Bedeutung (Werte wie oben): `--lq-bg`, `--lq-surface`, `--lq-ink`, `--lq-muted`, `--lq-line`,
+  `--lq-primary`/`-deep`/`-soft`, `--lq-gold`/`-deep`/`-ink`, `--lq-right`/`-bg`, `--lq-wrong`/`-bg`, `--lq-night`,
+  `--lq-rarity-0…4`. Keine Farbwerte mehr direkt im CSS; `#77729a` entfällt (zu wenig Kontrast) → `--lq-muted`.
+- **Seltenheitsfarben:** Gewöhnlich `#6E6990`, Ungewöhnlich `#0A6F78` (Türkis, nicht das Richtig-Grün), Selten
+  `#2459B8`, Episch `#A3218F` (Magenta, nicht das Knopf-Violett), Legendär `#8A6100`. Alle ≥ 4,5:1 auf Grund und
+  Weiß; dazu immer 1–5 Punkte.
