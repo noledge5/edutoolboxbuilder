@@ -1,6 +1,6 @@
-// The hero's parts (Stufe 2): 40 parts on six places, five rarities, a few with small bonuses that count only in the
+// The hero's parts (Stufe 2, 16 more on 06.11.2026): 56 parts on six places, five rarities, a few with small bonuses that count only in the
 // game (never for marks or real rewards). The server holds the same catalogue (`lq_teil` in
-// supabase/migrations/20261106b_lernquest_held.sql); a test checks both are the same.
+// supabase/migrations/20261106b_lernquest_held.sql and 20261109_lernquest_beute.sql); a test checks both are the same.
 
 export type Slot = 'kopf' | 'augen' | 'kleidung' | 'werkzeug' | 'begleiter' | 'hintergrund';
 
@@ -67,6 +67,23 @@ export const TEILE: Teil[] = [
   { id: 'nacht', slot: 'hintergrund', name: 'Sternennacht', seltenheit: 2 },
   { id: 'weltall', slot: 'hintergrund', name: 'Weltall', seltenheit: 3, muenzen: 5 },
   { id: 'regenbogen', slot: 'hintergrund', name: 'Regenbogen', seltenheit: 4, muenzen: 10 },
+  // Added 06.11.2026 (supabase/migrations/20261109_lernquest_beute.sql)
+  { id: 'kappe', slot: 'kopf', name: 'Schirmmütze', seltenheit: 0 },
+  { id: 'blumenkranz', slot: 'kopf', name: 'Blumenkranz', seltenheit: 1 },
+  { id: 'wikingerhelm', slot: 'kopf', name: 'Wikingerhelm', seltenheit: 2, herz: 1 },
+  { id: 'herzaugen', slot: 'augen', name: 'Herzaugen', seltenheit: 1 },
+  { id: 'taucherbrille', slot: 'augen', name: 'Taucherbrille', seltenheit: 2 },
+  { id: 'kapuzenpulli', slot: 'kleidung', name: 'Kapuzenpulli', seltenheit: 0 },
+  { id: 'trikot', slot: 'kleidung', name: 'Trikot', seltenheit: 1 },
+  { id: 'drachenruestung', slot: 'kleidung', name: 'Drachenrüstung', seltenheit: 3, muenzen: 5, herz: 1 },
+  { id: 'pinsel', slot: 'werkzeug', name: 'Pinsel', seltenheit: 0 },
+  { id: 'laterne', slot: 'werkzeug', name: 'Laterne', seltenheit: 1 },
+  { id: 'dreizack', slot: 'werkzeug', name: 'Dreizack', seltenheit: 3, muenzen: 10 },
+  { id: 'hamster', slot: 'begleiter', name: 'Hamster', seltenheit: 0 },
+  { id: 'pinguin', slot: 'begleiter', name: 'Pinguin', seltenheit: 1 },
+  { id: 'phoenix', slot: 'begleiter', name: 'Phönix', seltenheit: 4, muenzen: 10, herz: 1 },
+  { id: 'unterwasser', slot: 'hintergrund', name: 'Unterwasser', seltenheit: 2 },
+  { id: 'burg', slot: 'hintergrund', name: 'Burghof', seltenheit: 3, muenzen: 5 },
 ];
 
 export const teil = (id: string | undefined) => TEILE.find((t) => t.id === id);
@@ -80,18 +97,27 @@ export const SELTENHEITEN = [
   { name: 'Legendär', kurz: 'Legendär', farbe: '#8A6100' },
 ];
 
-/** Chances in a chest in percent, shown in the chest. */
-export const CHANCEN = [55, 28, 12, 4, 1];
+/** Chances in a chest in percent, shown in the chest: only coins (`MUENZ_CHANCEN`), else a part by rarity
+ *  (`CHANCEN`). Coins take the place of a common or uncommon part, so a rarity is still 55 / 28 / 12 / 4 / 1. */
+export const MUENZ_CHANCEN = [26, 14];
+export const CHANCEN = [29, 14, 12, 4, 1];
+/** Coins in a chest that holds only coins, by its rarity (Gewöhnlich, Ungewöhnlich). */
+export const MUENZ_TRUHE = [25, 40];
 /** At the latest every this many chests has something rare (Selten or better). */
 export const GARANTIE = 5;
 /** Price in the shop and coins for a twin from a chest, by rarity. */
-export const PREISE = [40, 80, 160, 320, 800];
+export const PREISE = [80, 160, 320, 640, 1600];
 export const DOPPELT = [10, 20, 40, 80, 150];
 
 /** Hearts per round without bonuses. */
 export const HERZEN = 3;
 
-export type Avatar = Partial<Record<Slot, string>> & { haut?: number };
+export type Avatar = Partial<Record<Slot, string>> & { haut?: number; figur?: number };
+
+/** The base figures to choose freely (not collected): same body and pose, so every part fits each of them. */
+export const FIGUREN = ['Kurze Haare', 'Zopf', 'Locken'];
+/** File name of each base figure's picture (`npm run lq:bilder`, app/teilBilder.ts); skin tones follow as `-0` … `-5`. */
+export const FIGUR_DATEI = ['koerper', 'koerper2', 'koerper3'];
 
 /** Skin tones to choose freely (not collected). */
 export const HAUT = ['#F2C9A0', '#E8B48A', '#C98E62', '#A86E45', '#7A4E2E', '#F6DCC4'];

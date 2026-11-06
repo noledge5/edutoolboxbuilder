@@ -4,6 +4,7 @@
 // Part colours are fixed values here, not UI tokens. Higher rarity = more detail, gold from Episch, sparkle for Legendär.
 import type { ReactNode } from 'react';
 import { angelegt, HAUT, type Avatar, type Slot, type Teil } from '../teile';
+import { koerperBild, teilBild } from './teilBilder';
 
 /** Shadow tone per skin tone (`HAUT`). */
 const HAUT_SCHATTEN = ['#DDAE80', '#D29A6E', '#AE744A', '#8E5833', '#5F3A20', '#E8C3A2'];
@@ -451,10 +452,196 @@ const ZEICHNUNG: Record<string, ReactNode> = {
       {funkeln(178, 96, 7)}
     </g>
   ),
+  // — Added 06.11.2026 —
+  kappe: (
+    <>
+      <path d="M78 84c0-26 18-40 42-40s42 14 42 40Z" fill="#E4572E" />
+      <path d="M120 44c24 0 42 14 42 40h-20c0-22-8-36-22-40Z" fill="#C23F1E" />
+      <path d="M118 78h58c7 0 7 10 0 10h-58Z" fill="#C23F1E" />
+      <circle cx="120" cy="45" r="4" fill="#FFE07A" />
+    </>
+  ),
+  blumenkranz: (
+    <>
+      <path d="M78 76q42-26 84 0" fill="none" stroke="#3E8E5E" strokeWidth="6" strokeLinecap="round" />
+      {[
+        [84, 70, '#F29AC0'],
+        [102, 60, '#FFE07A'],
+        [120, 57, '#F29AC0'],
+        [138, 60, '#9FC6FF'],
+        [156, 70, '#FFE07A'],
+      ].map(([x, y, c]) => (
+        <g key={`${x}`}>
+          <circle cx={x as number} cy={y as number} r="7.5" fill={c as string} />
+          <circle cx={x as number} cy={y as number} r="3" fill="#E4872E" />
+        </g>
+      ))}
+    </>
+  ),
+  wikingerhelm: (
+    <>
+      <path d="M80 70c-16-4-24-20-20-36 6 10 14 16 24 18Z" fill="#F3E6C8" />
+      <path d="M160 70c16-4 24-20 20-36-6 10-14 16-24 18Z" fill="#DCCBA5" />
+      <path d="M76 86c0-28 20-44 44-44s44 16 44 44Z" fill="#B8C2D3" />
+      <path d="M120 42c24 0 44 16 44 44h-22c0-26-8-40-22-44Z" fill="#8E9AB0" />
+      <rect x="74" y="78" width="92" height="11" rx="5" fill="#8A6A3A" />
+      <rect x="115" y="44" width="10" height="36" fill="#8A6A3A" />
+    </>
+  ),
+  herzaugen: (
+    <>
+      {[104, 136].map((x) => (
+        <g key={x} fill="#E0457B">
+          <circle cx={x - 4} cy="97" r="5" />
+          <circle cx={x + 4} cy="97" r="5" />
+          <path d={`M${x - 9} 99L${x} 109L${x + 9} 99Z`} />
+        </g>
+      ))}
+      <circle cx="101" cy="95" r="1.6" fill="#FFFFFF" />
+      <circle cx="133" cy="95" r="1.6" fill="#FFFFFF" />
+    </>
+  ),
+  taucherbrille: (
+    <>
+      <rect x="72" y="95" width="16" height="8" rx="3" fill="#1F6E78" />
+      <rect x="152" y="95" width="16" height="8" rx="3" fill="#1F6E78" />
+      <rect x="86" y="86" width="68" height="28" rx="12" fill="#2BB3C0" />
+      <rect x="92" y="91" width="24" height="18" rx="7" fill="#CFF3F7" />
+      <rect x="124" y="91" width="24" height="18" rx="7" fill="#CFF3F7" />
+      <circle cx="104" cy="100" r="4.5" fill={INK} />
+      <circle cx="136" cy="100" r="4.5" fill={INK} />
+      <path d="M95 94l6 0M127 94l6 0" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
+    </>
+  ),
+  kapuzenpulli: (
+    <>
+      <rect {...TORSO} fill="#7A5BC7" />
+      <path d="M90 136q30 24 60 0v10q-30 20-60 0Z" fill="#5E43A8" />
+      <rect x="100" y="178" width="40" height="16" rx="7" fill="#5E43A8" />
+      <path d="M112 150v14M128 150v14" stroke="#F3E6C8" strokeWidth="3" strokeLinecap="round" />
+    </>
+  ),
+  trikot: (
+    <>
+      <rect {...TORSO} fill="#E4572E" />
+      <rect x="84" y="156" width="72" height="9" fill="#FFFFFF" />
+      <rect x="84" y="170" width="72" height="5" fill="#FFFFFF" />
+      <path d="M108 133l12 14 12-14Z" fill="#C23F1E" />
+      <circle cx="140" cy="146" r="5" fill="#FFE07A" />
+    </>
+  ),
+  drachenruestung: (
+    <>
+      <rect {...TORSO} fill="#2F8F5B" />
+      {[150, 166, 182, 198].map((y) =>
+        [96, 112, 128, 144].map((x) => <path key={`${x}-${y}`} d={`M${x - 7} ${y}q7 9 14 0`} fill="none" stroke="#1F6E44" strokeWidth="3" strokeLinecap="round" />),
+      )}
+      <circle cx="88" cy="142" r="12" fill="#FFC531" />
+      <circle cx="152" cy="142" r="12" fill="#FFC531" />
+      <path d="m120 140 8 9-8 9-8-9Z" fill="#C4321F" />
+    </>
+  ),
+  pinsel: (
+    <>
+      <path d="M160 198l26-56" stroke="#C98F4A" strokeWidth="7" strokeLinecap="round" />
+      <path d="M182 150l10 4 4-10-10-4Z" fill="#B8C2D3" />
+      <path d="M186 140l10 4c4-10 4-20-2-28-8 6-10 16-8 24Z" fill="#2F6FDB" />
+    </>
+  ),
+  laterne: (
+    <>
+      <path d="M164 182c0-22 32-22 32 0" fill="none" stroke="#3B3B4F" strokeWidth="4" />
+      <rect x="166" y="170" width="28" height="36" rx="7" fill="#3B3B4F" />
+      <rect x="171" y="176" width="18" height="24" rx="5" fill="#FFE07A" />
+      <circle cx="180" cy="190" r="5" fill="#FFA531" />
+      <rect x="168" y="204" width="24" height="6" rx="3" fill="#2A2A3A" />
+    </>
+  ),
+  dreizack: (
+    <g transform="translate(180 150) rotate(16)">
+      <rect x="-3" y="-48" width="6" height="100" rx="3" fill="#C98F00" />
+      {[
+        [-13, -68],
+        [0, -80],
+        [13, -68],
+      ].map(([x, top]) => (
+        <path key={x} d={`M${x - 2.5} -48V${top}h-3l5.5-11 5.5 11h-3V-48Z`} fill="#FFC531" />
+      ))}
+      <path d="M-17 -54h34v6q-17 10-34 0Z" fill="#FFC531" />
+      <circle cx="0" cy="-48" r="4" fill="#2BB3C0" />
+    </g>
+  ),
+  hamster: (
+    <>
+      <circle cx="30" cy="196" r="6" fill="#C98552" />
+      <circle cx="58" cy="196" r="6" fill="#C98552" />
+      <ellipse cx="44" cy="212" rx="24" ry="18" fill="#E8A660" />
+      <ellipse cx="44" cy="218" rx="14" ry="10" fill="#F8DDB8" />
+      <circle cx="36" cy="206" r="2.6" fill={INK} />
+      <circle cx="52" cy="206" r="2.6" fill={INK} />
+      <circle cx="44" cy="212" r="2" fill="#E0457B" />
+    </>
+  ),
+  pinguin: (
+    <>
+      <ellipse cx="44" cy="202" rx="19" ry="28" fill="#2B2D42" />
+      <ellipse cx="44" cy="208" rx="13" ry="20" fill="#FFFFFF" />
+      <circle cx="38" cy="190" r="2.8" fill={INK} />
+      <circle cx="50" cy="190" r="2.8" fill={INK} />
+      <path d="M40 196h8l-4 6Z" fill="#FFA531" />
+      <ellipse cx="36" cy="230" rx="7" ry="3" fill="#FFA531" />
+      <ellipse cx="52" cy="230" rx="7" ry="3" fill="#FFA531" />
+    </>
+  ),
+  phoenix: (
+    <>
+      <path d="M18 198c-8-22 4-40 22-36-10 8-12 20-6 32Z" fill="#FFA531" />
+      <path d="M70 198c8-22-4-40-22-36 10 8 12 20 6 32Z" fill="#FFA531" />
+      <ellipse cx="44" cy="204" rx="18" ry="20" fill="#E4572E" />
+      <path d="M32 220c-6 10-4 16 2 18 0-6 4-10 10-12 6 2 10 6 10 12 6-2 8-8 2-18Z" fill="#FFC531" />
+      <path d="M44 180c-4-8-2-14 4-16-2 6 2 8 0 16Z" fill="#FFC531" />
+      <circle cx="38" cy="198" r="2.6" fill={INK} />
+      <circle cx="50" cy="198" r="2.6" fill={INK} />
+      <path d="M41 204h6l-3 5Z" fill="#FFC531" />
+      {funkeln(72, 166, 7)}
+    </>
+  ),
+  unterwasser: (
+    <>
+      <rect width="240" height="240" fill="#4FA3D1" />
+      <rect width="240" height="90" fill="#7CC4E6" />
+      <path d="M0 206c60-14 140-14 240 0v34H0Z" fill="#F3D89A" />
+      <path d="M30 210c-10-20 10-30 0-52M42 210c10-24-8-34 4-56" fill="none" stroke="#3E8E5E" strokeWidth="6" strokeLinecap="round" />
+      <path d="M200 212c-8-18 8-28 0-46" fill="none" stroke="#2E6F48" strokeWidth="6" strokeLinecap="round" />
+      <circle cx="176" cy="70" r="6" fill="#CFF3F7" />
+      <circle cx="188" cy="48" r="4" fill="#CFF3F7" />
+      <circle cx="170" cy="30" r="3" fill="#CFF3F7" />
+    </>
+  ),
+  burg: (
+    <>
+      <rect width="240" height="240" fill="#CFE3F5" />
+      <rect x="20" y="96" width="200" height="110" fill="#9AA3B5" />
+      {[60, 88, 116, 144, 172].map((x) => (
+        <rect key={x} x={x} y="86" width="14" height="10" fill="#9AA3B5" />
+      ))}
+      <rect x="10" y="64" width="44" height="142" fill="#828CA0" />
+      <rect x="186" y="64" width="44" height="142" fill="#828CA0" />
+      <path d="M10 64v-10h11v10h11v-10h11v10h11v-10" fill="#828CA0" />
+      <path d="M186 64v-10h11v10h11v-10h11v10h11v-10" fill="#828CA0" />
+      <rect x="31" y="20" width="3" height="34" fill="#6E4A2A" />
+      <path d="M34 20h22l-6 7 6 7H34Z" fill="#FFC531" />
+      <path d="M100 206v-36a20 20 0 0 1 40 0v36Z" fill="#5A4636" />
+      <path d="M0 204c60-10 140-10 240 0v36H0Z" fill="#8FCB8F" />
+    </>
+  ),
 };
 
-/** Body, hair and face without eyes: the layer every part sits on. */
-function Koerper({ haut }: { haut: number }) {
+const HAAR = '#4A2E1A';
+
+/** Body, hair and face without eyes: the layer every part sits on. `figur` picks the hair (`FIGUREN`): short,
+ *  ponytail, curls; body and pose stay the same, so every part fits each figure. */
+function Koerper({ haut, figur = 0 }: { haut: number; figur?: number }) {
   const h = HAUT[haut] ?? HAUT[0];
   const s = HAUT_SCHATTEN[haut] ?? HAUT_SCHATTEN[0];
   return (
@@ -467,8 +654,25 @@ function Koerper({ haut }: { haut: number }) {
       <circle cx="164" cy="184" r="11" fill={h} />
       <circle cx="76" cy="102" r="9" fill={s} />
       <circle cx="164" cy="102" r="9" fill={s} />
+      {figur === 1 && (
+        <>
+          <path d="M156 66c20-2 30 18 26 42-2 12-10 22-18 24 6-14 6-34-8-46Z" fill={HAAR} />
+          <circle cx="160" cy="68" r="6" fill="#E4572E" />
+        </>
+      )}
       <circle cx="120" cy="96" r="44" fill={h} />
-      <path d="M78 90c0-28 18-42 42-42s42 14 42 42c-10-12-24-18-42-18s-32 6-42 18Z" fill="#4A2E1A" />
+      <path d="M78 90c0-28 18-42 42-42s42 14 42 42c-10-12-24-18-42-18s-32 6-42 18Z" fill={HAAR} />
+      {figur === 2 &&
+        [
+          [80, 88],
+          [84, 70],
+          [96, 57],
+          [112, 50],
+          [128, 50],
+          [144, 57],
+          [156, 70],
+          [160, 88],
+        ].map(([x, y]) => <circle key={x} cx={x} cy={y} r="12" fill={HAAR} />)}
       <circle cx="96" cy="114" r="6" fill="#F29A9A" opacity=".55" />
       <circle cx="144" cy="114" r="6" fill="#F29A9A" opacity=".55" />
       <path d="M110 122q10 8 20 0" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
@@ -479,11 +683,52 @@ function Koerper({ haut }: { haut: number }) {
 /** Back to front; the body sits between companion and clothes. */
 const EBENEN: (Slot | 'koerper')[] = ['hintergrund', 'begleiter', 'koerper', 'kleidung', 'augen', 'kopf', 'werkzeug'];
 
+/** Where a painted Legendär part gets its sparkle (the vector parts draw their own). */
+const FUNKELN: Record<Slot, [number, number]> = {
+  hintergrund: [206, 36],
+  begleiter: [80, 162],
+  kleidung: [150, 146],
+  augen: [154, 90],
+  kopf: [158, 18],
+  werkzeug: [212, 104],
+};
+
+/** A whole-canvas layer picture (teilBilder.ts). */
+const ebene = (href: string) => <image href={href} width="240" height="240" />;
+
+/** One part: its painted picture when there is one (src/lernquest/app/teile/), else its vector drawing. */
+function Zeichnung({ teil }: { teil: Teil | undefined }) {
+  if (!teil) return null;
+  const bild = teilBild(teil.id);
+  if (!bild) return <>{ZEICHNUNG[teil.id] ?? null}</>;
+  return (
+    <>
+      {ebene(bild)}
+      {teil.seltenheit >= 4 && funkeln(...FUNKELN[teil.slot])}
+    </>
+  );
+}
+
+/** The base figure: painted (in the chosen skin tone) when there is one, else drawn. */
+function Grundfigur({ haut, figur = 0 }: { haut: number; figur?: number }) {
+  const bild = koerperBild(haut, figur);
+  return bild ? ebene(bild) : <Koerper haut={haut} figur={figur} />;
+}
+
+/** The head of a base figure, for choosing the hair. */
+export function KopfBild({ haut, figur }: { haut: number; figur: number }) {
+  return (
+    <svg viewBox="62 36 116 96" aria-hidden focusable="false">
+      <Grundfigur haut={haut} figur={figur} />
+    </svg>
+  );
+}
+
 /** The whole hero as worn. Decorative (the page names the hero in text), so hidden from screen readers. */
 export function AvatarBild({ avatar, className }: { avatar: Avatar; className?: string }) {
   return (
     <svg className={className} viewBox="0 0 240 240" aria-hidden focusable="false">
-      {EBENEN.map((e) => (e === 'koerper' ? <Koerper key={e} haut={avatar.haut ?? 0} /> : <g key={e}>{ZEICHNUNG[angelegt(avatar, e)?.id ?? ''] ?? null}</g>))}
+      {EBENEN.map((e) => (e === 'koerper' ? <Grundfigur key={e} haut={avatar.haut ?? 0} figur={avatar.figur ?? 0} /> : <g key={e}><Zeichnung teil={angelegt(avatar, e)} /></g>))}
     </svg>
   );
 }
@@ -499,11 +744,11 @@ const AUSSCHNITT: Record<Slot, string> = {
 };
 
 /** One part alone, cut out for the grid, the shop and the chest; eyes sit on a head so they read as eyes. */
-export function TeilBild({ teil, haut = 0, className }: { teil: Teil; haut?: number; className?: string }) {
+export function TeilBild({ teil, haut = 0, figur = 0, className }: { teil: Teil; haut?: number; figur?: number; className?: string }) {
   return (
     <svg className={className} viewBox={AUSSCHNITT[teil.slot]} aria-hidden focusable="false">
-      {teil.slot === 'augen' && <circle cx="120" cy="100" r="44" fill={HAUT[haut] ?? HAUT[0]} />}
-      {ZEICHNUNG[teil.id]}
+      {teil.slot === 'augen' && (koerperBild(haut, figur) ? <Grundfigur haut={haut} figur={figur} /> : <circle cx="120" cy="100" r="44" fill={HAUT[haut] ?? HAUT[0]} />)}
+      <Zeichnung teil={teil} />
     </svg>
   );
 }

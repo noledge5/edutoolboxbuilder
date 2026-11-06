@@ -1841,6 +1841,40 @@ mark {
   font-size: var(--lq-t-gross);
 }
 
+.lq-frisur {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--lq-a-2);
+}
+.lq-frisur .lq-klein {
+  width: 100%;
+  text-align: center;
+}
+.lq-frisur button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--lq-a-1);
+  min-width: var(--lq-tippen);
+  padding: var(--lq-a-1) var(--lq-a-2);
+  border: 0;
+  border-radius: var(--lq-r-klein);
+  background: var(--lq-karte);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lq-schrift) 15%, transparent);
+  font-size: var(--lq-t-klein);
+  color: var(--lq-schrift);
+}
+.lq-frisur button.an {
+  box-shadow: inset 0 0 0 3px var(--lq-primary);
+  color: var(--lq-primary);
+  font-weight: 700;
+}
+.lq-frisur svg {
+  width: 56px;
+  height: 46px;
+}
+
 .lq-truhen-leiste {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -2131,9 +2165,14 @@ button.lq-teil:active {
 }
 .lq-chancen > div {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--lq-a-1);
   text-align: center;
+}
+@media (min-width: 480px) {
+  .lq-chancen > div {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
 }
 .lq-chancen span:not(.lq-klein) {
   display: flex;

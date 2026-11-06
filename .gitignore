@@ -5,5 +5,8 @@ dist
 coverage
 *.tsbuildinfo
 
+# Raw pictures from ComfyUI for npm run lq:bilder (docs/design/lernquest/bilder.md)
+/lernquest-roh/
+
 # Screenshots from checks belong in the scratchpad, not here
 /*.png

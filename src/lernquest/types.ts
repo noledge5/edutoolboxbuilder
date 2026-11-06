@@ -105,8 +105,8 @@ export interface Stand {
   pech: number;
   /** Parts found or bought (ids from `TEILE`). */
   inventar: string[];
-  /** What is worn: part id per place ('' = nothing) and the skin tone. */
-  avatar: Partial<Record<'kopf' | 'augen' | 'kleidung' | 'werkzeug' | 'begleiter' | 'hintergrund', string>> & { haut?: number };
+  /** What is worn: part id per place ('' = nothing), the skin tone and the base figure (`FIGUREN`). */
+  avatar: Partial<Record<'kopf' | 'augen' | 'kleidung' | 'werkzeug' | 'begleiter' | 'hintergrund', string>> & { haut?: number; figur?: number };
   /** Stufe 4: points for real rewards in class (not the coins); points of open requests are set aside already. */
   klassenpunkte: number;
 }

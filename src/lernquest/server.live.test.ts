@@ -5,7 +5,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { newKey } from './lehrkraft';
 import { bossLp, bossSchaden, muenzenFuerRunde } from './rules';
 import type { BossFrage } from './boss';
-import { TEILE, teil } from './teile';
+import { MUENZ_TRUHE, PREISE, TEILE, teil } from './teile';
 import {
   anfrageErledigen,
   anfrageZurueck,
@@ -181,35 +181,41 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     const r2 = await rundeMelden(token, 'sH', 0, 5, 5, {});
     expect(r2.truhenPlus).toBe(0);
 
-    // A chest gives one part that is no start part; a new part is never a double.
+    // A chest gives coins only (MUENZ_TRUHE) or one part that is no start part; a new part is never a double.
     const t = await truheOeffnen(token);
-    const gefunden = teil(t.teil);
-    expect(gefunden && !gefunden.start).toBe(true);
-    expect(t).toMatchObject({ seltenheit: gefunden?.seltenheit, doppelt: false, muenzen: 0 });
-    expect(t.stand).toMatchObject({ truhen: 0, inventar: [t.teil], pech: t.seltenheit >= 2 ? 0 : 1 });
+    const gefunden = teil(t.teil ?? undefined);
+    const eigene = gefunden ? [gefunden.id] : [];
+    if (gefunden) {
+      expect(!gefunden.start).toBe(true);
+      expect(t).toMatchObject({ seltenheit: gefunden.seltenheit, doppelt: false, muenzen: 0 });
+    } else {
+      expect(t).toMatchObject({ teil: null, doppelt: false, muenzen: MUENZ_TRUHE[t.seltenheit] });
+    }
+    expect(t.stand).toMatchObject({ truhen: 0, inventar: eigene, pech: t.seltenheit >= 2 ? 0 : 1 });
     expect(await code(truheOeffnen(token))).toBe('ungueltig');
 
-    // Shop: a common part costs 40.
-    const r3 = await rundeMelden(token, '', 0, 5, 5, {});
-    const muenzen = r3.stand.muenzen;
-    expect(muenzen).toBeGreaterThanOrEqual(40);
-    const [ware, zweite] = TEILE.filter((x) => x.seltenheit === 0 && !x.start && x.id !== t.teil);
+    // Shop: a common part costs PREISE[0]; play rounds until the coins reach it.
+    let muenzen = t.stand.muenzen;
+    for (let i = 0; i < 8 && muenzen < PREISE[0]; i++) muenzen = (await rundeMelden(token, '', 0, 5, 5, {})).stand.muenzen;
+    expect(muenzen).toBeGreaterThanOrEqual(PREISE[0]);
+    const [ware, zweite] = TEILE.filter((x) => x.seltenheit === 0 && !x.start && !eigene.includes(x.id));
     const nachKauf = await kaufen(token, ware.id);
-    expect(nachKauf.muenzen).toBe(muenzen - 40);
-    expect(nachKauf.inventar).toEqual([t.teil, ware.id]);
+    expect(nachKauf.muenzen).toBe(muenzen - PREISE[0]);
+    expect(nachKauf.inventar).toEqual([...eigene, ware.id]);
     expect(await code(kaufen(token, ware.id))).toBe('ungueltig');
     expect(await code(kaufen(token, 'tshirt'))).toBe('ungueltig');
     expect(await code(kaufen(token, 'gibt-es-nicht'))).toBe('ungueltig');
-    if (nachKauf.muenzen < 40) expect(await code(kaufen(token, zweite.id))).toBe('muenzen');
+    if (nachKauf.muenzen < PREISE[0]) expect(await code(kaufen(token, zweite.id))).toBe('muenzen');
 
-    // Avatar: only owned or start parts, each in its own place, skin tone 0–5.
-    const avatar = { kleidung: 'tshirt', augen: 'punktaugen', [ware.slot]: ware.id, begleiter: '', haut: 2 };
+    // Avatar: only owned or start parts, each in its own place, skin tone 0–5, figure 0–2.
+    const avatar = { kleidung: 'tshirt', augen: 'punktaugen', [ware.slot]: ware.id, begleiter: '', haut: 2, figur: 1 };
     expect((await avatarSetzen(token, avatar)).avatar).toEqual(avatar);
-    const fremd = TEILE.find((x) => x.seltenheit === 4 && x.id !== t.teil);
+    const fremd = TEILE.find((x) => x.seltenheit === 4 && !eigene.includes(x.id));
     if (!fremd) throw new Error('Katalog');
     expect(await code(avatarSetzen(token, { [fremd.slot]: fremd.id }))).toBe('ungueltig');
     expect(await code(avatarSetzen(token, { kopf: 'tshirt' }))).toBe('ungueltig');
     expect(await code(avatarSetzen(token, { haut: 6 }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { figur: 3 }))).toBe('ungueltig');
     expect(await code(avatarSetzen(token, { name: 'x' } as never))).toBe('ungueltig');
     expect((await meinStand(token, null)).stand.avatar).toEqual(avatar);
 

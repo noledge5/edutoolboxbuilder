@@ -4,9 +4,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { heldenstufe, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
-import { bonusText, bonusVon, CHANCEN, GARANTIE, HAUT, hat, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
+import { bonusText, bonusVon, CHANCEN, FIGUREN, GARANTIE, HAUT, hat, MUENZ_CHANCEN, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
 import type { Stand } from '../types';
-import { AvatarBild, TeilBild } from './avatar';
+import { AvatarBild, KopfBild, TeilBild } from './avatar';
 import { GutscheinLeiste } from './Gutscheine';
 import type { Daten } from './speicher';
 import { ton } from './ton';
@@ -184,7 +184,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
                 onClick={() => tippen(t)}
               >
                 {an && <span className="lq-angelegt">Angelegt</span>}
-                <TeilBild teil={t} haut={stand.avatar.haut} className="lq-teil-bild" />
+                <TeilBild teil={t} haut={stand.avatar.haut} figur={stand.avatar.figur} className="lq-teil-bild" />
                 <span className="lq-teil-name">{t.name}</span>
                 <Seltenheit s={t.seltenheit} kurz />
                 {bonusText(t) && <span className="lq-teil-bonus">{bonusText(t)}</span>}
@@ -206,6 +206,22 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
               style={{ background: c }}
               onClick={() => anlegen({ ...stand.avatar, haut: i })}
             />
+          ))}
+        </div>
+        <div className="lq-frisur" role="radiogroup" aria-label="Frisur">
+          <span className="lq-klein">Frisur</span>
+          {FIGUREN.map((name, i) => (
+            <button
+              key={name}
+              type="button"
+              role="radio"
+              aria-checked={(stand.avatar.figur ?? 0) === i}
+              className={(stand.avatar.figur ?? 0) === i ? 'an' : ''}
+              onClick={() => anlegen({ ...stand.avatar, figur: i })}
+            >
+              <KopfBild figur={i} haut={stand.avatar.haut ?? 0} />
+              <span>{name}</span>
+            </button>
           ))}
         </div>
       </div>
@@ -302,7 +318,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
               setWahl(wahl?.id === t.id ? null : t);
             }}
           >
-            <TeilBild teil={t} haut={stand.avatar.haut} className="lq-teil-bild" />
+            <TeilBild teil={t} haut={stand.avatar.haut} figur={stand.avatar.figur} className="lq-teil-bild" />
             <span className="lq-teil-name">{t.name}</span>
             <Seltenheit s={t.seltenheit} kurz />
             <Muenzen n={PREISE[t.seltenheit]} />
@@ -346,7 +362,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
   useEffect(() => {
     if (phase === 'auf' && inhalt && (zeitUm || uebersprungen)) {
       setPhase('da');
-      ton(inhalt.seltenheit >= 2 ? 'fertig' : 'richtig');
+      ton(inhalt.teil && inhalt.seltenheit >= 2 ? 'fertig' : 'richtig');
     }
   }, [phase, inhalt, zeitUm, uebersprungen]);
 
@@ -372,7 +388,9 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
     if (!inhalt) return;
     setBusy(true);
     try {
-      setStand(await aktion((t) => avatarSetzen(t, { ...stand.avatar, [teil(inhalt.teil)!.slot]: inhalt.teil })));
+      const neu = teil(inhalt.teil ?? undefined);
+      if (!neu) return;
+      setStand(await aktion((t) => avatarSetzen(t, { ...stand.avatar, [neu.slot]: neu.id })));
       onFertig(true);
     } catch (e) {
       setMsg(lqText(e));
@@ -380,7 +398,8 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
     }
   };
 
-  const t = inhalt ? teil(inhalt.teil) : undefined;
+  const t = inhalt?.teil ? teil(inhalt.teil) : undefined;
+  const nurMuenzen = !!inhalt && !inhalt.teil;
   return (
     <main className="lq-app lq-nacht lq-truhe">
       <span className="lq-truhe-kicker">{phase === 'da' ? 'Aus deiner Truhe' : stand.truhen > 1 ? `${stand.truhen} Truhen warten` : 'Deine Truhe'}</span>
@@ -394,7 +413,13 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
         onKeyDown={(e) => phase === 'auf' && (e.key === 'Enter' || e.key === ' ') && setUebersprungen(true)}
       >
         <span className="lq-truhe-glanz" aria-hidden />
-        {phase === 'da' && t ? <TeilBild teil={t} haut={stand.avatar.haut} className="lq-truhe-teil" /> : <TruheGross offen={phase === 'auf'} />}
+        {phase === 'da' && t ? (
+          <TeilBild teil={t} haut={stand.avatar.haut} figur={stand.avatar.figur} className="lq-truhe-teil" />
+        ) : phase === 'da' && nurMuenzen ? (
+          <MuenzHaufen />
+        ) : (
+          <TruheGross offen={phase === 'auf'} />
+        )}
       </div>
       <div aria-live="polite" className="lq-truhe-text">
         {phase === 'auf' && <p className="lq-klein">{zeitUm ? 'Einen Moment …' : 'Tippen zum Überspringen'}</p>}
@@ -411,6 +436,12 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
             {inhalt.doppelt && <p className="lq-truhe-doppelt">Hast du schon – dafür bekommst du {inhalt.muenzen} Münzen.</p>}
           </>
         )}
+        {phase === 'da' && nurMuenzen && inhalt && (
+          <>
+            <h1>{inhalt.muenzen} Münzen</h1>
+            <p>Diesmal nur Münzen – damit kannst du im Laden einkaufen.</p>
+          </>
+        )}
         {phase === 'zu' && !stand.truhen && <p>Gerade wartet keine Truhe. Truhen gibt es für ganz gespielte Stationen und das Wochenziel.</p>}
       </div>
       <Meldung text={msg} />
@@ -418,8 +449,12 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
         <section className="lq-chancen" aria-label="Chancen in dieser Truhe">
           <strong>Chancen in dieser Truhe</strong>
           <div>
+            <span className={nurMuenzen && phase === 'da' ? 'an' : ''}>
+              <b>{MUENZ_CHANCEN.reduce((a, b) => a + b, 0)} %</b>
+              <small>Münzen</small>
+            </span>
             {CHANCEN.map((c, i) => (
-              <span key={i} className={inhalt && phase === 'da' && inhalt.seltenheit === i ? 'an' : ''}>
+              <span key={i} className={t && inhalt && phase === 'da' && inhalt.seltenheit === i ? 'an' : ''}>
                 <b>{c} %</b>
                 <small>{SELTENHEITEN[i].kurz}</small>
               </span>
@@ -437,7 +472,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
             Öffnen
           </button>
         ) : null)}
-      {phase === 'da' && inhalt && !inhalt.doppelt && (
+      {phase === 'da' && t && inhalt && !inhalt.doppelt && (
         <button type="button" className="lq-knopf lq-gold" disabled={busy} aria-busy={busy} onClick={() => void anlegen()}>
           {busy ? 'Einen Moment …' : 'Gleich anlegen'}
         </button>
@@ -530,6 +565,27 @@ export const TruheIcon = () => (
     <rect x="22" y="16" width="8" height="14" rx="2" fill="#FFC531" />
   </svg>
 );
+/** The coins of a chest that held only coins. */
+function MuenzHaufen() {
+  return (
+    <svg viewBox="0 0 160 140" className="lq-truhe-teil lq-muenz-haufen" aria-hidden>
+      {[
+        [44, 104],
+        [80, 110],
+        [116, 104],
+        [62, 84],
+        [98, 84],
+        [80, 60],
+      ].map(([x, y], i) => (
+        <g key={i} transform={`translate(${x - 24} ${y - 24}) scale(2)`}>
+          <circle cx="12" cy="12" r="10" className="lq-muenz-voll" />
+          <circle cx="12" cy="12" r="6.5" fill="none" strokeWidth="2" className="lq-muenz-ring" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 function TruheGross({ offen }: { offen: boolean }) {
   return (
     <svg viewBox="0 0 160 140" className={`lq-truhe-gross ${offen ? 'offen' : ''}`} role="img" aria-label={offen ? 'Die Truhe geht auf' : 'Geschlossene Truhe'}>

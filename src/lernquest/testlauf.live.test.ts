@@ -24,7 +24,7 @@ import { newKey } from './lehrkraft';
 import { anfrageErledigen, belohnungen, bossBeamer, bossStarten, freischalten, gutscheinSpeichern, kindAnlegen, klasseAnlegen, klasseEndgueltig, klasseLoeschen, klassen, meinStand } from './server';
 import { bossFragen } from './boss';
 import { muenzenFuerRunde, PUNKTE_BOSS, xpFuerRunde } from './rules';
-import { TEILE } from './teile';
+import { MUENZ_TRUHE, TEILE } from './teile';
 import { PAKET_FORMAT, type Paket, type Uebung } from './types';
 
 const an = process.env.LQ_TESTLAUF === '1';
@@ -256,7 +256,12 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
       await page.waitForTimeout(700);
       await page.screenshot({ path: join(BILDER, 'handy-4-truhe.png') });
       const gefunden = ((await page.locator('.lq-truhe-text h1').first().textContent()) ?? '').trim();
-      await page.getByRole('button', { name: exact('Gleich anlegen') }).click();
+      // A chest may hold only coins („25 Münzen“); then there is nothing to wear.
+      const truhenMuenzen = Number(/^(\d+) Münzen$/.exec(gefunden)?.[1] ?? 0);
+      if (truhenMuenzen) {
+        await page.getByRole('button', { name: exact('Weiter') }).click();
+        await page.locator('.lq-leiste button').filter({ hasText: 'Held' }).first().click();
+      } else await page.getByRole('button', { name: exact('Gleich anlegen') }).click();
       await page.locator('.lq-held-raster').first().waitFor({ timeout: 15_000 });
       await page.waitForTimeout(500);
       await page.screenshot({ path: join(BILDER, 'handy-5-held.png') });
@@ -279,13 +284,18 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
       writeFileSync(join(BILDER, 'ergebnis.json'), JSON.stringify(bericht, null, 2));
       expect(stand.xp).toBe(xpFuerRunde(richtig, UEBUNGEN.length));
       expect(stand.bestwerte[STUNDE]?.[0]).toBe(Math.round((100 * richtig) / UEBUNGEN.length));
-      expect(stand.muenzen).toBe(muenzenFuerRunde(richtig, UEBUNGEN.length, 3, 0));
-      // The one chest is open; its part (never a twin the first time) is owned and worn.
-      const teil = TEILE.find((t) => t.name === gefunden);
-      expect(teil, `Teil aus der Truhe: „${gefunden}“`).toBeDefined();
+      expect(stand.muenzen).toBe(muenzenFuerRunde(richtig, UEBUNGEN.length, 3, 0) + truhenMuenzen);
+      // The one chest is open: coins only (MUENZ_TRUHE), or its part (never a twin the first time) is owned and worn.
       expect(stand.truhen).toBe(0);
-      expect(stand.inventar).toEqual([teil!.id]);
-      expect(stand.avatar[teil!.slot]).toBe(teil!.id);
+      if (truhenMuenzen) {
+        expect(MUENZ_TRUHE).toContain(truhenMuenzen);
+        expect(stand.inventar).toEqual([]);
+      } else {
+        const teil = TEILE.find((t) => t.name === gefunden);
+        expect(teil, `Teil aus der Truhe: „${gefunden}“`).toBeDefined();
+        expect(stand.inventar).toEqual([teil!.id]);
+        expect(stand.avatar[teil!.slot]).toBe(teil!.id);
+      }
 
       // 4. The map after the round, on the other sizes (same session, fresh device).
       const groessen: [string, Record<string, unknown>][] = [

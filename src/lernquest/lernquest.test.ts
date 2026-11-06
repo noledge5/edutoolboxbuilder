@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { angelegt, bonusText, bonusVon, CHANCEN, TEILE } from './teile';
+import { angelegt, bonusText, bonusVon, CHANCEN, MUENZ_CHANCEN, MUENZ_TRUHE, PREISE, TEILE } from './teile';
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
@@ -229,11 +229,21 @@ describe('Runde auf dem Gerät', () => {
 
 describe('Held und Beute', () => {
   it('hat denselben Katalog wie der Server', () => {
-    const sql = readFileSync(new URL('../../supabase/migrations/20261106b_lernquest_held.sql', import.meta.url), 'utf8');
+    const sql = ['20261106b_lernquest_held.sql', '20261109_lernquest_beute.sql']
+      .map((f) => readFileSync(new URL(`../../supabase/migrations/${f}`, import.meta.url), 'utf8'))
+      .join('\n');
     const rows = [...sql.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+)\)/g)].map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]);
     expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, !!t.start, t.muenzen ?? 0, t.herz ?? 0]));
-    expect(TEILE).toHaveLength(40);
-    expect(CHANCEN.reduce((a, b) => a + b, 0)).toBe(100);
+    expect(TEILE).toHaveLength(56);
+    expect([...MUENZ_CHANCEN, ...CHANCEN].reduce((a, b) => a + b, 0)).toBe(100);
+    // Chests and shop as in lq_truhe_oeffnen and lq_kaufen (20261109_lernquest_beute.sql).
+    const beute = readFileSync(new URL('../../supabase/migrations/20261109_lernquest_beute.sql', import.meta.url), 'utf8');
+    expect(beute).toContain(`(array[${MUENZ_TRUHE.join(', ')}])`);
+    expect(beute).toContain(`(array[${PREISE.join(', ')}])`);
+    expect(beute).toContain(`r < ${MUENZ_CHANCEN[0] + MUENZ_CHANCEN[1]}`);
+    expect(beute).toContain(`when r < ${MUENZ_CHANCEN[0]} then 0`);
+    const g = MUENZ_CHANCEN[0] + MUENZ_CHANCEN[1];
+    expect(beute).toContain(`when r < ${g + CHANCEN[0]} then 0 when r < ${g + CHANCEN[0] + CHANCEN[1]} then 1`);
   });
 
   it('deckelt die Boni und kennt Startteile', () => {
