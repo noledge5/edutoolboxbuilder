@@ -1,11 +1,26 @@
 // The Lernpaket of a lesson: its answerable task blocks turned into short exercises in the style of Anton/Duolingo
-// (tap, pairs, gap with tiles, word order, true/false). Pure, so it is tested without a browser. Only tasks with a
+// (tap, pairs, gap with tiles, word order, true/false, pick the picture). Pure, so it is tested without a browser. Only tasks with a
 // solution become exercises; the teacher pages ("lehrkraft") never go out.
 import { jumble, seeded, shuffle, statements } from '../model/language';
 import { choices, lines, matchNumbers, rows, segments, str } from '../model/text';
 import type { Block, Page } from '../model/types';
 import type { Lesson, Module } from '../library/types';
-import { PAKET_FORMAT, type Paket, type Uebung } from './types';
+import { PAKET_FORMAT, UEBUNGS_ARTEN, type Paket, type Uebung } from './types';
+
+/** A picture of the teacher's own (not an emoji) in a „Bild wählen“ exercise: its key in `Paket.bilder`. */
+export const BILD_KEY = 'img:';
+/** Side of the small pictures in a package, in pixels; a dozen of them stay well below the server's 300 KB. */
+export const BILD_SEITE = 160;
+/** Most own pictures in one package. */
+export const BILDER_MAX = 24;
+/** A picture with places to tap: its key in `Paket.bilder`; larger, so a child can hit the places on a phone. */
+export const KARTE_KEY = 'karte:';
+export const KARTE_SEITE = 720;
+/** Most pictures with places in one package (each about 40–80 KB). */
+export const KARTEN_MAX = 3;
+
+/** The keys of own pictures an exercise needs. */
+const bildKeys = (u: Uebung): string[] => (u.art === 'bild' ? u.bilder.filter((x) => x.startsWith(BILD_KEY)) : u.art === 'punkt' ? [u.bild] : []);
 
 /** Pairs per exercise: more do not fit on a phone. */
 const PAARE_MAX = 5;
@@ -190,20 +205,38 @@ function fromBlock(b: Block, page: Page, pool: string[]): Uebung[] {
         ];
       });
     }
+    case 'picvocab': {
+      // „Bild wählen“: the word, and its picture among up to three others of the block.
+      const pics = str(p.pics).split('\n');
+      const items = rows(p.items).flatMap(([emoji = '', word = ''], k) => {
+        const id = pics[k]?.trim() ?? '';
+        const bild = id ? `${BILD_KEY}${id}` : emoji.trim();
+        return bild && word.trim() ? [{ bild, wort: firstForm(word), k }] : [];
+      });
+      if (items.length < 2) return [];
+      return items.map(({ bild, wort, k }): Uebung => {
+        const andere = shuffle(
+          items.filter((x) => x.bild !== bild && x.wort.toLowerCase() !== wort.toLowerCase()),
+          seeded(`${b.id}:${k}`),
+        ).slice(0, 3);
+        const bilder = shuffle([bild, ...andere.map((x) => x.bild)], seeded(`${b.id}:${k}:o`));
+        return { art: 'bild', id: `${b.id}:${k}`, frage: 'Welches Bild passt?', wort, bilder, richtig: bilder.indexOf(bild) };
+      }).filter((u) => u.art === 'bild' && u.bilder.length >= 2);
+    }
     default:
       return [];
   }
 }
 
 /** A sentence as tiles: words, with the end mark as a tile of its own. */
-function sentenceTiles(sentence: string): string[] {
+export function sentenceTiles(sentence: string): string[] {
   const end = /[.?!]$/.exec(sentence)?.[0] ?? '';
   const words = (end ? sentence.slice(0, -1) : sentence).split(/\s+/).filter(Boolean);
   return end ? [...words, end] : words;
 }
 
 /** Tiles in an order that is not already the solution. */
-function shuffledTiles(words: string[], seed: string): string[] {
+export function shuffledTiles(words: string[], seed: string): string[] {
   for (let t = 0; t < 8; t++) {
     const s = shuffle(words, seeded(seed + t));
     if (s.join(' ') !== words.join(' ')) return s;
@@ -233,7 +266,8 @@ export function buildPaket(m: Module, l: Lesson, lessons: Lesson[] = [l]): Paket
     modul: { id: m.id, nummer: m.number, titel: m.title, icon: m.icon, stunden },
     fach: m.subject,
     lang: m.lang,
-    uebungen: exercisesOf(l.doc.pages),
+    // The released exercises of the KI-Fragenpool come after the lesson's own ones.
+    uebungen: [...exercisesOf(l.doc.pages), ...(l.pool ?? []).filter((e) => e.frei).map((e) => e.u)],
   };
 }
 
@@ -242,5 +276,31 @@ export function readPaket(x: unknown): Paket | null {
   if (!x || typeof x !== 'object') return null;
   const p = x as Partial<Paket>;
   if (p.format !== PAKET_FORMAT || typeof p.stunde !== 'string' || !Array.isArray(p.uebungen) || !p.modul) return null;
-  return p as Paket;
+  // Kinds of a newer Baukasten are left out (this page could not show them); pictures only as data URLs.
+  const bilder = p.bilder && typeof p.bilder === 'object' ? Object.fromEntries(Object.entries(p.bilder).filter(([, v]) => typeof v === 'string' && v.startsWith('data:image/'))) : {};
+  const uebungen = p.uebungen.filter((u) => {
+    if (!u || !UEBUNGS_ARTEN.includes(u.art)) return false;
+    if (u.art === 'bild') return Array.isArray(u.bilder) && u.bilder.every((x) => typeof x === 'string' && (!x.startsWith(BILD_KEY) || x in bilder));
+    if (u.art === 'punkt') return typeof u.bild === 'string' && u.bild in bilder && Array.isArray(u.punkte) && u.punkte.length > 0;
+    return true;
+  });
+  return { ...(p as Paket), uebungen, bilder };
+}
+
+/**
+ * The package with its own pictures as JPEGs (`thumb` makes one from an image id and a longest side, null when the
+ * picture is gone). Exercises whose pictures are missing or over the limits are left out.
+ */
+export async function mitBildern(p: Paket, thumb: (id: string, seite: number) => Promise<string | null>): Promise<Paket> {
+  const keys = [...new Set(p.uebungen.flatMap(bildKeys))];
+  const klein = keys.filter((k) => k.startsWith(BILD_KEY)).slice(0, BILDER_MAX);
+  const gross = keys.filter((k) => k.startsWith(KARTE_KEY)).slice(0, KARTEN_MAX);
+  const bilder: Record<string, string> = {};
+  for (const k of [...klein, ...gross]) {
+    const id = k.slice(k.indexOf(':') + 1);
+    const url = await thumb(id, k.startsWith(KARTE_KEY) ? KARTE_SEITE : BILD_SEITE).catch(() => null);
+    if (url) bilder[k] = url;
+  }
+  const uebungen = p.uebungen.filter((u) => bildKeys(u).every((x) => !(x.startsWith(BILD_KEY) || x.startsWith(KARTE_KEY)) || x in bilder));
+  return { ...p, uebungen, ...(Object.keys(bilder).length ? { bilder } : {}) };
 }

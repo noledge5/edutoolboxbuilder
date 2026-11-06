@@ -13,6 +13,8 @@ export type Uebung =
       aussage?: string;
       optionen: string[];
       richtig: number[];
+      /** Listening (English): this text is read aloud instead of shown; shown only when the device has no voice. */
+      hoeren?: string;
     }
   /** True or false, two big buttons. */
   | {
@@ -40,9 +42,27 @@ export type Uebung =
       hinweis: string;
       kacheln: string[];
       loesung: string;
-    };
+    }
+  /** Sort cards into 2–3 groups; each card is `[text, group index]`. */
+  | { art: 'gruppen'; id: string; frage: string; gruppen: string[]; karten: [string, number][] }
+  /** Pick the picture for a word: each picture is an emoji or a key into the package's `bilder` ("img:<id>"). */
+  | { art: 'bild'; id: string; frage: string; wort: string; bilder: string[]; richtig: number }
+  /**
+   * Tap the named places on a picture or map from the worksheet, one after the other. `bild` is a key into the
+   * package's `bilder` ("karte:<id>"); each point is [x, y, name] in percent of the picture.
+   */
+  | { art: 'punkt'; id: string; frage: string; bild: string; punkte: [number, number, string][] };
 
 export type UebungsArt = Uebung['art'];
+
+/** The kinds this version can show; a package from a newer Baukasten may hold others, which are left out. */
+export const UEBUNGS_ARTEN: readonly UebungsArt[] = ['waehlen', 'richtigfalsch', 'paare', 'luecke', 'reihenfolge', 'gruppen', 'bild', 'punkt'];
+
+/** One exercise of a lesson's KI-Fragenpool: shown to the class only once the teacher released it (`frei`). */
+export interface PoolEintrag {
+  u: Uebung;
+  frei: boolean;
+}
 
 export interface Paket {
   format: typeof PAKET_FORMAT;
@@ -63,6 +83,8 @@ export interface Paket {
   /** English module: read aloud in English, English labels where the sheet has them. */
   lang: 'de' | 'en';
   uebungen: Uebung[];
+  /** Pictures as JPEG data URLs: small ones for „Bild wählen“ ("img:<id>"), larger ones for places ("karte:<id>"). */
+  bilder?: Record<string, string>;
 }
 
 /** What the server keeps of a child's play (`lq_stand_json`). */

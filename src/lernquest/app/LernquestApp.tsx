@@ -36,7 +36,8 @@ import { ton } from './ton';
 import { GutscheineSeite, TicketIcon } from './Gutscheine';
 import { ProbeApp } from './Probe';
 import { probeAusUrl } from '../probe';
-import { Rich, UebungView } from './Uebungen';
+import { Rich, UebungView, Vorlesen } from './Uebungen';
+import { vorlesen } from './vorlesen';
 
 export type Screen =
   | { kind: 'karte' }
@@ -554,6 +555,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         titel={screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : 'Wiederholen'}
         onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
         onFertig={fertig}
+        paketVon={(st) => daten.pakete[st]}
       />
     );
   }
@@ -1014,9 +1016,18 @@ export interface RundeProps {
   titel: string;
   onAbbruch: () => void;
   onFertig: (stunde: string, runde: number, ergebnisse: boolean[], leitner: Stand['leitner']) => void;
+  /** The package of an exercise (its language and pictures); a round may mix lessons. */
+  paketVon?: (stunde: string) => Paket | undefined;
 }
 
-export function Runde({ screen, stand, herzen, titel: kicker, onAbbruch, onFertig }: RundeProps) {
+/** In English: the sentence a child hears after checking a gap or word order. */
+function nachDemPruefen(u: Uebung): string {
+  if (u.art === 'luecke') return u.teile.join('');
+  if (u.art === 'reihenfolge') return u.loesung;
+  return '';
+}
+
+export function Runde({ screen, stand, herzen, titel: kicker, onAbbruch, onFertig, paketVon }: RundeProps) {
   const [i, setI] = useState(0);
   const [antwort, setAntwort] = useState<Antwort | null>(null);
   const [ok, setOk] = useState<boolean | null>(null);
@@ -1024,11 +1035,16 @@ export function Runde({ screen, stand, herzen, titel: kicker, onAbbruch, onFerti
   const [leitner, setLeitner] = useState<Stand['leitner']>({});
   const [versuch] = useState(() => Date.now().toString(36));
   const item = screen.uebungen[i];
+  const paket = item && paketVon?.(item.stunde);
+  const englisch = paket?.lang === 'en';
+  const hoerSatz = englisch && item ? nachDemPruefen(item.u) : '';
 
   const pruefen = (a = antwort) => {
     if (!a || ok !== null) return;
     const right = istRichtig(item.u, a);
     ton(right ? 'richtig' : 'falsch');
+    // Right in the tap, not later: an iPad lets a page speak only then.
+    if (hoerSatz && tonAn()) vorlesen(hoerSatz);
     setOk(right);
     setErgebnisse([...ergebnisse, right]);
     const key = karteKey(item.stunde, item.u.id);
@@ -1077,9 +1093,11 @@ export function Runde({ screen, stand, herzen, titel: kicker, onAbbruch, onFerti
         u={item.u}
         seed={`${item.u.id}:${versuch}`}
         locked={ok !== null}
+        lang={paket?.lang}
+        bilder={paket?.bilder}
         onChange={(a) => {
           setAntwort(a);
-          if (a?.art === 'paare') pruefen(a);
+          if (a?.art === 'paare' || a?.art === 'punkt') pruefen(a);
         }}
       />
       <footer className={`lq-fuss ${ok === true ? 'ok' : ok === false ? 'nein' : ''}`} aria-live="polite">
@@ -1096,6 +1114,7 @@ export function Runde({ screen, stand, herzen, titel: kicker, onAbbruch, onFerti
                 Richtig wäre: <Rich text={loesungText(item.u)} />
               </span>
             )}
+            {hoerSatz && <Vorlesen text={hoerSatz} />}
           </div>
         )}
         {ok === null ? (

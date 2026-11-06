@@ -1,23 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { probeAusUrl, probeTest, PROBEN, schwachePunkte, stationPaket, TEST_GROESSE } from './probe';
-import { istRichtig, rundenZahl, satz, type Antwort } from './rules';
-import type { Uebung } from './types';
-
-/** The answer a child who knows it gives. */
-function richtigeAntwort(u: Uebung): Antwort {
-  switch (u.art) {
-    case 'waehlen':
-      return { art: 'waehlen', gewaehlt: u.richtig };
-    case 'richtigfalsch':
-      return { art: 'richtigfalsch', wert: u.richtig };
-    case 'paare':
-      return { art: 'paare', fehler: 0 };
-    case 'luecke':
-      return { art: 'luecke', gelegt: u.teile.filter((_, i) => i % 2 === 1) };
-    case 'reihenfolge':
-      return { art: 'reihenfolge', gelegt: u.kacheln };
-  }
-}
+import { istRichtig, richtigeAntwort, rundenZahl, satz } from './rules';
 
 describe.each(Object.values(PROBEN))('Offene Übungen „$id“', (p) => {
   const alle = p.stationen.flatMap((s) => s.uebungen);

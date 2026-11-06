@@ -1,31 +1,30 @@
-# Handoff – 06.11.2026 (spät)
+# Handoff – 06.11.2026 (Nacht)
 
 ## Ziel
-Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Stufe 4 „Echte Belohnungen und Auswertung“ ist fertig und
-auf Wunsch der Lehrkraft nach `main` gebracht (PR „Lernquest Stufe 4“, Merge = veröffentlichen). Nächstes Thema:
-Stufe 5 „KI-Fragenpool und mehr Formate“.
+Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Stufe 5 „KI-Fragenpool und mehr Formate“ ist **fertig
+gebaut** auf Branch `claude/stufe-5-handoff-b9odwp`, noch nicht auf `main` (Merge = veröffentlichen).
 
 ## Stand
-- **Live:** Stufen 1–4. Lehrkraft-Bereich im Baukasten unter Übersicht → „Lernquest“.
-- **Stufe 4** (Entscheidungen und Stand in `docs/lernquest.md`, „Stufe 4“):
-  - Server: `supabase/migrations/20261108_lernquest_belohnungen.sql`, von der Lehrkraft im SQL Editor eingespielt
-    (die Bestätigung des Supabase-Werkzeugs kam dreimal nicht an). Geprüft über die öffentlichen Funktionen.
-  - Klassenpunkte je Kind: Wochenziel 3, Bosssieg 2 (einmal je Region), von Hand höchstens 5 je Woche.
-    Gutscheine je Klasse mit Preis, Grenze je Kind und je Klasse pro Woche; Anfrage legt Punkte zurück.
-  - Auswertung je Kompetenz aus den Wiederhol-Kästen (sitzt ab Kasten 3), Zuordnung nur im Browser der Lehrkraft.
-- Tests: Typprüfung, 298 Tests, Build, CI grün. Lokale SQL-Prüfung (76), Live-Test (`LQ_LIVE=1`, 4 Tests) und
-  Testlauf (`npm run lq:testlauf`, jetzt mit Gutschein anfragen und einlösen) grün. Lehrkraft-Seite mit einer
-  Wegwerf-Klasse im Browser angesehen (Laptop und iPad).
+- **Live:** Stufen 1–4 und die offenen Übungen (`#probe=englisch5`).
+- **Stufe 5** (Entscheidungen und Stand in `docs/lernquest.md`, „Stufe 5“):
+  - „Fragen erzeugen“ je Stunde (Lehrkraft-Seite → „Stunden freischalten“): etwa 15 Fragen von Claude (Chat oder
+    eigener Schlüssel), jede einzeln freigeben, ändern, löschen. Pool an der Stunde (`Lesson.pool`).
+  - „Punkte im Bild …“ im selben Dialog: Bild vom Arbeitsblatt, Punkte setzen und benennen.
+  - Neue Formate: Sortieren, Bild wählen (aus Bild-Vokabeln), Punkt auf Karte/Bild, Hören; Vorlesen mit der Stimme
+    des Geräts in Englisch-Paketen. Keine Serveränderung.
+- Geprüft: Typprüfung, alle Tests, Build, CI. Testlauf gegen den echten Server (`npm run lq:testlauf`, jetzt mit
+  zweiter Station aus den neuen Formaten und Bildern im Paket) grün, Testklasse gelöscht. Dialog und Punkte-Editor im
+  Browser am iPad- und Handy-Format (Hilfsseiten, nicht im Repo).
+- **Nicht geprüft:** echter Aufruf an Claude mit Schlüssel (kein Schlüssel in der Sitzung, der Chat-Weg ist geprüft);
+  Vorlesen mit echter Stimme (am iPad anhören); Bild-Vokabeln mit eigenen Fotos im echten Baukasten.
 
 ## Nächste Schritte
-1. Nach dem Deploy `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run lq:testlauf` (Ergebnis steht
-   im Chat der Lehrkraft).
-2. Nicht geprüft: Gutscheine mit vielen Kindern gleichzeitig; „Punkte geben“ fragt mit `window.prompt` (am iPad
-   ansehen).
-3. Offen: „+Schaden“ als Ausrüstungs-Bonus (Katalog-Änderung, eigener Schritt).
-4. Stufe 5 planen (KI-Fragenpool je Stunde mit Prüfen/Freigeben; Karte/Bild-Punkte, Sortieren, Vorlesen).
+1. Lehrkraft schaut Stufe 5 an; bei „passt“ PR nach `main` (= veröffentlichen), danach
+   `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run lq:testlauf`.
+2. Offen aus Stufe 4: Gutscheine mit vielen Kindern gleichzeitig; „Punkte geben“ fragt mit `window.prompt`;
+   „+Schaden“ als Ausrüstungs-Bonus.
 
 ## Wichtig zu wissen
 - `main` = veröffentlichen. Arbeits-Branch nutzen, PR und Merge nur auf Wunsch.
-- Belohnungsregeln doppelt (TS + SQL): `rules.ts` und `lq_runde_melden`, `lq_boss_ticken`, `lq_anfragen`.
+- Neue Übungsart: Liste in `AGENTS.md` (Lernquest) abarbeiten.
 - Die `lq_*`-Tabellen nie direkt lesen (echte Kindernamen); nur über die Server-Funktionen mit Wegwerf-Schlüssel.

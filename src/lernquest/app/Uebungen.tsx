@@ -1,10 +1,12 @@
-// The exercises on screen: tap, true/false, pairs, gap with tiles, word order. Each reports its answer to the round
-// (`onChange`), which checks it when the child taps „Prüfen“ (pairs check themselves when all are found).
-import { useMemo, useState } from 'react';
+// The exercises on screen: tap, listen and tap, true/false, pairs, gap with tiles, word order, sort into groups, pick
+// the picture, tap the places on a picture. Each reports its answer to the round (`onChange`), which checks it when the child taps „Prüfen“ (pairs
+// and places check themselves when all are done). In English packages a speaker reads statements and words aloud.
+import { useMemo, useState, type MouseEvent } from 'react';
 import { richParts } from '../../model/text';
-import { gemischt, type Antwort } from '../rules';
+import { gemischt, punktTrifft, type Antwort } from '../rules';
 import type { Uebung } from '../types';
 import { ton } from './ton';
+import { kannVorlesen, vorlesen } from './vorlesen';
 
 /** Text with **bold** and {{marked}}, like on the sheet. */
 export function Rich({ text }: { text: string }) {
@@ -32,6 +34,44 @@ interface Props {
   /** After „Prüfen“: nothing can change any more. */
   locked: boolean;
   onChange: (a: Antwort | null) => void;
+  /** Language of the package: English statements and words get a speaker. */
+  lang?: 'de' | 'en';
+  /** The package's own pictures for „Bild wählen“ (key → data URL). */
+  bilder?: Record<string, string>;
+}
+
+/** A speaker that reads `text` in English (nothing on devices without a voice). */
+export function Vorlesen({ text, gross = false }: { text: string; gross?: boolean }) {
+  if (!kannVorlesen()) return null;
+  return (
+    <span className={`lq-vorlesen ${gross ? 'gross' : ''}`}>
+      <button type="button" className="lq-lautsprecher" aria-label="Vorlesen" onClick={() => vorlesen(text)}>
+        <LautsprecherIcon />
+        {gross && <span>Anhören</span>}
+      </button>
+      {gross && (
+        <button type="button" className="lq-lautsprecher langsam" aria-label="Langsam vorlesen" onClick={() => vorlesen(text, true)}>
+          langsam
+        </button>
+      )}
+    </span>
+  );
+}
+
+const LautsprecherIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" />
+    <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+  </svg>
+);
+/** A statement, with a speaker in English packages. */
+function Aussage({ text, lang }: { text: string; lang?: 'de' | 'en' }) {
+  return (
+    <p className="lq-aussage">
+      <Rich text={text} />
+      {lang === 'en' && <Vorlesen text={text} />}
+    </p>
+  );
 }
 
 export function UebungView(props: Props) {
@@ -46,6 +86,9 @@ export function UebungView(props: Props) {
       {u.art === 'paare' && <Paare {...props} u={u} />}
       {u.art === 'luecke' && <Luecke {...props} u={u} />}
       {u.art === 'reihenfolge' && <Reihenfolge {...props} u={u} />}
+      {u.art === 'gruppen' && <Gruppen {...props} u={u} />}
+      {u.art === 'bild' && <Bild {...props} u={u} />}
+      {u.art === 'punkt' && <Punkt {...props} u={u} />}
     </div>
   );
 }
@@ -54,7 +97,7 @@ type P<A extends Uebung['art']> = Omit<Props, 'u'> & {
   u: Extract<Uebung, { art: A }>;
 };
 
-function Waehlen({ u, seed, locked, onChange }: P<'waehlen'>) {
+function Waehlen({ u, seed, locked, onChange, lang }: P<'waehlen'>) {
   const order = useMemo(
     () =>
       gemischt(
@@ -74,11 +117,8 @@ function Waehlen({ u, seed, locked, onChange }: P<'waehlen'>) {
   };
   return (
     <>
-      {u.aussage && (
-        <p className="lq-aussage">
-          <Rich text={u.aussage} />
-        </p>
-      )}
+      {u.hoeren && (kannVorlesen() && !locked ? <Vorlesen text={u.hoeren} gross /> : <Aussage text={u.hoeren} lang="en" />)}
+      {u.aussage && <Aussage text={u.aussage} lang={lang} />}
       {multi && <p className="lq-hinweis">Mehrere Antworten sind richtig.</p>}
       <div className="lq-optionen">
         {order.map((i) => {
@@ -95,7 +135,7 @@ function Waehlen({ u, seed, locked, onChange }: P<'waehlen'>) {
   );
 }
 
-function RichtigFalsch({ u, locked, onChange }: P<'richtigfalsch'>) {
+function RichtigFalsch({ u, locked, onChange, lang }: P<'richtigfalsch'>) {
   const [wert, setWert] = useState<boolean | null>(null);
   const tap = (w: boolean) => {
     if (locked) return;
@@ -106,9 +146,7 @@ function RichtigFalsch({ u, locked, onChange }: P<'richtigfalsch'>) {
   const cls = (w: boolean) => (locked ? (u.richtig === w ? 'ok' : wert === w ? 'nein' : '') : wert === w ? 'an' : '');
   return (
     <>
-      <p className="lq-aussage">
-        <Rich text={u.aussage} />
-      </p>
+      <Aussage text={u.aussage} lang={lang} />
       <div className="lq-rf">
         <button type="button" className={`lq-option lq-gross ${cls(true)}`} aria-pressed={wert === true} onClick={() => tap(true)}>
           ✓ richtig
@@ -268,6 +306,164 @@ function Reihenfolge({ u, seed, locked, onChange }: P<'reihenfolge'>) {
             {t}
           </button>
         ))}
+      </div>
+    </>
+  );
+}
+
+function Gruppen({ u, seed, locked, onChange }: P<'gruppen'>) {
+  // The cards come one by one in a mixed order; a placed card can be tapped to take it back.
+  const order = useMemo(
+    () =>
+      gemischt(
+        u.karten.map((_, i) => i),
+        seed,
+      ),
+    [u, seed],
+  );
+  const [wo, setWo] = useState<(number | null)[]>(() => u.karten.map(() => null));
+  const naechste = order.find((i) => wo[i] === null);
+  const update = (next: (number | null)[]) => {
+    setWo(next);
+    onChange(next.every((x) => x !== null) ? { art: 'gruppen', zuordnung: next as number[] } : null);
+  };
+  const legen = (g: number) => {
+    if (locked || naechste === undefined) return;
+    ton('tipp');
+    update(wo.map((x, i) => (i === naechste ? g : x)));
+  };
+  const zurueck = (i: number) => {
+    if (locked) return;
+    ton('tipp');
+    update(wo.map((x, k) => (k === i ? null : x)));
+  };
+  return (
+    <>
+      {naechste !== undefined ? (
+        <div className="lq-sortkarte" aria-live="polite">
+          <Rich text={u.karten[naechste][0]} />
+        </div>
+      ) : (
+        !locked && <p className="lq-hinweis">Alle Karten liegen. Tippe eine Karte an, um sie zurückzuholen.</p>
+      )}
+      <div className="lq-gruppen" style={{ gridTemplateColumns: `repeat(${u.gruppen.length}, minmax(0, 1fr))` }}>
+        {u.gruppen.map((g, gi) => (
+          <div key={gi} className="lq-gruppe">
+            <button type="button" className="lq-option lq-gruppe-kopf" disabled={locked || naechste === undefined} onClick={() => legen(gi)}>
+              <Rich text={g} />
+            </button>
+            {order
+              .filter((i) => wo[i] === gi)
+              .map((i) => (
+                <button key={i} type="button" className={`lq-option lq-gruppe-karte ${locked ? (u.karten[i][1] === gi ? 'ok' : 'nein') : ''}`} onClick={() => zurueck(i)} disabled={locked}>
+                  <Rich text={u.karten[i][0]} />
+                </button>
+              ))}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function Bild({ u, seed, locked, onChange, lang, bilder = {} }: P<'bild'>) {
+  const order = useMemo(
+    () =>
+      gemischt(
+        u.bilder.map((_, i) => i),
+        seed,
+      ),
+    [u, seed],
+  );
+  const [chosen, setChosen] = useState<number | null>(null);
+  const tap = (i: number) => {
+    if (locked) return;
+    ton('tipp');
+    setChosen(i);
+    onChange({ art: 'bild', gewaehlt: i });
+  };
+  return (
+    <>
+      <p className="lq-aussage lq-wort">
+        <Rich text={u.wort} />
+        {lang === 'en' && <Vorlesen text={u.wort} />}
+      </p>
+      <div className="lq-bilder">
+        {order.map((i, n) => {
+          const b = u.bilder[i];
+          const src = bilder[b];
+          const state = locked ? (i === u.richtig ? 'ok' : chosen === i ? 'nein' : '') : chosen === i ? 'an' : '';
+          return (
+            <button key={i} type="button" className={`lq-option lq-bild ${state}`} aria-pressed={chosen === i} aria-label={`Bild ${n + 1}`} onClick={() => tap(i)}>
+              {src ? <img src={src} alt="" /> : <span className="lq-emoji">{b}</span>}
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+/** Where a tap landed on the picture, in percent. */
+function prozent(e: MouseEvent<HTMLElement>): { x: number; y: number } {
+  const r = e.currentTarget.getBoundingClientRect();
+  return { x: (100 * (e.clientX - r.left)) / Math.max(1, r.width), y: (100 * (e.clientY - r.top)) / Math.max(1, r.height) };
+}
+
+function Punkt({ u, seed, locked, onChange, bilder = {} }: P<'punkt'>) {
+  // The places are asked one by one in a mixed order; each tap is judged at once, a miss shows the right place.
+  const order = useMemo(
+    () =>
+      gemischt(
+        u.punkte.map((_, i) => i),
+        seed,
+      ),
+    [u, seed],
+  );
+  const [getippt, setGetippt] = useState<{ ziel: number; x: number; y: number }[]>([]);
+  const ziel = order[getippt.length];
+  const tap = (e: MouseEvent<HTMLElement>) => {
+    if (locked || ziel === undefined) return;
+    const { x, y } = prozent(e);
+    const next = [...getippt, { ziel, x, y }];
+    ton(punktTrifft(u.punkte, ziel, x, y) ? 'richtig' : 'falsch');
+    setGetippt(next);
+    if (next.length === u.punkte.length) onChange({ art: 'punkt', getippt: next });
+  };
+  const src = bilder[u.bild];
+  return (
+    <>
+      <p className="lq-aussage lq-wort" aria-live="polite">
+        {ziel !== undefined ? (
+          <>
+            Tippe auf: <b>{u.punkte[ziel][2]}</b>
+          </>
+        ) : (
+          'Fertig!'
+        )}
+      </p>
+      {u.punkte.length > 1 && (
+        <p className="lq-hinweis">
+          {Math.min(getippt.length + 1, u.punkte.length)} von {u.punkte.length}
+        </p>
+      )}
+      <div className="lq-karte-bild">
+        <div className="lq-karte-flaeche" onClick={tap} role="button" tabIndex={-1} aria-label={ziel !== undefined ? `Bild: tippe auf ${u.punkte[ziel][2]}` : 'Bild'}>
+          {src && <img src={src} alt="" draggable={false} />}
+          {getippt.map((t, i) => {
+            const ok = punktTrifft(u.punkte, t.ziel, t.x, t.y);
+            const [px, py, name] = u.punkte[t.ziel];
+            return (
+              <span key={i}>
+                <span className={`lq-marke ${ok ? 'ok' : 'nein'}`} style={{ left: `${t.x}%`, top: `${t.y}%` }} aria-hidden />
+                {!ok && <span className="lq-marke ok ziel" style={{ left: `${px}%`, top: `${py}%` }} aria-hidden />}
+                <span className="lq-marke-name" style={{ left: `${ok ? t.x : px}%`, top: `${ok ? t.y : py}%` }}>
+                  {name}
+                </span>
+              </span>
+            );
+          })}
+        </div>
       </div>
     </>
   );

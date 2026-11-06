@@ -57,6 +57,7 @@ export function ProbeApp({ id }: { id: string }) {
         herzen={3}
         titel={screen.stunde === TEST ? 'Probetest · alles gemischt' : `Station ${station + 1} · ${pakete[station]?.titel ?? ''}`}
         onAbbruch={() => setScreen({ kind: 'karte' })}
+        paketVon={(st) => pakete.find((x) => x.stunde === st)}
         onFertig={(stunde, runde, ergebnisse) => {
           ton('fertig');
           const richtig = ergebnisse.filter(Boolean).length;
