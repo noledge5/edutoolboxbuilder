@@ -79,7 +79,8 @@ Jede Stufe ist für sich im Unterricht nutzbar und wird einzeln freigegeben.
 
 ## Stand Stufe 1 (06.11.2026, Branch `lernquest`)
 
-Gebaut und geprüft (Tests, Rechte-Test gegen den Server, Durchlauf im Browser am Handy und iPad); noch nicht auf `main`.
+Gebaut und geprüft (Tests, Rechte-Test gegen den Server, Durchlauf im Browser am Handy und iPad); auf Wunsch der Lehrkraft am 06.11.2026 nach `main` gebracht (live zum Testen mit
+Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
 - **Server:** `supabase/migrations/20261106_lernquest.sql` (eingespielt ins Projekt „baukasten“). Tabellen `lq_klasse`,
   `lq_kind`, `lq_sitzung`, `lq_paket`; nur Funktionen `lq_*`. Aufräumen nachts per `pg_cron` (Papierkorb 30 Tage,
   gesperrte nie benutzte Konten 90 Tage, abgelaufene Sitzungen). Sitzung 180 Tage, höchstens 5 Geräte je Kind.
@@ -107,4 +108,4 @@ Gebaut und geprüft (Tests, Rechte-Test gegen den Server, Durchlauf im Browser a
 - ✅ Freigabe der Schule für Klarnamen auf dem Server: liegt vor (Lehrkraft, 06.11.2026).
 - Supabase-Tabellen und -Funktionen für Stufe 1: von der Lehrkraft am 06.11.2026 freigegeben (Projekt „baukasten“).
   Spätere Stufen, die den Server ändern, wieder kurz ankündigen.
-- Lernquest ist erst nach dem Merge nach `main` für Kinder erreichbar; bis dahin Test über die Vorschau.
+- Lernquest ist seit 06.11.2026 live unter `…/lernquest/`; Kinder erreichen es erst mit einem Klassencode der Lehrkraft.

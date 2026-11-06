@@ -1579,4 +1579,36 @@ mark {
   .lq-ergebnis {
     max-width: 720px;
   }
+  /* The wide map column: bigger stations so the path does not look lost. */
+  .lq-pfad {
+    gap: var(--lq-a-6);
+  }
+  .lq-pfad li {
+    max-width: 260px;
+  }
+  .lq-knoten {
+    width: 112px;
+    height: 104px;
+  }
+  .lq-knoten svg,
+  .lq-knoten.aktuell svg {
+    width: 48px;
+    height: 48px;
+  }
+  .lq-knoten-nr {
+    font-size: var(--lq-t-h2);
+  }
+  .lq-knoten-titel {
+    font-size: var(--lq-t-gross);
+  }
+  .lq-sterne svg {
+    width: 22px;
+    height: 22px;
+  }
+  .lq-versatz-l {
+    transform: translateX(-96px);
+  }
+  .lq-versatz-r {
+    transform: translateX(96px);
+  }
 }
