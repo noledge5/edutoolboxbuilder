@@ -48,3 +48,6 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
   nächste Station (Puls, nur diese), Truhe (aufspringen, Teil steigt, Strahlen drehen). Nie Eingabe blockieren;
   Truhe ≤ 2 s, per Tippen überspringbar. Weniger Bewegung: nicht abschalten, sondern ersetzen (Wackeln → roter Rand
   blinkt, Plopp → Einblenden, Puls/Strahlen stehen).
+- **Barrierefreiheit:** Tippflächen ≥ 48 px, ≥ 8 px Abstand; Zoom bleibt erlaubt; Rückmeldungen über `aria-live`;
+  Symbole ohne Text mit Beschriftung; Tab-Reihenfolge wie Bildschirm; Ziehen immer auch per Antippen lösbar.
+  Vorlese-Knopf (Lautsprecher) an jeder Aufgabe, je Klasse abschaltbar, Standard an, nicht im Bosskampf.

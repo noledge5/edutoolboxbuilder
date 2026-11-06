@@ -24,6 +24,8 @@ dieses Dokuments ist der Plan vor dem Bau.
 | Bosskampf | Klasse gemeinsam gegen einen Boss: Lehrkraft startet am Beamer, Kinder treten mit ihrem Konto bei, Frage am Beamer, Antwort am Gerät mit Zeitlimit; Richtig = Schaden (schneller und in Serie mehr), Falsch = Boss trifft den Klassen-Lebensbalken. Fällt der Boss, gibt es eine Truhe für alle. Keine Einzel-Rangliste. | Teamaufgabe statt Einzelquest, niemand wird bloßgestellt. |
 | Miteinander | Klassen-Ansicht mit Avataren und gemeinsamem Wochenfortschritt, ohne Rangliste und ohne Chat. | Vorschlag, keine Antwort der Lehrkraft; änderbar. |
 | Geräte | Zuerst fürs Handy (hochkant, große Knöpfe), genauso iPad und Laptop; als App auf den Home-Bildschirm legbar. | Zuhause Handy, in der Schule iPad. |
+| Vorlesen | Lautsprecher-Knopf an jeder Aufgabe liest Aufgabe und Antworten vor (Sprachausgabe des Geräts, Web Speech API; nichts geht an einen Server). Lehrkraft schaltet ihn je Klasse an/aus, Standard an; nicht im Bosskampf. | Hilft schwachen Lesern und DaZ-Kindern, kostenlos. |
+| Design | Geschärft in der Designrunde 06.11.2026, siehe `docs/design/lernquest/README.md`. | Einheitlicher, professioneller Look vor Stufe 2. |
 | Branch | Langer Branch `lernquest` neben `main`; jede Stufe wird dort fertig und kommt erst nach Freigabe nach `main` (= veröffentlichen). | Wunsch der Lehrkraft. |
 
 ## Aufbau (Technik)
