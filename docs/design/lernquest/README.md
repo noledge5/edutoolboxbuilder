@@ -26,3 +26,14 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 - Rückmeldung nie nur über Farbe: Haken/Kreuz und Text; Antworten im Bosskampf mit Form (Dreieck, Raute, Kreis,
   Quadrat).
 - Inhalte sind Beispiele (Erdkunde, Klasse 5b, erfundene Namen).
+
+## Designregeln (Designrunde 06.11.2026)
+Gelten für den Nachbau in `src/lernquest/app/lernquest.css`; der Prototyp bleibt Bildvorlage, diese Regeln gehen vor.
+
+### Farben
+- Tokens heißen nach ihrer Aufgabe, nicht nach dem Farbton: `--lq-primary` `#5B3FD9`, `--lq-primary-tief` `#3F28A8`,
+  `--lq-gold` `#FFC531`, `--lq-gold-tief` `#C98F00`, `--lq-ok` `#13804A` / `--lq-ok-flaeche` `#DDF5E7`,
+  `--lq-fehler` `#C4321F` / `--lq-fehler-flaeche` `#FDE6E1`, dazu Grund, Karte, Schrift, gedämpft, Linie.
+- Seltenheiten `--lq-selten-1` … `--lq-selten-5` (Werte wie `SELTENHEIT` in `src/lernquest/teile.ts`); dunkles Set
+  für Truhe und Bosskampf `--lq-nacht` `#1F1A3D`, `--lq-nacht-ink`.
+- Außerhalb von `:root` keine festen Farbwerte im CSS; ein Test prüft das.
