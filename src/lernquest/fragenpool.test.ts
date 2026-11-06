@@ -3,9 +3,9 @@ import { createBlock, createPage } from '../model/ops';
 import { readLesson } from '../library/read';
 import type { Lesson, Module } from '../library/types';
 import { fragenAus } from './boss';
-import { ablenkerVon, freigegeben, lueckeAus, lueckeText, neueId, poolAusAntwort, poolPrompt, readPool, readUebung, reihenfolgeAus, stundenText } from './fragenpool';
-import { buildPaket, exercisesOf, mitBildern, readPaket } from './paket';
-import { istRichtig, loesungText, richtigeAntwort } from './rules';
+import { ablenkerVon, bilderDerStunde, freigegeben, punktAufgabe, lueckeAus, lueckeText, neueId, poolAusAntwort, poolPrompt, readPool, readUebung, reihenfolgeAus, stundenText } from './fragenpool';
+import { buildPaket, exercisesOf, KARTE_SEITE, KARTEN_MAX, mitBildern, readPaket } from './paket';
+import { istRichtig, loesungText, punktTrifft, richtigeAntwort } from './rules';
 import type { PoolEintrag, Uebung } from './types';
 
 const modul = { id: 'm1', number: 2, title: 'Family', icon: 'users', subject: 'Englisch', grade: 5, lang: 'en' } as unknown as Module;
@@ -173,5 +173,63 @@ describe('Neue Formate (Stufe 5)', () => {
     const p = buildPaket(modul, stunde());
     const neu = readPaket({ ...p, uebungen: [...p.uebungen, { art: 'punkt', id: 'z' }, { art: 'bild', id: 'kaputt' }, null] });
     expect(neu?.uebungen.map((u) => u.art)).toEqual(['waehlen']);
+  });
+});
+
+describe('Punkt auf Karte/Bild (Stufe 5)', () => {
+  const punkte: [number, number, string][] = [
+    [20, 30, 'Rhein'],
+    [70, 40, 'Donau'],
+    [50, 80, 'Bodensee'],
+  ];
+  const u = punktAufgabe('pool-k', 'abc', punkte);
+
+  it('trifft, wenn der nächste Punkt der gesuchte ist und nicht zu weit weg', () => {
+    expect(punktTrifft(punkte, 0, 22, 33)).toBe(true);
+    expect(punktTrifft(punkte, 0, 31, 30)).toBe(true);
+    expect(punktTrifft(punkte, 0, 40, 30)).toBe(false); // too far
+    expect(punktTrifft(punkte, 1, 22, 33)).toBe(false); // nearer to Rhein
+    expect(punktTrifft([[10, 10, 'a'], [14, 10, 'b']], 0, 12.5, 10)).toBe(false); // nearer to b
+    expect(istRichtig(u, richtigeAntwort(u))).toBe(true);
+    expect(istRichtig(u, { art: 'punkt', getippt: [{ ziel: 0, x: 20, y: 30 }, { ziel: 0, x: 20, y: 30 }, { ziel: 2, x: 50, y: 80 }] })).toBe(false);
+    expect(istRichtig(u, { art: 'punkt', getippt: [{ ziel: 0, x: 20, y: 30 }, { ziel: 1, x: 90, y: 90 }, { ziel: 2, x: 50, y: 80 }] })).toBe(false);
+    expect(loesungText(u)).toContain('grünen Punkte');
+    expect(fragenAus(u)).toEqual([]);
+  });
+
+  it('prüft streng: Bild, Prozent, Namen', () => {
+    expect(readUebung(u)).toEqual(u);
+    expect(readUebung({ ...u, bild: 'img:abc' })).toBeNull();
+    expect(readUebung({ ...u, bild: 'karte:../x' })).toBeNull();
+    expect(readUebung({ ...u, punkte: [] })).toBeNull();
+    expect(readUebung({ ...u, punkte: [[120, 3, 'x']] })).toBeNull();
+    expect(readUebung({ ...u, punkte: [[1, 2, 'x'], [3, 4, 'X']] })).toBeNull();
+    expect(readUebung({ ...u, punkte: [[1, 2, '']] })).toBeNull();
+    expect(readUebung({ ...u, punkte: Array.from({ length: 7 }, (_, i) => [i, i, `p${i}`]) })).toBeNull();
+  });
+
+  it('findet die Bilder der Kinderseiten, nicht die der Lehrkraft', () => {
+    const bild = createBlock('image', { image: 'abc', caption: 'Abb. 1: Flüsse' });
+    const leer = createBlock('image', { image: '' });
+    const geheim = createBlock('image', { image: 'zzz' });
+    const fremd = createBlock('image', { image: 'pdf:3/seite 1' });
+    const l = { ...stunde(), doc: { pages: [{ ...createPage(), blocks: [bild, leer, fremd] }, { ...createPage(), type: 'lehrkraft', blocks: [geheim] }] } } as Lesson;
+    expect(bilderDerStunde(l)).toEqual([{ id: 'abc', titel: 'Abb. 1: Flüsse' }]);
+  });
+
+  it('schickt das Bild groß mit, höchstens drei; ohne Bild fällt die Aufgabe weg', async () => {
+    const pool = ['a', 'b', 'c', 'd'].map((id, i) => ({ u: punktAufgabe(`pool-${i}`, id, punkte), frei: true }));
+    const l = stunde(pool);
+    const seiten: number[] = [];
+    const p = await mitBildern(buildPaket(modul, l), async (id, seite) => {
+      seiten.push(seite);
+      return `data:image/jpeg;base64,${id}`;
+    });
+    expect(seiten).toEqual(Array(KARTEN_MAX).fill(KARTE_SEITE));
+    expect(p.uebungen.filter((x) => x.art === 'punkt')).toHaveLength(KARTEN_MAX);
+    expect(readPaket(p)?.uebungen.filter((x) => x.art === 'punkt')).toHaveLength(KARTEN_MAX);
+    expect(readPaket({ ...p, bilder: {} })?.uebungen.filter((x) => x.art === 'punkt')).toHaveLength(0);
+    const ohne = await mitBildern(buildPaket(modul, l), async () => null);
+    expect(ohne.uebungen.some((x) => x.art === 'punkt')).toBe(false);
   });
 });

@@ -1,17 +1,18 @@
-// The KI-Fragenpool of a lesson (Stufe 5): about 20 extra exercises Claude writes from the lesson's student pages,
+// The KI-Fragenpool of a lesson (Stufe 5): about 15 extra exercises Claude writes from the lesson's student pages,
 // which the teacher checks, corrects and releases. Released ones travel in the Lernpaket after the lesson's own
-// exercises. Only the lesson content goes to Claude, never names or answers of children. Pure, so it is tested
+// exercises. Only the lesson content goes to Claude, never names or answers of children. Tasks with places on a
+// picture („Punkt auf Karte/Bild“) the teacher makes by hand from a picture of the worksheet. Pure, so it is tested
 // without a browser; the dialog is `teacher/Fragenpool.tsx`.
 import { blockText } from '../library/search';
 import type { Lesson, Module } from '../library/types';
 import { seeded, shuffle } from '../model/language';
-import { isObj } from '../model/text';
-import { sentenceTiles, shuffledTiles } from './paket';
+import { isObj, str } from '../model/text';
+import { KARTE_KEY, sentenceTiles, shuffledTiles } from './paket';
 import type { PoolEintrag, Uebung } from './types';
 
 export const POOL_FORMAT = 'lernquest-fragenpool';
 /** Exercises one request asks for. */
-export const POOL_ZIEL = 20;
+export const POOL_ZIEL = 15;
 /** Most exercises a lesson's pool keeps (released or not), so the package stays small and every one comes up. */
 export const POOL_MAX = 40;
 
@@ -22,6 +23,11 @@ const PAARE = [2, 5] as const;
 const KARTEN = [3, 8] as const;
 const GRUPPEN = [2, 3] as const;
 const KACHELN_MAX = 14;
+/** Places on one picture: enough for a map, few enough to tap on a phone. */
+export const PUNKTE = [1, 6] as const;
+const NAME_MAX = 60;
+/** Image ids a task with places can name (the key travels in the package and is checked strictly). */
+const BILD_ID = /^[\w-]{1,64}$/;
 const ABLENKER_MAX = 3;
 const SOURCE_MAX = 16000;
 
@@ -101,6 +107,21 @@ export function readUebung(x: unknown): Uebung | null {
       const richtig = bilder && index(x.richtig, bilder.length);
       return wort && bilder && richtig !== null && richtig !== undefined ? { art: 'bild', id, frage, wort, bilder, richtig } : null;
     }
+    case 'punkt': {
+      if (typeof x.bild !== 'string' || !x.bild.startsWith(KARTE_KEY) || !BILD_ID.test(x.bild.slice(KARTE_KEY.length))) return null;
+      if (!Array.isArray(x.punkte) || x.punkte.length < PUNKTE[0] || x.punkte.length > PUNKTE[1]) return null;
+      const pct = (n: unknown) => (typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 100 ? Math.round(n * 10) / 10 : null);
+      const punkte = x.punkte.map((p): [number, number, string] | null => {
+        if (!Array.isArray(p) || p.length !== 3) return null;
+        const px = pct(p[0]);
+        const py = pct(p[1]);
+        const name = text(p[2], NAME_MAX);
+        return px !== null && py !== null && name !== null ? [px, py, name.trim()] : null;
+      });
+      if (!punkte.every((p): p is [number, number, string] => p !== null)) return null;
+      if (new Set(punkte.map(([, , n]) => n.toLowerCase())).size !== punkte.length) return null;
+      return { art: 'punkt', id, frage, bild: x.bild, punkte };
+    }
     default:
       return null;
   }
@@ -172,6 +193,30 @@ export function reihenfolgeAus(id: string, frage: string, loesung: string, hinwe
   return { art: 'reihenfolge', id, frage, hinweis, kacheln: shuffledTiles(words, id), loesung: loesung.trim() };
 }
 
+// — Places on a picture —
+
+/** The pictures of the lesson's student pages (blocks „Abbildung“ with an own picture), for a task with places. */
+export function bilderDerStunde(l: Lesson): { id: string; titel: string }[] {
+  const out: { id: string; titel: string }[] = [];
+  for (const p of l.doc.pages) {
+    if (p.type === 'lehrkraft') continue;
+    for (const b of p.blocks) {
+      const id = str(b.props.image).trim();
+      if (b.type === 'image' && BILD_ID.test(id) && !out.some((x) => x.id === id)) out.push({ id, titel: str(b.props.caption).trim() || p.title || 'Abbildung' });
+    }
+  }
+  return out;
+}
+
+/** A task with places on the picture `bildId`. */
+export const punktAufgabe = (id: string, bildId: string, punkte: [number, number, string][], frage = 'Tippe auf die richtige Stelle.'): Uebung => ({
+  art: 'punkt',
+  id,
+  frage,
+  bild: `${KARTE_KEY}${bildId}`,
+  punkte,
+});
+
 // — Claude —
 
 export interface PoolAuftrag {
@@ -213,6 +258,8 @@ export function kurzText(u: Uebung): string {
       return `${u.gruppen.join(' / ')}: ${u.karten.map(([t]) => t).join(', ')}`;
     case 'bild':
       return u.wort;
+    case 'punkt':
+      return `Stellen im Bild: ${u.punkte.map(([, , n]) => n).join(', ')}`;
   }
 }
 
@@ -240,7 +287,7 @@ export function poolSystem(): string {
     '- gruppen: {"art":"gruppen","frage":"Sortiere.","gruppen":["…","…"],"karten":[["…",0],["…",1]]} – 2 bis 3 Gruppen, 4 bis 8 Karten, jede Gruppe mindestens eine Karte.',
     '',
     '## Antwort',
-    `Nur ein JSON-Block: {"format":"${POOL_FORMAT}","uebungen":[…]}. Etwa ${POOL_ZIEL} Übungen, jedes Format mindestens zweimal (hoeren nur in Englisch-Stunden).`,
+    `Nur ein JSON-Block: {"format":"${POOL_FORMAT}","uebungen":[…]}. Etwa ${POOL_ZIEL} Übungen, jedes Format mindestens einmal (hoeren nur in Englisch-Stunden).`,
   ].join('\n');
 }
 

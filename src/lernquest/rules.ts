@@ -47,7 +47,19 @@ export type Antwort =
   | { art: 'reihenfolge'; gelegt: string[] }
   /** Group index chosen for each card, in the order of `karten`. */
   | { art: 'gruppen'; zuordnung: number[] }
-  | { art: 'bild'; gewaehlt: number };
+  | { art: 'bild'; gewaehlt: number }
+  /** One tap per point: which point was asked for and where the child tapped (percent of the picture). */
+  | { art: 'punkt'; getippt: { ziel: number; x: number; y: number }[] };
+
+/** How far from a point a tap may land, in percent of the picture. */
+export const PUNKT_RADIUS = 12;
+
+/** Whether a tap at (x, y) hits point `ziel`: it is the nearest point and not too far away. */
+export function punktTrifft(punkte: [number, number, string][], ziel: number, x: number, y: number): boolean {
+  const d = punkte.map(([px, py]) => Math.hypot(px - x, py - y));
+  const p = d[ziel];
+  return p !== undefined && p <= PUNKT_RADIUS && d.every((o, i) => i === ziel || o > p);
+}
 
 /** A sentence from tiles: spaces before end marks and commas go. */
 export const satz = (tiles: string[]) => tiles.join(' ').replace(/\s+([.,!?;:])/g, '$1');
@@ -72,6 +84,11 @@ export function istRichtig(u: Uebung, a: Antwort): boolean {
       return a.art === 'gruppen' && a.zuordnung.length === u.karten.length && u.karten.every(([, g], i) => a.zuordnung[i] === g);
     case 'bild':
       return a.art === 'bild' && a.gewaehlt === u.richtig;
+    case 'punkt': {
+      if (a.art !== 'punkt' || a.getippt.length !== u.punkte.length) return false;
+      const asked = new Set(a.getippt.map((t) => t.ziel));
+      return asked.size === u.punkte.length && a.getippt.every((t) => punktTrifft(u.punkte, t.ziel, t.x, t.y));
+    }
   }
 }
 
@@ -92,6 +109,8 @@ export function richtigeAntwort(u: Uebung): Antwort {
       return { art: 'gruppen', zuordnung: u.karten.map(([, g]) => g) };
     case 'bild':
       return { art: 'bild', gewaehlt: u.richtig };
+    case 'punkt':
+      return { art: 'punkt', getippt: u.punkte.map(([x, y], ziel) => ({ ziel, x, y })) };
   }
 }
 
@@ -119,6 +138,8 @@ export function loesungText(u: Uebung): string {
       return u.gruppen.map((g, gi) => `${g}: ${u.karten.filter(([, k]) => k === gi).map(([t]) => t).join(', ')}`).join('; ');
     case 'bild':
       return u.wort;
+    case 'punkt':
+      return 'die grünen Punkte im Bild';
   }
 }
 

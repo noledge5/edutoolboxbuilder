@@ -420,3 +420,102 @@
 .lqt-pool-dialog .dialog-actions {
   flex-wrap: wrap;
 }
+.lqt-pool-zahl {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--color-neutral-600);
+}
+.lqt-pool-neu {
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+.lqt-karte {
+  position: relative;
+  display: inline-block;
+  align-self: flex-start;
+  line-height: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--color-neutral-300);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+.lqt-karte img {
+  display: block;
+  max-width: 100%;
+  max-height: 420px;
+  width: auto;
+  height: auto;
+}
+.lqt-karte.is-klein img {
+  max-height: 160px;
+}
+.lqt-karte.is-aktiv {
+  cursor: crosshair;
+}
+.lqt-karte-punkt,
+.lqt-karte-nr {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-ui);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  flex: none;
+}
+.lqt-karte-punkt {
+  position: absolute;
+  margin: -11px 0 0 -11px;
+  box-shadow: 0 0 0 2px var(--color-ui);
+  pointer-events: none;
+}
+.lqt-karte.is-klein .lqt-karte-punkt {
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  font-size: 10px;
+}
+.lqt-karte-punkt.is-wahl {
+  background: var(--color-text);
+}
+.lqt-bildwahlen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lqt-bildwahl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 96px;
+  padding: 4px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-ui);
+  box-shadow: inset 0 0 0 1px var(--color-neutral-300);
+  cursor: pointer;
+}
+.lqt-bildwahl.is-an {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+.lqt-bildwahl img {
+  width: 88px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.lqt-bildwahl small {
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}

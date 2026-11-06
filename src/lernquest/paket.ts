@@ -13,6 +13,14 @@ export const BILD_KEY = 'img:';
 export const BILD_SEITE = 160;
 /** Most own pictures in one package. */
 export const BILDER_MAX = 24;
+/** A picture with places to tap: its key in `Paket.bilder`; larger, so a child can hit the places on a phone. */
+export const KARTE_KEY = 'karte:';
+export const KARTE_SEITE = 720;
+/** Most pictures with places in one package (each about 40–80 KB). */
+export const KARTEN_MAX = 3;
+
+/** The keys of own pictures an exercise needs. */
+const bildKeys = (u: Uebung): string[] => (u.art === 'bild' ? u.bilder.filter((x) => x.startsWith(BILD_KEY)) : u.art === 'punkt' ? [u.bild] : []);
 
 /** Pairs per exercise: more do not fit on a phone. */
 const PAARE_MAX = 5;
@@ -270,21 +278,29 @@ export function readPaket(x: unknown): Paket | null {
   if (p.format !== PAKET_FORMAT || typeof p.stunde !== 'string' || !Array.isArray(p.uebungen) || !p.modul) return null;
   // Kinds of a newer Baukasten are left out (this page could not show them); pictures only as data URLs.
   const bilder = p.bilder && typeof p.bilder === 'object' ? Object.fromEntries(Object.entries(p.bilder).filter(([, v]) => typeof v === 'string' && v.startsWith('data:image/'))) : {};
-  const uebungen = p.uebungen.filter((u) => UEBUNGS_ARTEN.includes(u?.art) && (u.art !== 'bild' || (Array.isArray(u.bilder) && u.bilder.every((x) => typeof x === 'string' && (!x.startsWith(BILD_KEY) || x in bilder)))));
+  const uebungen = p.uebungen.filter((u) => {
+    if (!u || !UEBUNGS_ARTEN.includes(u.art)) return false;
+    if (u.art === 'bild') return Array.isArray(u.bilder) && u.bilder.every((x) => typeof x === 'string' && (!x.startsWith(BILD_KEY) || x in bilder));
+    if (u.art === 'punkt') return typeof u.bild === 'string' && u.bild in bilder && Array.isArray(u.punkte) && u.punkte.length > 0;
+    return true;
+  });
   return { ...(p as Paket), uebungen, bilder };
 }
 
 /**
- * The package with its own pictures as small JPEGs (`thumb` makes one from an image id, null when it is gone).
- * „Bild wählen“ exercises whose pictures are missing or over the limit are left out.
+ * The package with its own pictures as JPEGs (`thumb` makes one from an image id and a longest side, null when the
+ * picture is gone). Exercises whose pictures are missing or over the limits are left out.
  */
-export async function mitBildern(p: Paket, thumb: (id: string) => Promise<string | null>): Promise<Paket> {
-  const keys = [...new Set(p.uebungen.flatMap((u) => (u.art === 'bild' ? u.bilder.filter((x) => x.startsWith(BILD_KEY)) : [])))].slice(0, BILDER_MAX);
+export async function mitBildern(p: Paket, thumb: (id: string, seite: number) => Promise<string | null>): Promise<Paket> {
+  const keys = [...new Set(p.uebungen.flatMap(bildKeys))];
+  const klein = keys.filter((k) => k.startsWith(BILD_KEY)).slice(0, BILDER_MAX);
+  const gross = keys.filter((k) => k.startsWith(KARTE_KEY)).slice(0, KARTEN_MAX);
   const bilder: Record<string, string> = {};
-  for (const k of keys) {
-    const url = await thumb(k.slice(BILD_KEY.length)).catch(() => null);
+  for (const k of [...klein, ...gross]) {
+    const id = k.slice(k.indexOf(':') + 1);
+    const url = await thumb(id, k.startsWith(KARTE_KEY) ? KARTE_SEITE : BILD_SEITE).catch(() => null);
     if (url) bilder[k] = url;
   }
-  const uebungen = p.uebungen.filter((u) => u.art !== 'bild' || u.bilder.every((x) => !x.startsWith(BILD_KEY) || x in bilder));
+  const uebungen = p.uebungen.filter((u) => bildKeys(u).every((x) => !(x.startsWith(BILD_KEY) || x.startsWith(KARTE_KEY)) || x in bilder));
   return { ...p, uebungen, ...(Object.keys(bilder).length ? { bilder } : {}) };
 }

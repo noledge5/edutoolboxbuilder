@@ -9,7 +9,9 @@
 //   5. fights a boss (Stufe 3): the projector (1440 × 810, teacher key put into this browser) and the child's phone,
 //      every answer right until the boss falls; checks the chest on the server;
 //   6. Stufe 4: checks the class points of the win, asks for a voucher on the phone, redeems it as the teacher;
-//   7. deletes the class for good.
+//   7. Stufe 5: unlocks a second station with the new kinds (sort into groups, pick the picture, places on a picture,
+//      listening) and pictures in the package, plays it right through, checks the round on the server;
+//   8. deletes the class for good.
 // Only runs with LQ_TESTLAUF=1. LQ_URL=<…/lernquest/> plays the live site instead of the local build; LQ_BILDER=<dir>
 // sets where the screenshots go (default: the temp folder, never the repo). Playwright is not a dependency of the
 // project: it is used from the machine (preinstalled in Claude's cloud sessions).
@@ -30,8 +32,10 @@ const BILDER = process.env.LQ_BILDER || join(tmpdir(), 'lernquest-testlauf');
 
 // Minimal shapes of what is used from Playwright (it has no types in this project).
 interface Locator {
-  click(): Promise<void>;
+  click(o?: { position?: { x: number; y: number } }): Promise<void>;
   first(): Locator;
+  nth(i: number): Locator;
+  boundingBox(): Promise<{ x: number; y: number; width: number; height: number } | null>;
   filter(o: { hasText: RegExp | string }): Locator;
   waitFor(o?: { state?: string; timeout?: number }): Promise<void>;
   textContent(): Promise<string | null>;
@@ -83,6 +87,28 @@ const UEBUNGEN: Uebung[] = [
   { art: 'paare', id: 'u4', frage: 'Testlauf 4: Finde die Paare.', paare: [['Rhein', 'Fluss'], ['Zugspitze', 'Berg'], ['Bodensee', 'See']] },
   { art: 'reihenfolge', id: 'u5', frage: 'Testlauf 5: Bilde den Satz.', hinweis: 'Wohin fließt die Elbe?', kacheln: ['Die', 'Elbe', 'fließt', 'nach', 'Hamburg'], loesung: 'Die Elbe fließt nach Hamburg' },
 ];
+// — Stufe 5: a second station with the new kinds (all answered right), pictures in the package as on the real way. —
+const STUNDE2 = 'testlauf-stunde-2';
+const BILD_SVG = `data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#bfe3f2"/><circle cx="120" cy="90" r="30" fill="#2a7"/><circle cx="300" cy="210" r="30" fill="#c53"/></svg>').toString('base64')}`;
+const UEBUNGEN2: Uebung[] = [
+  { art: 'gruppen', id: 'pool-g', frage: 'Testlauf 6: Sortiere.', gruppen: ['Fluss', 'Berg'], karten: [['Rhein', 0], ['Zugspitze', 1], ['Elbe', 0], ['Brocken', 1]] },
+  { art: 'bild', id: 'pool-b', frage: 'Testlauf 7: Welches Bild passt?', wort: 'Karte', bilder: ['🐶', 'img:testlauf', '🐟'], richtig: 1 },
+  { art: 'punkt', id: 'pool-p', frage: 'Testlauf 8: Tippe auf die richtige Stelle.', bild: 'karte:testlauf', punkte: [[30, 30, 'Grüner Punkt'], [75, 70, 'Roter Punkt']] },
+  { art: 'waehlen', id: 'pool-h', frage: 'Testlauf 9: Hör zu. Was passt?', hoeren: 'The Rhine is a river.', optionen: ['Der Rhein ist ein Fluss.', 'Der Rhein ist ein Berg.'], richtig: [0] },
+];
+const PAKET2: Paket = {
+  format: PAKET_FORMAT,
+  v: 1,
+  stunde: STUNDE2,
+  nummer: 2,
+  titel: 'Testlauf-Station 2',
+  modul: { id: 'testlauf-modul', nummer: 1, titel: 'Testlauf', icon: 'globe', stunden: [{ nummer: 1, titel: 'Testlauf-Station' }, { nummer: 2, titel: 'Testlauf-Station 2' }] },
+  fach: 'Erdkunde',
+  lang: 'de',
+  uebungen: UEBUNGEN2,
+  bilder: { 'img:testlauf': BILD_SVG, 'karte:testlauf': BILD_SVG },
+};
+
 /** Answered wrong on purpose (the feedback for a mistake is part of the run). */
 const FALSCH = 'u1';
 const PAKET: Paket = {
@@ -115,7 +141,7 @@ async function spiele(page: Page, fehler: string[]) {
   const frage = page.locator('.lq-frage').first();
   await frage.waitFor({ timeout: 15_000 });
   const text = (await frage.textContent()) ?? '';
-  const u = UEBUNGEN.find((x) => text.includes(x.frage.split(':')[0]));
+  const u = [...UEBUNGEN, ...UEBUNGEN2].find((x) => text.includes(`${x.frage.split(':')[0]}:`));
   if (!u) throw new Error(`Unbekannte Übung im Testlauf: „${text}“`);
   const falsch = u.id === FALSCH;
   const knopf = (name: string) => page.getByRole('button', { name: exact(name) }).first();
@@ -139,8 +165,28 @@ async function spiele(page: Page, fehler: string[]) {
         await page.locator('.lq-paare .lq-option').filter({ hasText: exact(r) }).first().click();
       }
       break;
+    case 'gruppen':
+      for (let i = 0; i < u.karten.length; i++) {
+        const karte = ((await page.locator('.lq-sortkarte').first().textContent()) ?? '').trim();
+        const g = u.karten.find(([t]) => t === karte)?.[1] ?? 0;
+        await page.locator('.lq-gruppe-kopf').nth(g).click();
+      }
+      break;
+    case 'bild':
+      await page.locator('.lq-bild:has(img)').first().click();
+      break;
+    case 'punkt':
+      for (let i = 0; i < u.punkte.length; i++) {
+        const name = ((await page.locator('.lq-wort b').first().textContent()) ?? '').trim();
+        const [x, y] = u.punkte.find(([, , n]) => n === name) ?? [0, 0];
+        const flaeche = page.locator('.lq-karte-flaeche').first();
+        const box = (await flaeche.boundingBox())!;
+        await flaeche.click({ position: { x: (box.width * x) / 100, y: (box.height * y) / 100 } });
+      }
+      break;
   }
-  if (u.art !== 'paare') await knopf('Prüfen').click();
+  // Pairs and places check themselves when all are done.
+  if (u.art !== 'paare' && u.art !== 'punkt') await knopf('Prüfen').click();
   const fuss = page.locator(falsch ? '.lq-fuss.nein' : '.lq-fuss.ok').first();
   await fuss.waitFor({ timeout: 5_000 }).catch(() => fehler.push(`${u.id} (${u.art}): erwartete Rückmeldung „${falsch ? 'falsch' : 'richtig'}“ kam nicht`));
   await knopf('Weiter').click();
@@ -353,6 +399,26 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
       await zuGutscheinen();
       await handy.locator('.lq-anfrage.eingeloest').first().waitFor({ timeout: 15_000 });
       await handy.screenshot({ path: join(BILDER, 'gutschein-3-eingeloest.png') });
+
+      // 7. Stufe 5: the second station with the new kinds and pictures; the server counts its rounds from `uebungen`.
+      await freischalten(keys, klasse, STUNDE2, PAKET2);
+      const vorher = (await meinStand(token, null)).stand;
+      await handy.goto(url);
+      const station2 = handy.locator('.lq-knoten.aktuell').first();
+      await station2.waitFor({ timeout: 20_000 });
+      await station2.click();
+      for (let i = 0; i < UEBUNGEN2.length; i++) {
+        await spiele(handy, fehler);
+        if (i < 3) await handy.screenshot({ path: join(BILDER, `stufe5-${i + 1}.png`) }).catch(() => {});
+      }
+      await handy.locator('.lq-ergebnis').first().waitFor({ timeout: 15_000 });
+      let nachher = (await meinStand(token, null)).stand;
+      for (let i = 0; i < 20 && !nachher.bestwerte[STUNDE2]; i++) {
+        await new Promise((ok) => setTimeout(ok, 500));
+        nachher = (await meinStand(token, null)).stand;
+      }
+      expect(nachher.bestwerte[STUNDE2]).toEqual([100]);
+      expect(nachher.xp).toBe(vorher.xp + xpFuerRunde(UEBUNGEN2.length, UEBUNGEN2.length, vorher.xpHeute));
       await handyCtx.close();
       await beamerCtx.close();
     } finally {

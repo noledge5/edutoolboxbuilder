@@ -74,6 +74,7 @@ export function fragenAus(u: Uebung, seed = u.id): BossFrage[] {
       return u.karten.flatMap(([text, g]) => make(u.frage, text, { optionen: u.gruppen, richtig: g }));
     case 'reihenfolge':
     case 'bild':
+    case 'punkt':
       return [];
   }
 }

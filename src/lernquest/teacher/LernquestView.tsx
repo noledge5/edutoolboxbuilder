@@ -512,9 +512,10 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, busy, act, savePi
                         </span>
                         <small>{n ? `${n} ${n === 1 ? 'Übung' : 'Übungen'} · ${rundenZahl(n)} ${rundenZahl(n) === 1 ? 'Runde' : 'Runden'}` : 'keine lösbaren Aufgaben'}</small>
                       </label>
-                      <button type="button" className="btn btn-secondary ui-btn lqt-pool-knopf" onClick={() => setPoolOf(l.id)} title="Weitere Übungen mit KI erzeugen, prüfen und freigeben">
+                      <button type="button" className="btn btn-secondary ui-btn lqt-pool-knopf" onClick={() => setPoolOf(l.id)} title="Weitere Fragen aus dem Stundeninhalt erzeugen, prüfen und freigeben">
                         <Icon icon={Sparkles} />
-                        Fragenpool{imPool ? ` (${freigegeben(l.pool).length}/${imPool})` : ''}
+                        Fragen erzeugen
+                        {imPool > 0 && <small className="lqt-pool-zahl">{freigegeben(l.pool).length} von {imPool} frei</small>}
                       </button>
                     </li>
                   );

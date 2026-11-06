@@ -66,7 +66,7 @@ Jede Stufe ist für sich im Unterricht nutzbar und wird einzeln freigegeben.
 2. **Held und Beute:** Avatar-Editor, ~40 Teile, Truhen mit Garantie, Laden, kleine Boni; Klassen-Ansicht.
 3. **Bosskampf:** Beamer-Ansicht, Beitritt, Fragen aus den Regionen, Schaden/Lebensbalken, Truhe für alle.
 4. **Echte Belohnungen und Auswertung:** Gutscheine, Anfragen, Abhaken, Grenzen; Fortschritt je Kind und Kompetenz.
-5. **KI-Fragenpool und mehr Formate:** Pool je Stunde mit Prüfen/Freigeben; Karte/Bild-Punkte, Sortieren, Vorlesen.
+5. **KI-Fragenpool und mehr Formate:** Pool je Stunde mit Prüfen/Freigeben; Karte/Bild-Punkte, Sortieren, Vorlesen, Bild wählen.
 
 ## Stufe 4: Entscheidungen (06.11.2026)
 
@@ -85,14 +85,14 @@ Fragerunde mit der Lehrkraft vor dem Bau; Zahlen sind Vorschläge von Claude und
 
 ## Stufe 5: Entscheidungen (06.11.2026)
 
-Mit der Lehrkraft entschieden (Fragerunde, alle Empfehlungen von Claude so angenommen):
+Mit der Lehrkraft entschieden (Fragerunde 06.11.2026):
 
-- **Zwei Teile:** Teil A = KI-Fragenpool mit Prüfen/Freigeben, „In Gruppen sortieren“, „Bild wählen“ (aus den
-  Bild-Vokabeln) und Vorlesen. Teil B = „Punkt auf Bild/Karte setzen“ als eigener Schritt (die Lehrkraft setzt die
-  Punkte von Hand, weil die KI Bilder nicht sicher beschriften kann).
-- **Prüfen:** Freigeben, verwerfen und Text ändern (auch, welche Antwort richtig ist); „Alle freigeben“.
-- **Vorlesen:** mit der Stimme des Geräts (Web Speech API), kein Server, keine Tondateien, keine Kosten.
-- **Poolgröße:** etwa 20 Aufgaben je Anfrage, höchstens 40 je Stunde.
+- **KI-Fragenpool:** Knopf „Fragen erzeugen“ je Stunde im Lernquest-Bereich (etwa 15 Fragen nur aus dem
+  Stundeninhalt, keine Kinderdaten). Die Lehrkraft gibt jede Frage einzeln frei, ändert oder löscht sie; nur
+  Freigegebenes kommt ins Lernpaket. Keine Server-Änderung (der Pool reist im vorhandenen Lernpaket).
+- **Neue Formate:** in Gruppen sortieren, Punkt auf Karte/Bild, Vorlesen (Englisch), Bild wählen.
+- **Vorlesen:** Stimme des Geräts (Browser-Sprachausgabe), keine Ton-Dateien.
+- **Karte/Bild-Punkte:** Bild vom Arbeitsblatt, Punkte setzt und benennt die Lehrkraft im Baukasten.
 
 ## Erfolgskriterien Stufe 1
 
@@ -175,25 +175,36 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   den Stunden), Logik in `probe.ts`, Seite `app/Probe.tsx`. Erste Probe: `#probe=englisch5` (Numbers, Colours,
   Classroom English, there is / there are; Klassenarbeit Englisch 5).
 
-- **Stufe 5 Teil A „KI-Fragenpool und mehr Formate“ (06.11.2026, Branch `claude/stufe-5-handoff-b9odwp`):**
+- **Stufe 5 „KI-Fragenpool und mehr Formate“ (06.11.2026, Branch `claude/stufe-5-handoff-b9odwp`):**
   - **Keine Serveränderung.** Der Pool hängt an der Stunde (`Lesson.pool`, reist im Abgleich und in Sicherungen mit);
-    freigegebene Aufgaben kommen ins Lernpaket hinter die Übungen der Stunde (`buildPaket`), so zählt der Server die
-    Runden wie bisher aus `uebungen`. Neue Ids `pool-…`.
-  - Lehrkraft: in „Stunden freischalten“ je Stunde „Fragenpool“ (`teacher/Fragenpool.tsx`, Logik in `fragenpool.ts`):
-    über den Chat oder direkt mit dem Schlüssel (kleineres Modell der KI-Einstellungen, ca. 5–10 Cent je Anfrage); an Claude gehen nur die Seiten
-    der Kinder (keine Lehrkraft-Seiten), das Klassenprofil (ohne Namen) und die schon vorhandenen Übungen. Jede
-    Antwort wird streng geprüft (`readUebung`), Unbrauchbares fällt weg. Die Klasse bekommt Änderungen beim nächsten
-    Freischalten oder mit „Freigeschaltete neu senden“. Mehr Runden heißt: Wer eine Station schon fertig hatte,
-    sieht danach neue Runden (wie bei geänderten Stunden schon vorher).
-  - Neue Formate: `gruppen` (Karten einzeln in 2–3 Gruppen legen), `bild` (aus dem Baustein „Bild-Vokabeln“; Emojis
-    direkt, eigene Bilder als JPEG mit 160 px im Paket unter `bilder`, höchstens 24, Größenprüfung vor dem Senden in
-    `teacher/senden.ts`), „Hören“ (`waehlen` mit `hoeren`: der Satz wird vorgelesen, nur in Englisch-Stunden).
-  - Vorlesen (`app/vorlesen.ts`): in Englisch-Paketen Lautsprecher an Aussagen und Wörtern; nach „Prüfen“ wird der
-    richtige Satz von Lücke und Reihenfolge vorgelesen (nicht bei „Ton aus“). Ohne Stimme bleibt der Text sichtbar.
-  - Bosskampf: Sortier-Karten werden Fragen („Wohin gehört …?“), Bilder nicht. Die Auswertung je Kompetenz zählt
-    nur die Übungen der Stunde (Pool-Aufgaben haben keine Kompetenz).
-  - Ältere Lernquest-Seiten kennen die neuen Formate nicht; nach dem Neuladen der Seite ist alles da (kein
+    freigegebene Fragen kommen ins Lernpaket hinter die Übungen der Stunde (`buildPaket`), so zählt der Server die
+    Runden wie bisher aus `uebungen`. Ids `pool-…`; höchstens 40 je Stunde.
+  - Lehrkraft: in „Stunden freischalten“ je Stunde „Fragen erzeugen“ (`teacher/Fragenpool.tsx`, Logik in
+    `fragenpool.ts`): über den Chat oder direkt mit dem Schlüssel (kleineres Modell der KI-Einstellungen, ca. 5–10 Cent
+    je Anfrage). An Claude gehen nur die Seiten der Kinder (keine Lehrkraft-Seiten), das Klassenprofil (ohne Namen)
+    und die schon vorhandenen Übungen. Jede Antwort wird streng geprüft (`readUebung`), Unbrauchbares fällt weg. Jede
+    Frage einzeln: „Freigeben“/„Zurücknehmen“, „Ändern“ (Text und richtige Antwort), „Löschen“. Die Klasse bekommt
+    Änderungen beim nächsten Freischalten oder mit „Freigeschaltete neu senden“. Mehr Runden heißt: Wer eine Station
+    schon fertig hatte, sieht danach neue Runden (wie bei geänderten Stunden schon vorher).
+  - **Punkt auf Karte/Bild** (`punkt`): im selben Dialog „Punkte im Bild …“: Bild einer Abbildung der Kinderseiten
+    wählen, ins Bild tippen, Punkte benennen (1–6, verschieben, löschen). Das Kind bekommt die Namen nacheinander
+    („Tippe auf: Rhein“) und tippt ins Bild; getroffen ist, wenn der gesuchte Punkt der nächste ist und höchstens
+    12 % entfernt (`punktTrifft` in `rules.ts`). Daneben-Tipps zeigen sofort die richtige Stelle. Die Beschriftungen
+    der Abbildung auf dem Blatt werden nicht übernommen (sie beziehen sich auf den Kasten, nicht aufs Bild). Das
+    Bild reist als JPEG mit 720 px im Paket (`karte:<id>`, höchstens 3 je Paket).
+  - **Sortieren** (`gruppen`, Karten einzeln in 2–3 Gruppen), **Bild wählen** (`bild`, aus dem Baustein
+    „Bild-Vokabeln“; Emojis direkt, eigene Bilder als JPEG mit 160 px unter `bilder`, höchstens 24), **Hören**
+    (`waehlen` mit `hoeren`: der Satz wird vorgelesen, nur in Englisch-Stunden). Größenprüfung vor dem Senden in
+    `teacher/senden.ts` (270 KB, der Server nimmt 300 KB `jsonb::text`).
+  - **Vorlesen** (`app/vorlesen.ts`): in Englisch-Paketen Lautsprecher an Aussagen und Wörtern („Anhören“,
+    „langsam“); nach „Prüfen“ wird der richtige Satz von Lücke und Reihenfolge vorgelesen (nicht bei „Ton aus“).
+    Ohne Stimme bleibt der Text sichtbar.
+  - Bosskampf: Sortier-Karten werden Fragen („Wohin gehört …?“), Bilder und Punkte nicht. Die Auswertung je
+    Kompetenz zählt nur die Übungen der Stunde (Pool-Fragen haben keine Kompetenz).
+  - Ältere geöffnete Lernquest-Seiten kennen die neuen Formate nicht; nach dem Neuladen ist alles da (kein
     Offline-Speicher der Seite). `readPaket` lässt künftig unbekannte Formate weg.
+  - Testlauf (`npm run lq:testlauf`): spielt jetzt zusätzlich eine zweite Station mit Sortieren, Bild wählen,
+    Punkten im Bild und Hören (Bilder im Paket) und prüft die Runde am Server.
 
 ## Offene Punkte
 

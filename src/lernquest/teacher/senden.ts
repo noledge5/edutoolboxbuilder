@@ -12,8 +12,8 @@ import { freischalten, LqError } from '../server';
  */
 export const PAKET_MAX = 270_000;
 
-/** A stored picture as a small JPEG data URL (white behind transparent parts); null when it is gone. */
-export async function bildVorschau(id: string): Promise<string | null> {
+/** A stored picture as a JPEG data URL of at most `seite` pixels (white behind transparent parts); null when it is gone. */
+export async function bildVorschau(id: string, seite: number = BILD_SEITE): Promise<string | null> {
   const blob = await getImage(id);
   if (!blob) return null;
   const url = URL.createObjectURL(blob);
@@ -21,7 +21,7 @@ export async function bildVorschau(id: string): Promise<string | null> {
     const img = new Image();
     img.src = url;
     await img.decode();
-    const scale = Math.min(1, BILD_SEITE / Math.max(img.naturalWidth, img.naturalHeight));
+    const scale = Math.min(1, seite / Math.max(img.naturalWidth, img.naturalHeight));
     const c = document.createElement('canvas');
     c.width = Math.max(1, Math.round(img.naturalWidth * scale));
     c.height = Math.max(1, Math.round(img.naturalHeight * scale));
@@ -30,7 +30,7 @@ export async function bildVorschau(id: string): Promise<string | null> {
     g.fillStyle = '#fff';
     g.fillRect(0, 0, c.width, c.height);
     g.drawImage(img, 0, 0, c.width, c.height);
-    return c.toDataURL('image/jpeg', 0.72);
+    return c.toDataURL('image/jpeg', seite > BILD_SEITE ? 0.7 : 0.72);
   } catch {
     return null;
   } finally {

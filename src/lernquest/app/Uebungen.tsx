@@ -1,9 +1,9 @@
 // The exercises on screen: tap, listen and tap, true/false, pairs, gap with tiles, word order, sort into groups, pick
-// the picture. Each reports its answer to the round (`onChange`), which checks it when the child taps „Prüfen“ (pairs
-// check themselves when all are found). In English packages a speaker reads statements and words aloud.
-import { useMemo, useState } from 'react';
+// the picture, tap the places on a picture. Each reports its answer to the round (`onChange`), which checks it when the child taps „Prüfen“ (pairs
+// and places check themselves when all are done). In English packages a speaker reads statements and words aloud.
+import { useMemo, useState, type MouseEvent } from 'react';
 import { richParts } from '../../model/text';
-import { gemischt, type Antwort } from '../rules';
+import { gemischt, punktTrifft, type Antwort } from '../rules';
 import type { Uebung } from '../types';
 import { ton } from './ton';
 import { kannVorlesen, vorlesen } from './vorlesen';
@@ -88,6 +88,7 @@ export function UebungView(props: Props) {
       {u.art === 'reihenfolge' && <Reihenfolge {...props} u={u} />}
       {u.art === 'gruppen' && <Gruppen {...props} u={u} />}
       {u.art === 'bild' && <Bild {...props} u={u} />}
+      {u.art === 'punkt' && <Punkt {...props} u={u} />}
     </div>
   );
 }
@@ -398,6 +399,71 @@ function Bild({ u, seed, locked, onChange, lang, bilder = {} }: P<'bild'>) {
             </button>
           );
         })}
+      </div>
+    </>
+  );
+}
+
+/** Where a tap landed on the picture, in percent. */
+function prozent(e: MouseEvent<HTMLElement>): { x: number; y: number } {
+  const r = e.currentTarget.getBoundingClientRect();
+  return { x: (100 * (e.clientX - r.left)) / Math.max(1, r.width), y: (100 * (e.clientY - r.top)) / Math.max(1, r.height) };
+}
+
+function Punkt({ u, seed, locked, onChange, bilder = {} }: P<'punkt'>) {
+  // The places are asked one by one in a mixed order; each tap is judged at once, a miss shows the right place.
+  const order = useMemo(
+    () =>
+      gemischt(
+        u.punkte.map((_, i) => i),
+        seed,
+      ),
+    [u, seed],
+  );
+  const [getippt, setGetippt] = useState<{ ziel: number; x: number; y: number }[]>([]);
+  const ziel = order[getippt.length];
+  const tap = (e: MouseEvent<HTMLElement>) => {
+    if (locked || ziel === undefined) return;
+    const { x, y } = prozent(e);
+    const next = [...getippt, { ziel, x, y }];
+    ton(punktTrifft(u.punkte, ziel, x, y) ? 'richtig' : 'falsch');
+    setGetippt(next);
+    if (next.length === u.punkte.length) onChange({ art: 'punkt', getippt: next });
+  };
+  const src = bilder[u.bild];
+  return (
+    <>
+      <p className="lq-aussage lq-wort" aria-live="polite">
+        {ziel !== undefined ? (
+          <>
+            Tippe auf: <b>{u.punkte[ziel][2]}</b>
+          </>
+        ) : (
+          'Fertig!'
+        )}
+      </p>
+      {u.punkte.length > 1 && (
+        <p className="lq-hinweis">
+          {Math.min(getippt.length + 1, u.punkte.length)} von {u.punkte.length}
+        </p>
+      )}
+      <div className="lq-karte-bild">
+        <div className="lq-karte-flaeche" onClick={tap} role="button" tabIndex={-1} aria-label={ziel !== undefined ? `Bild: tippe auf ${u.punkte[ziel][2]}` : 'Bild'}>
+          {src && <img src={src} alt="" draggable={false} />}
+          {getippt.map((t, i) => {
+            const ok = punktTrifft(u.punkte, t.ziel, t.x, t.y);
+            const [px, py, name] = u.punkte[t.ziel];
+            return (
+              <span key={i}>
+                <span className={`lq-marke ${ok ? 'ok' : 'nein'}`} style={{ left: `${t.x}%`, top: `${t.y}%` }} aria-hidden />
+                {!ok && <span className="lq-marke ok ziel" style={{ left: `${px}%`, top: `${py}%` }} aria-hidden />}
+                <span className="lq-marke-name" style={{ left: `${ok ? t.x : px}%`, top: `${ok ? t.y : py}%` }}>
+                  {name}
+                </span>
+              </span>
+            );
+          })}
+        </div>
       </div>
     </>
   );

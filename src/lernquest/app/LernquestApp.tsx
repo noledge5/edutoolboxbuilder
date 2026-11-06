@@ -1097,7 +1097,7 @@ export function Runde({ screen, stand, herzen, titel: kicker, onAbbruch, onFerti
         bilder={paket?.bilder}
         onChange={(a) => {
           setAntwort(a);
-          if (a?.art === 'paare') pruefen(a);
+          if (a?.art === 'paare' || a?.art === 'punkt') pruefen(a);
         }}
       />
       <footer className={`lq-fuss ${ok === true ? 'ok' : ok === false ? 'nein' : ''}`} aria-live="polite">

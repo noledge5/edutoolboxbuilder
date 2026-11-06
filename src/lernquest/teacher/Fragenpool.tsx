@@ -1,9 +1,10 @@
-// „Fragenpool“ of a lesson (Lernquest Stufe 5): Claude writes about 20 exercises from the student pages (over the chat
-// or directly with the key of this device); the teacher reads each one, corrects the text, releases or discards it.
+// „Fragen erzeugen“ for a lesson (Lernquest Stufe 5): Claude writes about 15 exercises from the student pages (over the
+// chat or directly with the key of this device); the teacher reads each one, corrects it, releases or deletes it, one
+// by one. Tasks with places on a picture of the worksheet the teacher makes here by hand („Punkte im Bild“).
 // Changes are saved at once in the lesson (it syncs like the rest of the lesson); the class gets the released ones
 // with the next sending of the package.
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ClipboardCopy, ClipboardPaste, KeyRound, Pencil, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { Check, ClipboardCopy, ClipboardPaste, KeyRound, MapPin, Move, Pencil, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../../icons';
 import { AiSettingsDialog } from '../../ai/AiSettingsDialog';
 import { classProfileOf } from '../../ai/classNotes';
@@ -12,9 +13,11 @@ import { dollars } from '../../ai/prices';
 import { modelLabel } from '../../ai/settings';
 import { useAiSettings } from '../../ai/useAi';
 import type { Lesson, Module, Settings } from '../../library/types';
+import { useImageUrl } from '../../storage/images';
 import { exercisesOf } from '../paket';
 import { RUNDE_MAX, RUNDEN_MAX } from '../rules';
-import { ablenkerVon, kurzText, lueckeAus, lueckeText, POOL_MAX, poolAusAntwort, poolPrompt, poolSystem, readUebung, reihenfolgeAus } from '../fragenpool';
+import { ablenkerVon, bilderDerStunde, kurzText, lueckeAus, lueckeText, neueId, POOL_MAX, poolAusAntwort, poolPrompt, poolSystem, POOL_ZIEL, PUNKTE, punktAufgabe, readUebung, reihenfolgeAus } from '../fragenpool';
+import { KARTE_KEY } from '../paket';
 import type { PoolEintrag, Uebung, UebungsArt } from '../types';
 
 const ARTEN: Record<UebungsArt, string> = {
@@ -25,6 +28,7 @@ const ARTEN: Record<UebungsArt, string> = {
   reihenfolge: 'Reihenfolge',
   gruppen: 'Sortieren',
   bild: 'Bild wählen',
+  punkt: 'Punkte im Bild',
 };
 /** Exercises the rounds of one station show at most (5 rounds × 8). */
 const RUNDEN_PLATZ = RUNDEN_MAX * RUNDE_MAX;
@@ -47,6 +51,9 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
   const [pasted, setPasted] = useState('');
   const [keyOpen, setKeyOpen] = useState(false);
   const [edit, setEdit] = useState<string | null>(null);
+  /** A new task with places on a picture is being made. */
+  const [neuesBild, setNeuesBild] = useState(false);
+  const bilder = useMemo(() => bilderDerStunde(stunde), [stunde]);
   const [meldung, setMeldung] = useState('');
   const pool = useMemo(() => stunde.pool ?? [], [stunde.pool]);
   const eigene = useMemo(() => exercisesOf(stunde.doc.pages), [stunde.doc]);
@@ -80,7 +87,7 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
     onClose();
   };
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !keyOpen && !edit && close();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !keyOpen && !edit && !neuesBild && close();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
@@ -90,14 +97,14 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
 
   return (
     <>
-      <div className="dialog-backdrop" onClick={() => !busy && !edit && close()}>
-        <div className="dialog ai-dialog lqt-pool-dialog" role="dialog" aria-modal="true" aria-label="Fragenpool" onClick={(e) => e.stopPropagation()}>
+      <div className="dialog-backdrop" onClick={() => !busy && !edit && !neuesBild && close()}>
+        <div className="dialog ai-dialog lqt-pool-dialog" role="dialog" aria-modal="true" aria-label="Fragen erzeugen" onClick={(e) => e.stopPropagation()}>
           <div className="dialog-title">
-            <Icon icon={Sparkles} /> Fragenpool · Stunde {stunde.number}: {stunde.title}
+            <Icon icon={Sparkles} /> Fragen erzeugen · Stunde {stunde.number}: {stunde.title}
           </div>
           <p className="dialog-body">
-            Claude schreibt aus den Arbeitsblättern der Kinder etwa 20 weitere Übungen (ohne Lehrkraft-Seiten, ohne Namen). Du prüfst jede, verbesserst den Text und gibst sie frei. Freigegebene kommen nach {eigene.length === 1 ? 'der 1 Übung' : `den ${eigene.length} Übungen`} der Stunde und
-            erreichen die Klasse beim nächsten Freischalten oder mit „Freigeschaltete neu senden“.
+            Claude schreibt nur aus den Arbeitsblättern der Kinder etwa {POOL_ZIEL} weitere Fragen (ohne Lehrkraft-Seiten, ohne Kinderdaten). Du prüfst jede einzeln, änderst oder löschst sie und gibst sie frei. Nur Freigegebenes kommt ins
+            Lernpaket, hinter die Übungen der Stunde; die Klasse bekommt es beim nächsten Freischalten oder mit „Freigeschaltete neu senden“. Mit „Punkte im Bild“ setzt du selbst Stellen auf ein Bild vom Arbeitsblatt.
           </p>
           <p className="lqt-pool-stand">
             {pool.length ? `${pool.length} im Pool, ${frei} freigegeben` : 'Der Pool ist noch leer.'}
@@ -125,6 +132,20 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
           )}
           {chatOpen && <ChatPath request={() => `${poolSystem()}\n\n${poolPrompt(auftrag())}`} what="Er enthält die Arbeitsblätter der Kinder und die Übungen, die es schon gibt." pasted={pasted} onPaste={setPasted} onError={job.setError} />}
 
+          {neuesBild && (
+            <div className="lqt-pool-neu">
+              <PunktEditor
+                stunde={stunde}
+                id={neueId(pool.map((e) => e.u.id))}
+                onSave={(u) => {
+                  onChange([...pool, { u, frei: false }]);
+                  setNeuesBild(false);
+                }}
+                onCancel={() => setNeuesBild(false)}
+              />
+            </div>
+          )}
+
           {pool.length > 0 && (
             <ol className="lqt-pool">
               {pool.map((e) => (
@@ -133,7 +154,18 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
                     <span className="lqt-pool-art">{artName(e.u)}</span>
                     <span className={`lqt-pool-status ${e.frei ? 'is-frei' : ''}`}>{e.frei ? 'freigegeben' : 'zu prüfen'}</span>
                   </div>
-                  {edit === e.u.id ? (
+                  {edit === e.u.id && e.u.art === 'punkt' ? (
+                    <PunktEditor
+                      stunde={stunde}
+                      id={e.u.id}
+                      start={e.u}
+                      onSave={(u) => {
+                        setze(e.u.id, (x) => ({ ...x, u }));
+                        setEdit(null);
+                      }}
+                      onCancel={() => setEdit(null)}
+                    />
+                  ) : edit === e.u.id ? (
                     <PoolEditor
                       u={e.u}
                       onSave={(u) => {
@@ -150,13 +182,13 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
                           <Icon icon={e.frei ? Undo2 : Check} />
                           {e.frei ? 'Zurücknehmen' : 'Freigeben'}
                         </button>
-                        <button type="button" className="btn btn-secondary ui-btn" disabled={!!edit} onClick={() => setEdit(e.u.id)}>
+                        <button type="button" className="btn btn-secondary ui-btn" disabled={!!edit || neuesBild} onClick={() => setEdit(e.u.id)}>
                           <Icon icon={Pencil} />
                           Ändern
                         </button>
-                        <button type="button" className="btn btn-secondary ui-btn" onClick={() => setze(e.u.id, () => null)} title="Diese Aufgabe aus dem Pool nehmen">
+                        <button type="button" className="btn btn-secondary ui-btn" onClick={() => setze(e.u.id, () => null)} title="Diese Frage löschen">
                           <Icon icon={Trash2} />
-                          Verwerfen
+                          Löschen
                         </button>
                       </div>
                     </>
@@ -179,10 +211,16 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
                 Schlüssel einrichten …
               </button>
             )}
-            {pool.some((e) => !e.frei) && !chatOpen && (
-              <button type="button" className="btn btn-secondary ui-btn" disabled={!!edit} onClick={() => onChange(pool.map((e) => ({ ...e, frei: true })))}>
-                <Icon icon={Check} />
-                Alle freigeben
+            {!chatOpen && !voll && (
+              <button
+                type="button"
+                className="btn btn-secondary ui-btn"
+                disabled={!bilder.length || neuesBild || !!edit}
+                title={bilder.length ? 'Stellen auf einem Bild vom Arbeitsblatt setzen und benennen' : 'Auf den Arbeitsblättern der Kinder ist noch keine Abbildung mit eigenem Bild.'}
+                onClick={() => setNeuesBild(true)}
+              >
+                <Icon icon={MapPin} />
+                Punkte im Bild …
               </button>
             )}
             <button type="button" className="btn btn-secondary ui-btn" onClick={close}>
@@ -197,7 +235,7 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
               !voll && (
                 <button type="button" className="btn btn-primary ui-btn" onClick={run} disabled={!ai || !!busy} title={ai ? undefined : 'Erst einen KI-Schlüssel einrichten oder „Über den Chat“ nehmen'}>
                   <Icon icon={Sparkles} />
-                  {pool.length ? 'Weitere erzeugen' : 'Mit KI erzeugen'}
+                  {pool.length ? 'Weitere Fragen erzeugen' : 'Fragen erzeugen'}
                 </button>
               )
             )}
@@ -255,6 +293,7 @@ function Vorschau({ u }: { u: Uebung }) {
         </ul>
       )}
       {u.art === 'bild' && <p>{kurzText(u)}</p>}
+      {u.art === 'punkt' && <BildMitPunkten bildId={u.bild.slice(KARTE_KEY.length)} punkte={u.punkte} klein />}
     </div>
   );
 }
@@ -361,6 +400,126 @@ function PoolEditor({ u, onSave, onCancel }: { u: Uebung; onSave(u: Uebung): voi
           ))}
         </>
       )}
+      {fehler && <p className="json-err">{fehler}</p>}
+      <div className="lqt-pool-aktionen">
+        <button type="button" className="btn btn-secondary ui-btn" onClick={onCancel}>
+          Abbrechen
+        </button>
+        <button type="button" className="btn btn-primary ui-btn" onClick={speichern}>
+          <Icon icon={Check} />
+          Übernehmen
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** A picture of this device with its places, numbered and named. `onTap` gets the place in percent. */
+function BildMitPunkten({ bildId, punkte, klein = false, wahl, onTap }: { bildId: string; punkte: [number, number, string][]; klein?: boolean; wahl?: number | null; onTap?(x: number, y: number): void }) {
+  const img = useImageUrl(bildId);
+  if (img.status !== 'ready') return <p className="lqt-hint">{img.status === 'loading' ? 'Bild wird geladen …' : 'Das Bild ist auf diesem Gerät nicht da.'}</p>;
+  return (
+    <div
+      className={`lqt-karte ${klein ? 'is-klein' : ''} ${onTap ? 'is-aktiv' : ''}`}
+      onClick={(e) => {
+        if (!onTap) return;
+        const r = e.currentTarget.getBoundingClientRect();
+        onTap((100 * (e.clientX - r.left)) / r.width, (100 * (e.clientY - r.top)) / r.height);
+      }}
+    >
+      <img src={img.url} alt="" draggable={false} />
+      {punkte.map(([x, y, name], i) => (
+        <span key={i} className={`lqt-karte-punkt ${wahl === i ? 'is-wahl' : ''}`} style={{ left: `${x}%`, top: `${y}%` }} title={name}>
+          {i + 1}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** A small button with one of the lesson's pictures. */
+function BildWahl({ id, titel, an, onClick }: { id: string; titel: string; an: boolean; onClick(): void }) {
+  const img = useImageUrl(id);
+  return (
+    <button type="button" className={`lqt-bildwahl ${an ? 'is-an' : ''}`} aria-pressed={an} onClick={onClick} title={titel}>
+      {img.status === 'ready' ? <img src={img.url} alt="" /> : <span>…</span>}
+      <small>{titel}</small>
+    </button>
+  );
+}
+
+/** Places on a picture of the worksheet: tap the picture to set a place, name each one. */
+function PunktEditor({ stunde, id, start, onSave, onCancel }: { stunde: Lesson; id: string; start?: Extract<Uebung, { art: 'punkt' }>; onSave(u: Uebung): void; onCancel(): void }) {
+  const bilder = bilderDerStunde(stunde);
+  const [bildId, setBildId] = useState(start ? start.bild.slice(KARTE_KEY.length) : (bilder[0]?.id ?? ''));
+  const [punkte, setPunkte] = useState<[number, number, string][]>(start?.punkte ?? []);
+  const [frage, setFrage] = useState(start?.frage ?? 'Tippe auf die richtige Stelle.');
+  /** The place that moves with the next tap. */
+  const [wahl, setWahl] = useState<number | null>(null);
+  const [fehler, setFehler] = useState('');
+  const runde = (n: number) => Math.round(Math.min(100, Math.max(0, n)) * 10) / 10;
+
+  const tap = (x: number, y: number) => {
+    setFehler('');
+    if (wahl !== null) {
+      setPunkte(punkte.map((p, i) => (i === wahl ? [runde(x), runde(y), p[2]] : p)));
+      setWahl(null);
+    } else if (punkte.length < PUNKTE[1]) setPunkte([...punkte, [runde(x), runde(y), '']]);
+    else setFehler(`Höchstens ${PUNKTE[1]} Punkte je Bild. Lege für weitere eine zweite Aufgabe an.`);
+  };
+  const speichern = () => {
+    const u = readUebung(punktAufgabe(id, bildId, punkte.map(([x, y, n]) => [x, y, n.trim()]), frage.trim()));
+    if (u) return onSave(u);
+    setFehler(
+      !punkte.length
+        ? 'Tippe ins Bild, um einen Punkt zu setzen.'
+        : punkte.some(([, , n]) => !n.trim())
+          ? 'Jeder Punkt braucht einen Namen.'
+          : 'Jeder Punkt braucht einen eigenen Namen (höchstens 60 Zeichen), die Anweisung darf nicht leer sein.',
+    );
+  };
+
+  if (!bilder.length && !start) return <p className="lqt-hint">Auf den Arbeitsblättern der Kinder ist noch keine Abbildung mit eigenem Bild.</p>;
+  return (
+    <div className="lqt-pool-editor">
+      <b className="lqt-pool-art">Punkte im Bild</b>
+      {bilder.length > 1 && (
+        <div className="lqt-bildwahlen">
+          {bilder.map((b) => (
+            <BildWahl key={b.id} id={b.id} titel={b.titel} an={b.id === bildId} onClick={() => setBildId(b.id)} />
+          ))}
+        </div>
+      )}
+      <p className="lqt-hint">{wahl !== null ? `Tippe ins Bild, wohin Punkt ${wahl + 1} soll.` : 'Tippe ins Bild, um einen Punkt zu setzen, und gib ihm einen Namen. Die Kinder tippen die Stellen nacheinander an.'}</p>
+      <BildMitPunkten bildId={bildId} punkte={punkte} wahl={wahl} onTap={tap} />
+      {punkte.map(([, , name], i) => (
+        <div key={i} className="lqt-pool-option">
+          <span className="lqt-karte-nr">{i + 1}</span>
+          <input className="input" aria-label={`Name von Punkt ${i + 1}`} placeholder="Name, z. B. Rhein" value={name} onChange={(e) => {
+              setFehler('');
+              setPunkte(punkte.map((p, k) => (k === i ? [p[0], p[1], e.target.value] : p)));
+            }} />
+          <button type="button" className={`btn btn-secondary ui-btn ${wahl === i ? 'is-on' : ''}`} aria-pressed={wahl === i} onClick={() => setWahl(wahl === i ? null : i)} title="Danach ins Bild tippen">
+            <Icon icon={Move} />
+            Verschieben
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary ui-btn"
+            aria-label={`Punkt ${i + 1} löschen`}
+            onClick={() => {
+              setPunkte(punkte.filter((_, k) => k !== i));
+              setWahl(null);
+            }}
+          >
+            <Icon icon={Trash2} />
+          </button>
+        </div>
+      ))}
+      <label className="lqt-pool-feld">
+        <span>Anweisung</span>
+        <input className="input" value={frage} onChange={(e) => setFrage(e.target.value)} />
+      </label>
       {fehler && <p className="json-err">{fehler}</p>}
       <div className="lqt-pool-aktionen">
         <button type="button" className="btn btn-secondary ui-btn" onClick={onCancel}>
