@@ -38,3 +38,8 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 - **Seltenheitsfarben:** Gewöhnlich `#6E6990`, Ungewöhnlich `#0A6F78` (Türkis, nicht das Richtig-Grün), Selten
   `#2459B8`, Episch `#A3218F` (Magenta, nicht das Knopf-Violett), Legendär `#8A6100`. Alle ≥ 4,5:1 auf Grund und
   Weiß; dazu immer 1–5 Punkte.
+- **Zustände** (alle Knöpfe und Kacheln gleich): normal mit Stufe `0 4px 0` in `-deep`; gedrückt 4 px tiefer ohne
+  Stufe; Fokus nur bei `:focus-visible`, Ring 3 px `--lq-gold`, 2 px Abstand; deaktiviert `--lq-line`/`--lq-muted`
+  ohne Stufe, mit Grund als Text, wo nötig; gewählt innen 3 px `--lq-primary` + Haken; richtig/falsch `-bg` + Rand +
+  Haken/Kreuz + Text; lädt: gleiche Größe, „…“ mit Punkt, Doppeltippen gesperrt; offline: gelbes Band oben
+  („Offline – deine Runden werden später gesendet“), Spielen geht weiter.
