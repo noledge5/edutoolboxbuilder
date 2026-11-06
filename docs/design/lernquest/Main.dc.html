@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Lernquest – Anmeldung und Lernweg</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.lq{--bg:#F3F0FF;--ink:#1F1A3D;--muted:#57527A;--violet:#5B3FD9;--violet-d:#3F28A8;--violet-l:#ECE7FF;--gold:#FFC531;--gold-d:#C98F00;--ok:#13804A;--ok-d:#0B5E35;--ok-bg:#DDF5E7;--bad:#C4321F;--bad-d:#8E2113;--bad-bg:#FDE6E1;--line:#DCD6F5;font-family:Nunito,system-ui,sans-serif;color:var(--ink)}
+.lq h1,.lq h2,.lq h3,.lq .fd{font-family:Fredoka,Nunito,sans-serif}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:54px;border:0;border-radius:16px;background:var(--violet);color:#fff;font:600 18px Fredoka,sans-serif;letter-spacing:.3px;box-shadow:0 4px 0 var(--violet-d);cursor:pointer;text-decoration:none;box-sizing:border-box}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--violet-d)}
+.btn.ghost{background:#fff;color:var(--violet);box-shadow:0 4px 0 var(--line);border:2px solid var(--line)}
+.btn.off{background:#E4E0F3;color:#6E6990;box-shadow:0 4px 0 #CFC9E6;cursor:default}
+.btn.okb{background:var(--ok);box-shadow:0 4px 0 var(--ok-d)}
+.btn.badb{background:var(--bad);box-shadow:0 4px 0 var(--bad-d)}
+.opt{display:block;width:100%;text-align:left;background:#fff;border:2px solid var(--line);box-shadow:0 3px 0 var(--line);border-radius:16px;padding:15px 16px;font:700 18px Nunito,sans-serif;color:var(--ink);min-height:58px;cursor:pointer;box-sizing:border-box}
+.opt.sel{border-color:var(--violet);background:var(--violet-l);box-shadow:0 3px 0 var(--violet)}
+.opt.right{border-color:var(--ok);background:var(--ok-bg);box-shadow:0 3px 0 var(--ok)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg);box-shadow:0 3px 0 var(--bad)}
+.tile{border:2px solid var(--line);background:#fff;box-shadow:0 3px 0 var(--line);border-radius:12px;padding:10px 16px;font:700 18px Nunito,sans-serif;color:var(--ink);min-height:48px;cursor:pointer}
+.tile.used{background:#E4E0F3;color:transparent;box-shadow:none;border-color:#E4E0F3}
+.slot{display:inline-block;min-width:120px;border-bottom:3px solid var(--violet);padding:2px 8px;margin:0 4px;text-align:center;min-height:30px;vertical-align:bottom;color:var(--violet);font-weight:800}
+.slot.right{color:var(--ok);border-color:var(--ok)}.slot.wrong{color:var(--bad);border-color:var(--bad)}
+.pair{width:100%;min-height:58px;border:2px solid var(--line);background:#fff;box-shadow:0 3px 0 var(--line);border-radius:14px;font:700 19px Nunito,sans-serif;color:var(--ink);cursor:pointer}
+.pair.sel{border-color:var(--violet);background:var(--violet-l);box-shadow:0 3px 0 var(--violet)}
+.pair.done{border-color:var(--ok-bg);background:var(--ok-bg);color:var(--ok);box-shadow:none}
+.pair.wrong{border-color:var(--bad);background:var(--bad-bg);animation:shake .3s}
+.prog{height:16px;border-radius:99px;background:var(--gold);box-shadow:inset 0 -4px 0 rgba(0,0,0,.12);transition:width .4s}
+.p0{width:4%}.p1{width:36%}.p2{width:68%}.p3{width:100%}
+.heart{width:24px;height:24px}.heart.full{color:#E0344B}.heart.empty{color:#CFC9E6}
+.dot{width:18px;height:18px;border-radius:50%;border:3px solid var(--violet);box-sizing:border-box}
+.dot.on{background:var(--violet)}
+.key{height:62px;border:0;border-radius:16px;background:#fff;box-shadow:0 3px 0 var(--line);font:600 26px Fredoka,sans-serif;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.key.blank{background:transparent;box-shadow:none;cursor:default}
+.name{display:flex;align-items:center;gap:12px;width:100%;background:#fff;border:2px solid var(--line);box-shadow:0 3px 0 var(--line);border-radius:16px;padding:10px 12px;font:700 17px Nunito,sans-serif;color:var(--ink);cursor:pointer;text-align:left;min-height:58px}
+.ini{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:600 16px Fredoka,sans-serif;color:#fff;flex:none}
+.node{width:76px;height:72px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;cursor:default}
+.node.done{background:var(--gold);color:#5A3E00;box-shadow:0 6px 0 var(--gold-d)}
+.node.cur{background:var(--violet);color:#fff;box-shadow:0 6px 0 var(--violet-d);cursor:pointer;animation:pulse 1.6s infinite}
+.node.lock{background:#E4E0F3;color:#77729A;box-shadow:0 6px 0 #CFC9E6}
+.node.boss{width:104px;height:96px;background:var(--ink);color:var(--gold);box-shadow:0 7px 0 #0B0820}
+.xl{transform:translateX(-72px)}.xr{transform:translateX(72px)}.x0{transform:none}.xs{transform:translateX(-36px)}.xt{transform:translateX(36px)}
+.st{width:16px;height:16px}.st.on{color:var(--gold-d)}.st.no{color:#CFC9E6}
+.day{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 12px Nunito,sans-serif;color:var(--muted);background:#fff;border:2px solid var(--line);box-sizing:border-box}
+.day.ok{background:var(--gold);border-color:var(--gold);color:#4A3300}
+.day.today{border-color:var(--violet);color:var(--violet)}
+.nav{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 10px;font:700 11px Nunito,sans-serif;color:var(--muted);text-decoration:none;border:0;background:none;cursor:pointer}
+.nav.on{color:var(--violet)}
+.fb{position:absolute;left:0;right:0;bottom:0;padding:20px 20px 26px;display:flex;flex-direction:column;gap:14px;animation:up .25s ease-out}
+.fb.ok{background:var(--ok-bg);color:var(--ok-d)}.fb.bad{background:var(--bad-bg);color:var(--bad-d)}
+.pop{animation:pop .5s ease-out both}.pop2{animation:pop .5s .15s ease-out both}.pop3{animation:pop .5s .3s ease-out both}
+.field{width:100%;box-sizing:border-box;min-height:56px;border:2px solid var(--line);border-radius:16px;padding:0 16px;font:700 20px Fredoka,sans-serif;letter-spacing:2px;text-transform:uppercase;color:var(--ink);background:#fff;outline:none}
+.field:focus{border-color:var(--violet)}
+.icon-btn{width:44px;height:44px;border:0;background:none;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:12px}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes pop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.15);opacity:1}100%{transform:scale(1)}}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+</style>
+</helmet>
+<div class="lq" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F3F0FF; display: flex; flex-direction: column; box-sizing: border-box">
+
+<!-- 1 · Klassencode -->
+<sc-if value="{{isCode}}" hint-placeholder-val="{{ true }}">
+<div style="flex: 1; display: flex; flex-direction: column; padding: 56px 24px 32px; gap: 28px; box-sizing: border-box">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 24px">
+    <svg width="104" height="104" viewBox="0 0 104 104" aria-hidden="true"><path d="M52 6 90 20v30c0 24-16 40-38 48C30 90 14 74 14 50V20Z" fill="#5B3FD9"></path><path d="M52 6 90 20v30c0 24-16 40-38 48Z" fill="#4A31C2"></path><circle cx="52" cy="50" r="22" fill="#fff"></circle><path d="m52 32 7 18-7 18-7-18Z" fill="#FFC531"></path><path d="m52 50 7 0-7 18Z" fill="#C98F00"></path><circle cx="52" cy="50" r="3" fill="#1F1A3D"></circle></svg>
+    <h1 style="margin: 0; font-size: 40px; font-weight: 700; color: #1F1A3D">Lernquest</h1>
+    <p style="margin: 0; font-size: 17px; color: #57527A; text-align: center">Üben, was ihr im Unterricht hattet –<br>und dabei stärker werden.</p>
+  </div>
+  <div style="flex: 1"></div>
+  <button class="btn" onClick="{{goName}}">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 12h8"></path></svg>
+    Klassen-QR scannen
+  </button>
+  <div style="display: flex; align-items: center; gap: 12px; color: #57527A; font-size: 14px; font-weight: 700"><span style="flex: 1; height: 2px; background: #DCD6F5"></span>oder Klassencode<span style="flex: 1; height: 2px; background: #DCD6F5"></span></div>
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <label for="lq-code" style="font-size: 14px; font-weight: 700; color: #57527A">Klassencode von deiner Lehrkraft</label>
+    <input id="lq-code" class="field" value="{{code}}" onChange="{{onCode}}" placeholder="z. B. 5B-KOMPASS" autocomplete="off">
+    <button class="btn ghost" onClick="{{goName}}">Weiter</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- 2 · Name wählen -->
+<sc-if value="{{isName}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 1; display: flex; flex-direction: column; padding: 20px 20px 24px; gap: 16px; box-sizing: border-box; min-height: 0">
+  <div style="display: flex; align-items: center; gap: 4px">
+    <button class="icon-btn" onClick="{{goCode}}" aria-label="Zurück"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"></path></svg></button>
+    <div style="display: flex; flex-direction: column">
+      <span style="font-size: 13px; font-weight: 800; color: #5B3FD9; text-transform: uppercase; letter-spacing: 1px">Klasse 5b · Frau Kuhl</span>
+      <h2 style="margin: 0; font-size: 26px; font-weight: 600">Wer bist du?</h2>
+    </div>
+  </div>
+  <div style="flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-content: start; padding-bottom: 6px">
+    <sc-for list="{{names}}" as="n" hint-placeholder-count="10">
+      <button class="name" onClick="{{n.pick}}"><span class="ini" style="background: {{n.color}}">{{n.ini}}</span>{{n.label}}</button>
+    </sc-for>
+  </div>
+  <p style="margin: 0; font-size: 13px; color: #57527A; text-align: center">Dein Name fehlt? Sag deiner Lehrkraft Bescheid.</p>
+</div>
+</sc-if>
+
+<!-- 3 · PIN -->
+<sc-if value="{{isPin}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 1; display: flex; flex-direction: column; padding: 20px 24px 28px; gap: 18px; box-sizing: border-box">
+  <button class="icon-btn" onClick="{{goName}}" aria-label="Zurück"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-7 7 7 7"></path></svg></button>
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+    <span class="ini" style="width: 72px; height: 72px; font-size: 30px; background: {{who.color}}">{{who.ini}}</span>
+    <h2 style="margin: 0; font-size: 28px; font-weight: 600">Hallo {{who.first}}!</h2>
+    <p style="margin: 0; font-size: 16px; color: #57527A">Gib deine 4-stellige PIN ein.</p>
+  </div>
+  <div style="display: flex; justify-content: center; gap: 18px; margin: 8px 0" aria-live="polite">
+    <sc-for list="{{dots}}" as="d" hint-placeholder-count="4"><span class="{{d.cls}}"></span></sc-for>
+  </div>
+  <div style="flex: 1"></div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+    <sc-for list="{{keys}}" as="k" hint-placeholder-count="12">
+      <sc-if value="{{k.isDel}}" hint-placeholder-val="{{ false }}">
+        <button class="key" onClick="{{k.press}}" aria-label="Löschen"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5h11a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H9l-6-7Z"></path><path d="m12 9 6 6M18 9l-6 6"></path></svg></button>
+      </sc-if>
+      <sc-if value="{{k.isNum}}" hint-placeholder-val="{{ true }}">
+        <button class="key" onClick="{{k.press}}">{{k.label}}</button>
+      </sc-if>
+      <sc-if value="{{k.isBlank}}" hint-placeholder-val="{{ false }}"><span class="key blank"></span></sc-if>
+    </sc-for>
+  </div>
+  <p style="margin: 0; font-size: 13px; color: #57527A; text-align: center">PIN vergessen? Deine Lehrkraft kann sie neu setzen.</p>
+</div>
+</sc-if>
+
+<!-- 4 · Weltkarte -->
+<sc-if value="{{isMap}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 1; display: flex; flex-direction: column; min-height: 0">
+  <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px 12px; background: #fff; border-bottom: 2px solid #DCD6F5">
+    <span class="ini" style="width: 44px; height: 44px; background: #E8577A; font-size: 19px">C</span>
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+      <span class="fd" style="font-size: 15px; font-weight: 600">Heldenstufe 4</span>
+      <div style="height: 10px; border-radius: 99px; background: #ECE7FF; overflow: hidden"><div style="height: 100%; width: {{xpPct}}; background: #5B3FD9; border-radius: 99px"></div></div>
+      <span style="font-size: 12px; font-weight: 700; color: #57527A">{{xpText}}</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 4px; font: 600 17px Fredoka, sans-serif; color: #7A5600" aria-label="Münzen">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFC531"></circle><circle cx="12" cy="12" r="6.5" fill="none" stroke="#C98F00" stroke-width="2"></circle></svg>{{coins}}
+    </div>
+  </div>
+  <div style="flex: 1; overflow-y: auto; padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+    <div style="background: #fff; border: 2px solid #DCD6F5; border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span class="fd" style="font-size: 17px; font-weight: 600">Wochenziel</span>
+        <span style="font-size: 14px; font-weight: 800; color: #5B3FD9">{{weekText}}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between">
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="7"><span class="{{d.cls}}">{{d.label}}</span></sc-for>
+      </div>
+      <span style="font-size: 13px; color: #57527A">Wochenenden und Ferien setzen nichts zurück.</span>
+    </div>
+    <div style="background: #5B3FD9; color: #fff; border-radius: 18px; padding: 14px 16px; box-shadow: 0 4px 0 #3F28A8; display: flex; flex-direction: column; gap: 2px">
+      <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: .9">Erdkunde · Region 1</span>
+      <span class="fd" style="font-size: 21px; font-weight: 600">Orientierung auf der Erde</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 10px 0">
+      <sc-for list="{{nodes}}" as="n" hint-placeholder-count="6">
+        <div class="{{n.pos}}" style="display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative">
+          <sc-if value="{{n.isCur}}" hint-placeholder-val="{{ false }}">
+            <span class="fd" style="position: absolute; top: -34px; background: #fff; color: #5B3FD9; border: 2px solid #DCD6F5; border-radius: 10px; padding: 3px 12px; font-size: 15px; font-weight: 600; white-space: nowrap">Los geht’s!</span>
+            <button class="node cur" onClick="{{startStation}}" aria-label="Station starten: {{n.label}}"><svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8Z"></path></svg></button>
+          </sc-if>
+          <sc-if value="{{n.isDone}}" hint-placeholder-val="{{ true }}">
+            <span class="node done"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></span>
+          </sc-if>
+          <sc-if value="{{n.isLock}}" hint-placeholder-val="{{ false }}">
+            <span class="node lock"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"></path></svg></span>
+          </sc-if>
+          <sc-if value="{{n.isBoss}}" hint-placeholder-val="{{ false }}">
+            <span class="node boss"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l9 9M13 4l7 0 0 7M20 4 9 15M5 15l4 4M3 21l3-3M17 19l4-4M18 21l3-3"></path></svg></span>
+          </sc-if>
+          <span style="font-size: 14px; font-weight: 800; text-align: center; max-width: 150px">{{n.label}}</span>
+          <sc-if value="{{n.hasStars}}" hint-placeholder-val="{{ true }}">
+            <span style="display: flex; gap: 2px" aria-label="{{n.starLabel}}">
+              <sc-for list="{{n.stars}}" as="s" hint-placeholder-count="3"><svg class="{{s.cls}}" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8Z"></path></svg></sc-for>
+            </span>
+          </sc-if>
+          <sc-if value="{{n.isBoss}}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 12px; font-weight: 700; color: #57527A">gemeinsam in der Klasse</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+    <div style="border: 2px dashed #CFC9E6; border-radius: 18px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; color: #57527A">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"></path></svg>
+      <div style="display: flex; flex-direction: column"><span class="fd" style="font-size: 16px; font-weight: 600; color: #1F1A3D">Region 2 · Deutschland im Überblick</span><span style="font-size: 13px">Öffnet sich, sobald ihr es im Unterricht hattet.</span></div>
+    </div>
+  </div>
+  <nav style="display: flex; background: #fff; border-top: 2px solid #DCD6F5" aria-label="Hauptmenü">
+    <button class="nav on" aria-current="page"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5Z"></path><path d="M9 4v13.5M15 6.5V20"></path></svg>Karte</button>
+    <button class="nav" style="position: relative"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"></path></svg>Wiederholen<span style="position: absolute; top: 4px; left: 54%; background: #C4321F; color: #fff; border-radius: 99px; font-size: 11px; padding: 1px 6px">8</span></button>
+    <a class="nav" href="Held.dc.html"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 19 5.5V11c0 4.5-3 8-7 10-4-2-7-5.5-7-10V5.5Z"></path></svg>Held</a>
+    <button class="nav"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.6-3.5 3.2-5.5 6.5-5.5s5.9 2 6.5 5.5"></path><circle cx="17" cy="9" r="2.8"></circle><path d="M16.5 14.6c2.7.2 4.6 2 5 5"></path></svg>Klasse</button>
+  </nav>
+</div>
+</sc-if>
+
+<!-- 5 · Station (Übungen) -->
+<sc-if value="{{isTask}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 1; display: flex; flex-direction: column; padding: 16px 20px 24px; gap: 22px; box-sizing: border-box; min-height: 0">
+  <div style="display: flex; align-items: center; gap: 10px">
+    <button class="icon-btn" onClick="{{goMap}}" aria-label="Station verlassen"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+    <div style="flex: 1; height: 16px; border-radius: 99px; background: #E4E0F3; overflow: hidden" role="progressbar" aria-label="Fortschritt in der Runde" aria-valuemin="0" aria-valuemax="3" aria-valuenow="{{task}}"><div class="{{progCls}}"></div></div>
+    <div style="display: flex; gap: 2px" aria-label="{{heartsLabel}}">
+      <sc-for list="{{hearts}}" as="h" hint-placeholder-count="3"><svg class="{{h.cls}}" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.4C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.7 1.2 5.3 3 1.6-1.8 3.1-3 5.3-3 3.7 0 5.8 3.7 4.3 7.1C19.5 16.4 12 21 12 21Z"></path></svg></sc-for>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <span style="font-size: 13px; font-weight: 800; color: #5B3FD9; text-transform: uppercase; letter-spacing: 1px">Station 3 · Himmelsrichtungen</span>
+    <h2 style="margin: 0; font-size: 25px; font-weight: 600">{{t.title}}</h2>
+  </div>
+
+  <sc-if value="{{isTap}}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <p style="margin: 0 0 6px; font-size: 21px; font-weight: 800">{{t.q}}</p>
+      <sc-for list="{{opts}}" as="o" hint-placeholder-count="4"><button class="{{o.cls}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isGap}}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; gap: 28px">
+      <p style="margin: 0; font-size: 22px; font-weight: 700; line-height: 1.9">{{t.before}}<button class="{{slotCls}}" onClick="{{clearGap}}" style="background: none; border-top: 0; border-left: 0; border-right: 0; font: inherit; cursor: pointer" aria-label="Lücke">{{gapText}}</button>{{t.after}}</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center">
+        <sc-for list="{{opts}}" as="o" hint-placeholder-count="4"><button class="{{o.cls}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isPairs}}" hint-placeholder-val="{{ false }}">
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 12px"><sc-for list="{{leftItems}}" as="p" hint-placeholder-count="4"><button class="{{p.cls}}" onClick="{{p.pick}}">{{p.label}}</button></sc-for></div>
+      <div style="display: flex; flex-direction: column; gap: 12px"><sc-for list="{{rightItems}}" as="p" hint-placeholder-count="4"><button class="{{p.cls}}" onClick="{{p.pick}}">{{p.label}}</button></sc-for></div>
+    </div>
+  </sc-if>
+
+  <div style="flex: 1"></div>
+  <sc-if value="{{showCheck}}" hint-placeholder-val="{{ true }}">
+    <button class="{{checkCls}}" onClick="{{onCheck}}">Prüfen</button>
+  </sc-if>
+  <sc-if value="{{showPairHint}}" hint-placeholder-val="{{ false }}">
+    <p style="margin: 0; text-align: center; font-size: 14px; font-weight: 700; color: #57527A">Tippe links, dann das passende Wort rechts.</p>
+  </sc-if>
+
+  <sc-if value="{{fbShow}}" hint-placeholder-val="{{ false }}">
+    <div class="{{fbCls}}" role="status">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <sc-if value="{{fbOk}}" hint-placeholder-val="{{ true }}">
+          <span style="width: 40px; height: 40px; border-radius: 50%; background: #13804A; color: #fff; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg></span>
+        </sc-if>
+        <sc-if value="{{fbBad}}" hint-placeholder-val="{{ false }}">
+          <span style="width: 40px; height: 40px; border-radius: 50%; background: #C4321F; color: #fff; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></span>
+        </sc-if>
+        <span class="fd" style="font-size: 23px; font-weight: 600">{{fbTitle}}</span>
+      </div>
+      <p style="margin: 0; font-size: 16px; font-weight: 700; line-height: 1.4">{{fbText}}</p>
+      <button class="{{nextCls}}" onClick="{{onNext}}">Weiter</button>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- 6 · Ergebnis -->
+<sc-if value="{{isResult}}" hint-placeholder-val="{{ false }}">
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 64px 24px 28px; gap: 18px; box-sizing: border-box">
+  <div style="display: flex; align-items: flex-end; gap: 6px" aria-label="{{resStarLabel}}">
+    <sc-for list="{{resStars}}" as="s" hint-placeholder-count="3"><svg class="{{s.cls}}" width="{{s.size}}" height="{{s.size}}" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="#C98F00" stroke-width="1" d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8Z"></path></svg></sc-for>
+  </div>
+  <h1 style="margin: 0; font-size: 34px; font-weight: 700; text-align: center">Station geschafft!</h1>
+  <p style="margin: 0; font-size: 17px; color: #57527A; text-align: center">Himmelsrichtungen · {{resNote}}</p>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; margin-top: 14px">
+    <div style="background: #fff; border: 2px solid #DCD6F5; border-radius: 16px; padding: 14px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 12px; font-weight: 800; color: #57527A; text-transform: uppercase">Erfahrung</span><span class="fd" style="font-size: 24px; font-weight: 600; color: #5B3FD9">+30 EP</span></div>
+    <div style="background: #fff; border: 2px solid #DCD6F5; border-radius: 16px; padding: 14px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 12px; font-weight: 800; color: #57527A; text-transform: uppercase">Münzen</span><span class="fd" style="font-size: 24px; font-weight: 600; color: #7A5600">+15</span></div>
+    <div style="background: #fff; border: 2px solid #DCD6F5; border-radius: 16px; padding: 14px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-size: 12px; font-weight: 800; color: #57527A; text-transform: uppercase">Woche</span><span class="fd" style="font-size: 24px; font-weight: 600; color: #13804A">3 / 3</span></div>
+  </div>
+  <div style="width: 100%; background: #FFF4D1; border: 2px solid #FFC531; border-radius: 18px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; box-sizing: border-box">
+    <svg width="52" height="46" viewBox="0 0 52 46" aria-hidden="true"><rect x="3" y="18" width="46" height="25" rx="4" fill="#8A4B1F"></rect><path d="M3 18c0-9 6-15 23-15s23 6 23 15Z" fill="#A65E2A"></path><rect x="3" y="16" width="46" height="6" fill="#FFC531"></rect><rect x="22" y="16" width="8" height="14" rx="2" fill="#FFC531"></rect><circle cx="26" cy="25" r="2" fill="#5A3E00"></circle></svg>
+    <div style="display: flex; flex-direction: column"><span class="fd" style="font-size: 18px; font-weight: 600">Wochenziel erreicht!</span><span style="font-size: 14px; color: #57527A">Eine Truhe wartet beim Helden.</span></div>
+  </div>
+  <div style="flex: 1"></div>
+  <a class="btn ghost" href="Truhe.dc.html">Truhe öffnen</a>
+  <button class="btn" onClick="{{goMap}}">Zur Karte</button>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = { screen: 'code', code: '', who: 2, pin: '', task: 0, sel: null, checked: false, correct: false, hearts: 3, left: null, matched: [], wrongPair: null, done: false };
+
+  reset(extra) {
+    this.setState(Object.assign({ sel: null, checked: false, correct: false, left: null, matched: [], wrongPair: null }, extra || {}));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const NAMES = [
+      ['Amira', 'K.', '#2E7D6B'], ['Ben', 'S.', '#3B6FD4'], ['Clara', 'M.', '#E8577A'], ['Deniz', 'Y.', '#B5541C'],
+      ['Elias', 'W.', '#6A4BC4'], ['Finn', 'R.', '#1D7FA3'], ['Hanna', 'L.', '#A63D8F'], ['Jonas', 'P.', '#4E7A1F'],
+      ['Lea', 'B.', '#C2451E'], ['Mats', 'H.', '#335C99'], ['Noah', 'T.', '#7A4FB0'], ['Sofia', 'A.', '#1F8A70']
+    ];
+    const TASKS = [
+      { kind: 'tap', title: 'Wähle die richtige Antwort', q: 'Wo geht die Sonne am Morgen auf?', opts: ['Im Norden', 'Im Osten', 'Im Süden', 'Im Westen'], answer: 'Im Osten', why: 'Die Sonne geht im Osten auf, steht mittags im Süden und geht im Westen unter.' },
+      { kind: 'gap', title: 'Fülle die Lücke', before: 'Die Kompassnadel zeigt immer nach ', after: '.', opts: ['Süden', 'Norden', 'Osten', 'Westen'], answer: 'Norden', why: 'Die Nadel richtet sich nach dem Magnetfeld der Erde aus und zeigt nach Norden.' },
+      { kind: 'pairs', title: 'Finde die Paare', pairs: { N: 'Norden', O: 'Osten', S: 'Süden', W: 'Westen' }, right: ['Süden', 'Westen', 'Norden', 'Osten'] }
+    ];
+    const t = TASKS[s.task];
+    const who = NAMES[s.who];
+    const go = (screen) => () => this.setState({ screen });
+
+    const names = NAMES.map((n, i) => ({ label: n[0] + ' ' + n[1], ini: n[0][0], color: n[2], pick: () => this.setState({ screen: 'pin', who: i, pin: '' }) }));
+    const press = (d) => () => {
+      if (s.pin.length >= 4) return;
+      const pin = s.pin + d;
+      this.setState({ pin });
+      if (pin.length === 4) setTimeout(() => this.setState({ screen: 'map' }), 350);
+    };
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map((k) => ({
+      label: k, isDel: k === 'del', isBlank: k === '', isNum: k !== 'del' && k !== '',
+      press: k === 'del' ? () => this.setState({ pin: s.pin.slice(0, -1) }) : press(k)
+    }));
+    const dots = [0, 1, 2, 3].map((i) => ({ cls: i < s.pin.length ? 'dot on' : 'dot' }));
+
+    const doneStars = Math.max(1, s.hearts);
+    const mk = (label, kind, stars, pos) => ({
+      label, pos, isDone: kind === 'done', isCur: kind === 'cur', isLock: kind === 'lock', isBoss: kind === 'boss',
+      hasStars: kind === 'done', starLabel: stars + ' von 3 Sternen',
+      stars: [0, 1, 2].map((i) => ({ cls: i < stars ? 'st on' : 'st no' }))
+    });
+    const nodes = [
+      mk('Kontinente und Ozeane', 'done', 3, 'x0'),
+      mk('Das Gradnetz', 'done', 2, 'xl'),
+      mk('Himmelsrichtungen', s.done ? 'done' : 'cur', doneStars, 'xs'),
+      mk('Karten lesen', s.done ? 'cur' : 'lock', 0, 'xt'),
+      mk('Der Maßstab', 'lock', 0, 'xr'),
+      mk('Boss: Der Kompass-Golem', 'boss', 0, 'x0')
+    ];
+    const dayDone = { Mo: true, Mi: true, Fr: s.done };
+    const days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((d) => ({ label: d, cls: dayDone[d] ? 'day ok' : (d === 'Fr' ? 'day today' : 'day') }));
+
+    // task screen
+    const isTap = s.screen === 'task' && t.kind === 'tap';
+    const isGap = s.screen === 'task' && t.kind === 'gap';
+    const isPairs = s.screen === 'task' && t.kind === 'pairs';
+    const optCls = (o) => {
+      const base = t.kind === 'gap' ? 'tile' : 'opt';
+      if (t.kind === 'gap') return o === s.sel ? 'tile used' : 'tile';
+      if (s.checked && o === t.answer) return base + ' right';
+      if (s.checked && o === s.sel) return base + ' wrong';
+      return o === s.sel ? base + ' sel' : base;
+    };
+    const opts = (t.opts || []).map((o) => ({ label: o, cls: optCls(o), pick: () => { if (!s.checked) this.setState({ sel: o }); } }));
+    const slotCls = 'slot' + (s.checked ? (s.correct ? ' right' : ' wrong') : '');
+
+    const pairs = t.pairs || {};
+    const leftItems = Object.keys(pairs).map((l) => ({
+      label: l,
+      cls: 'pair' + (s.matched.indexOf(l) >= 0 ? ' done' : (s.left === l ? ' sel' : '')),
+      pick: () => { if (s.matched.indexOf(l) < 0) this.setState({ left: l, wrongPair: null }); }
+    }));
+    const matchedWords = s.matched.map((l) => pairs[l]);
+    const rightItems = (t.right || []).map((r) => ({
+      label: r,
+      cls: 'pair' + (matchedWords.indexOf(r) >= 0 ? ' done' : (s.wrongPair === r ? ' wrong' : '')),
+      pick: () => {
+        if (!s.left || matchedWords.indexOf(r) >= 0) return;
+        if (pairs[s.left] === r) {
+          const matched = s.matched.concat([s.left]);
+          this.setState({ matched, left: null, wrongPair: null });
+          if (matched.length === 4) setTimeout(() => this.setState({ checked: true, correct: true }), 300);
+        } else {
+          this.setState({ wrongPair: r });
+        }
+      }
+    }));
+
+    const onCheck = () => {
+      if (!s.sel || s.checked) return;
+      const correct = s.sel === t.answer;
+      this.setState({ checked: true, correct, hearts: correct ? s.hearts : Math.max(0, s.hearts - 1) });
+    };
+    const onNext = () => {
+      if (s.task < TASKS.length - 1) this.reset({ task: s.task + 1 });
+      else this.reset({ screen: 'result', done: true });
+    };
+    const startStation = () => this.reset({ screen: 'task', task: 0, hearts: 3 });
+
+    let fbText = '';
+    if (s.checked) {
+      if (t.kind === 'pairs') fbText = 'Alle vier Himmelsrichtungen gefunden. +10 EP';
+      else fbText = s.correct ? t.why : 'Richtig ist: ' + t.answer + '. ' + t.why;
+    }
+    const heartsArr = [0, 1, 2].map((i) => ({ cls: i < s.hearts ? 'heart full' : 'heart empty' }));
+    const resStars = [0, 1, 2].map((i) => ({ cls: (i < doneStars ? 'st on ' : 'st no ') + ['pop', 'pop2', 'pop3'][i], size: i === 1 ? 84 : 64 }));
+
+    return {
+      isCode: s.screen === 'code', isName: s.screen === 'name', isPin: s.screen === 'pin', isMap: s.screen === 'map', isTask: s.screen === 'task', isResult: s.screen === 'result',
+      code: s.code, onCode: (e) => this.setState({ code: e.target.value.toUpperCase() }),
+      goName: go('name'), goCode: go('code'), goMap: () => this.reset({ screen: 'map' }),
+      names, who: { first: who[0], ini: who[0][0], color: who[2] }, keys, dots,
+      xpPct: s.done ? '92%' : '85%', xpText: s.done ? '370 / 400 EP' : '340 / 400 EP', coins: s.done ? 135 : 120,
+      weekText: s.done ? '3 von 3 Lerntagen' : '2 von 3 Lerntagen', days, nodes, startStation,
+      task: s.task, t, progCls: 'prog p' + (s.task + (s.checked ? 1 : 0)), hearts: heartsArr, heartsLabel: s.hearts + ' von 3 Herzen',
+      isTap, isGap, isPairs, opts, slotCls, gapText: s.sel || ' ', clearGap: () => { if (!s.checked) this.setState({ sel: null }); },
+      leftItems, rightItems,
+      showCheck: !isPairs && !s.checked, showPairHint: isPairs && !s.checked,
+      checkCls: s.sel ? 'btn' : 'btn off', onCheck,
+      fbShow: s.checked, fbOk: s.correct, fbBad: !s.correct, fbCls: 'fb ' + (s.correct ? 'ok' : 'bad'),
+      fbTitle: s.correct ? 'Richtig!' : 'Nicht ganz', fbText, nextCls: 'btn ' + (s.correct ? 'okb' : 'badb'), onNext,
+      resStars, resStarLabel: doneStars + ' von 3 Sternen', resNote: doneStars === 3 ? 'ohne Fehler' : (3 - doneStars) + (3 - doneStars === 1 ? ' Fehler – kommt ins Wiederholen' : ' Fehler – kommen ins Wiederholen')
+    };
+  }
+}
+</script>
+</body>
+</html>

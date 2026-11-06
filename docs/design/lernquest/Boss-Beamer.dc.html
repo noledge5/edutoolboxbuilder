@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Lernquest – Bosskampf am Beamer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Nunito:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.fd{font-family:Fredoka,Nunito,sans-serif}
+.ans{display:flex;align-items:center;gap:18px;border-radius:20px;padding:0 24px;height:104px;font:700 30px Nunito,sans-serif;color:#fff}
+.bob{animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+</style>
+</helmet>
+<div style="width: 1440px; height: 810px; position: relative; overflow: hidden; background: #1F1A3D; color: #fff; font-family: Nunito, system-ui, sans-serif; display: flex; flex-direction: column; padding: 32px 48px 36px; box-sizing: border-box; gap: 24px">
+  <div style="display: flex; align-items: center; gap: 24px">
+    <div style="display: flex; flex-direction: column; flex: 1">
+      <span style="font-size: 18px; font-weight: 800; color: #C9C2F2; text-transform: uppercase; letter-spacing: 2px">Bosskampf · Erdkunde · Region 1</span>
+      <span class="fd" style="font-size: 30px; font-weight: 600">Frage 6 von 12</span>
+    </div>
+    <div style="background: rgba(255,255,255,.08); border-radius: 16px; padding: 10px 18px; font-size: 18px; font-weight: 700; color: #C9C2F2">Mitmachen: Lernquest öffnen → <span class="fd" style="color: #fff; font-size: 22px; font-weight: 600">Bosskampf</span></div>
+    <div style="width: 92px; height: 92px; position: relative" role="timer" aria-label="Noch 12 Sekunden">
+      <svg width="92" height="92" viewBox="0 0 92 92" aria-hidden="true"><circle cx="46" cy="46" r="40" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="10"></circle><circle cx="46" cy="46" r="40" fill="none" stroke="#FFC531" stroke-width="10" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="100" transform="rotate(-90 46 46)"></circle></svg>
+      <span class="fd" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 600">12</span>
+    </div>
+  </div>
+
+  <div style="flex: 1; display: flex; gap: 48px; min-height: 0">
+    <!-- boss -->
+    <div style="width: 440px; display: flex; flex-direction: column; align-items: center; gap: 16px">
+      <div class="bob" style="flex: 1; display: flex; align-items: center">
+        <svg width="320" height="320" viewBox="0 0 320 320" role="img" aria-label="Der Kompass-Golem">
+          <ellipse cx="160" cy="300" rx="110" ry="14" fill="#000" opacity=".35"></ellipse>
+          <path d="M70 120 40 200l40 10 20-60Z" fill="#6B7487"></path>
+          <path d="M250 120l30 80-40 10-20-60Z" fill="#6B7487"></path>
+          <path d="M80 70c10-30 50-48 80-48s70 18 80 48l14 140c2 40-40 76-94 76s-96-36-94-76Z" fill="#8C95A8"></path>
+          <path d="M120 50 104 30M200 50l16-20" stroke="#6B7487" stroke-width="12" stroke-linecap="round"></path>
+          <path d="M110 240h40v50h-40ZM170 240h40v50h-40Z" fill="#6B7487"></path>
+          <circle cx="160" cy="150" r="62" fill="#ECE7FF"></circle>
+          <circle cx="160" cy="150" r="62" fill="none" stroke="#C98F00" stroke-width="10"></circle>
+          <path d="m160 98 16 52-16 52-16-52Z" fill="#E0344B"></path>
+          <path d="m160 150 16 0-16 52Z" fill="#9B1F30"></path>
+          <circle cx="160" cy="150" r="7" fill="#1F1A3D"></circle>
+          <circle cx="124" cy="78" r="9" fill="#FFC531"></circle><circle cx="196" cy="78" r="9" fill="#FFC531"></circle>
+          <path d="M100 110l20 8M220 110l-20 8M118 210l20-6M200 214l-14-10" stroke="#6B7487" stroke-width="5" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <span class="fd" style="font-size: 30px; font-weight: 600">Der Kompass-Golem</span>
+      <div style="width: 100%; display: flex; flex-direction: column; gap: 6px">
+        <div style="height: 28px; border-radius: 99px; background: rgba(255,255,255,.12); overflow: hidden" role="meter" aria-label="Lebenspunkte des Bosses" aria-valuenow="640" aria-valuemin="0" aria-valuemax="1000"><div style="width: 64%; height: 100%; background: #E0344B; border-radius: 99px; box-shadow: inset 0 -6px 0 rgba(0,0,0,.2)"></div></div>
+        <span style="font-size: 18px; font-weight: 800; color: #C9C2F2; text-align: center">640 / 1000 Lebenspunkte</span>
+      </div>
+    </div>
+
+    <!-- question -->
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 22px; min-width: 0">
+      <div style="background: #fff; color: #1F1A3D; border-radius: 24px; padding: 28px 32px; box-shadow: 0 6px 0 #C9C2F2">
+        <span class="fd" style="font-size: 42px; font-weight: 600; line-height: 1.2">Welcher Breitenkreis teilt die Erde in Nord- und Südhalbkugel?</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px">
+        <div class="ans" style="background: #2459B8; box-shadow: 0 6px 0 #173C80"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 4 41 38H3Z" fill="#fff"></path></svg>Nullmeridian</div>
+        <div class="ans" style="background: #B5541C; box-shadow: 0 6px 0 #7A3610"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><path d="M22 2 42 22 22 42 2 22Z" fill="#fff"></path></svg>Äquator</div>
+        <div class="ans" style="background: #13804A; box-shadow: 0 6px 0 #0B5E35"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" fill="#fff"></circle></svg>Polarkreis</div>
+        <div class="ans" style="background: #6A2FC4; box-shadow: 0 6px 0 #45208A"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><rect x="4" y="4" width="36" height="36" rx="4" fill="#fff"></rect></svg>Wendekreis</div>
+      </div>
+      <div style="flex: 1"></div>
+      <div style="display: flex; align-items: center; gap: 16px">
+        <span class="fd" style="font-size: 26px; font-weight: 600">23 von 26 haben geantwortet</span>
+        <div style="flex: 1; height: 14px; border-radius: 99px; background: rgba(255,255,255,.12); overflow: hidden"><div style="width: 88%; height: 100%; background: #C9C2F2"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- class life + streak -->
+  <div style="display: flex; align-items: center; gap: 28px; background: rgba(255,255,255,.07); border-radius: 20px; padding: 16px 24px">
+    <span class="fd" style="font-size: 24px; font-weight: 600">Klasse 5b</span>
+    <div style="display: flex; gap: 8px" aria-label="4 von 5 Leben">
+      <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path fill="#E0344B" d="M12 21s-7.5-4.6-9.6-9.4C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.7 1.2 5.3 3 1.6-1.8 3.1-3 5.3-3 3.7 0 5.8 3.7 4.3 7.1C19.5 16.4 12 21 12 21Z"></path></svg>
+      <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path fill="#E0344B" d="M12 21s-7.5-4.6-9.6-9.4C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.7 1.2 5.3 3 1.6-1.8 3.1-3 5.3-3 3.7 0 5.8 3.7 4.3 7.1C19.5 16.4 12 21 12 21Z"></path></svg>
+      <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path fill="#E0344B" d="M12 21s-7.5-4.6-9.6-9.4C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.7 1.2 5.3 3 1.6-1.8 3.1-3 5.3-3 3.7 0 5.8 3.7 4.3 7.1C19.5 16.4 12 21 12 21Z"></path></svg>
+      <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path fill="#E0344B" d="M12 21s-7.5-4.6-9.6-9.4C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.7 1.2 5.3 3 1.6-1.8 3.1-3 5.3-3 3.7 0 5.8 3.7 4.3 7.1C19.5 16.4 12 21 12 21Z"></path></svg>
+      <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path fill="rgba(255,255,255,.2)" d="M12 21s-7.5-4.6-9.6-9.4C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.7 1.2 5.3 3 1.6-1.8 3.1-3 5.3-3 3.7 0 5.8 3.7 4.3 7.1C19.5 16.4 12 21 12 21Z"></path></svg>
+    </div>
+    <div style="flex: 1"></div>
+    <span style="background: #FFC531; color: #4A3300; border-radius: 99px; padding: 8px 18px; font: 600 22px Fredoka, sans-serif">Serie × 4 · doppelter Schaden</span>
+    <span style="font-size: 18px; font-weight: 700; color: #C9C2F2">Fällt der Boss, bekommt jede und jeder eine Truhe.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":810}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
