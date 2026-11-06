@@ -58,3 +58,6 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
   die Lehrkraft später selbst mit einem Bildmodell (Vorlage + Prompt, img2img/Denoise). Deshalb kann jedes Teil
   entweder SVG oder Bild sein: PNG/WebP 512 × 512, transparenter Grund, gleiches Raster wie die Vorlage (200 × 200
   skaliert). Fehlt ein Bild, gilt die SVG-Vorlage.
+- **Frisur:** frei wählbar wie die Hautfarbe, keine Beute: ~8 Frisuren (kurz, lang, Locken, Zöpfe, Dutt, Kopftuch,
+  Afro, Iro) und 6 Haarfarben. Unter einem Hut die kurze Version; zum Kopftuch nur flache Kopfteile (Stirnband,
+  Krone). Braucht eine kleine Migration (`frisur`, `haar` neben `haut`), einspielen erst nach Freigabe.
