@@ -43,3 +43,8 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
   ohne Stufe, mit Grund als Text, wo nötig; gewählt innen 3 px `--lq-primary` + Haken; richtig/falsch `-bg` + Rand +
   Haken/Kreuz + Text; lädt: gleiche Größe, „…“ mit Punkt, Doppeltippen gesperrt; offline: gelbes Band oben
   („Offline – deine Runden werden später gesendet“), Spielen geht weiter.
+- **Animationen:** Dauern als Tokens `--lq-t-fast` 80 ms, `--lq-t-mid` 250 ms, `--lq-t-slow` 600 ms. Nur diese
+  Anlässe: Drücken (4 px), falsch (Wackeln), richtig/Münzen/neues Teil (Plopp), Rückmelde-Leiste (hochgleiten),
+  nächste Station (Puls, nur diese), Truhe (aufspringen, Teil steigt, Strahlen drehen). Nie Eingabe blockieren;
+  Truhe ≤ 2 s, per Tippen überspringbar. Weniger Bewegung: nicht abschalten, sondern ersetzen (Wackeln → roter Rand
+  blinkt, Plopp → Einblenden, Puls/Strahlen stehen).
