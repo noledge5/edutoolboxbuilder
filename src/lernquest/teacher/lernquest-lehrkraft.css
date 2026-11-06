@@ -417,3 +417,6 @@
   height: 20px;
   accent-color: var(--color-accent);
 }
+.lqt-pool-dialog .dialog-actions {
+  flex-wrap: wrap;
+}

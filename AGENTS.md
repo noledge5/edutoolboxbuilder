@@ -50,7 +50,12 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
 - Lernquest (`docs/lernquest.md`) is the third page (`lernquest/index.html`, `src/lernquest/`, own game look, no
   `src/sheet/`). Reward rules live twice, in `src/lernquest/rules.ts` and in `lq_runde_melden`
   (`supabase/migrations/`): change both (class points also in `lq_boss_ticken`, voucher limits in `lq_anfragen`).
-  A new task block that should become an exercise also touches `src/lernquest/paket.ts`. The server test `src/lernquest/server.live.test.ts` runs only with `LQ_LIVE=1`.
+  A new task block that should become an exercise also touches `src/lernquest/paket.ts`. A new exercise kind (`Uebung`)
+  touches `UEBUNGS_ARTEN`, `rules.ts` (`istRichtig`, `loesungText`, `richtigeAntwort`), `boss.ts` (`fragenAus`),
+  `app/Uebungen.tsx`, and `fragenpool.ts` (`readUebung`; the format list for Claude if it should write it).
+  The KI-Fragenpool lives on the lesson (`Lesson.pool`); released ones go into the package after the lesson's own
+  exercises, so the server counts rounds from `uebungen` as before.
+  The server test `src/lernquest/server.live.test.ts` runs only with `LQ_LIVE=1`.
   To try a Lernquest change end to end: `npm run lq:testlauf` (build, throwaway teacher key, test class and child on the
   real server, one round played in Chromium, server state checked against `rules.ts`, screenshots to the temp folder,
   class deleted). `LQ_URL=…/lernquest/` plays the live site. Never read the `lq_*` tables directly (real names).

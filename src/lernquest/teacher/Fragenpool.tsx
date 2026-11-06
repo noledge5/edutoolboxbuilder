@@ -13,6 +13,7 @@ import { modelLabel } from '../../ai/settings';
 import { useAiSettings } from '../../ai/useAi';
 import type { Lesson, Module, Settings } from '../../library/types';
 import { exercisesOf } from '../paket';
+import { RUNDE_MAX, RUNDEN_MAX } from '../rules';
 import { ablenkerVon, kurzText, lueckeAus, lueckeText, POOL_MAX, poolAusAntwort, poolPrompt, poolSystem, readUebung, reihenfolgeAus } from '../fragenpool';
 import type { PoolEintrag, Uebung, UebungsArt } from '../types';
 
@@ -25,6 +26,8 @@ const ARTEN: Record<UebungsArt, string> = {
   gruppen: 'Sortieren',
   bild: 'Bild wählen',
 };
+/** Exercises the rounds of one station show at most (5 rounds × 8). */
+const RUNDEN_PLATZ = RUNDEN_MAX * RUNDE_MAX;
 const artName = (u: Uebung) => (u.art === 'waehlen' && u.hoeren ? 'Hören' : ARTEN[u.art]);
 
 interface Props {
@@ -93,13 +96,18 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
             <Icon icon={Sparkles} /> Fragenpool · Stunde {stunde.number}: {stunde.title}
           </div>
           <p className="dialog-body">
-            Claude schreibt aus den Arbeitsblättern der Kinder etwa 20 weitere Übungen (ohne Lehrkraft-Seiten, ohne Namen). Du prüfst jede, verbesserst den Text und gibst sie frei. Freigegebene kommen nach den {eigene.length} Übungen der Stunde und
+            Claude schreibt aus den Arbeitsblättern der Kinder etwa 20 weitere Übungen (ohne Lehrkraft-Seiten, ohne Namen). Du prüfst jede, verbesserst den Text und gibst sie frei. Freigegebene kommen nach {eigene.length === 1 ? 'der 1 Übung' : `den ${eigene.length} Übungen`} der Stunde und
             erreichen die Klasse beim nächsten Freischalten oder mit „Freigeschaltete neu senden“.
           </p>
           <p className="lqt-pool-stand">
             {pool.length ? `${pool.length} im Pool, ${frei} freigegeben` : 'Der Pool ist noch leer.'}
             {voll && ` · voll (höchstens ${POOL_MAX})`}
           </p>
+          {eigene.length + frei > RUNDEN_PLATZ && (
+            <p className="lqt-hint">
+              Zusammen sind es {eigene.length + frei} Übungen. In den Runden einer Station kommen höchstens {RUNDEN_PLATZ} dran; die übrigen nicht. Gib lieber weniger frei.
+            </p>
+          )}
 
           {!voll && !chatOpen && (
             <div className="field">

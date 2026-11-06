@@ -6,8 +6,11 @@ import { getImage } from '../../storage/db';
 import { BILD_SEITE, buildPaket, mitBildern } from '../paket';
 import { freischalten, LqError } from '../server';
 
-/** What `lq_freischalten` takes at most (bytes of the JSON). */
-export const PAKET_MAX = 300_000;
+/**
+ * Bytes of JSON we send at most: `lq_freischalten` takes 300 000 bytes of `jsonb::text`, which writes a space after
+ * every colon and comma, so the same package is a little longer there.
+ */
+export const PAKET_MAX = 270_000;
 
 /** A stored picture as a small JPEG data URL (white behind transparent parts); null when it is gone. */
 export async function bildVorschau(id: string): Promise<string | null> {

@@ -171,7 +171,7 @@ describe('Neue Formate (Stufe 5)', () => {
 
   it('lässt Übungsarten einer neueren Version im Paket weg', () => {
     const p = buildPaket(modul, stunde());
-    const neu = readPaket({ ...p, uebungen: [...p.uebungen, { art: 'punkt', id: 'z' }] });
+    const neu = readPaket({ ...p, uebungen: [...p.uebungen, { art: 'punkt', id: 'z' }, { art: 'bild', id: 'kaputt' }, null] });
     expect(neu?.uebungen.map((u) => u.art)).toEqual(['waehlen']);
   });
 });

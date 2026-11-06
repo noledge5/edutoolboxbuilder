@@ -83,6 +83,17 @@ Fragerunde mit der Lehrkraft vor dem Bau; Zahlen sind Vorschläge von Claude und
   Kinderdaten. Die Zuordnung Aufgabe → Kompetenz rechnet der Browser der Lehrkraft aus dem Modul; sie geht nicht an
   den Server.
 
+## Stufe 5: Entscheidungen (06.11.2026)
+
+Mit der Lehrkraft entschieden (Fragerunde, alle Empfehlungen von Claude so angenommen):
+
+- **Zwei Teile:** Teil A = KI-Fragenpool mit Prüfen/Freigeben, „In Gruppen sortieren“, „Bild wählen“ (aus den
+  Bild-Vokabeln) und Vorlesen. Teil B = „Punkt auf Bild/Karte setzen“ als eigener Schritt (die Lehrkraft setzt die
+  Punkte von Hand, weil die KI Bilder nicht sicher beschriften kann).
+- **Prüfen:** Freigeben, verwerfen und Text ändern (auch, welche Antwort richtig ist); „Alle freigeben“.
+- **Vorlesen:** mit der Stimme des Geräts (Web Speech API), kein Server, keine Tondateien, keine Kosten.
+- **Poolgröße:** etwa 20 Aufgaben je Anfrage, höchstens 40 je Stunde.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.
@@ -163,6 +174,26 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   (`lernquest:probe:<id>`), keine Namen, keine Punkte. Inhalt in `src/lernquest/proben/` (von Claude geschrieben, nicht aus
   den Stunden), Logik in `probe.ts`, Seite `app/Probe.tsx`. Erste Probe: `#probe=englisch5` (Numbers, Colours,
   Classroom English, there is / there are; Klassenarbeit Englisch 5).
+
+- **Stufe 5 Teil A „KI-Fragenpool und mehr Formate“ (06.11.2026, Branch `claude/stufe-5-handoff-b9odwp`):**
+  - **Keine Serveränderung.** Der Pool hängt an der Stunde (`Lesson.pool`, reist im Abgleich und in Sicherungen mit);
+    freigegebene Aufgaben kommen ins Lernpaket hinter die Übungen der Stunde (`buildPaket`), so zählt der Server die
+    Runden wie bisher aus `uebungen`. Neue Ids `pool-…`.
+  - Lehrkraft: in „Stunden freischalten“ je Stunde „Fragenpool“ (`teacher/Fragenpool.tsx`, Logik in `fragenpool.ts`):
+    über den Chat oder direkt mit dem Schlüssel (kleineres Modell der KI-Einstellungen, ca. 5–10 Cent je Anfrage); an Claude gehen nur die Seiten
+    der Kinder (keine Lehrkraft-Seiten), das Klassenprofil (ohne Namen) und die schon vorhandenen Übungen. Jede
+    Antwort wird streng geprüft (`readUebung`), Unbrauchbares fällt weg. Die Klasse bekommt Änderungen beim nächsten
+    Freischalten oder mit „Freigeschaltete neu senden“. Mehr Runden heißt: Wer eine Station schon fertig hatte,
+    sieht danach neue Runden (wie bei geänderten Stunden schon vorher).
+  - Neue Formate: `gruppen` (Karten einzeln in 2–3 Gruppen legen), `bild` (aus dem Baustein „Bild-Vokabeln“; Emojis
+    direkt, eigene Bilder als JPEG mit 160 px im Paket unter `bilder`, höchstens 24, Größenprüfung vor dem Senden in
+    `teacher/senden.ts`), „Hören“ (`waehlen` mit `hoeren`: der Satz wird vorgelesen, nur in Englisch-Stunden).
+  - Vorlesen (`app/vorlesen.ts`): in Englisch-Paketen Lautsprecher an Aussagen und Wörtern; nach „Prüfen“ wird der
+    richtige Satz von Lücke und Reihenfolge vorgelesen (nicht bei „Ton aus“). Ohne Stimme bleibt der Text sichtbar.
+  - Bosskampf: Sortier-Karten werden Fragen („Wohin gehört …?“), Bilder nicht. Die Auswertung je Kompetenz zählt
+    nur die Übungen der Stunde (Pool-Aufgaben haben keine Kompetenz).
+  - Ältere Lernquest-Seiten kennen die neuen Formate nicht; nach dem Neuladen der Seite ist alles da (kein
+    Offline-Speicher der Seite). `readPaket` lässt künftig unbekannte Formate weg.
 
 ## Offene Punkte
 

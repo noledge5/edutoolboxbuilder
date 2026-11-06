@@ -1044,7 +1044,7 @@ export function Runde({ screen, stand, herzen, titel: kicker, onAbbruch, onFerti
     const right = istRichtig(item.u, a);
     ton(right ? 'richtig' : 'falsch');
     // Right in the tap, not later: an iPad lets a page speak only then.
-    if (hoerSatz) vorlesen(hoerSatz);
+    if (hoerSatz && tonAn()) vorlesen(hoerSatz);
     setOk(right);
     setErgebnisse([...ergebnisse, right]);
     const key = karteKey(item.stunde, item.u.id);

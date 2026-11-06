@@ -270,7 +270,7 @@ export function readPaket(x: unknown): Paket | null {
   if (p.format !== PAKET_FORMAT || typeof p.stunde !== 'string' || !Array.isArray(p.uebungen) || !p.modul) return null;
   // Kinds of a newer Baukasten are left out (this page could not show them); pictures only as data URLs.
   const bilder = p.bilder && typeof p.bilder === 'object' ? Object.fromEntries(Object.entries(p.bilder).filter(([, v]) => typeof v === 'string' && v.startsWith('data:image/'))) : {};
-  const uebungen = p.uebungen.filter((u) => UEBUNGS_ARTEN.includes(u?.art) && (u.art !== 'bild' || u.bilder.every((x) => !x.startsWith(BILD_KEY) || x in bilder)));
+  const uebungen = p.uebungen.filter((u) => UEBUNGS_ARTEN.includes(u?.art) && (u.art !== 'bild' || (Array.isArray(u.bilder) && u.bilder.every((x) => typeof x === 'string' && (!x.startsWith(BILD_KEY) || x in bilder)))));
   return { ...(p as Paket), uebungen, bilder };
 }
 

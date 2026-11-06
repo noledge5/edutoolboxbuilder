@@ -51,7 +51,7 @@ export function Vorlesen({ text, gross = false }: { text: string; gross?: boolea
       </button>
       {gross && (
         <button type="button" className="lq-lautsprecher langsam" aria-label="Langsam vorlesen" onClick={() => vorlesen(text, true)}>
-          <SchneckeIcon />
+          langsam
         </button>
       )}
     </span>
@@ -64,13 +64,6 @@ const LautsprecherIcon = () => (
     <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
   </svg>
 );
-const SchneckeIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <circle cx="13" cy="12" r="5" />
-    <path d="M13 12a1.8 1.8 0 1 0 1.8-1.8M3 18h16a2 2 0 0 0 2-2M5 18V11M5 11 3.5 7.5M5 11l1.5-3.5" />
-  </svg>
-);
-
 /** A statement, with a speaker in English packages. */
 function Aussage({ text, lang }: { text: string; lang?: 'de' | 'en' }) {
   return (
@@ -345,9 +338,13 @@ function Gruppen({ u, seed, locked, onChange }: P<'gruppen'>) {
   };
   return (
     <>
-      <div className="lq-sortkarte" aria-live="polite">
-        {naechste !== undefined ? <Rich text={u.karten[naechste][0]} /> : <span className="lq-hinweis">Alle Karten liegen. Prüfe oder tippe eine Karte an, um sie zurückzuholen.</span>}
-      </div>
+      {naechste !== undefined ? (
+        <div className="lq-sortkarte" aria-live="polite">
+          <Rich text={u.karten[naechste][0]} />
+        </div>
+      ) : (
+        !locked && <p className="lq-hinweis">Alle Karten liegen. Tippe eine Karte an, um sie zurückzuholen.</p>
+      )}
       <div className="lq-gruppen" style={{ gridTemplateColumns: `repeat(${u.gruppen.length}, minmax(0, 1fr))` }}>
         {u.gruppen.map((g, gi) => (
           <div key={gi} className="lq-gruppe">
