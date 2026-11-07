@@ -32,6 +32,7 @@ import {
   HAAR_MASKE,
   HAUT_PUNKTE,
   HINTERGRUND_FARBE,
+  KLEIDUNG_EDIT_MASKE,
   KLEIDUNG_MASKE,
   PLAETZE,
   promptListe,
@@ -86,6 +87,10 @@ const kleidungForm = () => {
   const m = KLEIDUNG_MASKE;
   return `<rect x="${m.x}" y="${m.y}" width="${m.width}" height="${m.height}" rx="${m.rx}" fill="#fff"/>`;
 };
+const kleidungEditForm = () =>
+  KLEIDUNG_EDIT_MASKE.map(
+    (m) => `<rect x="${m.x}" y="${m.y}" width="${m.width}" height="${m.height}" rx="${m.rx}" fill="#fff"/>`,
+  ).join('');
 const augenForm = () =>
   `<ellipse cx="${AUGEN_MASKE.cx}" cy="${AUGEN_MASKE.cy}" rx="${AUGEN_MASKE.rx}" ry="${AUGEN_MASKE.ry}" fill="#fff"/>`;
 
@@ -171,6 +176,7 @@ async function bauen() {
   const fertig: string[] = [];
   const fehler: string[] = [];
   const kleidungsMaske = await maske(kleidungForm(), G);
+  const kleidungEditMaske = await maske(kleidungEditForm(), G);
   // The base figure first, so the overview can use it.
   for (const id of [...FIGUR_DATEI, ...TEILE.map((t) => t.id)]) {
     const namen = je.get(id);
@@ -244,10 +250,10 @@ async function bauen() {
       const v = verschiebung(basis.data, roh.data, G, G, 12, box);
       const bild = v.dx || v.dy ? verschieben(roh.data, G, G, v.dx, v.dy) : roh.data;
       const a = anpassen[id] ?? {};
-      // Only what changed; clothes also stay within the torso mask.
+      // Only what changed; clothes also stay on the torso and shoulders, off the hands.
       const data = aenderung(basis.data, bild, G, G, box, a.schwelle);
       if (PLAETZE[t.slot].weg === 'figur')
-        for (let p = 0; p < G * G; p++) data[p * 4 + 3] = Math.round((data[p * 4 + 3] * kleidungsMaske[p]) / 255);
+        for (let p = 0; p < G * G; p++) data[p * 4 + 3] = Math.round((data[p * 4 + 3] * kleidungEditMaske[p]) / 255);
       if (!sichtbar(data, G, G)) throw new Error('keine Änderung gefunden (schwelle kleiner?)');
       await speichern(id, { data, w: G, h: G });
       fertig.push(`${id} (Edit${v.dx || v.dy ? `, um ${v.dx}/${v.dy} px zurückgeschoben` : ''})`);

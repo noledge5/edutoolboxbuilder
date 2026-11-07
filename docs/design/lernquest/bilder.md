@@ -131,8 +131,9 @@ Prompts: [`bilder/edit-prompts.md`](bilder/edit-prompts.md) (jedes Teil, Grundfi
 5. **Dateiname = Teil-ID**, Ablage in **`lernquest-roh/edit/`** (`edit/krone.png` oder `edit/krone_00001_.png`).
    Nur ein Bild je Teil, und dasselbe Teil nicht zusätzlich in `lernquest-roh/`.
 6. **Wo gesucht wird:** Kopf oben über dem Gesicht, Augen im Gesicht, Werkzeug rechts (Hand auf der rechten
-   Bildseite), Begleiter unten links, Kleidung am Rumpf. Was außerhalb gemalt wird, fällt weg (`EDIT_BEREICH` in
-   `vorlagen.ts`).
+   Bildseite), Begleiter unten links, Kleidung an Rumpf und Schultern (die Hände bleiben frei, sonst trüge jede
+   Figur dieselbe Hautfarbe an den Händen). Was außerhalb gemalt wird, fällt weg (`EDIT_BEREICH` und
+   `KLEIDUNG_EDIT_MASKE` in `vorlagen.ts`).
 7. **Hintergründe nicht als Edit**, sondern als ganzes Bild mit Text zu Bild (`prompts.md`) nach `lernquest-roh/`.
 8. **Teile auf Figur 1 machen**, auch für Zopf und Locken: Die Ebene enthält nur das Teil und passt auf alle drei.
    Ein Hut verdeckt bei Locken dann einfach die Locken darunter.
