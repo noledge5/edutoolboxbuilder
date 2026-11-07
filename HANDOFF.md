@@ -1,11 +1,12 @@
-# Handoff – 06.11.2026 (Nacht)
+# Handoff – 07.11.2026
 
 ## Ziel
-Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Stufe 5 „KI-Fragenpool und mehr Formate“ ist **fertig
-gebaut** auf Branch `claude/stufe-5-handoff-b9odwp`, noch nicht auf `main` (Merge = veröffentlichen).
+Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Stufe 5, mehr Beute und Frisuren sind
+**live** (#27–#31). Server-Änderung `lernquest_frisur` ist eingespielt (07.11.2026), Testlauf gegen die Live-Seite
+am 07.11.2026 grün.
 
 ## Stand
-- **Live:** Stufen 1–4 und die offenen Übungen (`#probe=englisch5`).
+- **Live:** Stufen 1–5, mehr Beute, Frisuren/Haarfarben und die offenen Übungen (`#probe=englisch5`).
 - **Stufe 5** (Entscheidungen und Stand in `docs/lernquest.md`, „Stufe 5“):
   - „Fragen erzeugen“ je Stunde (Lehrkraft-Seite → „Stunden freischalten“): etwa 15 Fragen von Claude (Chat oder
     eigener Schlüssel), jede einzeln freigeben, ändern, löschen. Pool an der Stunde (`Lesson.pool`).
@@ -40,14 +41,15 @@ gebaut** auf Branch `claude/stufe-5-handoff-b9odwp`, noch nicht auf `main` (Merg
 - Grundfigur kahl, Frisur als eigene Ebene (8 Frisuren + keine), 5 Haarfarben, Hauttöne per Edit (`koerper_h1` …).
   Entscheidungen in `docs/lernquest.md` („Frisuren und Haarfarben“), Ablauf in `docs/design/lernquest/bilder.md`.
 - Server: `supabase/migrations/20261110_lernquest_frisur.sql` (Frisur, Haarfarbe, `lq_bonus` nur noch für die sechs
-  Plätze), lokal geprüft; auf dem echten Server erst nach OK der Lehrkraft, und **vor** dem Merge.
+  Plätze), auf dem echten Server eingespielt, gemergt (#31).
 - Geprüft mit den echten Figuren der Lehrkraft (kurz/Zopf/Locken): Freistellen, Haarfarben aus einer Haar-Ebene.
   Noch nicht: eine echte Glatzkopf-Grundfigur und echte Hautton-Edits.
 
 ## Nächste Schritte
-1. Lehrkraft schaut Stufe 5 an; bei „passt“ PR nach `main` (= veröffentlichen), danach
-   `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run lq:testlauf`.
-2. Offen aus Stufe 4: Gutscheine mit vielen Kindern gleichzeitig; „Punkte geben“ fragt mit `window.prompt`;
+1. Lehrkraft malt Glatzkopf-Grundfigur, Hautton-Edits und erste Teile; Rohbilder in eine Sitzung laden,
+   `npm run lq:bilder`, Übersicht ansehen, `anpassen.json` nachjustieren.
+2. Am iPad prüfen: Vorlesen mit echter Stimme, „Fragen erzeugen“ mit echtem Schlüssel.
+3. Offen aus Stufe 4: Gutscheine mit vielen Kindern gleichzeitig; „Punkte geben“ fragt mit `window.prompt`;
    „+Schaden“ als Ausrüstungs-Bonus.
 
 ## Wichtig zu wissen
