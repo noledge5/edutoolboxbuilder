@@ -108,6 +108,41 @@ Text zu Bild, Prompt aus `prompts.md`. Das Teil steht allein und mittig auf hell
 
 Text zu Bild, 1024 × 1024, Prompt aus `prompts.md`. Das ganze Bild wird übernommen.
 
+## Mit einem Edit-Modell (empfohlen, z. B. FLUX.2 Klein Image Edit)
+
+Das Edit-Modell malt jedes Teil direkt auf die Grundfigur. Das Skript vergleicht das Ergebnis mit der Grundfigur und
+behält **nur, was sich geändert hat**. So liegt das Teil genau dort, wo das Modell es gemalt hat, ganz ohne Figur,
+Haut oder Hintergrund in der Ebene. Einpassen, Masken oder Freistellen sind nicht nötig. Den Stil übernimmt das Modell
+aus der Grundfigur, darum passen die Teile zueinander.
+
+Prompts: [`bilder/edit-prompts.md`](bilder/edit-prompts.md) (jedes Teil, Grundfigur, Zopf, Locken).
+
+**So müssen die Ergebnisse sein:**
+
+1. **Eingabe ist immer dieselbe `koerper.png`** (kurze Haare, 1024 × 1024, grauer Hintergrund, nicht freigestellt).
+   Genau diese Datei liegt auch in `lernquest-roh/`, denn mit ihr vergleicht das Skript. Ändert sich die
+   Grundfigur, müssen die Edits neu gemacht werden.
+2. **Ausgabe genauso groß wie die Eingabe** (1024 × 1024), nicht zuschneiden, nicht ranzoomen. Die Vorlage von
+   ComfyUI macht das so, solange die Eingabe 1024 × 1024 ist. Ein anderes Format lehnt das Skript ab.
+3. **Eine Änderung je Bild.** Nur das eine Teil kommt dazu, sonst bleibt alles gleich. Was das Modell zusätzlich
+   ändert (Gesicht, Haare, Hintergrund), kommt im Teil-Bereich mit in die Ebene. Also lieber neu würfeln.
+4. **Figur bleibt an ihrem Platz.** Kleine Verschiebungen bis etwa 25 px (im 1024er-Bild) gleicht das Skript aus.
+   Es meldet, um wie viel es zurückgeschoben hat.
+5. **Dateiname = Teil-ID**, Ablage in **`lernquest-roh/edit/`** (`edit/krone.png` oder `edit/krone_00001_.png`).
+   Nur ein Bild je Teil, und dasselbe Teil nicht zusätzlich in `lernquest-roh/`.
+6. **Wo gesucht wird:** Kopf oben über dem Gesicht, Augen im Gesicht, Werkzeug rechts (Hand auf der rechten
+   Bildseite), Begleiter unten links, Kleidung am Rumpf. Was außerhalb gemalt wird, fällt weg (`EDIT_BEREICH` in
+   `vorlagen.ts`).
+7. **Hintergründe nicht als Edit**, sondern als ganzes Bild mit Text zu Bild (`prompts.md`) nach `lernquest-roh/`.
+8. **Teile auf Figur 1 machen**, auch für Zopf und Locken: Die Ebene enthält nur das Teil und passt auf alle drei.
+   Ein Hut verdeckt bei Locken dann einfach die Locken darunter.
+9. **Grundfiguren** kommen ebenfalls aus dem Edit-Modell: `koerper.png` aus `schablonen/grundfigur-vorlage.png`,
+   `koerper2.png` und `koerper3.png` aus `koerper.png` (Prompts oben in `edit-prompts.md`). Sie liegen in
+   `lernquest-roh/`, nicht in `edit/`.
+
+Bleiben an einem Teil Reste stehen (z. B. Schatten am Boden) oder fehlen blasse Stellen, hilft `schwelle` in
+`anpassen.json`: größer = nur deutliche Änderungen (Standard 30), kleiner = auch zarte.
+
 ## Ins Projekt bringen
 
 1. Bilder in den Ordner `lernquest-roh/` im Projekt legen. Er wird nicht ins Git übernommen. Ein anderer Ordner geht

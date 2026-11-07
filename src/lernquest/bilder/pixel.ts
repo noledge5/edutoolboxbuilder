@@ -182,3 +182,158 @@ export function hautUmfaerben(px: Uint8Array, haut: Rgb, ziel: Rgb): Uint8Array 
   }
   return out;
 }
+
+// — Edit pictures: the part painted by an edit model (e.g. FLUX.2 Klein) onto the base figure, cut out by comparing
+// the edited picture with the base figure it was made from. Both are whole canvases of the same size. —
+
+const grau = (px: Uint8Array, p: number) => px[p * 4] * 0.3 + px[p * 4 + 1] * 0.59 + px[p * 4 + 2] * 0.11;
+
+/** How far the edited picture moved against the base (edit models may shift a few pixels): the offset (dx, dy) up to
+ *  `max` pixels that makes both alike, found coarse (every 4th pixel) and then exact (every pixel). The area of the change (`ohne`)
+ *  is left out and big differences are capped, so the new part does not pull the result. */
+export function verschiebung(
+  basis: Uint8Array,
+  bild: Uint8Array,
+  w: number,
+  h: number,
+  max = 12,
+  ohne?: Box,
+): { dx: number; dy: number } {
+  const fehler = (dx: number, dy: number, schritt: number) => {
+    let summe = 0;
+    let n = 0;
+    for (let y = max; y < h - max; y += schritt)
+      for (let x = max; x < w - max; x += schritt) {
+        if (ohne && x >= ohne.x && x < ohne.x + ohne.w && y >= ohne.y && y < ohne.y + ohne.h) continue;
+        summe += Math.min(24, Math.abs(grau(basis, y * w + x) - grau(bild, (y + dy) * w + (x + dx))));
+        n++;
+      }
+    return summe / Math.max(1, n);
+  };
+  let best = { dx: 0, dy: 0, f: fehler(0, 0, 4) };
+  for (let dy = -max; dy <= max; dy += 2)
+    for (let dx = -max; dx <= max; dx += 2) {
+      const f = fehler(dx, dy, 4);
+      if (f < best.f) best = { dx, dy, f };
+    }
+  const grob = best;
+  best = { ...grob, f: fehler(grob.dx, grob.dy, 1) };
+  for (let dy = grob.dy - 2; dy <= grob.dy + 2; dy++)
+    for (let dx = grob.dx - 2; dx <= grob.dx + 2; dx++) {
+      if (Math.abs(dx) > max || Math.abs(dy) > max) continue;
+      const f = fehler(dx, dy, 1);
+      if (f < best.f) best = { dx, dy, f };
+    }
+  return { dx: best.dx, dy: best.dy };
+}
+
+/** A copy moved back by (dx, dy), so it lies on the base again; the uncovered border repeats the edge pixels. */
+export function verschieben(px: Uint8Array, w: number, h: number, dx: number, dy: number): Uint8Array {
+  const out = new Uint8Array(px.length);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const sx = Math.min(w - 1, Math.max(0, x + dx));
+      const sy = Math.min(h - 1, Math.max(0, y + dy));
+      out.set(px.subarray((sy * w + sx) * 4, (sy * w + sx) * 4 + 4), (y * w + x) * 4);
+    }
+  return out;
+}
+
+/** Connected areas (4-neighbours) of the pixels where `an` is set, within a box. */
+function flaechen(an: Uint8Array, w: number, box: Box): number[][] {
+  const gesehen = new Uint8Array(an.length);
+  const alle: number[][] = [];
+  const drin = (p: number) => {
+    const x = p % w;
+    const y = (p - x) / w;
+    return x >= box.x && x < box.x + box.w && y >= box.y && y < box.y + box.h;
+  };
+  for (let y = box.y; y < box.y + box.h; y++)
+    for (let x = box.x; x < box.x + box.w; x++) {
+      const start = y * w + x;
+      if (!an[start] || gesehen[start]) continue;
+      const f = [start];
+      gesehen[start] = 1;
+      for (let i = 0; i < f.length; i++) {
+        const p = f[i];
+        const px = p % w;
+        for (const q of [px > box.x ? p - 1 : -1, px < box.x + box.w - 1 ? p + 1 : -1, p - w, p + w])
+          if (q >= 0 && q < an.length && an[q] && !gesehen[q] && drin(q)) {
+            gesehen[q] = 1;
+            f.push(q);
+          }
+      }
+      alle.push(f);
+    }
+  return alle;
+}
+
+export interface Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** The part as a layer: the pixels of `bild` (inside `bereich`) that differ from `basis`; it fades in between
+ *  `schwelle` and twice of it, specks are dropped and small holes (where the part looks like the base) are filled,
+ *  so another figure never shows through the part. */
+export function aenderung(
+  basis: Uint8Array,
+  bild: Uint8Array,
+  w: number,
+  h: number,
+  bereich: Box,
+  schwelle = 30,
+): Uint8Array {
+  const out = new Uint8Array(bild);
+  const a = new Float32Array(w * h);
+  const an = new Uint8Array(w * h);
+  for (let y = bereich.y; y < bereich.y + bereich.h; y++)
+    for (let x = bereich.x; x < bereich.x + bereich.w; x++) {
+      const p = y * w + x;
+      const d = abstand(
+        [basis[p * 4], basis[p * 4 + 1], basis[p * 4 + 2]],
+        [bild[p * 4], bild[p * 4 + 1], bild[p * 4 + 2]],
+      );
+      a[p] = Math.min(1, Math.max(0, (d - schwelle) / schwelle));
+      if (a[p] > 0.5) an[p] = 1;
+    }
+  // Thin lines (edges that moved by a fraction of a pixel) go: shrink the part by one pixel and grow it back.
+  const um = (src: Uint8Array, wert: 0 | 1) => {
+    const out = new Uint8Array(src);
+    for (let y = bereich.y + 1; y < bereich.y + bereich.h - 1; y++)
+      for (let x = bereich.x + 1; x < bereich.x + bereich.w - 1; x++) {
+        const p = y * w + x;
+        if (src[p] === wert) continue;
+        for (let dy = -1; dy <= 1 && out[p] !== wert; dy++)
+          for (let dx = -1; dx <= 1; dx++) if (src[p + dy * w + dx] === wert) out[p] = wert;
+      }
+    return out;
+  };
+  const offen = um(um(an, 0), 1);
+  for (let p = 0; p < w * h; p++) if (an[p] && !offen[p]) ((an[p] = 0), (a[p] = 0));
+  for (let p = 0; p < w * h; p++)
+    if (!offen[p] && a[p] > 0 && !an[p]) {
+      // Soft edge pixels count only next to the part.
+      const x = p % w;
+      if (!(offen[p - 1] || offen[p + 1] || offen[p - w] || offen[p + w] || x === 0)) a[p] = 0;
+    }
+  const flaeche = bereich.w * bereich.h;
+  for (const f of flaechen(an, w, bereich))
+    if (f.length < flaeche * 0.002) for (const p of f) ((an[p] = 0), (a[p] = 0));
+  // Holes: unchanged areas enclosed by the part (not touching the edge of the area) become part of it.
+  const leer = new Uint8Array(w * h);
+  for (let y = bereich.y; y < bereich.y + bereich.h; y++)
+    for (let x = bereich.x; x < bereich.x + bereich.w; x++) leer[y * w + x] = an[y * w + x] ? 0 : 1;
+  for (const f of flaechen(leer, w, bereich)) {
+    const amRand = f.some((p) => {
+      const x = p % w;
+      const y = (p - x) / w;
+      return x === bereich.x || y === bereich.y || x === bereich.x + bereich.w - 1 || y === bereich.y + bereich.h - 1;
+    });
+    if (!amRand && f.length < flaeche * 0.05) for (const p of f) a[p] = 1;
+  }
+  for (let p = 0; p < w * h; p++) out[p * 4 + 3] = Math.round(a[p] * (bild[p * 4 + 3] ?? 255));
+  return out;
+}

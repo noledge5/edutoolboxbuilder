@@ -23,6 +23,10 @@ gebaut** auf Branch `claude/stufe-5-handoff-b9odwp`, noch nicht auf `main` (Merg
   `npm run lq:bilder` (freistellen, einpassen, 6 Hauttöne), App nimmt `src/lernquest/app/teile/<id>.webp`, sonst Vektor.
   Anleitung: `docs/design/lernquest/bilder.md`.
 - Geprüft mit Testbildern (Skript, Tests, Build). Nicht geprüft: echte Krea-Bilder, Einstellungen in ComfyUI.
+- Edit-Weg (07.11.2026): Teile mit FLUX.2 Klein Image Edit auf `koerper.png` malen, nach `lernquest-roh/edit/`;
+  das Skript behält nur die Änderung (Vergleich mit der Grundfigur, gleicht kleine Verschiebungen aus). Prompts in
+  `docs/design/lernquest/bilder/edit-prompts.md`, Regeln in `bilder.md` („Mit einem Edit-Modell“). Geprüft nur mit
+  nachgestellten Edits, noch nicht mit echten Klein-Bildern.
 - Nächster Schritt: Lehrkraft malt Grundfigur und erste Teile; Rohbilder in eine Sitzung laden, Skript laufen lassen,
   Übersicht ansehen, `anpassen.json` nachjustieren.
 
@@ -30,9 +34,7 @@ gebaut** auf Branch `claude/stufe-5-handoff-b9odwp`, noch nicht auf `main` (Merg
 - 16 neue Teile (56), Truhen in 40 % nur Münzen, Laden doppelt so teuer, Frisur wählbar (3 Grundfiguren).
 - **Server-Änderung** `supabase/migrations/20261109_lernquest_beute.sql` ist am 06.11.2026 auf dem echten Server
   eingespielt (mit OK der Lehrkraft). Server-Tests (`LQ_LIVE=1`) und `npm run lq:testlauf` grün.
-- **Bis zum Merge** passt die Live-App nicht zum Server: Sie zeigt die alten Preise, und bei einer Münz-Truhe fehlt
-  die Anzeige („Gleich anlegen“ geht dann schief). Darum bald mergen; danach
-  `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run lq:testlauf`.
+- Gemergt (#28) und live; Testlauf gegen die Live-Seite grün.
 
 ## Nächste Schritte
 1. Lehrkraft schaut Stufe 5 an; bei „passt“ PR nach `main` (= veröffentlichen), danach
