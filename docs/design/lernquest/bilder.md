@@ -1,18 +1,19 @@
 # Lernquest: gemalte Bilder für Held und Teile
 
-Anleitung, um Grundfigur, Hauttöne, Frisuren und die 56 Teile lokal in ComfyUI zu malen, am besten mit einem
-Edit-Modell (FLUX.2 Klein Image Edit), und in die App zu bringen. Was noch kein Bild hat, zeichnet die App weiter als
+Anleitung, um Grundfigur, Hauttöne, Frisuren und die 56 Teile lokal in ComfyUI zu malen und in die App zu bringen:
+was am Körper anliegt mit einem Edit-Modell (FLUX.2 Klein Image Edit), Kopf, Werkzeug und Begleiter einzeln. Was noch kein Bild hat, zeichnet die App weiter als
 Vektor. Man kann also Stück für Stück austauschen.
 
 ## So hängt alles zusammen
 
 ```
-ComfyUI (Edit auf koerper.png)      lernquest-roh/              npm run lq:bilder            src/lernquest/app/teile/
-Glatzkopf-Figur                ──►  koerper.png            ──►  freistellen             ──►  koerper-0.webp
-… in Hautton 2–6               ──►  koerper_h1 … _h5.png   ──►  ausrichten, freistellen ──►  koerper-1 … -5.webp
-… mit Zopf                     ──►  edit/haare-zopf.png    ──►  nur die Änderung, 5 Farben ► haare-zopf-0 … -4.webp
-… mit Krone                    ──►  edit/krone.png         ──►  nur die Änderung        ──►  krone.webp
-Text zu Bild                   ──►  wiese.png              ──►  ganzes Bild             ──►  wiese.webp
+ComfyUI                             lernquest-roh/              npm run lq:bilder            src/lernquest/app/teile/
+Glatzkopf-Figur, Gesicht leer  ──►  koerper.png            ──►  freistellen             ──►  koerper-0.webp
+Edit: in Hautton 2–6           ──►  koerper_h1 … _h5.png   ──►  ausrichten, freistellen ──►  koerper-1 … -5.webp
+Edit: mit Zopf                 ──►  edit/haare-zopf.png    ──►  nur die Änderung, 5 Farben ► haare-zopf-0 … -4.webp
+Edit: mit Pulli                ──►  edit/pulli.png         ──►  nur die Änderung        ──►  pulli.webp
+Text zu Bild: Krone allein     ──►  krone.png              ──►  freistellen, an den Platz ► krone.webp
+Text zu Bild: Wiese            ──►  wiese.png              ──►  ganzes Bild             ──►  wiese.webp
 ```
 
 - **Verknüpfung = Dateiname.** Teile heißen wie in `src/lernquest/teile.ts` (`krone`, `katze` …), Frisuren
@@ -39,19 +40,33 @@ der Stil aus der Grundfigur, darum passen alle Teile zueinander.
   noch ein animiertes Funkeln darüber, still bei „Bewegung reduzieren“).
 - Eigener Stil, **keine bekannten Spielfiguren** oder Marken nachmachen.
 
-## Mit einem Edit-Modell (Hauptweg)
+## Welcher Weg für was (Entscheidung 07.11.2026)
 
-Alle Prompts: [`bilder/edit-prompts.md`](bilder/edit-prompts.md). Reihenfolge:
+- **Edit von `koerper.png`**: Hauttöne, Frisuren, Augen, Kleidung (später auch Münder). Sie müssen sich genau an den
+  Körper schmiegen. Prompts: [`bilder/edit-prompts.md`](bilder/edit-prompts.md).
+- **Einzeln mit Text zu Bild**: Kopf, Werkzeug, Begleiter (`EINZELN` in `vorlagen.ts`) und Hintergründe. Das Skript
+  stellt sie frei und setzt sie an ihren Platz. Sie hängen nicht an `koerper.png` und bleiben bei einer neuen
+  Grundfigur gültig; ein Hut schneidet auch nichts vom Gesicht mit. Prompts: [`bilder/prompts.md`](bilder/prompts.md),
+  Ablage direkt in `lernquest-roh/` (nicht in `edit/`). Größe und Sitz mit `s`, `dx`, `dy` nachjustieren.
+- **Stil:** Einzelteile neigen zu dunklen Umrissen und flachem Vektor-Look; dann passen sie nicht zur gemalten Figur.
+  Die Prompts verbieten das ausdrücklich (`STIL`); trotzdem Umrisse? Neu würfeln.
+- **Gesicht:** Die Grundfigur hat ein leeres Gesicht, ohne Augen, Mund und Bäckchen. Augen kommen als Teil, der Mund
+  als eigene Ebene (noch nicht gebaut, siehe `HANDOFF.md`).
+
+## Mit einem Edit-Modell
+
+Reihenfolge:
 
 1. **Grundfigur `koerper.png` mit Glatze**: aus einer fertigen Figur mit Haaren („Remove all the hair …“) oder aus
    `schablonen/grundfigur-vorlage.png`. Das wichtigste Bild: Ändert es sich später, müssen alle Edits neu gemacht
-   werden. Ohne Augen, grauer Hintergrund, Kopf, Hände und Füße wie in der Vorlage (`schablonen/plaetze.png`).
+   werden. Gesicht leer (ohne Augen, Mund, Bäckchen), grauer Hintergrund, Kopf, Hände und Füße wie in der Vorlage (`schablonen/plaetze.png`).
 2. **Hauttöne `koerper_h1.png` … `koerper_h5.png`**: je ein Edit von `koerper.png`, Ablage in `lernquest-roh/`.
    Fehlt einer, färbt das Skript ihn automatisch um (sieht bei dunklen Tönen an den Rändern schlechter aus).
 3. **Frisuren `haare-<id>.png`**: je ein Edit von `koerper.png`, immer braun, Ablage in `lernquest-roh/edit/`.
-4. **Teile `<id>.png`**: je ein Edit von `koerper.png` (also auf der Glatze), Ablage in `lernquest-roh/edit/`.
-   Ein Hut sitzt dann auf dem kahlen Kopf; mit Haaren schauen die Haare darunter hervor.
-5. **Hintergründe**: kein Edit, sondern Text zu Bild (Prompts in `bilder/prompts.md`), Ablage in `lernquest-roh/`.
+4. **Augen und Kleidung `<id>.png`**: je ein Edit von `koerper.png`, Ablage in `lernquest-roh/edit/`.
+5. **Kopf, Werkzeug, Begleiter und Hintergründe**: kein Edit, sondern einzeln mit Text zu Bild (oben).
+   Ein Kopf-Teil als Edit geht weiter (Ablage in `edit/`), wird aber bei tiefen Teilen wie Helm oder Mütze unten
+   abgeschnitten, weil der Suchbereich an der Stirn endet.
 
 **So müssen die Edit-Ergebnisse sein:**
 
@@ -98,7 +113,7 @@ Bleiben Reste stehen (z. B. Schatten am Boden) oder fehlen zarte Stellen, hilft 
 Ohne eigenen Rechner mit dem Projekt: Rohbilder in eine Claude-Sitzung hochladen; Claude führt das Skript aus,
 schickt die Übersicht und legt die fertigen Bilder auf einen Branch.
 
-## Ohne Edit-Modell (Text zu Bild, z. B. Krea 2)
+## Ganz ohne Edit-Modell (Text zu Bild, z. B. Krea 2)
 
 Prompts in [`bilder/prompts.md`](bilder/prompts.md). Krea 2 Turbo: 8 Schritte, 1024 × 1024, `prompt_enhance` aus.
 
