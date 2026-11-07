@@ -384,4 +384,53 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect((await gutscheine(ti)).punkte).toBe(3);
     expect((await belohnungen(keyG, g.id)).gutscheine.map((x) => x.name)).toEqual(['Sitzplatz']);
   }, 60_000);
+
+  it('Stufe 4: Gutscheine – viele Kinder gleichzeitig halten Grenzen und Punkte', async () => {
+    const keyV = [newKey()];
+    const v = await klasseAnlegen(keyV, 'Gleichzeitig V');
+    made.push({ keys: keyV, id: v.id });
+    const n = 12;
+    const kinder = await Promise.all(Array.from({ length: n }, (_, i) => kindAnlegen(keyV, v.id, `Kind ${i} T.`, String(1000 + i))));
+    const tokens = await Promise.all(
+      kinder.map(async (id, i) => {
+        const r = await anmelden(v.code, id, String(1000 + i));
+        if (!r.ok) throw new Error('Anmeldung fehlgeschlagen');
+        return r.token;
+      }),
+    );
+    await Promise.all(kinder.map((id) => punkteGeben(keyV, id, 5)));
+    const summe = async () => (await klassen(keyV))[0].kinder.reduce((a, k) => a + (k.klassenpunkte ?? 0), 0);
+    expect(await summe()).toBe(n * 5);
+
+    // Twelve children ask at the same moment for a voucher the class may get 3 times: exactly 3 get it.
+    const platz = await gutscheinSpeichern(keyV, v.id, null, { name: 'Sitzplatz', preis: 2, jeKind: null, jeKlasse: 3, aktiv: true });
+    const alle = await Promise.all(tokens.map((t) => code(anfragen(t, platz))));
+    expect(alle.filter((c) => c === 'ok')).toHaveLength(3);
+    expect(alle.filter((c) => c === 'grenze')).toHaveLength(n - 3);
+    expect(await summe()).toBe(n * 5 - 3 * 2);
+
+    // One child taps five times at once (5 points, price 2, no limits): only twice, never below zero.
+    const joker = await gutscheinSpeichern(keyV, v.id, null, { name: 'Joker', preis: 2, jeKind: null, jeKlasse: null, aktiv: true });
+    const reich = alle.findIndex((c) => c === 'grenze');
+    const fuenf = await Promise.all(Array.from({ length: 5 }, () => code(anfragen(tokens[reich], joker))));
+    expect(fuenf.filter((c) => c === 'ok')).toHaveLength(2);
+    expect(fuenf.filter((c) => c === 'punkte')).toHaveLength(3);
+    expect((await gutscheine(tokens[reich])).punkte).toBe(1);
+
+    // The child takes back while the teacher redeems the same request: exactly one wins, the points add up.
+    const offen = (await gutscheine(tokens[reich])).anfragen.filter((a) => a.zustand === 'offen');
+    const [zurueck, eingeloest] = await Promise.all([code(anfrageZurueck(tokens[reich], offen[0].id)), code(anfrageErledigen(keyV, offen[0].id, true))]);
+    expect([zurueck, eingeloest].sort()).toEqual(['ok', 'ungueltig']);
+    expect((await gutscheine(tokens[reich])).punkte).toBe(zurueck === 'ok' ? 3 : 1);
+
+    // Deleting the voucher while children ask: open requests come back, nothing is lost or counted twice.
+    const andere = tokens.filter((_, i) => i !== reich).slice(0, 6);
+    await Promise.all([...andere.map((t) => code(anfragen(t, joker))), gutscheinLoeschen(keyV, joker)]);
+    const nachher = (await Promise.all(tokens.map((t) => gutscheine(t)))).flatMap((g) => g.anfragen);
+    // Requests of the deleted voucher are gone with it (open ones paid back); only the 3 for Sitzplatz stay open.
+    const offenNoch = nachher.filter((a) => a.zustand === 'offen');
+    expect(offenNoch.map((a) => a.name)).toEqual(['Sitzplatz', 'Sitzplatz', 'Sitzplatz']);
+    const verbraucht = eingeloest === 'ok' ? 2 : 0;
+    expect((await summe()) + offenNoch.reduce((a, x) => a + x.preis, 0) + verbraucht).toBe(n * 5);
+  }, 120_000);
 });
