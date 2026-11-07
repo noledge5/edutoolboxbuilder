@@ -1,4 +1,4 @@
-# Handoff – 07.11.2026
+# Handoff – 07.11.2026 (Abend)
 
 ## Ziel
 Lernquest (Lern-App für die Schüler, `docs/lernquest.md`). Stufe 5, mehr Beute und Frisuren sind
@@ -52,11 +52,26 @@ am 07.11.2026 grün.
   Server-Tests (`LQ_LIVE=1`) und `npm run lq:testlauf` danach grün.
 
 ## Nächste Schritte
-1. PR → Merge (Lehrkraft) → Testlauf gegen die Live-Seite.
-2. Ton am iPad: Vorlesen (Web Speech) und Klick-Töne (Web Audio) blieben stumm. Vorschlag im Chat vom 07.11.2026:
-   erst `navigator.audioSession.type = 'playback'` und Vorlesen ohne `cancel()` davor, Knopf „Ton testen“; hilft das
-   nicht, Ton-Dateien beim Senden des Pakets erzeugen und mit `<audio>` abspielen.
-3. Bilder: Lehrkraft malt Glatzkopf-Grundfigur, Hautton-Edits und erste Teile; dann `npm run lq:bilder`.
+1. **Erledigt:** offene Punkte aus Stufe 4 sind live (#32), Migration `lernquest_schaden` eingespielt, Testlauf gegen
+   die Live-Seite grün (07.11.2026).
+2. **Bilder: Mund als eigene Ebene (Wunsch der Lehrkraft, 07.11.2026, noch nicht gebaut).** Die Lehrkraft will
+   verschiedene Münder; die bisherige `koerper.png` hat Lächeln und Bäckchen. Plan:
+   - Lehrkraft malt die Grundfigur `koerper.png` neu: **ohne Mund, ohne Augen, mit Bäckchen**. Erst danach Hauttöne,
+     Frisuren und Teile (alle Edits hängen an genau dieser Datei).
+   - Claude baut „Mund“ wie die Frisur: frei wählbar auf der Held-Seite, eigene Ebene (über Grundfigur und Augen,
+     unter Kopf-Teil), Edits `edit/mund-<id>.png`, Suchbereich um den Mund in `EDIT_BEREICH`, Liste wie `FRISUREN`.
+     Server: `lq_avatar_setzen` muss den Schlüssel `mund` annehmen (Migration, erst nach OK der Lehrkraft, vor dem
+     Merge).
+   - Claude macht den Suchbereich je Teil größer einstellbar (`anpassen.json`): bei Kopf-Teilen endet er bei Zeile 418
+     von 1024 (`EDIT_BEREICH.kopf`), die Wollmütze reicht bis 450, der Ritterhelm bis 534 und würden abgeschnitten.
+     Bei solchen tiefen Teilen muss das Gesicht im Edit gleich bleiben, sonst wandert der Unterschied mit.
+   - Rohbilder kommen über Google Drive: Ordner `lernquest-roh` (Grundfigur, Hauttöne) mit Unterordner `edit`
+     (Teile, Frisuren, Münder), Original-PNGs aus ComfyUI. Claude holt sie mit dem Drive-Werkzeug und lässt
+     `npm run lq:bilder` laufen. Erste Edits (Piratenhut, Entdeckerhut, Ritterhelm, Stirnband, Wollmütze) gab es nur
+     als WebP im Chat; sie müssen auf der neuen Grundfigur neu gemacht werden.
+3. **Ton am iPad:** Vorlesen (Web Speech) und Klick-Töne (Web Audio) blieben stumm. Vorschlag: erst
+   `navigator.audioSession.type = 'playback'`, Vorlesen ohne `cancel()` davor, Knopf „Ton testen“; hilft das nicht,
+   Ton-Dateien beim Senden des Pakets erzeugen und mit `<audio>` abspielen.
 
 ## Wichtig zu wissen
 - `main` = veröffentlichen. Arbeits-Branch nutzen, PR und Merge nur auf Wunsch.
