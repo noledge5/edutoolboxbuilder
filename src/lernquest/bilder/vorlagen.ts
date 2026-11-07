@@ -70,6 +70,12 @@ export const PLAETZE: Record<Slot, Platz> = {
 
 /** The clothes mask on the base figure (canvas units): the torso, a little wider so the edges are covered. */
 export const KLEIDUNG_MASKE = { x: 80, y: 126, width: 80, height: 84, rx: 30 };
+/** For edit pictures the change itself is the part, so clothes may reach the shoulders; the hands stay out (their
+ *  skin would carry one skin tone into every figure): shoulders and chest above the hands, the belly between them. */
+export const KLEIDUNG_EDIT_MASKE = [
+  { x: 70, y: 120, width: 100, height: 52, rx: 22 },
+  { x: 82, y: 150, width: 76, height: 64, rx: 26 },
+];
 /** The eye area, used to paint painted eyes away on the base figure. */
 export const AUGEN_MASKE = { cx: 120, cy: 101, rx: 34, ry: 16 };
 /** Points on the base figure that are bare skin (face centre, both hands): the skin colour is measured there. */
