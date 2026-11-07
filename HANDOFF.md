@@ -45,12 +45,18 @@ am 07.11.2026 grün.
 - Geprüft mit den echten Figuren der Lehrkraft (kurz/Zopf/Locken): Freistellen, Haarfarben aus einer Haar-Ebene.
   Noch nicht: eine echte Glatzkopf-Grundfigur und echte Hautton-Edits.
 
+## Neu: Offene Punkte aus Stufe 4 (07.11.2026, Branch `claude/weiter-laut-handoff-qqiycp`)
+- „Klassenpunkte geben“ als Dialog (+1 … +5), Live-Test „Gutscheine gleichzeitig“ (12 Kinder) grün,
+  „+Schaden“ im Bosskampf (Werkzeuge + Ritterhelm, höchstens +3). Stand in `docs/lernquest.md`.
+- Server: `supabase/migrations/20261111_lernquest_schaden.sql`, lokal geprüft (Postgres 16); auf dem echten Server
+  erst nach OK der Lehrkraft und **vor** dem Merge (sonst zeigt die App „+3 Schaden“, der Server rechnet ohne).
+
 ## Nächste Schritte
-1. Lehrkraft malt Glatzkopf-Grundfigur, Hautton-Edits und erste Teile; Rohbilder in eine Sitzung laden,
-   `npm run lq:bilder`, Übersicht ansehen, `anpassen.json` nachjustieren.
-2. Am iPad prüfen: Vorlesen mit echter Stimme, „Fragen erzeugen“ mit echtem Schlüssel.
-3. Offen aus Stufe 4: Gutscheine mit vielen Kindern gleichzeitig; „Punkte geben“ fragt mit `window.prompt`;
-   „+Schaden“ als Ausrüstungs-Bonus.
+1. OK der Lehrkraft → Migration einspielen → PR → Merge → Testlauf gegen die Live-Seite.
+2. Ton am iPad: Vorlesen (Web Speech) und Klick-Töne (Web Audio) blieben stumm. Vorschlag im Chat vom 07.11.2026:
+   erst `navigator.audioSession.type = 'playback'` und Vorlesen ohne `cancel()` davor, Knopf „Ton testen“; hilft das
+   nicht, Ton-Dateien beim Senden des Pakets erzeugen und mit `<audio>` abspielen.
+3. Bilder: Lehrkraft malt Glatzkopf-Grundfigur, Hautton-Edits und erste Teile; dann `npm run lq:bilder`.
 
 ## Wichtig zu wissen
 - `main` = veröffentlichen. Arbeits-Branch nutzen, PR und Merge nur auf Wunsch.
