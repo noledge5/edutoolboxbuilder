@@ -112,12 +112,41 @@ export const DOPPELT = [10, 20, 40, 80, 150];
 /** Hearts per round without bonuses. */
 export const HERZEN = 3;
 
-export type Avatar = Partial<Record<Slot, string>> & { haut?: number; figur?: number };
+/** What is worn: a part per place, the skin tone (`HAUT`), the hair (`FRISUREN`) and its colour (`HAARFARBEN`).
+ *  `figur` (0–2) is the older way to say the hair; it still counts when `frisur` is missing. */
+export type Avatar = Partial<Record<Slot, string>> & { haut?: number; frisur?: string; haarfarbe?: number; figur?: number };
 
-/** The base figures to choose freely (not collected): same body and pose, so every part fits each of them. */
-export const FIGUREN = ['Kurze Haare', 'Zopf', 'Locken'];
-/** File name of each base figure's picture (`npm run lq:bilder`, app/teilBilder.ts); skin tones follow as `-0` … `-5`. */
-export const FIGUR_DATEI = ['koerper', 'koerper2', 'koerper3'];
+/** Hair to choose freely (not collected); a layer of its own over the bald base figure, so every hair fits every skin
+ *  tone and every part. Pictures are painted brown and recoloured (`HAARFARBEN`). New ones need no server change. */
+export const FRISUREN: { id: string; name: string }[] = [
+  { id: 'kurz', name: 'Kurze Haare' },
+  { id: 'zopf', name: 'Zopf' },
+  { id: 'locken', name: 'Locken' },
+  { id: 'lang', name: 'Lange Haare' },
+  { id: 'zoepfe', name: 'Zwei Zöpfe' },
+  { id: 'dutt', name: 'Dutt' },
+  { id: 'stacheln', name: 'Stachelhaare' },
+  { id: 'bob', name: 'Bob' },
+  { id: 'glatze', name: 'Keine' },
+];
+/** The older `figur` 0–2 as hair. */
+export const FIGUR_FRISUR = ['kurz', 'zopf', 'locken'];
+
+/** Hair colours to choose freely: the first is the colour the pictures are painted in. */
+export const HAARFARBEN = [
+  { name: 'Braun', farbe: '#4A2E1A' },
+  { name: 'Schwarz', farbe: '#1E1A1A' },
+  { name: 'Hellbraun', farbe: '#8A5A32' },
+  { name: 'Blond', farbe: '#D9B061' },
+  { name: 'Rot', farbe: '#A8441E' },
+];
+
+/** The hair worn: `frisur` if known, else the older `figur`, else short hair. */
+export function frisurVon(a: Avatar): string {
+  if (a.frisur && FRISUREN.some((f) => f.id === a.frisur)) return a.frisur;
+  return FIGUR_FRISUR[a.figur ?? 0] ?? 'kurz';
+}
+export const haarfarbeVon = (a: Avatar) => (a.haarfarbe !== undefined && a.haarfarbe >= 0 && a.haarfarbe < HAARFARBEN.length ? a.haarfarbe : 0);
 
 /** Skin tones to choose freely (not collected). */
 export const HAUT = ['#F2C9A0', '#E8B48A', '#C98E62', '#A86E45', '#7A4E2E', '#F6DCC4'];

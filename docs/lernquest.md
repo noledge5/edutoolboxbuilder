@@ -114,8 +114,21 @@ Entscheidungen der Lehrkraft (Vorschläge von Claude): Migration `20261109_lernq
   Münzen zählen für die Garantie wie ein gewöhnlicher Fund. Weil die Garantie dann öfter greift, sind es in
   Wirklichkeit etwa 35 % Münz-Truhen (3000 Truhen in einer lokalen Datenbank).
 - **Laden doppelt so teuer:** 80 / 160 / 320 / 640 / 1600 Münzen.
-- **Frisur frei wählbar** wie der Hautton: Kurze Haare, Zopf, Locken (`avatar.figur` 0–2). Körper und Haltung
-  bleiben gleich, damit jedes Teil zu jeder Figur passt. Gemalte Grundfiguren: `koerper`, `koerper2`, `koerper3`.
+- **Frisur frei wählbar** wie der Hautton: Kurze Haare, Zopf, Locken (`avatar.figur` 0–2). Seit 07.11.2026 durch
+  Frisur-Ebenen ersetzt (unten, „Frisuren und Haarfarben“).
+
+## Frisuren und Haarfarben (07.11.2026)
+
+Entscheidungen der Lehrkraft (Vorschläge von Claude): Migration `20261110_lernquest_frisur.sql`.
+- **Frisur als eigene Ebene** über einer kahlen Grundfigur: `avatar.frisur` (Kennung aus `FRISUREN`: kurz, zopf,
+  locken, lang, zoepfe, dutt, stacheln, bob, glatze), frei wählbar. Neue Frisuren brauchen keine Server-Änderung
+  (der Server speichert jede Kennung aus Kleinbuchstaben und Ziffern). `figur` 0–2 gilt weiter als kurz/zopf/locken.
+- **Haarfarbe** frei wählbar (`avatar.haarfarbe` 0–4: Braun, Schwarz, Hellbraun, Blond, Rot); gemalte Haare werden
+  braun gemalt und vom Skript umgefärbt.
+- **Hauttöne per Edit** (`koerper_h1` … `_h5`), das Skript färbt nur noch fehlende automatisch um.
+- Sicherheit: `lq_bonus` zählt nur noch Teile auf den sechs Plätzen. Vorher galt jeder Wert im Avatar als Teile-
+  Kennung; mit frei wählbarer Frisur hätte „krone“ den Kronen-Bonus gebracht (vorher nicht ausnutzbar, weil der
+  Avatar außer Teilen nur Zahlen enthielt).
 
 ## Erfolgskriterien Stufe 1
 

@@ -2,7 +2,7 @@
 // `npm run lq:bilder`, and the finished files in src/lernquest/app/teile/.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { FIGUR_DATEI, HAUT, TEILE } from '../teile';
+import { FRISUREN, HAARFARBEN, HAUT, TEILE } from '../teile';
 import {
   aenderung,
   einpassen,
@@ -142,6 +142,10 @@ describe('Edit pictures', () => {
   it('finds how far the edit moved, without being pulled by the new part', () => {
     expect(verschiebung(basis, bewegt, W, W, 8, { x: 30, y: 10, w: 60, h: 56 })).toEqual({ dx: 3, dy: 2 });
   });
+  it('also finds the shift when the whole figure changed colour (a new skin tone)', () => {
+    const dunkel = bild(W, W, grau, [{ x: 43, y: 42, s: 40, farbe: [30, 20, 12] }]);
+    expect(verschiebung(basis, dunkel, W, W, 8)).toEqual({ dx: 3, dy: 2 });
+  });
   it('keeps only the change: no figure, no background, no specks or thin lines, holes filled', () => {
     const zurueck = verschieben(bewegt, W, W, 3, 2);
     const ebene = aenderung(basis, zurueck, W, W, { x: 0, y: 0, w: W, h: W });
@@ -157,16 +161,18 @@ describe('Edit pictures', () => {
 describe('Finished pictures (src/lernquest/app/teile/)', () => {
   const ordner = new URL('../app/teile/', import.meta.url);
   const dateien = readdirSync(ordner).filter((f) => f.endsWith('.webp'));
-  it('are named after a part or the base figure', () => {
+  it('are named after a part, the base figure or a hair', () => {
     const erlaubt = new Set([
       ...TEILE.map((t) => t.id),
-      ...FIGUR_DATEI.flatMap((f) => HAUT.map((_, i) => `${f}-${i}`)),
+      ...HAUT.map((_, i) => `koerper-${i}`),
+      ...FRISUREN.flatMap((f) => HAARFARBEN.map((_, i) => `haare-${f.id}-${i}`)),
     ]);
     expect(dateien.filter((f) => !erlaubt.has(f.slice(0, -5)))).toEqual([]);
   });
-  it('have each base figure in every skin tone or not at all', () => {
-    for (const figur of FIGUR_DATEI)
-      expect([0, HAUT.length], figur).toContain(dateien.filter((f) => f.startsWith(`${figur}-`)).length);
+  it('have the base figure in every skin tone and each hair in every colour, or not at all', () => {
+    expect([0, HAUT.length]).toContain(dateien.filter((f) => f.startsWith('koerper-')).length);
+    for (const f of FRISUREN)
+      expect([0, HAARFARBEN.length], f.id).toContain(dateien.filter((d) => d.startsWith(`haare-${f.id}-`)).length);
   });
   it('are whole layers of 480 × 480 and small enough for phones', () => {
     for (const f of dateien) {

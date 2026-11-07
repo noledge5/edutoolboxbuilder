@@ -36,6 +36,14 @@ gebaut** auf Branch `claude/stufe-5-handoff-b9odwp`, noch nicht auf `main` (Merg
   eingespielt (mit OK der Lehrkraft). Server-Tests (`LQ_LIVE=1`) und `npm run lq:testlauf` grün.
 - Gemergt (#28) und live; Testlauf gegen die Live-Seite grün.
 
+## Neu: Frisuren und Haarfarben (07.11.2026, Branch `claude/eager-lamport-r82nq1`)
+- Grundfigur kahl, Frisur als eigene Ebene (8 Frisuren + keine), 5 Haarfarben, Hauttöne per Edit (`koerper_h1` …).
+  Entscheidungen in `docs/lernquest.md` („Frisuren und Haarfarben“), Ablauf in `docs/design/lernquest/bilder.md`.
+- Server: `supabase/migrations/20261110_lernquest_frisur.sql` (Frisur, Haarfarbe, `lq_bonus` nur noch für die sechs
+  Plätze), lokal geprüft; auf dem echten Server erst nach OK der Lehrkraft, und **vor** dem Merge.
+- Geprüft mit den echten Figuren der Lehrkraft (kurz/Zopf/Locken): Freistellen, Haarfarben aus einer Haar-Ebene.
+  Noch nicht: eine echte Glatzkopf-Grundfigur und echte Hautton-Edits.
+
 ## Nächste Schritte
 1. Lehrkraft schaut Stufe 5 an; bei „passt“ PR nach `main` (= veröffentlichen), danach
    `LQ_URL=https://noledge5.github.io/edutoolboxbuilder/lernquest/ npm run lq:testlauf`.

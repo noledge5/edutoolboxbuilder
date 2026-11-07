@@ -3,10 +3,11 @@
 //   npm run lq:bilder -- --ordner <pfad>  raw pictures from another folder
 //   npm run lq:bilder -- --prompts        writes docs/design/lernquest/bilder/prompts.md and edit-prompts.md
 //   npm run lq:bilder -- --schablonen     writes the masks and the overview of places next to it
-// A raw picture is named after its part (`krone.png`, also `krone_00003_.png` as ComfyUI saves it); the base figure is
-// `koerper.png`. Every layer is the whole canvas (480 × 480, transparent where empty), so the app only stacks them.
-// Pictures from an edit model (the part painted onto koerper.png) go to lernquest-roh/edit/: only what changed
-// against koerper.png is kept, so the part lies exactly where the model painted it.
+// A raw picture is named after its part (`krone.png`, also `krone_00003_.png` as ComfyUI saves it); the bald base
+// figure is `koerper.png`, its skin tones 2–6 `koerper_h1.png` … `koerper_h5.png` (edits of it; missing ones are
+// recoloured). Every layer is the whole canvas (480 × 480, transparent where empty), so the app only stacks them.
+// Pictures from an edit model (a part or a hair `haare-<id>` painted onto koerper.png) go to lernquest-roh/edit/: only
+// what changed against koerper.png is kept, so it lies exactly where the model painted it; hair also in every colour.
 import { existsSync } from 'node:fs';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -18,7 +19,9 @@ import {
   hatTransparenz,
   hautMessen,
   hautUmfaerben,
+  haareUmfaerben,
   hexRgb,
+  mittelFarbe,
   sichtbar,
   type Anpassung,
   verschieben,
@@ -29,7 +32,6 @@ import {
   EBENE_GROESSE as G,
   EDIT_BEREICH,
   editListe,
-  HAAR_MASKE,
   HAUT_PUNKTE,
   HINTERGRUND_FARBE,
   KLEIDUNG_EDIT_MASKE,
@@ -38,7 +40,7 @@ import {
   promptListe,
   ROH_GROESSE,
 } from '../src/lernquest/bilder/vorlagen.ts';
-import { FIGUR_DATEI, HAUT, teil, TEILE } from '../src/lernquest/teile.ts';
+import { FRISUREN, HAARFARBEN, HAUT, teil, TEILE } from '../src/lernquest/teile.ts';
 
 const WURZEL = resolve(import.meta.dirname, '..');
 const ZIEL = join(WURZEL, 'src/lernquest/app/teile');
@@ -153,13 +155,15 @@ async function bauen() {
   const anpassen: Record<string, Anpassungen> = JSON.parse(
     await readFile(join(WURZEL, 'src/lernquest/bilder/anpassen.json'), 'utf8'),
   );
-  const gueltig = new Set([...FIGUR_DATEI, ...TEILE.map((t) => t.id)]);
+  const frisuren = FRISUREN.filter((f) => f.id !== 'glatze').map((f) => `haare-${f.id}`);
+  const gueltig = new Set(['koerper', ...HAUT.map((_, i) => `koerper_h${i}`), ...frisuren, ...TEILE.map((t) => t.id)]);
   const fremd: string[] = [];
   const sammeln = async (dir: string) => {
     const je = new Map<string, string[]>();
     if (!existsSync(dir)) return je;
     for (const name of (await readdir(dir)).sort()) {
-      const m = /^([a-z0-9]+)(?:[_-][0-9_]*)?\.(png|webp|jpe?g)$/i.exec(name);
+      // `krone.png`, `krone_00003_.png` (ComfyUI), `koerper_h2.png`, `haare-zopf_00001_.png`
+      const m = /^([a-z0-9-]+?(?:_h[0-9])?)(?:_[0-9]+_?)?\.(png|webp|jpe?g)$/i.exec(name);
       if (!m) continue;
       const id = m[1].toLowerCase();
       if (!gueltig.has(id)) {
@@ -177,30 +181,55 @@ async function bauen() {
   const fehler: string[] = [];
   const kleidungsMaske = await maske(kleidungForm(), G);
   const kleidungEditMaske = await maske(kleidungEditForm(), G);
-  // The base figure first, so the overview can use it.
-  for (const id of [...FIGUR_DATEI, ...TEILE.map((t) => t.id)]) {
-    const namen = je.get(id);
-    if (!namen || edits.has(id)) continue;
-    if (namen.length > 1) {
-      fehler.push(`${id}: mehrere Bilder (${namen.join(', ')}), bitte nur eins lassen`);
-      continue;
-    }
+  const eins = (map: Map<string, string[]>, id: string, wo = '') => {
+    const namen = map.get(id);
+    if (namen && namen.length > 1) throw new Error(`mehrere Bilder${wo} (${namen.join(', ')}), bitte nur eins lassen`);
+    return namen?.[0];
+  };
+
+  // The bald base figure in its skin tones: tone 1 is koerper.png, the others come from edits (koerper_h1 …) or,
+  // where there is none, are recoloured from it.
+  const basisName = je.get('koerper')?.[0];
+  if (basisName) {
     try {
-      const r = await laden(join(ordner, namen[0]));
-      const a = anpassen[id] ?? {};
-      if (FIGUR_DATEI.includes(id)) {
-        if (!hatTransparenz(r.data)) freistellen(r.data, r.w, r.h, a.toleranz, a.loecher);
-        const e = await aufEbene(r);
-        const haut = hautMessen(e.data, G, HAUT_PUNKTE);
-        for (let i = 0; i < HAUT.length; i++)
-          await speichern(`${id}-${i}`, {
-            ...e,
-            data: hautUmfaerben(e.data, haut, hexRgb(HAUT[i])),
-          });
-        fertig.push(`${id} (Haut gemessen: rgb(${haut.join(', ')}), ${HAUT.length} Hauttöne)`);
-        continue;
+      eins(je, 'koerper');
+      const r = await laden(join(ordner, basisName));
+      const a = anpassen.koerper ?? {};
+      const grau0 = await aufGrau(join(ordner, basisName));
+      if (!hatTransparenz(r.data)) freistellen(r.data, r.w, r.h, a.toleranz, a.loecher);
+      const e = await aufEbene(r);
+      const haut = hautMessen(e.data, G, HAUT_PUNKTE);
+      const wie: string[] = [];
+      for (let i = 0; i < HAUT.length; i++) {
+        const name = i ? eins(je, `koerper_h${i}`) : undefined;
+        if (!name) {
+          await speichern(`koerper-${i}`, { ...e, data: i ? hautUmfaerben(e.data, haut, hexRgb(HAUT[i])) : e.data });
+          wie.push(i ? 'umgefärbt' : 'Bild');
+          continue;
+        }
+        // An edit of koerper.png: moved back if needed; the outline is the base figure's (the body is the same), so a
+        // very light skin is not cut away as background.
+        const grau = await aufGrau(join(ordner, name));
+        const v = verschiebung(grau0.data, grau.data, G, G, 12);
+        const data = v.dx || v.dy ? verschieben(grau.data, G, G, v.dx, v.dy) : new Uint8Array(grau.data);
+        for (let p = 0; p < G * G; p++) data[p * 4 + 3] = e.data[p * 4 + 3];
+        await speichern(`koerper-${i}`, { data, w: G, h: G });
+        wie.push(`Edit${v.dx || v.dy ? ` (${v.dx}/${v.dy} px)` : ''}`);
       }
-      const weg = PLAETZE[teil(id)!.slot].weg;
+      fertig.push(`koerper: Hauttöne ${wie.map((w, i) => `${i + 1} ${w}`).join(', ')}`);
+    } catch (err) {
+      fehler.push(`koerper: ${(err as Error).message}`);
+    }
+  } else if (je.size || edits.size)
+    fehler.push('koerper.png fehlt (die Glatzkopf-Grundfigur, auf die alles gemalt wird)');
+
+  for (const t of TEILE) {
+    const id = t.id;
+    if (!je.has(id) || edits.has(id)) continue;
+    try {
+      const r = await laden(join(ordner, eins(je, id)!));
+      const a = anpassen[id] ?? {};
+      const weg = PLAETZE[t.slot].weg;
       let e: Roh;
       if (weg === 'flaeche') {
         const { data } = await roh(r).resize(G, G, { fit: 'cover' }).raw().toBuffer({ resolveWithObject: true });
@@ -216,47 +245,61 @@ async function bauen() {
       fehler.push(`${id}: ${(err as Error).message}`);
     }
   }
-  // Edit pictures: compared with the raw base figure they were made from.
-  const basisName = je.get('koerper')?.[0];
+
+  // Edit pictures (parts and hair): compared with the raw base figure they were made from.
   let basis: Roh | undefined;
-  for (const [id, namen] of edits) {
+  for (const [id] of edits) {
     try {
       if (je.has(id))
         throw new Error(`liegt auch außerhalb von edit/ (${je.get(id)!.join(', ')}), bitte nur eins lassen`);
-      if (namen.length > 1) throw new Error(`mehrere Bilder in edit/ (${namen.join(', ')}), bitte nur eins lassen`);
+      const name = eins(edits, id, ' in edit/')!;
       const t = teil(id);
-      if (!t || t.slot === 'hintergrund')
-        throw new Error('nur Teile auf der Figur gehen als Edit (Hintergründe als ganzes Bild)');
+      const frisur = frisuren.includes(id) ? id.slice('haare-'.length) : undefined;
+      if (!frisur && (!t || t.slot === 'hintergrund'))
+        throw new Error('nur Teile auf der Figur und Frisuren gehen als Edit (Hintergründe als ganzes Bild)');
       if (!basisName)
         throw new Error('die Grundfigur koerper.png fehlt in lernquest-roh/ (das Bild, das ins Edit-Modell ging)');
       basis ??= await aufGrau(join(ordner, basisName));
       const [mb, me] = await Promise.all([
         sharp(join(ordner, basisName)).metadata(),
-        sharp(join(ordner, 'edit', namen[0])).metadata(),
+        sharp(join(ordner, 'edit', name)).metadata(),
       ]);
       if (mb.width !== me.width || mb.height !== me.height)
         throw new Error(
           `ist ${me.width} × ${me.height}, die Grundfigur ${mb.width} × ${mb.height}: das Edit-Bild muss genauso groß sein`,
         );
-      const roh = await aufGrau(join(ordner, 'edit', namen[0]));
+      const rohBild = await aufGrau(join(ordner, 'edit', name));
       const k = G / 240;
-      const b = EDIT_BEREICH[t.slot];
+      const b = EDIT_BEREICH[frisur ? 'haare' : t!.slot];
       const box = {
         x: Math.round(b.x * k),
         y: Math.round(b.y * k),
         w: Math.round(b.width * k),
         h: Math.round(b.height * k),
       };
-      const v = verschiebung(basis.data, roh.data, G, G, 12, box);
-      const bild = v.dx || v.dy ? verschieben(roh.data, G, G, v.dx, v.dy) : roh.data;
+      const v = verschiebung(basis.data, rohBild.data, G, G, 12, box);
+      const bild = v.dx || v.dy ? verschieben(rohBild.data, G, G, v.dx, v.dy) : rohBild.data;
       const a = anpassen[id] ?? {};
       // Only what changed; clothes also stay on the torso and shoulders, off the hands.
       const data = aenderung(basis.data, bild, G, G, box, a.schwelle);
-      if (PLAETZE[t.slot].weg === 'figur')
+      if (t && PLAETZE[t.slot].weg === 'figur')
         for (let p = 0; p < G * G; p++) data[p * 4 + 3] = Math.round((data[p * 4 + 3] * kleidungEditMaske[p]) / 255);
       if (!sichtbar(data, G, G)) throw new Error('keine Änderung gefunden (schwelle kleiner?)');
-      await speichern(id, { data, w: G, h: G });
-      fertig.push(`${id} (Edit${v.dx || v.dy ? `, um ${v.dx}/${v.dy} px zurückgeschoben` : ''})`);
+      const zurueck = v.dx || v.dy ? `, um ${v.dx}/${v.dy} px zurückgeschoben` : '';
+      if (frisur) {
+        // The hair in every colour: painted brown, the others recoloured from its typical colour.
+        const quelle = mittelFarbe(data);
+        for (let f = 0; f < HAARFARBEN.length; f++)
+          await speichern(`haare-${frisur}-${f}`, {
+            data: f ? haareUmfaerben(data, quelle, hexRgb(HAARFARBEN[f].farbe)) : data,
+            w: G,
+            h: G,
+          });
+        fertig.push(`${id} (Edit${zurueck}, ${HAARFARBEN.length} Haarfarben)`);
+      } else {
+        await speichern(id, { data, w: G, h: G });
+        fertig.push(`${id} (Edit${zurueck})`);
+      }
     } catch (err) {
       fehler.push(`${id} (edit/): ${(err as Error).message}`);
     }
@@ -278,7 +321,9 @@ async function bauen() {
 /** All finished layers, each on the base figure (or on grey when there is none), for a quick look. */
 async function uebersicht(ordner: string) {
   const KACHEL = 200;
-  const ids = TEILE.map((t) => t.id).filter((id) => existsSync(join(ZIEL, `${id}.webp`)));
+  const ids = [...FRISUREN.map((f) => `haare-${f.id}-0`), ...TEILE.map((t) => t.id)].filter((id) =>
+    existsSync(join(ZIEL, `${id}.webp`)),
+  );
   if (!ids.length) return;
   const koerper = join(ZIEL, 'koerper-0.webp');
   const hatKoerper = existsSync(koerper);
@@ -287,7 +332,7 @@ async function uebersicht(ordner: string) {
   const kacheln = await Promise.all(
     ids.map(async (id, i) => {
       const lagen: OverlayOptions[] = [];
-      const hinten = teil(id)!.slot === 'hintergrund' || teil(id)!.slot === 'begleiter';
+      const hinten = teil(id)?.slot === 'hintergrund' || teil(id)?.slot === 'begleiter';
       if (hinten) lagen.push({ input: join(ZIEL, `${id}.webp`) });
       if (hatKoerper) lagen.push({ input: koerper });
       if (!hinten) lagen.push({ input: join(ZIEL, `${id}.webp`) });
@@ -335,24 +380,13 @@ async function schablonen() {
   };
   await weiss(kleidungForm(), 'kleidung-maske.png');
   await weiss(augenForm(), 'augen-maske.png');
-  const h = HAAR_MASKE;
-  await weiss(
-    `<ellipse cx="${h.kopf.cx}" cy="${h.kopf.cy}" rx="${h.kopf.rx}" ry="${h.kopf.ry}" fill="#fff"/><rect x="${h.zopf.x}" y="${h.zopf.y}" width="${h.zopf.width}" height="${h.zopf.height}" rx="${h.zopf.rx}" fill="#fff"/>`,
-    'haar-maske.png',
-  );
   const leinwand = (inhalt: string) =>
     `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 240 240"><rect width="240" height="240" fill="${HINTERGRUND_FARBE}"/>${inhalt}</svg>`;
-  // One vector figure per hair (figur.svg, figur2.svg, figur3.svg, drawn by avatar.tsx) → its starting picture.
-  const figuren: string[] = [];
-  for (let i = 0; i < FIGUR_DATEI.length; i++) {
-    const nr = i ? String(i + 1) : '';
-    const svg = (await readFile(join(ordner, `figur${nr}.svg`), 'utf8')).replace(/^<svg[^>]*>|<\/svg>\s*$/g, '');
-    figuren.push(svg);
-    await sharp(Buffer.from(leinwand(svg)))
-      .png()
-      .toFile(join(ordner, `grundfigur-vorlage${nr}.png`));
-  }
-  const figur = figuren[0];
+  // The bald vector figure (figur.svg, drawn by avatar.tsx) → the starting picture of the base figure.
+  const figur = (await readFile(join(ordner, 'figur.svg'), 'utf8')).replace(/^<svg[^>]*>|<\/svg>\s*$/g, '');
+  await sharp(Buffer.from(leinwand(figur)))
+    .png()
+    .toFile(join(ordner, 'grundfigur-vorlage.png'));
   const farben: Record<string, string> = {
     kopf: '#C4321F',
     augen: '#2F6FDB',

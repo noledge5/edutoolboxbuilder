@@ -3,8 +3,8 @@
 // body/skin, clothes, eyes, head, tool. Each part is its own group that sits right without its neighbours.
 // Part colours are fixed values here, not UI tokens. Higher rarity = more detail, gold from Episch, sparkle for Legendär.
 import type { ReactNode } from 'react';
-import { angelegt, HAUT, type Avatar, type Slot, type Teil } from '../teile';
-import { koerperBild, teilBild } from './teilBilder';
+import { angelegt, frisurVon, HAARFARBEN, haarfarbeVon, HAUT, type Avatar, type Slot, type Teil } from '../teile';
+import { haareBild, koerperBild, teilBild } from './teilBilder';
 
 /** Shadow tone per skin tone (`HAUT`). */
 const HAUT_SCHATTEN = ['#DDAE80', '#D29A6E', '#AE744A', '#8E5833', '#5F3A20', '#E8C3A2'];
@@ -637,33 +637,23 @@ const ZEICHNUNG: Record<string, ReactNode> = {
   ),
 };
 
-const HAAR = '#4A2E1A';
-
-/** Body, hair and face without eyes: the layer every part sits on. `figur` picks the hair (`FIGUREN`): short,
- *  ponytail, curls; body and pose stay the same, so every part fits each figure. */
-function Koerper({ haut, figur = 0 }: { haut: number; figur?: number }) {
-  const h = HAUT[haut] ?? HAUT[0];
-  const s = HAUT_SCHATTEN[haut] ?? HAUT_SCHATTEN[0];
-  return (
-    <g>
-      <ellipse cx="120" cy="228" rx="58" ry="8" fill={INK} opacity=".15" />
-      <rect x="98" y="196" width="18" height="30" rx="8" fill="#3B2A1A" />
-      <rect x="124" y="196" width="18" height="30" rx="8" fill="#3B2A1A" />
-      <rect {...TORSO} fill={h} />
-      <circle cx="78" cy="184" r="11" fill={h} />
-      <circle cx="164" cy="184" r="11" fill={h} />
-      <circle cx="76" cy="102" r="9" fill={s} />
-      <circle cx="164" cy="102" r="9" fill={s} />
-      {figur === 1 && (
-        <>
-          <path d="M156 66c20-2 30 18 26 42-2 12-10 22-18 24 6-14 6-34-8-46Z" fill={HAAR} />
-          <circle cx="160" cy="68" r="6" fill="#E4572E" />
-        </>
-      )}
-      <circle cx="120" cy="96" r="44" fill={h} />
-      <path d="M78 90c0-28 18-42 42-42s42 14 42 42c-10-12-24-18-42-18s-32 6-42 18Z" fill={HAAR} />
-      {figur === 2 &&
-        [
+/** Hair as vector, in a colour: `hinten` goes behind the head and body (ponytail, long hair), `vorn` on top. */
+const HAAR_ZEICHNUNG: Record<string, { hinten?: (c: string) => ReactNode; vorn?: (c: string) => ReactNode }> = {
+  kurz: { vorn: (c) => <path d="M78 90c0-28 18-42 42-42s42 14 42 42c-10-12-24-18-42-18s-32 6-42 18Z" fill={c} /> },
+  zopf: {
+    hinten: (c) => (
+      <>
+        <path d="M156 66c20-2 30 18 26 42-2 12-10 22-18 24 6-14 6-34-8-46Z" fill={c} />
+        <circle cx="160" cy="68" r="6" fill="#E4572E" />
+      </>
+    ),
+    vorn: (c) => <path d="M78 90c0-28 18-42 42-42s42 14 42 42c-10-12-24-18-42-18s-32 6-42 18Z" fill={c} />,
+  },
+  locken: {
+    vorn: (c) => (
+      <>
+        <path d="M78 90c0-28 18-42 42-42s42 14 42 42c-10-12-24-18-42-18s-32 6-42 18Z" fill={c} />
+        {[
           [80, 88],
           [84, 70],
           [96, 57],
@@ -672,7 +662,65 @@ function Koerper({ haut, figur = 0 }: { haut: number; figur?: number }) {
           [144, 57],
           [156, 70],
           [160, 88],
-        ].map(([x, y]) => <circle key={x} cx={x} cy={y} r="12" fill={HAAR} />)}
+        ].map(([x, y]) => (
+          <circle key={x} cx={x} cy={y} r="12" fill={c} />
+        ))}
+      </>
+    ),
+  },
+  lang: {
+    hinten: (c) => <rect x="70" y="58" width="100" height="104" rx="40" fill={c} />,
+    vorn: (c) => <path d="M76 98c0-32 18-50 44-50s44 18 44 50c-6-16-20-26-44-26s-38 10-44 26Z" fill={c} />,
+  },
+  zoepfe: {
+    hinten: (c) => (
+      <>
+        <path d="M84 70c-20-2-30 18-26 42 2 12 10 22 18 24-6-14-6-34 8-46Z" fill={c} />
+        <path d="M156 70c20-2 30 18 26 42-2 12-10 22-18 24 6-14 6-34-8-46Z" fill={c} />
+        <circle cx="80" cy="72" r="6" fill="#2F6FDB" />
+        <circle cx="160" cy="72" r="6" fill="#2F6FDB" />
+      </>
+    ),
+    vorn: (c) => <path d="M78 90c0-28 18-42 42-42s42 14 42 42c-10-12-24-18-42-18s-32 6-42 18Z" fill={c} />,
+  },
+  dutt: {
+    vorn: (c) => (
+      <>
+        <circle cx="120" cy="44" r="15" fill={c} />
+        <path d="M78 90c0-28 18-42 42-42s42 14 42 42c-10-12-24-18-42-18s-32 6-42 18Z" fill={c} />
+        <rect x="106" y="54" width="28" height="5" rx="2.5" fill="#E0457B" />
+      </>
+    ),
+  },
+  stacheln: {
+    vorn: (c) => (
+      <path d="M76 90l2-28 12 8 4-24 14 14 12-20 12 20 14-14 4 24 12-8 2 28c-10-12-24-18-42-18s-32 6-42 18Z" fill={c} />
+    ),
+  },
+  bob: {
+    hinten: (c) => <rect x="72" y="56" width="96" height="84" rx="38" fill={c} />,
+    vorn: (c) => <path d="M76 92c0-30 20-46 44-46s44 16 44 46c-14-6-28-8-44-8s-30 2-44 8Z" fill={c} />,
+  },
+  glatze: {},
+};
+
+/** The bald body with face (no eyes): the layer every part and the hair sit on. Body and pose are the same for all,
+ *  so every part fits every hair and skin tone; `hinten` is the hair behind it (vector drawing only). */
+function Koerper({ haut, hinten }: { haut: number; hinten?: ReactNode }) {
+  const h = HAUT[haut] ?? HAUT[0];
+  const s = HAUT_SCHATTEN[haut] ?? HAUT_SCHATTEN[0];
+  return (
+    <g>
+      {hinten}
+      <ellipse cx="120" cy="228" rx="58" ry="8" fill={INK} opacity=".15" />
+      <rect x="98" y="196" width="18" height="30" rx="8" fill="#3B2A1A" />
+      <rect x="124" y="196" width="18" height="30" rx="8" fill="#3B2A1A" />
+      <rect {...TORSO} fill={h} />
+      <circle cx="78" cy="184" r="11" fill={h} />
+      <circle cx="164" cy="184" r="11" fill={h} />
+      <circle cx="76" cy="102" r="9" fill={s} />
+      <circle cx="164" cy="102" r="9" fill={s} />
+      <circle cx="120" cy="96" r="44" fill={h} />
       <circle cx="96" cy="114" r="6" fill="#F29A9A" opacity=".55" />
       <circle cx="144" cy="114" r="6" fill="#F29A9A" opacity=".55" />
       <path d="M110 122q10 8 20 0" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
@@ -680,8 +728,8 @@ function Koerper({ haut, figur = 0 }: { haut: number; figur?: number }) {
   );
 }
 
-/** Back to front; the body sits between companion and clothes. */
-const EBENEN: (Slot | 'koerper')[] = ['hintergrund', 'begleiter', 'koerper', 'kleidung', 'augen', 'kopf', 'werkzeug'];
+/** Back to front; the body sits between companion and clothes, the hair over the clothes (long hair falls on them). */
+const EBENEN: (Slot | 'koerper' | 'haare')[] = ['hintergrund', 'begleiter', 'koerper', 'kleidung', 'haare', 'augen', 'kopf', 'werkzeug'];
 
 /** Where a painted Legendär part gets its sparkle (the vector parts draw their own). */
 const FUNKELN: Record<Slot, [number, number]> = {
@@ -709,17 +757,28 @@ function Zeichnung({ teil }: { teil: Teil | undefined }) {
   );
 }
 
-/** The base figure: painted (in the chosen skin tone) when there is one, else drawn. */
-function Grundfigur({ haut, figur = 0 }: { haut: number; figur?: number }) {
-  const bild = koerperBild(haut, figur);
-  return bild ? ebene(bild) : <Koerper haut={haut} figur={figur} />;
+/** The base figure: painted (in the chosen skin tone) when there is one, else drawn with the hair behind it. */
+function Grundfigur({ avatar }: { avatar: Avatar }) {
+  const haut = avatar.haut ?? 0;
+  const bild = koerperBild(haut);
+  if (bild) return ebene(bild);
+  return <Koerper haut={haut} hinten={HAAR_ZEICHNUNG[frisurVon(avatar)]?.hinten?.(HAARFARBEN[haarfarbeVon(avatar)].farbe)} />;
 }
 
-/** The head of a base figure, for choosing the hair. */
-export function KopfBild({ haut, figur }: { haut: number; figur: number }) {
+/** The hair over the body: painted when there is a picture, else the front of the vector hair. */
+function Haare({ avatar }: { avatar: Avatar }) {
+  const frisur = frisurVon(avatar);
+  const farbe = haarfarbeVon(avatar);
+  const bild = haareBild(frisur, farbe);
+  return bild ? ebene(bild) : <>{HAAR_ZEICHNUNG[frisur]?.vorn?.(HAARFARBEN[farbe].farbe) ?? null}</>;
+}
+
+/** The head of the hero with some hair and colour, for choosing them. */
+export function KopfBild({ avatar }: { avatar: Avatar }) {
   return (
-    <svg viewBox="62 36 116 96" aria-hidden focusable="false">
-      <Grundfigur haut={haut} figur={figur} />
+    <svg viewBox="58 30 124 104" aria-hidden focusable="false">
+      <Grundfigur avatar={avatar} />
+      <Haare avatar={avatar} />
     </svg>
   );
 }
@@ -728,7 +787,19 @@ export function KopfBild({ haut, figur }: { haut: number; figur: number }) {
 export function AvatarBild({ avatar, className }: { avatar: Avatar; className?: string }) {
   return (
     <svg className={className} viewBox="0 0 240 240" aria-hidden focusable="false">
-      {EBENEN.map((e) => (e === 'koerper' ? <Grundfigur key={e} haut={avatar.haut ?? 0} figur={avatar.figur ?? 0} /> : <g key={e}><Zeichnung teil={angelegt(avatar, e)} /></g>))}
+      {EBENEN.map((e) =>
+        e === 'koerper' ? (
+          <Grundfigur key={e} avatar={avatar} />
+        ) : e === 'haare' ? (
+          <g key={e}>
+            <Haare avatar={avatar} />
+          </g>
+        ) : (
+          <g key={e}>
+            <Zeichnung teil={angelegt(avatar, e)} />
+          </g>
+        ),
+      )}
     </svg>
   );
 }
@@ -743,15 +814,21 @@ const AUSSCHNITT: Record<Slot, string> = {
   werkzeug: '128 96 104 112',
 };
 
-/** One part alone, cut out for the grid, the shop and the chest; eyes sit on a head so they read as eyes. */
-export function TeilBild({ teil, haut = 0, figur = 0, className }: { teil: Teil; haut?: number; figur?: number; className?: string }) {
+/** One part alone, cut out for the grid, the shop and the chest; eyes sit on the hero's head so they read as eyes. */
+export function TeilBild({ teil, avatar = {}, className }: { teil: Teil; avatar?: Avatar; className?: string }) {
   return (
     <svg className={className} viewBox={AUSSCHNITT[teil.slot]} aria-hidden focusable="false">
-      {teil.slot === 'augen' && (koerperBild(haut, figur) ? <Grundfigur haut={haut} figur={figur} /> : <circle cx="120" cy="100" r="44" fill={HAUT[haut] ?? HAUT[0]} />)}
+      {teil.slot === 'augen' && (
+        <>
+          <Grundfigur avatar={avatar} />
+          <Haare avatar={avatar} />
+        </>
+      )}
       <Zeichnung teil={teil} />
     </svg>
   );
 }
 
-/** For the test: every part of the catalogue has a drawing. */
+/** For the test: every part of the catalogue and every hair has a drawing. */
 export const hatZeichnung = (id: string) => id in ZEICHNUNG;
+export const hatHaarZeichnung = (id: string) => id in HAAR_ZEICHNUNG;
