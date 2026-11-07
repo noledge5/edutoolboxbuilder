@@ -1,42 +1,13 @@
-# Lernquest-Bilder: alle Prompts
+# Lernquest-Bilder: alle Prompts (Text zu Bild)
 
 Erzeugt mit `npm run lq:bilder -- --prompts` aus `src/lernquest/bilder/vorlagen.ts`; nicht von Hand ändern.
 Dateiname des fertigen Bildes = ID (z. B. `krone.png`). Ablauf und Einstellungen: `docs/design/lernquest/bilder.md`.
+Mit einem Edit-Modell (empfohlen) gelten stattdessen die Prompts in `edit-prompts.md`; Hintergründe kommen von hier.
 
-## Grundfigur 1: Kurze Haare (`koerper.png`)
-
-Bild zu Bild aus `schablonen/grundfigur-vorlage.png`:
-
-```text
-A cute chibi child hero standing front-facing with arms down at the sides, big round head, short simple brown hair, rosy cheeks and a small smile, a smooth blank face with no eyes and no eyebrows, a plain white sleeveless undershirt, dark brown trousers, a little space between the legs. Gender-neutral, friendly. The whole figure is visible on a plain flat light grey background, no shadow on the ground. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light, no hard black outlines (edges are a slightly darker shade of the fill colour). Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
-```
-
-## Grundfigur 2: Zopf (`koerper2.png`)
-
-Bild zu Bild aus `schablonen/grundfigur-vorlage2.png`:
+## Grundfigur (`koerper.png`, Glatze; Bild zu Bild aus `schablonen/grundfigur-vorlage.png`)
 
 ```text
-A cute chibi child hero standing front-facing with arms down at the sides, big round head, brown hair tied into one ponytail with a small red hair tie, the ponytail hangs down behind the head on the right side, rosy cheeks and a small smile, a smooth blank face with no eyes and no eyebrows, a plain white sleeveless undershirt, dark brown trousers, a little space between the legs. Gender-neutral, friendly. The whole figure is visible on a plain flat light grey background, no shadow on the ground. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light, no hard black outlines (edges are a slightly darker shade of the fill colour). Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
-```
-
-Oder besser (gleicher Körper wie Figur 1): `koerper.png` mit `schablonen/haar-maske.png` übermalen:
-
-```text
-The same cute chibi child hero, now with brown hair tied into one ponytail with a small red hair tie, the ponytail hangs down behind the head on the right side. Keep the face, the skin colour, the body and the plain background unchanged, no eyes. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light, no hard black outlines (edges are a slightly darker shade of the fill colour). Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
-```
-
-## Grundfigur 3: Locken (`koerper3.png`)
-
-Bild zu Bild aus `schablonen/grundfigur-vorlage3.png`:
-
-```text
-A cute chibi child hero standing front-facing with arms down at the sides, big round head, fluffy round curly dark brown hair, rosy cheeks and a small smile, a smooth blank face with no eyes and no eyebrows, a plain white sleeveless undershirt, dark brown trousers, a little space between the legs. Gender-neutral, friendly. The whole figure is visible on a plain flat light grey background, no shadow on the ground. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light, no hard black outlines (edges are a slightly darker shade of the fill colour). Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
-```
-
-Oder besser (gleicher Körper wie Figur 1): `koerper.png` mit `schablonen/haar-maske.png` übermalen:
-
-```text
-The same cute chibi child hero, now with fluffy round curly dark brown hair. Keep the face, the skin colour, the body and the plain background unchanged, no eyes. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light, no hard black outlines (edges are a slightly darker shade of the fill colour). Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+A cute chibi child hero standing front-facing with arms down at the sides, big round completely bald head with smooth skin, rosy cheeks and a small smile, a smooth blank face with no eyes and no eyebrows, a plain white sleeveless undershirt, dark brown trousers, a little space between the legs. Gender-neutral, friendly. The whole figure is visible on a plain flat light grey background, no shadow on the ground. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light, no hard black outlines (edges are a slightly darker shade of the fill colour). Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
 ```
 
 ## Kopf (einzeln, grauer Hintergrund)

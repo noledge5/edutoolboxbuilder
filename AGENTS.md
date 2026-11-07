@@ -67,7 +67,8 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
   public functions.
   Painted hero pictures (`docs/design/lernquest/bilder.md`): file name = part id in `src/lernquest/app/teile/`, made
   by `npm run lq:bilder`; a new part also needs `BESCHREIBUNG` (`src/lernquest/bilder/vorlagen.ts`) and
-  `npm run lq:bilder -- --prompts`.
+  `npm run lq:bilder -- --prompts`. Hair is its own layer over a bald base (`FRISUREN`, `HAARFARBEN`); a new hair
+  needs `FRISUR_BESCHREIBUNG` and `HAAR_ZEICHNUNG` (`avatar.tsx`), no server change.
   Open exercises without sign-in (`lernquest/#probe=<id>`, `src/lernquest/probe.ts`, content in `proben/`) never call
   the server; a new set is registered in `PROBEN` and checked by `probe.test.ts`.
 

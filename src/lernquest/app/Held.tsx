@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { heldenstufe, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
-import { bonusText, bonusVon, CHANCEN, FIGUREN, GARANTIE, HAUT, hat, MUENZ_CHANCEN, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
+import { bonusText, bonusVon, CHANCEN, FRISUREN, frisurVon, GARANTIE, HAARFARBEN, haarfarbeVon, HAUT, hat, MUENZ_CHANCEN, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
 import { GutscheinLeiste } from './Gutscheine';
@@ -184,7 +184,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
                 onClick={() => tippen(t)}
               >
                 {an && <span className="lq-angelegt">Angelegt</span>}
-                <TeilBild teil={t} haut={stand.avatar.haut} figur={stand.avatar.figur} className="lq-teil-bild" />
+                <TeilBild teil={t} avatar={stand.avatar} className="lq-teil-bild" />
                 <span className="lq-teil-name">{t.name}</span>
                 <Seltenheit s={t.seltenheit} kurz />
                 {bonusText(t) && <span className="lq-teil-bonus">{bonusText(t)}</span>}
@@ -210,18 +210,37 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
         </div>
         <div className="lq-frisur" role="radiogroup" aria-label="Frisur">
           <span className="lq-klein">Frisur</span>
-          {FIGUREN.map((name, i) => (
+          {FRISUREN.map((f) => {
+            const an = frisurVon(stand.avatar) === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                role="radio"
+                aria-checked={an}
+                className={an ? 'an' : ''}
+                onClick={() => anlegen({ ...ohneFigur(stand.avatar), frisur: f.id })}
+              >
+                <KopfBild avatar={{ ...stand.avatar, frisur: f.id }} />
+                <span>{f.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="lq-haut" role="radiogroup" aria-label="Haarfarbe">
+          <span className="lq-klein">Haarfarbe</span>
+          {HAARFARBEN.map((h, i) => (
             <button
-              key={name}
+              key={h.name}
               type="button"
               role="radio"
-              aria-checked={(stand.avatar.figur ?? 0) === i}
-              className={(stand.avatar.figur ?? 0) === i ? 'an' : ''}
-              onClick={() => anlegen({ ...stand.avatar, figur: i })}
-            >
-              <KopfBild figur={i} haut={stand.avatar.haut ?? 0} />
-              <span>{name}</span>
-            </button>
+              aria-checked={haarfarbeVon(stand.avatar) === i}
+              aria-label={h.name}
+              title={h.name}
+              className={haarfarbeVon(stand.avatar) === i ? 'an' : ''}
+              style={{ background: h.farbe }}
+              onClick={() => anlegen({ ...ohneFigur(stand.avatar), frisur: frisurVon(stand.avatar), haarfarbe: i })}
+            />
           ))}
         </div>
       </div>
@@ -318,7 +337,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
               setWahl(wahl?.id === t.id ? null : t);
             }}
           >
-            <TeilBild teil={t} haut={stand.avatar.haut} figur={stand.avatar.figur} className="lq-teil-bild" />
+            <TeilBild teil={t} avatar={stand.avatar} className="lq-teil-bild" />
             <span className="lq-teil-name">{t.name}</span>
             <Seltenheit s={t.seltenheit} kurz />
             <Muenzen n={PREISE[t.seltenheit]} />
@@ -342,6 +361,12 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
       )}
     </section>
   );
+}
+
+/** The avatar without the older `figur` (the hair is now `frisur`). */
+function ohneFigur(a: Avatar): Avatar {
+  const { figur: _alt, ...rest } = a;
+  return rest;
 }
 
 // — A chest —
@@ -414,7 +439,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
       >
         <span className="lq-truhe-glanz" aria-hidden />
         {phase === 'da' && t ? (
-          <TeilBild teil={t} haut={stand.avatar.haut} figur={stand.avatar.figur} className="lq-truhe-teil" />
+          <TeilBild teil={t} avatar={stand.avatar} className="lq-truhe-teil" />
         ) : phase === 'da' && nurMuenzen ? (
           <MuenzHaufen />
         ) : (

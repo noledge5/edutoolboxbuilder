@@ -186,11 +186,18 @@ export function hautUmfaerben(px: Uint8Array, haut: Rgb, ziel: Rgb): Uint8Array 
 // — Edit pictures: the part painted by an edit model (e.g. FLUX.2 Klein) onto the base figure, cut out by comparing
 // the edited picture with the base figure it was made from. Both are whole canvases of the same size. —
 
-const grau = (px: Uint8Array, p: number) => px[p * 4] * 0.3 + px[p * 4 + 1] * 0.59 + px[p * 4 + 2] * 0.11;
+/** Where the figure is: every pixel that is not the flat background (the colour along the border). */
+function umriss(px: Uint8Array, w: number, h: number, toleranz = 30): Uint8Array {
+  const grund = randFarbe(px, w, h);
+  const out = new Uint8Array(w * h);
+  for (let p = 0; p < w * h; p++) out[p] = abstand([px[p * 4], px[p * 4 + 1], px[p * 4 + 2]], grund) > toleranz ? 1 : 0;
+  return out;
+}
 
 /** How far the edited picture moved against the base (edit models may shift a few pixels): the offset (dx, dy) up to
- *  `max` pixels that makes both alike, found coarse (every 4th pixel) and then exact (every pixel). The area of the change (`ohne`)
- *  is left out and big differences are capped, so the new part does not pull the result. */
+ *  `max` pixels that makes the outlines of the figure match best, found coarse (every 4th pixel) and then exact. The
+ *  outline is used rather than the colours, so a new skin tone or a lighter picture does not mislead it; the area of
+ *  the change (`ohne`) is left out, so a new part does not pull the result. */
 export function verschiebung(
   basis: Uint8Array,
   bild: Uint8Array,
@@ -199,16 +206,16 @@ export function verschiebung(
   max = 12,
   ohne?: Box,
 ): { dx: number; dy: number } {
+  const a = umriss(basis, w, h);
+  const b = umriss(bild, w, h);
   const fehler = (dx: number, dy: number, schritt: number) => {
     let summe = 0;
-    let n = 0;
     for (let y = max; y < h - max; y += schritt)
       for (let x = max; x < w - max; x += schritt) {
         if (ohne && x >= ohne.x && x < ohne.x + ohne.w && y >= ohne.y && y < ohne.y + ohne.h) continue;
-        summe += Math.min(24, Math.abs(grau(basis, y * w + x) - grau(bild, (y + dy) * w + (x + dx))));
-        n++;
+        if (a[y * w + x] !== b[(y + dy) * w + (x + dx)]) summe++;
       }
-    return summe / Math.max(1, n);
+    return summe;
   };
   let best = { dx: 0, dy: 0, f: fehler(0, 0, 4) };
   for (let dy = -max; dy <= max; dy += 2)
@@ -335,5 +342,29 @@ export function aenderung(
     if (!amRand && f.length < flaeche * 0.05) for (const p of f) a[p] = 1;
   }
   for (let p = 0; p < w * h; p++) out[p * 4 + 3] = Math.round(a[p] * (bild[p * 4 + 3] ?? 255));
+  return out;
+}
+
+/** The typical colour of a layer: the median of its solid pixels (e.g. the brown a hair was painted in). */
+export function mittelFarbe(px: Uint8Array): Rgb {
+  const k: number[][] = [[], [], []];
+  for (let i = 0; i < px.length; i += 4) if (px[i + 3] > 200) for (let c = 0; c < 3; c++) k[c].push(px[i + c]);
+  if (!k[0].length) throw new Error('die Ebene ist leer');
+  return k.map((v) => v.sort((a, b) => a - b)[v.length >> 1]) as Rgb;
+}
+
+/** A hair layer in another colour: the painted shading stays. Towards a darker colour each channel is scaled down,
+ *  towards a lighter one its distance to white is scaled, so highlights stay highlights and nothing turns flat. */
+export function haareUmfaerben(px: Uint8Array, quelle: Rgb, ziel: Rgb): Uint8Array {
+  const out = new Uint8Array(px);
+  for (let i = 0; i < out.length; i += 4) {
+    if (out[i + 3] === 0) continue;
+    for (let c = 0; c < 3; c++) {
+      const p = out[i + c];
+      const s = Math.max(1, Math.min(254, quelle[c]));
+      const t = ziel[c];
+      out[i + c] = Math.round(t >= s ? 255 - ((255 - p) * (255 - t)) / (255 - s) : (p * t) / s);
+    }
+  }
   return out;
 }
