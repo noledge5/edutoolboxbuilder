@@ -3,8 +3,18 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { FIGUR_DATEI, HAUT, TEILE } from '../teile';
-import { einpassen, freistellen, hautUmfaerben, istHaut, sichtbar, type Rgb } from './pixel';
-import { BESCHREIBUNG, EBENE_GROESSE, PLAETZE, prompt, promptListe } from './vorlagen';
+import {
+  aenderung,
+  einpassen,
+  freistellen,
+  hautUmfaerben,
+  istHaut,
+  sichtbar,
+  verschieben,
+  verschiebung,
+  type Rgb,
+} from './pixel';
+import { BESCHREIBUNG, EBENE_GROESSE, editListe, editPrompt, PLAETZE, prompt, promptListe } from './vorlagen';
 
 /** A w × h picture in one colour, with a square of another colour. */
 function bild(w: number, h: number, grund: Rgb, flecken: { x: number; y: number; s: number; farbe: Rgb }[]) {
@@ -36,9 +46,17 @@ describe('Prompts', () => {
     expect(krone).toContain('legendary treasure');
     expect(krone).toContain('soft painted digital illustration');
   });
-  it('docs/design/lernquest/bilder/prompts.md is up to date (else: npm run lq:bilder -- --prompts)', () => {
-    const datei = readFileSync(new URL('../../../docs/design/lernquest/bilder/prompts.md', import.meta.url), 'utf8');
-    expect(datei).toBe(promptListe());
+  it('prompts.md and edit-prompts.md are up to date (else: npm run lq:bilder -- --prompts)', () => {
+    const lies = (f: string) =>
+      readFileSync(new URL(`../../../docs/design/lernquest/bilder/${f}`, import.meta.url), 'utf8');
+    expect(lies('prompts.md')).toBe(promptListe());
+    expect(lies('edit-prompts.md')).toBe(editListe());
+  });
+  it('has an edit instruction for every part on the figure, none for backgrounds', () => {
+    for (const t of TEILE) expect(!!editPrompt(t), t.id).toBe(t.slot !== 'hintergrund');
+    expect(editPrompt(TEILE.find((t) => t.id === 'kappe')!)).toMatch(
+      /^Put a sporty red baseball cap .* on the character's head.*Do not move, crop or zoom/,
+    );
   });
 });
 
@@ -92,15 +110,63 @@ describe('Pixel', () => {
   });
 });
 
+describe('Edit pictures', () => {
+  const grau: Rgb = [217, 217, 217];
+  // The base: a "figure" (dark square) on grey; the edit adds a "hat" (yellow, with a part in the base colour inside),
+  // is a little lighter, has a speck and a thin line, and moved by 3 px right and 2 down.
+  const W = 120;
+  const basis = bild(W, W, grau, [{ x: 40, y: 40, s: 40, farbe: [74, 46, 26] }]);
+  const neu = bild(
+    W,
+    W,
+    [221, 221, 221],
+    [
+      { x: 40, y: 40, s: 40, farbe: [78, 50, 30] },
+      { x: 40, y: 20, s: 40, farbe: [255, 197, 49] },
+      { x: 55, y: 28, s: 6, farbe: grau },
+      { x: 100, y: 100, s: 1, farbe: [0, 0, 255] },
+    ],
+  );
+  for (let y = 5; y < 90; y++) neu.set([0, 0, 0, 255], (y * W + 95) * 4);
+  const bewegt = new Uint8Array(neu.length);
+  for (let y = 0; y < W; y++)
+    for (let x = 0; x < W; x++)
+      bewegt.set(
+        neu.subarray(
+          (Math.max(0, y - 2) * W + Math.max(0, x - 3)) * 4,
+          (Math.max(0, y - 2) * W + Math.max(0, x - 3)) * 4 + 4,
+        ),
+        (y * W + x) * 4,
+      );
+
+  it('finds how far the edit moved, without being pulled by the new part', () => {
+    expect(verschiebung(basis, bewegt, W, W, 8, { x: 30, y: 10, w: 60, h: 56 })).toEqual({ dx: 3, dy: 2 });
+  });
+  it('keeps only the change: no figure, no background, no specks or thin lines, holes filled', () => {
+    const zurueck = verschieben(bewegt, W, W, 3, 2);
+    const ebene = aenderung(basis, zurueck, W, W, { x: 0, y: 0, w: W, h: W });
+    expect(alpha(ebene, W, 45, 25)).toBe(255); // the hat
+    expect(alpha(ebene, W, 57, 30)).toBe(255); // a base-coloured spot inside the hat stays part of it
+    expect(alpha(ebene, W, 50, 60)).toBe(0); // the figure (only a little lighter)
+    expect(alpha(ebene, W, 10, 10)).toBe(0); // the background
+    expect(alpha(ebene, W, 100, 100)).toBe(0); // a speck
+    expect(alpha(ebene, W, 95, 60)).toBe(0); // a one-pixel line
+  });
+});
+
 describe('Finished pictures (src/lernquest/app/teile/)', () => {
   const ordner = new URL('../app/teile/', import.meta.url);
   const dateien = readdirSync(ordner).filter((f) => f.endsWith('.webp'));
   it('are named after a part or the base figure', () => {
-    const erlaubt = new Set([...TEILE.map((t) => t.id), ...FIGUR_DATEI.flatMap((f) => HAUT.map((_, i) => `${f}-${i}`))]);
+    const erlaubt = new Set([
+      ...TEILE.map((t) => t.id),
+      ...FIGUR_DATEI.flatMap((f) => HAUT.map((_, i) => `${f}-${i}`)),
+    ]);
     expect(dateien.filter((f) => !erlaubt.has(f.slice(0, -5)))).toEqual([]);
   });
   it('have each base figure in every skin tone or not at all', () => {
-    for (const figur of FIGUR_DATEI) expect([0, HAUT.length], figur).toContain(dateien.filter((f) => f.startsWith(`${figur}-`)).length);
+    for (const figur of FIGUR_DATEI)
+      expect([0, HAUT.length], figur).toContain(dateien.filter((f) => f.startsWith(`${figur}-`)).length);
   });
   it('are whole layers of 480 × 480 and small enough for phones', () => {
     for (const f of dateien) {

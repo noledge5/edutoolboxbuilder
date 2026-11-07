@@ -1,15 +1,18 @@
 // Turns pictures from ComfyUI into the hero's layers (docs/design/lernquest/bilder.md). Runs in plain Node (>= 22.18):
 //   npm run lq:bilder                     raw pictures from lernquest-roh/ → src/lernquest/app/teile/<id>.webp
 //   npm run lq:bilder -- --ordner <pfad>  raw pictures from another folder
-//   npm run lq:bilder -- --prompts        writes docs/design/lernquest/bilder/prompts.md
+//   npm run lq:bilder -- --prompts        writes docs/design/lernquest/bilder/prompts.md and edit-prompts.md
 //   npm run lq:bilder -- --schablonen     writes the masks and the overview of places next to it
 // A raw picture is named after its part (`krone.png`, also `krone_00003_.png` as ComfyUI saves it); the base figure is
 // `koerper.png`. Every layer is the whole canvas (480 × 480, transparent where empty), so the app only stacks them.
+// Pictures from an edit model (the part painted onto koerper.png) go to lernquest-roh/edit/: only what changed
+// against koerper.png is kept, so the part lies exactly where the model painted it.
 import { existsSync } from 'node:fs';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import sharp, { type OverlayOptions } from 'sharp';
 import {
+  aenderung,
   einpassen,
   freistellen,
   hatTransparenz,
@@ -18,10 +21,14 @@ import {
   hexRgb,
   sichtbar,
   type Anpassung,
+  verschieben,
+  verschiebung,
 } from '../src/lernquest/bilder/pixel.ts';
 import {
   AUGEN_MASKE,
   EBENE_GROESSE as G,
+  EDIT_BEREICH,
+  editListe,
   HAAR_MASKE,
   HAUT_PUNKTE,
   HINTERGRUND_FARBE,
@@ -42,10 +49,12 @@ const wert = (name: string) => {
 };
 
 /** Fine-tuning per part from src/lernquest/bilder/anpassen.json; `toleranz` and `loecher` for cutting away the
- *  background (`loecher`: also enclosed grey patches, e.g. between the legs). */
+ *  background (`loecher`: also enclosed grey patches, e.g. between the legs); `schwelle` for edit pictures (how
+ *  different a pixel must be from the base figure to count as the part, default 30). */
 interface Anpassungen extends Anpassung {
   toleranz?: number;
   loecher?: boolean;
+  schwelle?: number;
 }
 
 type Roh = { data: Uint8Array; w: number; h: number };
@@ -85,6 +94,16 @@ async function aufEbene(r: Roh): Promise<Roh> {
   if (Math.abs(r.w - r.h) > 2) throw new Error(`muss quadratisch sein (ist ${r.w} × ${r.h})`);
   const { data } = await roh(r).resize(G, G).raw().toBuffer({ resolveWithObject: true });
   return { data: new Uint8Array(data), w: G, h: G };
+}
+
+/** For comparing an edit with its base: on the flat grey background (transparent areas too), at layer size. */
+async function aufGrau(datei: string): Promise<Roh> {
+  const r = await sharp(datei)
+    .flatten({ background: HINTERGRUND_FARBE })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  return aufEbene({ data: new Uint8Array(r.data), w: r.info.width, h: r.info.height });
 }
 
 /** A part made on its own: background cut away, trimmed and placed into its box on an empty layer. */
@@ -130,18 +149,24 @@ async function bauen() {
     await readFile(join(WURZEL, 'src/lernquest/bilder/anpassen.json'), 'utf8'),
   );
   const gueltig = new Set([...FIGUR_DATEI, ...TEILE.map((t) => t.id)]);
-  const je = new Map<string, string[]>();
   const fremd: string[] = [];
-  for (const name of (await readdir(ordner)).sort()) {
-    const m = /^([a-z0-9]+)(?:[_-][0-9_]*)?\.(png|webp|jpe?g)$/i.exec(name);
-    if (!m) continue;
-    const id = m[1].toLowerCase();
-    if (!gueltig.has(id)) {
-      fremd.push(name);
-      continue;
+  const sammeln = async (dir: string) => {
+    const je = new Map<string, string[]>();
+    if (!existsSync(dir)) return je;
+    for (const name of (await readdir(dir)).sort()) {
+      const m = /^([a-z0-9]+)(?:[_-][0-9_]*)?\.(png|webp|jpe?g)$/i.exec(name);
+      if (!m) continue;
+      const id = m[1].toLowerCase();
+      if (!gueltig.has(id)) {
+        fremd.push(name);
+        continue;
+      }
+      je.set(id, [...(je.get(id) ?? []), name]);
     }
-    je.set(id, [...(je.get(id) ?? []), name]);
-  }
+    return je;
+  };
+  const je = await sammeln(ordner);
+  const edits = await sammeln(join(ordner, 'edit'));
   await mkdir(ZIEL, { recursive: true });
   const fertig: string[] = [];
   const fehler: string[] = [];
@@ -149,7 +174,7 @@ async function bauen() {
   // The base figure first, so the overview can use it.
   for (const id of [...FIGUR_DATEI, ...TEILE.map((t) => t.id)]) {
     const namen = je.get(id);
-    if (!namen) continue;
+    if (!namen || edits.has(id)) continue;
     if (namen.length > 1) {
       fehler.push(`${id}: mehrere Bilder (${namen.join(', ')}), bitte nur eins lassen`);
       continue;
@@ -183,6 +208,51 @@ async function bauen() {
       fertig.push(id);
     } catch (err) {
       fehler.push(`${id}: ${(err as Error).message}`);
+    }
+  }
+  // Edit pictures: compared with the raw base figure they were made from.
+  const basisName = je.get('koerper')?.[0];
+  let basis: Roh | undefined;
+  for (const [id, namen] of edits) {
+    try {
+      if (je.has(id))
+        throw new Error(`liegt auch außerhalb von edit/ (${je.get(id)!.join(', ')}), bitte nur eins lassen`);
+      if (namen.length > 1) throw new Error(`mehrere Bilder in edit/ (${namen.join(', ')}), bitte nur eins lassen`);
+      const t = teil(id);
+      if (!t || t.slot === 'hintergrund')
+        throw new Error('nur Teile auf der Figur gehen als Edit (Hintergründe als ganzes Bild)');
+      if (!basisName)
+        throw new Error('die Grundfigur koerper.png fehlt in lernquest-roh/ (das Bild, das ins Edit-Modell ging)');
+      basis ??= await aufGrau(join(ordner, basisName));
+      const [mb, me] = await Promise.all([
+        sharp(join(ordner, basisName)).metadata(),
+        sharp(join(ordner, 'edit', namen[0])).metadata(),
+      ]);
+      if (mb.width !== me.width || mb.height !== me.height)
+        throw new Error(
+          `ist ${me.width} × ${me.height}, die Grundfigur ${mb.width} × ${mb.height}: das Edit-Bild muss genauso groß sein`,
+        );
+      const roh = await aufGrau(join(ordner, 'edit', namen[0]));
+      const k = G / 240;
+      const b = EDIT_BEREICH[t.slot];
+      const box = {
+        x: Math.round(b.x * k),
+        y: Math.round(b.y * k),
+        w: Math.round(b.width * k),
+        h: Math.round(b.height * k),
+      };
+      const v = verschiebung(basis.data, roh.data, G, G, 12, box);
+      const bild = v.dx || v.dy ? verschieben(roh.data, G, G, v.dx, v.dy) : roh.data;
+      const a = anpassen[id] ?? {};
+      // Only what changed; clothes also stay within the torso mask.
+      const data = aenderung(basis.data, bild, G, G, box, a.schwelle);
+      if (PLAETZE[t.slot].weg === 'figur')
+        for (let p = 0; p < G * G; p++) data[p * 4 + 3] = Math.round((data[p * 4 + 3] * kleidungsMaske[p]) / 255);
+      if (!sichtbar(data, G, G)) throw new Error('keine Änderung gefunden (schwelle kleiner?)');
+      await speichern(id, { data, w: G, h: G });
+      fertig.push(`${id} (Edit${v.dx || v.dy ? `, um ${v.dx}/${v.dy} px zurückgeschoben` : ''})`);
+    } catch (err) {
+      fehler.push(`${id} (edit/): ${(err as Error).message}`);
     }
   }
   await uebersicht(ordner);
@@ -303,6 +373,7 @@ async function schablonen() {
 if (args.includes('--prompts')) {
   await mkdir(DOKU, { recursive: true });
   await writeFile(join(DOKU, 'prompts.md'), promptListe());
-  console.log('docs/design/lernquest/bilder/prompts.md geschrieben');
+  await writeFile(join(DOKU, 'edit-prompts.md'), editListe());
+  console.log('docs/design/lernquest/bilder/prompts.md und edit-prompts.md geschrieben');
 } else if (args.includes('--schablonen')) await schablonen();
 else await bauen();

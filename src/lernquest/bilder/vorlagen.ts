@@ -222,7 +222,10 @@ export const nurFrisur = (figur: number) =>
   `background unchanged, no eyes. ${STIL}`;
 
 /** The hair mask (canvas units): top of the head and the space on the right where a ponytail hangs. */
-export const HAAR_MASKE = { kopf: { cx: 120, cy: 66, rx: 60, ry: 34 }, zopf: { x: 150, y: 48, width: 42, height: 92, rx: 16 } };
+export const HAAR_MASKE = {
+  kopf: { cx: 120, cy: 66, rx: 60, ry: 34 },
+  zopf: { x: 150, y: 48, width: 42, height: 92, rx: 16 },
+};
 
 /** All prompts in catalogue order, grouped by place (for docs/design/lernquest/bilder/prompts.md). */
 export function promptListe(): string {
@@ -264,5 +267,95 @@ export function promptListe(): string {
       out.push('', `### \`${t.id}\` – ${t.name}`, '', '```text', prompt(t), '```');
     }
   }
+  return out.join('\n') + '\n';
+}
+
+// — Edit models (e.g. FLUX.2 Klein Image Edit): the part is painted onto the base figure `koerper.png` and
+// `npm run lq:bilder` keeps only what changed (raw pictures in lernquest-roh/edit/). —
+
+/** Where the script looks for the change, per place (canvas units); outside it the edited picture is ignored. */
+export const EDIT_BEREICH: Record<Slot, { x: number; y: number; width: number; height: number }> = {
+  kopf: { x: 36, y: 0, width: 168, height: 98 },
+  augen: { x: 80, y: 82, width: 80, height: 36 },
+  werkzeug: { x: 126, y: 60, width: 114, height: 180 },
+  begleiter: { x: 0, y: 120, width: 98, height: 120 },
+  kleidung: { x: 64, y: 118, width: 112, height: 100 },
+  hintergrund: { x: 0, y: 0, width: 240, height: 240 },
+};
+
+/** The sentence that ends every edit: the figure must not move, so the change lands exactly on the canvas. */
+export const EDIT_BEHALTEN =
+  'Keep everything else exactly as it is: the same character, the same pose, the same position and size in the ' +
+  'picture, the face without eyes, the hair, the body, the plain flat light grey background and the soft painted ' +
+  'style. Do not move, crop or zoom. Change nothing else and add nothing else.';
+
+const EDIT_AUFTRAG: Record<Exclude<Slot, 'hintergrund'>, (was: string) => string> = {
+  kopf: (was) =>
+    `Put ${was} on the character's head, sitting naturally on top of the hair, front view, sized to fit the head.`,
+  augen: (was) =>
+    `Paint ${was} on the character's face where the eyes belong, between the hair and the cheeks, both eyes the same size.`,
+  kleidung: (was) =>
+    `Dress the character in ${was}. It covers only the upper body (chest, belly and shoulders); the hands, legs, head and hair stay unchanged.`,
+  werkzeug: (was) =>
+    `Let the character hold ${was} in the hand on the right side of the picture, upright and slightly tilted to the right, about half as tall as the character.`,
+  begleiter: (was) =>
+    `Add ${was} on the ground to the left of the character's feet, about a third as tall as the character, facing the viewer, not touching the character.`,
+};
+
+/** The edit instruction for one part (backgrounds are made as whole pictures instead). */
+export function editPrompt(t: Teil): string | undefined {
+  if (t.slot === 'hintergrund') return undefined;
+  const was = BESCHREIBUNG[t.id] ?? t.name;
+  return [
+    EDIT_AUFTRAG[t.slot](was),
+    `In the same soft painted style. ${SELTENHEIT_DETAILS[t.seltenheit] ?? ''}`,
+    EDIT_BEHALTEN,
+  ].join(' ');
+}
+
+/** The base figure from the vector figure, with an edit model. */
+export const editGrundfigur = () =>
+  'Repaint this simple flat character as a soft painted illustration. Keep exactly the same pose, proportions, ' +
+  'position and size in the picture and the same plain flat light grey background. Short simple brown hair, rosy ' +
+  'cheeks, a small smile, a smooth blank face with no eyes and no eyebrows, a plain white sleeveless undershirt, dark ' +
+  `brown trousers, no shadow on the ground. ${STIL}`;
+
+/** Another hair on the finished first figure, with an edit model. */
+export const editFrisur = (figur: number) =>
+  `Change only the hair to ${FRISUR[figur]}. Keep the face (still without eyes), the skin, the body, the pose, the ` +
+  'position and size in the picture and the plain flat light grey background exactly the same.';
+
+/** All edit instructions (for docs/design/lernquest/bilder/edit-prompts.md). */
+export function editListe(): string {
+  const out = [
+    '# Lernquest-Bilder: Edit-Prompts (z. B. FLUX.2 Klein Image Edit)',
+    '',
+    'Erzeugt mit `npm run lq:bilder -- --prompts` aus `src/lernquest/bilder/vorlagen.ts`; nicht von Hand ändern.',
+    'Regeln für die Ergebnisse: `docs/design/lernquest/bilder.md`, Abschnitt „Mit einem Edit-Modell“.',
+    '',
+    '## Grundfigur `koerper.png` (Eingabe: `schablonen/grundfigur-vorlage.png`)',
+    '',
+    '```text',
+    editGrundfigur(),
+    '```',
+  ];
+  FIGUREN.forEach((name, i) => {
+    if (!i) return;
+    out.push(
+      '',
+      `## ${name}: \`${FIGUR_DATEI[i]}.png\` (Eingabe: \`koerper.png\`)`,
+      '',
+      '```text',
+      editFrisur(i),
+      '```',
+    );
+  });
+  for (const { slot, label } of SLOTS) {
+    if (slot === 'hintergrund') continue;
+    out.push('', `## ${label} (Eingabe: \`koerper.png\`, Ergebnis nach \`lernquest-roh/edit/\`)`);
+    for (const t of TEILE.filter((x) => x.slot === slot))
+      out.push('', `### \`${t.id}\` – ${t.name}`, '', '```text', editPrompt(t)!, '```');
+  }
+  out.push('', '## Hintergründe', '', 'Keine Edits: als ganzes Bild mit Text zu Bild, Prompts in `prompts.md`.');
   return out.join('\n') + '\n';
 }
