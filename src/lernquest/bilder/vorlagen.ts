@@ -97,8 +97,9 @@ export const HINTERGRUND_FARBE = '#D9D9D9';
 export const STIL =
   'Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. ' +
   'Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle ' +
-  'gradients, light from the upper left, a subtle warm rim light, no hard black outlines (edges are a slightly darker ' +
-  'shade of the fill colour). Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, ' +
+  'gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, ' +
+  'no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the ' +
+  'fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, ' +
   'no watermark, no frame.';
 
 /** What a rarity adds to the picture (Gewöhnlich plain … Legendär gold and sparkle), as in the vector set. */
@@ -199,6 +200,13 @@ const AUFBAU: Record<Slot, string> = {
     'torso. Keep the pose, the body and the plain background unchanged.',
 };
 
+/**
+ * Places whose parts are best made alone on grey (text to picture) and set onto the figure by the script: they do not
+ * hang on `koerper.png`, so a new base figure keeps them. Everything else (skin, hair, eyes, clothes) is an edit of
+ * `koerper.png`, because it has to fit the body exactly (decided with the teacher, 07.11.2026).
+ */
+export const EINZELN: Slot[] = ['kopf', 'werkzeug', 'begleiter'];
+
 /** The full prompt for one part: what it is, the layout, the rarity and the shared style. */
 export function prompt(t: Teil): string {
   const was = BESCHREIBUNG[t.id] ?? t.name;
@@ -221,10 +229,10 @@ export const FRISUR_BESCHREIBUNG: Record<string, string> = {
   glatze: 'no hair at all',
 };
 
-/** The base figure every part and hair sits on: bald, without eyes (T2I or picture to picture from the template). */
+/** The base figure every part and hair sits on: bald, blank face (eyes and mouth come as layers) (T2I or picture to picture from the template). */
 export const grundfigur = () =>
   'A cute chibi child hero standing front-facing with arms down at the sides, big round completely bald head with ' +
-  'smooth skin, rosy cheeks and a small smile, a smooth blank face with no eyes and no eyebrows, a plain white ' +
+  'smooth skin, a completely blank smooth face with no eyes, no eyebrows, no mouth and no cheeks, a plain white ' +
   'sleeveless undershirt, dark brown trousers, a little space between the legs. Gender-neutral, friendly. The whole ' +
   `figure is visible on a plain flat light grey background, no shadow on the ground. ${STIL}`;
 
@@ -235,9 +243,10 @@ export function promptListe(): string {
     '',
     'Erzeugt mit `npm run lq:bilder -- --prompts` aus `src/lernquest/bilder/vorlagen.ts`; nicht von Hand ändern.',
     'Dateiname des fertigen Bildes = ID (z. B. `krone.png`). Ablauf und Einstellungen: `docs/design/lernquest/bilder.md`.',
-    'Mit einem Edit-Modell (empfohlen) gelten stattdessen die Prompts in `edit-prompts.md`; Hintergründe kommen von hier.',
+    'Empfehlung: Kopf, Werkzeug und Begleiter einzeln mit diesen Prompts (das Skript setzt sie an ihren Platz), dazu die',
+    'Hintergründe. Grundfigur, Hauttöne, Frisuren, Augen und Kleidung als Edit von `koerper.png`: `edit-prompts.md`.',
     '',
-    '## Grundfigur (`koerper.png`, Glatze; Bild zu Bild aus `schablonen/grundfigur-vorlage.png`)',
+    '## Grundfigur (`koerper.png`, Glatze; nur ohne Edit-Modell, Bild zu Bild aus `schablonen/grundfigur-vorlage.png`)',
     '',
     '```text',
     grundfigur(),
@@ -247,7 +256,7 @@ export function promptListe(): string {
     const weg = PLAETZE[slot].weg;
     out.push(
       '',
-      `## ${label} (${weg === 'figur' ? 'auf der Grundfigur mit `schablonen/kleidung-maske.png`' : weg === 'flaeche' ? 'ganzes Bild' : 'einzeln, grauer Hintergrund'})`,
+      `## ${label} (${weg === 'figur' ? 'auf der Grundfigur mit `schablonen/kleidung-maske.png`' : weg === 'flaeche' ? 'ganzes Bild' : 'einzeln, grauer Hintergrund'}${EINZELN.includes(slot) || slot === 'hintergrund' ? '' : '; besser als Edit, siehe `edit-prompts.md`'})`,
     );
     for (const t of TEILE.filter((x) => x.slot === slot)) {
       out.push('', `### \`${t.id}\` – ${t.name}`, '', '```text', prompt(t), '```');
@@ -273,7 +282,7 @@ export const EDIT_BEREICH: Record<Slot | 'haare', { x: number; y: number; width:
 /** The sentence that ends every edit: the figure must not move, so the change lands exactly on the canvas. */
 export const EDIT_BEHALTEN =
   'Keep everything else exactly as it is: the same character, the same pose, the same position and size in the ' +
-  'picture, the bald head, the face without eyes, the skin colour, the body, the plain flat light grey background ' +
+  'picture, the bald head, the blank face without eyes or mouth, the skin colour, the body, the plain flat light grey background ' +
   'and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.';
 
 const EDIT_AUFTRAG: Record<Exclude<Slot, 'hintergrund'>, (was: string) => string> = {
@@ -296,7 +305,8 @@ export function editPrompt(t: Teil): string | undefined {
   return [
     EDIT_AUFTRAG[t.slot](was),
     `In the same soft painted style. ${SELTENHEIT_DETAILS[t.seltenheit] ?? ''}`,
-    EDIT_BEHALTEN,
+    // Eyes are the change here: only the mouth stays away.
+    t.slot === 'augen' ? EDIT_BEHALTEN.replace('the blank face without eyes or mouth', 'no mouth') : EDIT_BEHALTEN,
   ].join(' ');
 }
 
@@ -304,14 +314,14 @@ export function editPrompt(t: Teil): string | undefined {
 export const editGrundfigur = () =>
   'Repaint this simple flat character as a soft painted illustration. Keep exactly the same pose, proportions, ' +
   'position and size in the picture and the same plain flat light grey background. A completely bald round head ' +
-  'with smooth skin, rosy cheeks, a small smile, a smooth blank face with no eyes and no eyebrows, a plain white ' +
+  'with smooth skin, a completely blank smooth face with no eyes, no eyebrows, no mouth and no cheeks, a plain white ' +
   `sleeveless undershirt, dark brown trousers, no shadow on the ground. ${STIL}`;
 
 /** The bald base figure from a finished figure with hair (e.g. short hair), with an edit model. */
 export const editGlatze =
   'Remove all the hair: the character is completely bald, with a smooth round head in the same skin colour as the ' +
-  'face and the same ears. Keep the face (still without eyes), the cheeks, the smile, the body, the clothes, the ' +
-  'pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not ' +
+  'face and the same ears, and make the face completely blank and smooth (no eyes, no mouth, no cheeks). Keep the ' +
+  'body, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not ' +
   'move, crop or zoom.';
 
 /** Words for the skin tones (`HAUT`, same order) for the edits that make them. */
@@ -328,14 +338,14 @@ export const HAUT_BESCHREIBUNG = [
 export const editHaut = (i: number) =>
   `Change the skin colour of the character to a natural ${HAUT_BESCHREIBUNG[i]} human skin tone (about ${HAUT[i]}) ` +
   'everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep ' +
-  'the soft painted edges without dark outlines, the rosy cheeks and the brown smile. ' +
-  'Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the ' +
+  'the soft painted edges without dark outlines. ' +
+  'Keep the bald head, the blank face without eyes or mouth, the clothes, the pose, the position and size in the picture and the ' +
   'plain flat light grey background exactly the same. Do not move, crop or zoom.';
 
 /** One hair on the bald base figure (`edit/haare-<id>.png`), with an edit model; always brown. */
 export const editFrisur = (id: string) =>
-  `Give the character ${FRISUR_BESCHREIBUNG[id] ?? id}, in the same soft painted style. Keep the face (still without ` +
-  'eyes), the forehead, the skin colour, the body, the clothes, the pose, the position and size in the picture and ' +
+  `Give the character ${FRISUR_BESCHREIBUNG[id] ?? id}, in the same soft painted style. Keep the face (still blank, ` +
+  'without eyes or mouth), the forehead, the skin colour, the body, the clothes, the pose, the position and size in the picture and ' +
   'the plain flat light grey background exactly the same. Do not move, crop or zoom. Change nothing else.';
 
 /** All edit instructions (for docs/design/lernquest/bilder/edit-prompts.md). */
@@ -345,7 +355,9 @@ export function editListe(): string {
     '',
     'Erzeugt mit `npm run lq:bilder -- --prompts` aus `src/lernquest/bilder/vorlagen.ts`; nicht von Hand ändern.',
     'Regeln für die Ergebnisse: `docs/design/lernquest/bilder.md`, Abschnitt „Mit einem Edit-Modell“.',
-    'Alles wird auf die Glatzkopf-Grundfigur `koerper.png` gemalt (Hautton 1), außer den Hauttönen selbst.',
+    'Alles wird auf die Glatzkopf-Grundfigur `koerper.png` gemalt (Hautton 1, Gesicht leer), außer den Hauttönen selbst.',
+    'Kopf, Werkzeug und Begleiter entstehen einzeln mit Text zu Bild (`prompts.md`), damit sie bei einer neuen',
+    'Grundfigur gültig bleiben.',
     '',
     '## 1. Grundfigur `koerper.png` (Glatze)',
     '',
@@ -369,11 +381,16 @@ export function editListe(): string {
   for (const f of FRISUREN.filter((x) => x.id !== 'glatze'))
     out.push('', `### \`haare-${f.id}\` – ${f.name}`, '', '```text', editFrisur(f.id), '```');
   for (const { slot, label } of SLOTS) {
-    if (slot === 'hintergrund') continue;
+    if (slot === 'hintergrund' || EINZELN.includes(slot)) continue;
     out.push('', `## ${label} (Eingabe: \`koerper.png\`, Ablage in \`lernquest-roh/edit/\`)`);
     for (const t of TEILE.filter((x) => x.slot === slot))
       out.push('', `### \`${t.id}\` – ${t.name}`, '', '```text', editPrompt(t)!, '```');
   }
-  out.push('', '## Hintergründe', '', 'Keine Edits: als ganzes Bild mit Text zu Bild, Prompts in `prompts.md`.');
+  out.push(
+    '',
+    '## Kopf, Werkzeug, Begleiter und Hintergründe',
+    '',
+    'Keine Edits: einzeln (Hintergründe als ganzes Bild) mit Text zu Bild, Prompts in `prompts.md`.',
+  );
   return out.join('\n') + '\n';
 }

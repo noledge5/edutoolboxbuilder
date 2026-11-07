@@ -56,15 +56,16 @@ am 07.11.2026 grün.
    die Live-Seite grün (07.11.2026).
 2. **Bilder: Mund als eigene Ebene (Wunsch der Lehrkraft, 07.11.2026, noch nicht gebaut).** Die Lehrkraft will
    verschiedene Münder; die bisherige `koerper.png` hat Lächeln und Bäckchen. Plan:
-   - Lehrkraft malt die Grundfigur `koerper.png` neu: **ohne Mund, ohne Augen, mit Bäckchen**. Erst danach Hauttöne,
-     Frisuren und Teile (alle Edits hängen an genau dieser Datei).
+   - Grundfigur `koerper.png` neu: **Gesicht leer (ohne Augen, Mund, Bäckchen)**; Bäckchen kommen mit in die
+     Mund-Ebene. Eine solche Figur hat die Lehrkraft am 07.11.2026 gezeigt (nur im Chat, noch nicht in Drive).
+   - Entschieden (07.11.2026): Kopf, Werkzeug, Begleiter einzeln mit Text zu Bild (`EINZELN`, `prompts.md`), der Rest
+     als Edit von `koerper.png`. Prompts und `bilder.md` sind angepasst (`STIL` verbietet Umrisse jetzt deutlich).
    - Claude baut „Mund“ wie die Frisur: frei wählbar auf der Held-Seite, eigene Ebene (über Grundfigur und Augen,
      unter Kopf-Teil), Edits `edit/mund-<id>.png`, Suchbereich um den Mund in `EDIT_BEREICH`, Liste wie `FRISUREN`.
      Server: `lq_avatar_setzen` muss den Schlüssel `mund` annehmen (Migration, erst nach OK der Lehrkraft, vor dem
      Merge).
-   - Claude macht den Suchbereich je Teil größer einstellbar (`anpassen.json`): bei Kopf-Teilen endet er bei Zeile 418
-     von 1024 (`EDIT_BEREICH.kopf`), die Wollmütze reicht bis 450, der Ritterhelm bis 534 und würden abgeschnitten.
-     Bei solchen tiefen Teilen muss das Gesicht im Edit gleich bleiben, sonst wandert der Unterschied mit.
+   - Der kleine Suchbereich für Kopf-Edits (endet an der Stirn) ist kein Problem mehr, weil Kopf-Teile einzeln
+     entstehen.
    - Rohbilder kommen über Google Drive: Ordner `lernquest-roh` (Grundfigur, Hauttöne) mit Unterordner `edit`
      (Teile, Frisuren, Münder), Original-PNGs aus ComfyUI. Claude holt sie mit dem Drive-Werkzeug und lässt
      `npm run lq:bilder` laufen. Erste Edits (Piratenhut, Entdeckerhut, Ritterhelm, Stirnband, Wollmütze) gab es nur
