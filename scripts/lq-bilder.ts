@@ -207,16 +207,13 @@ async function bauen() {
           wie.push(i ? 'umgefärbt' : 'Bild');
           continue;
         }
-        // An edit of koerper.png: moved back if needed, then cut out like the base.
+        // An edit of koerper.png: moved back if needed; the outline is the base figure's (the body is the same), so a
+        // very light skin is not cut away as background.
         const grau = await aufGrau(join(ordner, name));
         const v = verschiebung(grau0.data, grau.data, G, G, 12);
-        const t = await laden(join(ordner, name));
-        if (!hatTransparenz(t.data)) freistellen(t.data, t.w, t.h, a.toleranz, a.loecher);
-        const te = await aufEbene(t);
-        await speichern(`koerper-${i}`, {
-          ...te,
-          data: v.dx || v.dy ? verschieben(te.data, G, G, v.dx, v.dy) : te.data,
-        });
+        const data = v.dx || v.dy ? verschieben(grau.data, G, G, v.dx, v.dy) : new Uint8Array(grau.data);
+        for (let p = 0; p < G * G; p++) data[p * 4 + 3] = e.data[p * 4 + 3];
+        await speichern(`koerper-${i}`, { data, w: G, h: G });
         wie.push(`Edit${v.dx || v.dy ? ` (${v.dx}/${v.dy} px)` : ''}`);
       }
       fertig.push(`koerper: Hauttöne ${wie.map((w, i) => `${i + 1} ${w}`).join(', ')}`);

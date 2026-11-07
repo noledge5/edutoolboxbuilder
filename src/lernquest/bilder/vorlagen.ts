@@ -321,13 +321,14 @@ export const HAUT_BESCHREIBUNG = [
   'medium golden tan',
   'warm medium brown',
   'deep dark brown',
-  'very fair pale pink',
+  'very fair light pinkish beige',
 ];
 
 /** One skin tone of the bald base figure (`koerper_h<i>.png`), with an edit model. */
 export const editHaut = (i: number) =>
-  `Change the skin colour of the character to ${HAUT_BESCHREIBUNG[i]} (about ${HAUT[i]}) everywhere: head, ears, face, ` +
-  'neck, arms and hands, with matching soft shading and the same warm rim light. Keep the rosy cheeks and the smile. ' +
+  `Change the skin colour of the character to a natural ${HAUT_BESCHREIBUNG[i]} human skin tone (about ${HAUT[i]}) ` +
+  'everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep ' +
+  'the soft painted edges without dark outlines, the rosy cheeks and the brown smile. ' +
   'Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the ' +
   'plain flat light grey background exactly the same. Do not move, crop or zoom.';
 

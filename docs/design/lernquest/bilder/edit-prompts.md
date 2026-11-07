@@ -23,31 +23,31 @@ Repaint this simple flat character as a soft painted illustration. Keep exactly 
 ### `koerper_h1` – Hautton 2 (#E8B48A)
 
 ```text
-Change the skin colour of the character to warm light tan (about #E8B48A) everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep the rosy cheeks and the smile. Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom.
+Change the skin colour of the character to a natural warm light tan human skin tone (about #E8B48A) everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep the soft painted edges without dark outlines, the rosy cheeks and the brown smile. Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom.
 ```
 
 ### `koerper_h2` – Hautton 3 (#C98E62)
 
 ```text
-Change the skin colour of the character to medium golden tan (about #C98E62) everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep the rosy cheeks and the smile. Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom.
+Change the skin colour of the character to a natural medium golden tan human skin tone (about #C98E62) everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep the soft painted edges without dark outlines, the rosy cheeks and the brown smile. Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom.
 ```
 
 ### `koerper_h3` – Hautton 4 (#A86E45)
 
 ```text
-Change the skin colour of the character to warm medium brown (about #A86E45) everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep the rosy cheeks and the smile. Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom.
+Change the skin colour of the character to a natural warm medium brown human skin tone (about #A86E45) everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep the soft painted edges without dark outlines, the rosy cheeks and the brown smile. Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom.
 ```
 
 ### `koerper_h4` – Hautton 5 (#7A4E2E)
 
 ```text
-Change the skin colour of the character to deep dark brown (about #7A4E2E) everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep the rosy cheeks and the smile. Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom.
+Change the skin colour of the character to a natural deep dark brown human skin tone (about #7A4E2E) everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep the soft painted edges without dark outlines, the rosy cheeks and the brown smile. Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom.
 ```
 
 ### `koerper_h5` – Hautton 6 (#F6DCC4)
 
 ```text
-Change the skin colour of the character to very fair pale pink (about #F6DCC4) everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep the rosy cheeks and the smile. Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom.
+Change the skin colour of the character to a natural very fair light pinkish beige human skin tone (about #F6DCC4) everywhere: head, ears, face, neck, arms and hands, with matching soft shading and the same warm rim light. Keep the soft painted edges without dark outlines, the rosy cheeks and the brown smile. Keep the bald head, the face without eyes, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom.
 ```
 
 ## 3. Frisuren `haare-<id>.png` (Eingabe: `koerper.png`, Ablage in `lernquest-roh/edit/`)
