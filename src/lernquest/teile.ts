@@ -21,15 +21,16 @@ export interface Teil {
   seltenheit: number;
   /** Everyone has it from the start. */
   start?: boolean;
-  /** Bonus in the game: more coins (percent), more hearts per round. */
+  /** Bonus in the game: more coins (percent), more hearts per round, more damage per right answer in the boss fight. */
   muenzen?: number;
   herz?: number;
+  schaden?: number;
 }
 
 export const TEILE: Teil[] = [
   { id: 'wollmuetze', slot: 'kopf', name: 'Wollmütze', seltenheit: 0 },
   { id: 'stirnband', slot: 'kopf', name: 'Stirnband', seltenheit: 1 },
-  { id: 'ritterhelm', slot: 'kopf', name: 'Ritterhelm', seltenheit: 1 },
+  { id: 'ritterhelm', slot: 'kopf', name: 'Ritterhelm', seltenheit: 1, schaden: 1 },
   { id: 'entdeckerhut', slot: 'kopf', name: 'Entdeckerhut', seltenheit: 2, muenzen: 5 },
   { id: 'piratenhut', slot: 'kopf', name: 'Piratenhut', seltenheit: 2 },
   { id: 'zauberhut', slot: 'kopf', name: 'Zauberhut', seltenheit: 3, muenzen: 10 },
@@ -50,10 +51,10 @@ export const TEILE: Teil[] = [
   { id: 'goldruestung', slot: 'kleidung', name: 'Goldrüstung', seltenheit: 4, muenzen: 10, herz: 1 },
   { id: 'lupe', slot: 'werkzeug', name: 'Lupe', seltenheit: 0 },
   { id: 'buch', slot: 'werkzeug', name: 'Buch', seltenheit: 0 },
-  { id: 'fernrohr', slot: 'werkzeug', name: 'Fernrohr', seltenheit: 1 },
+  { id: 'fernrohr', slot: 'werkzeug', name: 'Fernrohr', seltenheit: 1, schaden: 1 },
   { id: 'kompass', slot: 'werkzeug', name: 'Kompass', seltenheit: 2, muenzen: 5 },
-  { id: 'zauberstab', slot: 'werkzeug', name: 'Zauberstab', seltenheit: 3, herz: 1 },
-  { id: 'sternenschwert', slot: 'werkzeug', name: 'Sternenschwert', seltenheit: 4, muenzen: 5, herz: 1 },
+  { id: 'zauberstab', slot: 'werkzeug', name: 'Zauberstab', seltenheit: 3, herz: 1, schaden: 2 },
+  { id: 'sternenschwert', slot: 'werkzeug', name: 'Sternenschwert', seltenheit: 4, muenzen: 5, herz: 1, schaden: 3 },
   { id: 'schnecke', slot: 'begleiter', name: 'Schnecke', seltenheit: 0 },
   { id: 'katze', slot: 'begleiter', name: 'Katze', seltenheit: 1 },
   { id: 'eule', slot: 'begleiter', name: 'Eule', seltenheit: 2, muenzen: 5 },
@@ -78,7 +79,7 @@ export const TEILE: Teil[] = [
   { id: 'drachenruestung', slot: 'kleidung', name: 'Drachenrüstung', seltenheit: 3, muenzen: 5, herz: 1 },
   { id: 'pinsel', slot: 'werkzeug', name: 'Pinsel', seltenheit: 0 },
   { id: 'laterne', slot: 'werkzeug', name: 'Laterne', seltenheit: 1 },
-  { id: 'dreizack', slot: 'werkzeug', name: 'Dreizack', seltenheit: 3, muenzen: 10 },
+  { id: 'dreizack', slot: 'werkzeug', name: 'Dreizack', seltenheit: 3, muenzen: 10, schaden: 2 },
   { id: 'hamster', slot: 'begleiter', name: 'Hamster', seltenheit: 0 },
   { id: 'pinguin', slot: 'begleiter', name: 'Pinguin', seltenheit: 1 },
   { id: 'phoenix', slot: 'begleiter', name: 'Phönix', seltenheit: 4, muenzen: 10, herz: 1 },
@@ -158,21 +159,28 @@ export function angelegt(a: Avatar, slot: Slot): Teil | undefined {
   return teil(id) ?? TEILE.find((t) => t.slot === slot && t.start);
 }
 
-/** Bonuses of what is worn, capped: at most +20 % coins and +2 hearts (as `lq_bonus`). */
-export function bonusVon(a: Avatar): { muenzen: number; herz: number } {
+/** Most extra damage per right answer in the boss fight from what is worn (as `lq_bonus_schaden`). */
+export const SCHADEN_MAX = 3;
+
+/** Bonuses of what is worn, capped: at most +20 % coins, +2 hearts (as `lq_bonus`) and +3 damage (`lq_bonus_schaden`). */
+export function bonusVon(a: Avatar): { muenzen: number; herz: number; schaden: number } {
   let muenzen = 0;
   let herz = 0;
+  let schaden = 0;
   for (const { slot } of SLOTS) {
     const t = a[slot] ? teil(a[slot]) : undefined;
     muenzen += t?.muenzen ?? 0;
     herz += t?.herz ?? 0;
+    schaden += t?.schaden ?? 0;
   }
-  return { muenzen: Math.min(20, muenzen), herz: Math.min(2, herz) };
+  return { muenzen: Math.min(20, muenzen), herz: Math.min(2, herz), schaden: Math.min(SCHADEN_MAX, schaden) };
 }
 
-/** A bonus as the child reads it: „+5 % Münzen, +1 Herz“; '' when there is none. */
-export function bonusText(b: { muenzen?: number; herz?: number }): string {
-  return [b.muenzen ? `+${b.muenzen} % Münzen` : '', b.herz ? `+${b.herz} ${b.herz === 1 ? 'Herz' : 'Herzen'}` : ''].filter(Boolean).join(', ');
+/** A bonus as the child reads it: „+5 % Münzen, +1 Herz, +2 Schaden“; '' when there is none. */
+export function bonusText(b: { muenzen?: number; herz?: number; schaden?: number }): string {
+  return [b.muenzen ? `+${b.muenzen} % Münzen` : '', b.herz ? `+${b.herz} ${b.herz === 1 ? 'Herz' : 'Herzen'}` : '', b.schaden ? `+${b.schaden} Schaden` : '']
+    .filter(Boolean)
+    .join(', ');
 }
 
 /** Whether the child may wear a part: a start part or one in the inventory. */

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { angelegt, bonusText, bonusVon, CHANCEN, MUENZ_CHANCEN, MUENZ_TRUHE, PREISE, TEILE } from './teile';
+import { angelegt, bonusText, bonusVon, SCHADEN_MAX, CHANCEN, MUENZ_CHANCEN, MUENZ_TRUHE, PREISE, TEILE, type Avatar } from './teile';
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
@@ -235,6 +235,11 @@ describe('Held und Beute', () => {
     const rows = [...sql.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+)\)/g)].map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]);
     expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, !!t.start, t.muenzen ?? 0, t.herz ?? 0]));
     expect(TEILE).toHaveLength(56);
+    // Damage bonus in the boss fight (20261111_lernquest_schaden.sql).
+    const schaden = readFileSync(new URL('../../supabase/migrations/20261111_lernquest_schaden.sql', import.meta.url), 'utf8');
+    const mitSchaden = [...schaden.matchAll(/\('([a-z]+)', (\d+)\)/g)].map((m) => [m[1], +m[2]]);
+    expect(mitSchaden).toEqual(TEILE.filter((t) => t.schaden).map((t) => [t.id, t.schaden]));
+    expect(schaden).toContain(`least(${SCHADEN_MAX},`);
     expect([...MUENZ_CHANCEN, ...CHANCEN].reduce((a, b) => a + b, 0)).toBe(100);
     // Chests and shop as in lq_truhe_oeffnen and lq_kaufen (20261109_lernquest_beute.sql).
     const beute = readFileSync(new URL('../../supabase/migrations/20261109_lernquest_beute.sql', import.meta.url), 'utf8');
@@ -247,12 +252,17 @@ describe('Held und Beute', () => {
   });
 
   it('deckelt die Boni und kennt Startteile', () => {
-    expect(bonusVon({ kopf: 'krone', kleidung: 'goldruestung', werkzeug: 'sternenschwert', begleiter: 'drache' })).toEqual({ muenzen: 20, herz: 2 });
-    expect(bonusVon({})).toEqual({ muenzen: 0, herz: 0 });
+    expect(bonusVon({ kopf: 'krone', kleidung: 'goldruestung', werkzeug: 'sternenschwert', begleiter: 'drache' })).toEqual({ muenzen: 20, herz: 2, schaden: 3 });
+    expect(bonusVon({})).toEqual({ muenzen: 0, herz: 0, schaden: 0 });
+    // Damage: Ritterhelm +1 and Dreizack +2; capped at +3.
+    expect(bonusVon({ kopf: 'ritterhelm', werkzeug: 'dreizack' }).schaden).toBe(3);
+    expect(bonusVon({ kopf: 'ritterhelm', werkzeug: 'fernrohr' }).schaden).toBe(2);
+    expect(bonusVon({ frisur: 'ritterhelm' } satisfies Avatar).schaden).toBe(0);
     expect(angelegt({}, 'kleidung')?.id).toBe('tshirt');
     expect(angelegt({ kleidung: 'pulli' }, 'kleidung')?.id).toBe('pulli');
     expect(angelegt({}, 'kopf')).toBeUndefined();
     expect(bonusText({ muenzen: 5, herz: 1 })).toBe('+5 % Münzen, +1 Herz');
+    expect(bonusText({ muenzen: 5, herz: 1, schaden: 3 })).toBe('+5 % Münzen, +1 Herz, +3 Schaden');
   });
 });
 

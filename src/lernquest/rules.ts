@@ -353,10 +353,13 @@ export const BOSS_NACHFRIST_MS = 1_500;
  */
 export const BOSS_LP_JE = 13;
 
-/** Damage of a right answer given `ms` after the question showed; `serie` = right answers in a row, this one included. */
-export function bossSchaden(ms: number, serie: number): number {
+/**
+ * Damage of a right answer given `ms` after the question showed; `serie` = right answers in a row, this one included;
+ * `bonus` = damage bonus of what the child wears (`bonusVon(...).schaden`, 0–3), added before doubling.
+ */
+export function bossSchaden(ms: number, serie: number, bonus = 0): number {
   const tempo = Math.round(10 * Math.max(0, 1 - Math.max(0, ms) / BOSS_ZEIT_MS));
-  return (10 + tempo) * (serie >= 3 ? 2 : 1);
+  return (10 + tempo + bonus) * (serie >= 3 ? 2 : 1);
 }
 
 /** The boss's life points for `kinder` children and `fragen` questions. */

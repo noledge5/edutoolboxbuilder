@@ -9,6 +9,7 @@ import { SearchButton } from '../../library/SearchDialog';
 import type { Lesson, Library } from '../../library/types';
 import { freigegeben } from '../fragenpool';
 import { FragenpoolDialog } from './Fragenpool';
+import { PunkteDialog } from './PunkteDialog';
 import { paketSenden } from './senden';
 import { ensureLehrkraft, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
 import { BOSS_FRAGEN_MIN, bossFragen, bossVon } from '../boss';
@@ -227,6 +228,8 @@ interface KlasseProps {
 function KlasseView({ lib, onLessonChange, klasse, keys, pins, busy, act, savePins, onPrint }: KlasseProps) {
   /** Lesson whose KI-Fragenpool is open. */
   const [poolOf, setPoolOf] = useState<string | null>(null);
+  /** Child who gets class points by hand (dialog open). */
+  const [punkteFuer, setPunkteFuer] = useState<KindInfo | null>(null);
   const [names, setNames] = useState('');
   /** Lessons being unlocked or locked: the box shows the wish at once, the server follows. */
   const [want, setWant] = useState<Record<string, boolean>>({});
@@ -283,17 +286,17 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, busy, act, savePi
   const missingPins = kinder.filter((k) => !pins[k.id]).length;
 
   const givePoints = (k: KindInfo) => {
-    const rest = punkteHandRest(k.punkteHand ?? 0);
-    if (!rest) return;
-    const text = window.prompt(`Wie viele Klassenpunkte bekommt ${k.name}? (1–${rest}; höchstens ${PUNKTE_HAND_WOCHE} je Woche von Hand)`, '1');
-    if (text === null) return;
-    const n = Number(text.trim());
-    if (!Number.isInteger(n) || n < 1 || n > rest) {
-      window.alert(`Bitte eine Zahl von 1 bis ${rest}.`);
-      return;
-    }
-    void act((keys) => punkteGeben(keys, k.id, n));
+    if (punkteHandRest(k.punkteHand ?? 0)) setPunkteFuer(k);
   };
+  const closePoints = useCallback(() => setPunkteFuer(null), []);
+  const onGivePoints = useCallback(
+    (n: number) => {
+      if (!punkteFuer) return;
+      setPunkteFuer(null);
+      void act((keys) => punkteGeben(keys, punkteFuer.id, n));
+    },
+    [act, punkteFuer],
+  );
 
   return (
     <>
@@ -524,6 +527,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, busy, act, savePi
           </div>
         ))}
       </section>
+      {punkteFuer && <PunkteDialog name={punkteFuer.name} rest={punkteHandRest(punkteFuer.punkteHand ?? 0)} onGive={onGivePoints} onClose={closePoints} />}
       {poolOf && <PoolFuer lib={lib} id={poolOf} onLessonChange={onLessonChange} onClose={() => setPoolOf(null)} />}
     </>
   );

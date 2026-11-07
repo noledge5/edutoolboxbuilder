@@ -519,3 +519,17 @@
   white-space: nowrap;
   font-size: 11px;
 }
+.lqt-punkte-dialog {
+  width: min(420px, 100%);
+}
+.lqt-punkte-wahl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.lqt-punkte-wahl .btn {
+  min-width: 56px;
+  min-height: 44px;
+  justify-content: center;
+  font-weight: 700;
+}

@@ -69,11 +69,17 @@ describe('Bosskampf: Regeln (gleich in lq_boss_antworten und lq_boss_ticken)', (
     expect(bossSchaden(-50, 4)).toBe(40);
   });
 
+  it('Schaden-Bonus der Ausrüstung kommt vor dem Verdoppeln dazu', () => {
+    expect(bossSchaden(10_000, 1, 3)).toBe(18);
+    expect(bossSchaden(10_000, 3, 2)).toBe(34);
+    expect(bossSchaden(10_000, 1, 0)).toBe(15);
+  });
+
   it('Lebenspunkte: mit etwa 70 % richtig gewinnt die Klasse, mit 60 % nicht', () => {
     expect(bossLp(26, 10)).toBe(26 * 10 * BOSS_LP_JE);
     expect(bossLp(0, 10)).toBe(1);
     // 26 children answer at middle speed, each answer right with chance p (seeded); averaged over many classes.
-    const spiel = (p: number) => {
+    const spiel = (p: number, bonus = 0) => {
       const zufall = seeded(`lp${p}`);
       let schaden = 0;
       for (let k = 0; k < 26 * 200; k++) {
@@ -81,13 +87,15 @@ describe('Bosskampf: Regeln (gleich in lq_boss_antworten und lq_boss_ticken)', (
         for (let f = 0; f < 10; f++) {
           const richtig = zufall() < p;
           serie = richtig ? serie + 1 : 0;
-          if (richtig) schaden += bossSchaden(10_000, serie);
+          if (richtig) schaden += bossSchaden(10_000, serie, bonus);
         }
       }
       return schaden / 200 >= bossLp(26, 10);
     };
     expect(spiel(0.7)).toBe(true);
     expect(spiel(0.6)).toBe(false);
+    // Even if every child wore +1 damage, 60 % would still not be enough.
+    expect(spiel(0.6, 1)).toBe(false);
   });
 
   it('Herz weg, wenn weniger als die Hälfte richtig liegt', () => {

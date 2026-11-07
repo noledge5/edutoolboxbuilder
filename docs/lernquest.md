@@ -190,7 +190,10 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   - Verbindung: Beamer und Handys fragen jede Sekunde (kein Realtime-Kanal, der ohne Anmeldung mitlesbar wäre). Die
     Lösung verlässt den Server erst nach der Frage. Kämpfe enden nach 3 Stunden von selbst und werden nach 2 Tagen
     gelöscht; die Siege je Region bleiben.
-  - Noch nicht: „+Schaden“ als Ausrüstungs-Bonus (bräuchte eine Änderung am Teile-Katalog).
+  - „+Schaden“ als Ausrüstungs-Bonus (07.11.2026, mit der Lehrkraft entschieden): Ritterhelm und Fernrohr +1,
+    Zauberstab und Dreizack +2, Sternenschwert +3; zusammen höchstens +3, vor dem Verdoppeln in Serie
+    (`teile.ts` `schaden`/`SCHADEN_MAX`, `bossSchaden`; Server `20261111_lernquest_schaden.sql`, eingespielt 07.11.2026). Auch wenn jedes
+    Kind im Schnitt +1 trüge, reichen 60 % richtig weiterhin nicht (Test in `boss.test.ts`).
 - **Lädt:** Dauert das erste Laden oder der Beamer länger als 10 s, steht „Nochmal“ da (Designregel „Lädt“).
 - **Noch nicht:** Vorlesen, Ton-Dateien, App-Hülle offline (Daten sind offline da, die Seite selbst braucht beim
   ersten Öffnen Netz), Bild-Aufgaben (Bildvokabeln, Tabelle, Wortnetz, Satzbaustellen kommen in Stufe 5).
@@ -205,6 +208,9 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
     nicht mit den Münzen verwechselt wird.
   - Lehrkraft: Spalte „Klassenpunkte“ mit „+“, Karte „Gutscheine und Anfragen“ (`teacher/Belohnungen.tsx`), Karte
     „Fortschritt je Kompetenz“ (`teacher/Auswertung.tsx`, Rechnung in `auswertung.ts`: eine Übung sitzt ab Kasten 3).
+  - Nachgezogen (07.11.2026): „+“ öffnet den Dialog „Klassenpunkte geben“ mit Knöpfen +1 … +5 (statt
+    `window.prompt`, `teacher/PunkteDialog.tsx`). Gutscheine mit vielen Kindern gleichzeitig: Live-Test mit 12 Kindern
+    (Klassen-Grenze hält, Mehrfach-Tippen, Zurückziehen gegen Einlösen, Löschen während Anfragen) grün.
 - **Offene Übungen ohne Anmeldung (06.11.2026, Wunsch der Lehrkraft vor Stufe 5):** `lernquest/#probe=<id>` spielt feste
   Stationen und einen gemischten Probetest (16 Aufgaben) ohne Anmeldung und ohne Server; Fortschritt nur im Browser
   (`lernquest:probe:<id>`), keine Namen, keine Punkte. Inhalt in `src/lernquest/proben/` (von Claude geschrieben, nicht aus
