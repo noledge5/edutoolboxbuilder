@@ -48,11 +48,11 @@ am 07.11.2026 grün.
 ## Neu: Offene Punkte aus Stufe 4 (07.11.2026, Branch `claude/weiter-laut-handoff-qqiycp`)
 - „Klassenpunkte geben“ als Dialog (+1 … +5), Live-Test „Gutscheine gleichzeitig“ (12 Kinder) grün,
   „+Schaden“ im Bosskampf (Werkzeuge + Ritterhelm, höchstens +3). Stand in `docs/lernquest.md`.
-- Server: `supabase/migrations/20261111_lernquest_schaden.sql`, lokal geprüft (Postgres 16); auf dem echten Server
-  erst nach OK der Lehrkraft und **vor** dem Merge (sonst zeigt die App „+3 Schaden“, der Server rechnet ohne).
+- Server: `supabase/migrations/20261111_lernquest_schaden.sql` am 07.11.2026 mit OK der Lehrkraft eingespielt;
+  Server-Tests (`LQ_LIVE=1`) und `npm run lq:testlauf` danach grün.
 
 ## Nächste Schritte
-1. OK der Lehrkraft → Migration einspielen → PR → Merge → Testlauf gegen die Live-Seite.
+1. PR → Merge (Lehrkraft) → Testlauf gegen die Live-Seite.
 2. Ton am iPad: Vorlesen (Web Speech) und Klick-Töne (Web Audio) blieben stumm. Vorschlag im Chat vom 07.11.2026:
    erst `navigator.audioSession.type = 'playback'` und Vorlesen ohne `cancel()` davor, Knopf „Ton testen“; hilft das
    nicht, Ton-Dateien beim Senden des Pakets erzeugen und mit `<audio>` abspielen.
