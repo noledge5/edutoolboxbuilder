@@ -84,3 +84,14 @@ export function codeAus(text: string): string {
   const raw = (fromLink ?? text).toUpperCase().replace(/[^0-9A-Z]/g, '');
   return raw.length === 8 ? raw : '';
 }
+
+/** The projector view of a boss fight: `#beamer=<id>`, plus `&klasse=<code>` when the teacher's device knows the class
+ *  (then the projector shows a QR code to sign in); null when the address is something else. */
+export function beamerAusHash(hash: string): { id: string; klasse: string } | null {
+  const m = /^#beamer=([0-9a-f-]{36})(?:&klasse=([0-9A-Za-z]{8}))?$/.exec(hash);
+  return m ? { id: m[1], klasse: m[2]?.toUpperCase() ?? '' } : null;
+}
+
+/** The link in the QR code at the projector: Lernquest of this page with the class code, where the children sign in
+ *  (the same link as on their cards). `seite` is this page's address; query and hash are dropped. */
+export const beitrittsLink = (seite: string, code: string): string => `${seite.replace(/[?#].*$/, '').replace(/[^/]*$/, '')}#${code}`;

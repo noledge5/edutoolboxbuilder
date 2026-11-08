@@ -194,6 +194,12 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
     jedes Mal neu gemischt). Der Beamer öffnet sich als `lernquest/#beamer=<id>` in einem neuen Tab und findet die
     Lehrkraft-Schlüssel im Speicher des Geräts (gleiche Adresse wie der Baukasten). Bühne 1080 × 608, auf jede
     Fenstergröße gezoomt; „Los geht’s!“, „Auflösen“, „Nächste Frage“ auch mit Leertaste oder →.
+  - Beitritt per QR-Code (08.11.2026): In der Warte-Ansicht (vor „Los geht’s!“) steht neben der Kinderzahl ein QR-Code
+    mit dem Klassenlink `lernquest/#<Klassencode>`, derselbe wie auf den Karten, also Anmeldung mit Klassencode. Die
+    Lehrkraft-Seite hängt den Code an den Beamer-Link: `#beamer=<id>&klasse=<Code>` (`beamerAusHash`, `beitrittsLink`
+    in `karte.ts`); ohne Code (alter Link) fehlt nur der QR-Code. Kein Server-Teil. Schon angemeldete Kinder sehen
+    nach dem Scan das Band „Mitmachen“ (Abfrage alle 15 s). `QrBild.tsx` zeichnet den Code selbst mit `uqr`, damit
+    die Kinder-App den Arbeitsblatt-Code nicht lädt.
   - Kinder: Läuft ein Kampf, steht auf Karte, Held und Klasse ein Band „Bosskampf läuft! – Mitmachen“ (Abfrage alle
     15 s). Am Handy nur die Antworten mit Form; Ergebnis, Schaden und Serie nach der Frage.
   - Regeln (`rules.ts`, gleich im SQL): 20 s je Frage (+1,5 s Nachfrist), Schaden 10 + bis 10 fürs Tempo, ab 3 richtig

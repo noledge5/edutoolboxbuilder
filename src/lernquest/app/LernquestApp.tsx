@@ -1,10 +1,11 @@
 // Lernquest for the children (…/lernquest/#<Klassencode>): sign in with the class list and a PIN, then the world map
 // (subject → module regions → lesson stations), rounds of short exercises, experience, stars, the weekly goal and
 // „Wiederholen“, the hero and the boss fight. Works on a phone held upright first; offline with what was loaded last.
-// `#beamer=<id>` is the teacher's projector view of a boss fight (teacher keys from this device, see Boss.tsx).
+// `#beamer=<id>` (with `&klasse=<code>`) is the teacher's projector view of a boss fight (teacher keys from this device,
+// see Boss.tsx); the class code lets it show a QR code to sign in.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QrScanner } from '../../sync/QrScanner';
-import { codeAus, faecherVon, namensFarbe, regionenVon, vorname, wochenTage, type Station } from '../karte';
+import { beamerAusHash, codeAus, faecherVon, namensFarbe, regionenVon, vorname, wochenTage, type Station } from '../karte';
 import {
   faellig,
   heldenstufe,
@@ -73,11 +74,11 @@ const codeFromUrl = () => {
   return /^[0-9A-Za-z]{8}$/.test(h) ? h.toUpperCase() : '';
 };
 
-const beamerFromUrl = () => /^#beamer=([0-9a-f-]{36})$/.exec(location.hash)?.[1] ?? '';
+const beamerFromUrl = () => beamerAusHash(location.hash);
 
 export function LernquestApp() {
   const beamer = beamerFromUrl();
-  if (beamer) return <BossBeamer id={beamer} />;
+  if (beamer) return <BossBeamer id={beamer.id} klasse={beamer.klasse} />;
   // Open exercises from a public link: no sign-in, no server (`probe.ts`).
   const probe = probeAusUrl();
   if (probe) return <ProbeApp id={probe} />;
