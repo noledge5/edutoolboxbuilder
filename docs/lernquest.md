@@ -164,6 +164,12 @@ Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
   Kindes bleibt belegt, solange es im Papierkorb liegt.
 - **Namen am Beamer sind erlaubt** (Lehrkraft, 08.11.2026; vorher galt „keine Namen am Beamer, nur Zahlen“). Wie bei
   Plickers wird am Beamer markiert, wessen Karte erkannt ist, damit das Kind sie herunternehmen kann.
+- **Ablauf einer Frage mit Karten:** Frage am Beamer (A–D mit Form) → Kinder halten die Karte hoch, die Lehrkraft
+  scannt, gern in mehreren Durchgängen (kein Zeitlimit) → am Beamer wird der Name grün, sobald die Karte erkannt ist →
+  „Auflösen“: Balken A–D, richtige Antwort, Schaden. Ohne Tempo: **15 Schaden je richtiger Karte**, Serie ab 3 doppelt
+  wie gehabt; Herzen und Truhe wie bisher; beigetreten ist, wessen Karte im Kampf einmal erkannt wurde. Am Beamer nur,
+  **wer** geantwortet hat, nicht **was**; die einzelnen Antworten sieht nur die Lehrkraft auf dem Scan-Gerät.
+  Regeln doppelt pflegen (`rules.ts` und `lq_boss_*`).
 
 ## Erfolgskriterien Stufe 1
 
