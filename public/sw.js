@@ -15,12 +15,25 @@ async function buildFiles() {
   return [...new Set(files)];
 }
 
+/** Scripts and styles loaded only on demand (PDF import, PowerPoint, AI, …), from the build manifest. */
+async function lazyFiles() {
+  try {
+    const manifest = await (await fetch('./assets/manifest.json', { cache: 'no-store' })).json();
+    const files = Object.values(manifest).flatMap((c) => [c.file, ...(c.css || [])]);
+    return [...new Set(files)].filter((f) => /^assets\/[^/]+\.(m?js|css)$/.test(f)).map((f) => './' + f);
+  } catch {
+    return [];
+  }
+}
+
 self.addEventListener('install', (e) => {
   e.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE);
       await cache.addAll(CORE);
       await cache.addAll(await buildFiles());
+      // Best effort: one missing on-demand file must not cost the whole offline copy.
+      await Promise.allSettled((await lazyFiles()).map((f) => cache.add(f)));
       await self.skipWaiting();
     })(),
   );
@@ -55,15 +68,22 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   // Page and other files: the network when online (so updates arrive), the cache when offline.
+  // Each page is kept under its own address, so the student view (a/) or Lernquest never replaces the Baukasten.
+  const page = url.origin + url.pathname;
+  const isRoot = url.pathname === new URL('./', self.location.href).pathname;
   e.respondWith(
     fetch(req)
       .then((res) => {
         if (res.ok && req.mode === 'navigate') {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put('./', copy));
+          caches.open(CACHE).then((c) => c.put(page, copy));
         }
         return res;
       })
-      .catch(async () => (await caches.match(req, { ignoreSearch: true })) || (req.mode === 'navigate' ? caches.match('./') : Response.error())),
+      .catch(
+        async () =>
+          (await caches.match(req, { ignoreSearch: true })) ||
+          (req.mode === 'navigate' ? (await caches.match(page)) || (isRoot ? caches.match('./') : Response.error()) : Response.error()),
+      ),
   );
 });
