@@ -174,6 +174,9 @@ Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
   Regeln doppelt pflegen (`rules.ts` und `lq_boss_*`).
 - **Mehrfach gescannt: der letzte Scan zählt**, bis „Auflösen“ gedrückt ist (wie Plickers). Kinder dürfen sich
   umentscheiden, und ein Fehlscan bessert sich beim nächsten Durchgang aus; das Scan-Gerät zeigt den neuen Buchstaben.
+- **Ohne Netz kein Scannen** (Lehrkraft, 08.11.2026): Fällt die Verbindung aus, stoppt das Scannen mit „Keine
+  Verbindung“; keine Warteschlange auf dem Gerät. Warum: einfacher, und Schaden, Truhe und Klassenpunkte liegen ohnehin
+  auf dem Server. Ein Kampf nur zwischen Scan-Gerät und Beamer ohne Server ist nicht geplant.
 - **Scan-Gerät ist das iPhone oder iPad der Lehrkraft** (sie hat Mac, iPad und iPhone dabei), nicht das Gerät am
   Beamer. Die Karten müssen schnell und einfach erfasst werden: viele Karten pro Bild, vier Antworten je nach Haltung
   der Karte.
