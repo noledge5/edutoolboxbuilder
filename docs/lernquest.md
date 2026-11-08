@@ -149,7 +149,10 @@ Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
 - **Zwei Ausführungen des Bosskampfs:** mit **Geräten** (Beitritt per QR-Code, wie gebaut) oder mit **nummerierten
   Karten**, die die Kinder hochhalten und die Lehrkraft scannt. Die Klasse hat bereits einen Original-Satz
   Plickers-Karten.
-- Offen: Original-Plickers-Karten lesen oder eigene Karten drucken (Plickers ist ein fremdes, patentiertes Produkt).
+- **Eigene Karten statt Original-Plickers-Karten:** gleiche Bedienung (Nummer je Kind, Drehung = Antwort A–D, die
+  Lehrkraft scannt), aber eigenes Muster aus freien ArUco-Markern, gedruckt aus dem Baukasten wie die PIN-Karten.
+  Warum: Plickers ist ein fremdes Produkt mit US-Patent auf das Verfahren, das Muster ist nicht offen; eigene Karten
+  sind rechtlich sauber, und die Erkennung bleibt in unserer Hand. Kosten: einmal drucken und laminieren.
 
 ## Erfolgskriterien Stufe 1
 
