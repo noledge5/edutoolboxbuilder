@@ -113,9 +113,15 @@ export const DOPPELT = [10, 20, 40, 80, 150];
 /** Hearts per round without bonuses. */
 export const HERZEN = 3;
 
-/** What is worn: a part per place, the skin tone (`HAUT`), the hair (`FRISUREN`) and its colour (`HAARFARBEN`).
- *  `figur` (0–2) is the older way to say the hair; it still counts when `frisur` is missing. */
-export type Avatar = Partial<Record<Slot, string>> & { haut?: number; frisur?: string; haarfarbe?: number; figur?: number };
+/** What is worn: a part per place, the skin tone (`HAUT`), the hair (`FRISUREN`) and its colour (`HAARFARBEN`) and the
+ *  mouth (`MUENDER`). `figur` (0–2) is the older way to say the hair; it still counts when `frisur` is missing. */
+export type Avatar = Partial<Record<Slot, string>> & {
+  haut?: number;
+  frisur?: string;
+  haarfarbe?: number;
+  mund?: string;
+  figur?: number;
+};
 
 /** Hair to choose freely (not collected); a layer of its own over the bald base figure, so every hair fits every skin
  *  tone and every part. Pictures are painted brown and recoloured (`HAARFARBEN`). New ones need no server change. */
@@ -133,6 +139,17 @@ export const FRISUREN: { id: string; name: string }[] = [
 /** The older `figur` 0–2 as hair. */
 export const FIGUR_FRISUR = ['kurz', 'zopf', 'locken'];
 
+/** Mouths to choose freely (not collected); a layer of its own over the blank face of the base figure, with the cheeks
+ *  that belong to it, under the head part. New ones need no server change. */
+export const MUENDER: { id: string; name: string }[] = [
+  { id: 'laecheln', name: 'Lächeln' },
+  { id: 'grinsen', name: 'Grinsen' },
+  { id: 'lachen', name: 'Lachen' },
+  { id: 'staunen', name: 'Staunen' },
+  { id: 'frech', name: 'Zunge raus' },
+  { id: 'ernst', name: 'Ernst' },
+];
+
 /** Hair colours to choose freely: the first is the colour the pictures are painted in. */
 export const HAARFARBEN = [
   { name: 'Braun', farbe: '#4A2E1A' },
@@ -147,6 +164,8 @@ export function frisurVon(a: Avatar): string {
   if (a.frisur && FRISUREN.some((f) => f.id === a.frisur)) return a.frisur;
   return FIGUR_FRISUR[a.figur ?? 0] ?? 'kurz';
 }
+/** The mouth worn: `mund` if known, else the smile. */
+export const mundVon = (a: Avatar): string => (MUENDER.some((m) => m.id === a.mund) ? a.mund! : MUENDER[0].id);
 export const haarfarbeVon = (a: Avatar) => (a.haarfarbe !== undefined && a.haarfarbe >= 0 && a.haarfarbe < HAARFARBEN.length ? a.haarfarbe : 0);
 
 /** Skin tones to choose freely (not collected). */

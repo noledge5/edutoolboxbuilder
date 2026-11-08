@@ -1,7 +1,7 @@
 // Painted pictures for the hero (docs/design/lernquest/bilder.md): the art style, the prompt templates for Krea 2 in
 // ComfyUI and where each place sits on the avatar canvas (viewBox 0 0 240 240). Used by `npm run lq:bilder`
 // (scripts/lq-bilder.ts), which runs in plain Node, so imports here carry their `.ts` extension.
-import { FRISUREN, HAUT, SLOTS, TEILE, type Slot, type Teil } from '../teile.ts';
+import { FRISUREN, HAUT, MUENDER, SLOTS, TEILE, type Slot, type Teil } from '../teile.ts';
 
 /** How a raw picture becomes a layer: placed into a box (`einzeln`), or painted on the base figure (`figur`). */
 export type Weg = 'einzeln' | 'figur' | 'flaeche';
@@ -244,7 +244,7 @@ export function promptListe(): string {
     'Erzeugt mit `npm run lq:bilder -- --prompts` aus `src/lernquest/bilder/vorlagen.ts`; nicht von Hand ändern.',
     'Dateiname des fertigen Bildes = ID (z. B. `krone.png`). Ablauf und Einstellungen: `docs/design/lernquest/bilder.md`.',
     'Empfehlung: Kopf, Werkzeug und Begleiter einzeln mit diesen Prompts (das Skript setzt sie an ihren Platz), dazu die',
-    'Hintergründe. Grundfigur, Hauttöne, Frisuren, Augen und Kleidung als Edit von `koerper.png`: `edit-prompts.md`.',
+    'Hintergründe. Grundfigur, Hauttöne, Frisuren, Münder, Augen und Kleidung als Edit von `koerper.png`: `edit-prompts.md`.',
     '',
     '## Grundfigur (`koerper.png`, Glatze; nur ohne Edit-Modell, Bild zu Bild aus `schablonen/grundfigur-vorlage.png`)',
     '',
@@ -269,7 +269,7 @@ export function promptListe(): string {
 // `npm run lq:bilder` keeps only what changed (raw pictures in lernquest-roh/edit/). —
 
 /** Where the script looks for the change, per place and for hair (canvas units); outside it the edit is ignored. */
-export const EDIT_BEREICH: Record<Slot | 'haare', { x: number; y: number; width: number; height: number }> = {
+export const EDIT_BEREICH: Record<Slot | 'haare' | 'mund', { x: number; y: number; width: number; height: number }> = {
   kopf: { x: 36, y: 0, width: 168, height: 98 },
   augen: { x: 80, y: 82, width: 80, height: 36 },
   werkzeug: { x: 126, y: 60, width: 114, height: 180 },
@@ -277,6 +277,7 @@ export const EDIT_BEREICH: Record<Slot | 'haare', { x: number; y: number; width:
   kleidung: { x: 64, y: 118, width: 112, height: 100 },
   hintergrund: { x: 0, y: 0, width: 240, height: 240 },
   haare: { x: 28, y: 0, width: 184, height: 176 },
+  mund: { x: 84, y: 102, width: 72, height: 34 },
 };
 
 /** The sentence that ends every edit: the figure must not move, so the change lands exactly on the canvas. */
@@ -348,6 +349,25 @@ export const editFrisur = (id: string) =>
   'without eyes or mouth), the forehead, the skin colour, the body, the clothes, the pose, the position and size in the picture and ' +
   'the plain flat light grey background exactly the same. Do not move, crop or zoom. Change nothing else.';
 
+/** How each mouth looks (`MUENDER`), with the cheeks that belong to it. */
+export const MUND_BESCHREIBUNG: Record<string, string> = {
+  laecheln: 'a small friendly closed-mouth smile',
+  grinsen: 'a wide cheerful grin that shows a row of white teeth',
+  lachen: 'a big laughing open mouth with a pink tongue',
+  staunen: 'a small round open mouth, as if surprised',
+  frech: 'a cheeky smile with the tongue sticking out',
+  ernst: 'a small straight serious mouth',
+};
+
+/** One mouth on the blank face of the base figure (`edit/mund-<id>.png`), with an edit model; the soft pink cheeks
+ *  belong to it. The eyes are not part of it (they are parts of their own). */
+export const editMund = (id: string) =>
+  `Paint ${MUND_BESCHREIBUNG[id] ?? id} on the character's blank face, centred in the lower third of the face, with ` +
+  'two small soft pink cheeks left and right of it, in the same soft painted style. Keep everything else exactly as it ' +
+  'is: the same character, the bald head, the rest of the face still blank (no eyes, no eyebrows, no nose), the skin ' +
+  'colour, the body, the clothes, the pose, the position and size in the picture and the plain flat light grey ' +
+  'background. Do not move, crop or zoom. Change nothing else and add nothing else.';
+
 /** All edit instructions (for docs/design/lernquest/bilder/edit-prompts.md). */
 export function editListe(): string {
   const out = [
@@ -380,6 +400,8 @@ export function editListe(): string {
   out.push('', '## 3. Frisuren `haare-<id>.png` (Eingabe: `koerper.png`, Ablage in `lernquest-roh/edit/`)');
   for (const f of FRISUREN.filter((x) => x.id !== 'glatze'))
     out.push('', `### \`haare-${f.id}\` – ${f.name}`, '', '```text', editFrisur(f.id), '```');
+  out.push('', '## 4. Münder `mund-<id>.png` (Eingabe: `koerper.png`, Ablage in `lernquest-roh/edit/`)');
+  for (const m of MUENDER) out.push('', `### \`mund-${m.id}\` – ${m.name}`, '', '```text', editMund(m.id), '```');
   for (const { slot, label } of SLOTS) {
     if (slot === 'hintergrund' || EINZELN.includes(slot)) continue;
     out.push('', `## ${label} (Eingabe: \`koerper.png\`, Ablage in \`lernquest-roh/edit/\`)`);

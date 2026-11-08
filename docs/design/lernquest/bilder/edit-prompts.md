@@ -102,6 +102,44 @@ Give the character short spiky medium brown hair standing up, in the same soft p
 Give the character a medium brown bob haircut, chin length, with a straight fringe above the eyes, in the same soft painted style. Keep the face (still blank, without eyes or mouth), the forehead, the skin colour, the body, the clothes, the pose, the position and size in the picture and the plain flat light grey background exactly the same. Do not move, crop or zoom. Change nothing else.
 ```
 
+## 4. Münder `mund-<id>.png` (Eingabe: `koerper.png`, Ablage in `lernquest-roh/edit/`)
+
+### `mund-laecheln` – Lächeln
+
+```text
+Paint a small friendly closed-mouth smile on the character's blank face, centred in the lower third of the face, with two small soft pink cheeks left and right of it, in the same soft painted style. Keep everything else exactly as it is: the same character, the bald head, the rest of the face still blank (no eyes, no eyebrows, no nose), the skin colour, the body, the clothes, the pose, the position and size in the picture and the plain flat light grey background. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `mund-grinsen` – Grinsen
+
+```text
+Paint a wide cheerful grin that shows a row of white teeth on the character's blank face, centred in the lower third of the face, with two small soft pink cheeks left and right of it, in the same soft painted style. Keep everything else exactly as it is: the same character, the bald head, the rest of the face still blank (no eyes, no eyebrows, no nose), the skin colour, the body, the clothes, the pose, the position and size in the picture and the plain flat light grey background. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `mund-lachen` – Lachen
+
+```text
+Paint a big laughing open mouth with a pink tongue on the character's blank face, centred in the lower third of the face, with two small soft pink cheeks left and right of it, in the same soft painted style. Keep everything else exactly as it is: the same character, the bald head, the rest of the face still blank (no eyes, no eyebrows, no nose), the skin colour, the body, the clothes, the pose, the position and size in the picture and the plain flat light grey background. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `mund-staunen` – Staunen
+
+```text
+Paint a small round open mouth, as if surprised on the character's blank face, centred in the lower third of the face, with two small soft pink cheeks left and right of it, in the same soft painted style. Keep everything else exactly as it is: the same character, the bald head, the rest of the face still blank (no eyes, no eyebrows, no nose), the skin colour, the body, the clothes, the pose, the position and size in the picture and the plain flat light grey background. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `mund-frech` – Zunge raus
+
+```text
+Paint a cheeky smile with the tongue sticking out on the character's blank face, centred in the lower third of the face, with two small soft pink cheeks left and right of it, in the same soft painted style. Keep everything else exactly as it is: the same character, the bald head, the rest of the face still blank (no eyes, no eyebrows, no nose), the skin colour, the body, the clothes, the pose, the position and size in the picture and the plain flat light grey background. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `mund-ernst` – Ernst
+
+```text
+Paint a small straight serious mouth on the character's blank face, centred in the lower third of the face, with two small soft pink cheeks left and right of it, in the same soft painted style. Keep everything else exactly as it is: the same character, the bald head, the rest of the face still blank (no eyes, no eyebrows, no nose), the skin colour, the body, the clothes, the pose, the position and size in the picture and the plain flat light grey background. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
 ## Augen (Eingabe: `koerper.png`, Ablage in `lernquest-roh/edit/`)
 
 ### `punktaugen` – Punktaugen

@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { heldenstufe, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
-import { bonusText, bonusVon, CHANCEN, FRISUREN, frisurVon, GARANTIE, HAARFARBEN, haarfarbeVon, HAUT, hat, MUENZ_CHANCEN, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
+import { bonusText, bonusVon, CHANCEN, FRISUREN, frisurVon, GARANTIE, HAARFARBEN, haarfarbeVon, HAUT, hat, MUENDER, MUENZ_CHANCEN, mundVon, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
 import { GutscheinLeiste } from './Gutscheine';
@@ -242,6 +242,25 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
               onClick={() => anlegen({ ...ohneFigur(stand.avatar), frisur: frisurVon(stand.avatar), haarfarbe: i })}
             />
           ))}
+        </div>
+        <div className="lq-frisur" role="radiogroup" aria-label="Mund">
+          <span className="lq-klein">Mund</span>
+          {MUENDER.map((m) => {
+            const an = mundVon(stand.avatar) === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                role="radio"
+                aria-checked={an}
+                className={an ? 'an' : ''}
+                onClick={() => anlegen({ ...stand.avatar, mund: m.id })}
+              >
+                <KopfBild avatar={{ ...stand.avatar, mund: m.id }} nah />
+                <span>{m.name}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
