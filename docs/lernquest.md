@@ -143,6 +143,14 @@ Wunsch der Lehrkraft, weil die gemalte Grundfigur ein leeres Gesicht hat. Migrat
 - Bilder: Edit von `koerper.png`, Ablage `lernquest-roh/edit/mund-<id>.png`, Suchbereich `EDIT_BEREICH.mund`,
   Prompts `editMund` in `vorlagen.ts` (`edit-prompts.md`, Abschnitt 4).
 
+## Bosskampf mit Karten (Fragerunde 08.11.2026, in Klärung)
+
+Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
+- **Zwei Ausführungen des Bosskampfs:** mit **Geräten** (Beitritt per QR-Code, wie gebaut) oder mit **nummerierten
+  Karten**, die die Kinder hochhalten und die Lehrkraft scannt. Die Klasse hat bereits einen Original-Satz
+  Plickers-Karten.
+- Offen: Original-Plickers-Karten lesen oder eigene Karten drucken (Plickers ist ein fremdes, patentiertes Produkt).
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.
