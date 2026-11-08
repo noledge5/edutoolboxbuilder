@@ -8,20 +8,20 @@ Lernquest (Lern-App der Schüler, `docs/lernquest.md`): gemalte Bilder für den 
   `lernquest_schaden`), Bilder-Prompts aufgeteilt (#34), erste 26 gemalte Ebenen (#35, 07.11.2026).
 - Gemalt (`src/lernquest/app/teile/`): Grundfigur + Hauttöne, 8 Frisuren, T-Shirt, Pulli, Latzhose, Weste,
   Sternenmantel, Goldrüstung, 8 Kopf-Teile, Funkel-/Herzaugen, Taucherbrille. Sitz in `src/lernquest/bilder/anpassen.json`.
-- **Mund als eigene Ebene: PR #36, noch nicht gemergt.** Sechs Münder (`MUENDER` in `teile.ts`), Auswahl auf der Held-Seite,
-  bis zu gemalten Bildern `mund-<id>.webp` als Vektor gezeichnet. Wartet auf die Migration
-  `supabase/migrations/20261112_lernquest_mund.sql` (`lq_avatar_setzen` kennt den Schlüssel `mund`). Das Einspielen mit
-  dem Supabase-Werkzeug (Projekt „baukasten“, Name `lernquest_mund`) hat die Berechtigungsprüfung als Produktiv-Änderung
-  blockiert: Die Lehrkraft spielt sie ein oder erlaubt es ausdrücklich, danach #36 mergen (nie davor, sonst zeigt die
-  Mund-Auswahl einen Fehler). Die Funktion im Projekt war vorher byte-gleich mit `20261110_lernquest_frisur.sql`.
-- **Bosskampf: QR-Code zum Beitritt**, PR dazu. In der Warte-Ansicht am Beamer steht der Klassenlink als QR-Code
+- **Mund als eigene Ebene: live (#36, 08.11.2026).** Sechs Münder (`MUENDER` in `teile.ts`), Auswahl auf der Held-Seite,
+  bis zu gemalten Bildern `mund-<id>.webp` als Vektor gezeichnet. Migration `lernquest_mund` (`lq_avatar_setzen` kennt
+  den Schlüssel `mund`) ist am 08.11.2026 eingespielt, nach ausdrücklichem OK der Lehrkraft im Chat (die
+  Berechtigungsprüfung blockiert Produktiv-Änderungen sonst); die Funktion im Projekt war vorher byte-gleich mit
+  `20261110_lernquest_frisur.sql`, jetzt mit `20261112_lernquest_mund.sql`. In der echten Held-Seite noch nicht angesehen.
+- **Bosskampf: QR-Code zum Beitritt: live (#37, 08.11.2026).** In der Warte-Ansicht am Beamer steht der Klassenlink als QR-Code
   (`#beamer=<id>&klasse=<Code>`, `QrBild.tsx`, `beamerAusHash`/`beitrittsLink` in `karte.ts`). Kein Server-Teil.
 - Tests: grün; auf einem Windows-Checkout (CRLF) schlagen zwei Anleitungs-Tests in `src/claude` und der Prompts-Test
   in `bilder.test.ts` an, auf Linux/CI nicht. Typprüfung und Build laufen. Münder und QR-Layout nur als Standbild
   geprüft, nicht in der echten App (Kinder-Login nötig).
 
 ## Nächste Schritte
-1. **Migration `lernquest_mund` einspielen, dann #36 mergen** (siehe oben).
+1. **Münder und QR-Code in der echten App ansehen** (Held-Seite „Mund“; Bosskampf starten, Warte-Ansicht am Beamer,
+   mit dem Handy scannen).
 2. **Plickers-artige Funktion für den Bosskampf**: Die Lehrkraft beschreibt sie in einer neuen Sitzung (noch nichts
    entschieden, nichts gebaut).
 3. Neu malen lassen: Blumenkranz (als stehender Ring gemalt, bleibt Vektor), Hautton 3 (grau-oliv, Fleck), 4 (rosa
