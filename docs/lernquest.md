@@ -196,6 +196,19 @@ Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
   an den Kanten klein A–D mit Form (oben = Antwort), Nummer klein in einer Ecke, kein Name. Druck im Baukasten neben
   den PIN-Karten („Antwortkarten drucken (1–40)“). Erst 3–4 Probekarten im Klassenraum testen, dann alle 40.
 
+## Stunden ausblenden (08.11.2026)
+
+Wunsch der Lehrkraft: Stunden eines Moduls ganz ausblenden können. Je Klasse hat jede Stunde drei Stufen, im Baukasten
+unter „Stunden freischalten“ als Auswahl statt Häkchen: **Freigeschaltet** (Station zum Spielen), **Gesperrt** (Station
+mit Schloss, „Öffnet sich, sobald ihr es im Unterricht hattet“) und **Ausgeblendet** (gar nicht auf der Karte).
+- **Pro Klasse**, nicht für alle Klassen (Lehrkraft): Klassen sind unterschiedlich weit.
+- Gespeichert im Lehrkraft-Datensatz (`versteckt`, Klasse → Stunden), reist verschlüsselt mit dem Abgleich wie die
+  PINs; **keine Server-Änderung**. Ausgeblendete Stunden fehlen in `modul.stunden` der Pakete, ihre Titel kommen also
+  gar nicht auf den Server. Wer die Stufe ändert, sendet die freigeschalteten Stunden des Moduls neu
+  (`src/lernquest/sichtbarkeit.ts`). Freigeschaltet geht immer vor ausgeblendet.
+- Die Karte nimmt die längste Stundenliste der Pakete eines Moduls; scheitert das Neusenden mittendrin, hilft
+  „Freigeschaltete neu senden“.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

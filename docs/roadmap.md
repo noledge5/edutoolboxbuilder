@@ -195,6 +195,8 @@ Entschieden am 08.11.2026:
 - **Bosskampf mit Karten** (wie Plickers, eigene ArUco-Karten, Lehrkraft-Bereich in der App, iPhone/iPad scannt):
   alle Entscheidungen unter „Bosskampf mit Karten“ in `docs/lernquest.md`. Noch nicht gebaut; die Server-Änderung
   (Klassennummer, Kartenantworten) erst nach Rückfrage.
+- **Stunden ausblenden:** je Klasse drei Stufen (Freigeschaltet, Gesperrt, Ausgeblendet), ohne Server-Änderung;
+  Einzelheiten unter „Stunden ausblenden“ in `docs/lernquest.md`.
 - **Detailarbeit an einen externen Agenten (DeepSeek über OpenRouter):** Claude schreibt je Aufgabe ein Arbeitspaket
   ins Repo (Ziel, Dateien, Regeln aus `AGENTS.md`, wann fertig), die Lehrkraft startet DeepSeek mit einem
   Programmier-Werkzeug auf eigenem Branch, Claude prüft (Tests, Bildschirmfotos, Durchsicht) vor dem Merge. Erstes

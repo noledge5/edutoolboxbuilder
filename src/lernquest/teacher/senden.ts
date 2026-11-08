@@ -38,9 +38,9 @@ export async function bildVorschau(id: string, seite: number = BILD_SEITE): Prom
   }
 }
 
-/** Unlocks (or sends again) a lesson for a class. */
-export async function paketSenden(keys: string[], klasse: string, m: Module, l: Lesson, lessons: Lesson[]): Promise<void> {
-  const paket = await mitBildern(buildPaket(m, l, lessons), bildVorschau);
+/** Unlocks (or sends again) a lesson for a class; `versteckt` are the lessons hidden from it. */
+export async function paketSenden(keys: string[], klasse: string, m: Module, l: Lesson, lessons: Lesson[], versteckt: readonly string[]): Promise<void> {
+  const paket = await mitBildern(buildPaket(m, l, lessons, versteckt), bildVorschau);
   if (new TextEncoder().encode(JSON.stringify(paket)).length > PAKET_MAX) throw new LqError('gross');
   await freischalten(keys, klasse, l.id, paket);
 }

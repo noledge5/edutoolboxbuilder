@@ -14,6 +14,8 @@ export interface Lehrkraft {
   keys: string[];
   /** Child id → PIN as last set from one of the teacher's devices. */
   pins: Record<string, string>;
+  /** Class id → lessons hidden from that class (not even a locked station; src/lernquest/sichtbarkeit.ts). */
+  versteckt: Record<string, string[]>;
   updatedAt: number;
 }
 
@@ -29,9 +31,14 @@ export function readLehrkraft(x: unknown): Lehrkraft | null {
   if (!keys.length) return null;
   const pins: Record<string, string> = {};
   if (r.pins && typeof r.pins === 'object') for (const [id, p] of Object.entries(r.pins)) if (typeof p === 'string' && /^\d{4}$/.test(p)) pins[id] = p;
+  const versteckt: Record<string, string[]> = {};
+  if (r.versteckt && typeof r.versteckt === 'object')
+    for (const [klasse, ids] of Object.entries(r.versteckt))
+      if (Array.isArray(ids)) versteckt[klasse] = [...new Set(ids.filter((x): x is string => typeof x === 'string' && x.length <= 100))].slice(0, 1000);
   return {
     keys: [...new Set(keys)].sort(),
     pins,
+    versteckt,
     updatedAt: Number(r.updatedAt) || 0,
   };
 }
@@ -43,12 +50,15 @@ export function mergeLehrkraft(a: Lehrkraft, b: Lehrkraft): Lehrkraft {
   return {
     keys,
     pins: { ...older.pins, ...newer.pins },
+    // Per class the newer record wins (an empty list too: everything shown again).
+    versteckt: { ...older.versteckt, ...newer.versteckt },
     updatedAt: Math.max(a.updatedAt, b.updatedAt),
   };
 }
 
-/** Same keys and PINs (then nothing needs storing or sending). */
-export const sameLehrkraft = (a: Lehrkraft, b: Lehrkraft) => JSON.stringify([a.keys, a.pins]) === JSON.stringify([b.keys, b.pins]);
+/** Same keys, PINs and hidden lessons (then nothing needs storing or sending). */
+export const sameLehrkraft = (a: Lehrkraft, b: Lehrkraft) =>
+  JSON.stringify([a.keys, a.pins, a.versteckt]) === JSON.stringify([b.keys, b.pins, b.versteckt]);
 
 export async function loadLehrkraft(): Promise<Lehrkraft | null> {
   return readLehrkraft(await get(LEHRKRAFT_KEY, kv()));
@@ -60,7 +70,7 @@ export const saveLehrkraft = (l: Lehrkraft) => set(LEHRKRAFT_KEY, l, kv());
 export async function ensureLehrkraft(): Promise<Lehrkraft> {
   const have = await loadLehrkraft();
   if (have) return have;
-  const l: Lehrkraft = { keys: [newKey()], pins: {}, updatedAt: Date.now() };
+  const l: Lehrkraft = { keys: [newKey()], pins: {}, versteckt: {}, updatedAt: Date.now() };
   await saveLehrkraft(l);
   return l;
 }
@@ -79,7 +89,7 @@ export async function takeLehrkraft(remote: unknown): Promise<void> {
   if (!sameLehrkraft(here, merged) || merged.updatedAt !== here.updatedAt) await saveLehrkraft(merged);
 }
 
-/** Changes the record (a new PIN) and stamps the time. */
+/** Changes the record (a new PIN, hidden lessons) and stamps the time. */
 export async function updateLehrkraft(change: (l: Lehrkraft) => Lehrkraft): Promise<Lehrkraft> {
   const l = { ...change(await ensureLehrkraft()), updatedAt: Date.now() };
   await saveLehrkraft(l);
