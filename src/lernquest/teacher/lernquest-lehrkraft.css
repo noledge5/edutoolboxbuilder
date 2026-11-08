@@ -776,3 +776,17 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Bosskampf: mit Geräten oder mit Karten */
+.lqt-wahl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: center;
+}
+.lqt-wahl label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 44px;
+}

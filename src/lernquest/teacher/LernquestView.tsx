@@ -3,7 +3,7 @@
 // the boss fight on the projector (Stufe 3: the questions are made here, the projector view is Lernquest's #beamer=),
 // class points, vouchers and requests, and progress per competence (Stufe 4: `Belohnungen.tsx`, `Auswertung.tsx`).
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, IdCard, Lock, MessageCircleQuestion, Plus, Printer, RefreshCw, RotateCcw, Sparkles, Swords, Trash2, Unlock } from 'lucide-react';
+import { ArrowLeft, IdCard, Lock, MessageCircleQuestion, Plus, Printer, RefreshCw, RotateCcw, ScanLine, Sparkles, Swords, Trash2, Unlock } from 'lucide-react';
 import { Icon } from '../../icons';
 import { SearchButton } from '../../library/SearchDialog';
 import type { Lesson, Library, Module } from '../../library/types';
@@ -17,7 +17,9 @@ import { BOSS_FRAGEN_MIN, bossFragen, bossVon, type BossFrage } from '../boss';
 import { buildPaket, exercisesOf } from '../paket';
 import { BOSS_FRAGEN, heldenstufe, punkteHandRest, PUNKTE_HAND_WOCHE, rundenZahl, sterne, woche } from '../rules';
 import {
+  bossLaufend,
   bossStarten,
+  bossStartenKarten,
   entsperren,
   kindAnlegen,
   kindLoeschen,
@@ -38,6 +40,7 @@ import { Belohnungen } from './Belohnungen';
 import { PinCards } from './PinCards';
 import { Antwortkarten, type KartenKind } from './Antwortkarten';
 import { Kartenrunde } from './Kartenrunde';
+import { BossScan } from './BossScan';
 import './lernquest-lehrkraft.css';
 
 interface Props {
@@ -74,6 +77,8 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
   const [printing, setPrinting] = useState(false);
   /** Answer cards open: printing them, or a Kartenfrage with questions (null = free questions). */
   const [karten, setKarten] = useState<{ kinder: KartenKind[]; runde?: { fragen: BossFrage[] | null } } | null>(null);
+  /** Boss fight with cards being scanned on this device. */
+  const [kampf, setKampf] = useState<{ id: string; kinder: KartenKind[] } | null>(null);
 
   const load = useCallback(
     async (l?: Lehrkraft) => {
@@ -147,7 +152,7 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
     }
     return k.kinder
       .filter((c) => !c.geloescht && nummern[c.id])
-      .map((c) => ({ nummer: nummern[c.id], name: c.name }))
+      .map((c) => ({ nummer: nummern[c.id], name: c.name, id: c.id }))
       .sort((a, b) => a.nummer - b.nummer);
   };
   const openKarten = (k: KlasseInfo, runde?: { fragen: BossFrage[] | null }) =>
@@ -155,10 +160,16 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
       .then((kinder) => setKarten({ kinder, runde }))
       .catch((e) => setMsg(lqText(e)));
 
+  const openKampf = (k: KlasseInfo, id: string) =>
+    void kartenKinder(k)
+      .then((kinder) => setKampf({ id, kinder }))
+      .catch((e) => setMsg(lqText(e)));
+
   const active = list?.filter((k) => !k.geloescht) ?? [];
   const trashed = list?.filter((k) => k.geloescht) ?? [];
   const klasse = active.find((k) => k.id === sel) ?? active[0];
 
+  if (kampf && klasse && me) return <BossScan keys={me.keys} id={kampf.id} titel={klasse.name} kinder={kampf.kinder} onClose={() => setKampf(null)} />;
   if (karten && klasse)
     return karten.runde ? (
       <Kartenrunde titel={klasse.name} kinder={karten.kinder} fragen={karten.runde.fragen} onClose={() => setKarten(null)} />
@@ -223,7 +234,7 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
               </form>
             </nav>
             {klasse ? (
-              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} versteckt={me?.versteckt[klasse.id] ?? []} busy={busy} act={act} savePins={savePins} saveVersteckt={(ids) => saveVersteckt(klasse.id, ids)} onPrint={() => setPrinting(true)} onKarten={(runde) => openKarten(klasse, runde)} />
+              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} versteckt={me?.versteckt[klasse.id] ?? []} busy={busy} act={act} savePins={savePins} saveVersteckt={(ids) => saveVersteckt(klasse.id, ids)} onPrint={() => setPrinting(true)} onKarten={(runde) => openKarten(klasse, runde)} onKampf={(id) => openKampf(klasse, id)} />
             ) : (
               <p className="lib-empty">Lege zuerst eine Klasse an.</p>
             )}
@@ -274,9 +285,11 @@ interface KlasseProps {
   onPrint(): void;
   /** Answer cards: print them (no round) or start a Kartenfrage. */
   onKarten(runde?: { fragen: BossFrage[] | null }): void;
+  /** Scan the cards of a boss fight with cards on this device. */
+  onKampf(id: string): void;
 }
 
-function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, act, savePins, saveVersteckt, onPrint, onKarten }: KlasseProps) {
+function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, act, savePins, saveVersteckt, onPrint, onKarten, onKampf }: KlasseProps) {
   /** Lesson whose KI-Fragenpool is open. */
   const [poolOf, setPoolOf] = useState<string | null>(null);
   /** Child who gets class points by hand (dialog open). */
@@ -515,7 +528,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
 
       <KartenStart lib={lib} klasse={klasse} onKarten={onKarten} />
 
-      <BossStart lib={lib} klasse={klasse} busy={busy} act={act} />
+      <BossStart lib={lib} klasse={klasse} busy={busy} act={act} onKampf={onKampf} />
 
       <section className="lqt-card">
         <div className="lqt-head">
@@ -692,9 +705,11 @@ function KartenStart({ lib, klasse, onKarten }: Pick<KlasseProps, 'lib' | 'klass
 }
 
 /** Starts a boss fight for one region (module with unlocked lessons) and opens the projector view in a new tab. */
-function BossStart({ lib, klasse, busy, act }: Pick<KlasseProps, 'lib' | 'klasse' | 'busy' | 'act'>) {
+function BossStart({ lib, klasse, busy, act, onKampf }: Pick<KlasseProps, 'lib' | 'klasse' | 'busy' | 'act' | 'onKampf'>) {
   const { regionen, m, pakete, moeglich, auswahl } = useRegion(lib, klasse);
   const [hinweis, setHinweis] = useState('');
+  const [mitKarten, setMitKarten] = useState(false);
+  const karten = klasse.kinder.filter((c) => !c.geloescht).length;
 
   const starten = () => {
     if (!m) return;
@@ -705,9 +720,12 @@ function BossStart({ lib, klasse, busy, act }: Pick<KlasseProps, 'lib' | 'klasse
     const fenster = window.open('', '_blank');
     void act(async (keys) => {
       try {
-        const id = await bossStarten(keys, klasse.id, m.id, `${m.subject} · Region ${m.number}`.slice(0, 120), bossVon(m.number), fragen);
+        const titel = `${m.subject} · Region ${m.number}`.slice(0, 120);
+        const id = await (mitKarten ? bossStartenKarten : bossStarten)(keys, klasse.id, m.id, titel, bossVon(m.number), fragen);
         if (fenster) fenster.location.href = beamerLink(id, klasse.code);
         else setHinweis(`Neuer Tab war blockiert. Beamer-Ansicht: ${beamerLink(id, klasse.code)}`);
+        // With cards, this device scans (the projector shows the fight in the new tab or on another screen).
+        if (mitKarten) onKampf(id);
       } catch (e) {
         fenster?.close();
         throw e;
@@ -715,13 +733,25 @@ function BossStart({ lib, klasse, busy, act }: Pick<KlasseProps, 'lib' | 'klasse
     });
   };
 
+  /** A second device of the teacher (iPad, iPhone) scans the running fight with cards. */
+  const scannen = () =>
+    void act(async (keys) => {
+      const l = await bossLaufend(keys, klasse.id);
+      if (!l) setHinweis('Gerade läuft kein Bosskampf in dieser Klasse.');
+      else if (l.modus !== 'karten') setHinweis('Der laufende Bosskampf ist mit Geräten, da gibt es nichts zu scannen.');
+      else {
+        setHinweis('');
+        onKampf(l.id);
+      }
+    });
+
   return (
     <section className="lqt-card">
       <div className="lqt-head">
         <div>
           <h2>Bosskampf am Beamer</h2>
           <p className="lqt-hint">
-            Die Klasse kämpft gemeinsam: Die Frage steht am Beamer, die Kinder antworten am Gerät (Lernquest öffnen → „Bosskampf“). Fragen kommen aus den freigeschalteten Stunden der Region (Antippen, Richtig/Falsch, Paare, Lücken). Fällt der Boss, gibt es beim ersten Sieg eine Truhe für alle, die mitgemacht haben.
+            Die Klasse kämpft gemeinsam: Die Frage steht am Beamer, die Kinder antworten am Gerät (Lernquest öffnen → „Bosskampf“) oder mit ihrer Antwortkarte, die du scannst. Fragen kommen aus den freigeschalteten Stunden der Region (Antippen, Richtig/Falsch, Paare, Lücken). Fällt der Boss, gibt es beim ersten Sieg eine Truhe für alle, die mitgemacht haben.
           </p>
         </div>
       </div>
@@ -730,11 +760,28 @@ function BossStart({ lib, klasse, busy, act }: Pick<KlasseProps, 'lib' | 'klasse
       ) : (
         <div className="lqt-filter">
           {auswahl}
+          <div className="lqt-wahl" role="radiogroup" aria-label="Wie antworten die Kinder?">
+            <label>
+              <input type="radio" name={`modus-${klasse.id}`} checked={!mitKarten} onChange={() => setMitKarten(false)} /> Mit Geräten
+            </label>
+            <label>
+              <input type="radio" name={`modus-${klasse.id}`} checked={mitKarten} onChange={() => setMitKarten(true)} disabled={!karten} /> Mit Karten
+            </label>
+          </div>
           <button type="button" className="btn btn-primary ui-btn" disabled={busy || moeglich < BOSS_FRAGEN_MIN} onClick={starten}>
             <Icon icon={Swords} />
             Bosskampf starten
           </button>
+          <button type="button" className="btn btn-secondary ui-btn" disabled={busy || !karten} onClick={scannen}>
+            <Icon icon={ScanLine} />
+            Laufenden Kampf scannen
+          </button>
         </div>
+      )}
+      {mitKarten && (
+        <p className="lqt-hint">
+          Mit Karten: kein Zeitlimit, 15 Schaden je richtiger Karte, ab 3 in Folge doppelt. Der Beamer öffnet sich im neuen Tab, dieses Gerät scannt. Mit einem zweiten Gerät (iPad, iPhone) hier „Laufenden Kampf scannen“.
+        </p>
       )}
       {m && moeglich < BOSS_FRAGEN_MIN && <p className="lqt-hint">Zu wenige Fragen in dieser Region (mindestens {BOSS_FRAGEN_MIN} aus Antippen, Richtig/Falsch, Paaren oder Lücken).</p>}
       {m && moeglich >= BOSS_FRAGEN_MIN && (

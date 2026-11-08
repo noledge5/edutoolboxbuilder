@@ -384,6 +384,14 @@ export function bossSchaden(ms: number, serie: number, bonus = 0): number {
   return (10 + tempo + bonus) * (serie >= 3 ? 2 : 1);
 }
 
+/**
+ * Fight with answer cards (no devices): no time limit, so no speed part; a right card does 15 (the middle speed of a
+ * device answer), doubled from the third right one in a row, the child's damage bonus added before doubling.
+ * As lq_boss_aufloesen on the server.
+ */
+export const BOSS_KARTE_SCHADEN = 15;
+export const bossKartenSchaden = (serie: number, bonus = 0) => (BOSS_KARTE_SCHADEN + bonus) * (serie >= 3 ? 2 : 1);
+
 /** The boss's life points for `kinder` children and `fragen` questions. */
 export const bossLp = (kinder: number, fragen: number) => Math.max(1, kinder * fragen * BOSS_LP_JE);
 

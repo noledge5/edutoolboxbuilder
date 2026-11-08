@@ -166,6 +166,7 @@ export const klasseAnsicht = (token: string) => lq<KlasseAnsicht>('lq_klasse_ans
 // — Bosskampf (Stufe 3) —
 
 export type BossPhase = 'warten' | 'frage' | 'aufloesung' | 'ende';
+export type BossModus = 'geraete' | 'karten';
 
 /** A fight as everyone sees it (`lq_boss_json`); the right answer only after the question. */
 export interface BossStand {
@@ -174,6 +175,8 @@ export interface BossStand {
   /** Index in `BOSSE`. */
   boss: number;
   phase: BossPhase;
+  /** 'karten': the children hold up answer cards, the teacher scans; no time limit (docs/lernquest.md). */
+  modus: BossModus;
   /** Current question (0-based), -1 while waiting. */
   frage: number;
   fragen: number;
@@ -211,6 +214,8 @@ export interface BossBeamerStand extends BossStand {
   verteilung: number[] | null;
   /** Children who got a chest. */
   truhen: number;
+  /** With cards: names of the children whose card was read for this question (not what they chose); else null. */
+  erkannt: string[] | null;
 }
 
 export interface BossOffen {
@@ -229,8 +234,16 @@ export const bossAntworten = (token: string, boss: string, frage: number, wahl: 
 
 export const bossStarten = (keys: string[], klasse: string, region: string, titel: string, boss: number, fragen: BossFrage[]) =>
   lq<string>('lq_boss_starten', { p_schluessel: keys, p_klasse: klasse, p_region: region, p_titel: titel, p_boss: boss, p_fragen: fragen });
+/** Starts a fight with answer cards (no devices; children join with their first scanned card). */
+export const bossStartenKarten = (keys: string[], klasse: string, region: string, titel: string, boss: number, fragen: BossFrage[]) =>
+  lq<string>('lq_boss_starten_karten', { p_schluessel: keys, p_klasse: klasse, p_region: region, p_titel: titel, p_boss: boss, p_fragen: fragen });
+/** The running fight of a class, or null (a second device of the teacher scans it). */
+export const bossLaufend = (keys: string[], klasse: string) => lq<{ id: string; modus: BossModus } | null>('lq_boss_laufend', { p_schluessel: keys, p_klasse: klasse });
+/** Scanned cards of question `frage` (child id → option, at most 40); the last scan counts until resolved. */
+export const bossKarten = (keys: string[], boss: string, frage: number, antworten: Record<string, number>) =>
+  lq<{ angenommen: boolean; neu?: number }>('lq_boss_karten', { p_schluessel: keys, p_boss: boss, p_frage: frage, p_antworten: antworten });
 export const bossBeamer = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_beamer', { p_schluessel: keys, p_boss: boss });
-/** Next step: first question (error 'leer' while nobody joined), next question, or resolve the running one now. */
+/** Next step: first question (error 'leer' while nobody joined; with cards allowed), next question, or resolve the running one now. */
 export const bossWeiter = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_weiter', { p_schluessel: keys, p_boss: boss });
 export const bossBeenden = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_beenden', { p_schluessel: keys, p_boss: boss });
 

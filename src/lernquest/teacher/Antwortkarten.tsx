@@ -18,6 +18,8 @@ export function KartenMuster({ nummer, className }: { nummer: number; className?
 export interface KartenKind {
   nummer: number;
   name: string;
+  /** Lernquest child id (for the boss fight with cards). */
+  id: string;
 }
 
 export function Antwortkarten({ titel, kinder, onClose }: { titel: string; kinder: KartenKind[]; onClose(): void }) {

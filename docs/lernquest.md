@@ -145,6 +145,17 @@ Wunsch der Lehrkraft, weil die gemalte Grundfigur ein leeres Gesicht hat. Migrat
 
 ## Bosskampf mit Karten (Fragerunde 08.11.2026, in Klärung)
 
+**Stand (08.11.2026, gebaut):** Server `supabase/migrations/20261115_lernquest_boss_karten.sql` (lokal mit allen
+Migrationen durchgespielt, **noch nicht eingespielt**): Spalte `lq_boss.modus` ('geraete' | 'karten'),
+`lq_boss_starten_karten`, `lq_boss_karten` (Scans je Frage, Kind-Id → Wahl, der letzte zählt), `lq_boss_laufend`
+(zweites Gerät findet den Kampf), Auflösen in `lq_boss_aufloesen` (mit Karten erst dort Schaden: 15 + Ausrüstung, ab 3
+in Folge doppelt; `bossKartenSchaden` in `rules.ts`). Mit Karten löst nur „Auflösen“ auf, der Kampf darf ohne
+Beigetretene beginnen, ein Boss ohne Lebenspunkte gilt nicht als besiegt, Kinder-Geräte sehen den Kampf nicht.
+Abweichung vom Plan: keine Klassennummer auf dem Server; die Kartennummern liegen wie bei der Kartenfrage im
+Lehrkraft-Datensatz, das Scan-Gerät schickt Kind-Ids. Scannen: Baukasten → Klasse → „Bosskampf am Beamer“ → „Mit
+Karten“ (dieses Gerät scannt, der Beamer öffnet sich im neuen Tab) oder auf einem zweiten Gerät „Laufenden Kampf
+scannen“ (`teacher/BossScan.tsx`). Am Beamer stehen die Namen der erkannten Karten grün, nicht ihre Wahl.
+
 Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
 - **Zwei Ausführungen des Bosskampfs:** mit **Geräten** (Beitritt per QR-Code, wie gebaut) oder mit **nummerierten
   Karten**, die die Kinder hochhalten und die Lehrkraft scannt. Die Klasse hat bereits einen Original-Satz
