@@ -3,7 +3,8 @@
 Von Hand geschrieben (08.11.2026), nicht vom Skript; der Stil-Teil am Ende jedes Prompts ist `STIL` aus
 `src/lernquest/bilder/vorlagen.ts`. Ändert sich `STIL`, hier mitziehen. Regeln: `docs/design/lernquest/bilder.md`.
 
-**Ablauf:** Vorlage = das Vektor-Bild des Bosses (`boss-1-der-kompass-golem.png` …, 1024 × 1024), vorher auf einen
+**Ablauf:** Vorlage = das Vektor-Bild des Bosses (`schablonen/boss-1-der-kompass-golem.png` …, 1024 × 1024, aus
+`BossBild` in `src/lernquest/app/Boss.tsx`), vorher auf einen
 einfarbigen hellgrauen Hintergrund legen. Dann der Edit-Prompt; ohne Edit-Modell der Text-zu-Bild-Prompt. Danach
 freistellen (durchsichtig), quadratisch, mindestens 1024 × 1024. Das fertige Bild ist später das Start- und Endbild
 der Bewegungsschleife.
