@@ -158,6 +158,12 @@ Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
   Beim Kampf wählt die Lehrkraft die Klasse; eine gescannte Nummer gilt für das Kind mit dieser Klassennummer, und
   Schaden, Truhe und Klassenpunkte zählen auf sein Konto. Server: `lq_kind` braucht dafür eine Nummer (eindeutig je
   Klasse), also eine Migration (vorher fragen).
+- **Klassennummern wie bei Plickers:** Ein neues Kind bekommt automatisch die kleinste freie Nummer, bestehende
+  Klassen werden einmal alphabetisch durchnummeriert; die Lehrkraft kann Nummern in der Kinderliste ändern, der Server
+  verhindert doppelte. Nummern 1–40 (Kartensatz mit 40 Karten). Abweichung von Plickers: Die Nummer eines gelöschten
+  Kindes bleibt belegt, solange es im Papierkorb liegt.
+- **Namen am Beamer sind erlaubt** (Lehrkraft, 08.11.2026; vorher galt „keine Namen am Beamer, nur Zahlen“). Wie bei
+  Plickers wird am Beamer markiert, wessen Karte erkannt ist, damit das Kind sie herunternehmen kann.
 
 ## Erfolgskriterien Stufe 1
 
@@ -221,7 +227,8 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   - Regeln (`rules.ts`, gleich im SQL): 20 s je Frage (+1,5 s Nachfrist), Schaden 10 + bis 10 fürs Tempo, ab 3 richtig
     in Folge doppelt; Lebenspunkte 13 je Kind und Frage (wer später kommt, macht den Boss größer); 5 Klassen-Herzen,
     eins weg, wenn weniger als die Hälfte der Beigetretenen richtig liegt. Sieg = Truhe für alle mit mindestens einer
-    Antwort, nur beim ersten Sieg je Region und Kind. Keine Namen am Beamer, nur Zahlen.
+    Antwort, nur beim ersten Sieg je Region und Kind. Keine Namen am Beamer, nur Zahlen (seit 08.11.2026 erlaubt,
+    siehe „Bosskampf mit Karten“).
   - Verbindung: Beamer und Handys fragen jede Sekunde (kein Realtime-Kanal, der ohne Anmeldung mitlesbar wäre). Die
     Lösung verlässt den Server erst nach der Frage. Kämpfe enden nach 3 Stunden von selbst und werden nach 2 Tagen
     gelöscht; die Siege je Region bleiben.
