@@ -180,6 +180,11 @@ Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
   Beamer). Mac und iPad haben ihn über den Abgleich; das iPhone bekommt ihn, indem man dort einmal den Baukasten öffnet
   und mit „Weiteres Gerät koppeln“ verbindet. Ohne Schlüssel nur der Hinweis „Auf diesem Gerät ist keine Lehrkraft
   eingerichtet“. Warum: kein Passwort, keine neuen Daten auf dem Server, keine neue Angriffsfläche.
+- **Lehrkraft-Bereich in der App = was im Unterricht in die Hand gehört:** Bosskampf (Klasse und Region wählen, Karten
+  oder Geräte, starten, weiter, scannen, „Auflösen“, beenden), Fortschritt je Kind und Kompetenz (nur lesen, aus
+  `Auswertung.tsx`), schnelle Hilfe (PIN zurücksetzen, Konto freigeben, Gutschein-Anfragen abhaken). Alles andere
+  bleibt im Baukasten (Klassen und Kinder, Klassennummern, PINs und Karten drucken, Stunden, Fragenpool, Gutscheine
+  anlegen). Gleiche Bausteine, Lernquest-Look, nichts doppelt pflegen.
 
 ## Erfolgskriterien Stufe 1
 
