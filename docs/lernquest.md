@@ -174,7 +174,12 @@ Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
   Beamer. Die Karten müssen schnell und einfach erfasst werden: viele Karten pro Bild, vier Antworten je nach Haltung
   der Karte.
 - **Wunsch: Lehrkraft-Bereich in der Lernquest-App**, aus dem heraus die Lehrkraft Lernfortschritte sieht und
-  Bosskämpfe steuert (auch scannt). In Klärung.
+  Bosskämpfe steuert (auch scannt).
+- **Anmeldung als Lehrkraft in Lernquest: derselbe Lehrkraft-Schlüssel, kein neues Konto.** Auf der Startseite klein
+  „Ich bin Lehrkraft“; die App liest den Schlüssel aus dem Speicher des Baukastens (gleiche Adresse, wie heute der
+  Beamer). Mac und iPad haben ihn über den Abgleich; das iPhone bekommt ihn, indem man dort einmal den Baukasten öffnet
+  und mit „Weiteres Gerät koppeln“ verbindet. Ohne Schlüssel nur der Hinweis „Auf diesem Gerät ist keine Lehrkraft
+  eingerichtet“. Warum: kein Passwort, keine neuen Daten auf dem Server, keine neue Angriffsfläche.
 
 ## Erfolgskriterien Stufe 1
 
