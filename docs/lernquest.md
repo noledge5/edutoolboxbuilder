@@ -170,6 +170,11 @@ Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
   wie gehabt; Herzen und Truhe wie bisher; beigetreten ist, wessen Karte im Kampf einmal erkannt wurde. Am Beamer nur,
   **wer** geantwortet hat, nicht **was**; die einzelnen Antworten sieht nur die Lehrkraft auf dem Scan-Gerät.
   Regeln doppelt pflegen (`rules.ts` und `lq_boss_*`).
+- **Scan-Gerät ist das iPhone oder iPad der Lehrkraft** (sie hat Mac, iPad und iPhone dabei), nicht das Gerät am
+  Beamer. Die Karten müssen schnell und einfach erfasst werden: viele Karten pro Bild, vier Antworten je nach Haltung
+  der Karte.
+- **Wunsch: Lehrkraft-Bereich in der Lernquest-App**, aus dem heraus die Lehrkraft Lernfortschritte sieht und
+  Bosskämpfe steuert (auch scannt). In Klärung.
 
 ## Erfolgskriterien Stufe 1
 
