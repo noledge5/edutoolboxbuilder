@@ -148,7 +148,9 @@ Wunsch der Lehrkraft, weil die gemalte Grundfigur ein leeres Gesicht hat. Migrat
 Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
 - **Zwei Ausführungen des Bosskampfs:** mit **Geräten** (Beitritt per QR-Code, wie gebaut) oder mit **nummerierten
   Karten**, die die Kinder hochhalten und die Lehrkraft scannt. Die Klasse hat bereits einen Original-Satz
-  Plickers-Karten.
+  Plickers-Karten. **Entweder-oder pro Kampf**, kein Mischen: Beim Start wählt die Lehrkraft „mit Karten“ oder „mit
+  Geräten“. Warum: Jeder Modus hat klare eigene Regeln (Karten: fester Schaden, kein Zeitlimit; Geräte: Tempo,
+  20 Sekunden).
 - **Eigene Karten statt Original-Plickers-Karten:** gleiche Bedienung (Nummer je Kind, Drehung = Antwort A–D, die
   Lehrkraft scannt), aber eigenes Muster aus freien ArUco-Markern, gedruckt aus dem Baukasten wie die PIN-Karten.
   Warum: Plickers ist ein fremdes Produkt mit US-Patent auf das Verfahren, das Muster ist nicht offen; eigene Karten
