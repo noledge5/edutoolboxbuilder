@@ -185,6 +185,9 @@ Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
   `Auswertung.tsx`), schnelle Hilfe (PIN zurücksetzen, Konto freigeben, Gutschein-Anfragen abhaken). Alles andere
   bleibt im Baukasten (Klassen und Kinder, Klassennummern, PINs und Karten drucken, Stunden, Fragenpool, Gutscheine
   anlegen). Gleiche Bausteine, Lernquest-Look, nichts doppelt pflegen.
+- **Karte:** eine je A4-Blatt, laminiert, schwarz-weiß; Muster etwa 17 × 17 cm (sicher bis ~8 m mit dem iPhone-Video);
+  an den Kanten klein A–D mit Form (oben = Antwort), Nummer klein in einer Ecke, kein Name. Druck im Baukasten neben
+  den PIN-Karten („Antwortkarten drucken (1–40)“). Erst 3–4 Probekarten im Klassenraum testen, dann alle 40.
 
 ## Erfolgskriterien Stufe 1
 
