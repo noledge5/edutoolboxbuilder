@@ -1045,6 +1045,9 @@ span.check-ref { cursor: default; }
 .settings-ai .panel-row { display: flex; align-items: center; gap: 10px; }
 .settings-ai-state { flex: 1; font-size: 13.5px; }
 .ai-dialog { width: min(820px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; }
+/* The dialog scrolls as a whole: a part with its own scrolling (a list) must not shrink to nothing on a phone. */
+.ai-dialog > * { flex-shrink: 0; }
+@media (max-width: 720px) { .ai-dialog .check-list, .ai-dialog .lqt-pool { max-height: none; overflow: visible; } }
 .ai-dialog .dialog-title { display: flex; align-items: center; gap: 8px; }
 .ai-where { margin: 0; }
 .ai-hint { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--color-neutral-800); }
