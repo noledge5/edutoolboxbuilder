@@ -22,14 +22,31 @@ Lernquest (Lern-App der Schüler, `docs/lernquest.md`): gemalte Bilder für den 
 ## Nächste Schritte
 1. **Münder und QR-Code in der echten App ansehen** (Held-Seite „Mund“; Bosskampf starten, Warte-Ansicht am Beamer,
    mit dem Handy scannen).
-2. **Plickers-artige Funktion für den Bosskampf**: Die Lehrkraft beschreibt sie in einer neuen Sitzung (noch nichts
-   entschieden, nichts gebaut).
+2. **Zweite Funktion für den Bosskampf, „wie Plickers“** (noch nichts entschieden, nichts gebaut): siehe den Abschnitt
+   „Plickers“ unten. Zuerst die Lehrkraft fragen, nichts davon annehmen.
 3. Neu malen lassen: Blumenkranz (als stehender Ring gemalt, bleibt Vektor), Hautton 3 (grau-oliv, Fleck), 4 (rosa
    Unterhemd), 6 (Bäckchen); Hautton 2 ist vom Skript umgefärbt. Entdeckerhut hat leichten Schatten unter der Krempe.
    Dazu die Münder als Edits (`edit/mund-<id>.png`, Prompts in `docs/design/lernquest/bilder/edit-prompts.md`, Abschnitt 4).
 4. Ton am iPad: Vorlesen und Klick-Töne stumm. Erst `navigator.audioSession.type = 'playback'`, Vorlesen ohne
    `cancel()` davor, Knopf „Ton testen“; sonst Ton-Dateien beim Senden des Pakets erzeugen und mit `<audio>` spielen.
    Nicht ohne iPad prüfbar, darum bisher nicht angefasst.
+
+## Plickers (Wunsch der Lehrkraft, 08.11.2026, noch nicht beschrieben)
+- **Was gesagt wurde** (einziger Stand): Für den Bosskampf soll es neben dem QR-Code zum Beitreten (live, #37) „eine
+  zweite Funktion“ geben; „das gibt es als Plickers“. Die Lehrkraft beschreibt sie selbst in einer neuen Sitzung. Mehr
+  ist nicht bekannt.
+- **Was Plickers ist** (Orientierung von Claude, von der Lehrkraft nicht bestätigt): Jedes Kind hat eine Papierkarte mit
+  einem eckigen Muster, das sich in vier Drehungen (A bis D) unterscheidet. Es hält die Karte so hoch, dass seine
+  Antwort oben steht. Die Lehrkraft scannt die Klasse mit der Handykamera, die App wertet sofort aus. Die Kinder
+  brauchen dafür kein Gerät.
+- **Anknüpfungspunkte im Code**, falls es das ist: Bosskampf `src/lernquest/app/Boss.tsx`, `boss.ts` (Fragen, `FORMEN`),
+  `rules.ts`, Server `lq_boss_…`; Kinder antworten bisher am eigenen Gerät (`bossAntworten`, 20 s je Frage, Schaden nach
+  Tempo und Serie). Karten zum Ausdrucken gibt es schon (`teacher/PinCards.tsx`, QR mit `uqr`). Kamera-Scan gibt es
+  schon (`src/sync/QrScanner` mit BarcodeDetector oder jsQR, in `LernquestApp` für den Klassen-QR).
+- **Vor dem Bauen mit der Lehrkraft klären:** Ersetzt es die Geräte der Kinder oder ergänzt es sie? Wem gehört eine Karte
+  (ein Kind = ein Konto, oder nur eine Nummer ohne Konto)? Wer scannt, mit welchem Gerät? Zählen die Antworten wie im
+  Bosskampf (Schaden, Klassen-Herzen, Truhe) oder nur als Abstimmung? Muss es ohne Netz gehen? Datenschutz: keine
+  Kindernamen am Beamer (Regel im Bosskampf).
 
 ## Wichtig zu wissen
 - Rohbilder: Google Drive, Ordner `lernquest-roh` (Grundfigur, Hauttöne, Kopf/Werkzeug/Begleiter einzeln) mit
