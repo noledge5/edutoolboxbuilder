@@ -203,4 +203,7 @@ Entschieden am 08.11.2026:
   keine Kinderdaten.
 - **Animationen der Bosse und Begleiter:** Bewegung der ganzen Figur (atmen, wippen, hüpfen, fliegen), bei den Bossen
   zusätzlich Treffer-Wackeln und Aufblitzen; bei „Bewegung reduzieren“ steht alles still. Die Lehrkraft kann kurze
-  Bewegungsschleifen selbst machen (MiniMax, lokal in ComfyUI); ob dann noch ein externer Agent nötig ist, ist offen.
+  Bewegungsschleifen selbst machen (MiniMax, lokal in ComfyUI). **Deshalb vorerst kein externer Agent** (Lehrkraft,
+  08.11.2026): Den kleinen Code-Teil (Animation statt Bild, Standbild bei „Bewegung reduzieren“, Treffer per CSS,
+  Prüf- und Umwandlungs-Skript) baut Claude in einer eigenen Sitzung. Die Abmachung zu Arbeitspaketen oben gilt, falls
+  später viel gleichartige Kleinarbeit kommt.
