@@ -2,11 +2,13 @@
 // together. The projector view (teacher, `lernquest/#beamer=<id>`) shows the question; the phones show only the four
 // answers with a shape each. Both ask the server once a second (lq_boss_beamer / lq_boss_stand); the server checks the
 // answers and gives the chests. No ranking: the projector shows counts, never names.
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BOSSE, FORMEN } from '../boss';
+import { beitrittsLink } from '../karte';
 import { loadLehrkraft } from '../lehrkraft';
 import { BOSS_HERZEN, BOSS_ZEIT_MS, PUNKTE_BOSS } from '../rules';
 import { bossAntworten, bossBeamer, bossBeenden, bossStand, bossWeiter, LqError, lqText, type BossBeamerStand, type BossKindStand, type BossStand } from '../server';
+import { QrBild } from './QrBild';
 import { ton } from './ton';
 import { Rich } from './Uebungen';
 
@@ -184,7 +186,7 @@ export function BossBild({ boss, size = 320, gefallen = false }: { boss: number;
 
 // — The projector (teacher) —
 
-export function BossBeamer({ id }: { id: string }) {
+export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string }) {
   const [keys, setKeys] = useState<string[] | null | undefined>(undefined);
   const [s, setS] = useState<BossBeamerStand | null>(null);
   const [msg, setMsg] = useState('');
@@ -194,6 +196,7 @@ export function BossBeamer({ id }: { id: string }) {
   const langsam = useLangsam(!s && !msg && keys !== null);
   const sekunden = useSekunden(s);
   const phaseVorher = useRef('');
+  const link = useMemo(() => (klasse ? beitrittsLink(location.origin + location.pathname, klasse) : ''), [klasse]);
 
   useEffect(() => {
     void loadLehrkraft().then((l) => setKeys(l?.keys ?? null));
@@ -311,11 +314,19 @@ export function BossBeamer({ id }: { id: string }) {
 
           <div className="lq-beamer-frage" aria-live="polite">
             {s.phase === 'warten' ? (
-              <div className="lq-beamer-karte">
-                <p className="lq-beamer-text">
-                  <strong>{s.kinder}</strong> {s.kinder === 1 ? 'Kind ist' : 'Kinder sind'} dabei.
-                </p>
-                <p className="lq-beamer-klein">Richtig = Schaden, schnell und in Serie mehr. Liegt weniger als die Hälfte richtig, trifft der Boss die Klasse.</p>
+              <div className="lq-beamer-karte lq-beamer-warten">
+                <div className="lq-beamer-warten-text">
+                  <p className="lq-beamer-text">
+                    <strong>{s.kinder}</strong> {s.kinder === 1 ? 'Kind ist' : 'Kinder sind'} dabei.
+                  </p>
+                  <p className="lq-beamer-klein">Richtig = Schaden, schnell und in Serie mehr. Liegt weniger als die Hälfte richtig, trifft der Boss die Klasse.</p>
+                </div>
+                {link && (
+                  <figure className="lq-beamer-qr">
+                    <QrBild link={link} label="QR-Code zum Mitmachen beim Bosskampf" />
+                    <figcaption>Scannen, anmelden und mitmachen</figcaption>
+                  </figure>
+                )}
               </div>
             ) : s.phase === 'ende' ? (
               <div className="lq-beamer-karte">

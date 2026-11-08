@@ -7,7 +7,7 @@ import { exercisesOf, readPaket } from './paket';
 import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, muenzenFuerRunde, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
-import { codeAus, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
+import { beamerAusHash, beitrittsLink, codeAus, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
 import { LEERER_STAND, type Paket, type Uebung } from './types';
 
 const block = (type: Block['type'], props: Block['props']): Block => createBlock(type, props);
@@ -309,6 +309,21 @@ describe('Weltkarte', () => {
     expect(codeAus('https://example.com')).toBe('');
     expect(vorname('Mia K.')).toBe('Mia');
     expect(namensFarbe('Mia K.')).toBe(namensFarbe('Mia K.'));
+  });
+
+  it('liest den Beamer-Link, mit und ohne Klassencode', () => {
+    const id = '3f2a9c1e-7b4d-4e0a-9c55-0d1e2f3a4b5c';
+    expect(beamerAusHash(`#beamer=${id}`)).toEqual({ id, klasse: '' });
+    expect(beamerAusHash(`#beamer=${id}&klasse=7a2e2gj9`)).toEqual({ id, klasse: '7A2E2GJ9' });
+    expect(beamerAusHash(`#beamer=${id}&klasse=zu-kurz`)).toBeNull();
+    expect(beamerAusHash('#7A2E2GJ9')).toBeNull();
+  });
+
+  it('macht aus der Beamer-Seite den Beitrittslink, den der Scanner wieder liest', () => {
+    const link = beitrittsLink('https://noledge5.github.io/edutoolboxbuilder/lernquest/index.html?x=1#beamer=abc', '7A2E2GJ9');
+    expect(link).toBe('https://noledge5.github.io/edutoolboxbuilder/lernquest/#7A2E2GJ9');
+    expect(codeAus(link)).toBe('7A2E2GJ9');
+    expect(beitrittsLink('http://localhost:5173/lernquest/', 'ABCD2345')).toBe('http://localhost:5173/lernquest/#ABCD2345');
   });
 });
 

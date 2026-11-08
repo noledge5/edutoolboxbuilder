@@ -49,7 +49,9 @@ interface Props {
 /** The address of Lernquest for a class: next to the Baukasten, `lernquest/#<code>`. */
 export const lernquestLink = (code: string, base = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}`) => `${base}lernquest/#${code}`;
 /** The projector view of a boss fight (same origin, so it finds the teacher keys of this device). */
-export const beamerLink = (id: string, base = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}`) => `${base}lernquest/#beamer=${id}`;
+/** The projector view of a boss fight; with the class code it shows a QR code for the children to join. */
+export const beamerLink = (id: string, code = '', base = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}`) =>
+  `${base}lernquest/#beamer=${id}${code ? `&klasse=${code}` : ''}`;
 
 const when = (iso: string | null) =>
   iso
@@ -565,8 +567,8 @@ function BossStart({ lib, klasse, busy, act }: Pick<KlasseProps, 'lib' | 'klasse
     void act(async (keys) => {
       try {
         const id = await bossStarten(keys, klasse.id, m.id, `${m.subject} · Region ${m.number}`.slice(0, 120), bossVon(m.number), fragen);
-        if (fenster) fenster.location.href = beamerLink(id);
-        else setHinweis(`Neuer Tab war blockiert. Beamer-Ansicht: ${beamerLink(id)}`);
+        if (fenster) fenster.location.href = beamerLink(id, klasse.code);
+        else setHinweis(`Neuer Tab war blockiert. Beamer-Ansicht: ${beamerLink(id, klasse.code)}`);
       } catch (e) {
         fenster?.close();
         throw e;
