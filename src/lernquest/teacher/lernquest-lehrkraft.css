@@ -536,3 +536,243 @@
   justify-content: center;
   font-weight: 700;
 }
+
+/* — Answer cards (Kartenfrage without devices): 2 per A4 page, the pattern 105 mm wide — */
+
+.lqt-sheet.lqt-karten-blatt {
+  padding: 0;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.lqt-antwortkarte {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.lqt-antwortkarte:first-child {
+  border-bottom: 0.3mm dashed var(--color-neutral-500);
+}
+.lqt-antwortkarte-muster {
+  width: 105mm;
+  height: 105mm;
+  display: block;
+}
+/* Small letters, each upright when its side is on top; the A side is the top of the printed card. */
+.lqt-antwortkarte-buchstabe {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--color-neutral-700);
+  line-height: 1;
+}
+.lqt-antwortkarte-buchstabe.is-0 {
+  transform: translate(-50%, -50%) translateY(-60mm);
+}
+.lqt-antwortkarte-buchstabe.is-1 {
+  transform: translate(-50%, -50%) translateX(60mm) rotate(90deg);
+}
+.lqt-antwortkarte-buchstabe.is-2 {
+  transform: translate(-50%, -50%) translateY(60mm) rotate(180deg);
+}
+.lqt-antwortkarte-buchstabe.is-3 {
+  transform: translate(-50%, -50%) translateX(-60mm) rotate(-90deg);
+}
+.lqt-antwortkarte-name {
+  position: absolute;
+  left: 8mm;
+  bottom: 6mm;
+  font-size: 9pt;
+  color: var(--color-neutral-700);
+}
+
+/* — Kartenfrage: question on the left (for the projector), camera and cards on the right — */
+
+.lqt-runde-main {
+  min-height: 0;
+  overflow: auto;
+  padding: 20px 24px 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  gap: 20px;
+  align-items: start;
+}
+.lqt-runde-buehne {
+  background: var(--color-neutral-100);
+  border-radius: 18px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.lqt-runde-auftrag {
+  margin: 0;
+  font-size: 18px;
+  color: var(--color-neutral-700);
+}
+.lqt-runde-aussage {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.lqt-runde-optionen {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.lqt-runde-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--color-neutral-200);
+  font-size: 22px;
+  overflow: hidden;
+}
+.lqt-runde-option.is-richtig {
+  background: var(--color-accent-2-200);
+  color: var(--color-accent-2-900);
+}
+.lqt-runde-option.is-falsch {
+  opacity: 0.7;
+}
+.lqt-runde-buchstabe {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--color-text);
+  color: var(--color-neutral-100);
+  font-weight: 700;
+}
+.lqt-runde-balken {
+  grid-column: 1 / -1;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-neutral-300);
+  position: relative;
+  overflow: hidden;
+  font-size: 14px;
+}
+.lqt-runde-balken::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--anteil);
+  background: var(--color-neutral-600);
+}
+.is-richtig .lqt-runde-balken::before {
+  background: var(--color-accent-2-600);
+}
+.lqt-runde-balken span {
+  position: relative;
+  padding: 0 10px;
+  line-height: 28px;
+  color: var(--color-neutral-100);
+  mix-blend-mode: difference;
+}
+.lqt-runde-ergebnis {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+.lqt-runde-knoepfe {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lqt-runde-seite {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lqt-runde-kamera {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--color-neutral-900);
+  color: var(--color-neutral-200);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 13px;
+}
+.lqt-runde-kamera p {
+  margin: 0;
+  padding: 16px;
+}
+.lqt-runde-kamera video,
+.lqt-runde-umrisse {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.lqt-runde-umrisse polygon {
+  fill: color-mix(in srgb, var(--color-accent-2-400) 35%, transparent);
+  stroke: var(--color-accent-2-300);
+  stroke-width: 4;
+}
+.lqt-runde-umrisse polygon.is-fremd {
+  fill: none;
+  stroke: var(--color-neutral-400);
+}
+.lqt-runde-zaehler {
+  margin: 0;
+  font-size: 15px;
+}
+.lqt-runde-zaehler strong {
+  font-size: 22px;
+}
+.lqt-runde-karten {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lqt-runde-karten li {
+  min-width: 36px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 13px;
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-600);
+}
+.lqt-runde-karten li.is-da {
+  background: var(--color-text);
+  color: var(--color-neutral-100);
+}
+.lqt-runde-karten li.is-richtig {
+  background: var(--color-accent-2-600);
+}
+.lqt-runde-karten li.is-falsch {
+  background: var(--color-accent-1-600);
+}
+.lqt-runde-liste {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lqt-runde-liste li span {
+  margin-right: 8px;
+}
+@media (max-width: 820px) {
+  .lqt-runde-main {
+    grid-template-columns: 1fr;
+  }
+}

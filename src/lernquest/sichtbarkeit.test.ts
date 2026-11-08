@@ -55,8 +55,8 @@ describe('Sichtbarkeit der Stunden je Klasse', () => {
     expect(r?.versteckt).toEqual({ k1: ['a', 'b'] });
     expect(readLehrkraft({ keys: [key], pins: {}, updatedAt: 5 })?.versteckt).toEqual({});
 
-    const alt: Lehrkraft = { keys: [key], pins: {}, versteckt: { k1: ['a'], k2: ['c'] }, updatedAt: 1 };
-    const neu: Lehrkraft = { keys: [key], pins: {}, versteckt: { k1: [] }, updatedAt: 2 };
+    const alt: Lehrkraft = { keys: [key], pins: {}, versteckt: { k1: ['a'], k2: ['c'] }, karten: {}, updatedAt: 1 };
+    const neu: Lehrkraft = { keys: [key], pins: {}, versteckt: { k1: [] }, karten: {}, updatedAt: 2 };
     expect(mergeLehrkraft(alt, neu).versteckt).toEqual({ k1: [], k2: ['c'] });
     expect(sameLehrkraft(alt, { ...alt, versteckt: { k1: ['a'] } })).toBe(false);
   });
