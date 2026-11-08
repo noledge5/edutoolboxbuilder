@@ -148,6 +148,9 @@ Prompts in [`bilder/prompts.md`](bilder/prompts.md). Krea 2 Turbo: 8 Schritte, 1
 ## Bewegungsschleifen für Bosse und Begleiter (entschieden 08.11.2026, noch nicht gebaut)
 
 Die Lehrkraft macht kurze Bewegungsschleifen selbst (MiniMax, lokal in ComfyUI); kein externer Agent.
+- **Zuerst malt die Lehrkraft die Bosse neu** im Look der Avatare („weich gemalt“, siehe oben); das gemalte Bild ist
+  dann Startbild der Schleife. Die App zeigt bisher die Vektor-Bosse aus `Boss.tsx`; gemalte Bosse brauchen dort
+  „Bild, wenn vorhanden, sonst Vektor“ wie bei den Teilen.
 - **Was sich bewegt:** die ganze Figur (atmen, wippen, hüpfen; fliegen bei Eule, Drache, Phönix). Treffer-Wackeln und
   Aufblitzen der Bosse kommen per CSS obendrauf. Bei „Bewegung reduzieren“ zeigt die App ein Standbild.
 - **Lieferung:** Einzelbilder als PNG mit durchsichtigem Hintergrund (in ComfyUI nach dem Video freigestellt, z. B. mit
