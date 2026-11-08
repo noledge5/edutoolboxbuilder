@@ -144,3 +144,19 @@ Prompts in [`bilder/prompts.md`](bilder/prompts.md). Krea 2 Turbo: 8 Schritte, 1
   `edit-prompts.md`, `--schablonen` die Masken, die Vorlage und `plaetze.png` (aus `schablonen/figur.svg`).
 - `src/lernquest/app/teilBilder.ts` + `avatar.tsx`: Bild, wenn vorhanden, sonst Vektor. Gemalte Haare erscheinen nur
   zusammen mit der gemalten Grundfigur, auf der sie entstanden sind.
+
+## Bewegungsschleifen für Bosse und Begleiter (entschieden 08.11.2026, noch nicht gebaut)
+
+Die Lehrkraft macht kurze Bewegungsschleifen selbst (MiniMax, lokal in ComfyUI); kein externer Agent.
+- **Zuerst malt die Lehrkraft die Bosse neu** im Look der Avatare („weich gemalt“, Prompts: `bilder/boss-prompts.md`); das gemalte Bild ist
+  dann Startbild der Schleife. Die App zeigt bisher die Vektor-Bosse aus `Boss.tsx`; gemalte Bosse brauchen dort
+  „Bild, wenn vorhanden, sonst Vektor“ wie bei den Teilen.
+- **Was sich bewegt:** die ganze Figur (atmen, wippen, hüpfen; fliegen bei Eule, Drache, Phönix). Treffer-Wackeln und
+  Aufblitzen der Bosse kommen per CSS obendrauf. Bei „Bewegung reduzieren“ zeigt die App ein Standbild.
+- **Lieferung:** Einzelbilder als PNG mit durchsichtigem Hintergrund (in ComfyUI nach dem Video freigestellt, z. B. mit
+  rembg oder BiRefNet). Kein GIF (256 Farben, harte Kanten).
+- **Damit die Schleife passt:** erstes und letztes Bild in derselben Haltung, die Figur bleibt an derselben Stelle,
+  2–4 Sekunden. Startbild (wenn möglich auch Endbild) = das jetzige Bild der Figur; die Bosse gibt Claude dafür als PNG
+  aus.
+- **Im Projekt:** ein Skript wie `lq:bilder` prüft die Bilder und macht daraus animiertes WebP (durchsichtig, läuft in
+  Safari auf dem iPad) und ein Standbild. Den Code-Teil baut Claude in einer eigenen Sitzung.

@@ -143,6 +143,72 @@ Wunsch der Lehrkraft, weil die gemalte Grundfigur ein leeres Gesicht hat. Migrat
 - Bilder: Edit von `koerper.png`, Ablage `lernquest-roh/edit/mund-<id>.png`, Suchbereich `EDIT_BEREICH.mund`,
   Prompts `editMund` in `vorlagen.ts` (`edit-prompts.md`, Abschnitt 4).
 
+## Bosskampf mit Karten (Fragerunde 08.11.2026, in Klärung)
+
+Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
+- **Zwei Ausführungen des Bosskampfs:** mit **Geräten** (Beitritt per QR-Code, wie gebaut) oder mit **nummerierten
+  Karten**, die die Kinder hochhalten und die Lehrkraft scannt. Die Klasse hat bereits einen Original-Satz
+  Plickers-Karten. **Entweder-oder pro Kampf**, kein Mischen: Beim Start wählt die Lehrkraft „mit Karten“ oder „mit
+  Geräten“. Warum: Jeder Modus hat klare eigene Regeln (Karten: fester Schaden, kein Zeitlimit; Geräte: Tempo,
+  20 Sekunden).
+- **Eigene Karten statt Original-Plickers-Karten:** gleiche Bedienung (Nummer je Kind, Drehung = Antwort A–D, die
+  Lehrkraft scannt), aber eigenes Muster aus freien ArUco-Markern, gedruckt aus dem Baukasten wie die PIN-Karten.
+  Warum: Plickers ist ein fremdes Produkt mit US-Patent auf das Verfahren, das Muster ist nicht offen; eigene Karten
+  sind rechtlich sauber, und die Erkennung bleibt in unserer Hand. Kosten: einmal drucken und laminieren.
+- **Karte = nur eine Nummer, Kind = Klassennummer:** Die Karten tragen nur eine Nummer, keinen Namen, und gehören
+  keiner Klasse; ein Satz reicht für alle Klassen. Jedes Kind in Lernquest hat eine **Klassennummer** in seiner Klasse.
+  Beim Kampf wählt die Lehrkraft die Klasse; eine gescannte Nummer gilt für das Kind mit dieser Klassennummer, und
+  Schaden, Truhe und Klassenpunkte zählen auf sein Konto. Server: `lq_kind` braucht dafür eine Nummer (eindeutig je
+  Klasse), also eine Migration (vorher fragen).
+- **Klassennummern wie bei Plickers:** Ein neues Kind bekommt automatisch die kleinste freie Nummer, bestehende
+  Klassen werden einmal alphabetisch durchnummeriert; die Lehrkraft kann Nummern in der Kinderliste ändern, der Server
+  verhindert doppelte. Nummern 1–40 (Kartensatz mit 40 Karten). Abweichung von Plickers: Die Nummer eines gelöschten
+  Kindes bleibt belegt, solange es im Papierkorb liegt.
+- **Namen am Beamer sind erlaubt** (Lehrkraft, 08.11.2026; vorher galt „keine Namen am Beamer, nur Zahlen“). Wie bei
+  Plickers wird am Beamer markiert, wessen Karte erkannt ist, damit das Kind sie herunternehmen kann.
+- **Ablauf einer Frage mit Karten:** Frage am Beamer (A–D mit Form) → Kinder halten die Karte hoch, die Lehrkraft
+  scannt, gern in mehreren Durchgängen (kein Zeitlimit) → am Beamer wird der Name grün, sobald die Karte erkannt ist →
+  „Auflösen“: Balken A–D, richtige Antwort, Schaden. Ohne Tempo: **15 Schaden je richtiger Karte**, Serie ab 3 doppelt
+  wie gehabt; Herzen und Truhe wie bisher; beigetreten ist, wessen Karte im Kampf einmal erkannt wurde. Am Beamer nur,
+  **wer** geantwortet hat, nicht **was**; die einzelnen Antworten sieht nur die Lehrkraft auf dem Scan-Gerät.
+  Regeln doppelt pflegen (`rules.ts` und `lq_boss_*`).
+- **Mehrfach gescannt: der letzte Scan zählt**, bis „Auflösen“ gedrückt ist (wie Plickers). Kinder dürfen sich
+  umentscheiden, und ein Fehlscan bessert sich beim nächsten Durchgang aus; das Scan-Gerät zeigt den neuen Buchstaben.
+- **Ohne Netz kein Scannen** (Lehrkraft, 08.11.2026): Fällt die Verbindung aus, stoppt das Scannen mit „Keine
+  Verbindung“; keine Warteschlange auf dem Gerät. Warum: einfacher, und Schaden, Truhe und Klassenpunkte liegen ohnehin
+  auf dem Server. Ein Kampf nur zwischen Scan-Gerät und Beamer ohne Server ist nicht geplant.
+- **Scan-Gerät ist das iPhone oder iPad der Lehrkraft** (sie hat Mac, iPad und iPhone dabei), nicht das Gerät am
+  Beamer. Die Karten müssen schnell und einfach erfasst werden: viele Karten pro Bild, vier Antworten je nach Haltung
+  der Karte.
+- **Wunsch: Lehrkraft-Bereich in der Lernquest-App**, aus dem heraus die Lehrkraft Lernfortschritte sieht und
+  Bosskämpfe steuert (auch scannt).
+- **Anmeldung als Lehrkraft in Lernquest: derselbe Lehrkraft-Schlüssel, kein neues Konto.** Auf der Startseite klein
+  „Ich bin Lehrkraft“; die App liest den Schlüssel aus dem Speicher des Baukastens (gleiche Adresse, wie heute der
+  Beamer). Mac und iPad haben ihn über den Abgleich; das iPhone bekommt ihn, indem man dort einmal den Baukasten öffnet
+  und mit „Weiteres Gerät koppeln“ verbindet. Ohne Schlüssel nur der Hinweis „Auf diesem Gerät ist keine Lehrkraft
+  eingerichtet“. Warum: kein Passwort, keine neuen Daten auf dem Server, keine neue Angriffsfläche.
+- **Lehrkraft-Bereich in der App = was im Unterricht in die Hand gehört:** Bosskampf (Klasse und Region wählen, Karten
+  oder Geräte, starten, weiter, scannen, „Auflösen“, beenden), Fortschritt je Kind und Kompetenz (nur lesen, aus
+  `Auswertung.tsx`), schnelle Hilfe (PIN zurücksetzen, Konto freigeben, Gutschein-Anfragen abhaken). Alles andere
+  bleibt im Baukasten (Klassen und Kinder, Klassennummern, PINs und Karten drucken, Stunden, Fragenpool, Gutscheine
+  anlegen). Gleiche Bausteine, Lernquest-Look, nichts doppelt pflegen.
+- **Karte:** eine je A4-Blatt, laminiert, schwarz-weiß; Muster etwa 17 × 17 cm (sicher bis ~8 m mit dem iPhone-Video);
+  an den Kanten klein A–D mit Form (oben = Antwort), Nummer klein in einer Ecke, kein Name. Druck im Baukasten neben
+  den PIN-Karten („Antwortkarten drucken (1–40)“). Erst 3–4 Probekarten im Klassenraum testen, dann alle 40.
+
+## Stunden ausblenden (08.11.2026)
+
+Wunsch der Lehrkraft: Stunden eines Moduls ganz ausblenden können. Je Klasse hat jede Stunde drei Stufen, im Baukasten
+unter „Stunden freischalten“ als Auswahl statt Häkchen: **Freigeschaltet** (Station zum Spielen), **Gesperrt** (Station
+mit Schloss, „Öffnet sich, sobald ihr es im Unterricht hattet“) und **Ausgeblendet** (gar nicht auf der Karte).
+- **Pro Klasse**, nicht für alle Klassen (Lehrkraft): Klassen sind unterschiedlich weit.
+- Gespeichert im Lehrkraft-Datensatz (`versteckt`, Klasse → Stunden), reist verschlüsselt mit dem Abgleich wie die
+  PINs; **keine Server-Änderung**. Ausgeblendete Stunden fehlen in `modul.stunden` der Pakete, ihre Titel kommen also
+  gar nicht auf den Server. Wer die Stufe ändert, sendet die freigeschalteten Stunden des Moduls neu
+  (`src/lernquest/sichtbarkeit.ts`). Freigeschaltet geht immer vor ausgeblendet.
+- Die Karte nimmt die längste Stundenliste der Pakete eines Moduls; scheitert das Neusenden mittendrin, hilft
+  „Freigeschaltete neu senden“.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.
@@ -205,7 +271,8 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   - Regeln (`rules.ts`, gleich im SQL): 20 s je Frage (+1,5 s Nachfrist), Schaden 10 + bis 10 fürs Tempo, ab 3 richtig
     in Folge doppelt; Lebenspunkte 13 je Kind und Frage (wer später kommt, macht den Boss größer); 5 Klassen-Herzen,
     eins weg, wenn weniger als die Hälfte der Beigetretenen richtig liegt. Sieg = Truhe für alle mit mindestens einer
-    Antwort, nur beim ersten Sieg je Region und Kind. Keine Namen am Beamer, nur Zahlen.
+    Antwort, nur beim ersten Sieg je Region und Kind. Keine Namen am Beamer, nur Zahlen (seit 08.11.2026 erlaubt,
+    siehe „Bosskampf mit Karten“).
   - Verbindung: Beamer und Handys fragen jede Sekunde (kein Realtime-Kanal, der ohne Anmeldung mitlesbar wäre). Die
     Lösung verlässt den Server erst nach der Frage. Kämpfe enden nach 3 Stunden von selbst und werden nach 2 Tagen
     gelöscht; die Siege je Region bleiben.

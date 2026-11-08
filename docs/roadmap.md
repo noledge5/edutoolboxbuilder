@@ -190,3 +190,22 @@ Wunsch der Lehrkraft: ein Lerntool, verbunden mit den Modulen, Mischung aus Duol
 3. Bosskampf am Beamer. Entschieden mit der Lehrkraft am 06.11.2026: 10 Fragen, 20 s je Frage, Schaden 10 + bis 10 fürs Tempo, ab 3 richtig in Folge doppelt, Lebenspunkte so, dass die Klasse mit etwa 70 % richtig gewinnt, 5 Klassen-Herzen (eins weg bei weniger als der Hälfte richtig); Truhe für alle, die mitgemacht haben, nur beim ersten Sieg je Region. Server-Teil eingespielt am 06.11.2026, App auf Branch `claude/lernquest-stufe3`.
 4. Echte Belohnungen und Auswertung
 5. KI-Fragenpool und mehr Formate
+
+Entschieden am 08.11.2026:
+- **Bosskampf mit Karten** (wie Plickers, eigene ArUco-Karten, Lehrkraft-Bereich in der App, iPhone/iPad scannt):
+  alle Entscheidungen unter „Bosskampf mit Karten“ in `docs/lernquest.md`. Noch nicht gebaut; die Server-Änderung
+  (Klassennummer, Kartenantworten) erst nach Rückfrage.
+- **Stunden ausblenden:** je Klasse drei Stufen (Freigeschaltet, Gesperrt, Ausgeblendet), ohne Server-Änderung;
+  Einzelheiten unter „Stunden ausblenden“ in `docs/lernquest.md`.
+- **Detailarbeit an einen externen Agenten (DeepSeek über OpenRouter):** Claude schreibt je Aufgabe ein Arbeitspaket
+  ins Repo (Ziel, Dateien, Regeln aus `AGENTS.md`, wann fertig), die Lehrkraft startet DeepSeek mit einem
+  Programmier-Werkzeug auf eigenem Branch, Claude prüft (Tests, Bildschirmfotos, Durchsicht) vor dem Merge. Erstes
+  Thema: Animationen der Bosse und Begleiter. Warum: Planen und Prüfen beim stärkeren Modell, viel Kleinarbeit günstig.
+  Der OpenRouter-Schlüssel bleibt auf dem Gerät der Lehrkraft, nie in der Cloud-Sitzung oder im Repo; das Repo enthält
+  keine Kinderdaten.
+- **Animationen der Bosse und Begleiter:** Bewegung der ganzen Figur (atmen, wippen, hüpfen, fliegen), bei den Bossen
+  zusätzlich Treffer-Wackeln und Aufblitzen; bei „Bewegung reduzieren“ steht alles still. Die Lehrkraft kann kurze
+  Bewegungsschleifen selbst machen (MiniMax, lokal in ComfyUI). **Deshalb vorerst kein externer Agent** (Lehrkraft,
+  08.11.2026): Den kleinen Code-Teil (Animation statt Bild, Standbild bei „Bewegung reduzieren“, Treffer per CSS,
+  Prüf- und Umwandlungs-Skript) baut Claude in einer eigenen Sitzung. Die Abmachung zu Arbeitspaketen oben gilt, falls
+  später viel gleichartige Kleinarbeit kommt.

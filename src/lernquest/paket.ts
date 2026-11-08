@@ -251,10 +251,13 @@ export function exercisesOf(pages: Page[]): Uebung[] {
   return student.flatMap((page) => page.blocks.flatMap((b) => fromBlock(b, page, pool)));
 }
 
-/** The Lernpaket of a lesson; `lessons` are the module's lessons, for the locked stations on the map. */
-export function buildPaket(m: Module, l: Lesson, lessons: Lesson[] = [l]): Paket {
+/**
+ * The Lernpaket of a lesson; `lessons` are the module's lessons, for the locked stations on the map, without those
+ * hidden from the class (`versteckt`, never the lesson itself).
+ */
+export function buildPaket(m: Module, l: Lesson, lessons: Lesson[] = [l], versteckt: readonly string[] = []): Paket {
   const stunden = lessons
-    .filter((x) => x.moduleId === m.id)
+    .filter((x) => x.moduleId === m.id && (x.id === l.id || !versteckt.includes(x.id)))
     .sort((a, b) => a.number - b.number)
     .map((x) => ({ nummer: x.number, titel: x.title }));
   return {

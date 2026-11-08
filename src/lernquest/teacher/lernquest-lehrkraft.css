@@ -155,10 +155,13 @@
 .lqt-lesson:hover {
   background: color-mix(in srgb, var(--color-text) 6%, transparent);
 }
-.lqt-lesson input {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--color-accent);
+.lqt-lesson .lqt-stufe {
+  width: auto;
+  flex: none;
+}
+.lqt-lesson.is-hidden span {
+  color: var(--color-neutral-600);
+  text-decoration: line-through;
 }
 .lqt-lesson small {
   margin-left: auto;

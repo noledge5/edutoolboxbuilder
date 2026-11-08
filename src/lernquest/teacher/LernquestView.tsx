@@ -6,12 +6,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Lock, Plus, Printer, RefreshCw, RotateCcw, Sparkles, Swords, Trash2, Unlock } from 'lucide-react';
 import { Icon } from '../../icons';
 import { SearchButton } from '../../library/SearchDialog';
-import type { Lesson, Library } from '../../library/types';
+import type { Lesson, Library, Module } from '../../library/types';
 import { freigegeben } from '../fragenpool';
 import { FragenpoolDialog } from './Fragenpool';
 import { PunkteDialog } from './PunkteDialog';
 import { paketSenden } from './senden';
 import { ensureLehrkraft, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
+import { STUFEN, stufenPlan, stufeVon, type Stufe } from '../sichtbarkeit';
 import { BOSS_FRAGEN_MIN, bossFragen, bossVon } from '../boss';
 import { buildPaket, exercisesOf } from '../paket';
 import { BOSS_FRAGEN, heldenstufe, punkteHandRest, PUNKTE_HAND_WOCHE, rundenZahl, sterne, woche } from '../rules';
@@ -117,6 +118,16 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
     onDeviceChange();
   };
 
+  /** Stores the lessons hidden from a class (in the teacher record, so it travels to the other device). */
+  const saveVersteckt = async (klasse: string, ids: string[]) => {
+    const l = await updateLehrkraft((x) => ({
+      ...x,
+      versteckt: { ...x.versteckt, [klasse]: ids },
+    }));
+    setMe(l);
+    onDeviceChange();
+  };
+
   const active = list?.filter((k) => !k.geloescht) ?? [];
   const trashed = list?.filter((k) => k.geloescht) ?? [];
   const klasse = active.find((k) => k.id === sel) ?? active[0];
@@ -179,7 +190,7 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
               </form>
             </nav>
             {klasse ? (
-              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} busy={busy} act={act} savePins={savePins} onPrint={() => setPrinting(true)} />
+              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} versteckt={me?.versteckt[klasse.id] ?? []} busy={busy} act={act} savePins={savePins} saveVersteckt={(ids) => saveVersteckt(klasse.id, ids)} onPrint={() => setPrinting(true)} />
             ) : (
               <p className="lib-empty">Lege zuerst eine Klasse an.</p>
             )}
@@ -221,20 +232,23 @@ interface KlasseProps {
   klasse: KlasseInfo;
   keys: string[];
   pins: Record<string, string>;
+  /** Lessons hidden from this class (not even a locked station on the map). */
+  versteckt: string[];
   busy: boolean;
   act(f: (keys: string[]) => Promise<unknown>): Promise<void>;
   savePins(pins: Record<string, string>): Promise<void>;
+  saveVersteckt(ids: string[]): Promise<void>;
   onPrint(): void;
 }
 
-function KlasseView({ lib, onLessonChange, klasse, keys, pins, busy, act, savePins, onPrint }: KlasseProps) {
+function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, act, savePins, saveVersteckt, onPrint }: KlasseProps) {
   /** Lesson whose KI-Fragenpool is open. */
   const [poolOf, setPoolOf] = useState<string | null>(null);
   /** Child who gets class points by hand (dialog open). */
   const [punkteFuer, setPunkteFuer] = useState<KindInfo | null>(null);
   const [names, setNames] = useState('');
-  /** Lessons being unlocked or locked: the box shows the wish at once, the server follows. */
-  const [want, setWant] = useState<Record<string, boolean>>({});
+  /** Lessons getting a new level: the choice shows the wish at once, the server follows. */
+  const [want, setWant] = useState<Record<string, Stufe>>({});
   /** PINs stay hidden on screen (the page may be on the projector) until asked for. */
   const [showPins, setShowPins] = useState(false);
   const subjects = useMemo(() => [...new Set(lib.modules.map((m) => m.subject))].sort((a, b) => a.localeCompare(b, 'de')), [lib.modules]);
@@ -251,6 +265,30 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, busy, act, savePi
     for (const l of lib.lessons) if (klasse.stunden.includes(l.id)) out[l.id] = rundenZahl(exercisesOf(l.doc.pages).length);
     return out;
   }, [lib.lessons, klasse.stunden]);
+
+  /**
+   * Unlocked, locked or hidden. Hiding changes the module's lesson list in the packages, so the other unlocked lessons
+   * of the module go again. Every choice waits while one runs, so each plan starts from the stored state.
+   */
+  const setStufe = (m: Module, l: Lesson, stufe: Stufe) => {
+    const plan = stufenPlan(
+      l.id,
+      stufe,
+      klasse.stunden,
+      versteckt,
+      lib.lessons.filter((x) => x.moduleId === m.id).map((x) => x.id),
+    );
+    setWant((w) => ({ ...w, [l.id]: stufe }));
+    void act(async (keys) => {
+      if (plan.versteckt.join() !== versteckt.join()) await saveVersteckt(plan.versteckt);
+      if (plan.sperren) await sperren(keys, klasse.id, l.id);
+      if (plan.senden) await paketSenden(keys, klasse.id, m, l, lib.lessons, plan.versteckt);
+      for (const id of plan.neuSenden) {
+        const x = lib.lessons.find((y) => y.id === id);
+        if (x) await paketSenden(keys, klasse.id, m, x, lib.lessons, plan.versteckt);
+      }
+    }).finally(() => setWant(({ [l.id]: _, ...rest }) => rest));
+  };
 
   const kinder = klasse.kinder.filter((k) => !k.geloescht);
   const geloescht = klasse.kinder.filter((k) => k.geloescht);
@@ -446,7 +484,10 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, busy, act, savePi
         <div className="lqt-head">
           <div>
             <h2>Stunden freischalten</h2>
-            <p className="lqt-hint">Eine freigeschaltete Stunde wird eine Station auf der Weltkarte. Aus ihren lösbaren Aufgaben (mit Lösung) werden Übungen; Lehrkraft-Seiten bleiben draußen.</p>
+            <p className="lqt-hint">
+              Eine freigeschaltete Stunde wird eine Station auf der Weltkarte. Aus ihren lösbaren Aufgaben (mit Lösung) werden Übungen; Lehrkraft-Seiten bleiben draußen. Gesperrte Stunden
+              sehen die Kinder mit Schloss, ausgeblendete gar nicht.
+            </p>
           </div>
           <div className="lqt-actions">
             <button
@@ -459,7 +500,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, busy, act, savePi
                   for (const id of klasse.stunden) {
                     const l = lib.lessons.find((x) => x.id === id);
                     const m = l && lib.modules.find((x) => x.id === l.moduleId);
-                    if (l && m) await paketSenden(keys, klasse.id, m, l, lib.lessons);
+                    if (l && m) await paketSenden(keys, klasse.id, m, l, lib.lessons, versteckt);
                   }
                 })
               }
@@ -496,22 +537,23 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, busy, act, savePi
                 .map((l) => {
                   const n = exercisesOf(l.doc.pages).length + freigegeben(l.pool).length;
                   const imPool = l.pool?.length ?? 0;
-                  const on = want[l.id] ?? klasse.stunden.includes(l.id);
+                  const stufe = want[l.id] ?? stufeVon(l.id, klasse.stunden, versteckt);
                   return (
                     <li key={l.id}>
-                      <label className={`lqt-lesson ${!n && !on ? 'is-empty' : ''}`}>
-                        <input
-                          type="checkbox"
-                          checked={on}
-                          disabled={l.id in want || (!n && !on)}
-                          onChange={(e) => {
-                            const yes = e.target.checked;
-                            setWant((w) => ({ ...w, [l.id]: yes }));
-                            void act((keys) => (yes ? paketSenden(keys, klasse.id, m, l, lib.lessons) : sperren(keys, klasse.id, l.id))).finally(() =>
-                              setWant(({ [l.id]: _, ...rest }) => rest),
-                            );
-                          }}
-                        />
+                      <label className={`lqt-lesson ${!n && stufe !== 'frei' ? 'is-empty' : ''} ${stufe === 'aus' ? 'is-hidden' : ''}`}>
+                        <select
+                          className="input lqt-stufe"
+                          value={stufe}
+                          disabled={busy || l.id in want}
+                          aria-label={`Stunde ${l.number}: ${l.title}`}
+                          onChange={(e) => setStufe(m, l, e.target.value as Stufe)}
+                        >
+                          {STUFEN.map((x) => (
+                            <option key={x.id} value={x.id} disabled={x.id === 'frei' && !n && stufe !== 'frei'}>
+                              {x.label}
+                            </option>
+                          ))}
+                        </select>
                         <span>
                           Stunde {l.number}: {l.title}
                         </span>
