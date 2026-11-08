@@ -201,3 +201,6 @@ Entschieden am 08.11.2026:
   Thema: Animationen der Bosse und Begleiter. Warum: Planen und Prüfen beim stärkeren Modell, viel Kleinarbeit günstig.
   Der OpenRouter-Schlüssel bleibt auf dem Gerät der Lehrkraft, nie in der Cloud-Sitzung oder im Repo; das Repo enthält
   keine Kinderdaten.
+- **Animationen der Bosse und Begleiter:** Bewegung der ganzen Figur (atmen, wippen, hüpfen, fliegen), bei den Bossen
+  zusätzlich Treffer-Wackeln und Aufblitzen; bei „Bewegung reduzieren“ steht alles still. Die Lehrkraft kann kurze
+  Bewegungsschleifen selbst machen (MiniMax, lokal in ComfyUI); ob dann noch ein externer Agent nötig ist, ist offen.
