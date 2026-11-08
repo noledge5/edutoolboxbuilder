@@ -153,6 +153,11 @@ Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
   Lehrkraft scannt), aber eigenes Muster aus freien ArUco-Markern, gedruckt aus dem Baukasten wie die PIN-Karten.
   Warum: Plickers ist ein fremdes Produkt mit US-Patent auf das Verfahren, das Muster ist nicht offen; eigene Karten
   sind rechtlich sauber, und die Erkennung bleibt in unserer Hand. Kosten: einmal drucken und laminieren.
+- **Karte = nur eine Nummer, Kind = Klassennummer:** Die Karten tragen nur eine Nummer, keinen Namen, und gehören
+  keiner Klasse; ein Satz reicht für alle Klassen. Jedes Kind in Lernquest hat eine **Klassennummer** in seiner Klasse.
+  Beim Kampf wählt die Lehrkraft die Klasse; eine gescannte Nummer gilt für das Kind mit dieser Klassennummer, und
+  Schaden, Truhe und Klassenpunkte zählen auf sein Konto. Server: `lq_kind` braucht dafür eine Nummer (eindeutig je
+  Klasse), also eine Migration (vorher fragen).
 
 ## Erfolgskriterien Stufe 1
 
