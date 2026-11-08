@@ -3,7 +3,7 @@
 // the boss fight on the projector (Stufe 3: the questions are made here, the projector view is Lernquest's #beamer=),
 // class points, vouchers and requests, and progress per competence (Stufe 4: `Belohnungen.tsx`, `Auswertung.tsx`).
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Lock, Plus, Printer, RefreshCw, RotateCcw, Sparkles, Swords, Trash2, Unlock } from 'lucide-react';
+import { ArrowLeft, IdCard, Lock, MessageCircleQuestion, Plus, Printer, RefreshCw, RotateCcw, Sparkles, Swords, Trash2, Unlock } from 'lucide-react';
 import { Icon } from '../../icons';
 import { SearchButton } from '../../library/SearchDialog';
 import type { Lesson, Library, Module } from '../../library/types';
@@ -11,9 +11,9 @@ import { freigegeben } from '../fragenpool';
 import { FragenpoolDialog } from './Fragenpool';
 import { PunkteDialog } from './PunkteDialog';
 import { paketSenden } from './senden';
-import { ensureLehrkraft, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
+import { ensureLehrkraft, kartenNummern, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
 import { STUFEN, stufenPlan, stufeVon, type Stufe } from '../sichtbarkeit';
-import { BOSS_FRAGEN_MIN, bossFragen, bossVon } from '../boss';
+import { BOSS_FRAGEN_MIN, bossFragen, bossVon, type BossFrage } from '../boss';
 import { buildPaket, exercisesOf } from '../paket';
 import { BOSS_FRAGEN, heldenstufe, punkteHandRest, PUNKTE_HAND_WOCHE, rundenZahl, sterne, woche } from '../rules';
 import {
@@ -36,6 +36,8 @@ import {
 import { Auswertung } from './Auswertung';
 import { Belohnungen } from './Belohnungen';
 import { PinCards } from './PinCards';
+import { Antwortkarten, type KartenKind } from './Antwortkarten';
+import { Kartenrunde } from './Kartenrunde';
 import './lernquest-lehrkraft.css';
 
 interface Props {
@@ -70,6 +72,8 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
   const [msg, setMsg] = useState('');
   const [newName, setNewName] = useState('');
   const [printing, setPrinting] = useState(false);
+  /** Answer cards open: printing them, or a Kartenfrage with questions (null = free questions). */
+  const [karten, setKarten] = useState<{ kinder: KartenKind[]; runde?: { fragen: BossFrage[] | null } } | null>(null);
 
   const load = useCallback(
     async (l?: Lehrkraft) => {
@@ -128,10 +132,39 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
     onDeviceChange();
   };
 
+  /**
+   * The children of a class with their card numbers. New children get the lowest free number; the numbering is
+   * stored in the teacher record, so printed cards stay valid on both devices.
+   */
+  const kartenKinder = async (k: KlasseInfo): Promise<KartenKind[]> => {
+    const ids = k.kinder.map((c) => c.id);
+    let l = me ?? (await ensureLehrkraft());
+    const nummern = kartenNummern(ids, l.karten[k.id]);
+    if (JSON.stringify(nummern) !== JSON.stringify(l.karten[k.id] ?? {})) {
+      l = await updateLehrkraft((x) => ({ ...x, karten: { ...x.karten, [k.id]: nummern } }));
+      setMe(l);
+      onDeviceChange();
+    }
+    return k.kinder
+      .filter((c) => !c.geloescht && nummern[c.id])
+      .map((c) => ({ nummer: nummern[c.id], name: c.name }))
+      .sort((a, b) => a.nummer - b.nummer);
+  };
+  const openKarten = (k: KlasseInfo, runde?: { fragen: BossFrage[] | null }) =>
+    void kartenKinder(k)
+      .then((kinder) => setKarten({ kinder, runde }))
+      .catch((e) => setMsg(lqText(e)));
+
   const active = list?.filter((k) => !k.geloescht) ?? [];
   const trashed = list?.filter((k) => k.geloescht) ?? [];
   const klasse = active.find((k) => k.id === sel) ?? active[0];
 
+  if (karten && klasse)
+    return karten.runde ? (
+      <Kartenrunde titel={klasse.name} kinder={karten.kinder} fragen={karten.runde.fragen} onClose={() => setKarten(null)} />
+    ) : (
+      <Antwortkarten titel={klasse.name} kinder={karten.kinder} onClose={() => setKarten(null)} />
+    );
   if (printing && klasse && me) return <PinCards klasse={klasse} pins={me.pins} link={lernquestLink(klasse.code)} onClose={() => setPrinting(false)} />;
 
   return (
@@ -190,7 +223,7 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
               </form>
             </nav>
             {klasse ? (
-              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} versteckt={me?.versteckt[klasse.id] ?? []} busy={busy} act={act} savePins={savePins} saveVersteckt={(ids) => saveVersteckt(klasse.id, ids)} onPrint={() => setPrinting(true)} />
+              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} versteckt={me?.versteckt[klasse.id] ?? []} busy={busy} act={act} savePins={savePins} saveVersteckt={(ids) => saveVersteckt(klasse.id, ids)} onPrint={() => setPrinting(true)} onKarten={(runde) => openKarten(klasse, runde)} />
             ) : (
               <p className="lib-empty">Lege zuerst eine Klasse an.</p>
             )}
@@ -239,9 +272,11 @@ interface KlasseProps {
   savePins(pins: Record<string, string>): Promise<void>;
   saveVersteckt(ids: string[]): Promise<void>;
   onPrint(): void;
+  /** Answer cards: print them (no round) or start a Kartenfrage. */
+  onKarten(runde?: { fragen: BossFrage[] | null }): void;
 }
 
-function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, act, savePins, saveVersteckt, onPrint }: KlasseProps) {
+function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, act, savePins, saveVersteckt, onPrint, onKarten }: KlasseProps) {
   /** Lesson whose KI-Fragenpool is open. */
   const [poolOf, setPoolOf] = useState<string | null>(null);
   /** Child who gets class points by hand (dialog open). */
@@ -478,6 +513,8 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
 
       <Auswertung lib={lib} klasse={klasse} />
 
+      <KartenStart lib={lib} klasse={klasse} onKarten={onKarten} />
+
       <BossStart lib={lib} klasse={klasse} busy={busy} act={act} />
 
       <section className="lqt-card">
@@ -585,19 +622,79 @@ function PoolFuer({ lib, id, onLessonChange, onClose }: { lib: Library; id: stri
   return <FragenpoolDialog modul={m} stunde={l} settings={lib.settings} onChange={(pool) => onLessonChange({ ...l, pool })} onClose={onClose} />;
 }
 
-/** Starts a boss fight for one region (module with unlocked lessons) and opens the projector view in a new tab. */
-function BossStart({ lib, klasse, busy, act }: Pick<KlasseProps, 'lib' | 'klasse' | 'busy' | 'act'>) {
+/** The regions of a class (modules with unlocked lessons), the chosen one and the questions it can give. */
+function useRegion(lib: Library, klasse: KlasseInfo) {
   const regionen = lib.modules
     .filter((m) => lib.lessons.some((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)))
     .sort((a, b) => a.subject.localeCompare(b.subject, 'de') || a.grade - b.grade || a.number - b.number);
   const [wahl, setWahl] = useState('');
-  const [hinweis, setHinweis] = useState('');
   const m = regionen.find((x) => x.id === wahl) ?? regionen[0];
   const pakete = useMemo(
     () => (m ? lib.lessons.filter((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)).map((l) => buildPaket(m, l, lib.lessons)) : []),
     [m, lib.lessons, klasse.stunden],
   );
   const moeglich = useMemo(() => bossFragen(pakete, 'zaehlen', 1000).length, [pakete]);
+  const auswahl = (
+    <select className="input" value={m?.id ?? ''} onChange={(e) => setWahl(e.target.value)} aria-label="Region">
+      {regionen.map((x) => (
+        <option key={x.id} value={x.id}>
+          {x.subject} {x.grade} · Modul {x.number}: {x.title}
+        </option>
+      ))}
+    </select>
+  );
+  return { regionen, m, pakete, moeglich, auswahl };
+}
+
+/** Kartenfrage without devices: print the answer cards, then ask questions of a region or free ones. */
+function KartenStart({ lib, klasse, onKarten }: Pick<KlasseProps, 'lib' | 'klasse' | 'onKarten'>) {
+  const { regionen, m, pakete, moeglich, auswahl } = useRegion(lib, klasse);
+  const kinder = klasse.kinder.filter((k) => !k.geloescht).length;
+  return (
+    <section className="lqt-card">
+      <div className="lqt-head">
+        <div>
+          <h2>Kartenfrage ohne Geräte</h2>
+          <p className="lqt-hint">
+            Jedes Kind hat eine gedruckte Antwortkarte und hält sie hoch, den gewählten Buchstaben (A–D) oben. Du scannst die Klasse mit der Kamera des iPads und siehst sofort, wer was
+            geantwortet hat. Am Beamer stehen nur Kartennummern, Namen nur auf Wunsch.
+          </p>
+        </div>
+        <div className="lqt-actions">
+          <button type="button" className="btn btn-secondary ui-btn" onClick={() => onKarten()} disabled={!kinder}>
+            <Icon icon={IdCard} />
+            Antwortkarten drucken
+          </button>
+        </div>
+      </div>
+      {!kinder ? (
+        <p className="lib-empty">Füge zuerst Kinder hinzu: Jedes bekommt eine eigene Karte.</p>
+      ) : (
+        <div className="lqt-filter">
+          {regionen.length > 0 && (
+            <>
+              {auswahl}
+              <button type="button" className="btn btn-primary ui-btn" disabled={!m || moeglich < 1} onClick={() => onKarten({ fragen: bossFragen(pakete, String(Date.now())) })}>
+                <Icon icon={MessageCircleQuestion} />
+                Fragen der Region stellen
+              </button>
+            </>
+          )}
+          <button type="button" className={'btn ui-btn ' + (regionen.length ? 'btn-secondary' : 'btn-primary')} onClick={() => onKarten({ fragen: null })}>
+            <Icon icon={MessageCircleQuestion} />
+            Freie Frage (A–D)
+          </button>
+        </div>
+      )}
+      {kinder > 63 && <p className="lqt-hint">Es gibt 63 Karten je Klasse; Kinder darüber bekommen keine.</p>}
+    </section>
+  );
+}
+
+/** Starts a boss fight for one region (module with unlocked lessons) and opens the projector view in a new tab. */
+function BossStart({ lib, klasse, busy, act }: Pick<KlasseProps, 'lib' | 'klasse' | 'busy' | 'act'>) {
+  const { regionen, m, pakete, moeglich, auswahl } = useRegion(lib, klasse);
+  const [hinweis, setHinweis] = useState('');
 
   const starten = () => {
     if (!m) return;
@@ -632,13 +729,7 @@ function BossStart({ lib, klasse, busy, act }: Pick<KlasseProps, 'lib' | 'klasse
         <p className="lib-empty">Schalte zuerst Stunden frei: Jedes Modul mit freigeschalteten Stunden wird eine Region mit Boss.</p>
       ) : (
         <div className="lqt-filter">
-          <select className="input" value={m?.id ?? ''} onChange={(e) => setWahl(e.target.value)} aria-label="Region">
-            {regionen.map((x) => (
-              <option key={x.id} value={x.id}>
-                {x.subject} {x.grade} · Modul {x.number}: {x.title}
-              </option>
-            ))}
-          </select>
+          {auswahl}
           <button type="button" className="btn btn-primary ui-btn" disabled={busy || moeglich < BOSS_FRAGEN_MIN} onClick={starten}>
             <Icon icon={Swords} />
             Bosskampf starten

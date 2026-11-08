@@ -4,6 +4,7 @@
 // up with all keys, so a class made on either device can be managed on both.
 import { get, set } from 'idb-keyval';
 import { kv } from '../storage/kv';
+import { KARTEN_MAX } from './karten/code';
 
 export const LEHRKRAFT_KEY = 'geraet:lernquest';
 /** Name of the entry in the sync. */
@@ -16,6 +17,8 @@ export interface Lehrkraft {
   pins: Record<string, string>;
   /** Class id → lessons hidden from that class (not even a locked station; src/lernquest/sichtbarkeit.ts). */
   versteckt: Record<string, string[]>;
+  /** Class id → child id → number of the child's answer card (karten/code.ts), kept so printed cards stay valid. */
+  karten: Record<string, Record<string, number>>;
   updatedAt: number;
 }
 
@@ -35,10 +38,19 @@ export function readLehrkraft(x: unknown): Lehrkraft | null {
   if (r.versteckt && typeof r.versteckt === 'object')
     for (const [klasse, ids] of Object.entries(r.versteckt))
       if (Array.isArray(ids)) versteckt[klasse] = [...new Set(ids.filter((x): x is string => typeof x === 'string' && x.length <= 100))].slice(0, 1000);
+  const karten: Record<string, Record<string, number>> = {};
+  if (r.karten && typeof r.karten === 'object')
+    for (const [klasse, m] of Object.entries(r.karten)) {
+      if (!m || typeof m !== 'object') continue;
+      const ok: Record<string, number> = {};
+      for (const [kind, n] of Object.entries(m)) if (typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= KARTEN_MAX) ok[kind] = n;
+      karten[klasse] = ok;
+    }
   return {
     keys: [...new Set(keys)].sort(),
     pins,
     versteckt,
+    karten,
     updatedAt: Number(r.updatedAt) || 0,
   };
 }
@@ -52,13 +64,15 @@ export function mergeLehrkraft(a: Lehrkraft, b: Lehrkraft): Lehrkraft {
     pins: { ...older.pins, ...newer.pins },
     // Per class the newer record wins (an empty list too: everything shown again).
     versteckt: { ...older.versteckt, ...newer.versteckt },
+    // Per class the newer numbering wins, so both devices print and read the same cards.
+    karten: { ...older.karten, ...newer.karten },
     updatedAt: Math.max(a.updatedAt, b.updatedAt),
   };
 }
 
 /** Same keys, PINs and hidden lessons (then nothing needs storing or sending). */
 export const sameLehrkraft = (a: Lehrkraft, b: Lehrkraft) =>
-  JSON.stringify([a.keys, a.pins, a.versteckt]) === JSON.stringify([b.keys, b.pins, b.versteckt]);
+  JSON.stringify([a.keys, a.pins, a.versteckt, a.karten]) === JSON.stringify([b.keys, b.pins, b.versteckt, b.karten]);
 
 export async function loadLehrkraft(): Promise<Lehrkraft | null> {
   return readLehrkraft(await get(LEHRKRAFT_KEY, kv()));
@@ -70,7 +84,7 @@ export const saveLehrkraft = (l: Lehrkraft) => set(LEHRKRAFT_KEY, l, kv());
 export async function ensureLehrkraft(): Promise<Lehrkraft> {
   const have = await loadLehrkraft();
   if (have) return have;
-  const l: Lehrkraft = { keys: [newKey()], pins: {}, versteckt: {}, updatedAt: Date.now() };
+  const l: Lehrkraft = { keys: [newKey()], pins: {}, versteckt: {}, karten: {}, updatedAt: Date.now() };
   await saveLehrkraft(l);
   return l;
 }
@@ -94,4 +108,24 @@ export async function updateLehrkraft(change: (l: Lehrkraft) => Lehrkraft): Prom
   const l = { ...change(await ensureLehrkraft()), updatedAt: Date.now() };
   await saveLehrkraft(l);
   return l;
+}
+
+/**
+ * Card numbers for the children of a class: a child keeps its number, a new child gets the lowest free one. Children
+ * in the class's trash keep theirs (they may come back); children gone for good free theirs. Children beyond
+ * KARTEN_MAX get none.
+ */
+export function kartenNummern(kinder: string[], bisher: Record<string, number> = {}): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const k of kinder) if (bisher[k]) out[k] = bisher[k];
+  const used = new Set(Object.values(out));
+  let next = 1;
+  for (const k of kinder) {
+    if (out[k]) continue;
+    while (used.has(next)) next++;
+    if (next > KARTEN_MAX) break;
+    out[k] = next;
+    used.add(next);
+  }
+  return out;
 }
