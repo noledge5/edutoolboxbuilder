@@ -3,7 +3,7 @@
 Erzeugt mit `npm run lq:bilder -- --prompts` aus `src/lernquest/bilder/vorlagen.ts`; nicht von Hand ändern.
 Dateiname des fertigen Bildes = ID (z. B. `krone.png`). Ablauf und Einstellungen: `docs/design/lernquest/bilder.md`.
 Empfehlung: Kopf, Werkzeug und Begleiter einzeln mit diesen Prompts (das Skript setzt sie an ihren Platz), dazu die
-Hintergründe. Grundfigur, Hauttöne, Frisuren, Augen und Kleidung als Edit von `koerper.png`: `edit-prompts.md`.
+Hintergründe. Grundfigur, Hauttöne, Frisuren, Münder, Augen und Kleidung als Edit von `koerper.png`: `edit-prompts.md`.
 
 ## Grundfigur (`koerper.png`, Glatze; nur ohne Edit-Modell, Bild zu Bild aus `schablonen/grundfigur-vorlage.png`)
 

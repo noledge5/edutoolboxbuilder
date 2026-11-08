@@ -1,10 +1,10 @@
 // The hero drawn (Avatar-Stil in docs/design/lernquest/README.md): flat shapes without outlines, two tones per area,
 // one canvas (viewBox 0 0 240 240) for every part and fixed layers from back to front: background, companion,
-// body/skin, clothes, eyes, head, tool. Each part is its own group that sits right without its neighbours.
+// body/skin, clothes, hair, eyes, mouth, head, tool. Each part is its own group that sits right without its neighbours.
 // Part colours are fixed values here, not UI tokens. Higher rarity = more detail, gold from Episch, sparkle for Legendär.
 import type { ReactNode } from 'react';
-import { angelegt, frisurVon, HAARFARBEN, haarfarbeVon, HAUT, type Avatar, type Slot, type Teil } from '../teile';
-import { haareBild, koerperBild, teilBild } from './teilBilder';
+import { angelegt, frisurVon, HAARFARBEN, haarfarbeVon, HAUT, mundVon, type Avatar, type Slot, type Teil } from '../teile';
+import { haareBild, koerperBild, mundBild, teilBild } from './teilBilder';
 
 /** Shadow tone per skin tone (`HAUT`). */
 const HAUT_SCHATTEN = ['#DDAE80', '#D29A6E', '#AE744A', '#8E5833', '#5F3A20', '#E8C3A2'];
@@ -704,7 +704,7 @@ const HAAR_ZEICHNUNG: Record<string, { hinten?: (c: string) => ReactNode; vorn?:
   glatze: {},
 };
 
-/** The bald body with face (no eyes): the layer every part and the hair sit on. Body and pose are the same for all,
+/** The bald body with a blank face (no eyes, no mouth): the layer every part and the hair sit on. Body and pose are the same for all,
  *  so every part fits every hair and skin tone; `hinten` is the hair behind it (vector drawing only). */
 function Koerper({ haut, hinten }: { haut: number; hinten?: ReactNode }) {
   const h = HAUT[haut] ?? HAUT[0];
@@ -721,15 +721,67 @@ function Koerper({ haut, hinten }: { haut: number; hinten?: ReactNode }) {
       <circle cx="76" cy="102" r="9" fill={s} />
       <circle cx="164" cy="102" r="9" fill={s} />
       <circle cx="120" cy="96" r="44" fill={h} />
-      <circle cx="96" cy="114" r="6" fill="#F29A9A" opacity=".55" />
-      <circle cx="144" cy="114" r="6" fill="#F29A9A" opacity=".55" />
-      <path d="M110 122q10 8 20 0" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
     </g>
   );
 }
 
-/** Back to front; the body sits between companion and clothes, the hair over the clothes (long hair falls on them). */
-const EBENEN: (Slot | 'koerper' | 'haare')[] = ['hintergrund', 'begleiter', 'koerper', 'kleidung', 'haare', 'augen', 'kopf', 'werkzeug'];
+const WANGE = '#F29A9A';
+const MUND_INNEN = '#7A2E2E';
+const ZUNGE = '#F28B8B';
+/** The cheeks that belong to every mouth (the painted mouths bring their own). */
+const baeckchen = (
+  <>
+    <circle cx="96" cy="112" r="6" fill={WANGE} opacity=".55" />
+    <circle cx="144" cy="112" r="6" fill={WANGE} opacity=".55" />
+  </>
+);
+
+/** Each mouth drawn, centred at x 120 on the lower third of the face (y 108–128) so it sits on the painted head too;
+ *  the vector drawing shows until the painted mouth of that id exists (`mundBild`). */
+const MUND_ZEICHNUNG: Record<string, ReactNode> = {
+  laecheln: (
+    <>
+      {baeckchen}
+      <path d="M108 116q12 9 24 0" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+    </>
+  ),
+  grinsen: (
+    <>
+      {baeckchen}
+      <path d="M105 113h30q-3 13-15 13t-15-13Z" fill="#FFFFFF" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+    </>
+  ),
+  lachen: (
+    <>
+      {baeckchen}
+      <path d="M107 112h26q0 15-13 15t-13-15Z" fill={MUND_INNEN} stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      <ellipse cx="120" cy="122.5" rx="6.5" ry="3.5" fill={ZUNGE} />
+    </>
+  ),
+  staunen: (
+    <>
+      {baeckchen}
+      <ellipse cx="120" cy="118" rx="5.5" ry="7" fill={MUND_INNEN} stroke={INK} strokeWidth="3" />
+    </>
+  ),
+  frech: (
+    <>
+      {baeckchen}
+      <path d="M115 120.5v6a5 5 0 0 0 10 0v-6Z" fill={ZUNGE} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M107 115q13 10 26 0" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+    </>
+  ),
+  ernst: (
+    <>
+      {baeckchen}
+      <path d="M111 120h18" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+    </>
+  ),
+};
+
+/** Back to front; the body sits between companion and clothes, the hair over the clothes (long hair falls on them),
+ *  the mouth under the head part (a diving mask or helmet may cover it). */
+const EBENEN: (Slot | 'koerper' | 'haare' | 'mund')[] = ['hintergrund', 'begleiter', 'koerper', 'kleidung', 'haare', 'augen', 'mund', 'kopf', 'werkzeug'];
 
 /** Where a painted Legendär part gets its sparkle (the vector parts draw their own). */
 const FUNKELN: Record<Slot, [number, number]> = {
@@ -773,12 +825,20 @@ function Haare({ avatar }: { avatar: Avatar }) {
   return bild ? ebene(bild) : <>{HAAR_ZEICHNUNG[frisur]?.vorn?.(HAARFARBEN[farbe].farbe) ?? null}</>;
 }
 
-/** The head of the hero with some hair and colour, for choosing them. */
-export function KopfBild({ avatar }: { avatar: Avatar }) {
+/** The mouth over the blank face: painted when there is a picture, else drawn. */
+function Mund({ avatar }: { avatar: Avatar }) {
+  const mund = mundVon(avatar);
+  const bild = mundBild(mund);
+  return bild ? ebene(bild) : <>{MUND_ZEICHNUNG[mund] ?? null}</>;
+}
+
+/** The head of the hero with some hair, colour and mouth, for choosing them (`nah`: only the lower face, for mouths). */
+export function KopfBild({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
   return (
-    <svg viewBox="58 30 124 104" aria-hidden focusable="false">
+    <svg viewBox={nah ? '88 84 64 52' : '58 30 124 104'} aria-hidden focusable="false">
       <Grundfigur avatar={avatar} />
       <Haare avatar={avatar} />
+      <Mund avatar={avatar} />
     </svg>
   );
 }
@@ -793,6 +853,10 @@ export function AvatarBild({ avatar, className }: { avatar: Avatar; className?: 
         ) : e === 'haare' ? (
           <g key={e}>
             <Haare avatar={avatar} />
+          </g>
+        ) : e === 'mund' ? (
+          <g key={e}>
+            <Mund avatar={avatar} />
           </g>
         ) : (
           <g key={e}>
@@ -829,6 +893,7 @@ export function TeilBild({ teil, avatar = {}, className }: { teil: Teil; avatar?
   );
 }
 
-/** For the test: every part of the catalogue and every hair has a drawing. */
+/** For the test: every part of the catalogue, every hair and every mouth has a drawing. */
 export const hatZeichnung = (id: string) => id in ZEICHNUNG;
 export const hatHaarZeichnung = (id: string) => id in HAAR_ZEICHNUNG;
+export const hatMundZeichnung = (id: string) => id in MUND_ZEICHNUNG;

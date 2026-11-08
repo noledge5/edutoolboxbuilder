@@ -20,10 +20,11 @@ Text zu Bild: Wiese            ──►  wiese.png              ──►  ganz
   `haare-<id>` (`FRISUREN`: kurz, zopf, locken, lang, zoepfe, dutt, stacheln, bob). `src/lernquest/app/teilBilder.ts`
   findet die Dateien von selbst, eine Liste im Code braucht es nicht.
 - **Ebenen.** Jedes fertige Bild ist eine ganze Ebene (480 × 480, durchsichtig, wo nichts ist). Die App legt sie
-  übereinander: Hintergrund, Begleiter, Grundfigur, Kleidung, Haare, Augen, Kopf, Werkzeug. Darum passt jede
-  Kombination aus Hautton, Frisur, Haarfarbe und Teilen.
-- **Hautton, Frisur und Haarfarbe** wählt das Kind frei (Held-Seite). Die Grundfigur ist kahl; jede Frisur ist eine
+  übereinander: Hintergrund, Begleiter, Grundfigur, Kleidung, Haare, Augen, Mund, Kopf, Werkzeug. Darum passt jede
+  Kombination aus Hautton, Frisur, Haarfarbe, Mund und Teilen.
+- **Hautton, Frisur, Haarfarbe und Mund** wählt das Kind frei (Held-Seite). Die Grundfigur ist kahl; jede Frisur ist eine
   eigene Haar-Ebene darüber. Haare werden braun gemalt, das Skript macht daraus die fünf Haarfarben (`HAARFARBEN`).
+  Der Mund (`MUENDER`) ist eine Ebene `mund-<id>` mit seinen Bäckchen, ohne Farbvarianten.
 - **Offline und aktuell.** Beim Bauen bekommen die Bilder einen Namen mit Prüfsumme (`assets/krone-Ab12.webp`). Der
   Offline-Speicher hält sie, und ein neues Bild ersetzt das alte sofort.
 
@@ -63,8 +64,10 @@ Reihenfolge:
 2. **Hauttöne `koerper_h1.png` … `koerper_h5.png`**: je ein Edit von `koerper.png`, Ablage in `lernquest-roh/`.
    Fehlt einer, färbt das Skript ihn automatisch um (sieht bei dunklen Tönen an den Rändern schlechter aus).
 3. **Frisuren `haare-<id>.png`**: je ein Edit von `koerper.png`, immer braun, Ablage in `lernquest-roh/edit/`.
-4. **Augen und Kleidung `<id>.png`**: je ein Edit von `koerper.png`, Ablage in `lernquest-roh/edit/`.
-5. **Kopf, Werkzeug, Begleiter und Hintergründe**: kein Edit, sondern einzeln mit Text zu Bild (oben).
+4. **Münder `mund-<id>.png`**: je ein Edit von `koerper.png` (Mund mit Bäckchen auf dem leeren Gesicht), Ablage in
+   `lernquest-roh/edit/`. Bis ein Mund gemalt ist, zeichnet die App ihn als Vektor.
+5. **Augen und Kleidung `<id>.png`**: je ein Edit von `koerper.png`, Ablage in `lernquest-roh/edit/`.
+6. **Kopf, Werkzeug, Begleiter und Hintergründe**: kein Edit, sondern einzeln mit Text zu Bild (oben).
    Ein Kopf-Teil als Edit geht weiter (Ablage in `edit/`), wird aber bei tiefen Teilen wie Helm oder Mütze unten
    abgeschnitten, weil der Suchbereich an der Stirn endet.
 
@@ -79,7 +82,7 @@ Reihenfolge:
 5. **Dateiname = Kennung**, ComfyUI-Endungen gehen (`edit/krone_00001_.png`, `koerper_h3_00002_.png`). Nur ein Bild
    je Kennung, ein Teil nicht zugleich in `lernquest-roh/` und in `edit/`.
 6. **Wo gesucht wird** (`EDIT_BEREICH`, `KLEIDUNG_EDIT_MASKE` in `vorlagen.ts`): Haare rund um den Kopf bis zu den
-   Schultern, Kopf-Teile oben, Augen im Gesicht, Werkzeug rechts (Hand auf der rechten Bildseite), Begleiter unten
+   Schultern, Kopf-Teile oben, Augen und Mund im Gesicht, Werkzeug rechts (Hand auf der rechten Bildseite), Begleiter unten
    links, Kleidung an Rumpf und Schultern (die Hände bleiben frei, sonst trüge jede Figur dieselbe Hautfarbe). Was
    außerhalb gemalt wird, fällt weg.
 

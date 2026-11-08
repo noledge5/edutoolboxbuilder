@@ -1,13 +1,14 @@
-// Painted pictures replace a vector drawing only where a picture exists (teilBilder.ts); hair is a layer of its own.
+// Painted pictures replace a vector drawing only where a picture exists (teilBilder.ts); hair and mouth are layers of their own.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { FRISUREN, frisurVon, haarfarbeVon, TEILE } from '../teile';
-import { AvatarBild, hatHaarZeichnung, TeilBild } from './avatar';
+import { FRISUREN, frisurVon, haarfarbeVon, MUENDER, mundVon, TEILE } from '../teile';
+import { AvatarBild, hatHaarZeichnung, hatMundZeichnung, TeilBild } from './avatar';
 
 vi.mock('./teilBilder', () => ({
   teilBild: (id?: string) => (id === 'krone' ? 'assets/krone.webp' : undefined),
   koerperBild: (haut: number) => `assets/koerper-${haut}.webp`,
   haareBild: (frisur: string, farbe: number) => (frisur === 'zopf' ? `assets/haare-zopf-${farbe}.webp` : undefined),
+  mundBild: (mund: string) => (mund === 'lachen' ? 'assets/mund-lachen.webp' : undefined),
 }));
 
 describe('avatar with pictures', () => {
@@ -41,5 +42,25 @@ describe('hair', () => {
     expect(frisurVon({ frisur: 'gibtsnicht' })).toBe('kurz');
     expect(haarfarbeVon({ haarfarbe: 9 })).toBe(0);
     expect(haarfarbeVon({ haarfarbe: 4 })).toBe(4);
+  });
+});
+
+describe('mouth', () => {
+  it('has a vector drawing for every mouth', () => {
+    expect(MUENDER.filter((m) => !hatMundZeichnung(m.id)).map((m) => m.id)).toEqual([]);
+  });
+  it('is the smile unless a known mouth is chosen', () => {
+    expect(mundVon({})).toBe('laecheln');
+    expect(mundVon({ mund: 'staunen' })).toBe('staunen');
+    expect(mundVon({ mund: 'gibtsnicht' })).toBe('laecheln');
+  });
+  it('sits over the eyes and under the head part, painted where there is a picture, else drawn', () => {
+    const gemalt = renderToStaticMarkup(<AvatarBild avatar={{ kopf: 'krone', augen: 'punktaugen', mund: 'lachen' }} />);
+    const reihe = ['cx="104"', 'mund-lachen.webp', 'krone.webp'].map((s) => gemalt.indexOf(s));
+    expect(reihe.every((i) => i >= 0)).toBe(true);
+    expect(reihe).toEqual([...reihe].sort((a, b) => a - b));
+    const gezeichnet = renderToStaticMarkup(<AvatarBild avatar={{ mund: 'staunen' }} />);
+    expect(gezeichnet).toContain('rx="5.5" ry="7"'); // the round mouth
+    expect(renderToStaticMarkup(<AvatarBild avatar={{}} />)).toContain('M108 116q12 9 24 0'); // the smile
   });
 });

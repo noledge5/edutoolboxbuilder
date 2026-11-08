@@ -1,6 +1,6 @@
 // Painted pictures for the hero (docs/design/lernquest/bilder.md). A picture belongs to a part by its file name:
 // src/lernquest/app/teile/<part id>.webp, the bald base figure as koerper-<skin tone>.webp and each hair as
-// haare-<hair id>-<colour>.webp (`FRISUREN`, `HAARFARBEN`). Every file is a whole layer (480 × 480, transparent where
+// haare-<hair id>-<colour>.webp (`FRISUREN`, `HAARFARBEN`) and each mouth as mund-<mouth id>.webp (`MUENDER`). Every file is a whole layer (480 × 480, transparent where
 // empty) made by `npm run lq:bilder`. Vite gives each file a hashed name under assets/, so the service worker keeps it
 // for offline use and a new picture is never stale.
 // Anything without a picture is drawn as before (avatar.tsx), so pictures can arrive one by one.
@@ -24,3 +24,7 @@ export const koerperBild = (haut: number): string | undefined =>
 /** The painted hair in a colour, if there is one (only with the painted base figure, which it was made on). */
 export const haareBild = (frisur: string, farbe: number): string | undefined =>
   TEIL_BILDER['koerper-0'] ? (TEIL_BILDER[`haare-${frisur}-${farbe}`] ?? TEIL_BILDER[`haare-${frisur}-0`]) : undefined;
+
+/** The painted mouth, if there is one (it was made on the painted base figure, like the hair). */
+export const mundBild = (mund: string): string | undefined =>
+  TEIL_BILDER['koerper-0'] ? TEIL_BILDER[`mund-${mund}`] : undefined;

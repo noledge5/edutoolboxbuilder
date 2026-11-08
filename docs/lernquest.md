@@ -130,6 +130,19 @@ Entscheidungen der Lehrkraft (Vorschläge von Claude): Migration `20261110_lernq
   Kennung; mit frei wählbarer Frisur hätte „krone“ den Kronen-Bonus gebracht (vorher nicht ausnutzbar, weil der
   Avatar außer Teilen nur Zahlen enthielt).
 
+## Mund (07.11.2026)
+
+Wunsch der Lehrkraft, weil die gemalte Grundfigur ein leeres Gesicht hat. Migration `20261112_lernquest_mund.sql`
+(noch nicht eingespielt, erst nach OK der Lehrkraft und vor dem Merge).
+- **Mund als eigene Ebene** wie die Frisur: `avatar.mund` (Kennung aus `MUENDER`: laecheln, grinsen, lachen, staunen,
+  frech, ernst), frei wählbar auf der Held-Seite, ohne Bonus. Ebene über Augen, unter dem Kopf-Teil. Standard ist das
+  Lächeln. Neue Münder brauchen keine Server-Änderung (der Server speichert jede Kennung aus Kleinbuchstaben und
+  Ziffern), nur `lq_avatar_setzen` muss den Schlüssel `mund` einmal kennen.
+- **Bäckchen gehören zum Mund** (gemalt wie gezeichnet). Bis es ein gemaltes Bild `mund-<id>.webp` gibt, zeichnet die
+  App den Mund als Vektor, auch auf der gemalten Grundfigur; der Körper als Vektor hat keinen eigenen Mund mehr.
+- Bilder: Edit von `koerper.png`, Ablage `lernquest-roh/edit/mund-<id>.png`, Suchbereich `EDIT_BEREICH.mund`,
+  Prompts `editMund` in `vorlagen.ts` (`edit-prompts.md`, Abschnitt 4).
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

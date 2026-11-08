@@ -207,8 +207,8 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(await code(kaufen(token, 'gibt-es-nicht'))).toBe('ungueltig');
     if (nachKauf.muenzen < PREISE[0]) expect(await code(kaufen(token, zweite.id))).toBe('muenzen');
 
-    // Avatar: only owned or start parts, each in its own place, skin tone 0–5, hair (an id) and its colour 0–4.
-    const avatar = { kleidung: 'tshirt', augen: 'punktaugen', [ware.slot]: ware.id, begleiter: '', haut: 2, frisur: 'zopf', haarfarbe: 3 };
+    // Avatar: only owned or start parts, each in its own place, skin tone 0–5, hair and mouth (an id each) and the hair colour 0–4.
+    const avatar = { kleidung: 'tshirt', augen: 'punktaugen', [ware.slot]: ware.id, begleiter: '', haut: 2, frisur: 'zopf', haarfarbe: 3, mund: 'lachen' };
     expect((await avatarSetzen(token, avatar)).avatar).toEqual(avatar);
     const fremd = TEILE.find((x) => x.seltenheit === 4 && !eigene.includes(x.id));
     if (!fremd) throw new Error('Katalog');
@@ -218,10 +218,13 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(await code(avatarSetzen(token, { figur: 3 }))).toBe('ungueltig');
     expect(await code(avatarSetzen(token, { haarfarbe: 5 }))).toBe('ungueltig');
     expect(await code(avatarSetzen(token, { frisur: 'Zopf!' }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { mund: 'Lachen!' }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { mund: 7 as never }))).toBe('ungueltig');
     expect(await code(avatarSetzen(token, { name: 'x' } as never))).toBe('ungueltig');
     expect((await meinStand(token, null)).stand.avatar).toEqual(avatar);
-    // Any hair id is stored as is (new hair needs no server change); one named like a part is only hair.
+    // Any hair or mouth id is stored as is (new ones need no server change); one named like a part is only hair.
     expect((await avatarSetzen(token, { frisur: fremd.id })).avatar).toEqual({ frisur: fremd.id });
+    expect((await avatarSetzen(token, { mund: fremd.id })).avatar).toEqual({ mund: fremd.id });
     await avatarSetzen(token, avatar);
 
     // The class view: names and avatars of the own class only, no experience, coins or PINs.

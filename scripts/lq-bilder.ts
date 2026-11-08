@@ -40,7 +40,7 @@ import {
   promptListe,
   ROH_GROESSE,
 } from '../src/lernquest/bilder/vorlagen.ts';
-import { FRISUREN, HAARFARBEN, HAUT, teil, TEILE } from '../src/lernquest/teile.ts';
+import { FRISUREN, HAARFARBEN, HAUT, MUENDER, teil, TEILE } from '../src/lernquest/teile.ts';
 
 const WURZEL = resolve(import.meta.dirname, '..');
 const ZIEL = join(WURZEL, 'src/lernquest/app/teile');
@@ -156,7 +156,8 @@ async function bauen() {
     await readFile(join(WURZEL, 'src/lernquest/bilder/anpassen.json'), 'utf8'),
   );
   const frisuren = FRISUREN.filter((f) => f.id !== 'glatze').map((f) => `haare-${f.id}`);
-  const gueltig = new Set(['koerper', ...HAUT.map((_, i) => `koerper_h${i}`), ...frisuren, ...TEILE.map((t) => t.id)]);
+  const munder = MUENDER.map((m) => `mund-${m.id}`);
+  const gueltig = new Set(['koerper', ...HAUT.map((_, i) => `koerper_h${i}`), ...frisuren, ...munder, ...TEILE.map((t) => t.id)]);
   const fremd: string[] = [];
   const sammeln = async (dir: string) => {
     const je = new Map<string, string[]>();
@@ -246,7 +247,7 @@ async function bauen() {
     }
   }
 
-  // Edit pictures (parts and hair): compared with the raw base figure they were made from.
+  // Edit pictures (parts, hair and mouths): compared with the raw base figure they were made from.
   let basis: Roh | undefined;
   for (const [id] of edits) {
     try {
@@ -255,8 +256,9 @@ async function bauen() {
       const name = eins(edits, id, ' in edit/')!;
       const t = teil(id);
       const frisur = frisuren.includes(id) ? id.slice('haare-'.length) : undefined;
-      if (!frisur && (!t || t.slot === 'hintergrund'))
-        throw new Error('nur Teile auf der Figur und Frisuren gehen als Edit (Hintergründe als ganzes Bild)');
+      const mund = munder.includes(id);
+      if (!frisur && !mund && (!t || t.slot === 'hintergrund'))
+        throw new Error('nur Teile auf der Figur, Frisuren und Münder gehen als Edit (Hintergründe als ganzes Bild)');
       if (!basisName)
         throw new Error('die Grundfigur koerper.png fehlt in lernquest-roh/ (das Bild, das ins Edit-Modell ging)');
       basis ??= await aufGrau(join(ordner, basisName));
@@ -270,7 +272,7 @@ async function bauen() {
         );
       const rohBild = await aufGrau(join(ordner, 'edit', name));
       const k = G / 240;
-      const b = EDIT_BEREICH[frisur ? 'haare' : t!.slot];
+      const b = EDIT_BEREICH[frisur ? 'haare' : mund ? 'mund' : t!.slot];
       const box = {
         x: Math.round(b.x * k),
         y: Math.round(b.y * k),
@@ -321,7 +323,7 @@ async function bauen() {
 /** All finished layers, each on the base figure (or on grey when there is none), for a quick look. */
 async function uebersicht(ordner: string) {
   const KACHEL = 200;
-  const ids = [...FRISUREN.map((f) => `haare-${f.id}-0`), ...TEILE.map((t) => t.id)].filter((id) =>
+  const ids = [...FRISUREN.map((f) => `haare-${f.id}-0`), ...MUENDER.map((m) => `mund-${m.id}`), ...TEILE.map((t) => t.id)].filter((id) =>
     existsSync(join(ZIEL, `${id}.webp`)),
   );
   if (!ids.length) return;

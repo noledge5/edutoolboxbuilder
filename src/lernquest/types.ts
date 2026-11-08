@@ -105,11 +105,12 @@ export interface Stand {
   pech: number;
   /** Parts found or bought (ids from `TEILE`). */
   inventar: string[];
-  /** What is worn: part id per place ('' = nothing), the skin tone, the hair and its colour (`Avatar` in teile.ts). */
+  /** What is worn: part id per place ('' = nothing), the skin tone, the hair, its colour and the mouth (`Avatar` in teile.ts). */
   avatar: Partial<Record<'kopf' | 'augen' | 'kleidung' | 'werkzeug' | 'begleiter' | 'hintergrund', string>> & {
     haut?: number;
     frisur?: string;
     haarfarbe?: number;
+    mund?: string;
     figur?: number;
   };
   /** Stufe 4: points for real rewards in class (not the coins); points of open requests are set aside already. */

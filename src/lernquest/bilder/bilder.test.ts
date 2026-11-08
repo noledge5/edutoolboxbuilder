@@ -2,7 +2,7 @@
 // `npm run lq:bilder`, and the finished files in src/lernquest/app/teile/.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { FRISUREN, HAARFARBEN, HAUT, TEILE } from '../teile';
+import { FRISUREN, HAARFARBEN, HAUT, MUENDER, TEILE } from '../teile';
 import {
   aenderung,
   einpassen,
@@ -161,11 +161,12 @@ describe('Edit pictures', () => {
 describe('Finished pictures (src/lernquest/app/teile/)', () => {
   const ordner = new URL('../app/teile/', import.meta.url);
   const dateien = readdirSync(ordner).filter((f) => f.endsWith('.webp'));
-  it('are named after a part, the base figure or a hair', () => {
+  it('are named after a part, the base figure, a hair or a mouth', () => {
     const erlaubt = new Set([
       ...TEILE.map((t) => t.id),
       ...HAUT.map((_, i) => `koerper-${i}`),
       ...FRISUREN.flatMap((f) => HAARFARBEN.map((_, i) => `haare-${f.id}-${i}`)),
+      ...MUENDER.map((m) => `mund-${m.id}`),
     ]);
     expect(dateien.filter((f) => !erlaubt.has(f.slice(0, -5)))).toEqual([]);
   });
