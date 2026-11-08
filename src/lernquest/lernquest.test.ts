@@ -4,7 +4,7 @@ import { angelegt, bonusText, bonusVon, SCHADEN_MAX, CHANCEN, MUENZ_CHANCEN, MUE
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, muenzenFuerRunde, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
+import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
 import { beamerAusHash, beitrittsLink, codeAus, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
@@ -216,14 +216,44 @@ describe('Runde auf dem Gerät', () => {
     expect(muenzenFuerRunde(5, 5, 3, 0, 195)).toBe(5);
   });
 
-  it('gibt eine Truhe für die erste ganz gespielte Station und fürs Wochenziel', () => {
-    const k = { herzen: 3, bonusProzent: 0, runden: 2, stationSchonBelohnt: false };
+  it('gibt eine Truhe je 3 neue Sterne und eine fürs Wochenziel', () => {
+    const k = { herzen: 3, bonusProzent: 0, runden: 2 };
     const s0 = { ...LEERER_STAND, bestwerte: { s1: [80] }, tage: ['2026-11-02', '2026-11-03'] };
-    const r = rundeAnwenden(s0, { stunde: 's1', runde: 1, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-04', k);
-    expect(r.truhenPlus).toBe(2);
-    expect(r.stand.truhen).toBe(2);
-    expect(r.muenzenPlus).toBe(10);
-    expect(rundeAnwenden(r.stand, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', { ...k, stationSchonBelohnt: true }).truhenPlus).toBe(0);
+    // Station done with 2 stars (average 80 %): no chest yet, but the weekly goal brings one.
+    const r = rundeAnwenden(s0, { stunde: 's1', runde: 1, richtig: 4, gesamt: 5, leitner: {} }, '2026-11-04', k);
+    expect(r).toMatchObject({ sternePlus: 2, truhenPlus: 1, punktePlus: 3, muenzenPlus: 13 });
+    expect(r.stand).toMatchObject({ truhen: 1, sterneRest: 2, sterneStationen: { s1: 2 } });
+    // Replaying without a better star gives nothing.
+    const r2 = rundeAnwenden(r.stand, { stunde: 's1', runde: 1, richtig: 4, gesamt: 5, leitner: {} }, '2026-11-04', k);
+    expect(r2).toMatchObject({ sternePlus: 0, truhenPlus: 0 });
+    // Both rounds once without mistakes: the third star fills the chest.
+    const r3 = rundeAnwenden(r2.stand, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', k);
+    expect(r3.truhenPlus).toBe(0);
+    const r4 = rundeAnwenden(r3.stand, { stunde: 's1', runde: 1, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', k);
+    expect(r4).toMatchObject({ sternePlus: 1, truhenPlus: 1, stand: { truhen: 2, sterneRest: 0, sterneStationen: { s1: 3 } } });
+    expect(rundeAnwenden(r4.stand, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', k).truhenPlus).toBe(0);
+  });
+
+  it('zählt Sterne über Stationen hinweg: drei Stationen mit einem Stern sind eine Truhe', () => {
+    const k = { herzen: 3, bonusProzent: 0, runden: 1 };
+    let s = { ...LEERER_STAND, tage: ['2026-11-04'] };
+    const truhen: number[] = [];
+    for (const st of ['a', 'b', 'c']) {
+      const r = rundeAnwenden(s, { stunde: st, runde: 0, richtig: 2, gesamt: 5, leitner: {} }, '2026-11-04', k);
+      truhen.push(r.truhenPlus);
+      s = r.stand;
+    }
+    expect(truhen).toEqual([0, 0, 1]);
+    expect(s).toMatchObject({ truhen: 1, sterneRest: 0 });
+  });
+
+  it('zählt bei alten Stationen ohne Eintrag nur neue Sterne (ihre Truhe gab es schon)', () => {
+    expect(neueSterne(undefined, 1, 3)).toBe(2);
+    expect(neueSterne(undefined, 0, 2)).toBe(2);
+    expect(neueSterne(3, 1, 2)).toBe(0);
+    const s0 = { ...LEERER_STAND, bestwerte: { s1: [60] }, tage: ['2026-11-04'] };
+    const r = rundeAnwenden(s0, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', { herzen: 3, bonusProzent: 0, runden: 1 });
+    expect(r).toMatchObject({ sternePlus: 2, truhenPlus: 0, stand: { sterneRest: 2, sterneStationen: { s1: 3 } } });
   });
 });
 

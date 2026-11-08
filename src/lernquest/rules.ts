@@ -284,21 +284,30 @@ export interface RundenKontext {
   bonusProzent: number;
   /** Rounds of the station (0 for „Wiederholen“). */
   runden: number;
-  /** A chest for this station was given already (it shows stars). */
-  stationSchonBelohnt: boolean;
+}
+
+/** Stars that fill one chest. Every star of a station counts once, so better rounds later fill the next chest. */
+export const STERNE_JE_TRUHE = 3;
+
+/**
+ * Stars of a station not yet counted for chests: the stars now minus the most counted before. A station without an
+ * entry (played before chests came from stars; its old chest was given) counts the stars it had before this round.
+ */
+export function neueSterne(gezaehlt: number | undefined, vorher: number, jetzt: number): number {
+  return Math.max(0, jetzt - (gezaehlt ?? vorher));
 }
 
 /**
  * The Spielstand after a round, as the server will count it (`lq_runde_melden`): experience, coins, the round's best,
- * today as a learning day, the changed cards and new chests (station done for the first time, weekly goal reached
+ * today as a learning day, the changed cards and new chests (every `STERNE_JE_TRUHE` new stars, weekly goal reached
  * this week). Used to show the result at once, also offline.
  */
 export function rundeAnwenden(
   s: Stand,
   m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] },
   tag = heute(),
-  k: RundenKontext = { herzen: 3, bonusProzent: 0, runden: 0, stationSchonBelohnt: true },
-): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; stand: Stand } {
+  k: RundenKontext = { herzen: 3, bonusProzent: 0, runden: 0 },
+): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; stand: Stand } {
   const neuerTag = !s.tage.includes(tag);
   const schon = neuerTag ? 0 : s.xpHeute;
   const plus = xpFuerRunde(m.richtig, m.gesamt, schon);
@@ -306,12 +315,22 @@ export function rundeAnwenden(
   const muenzenPlus = muenzenFuerRunde(m.richtig, m.gesamt, k.herzen, k.bonusProzent, mSchon);
   const bestwerte = { ...s.bestwerte };
   let truhenPlus = 0;
+  let sternePlus = 0;
+  let sterneRest = s.sterneRest ?? 0;
+  let sterneStationen = s.sterneStationen ?? {};
   if (m.stunde) {
+    const vorher = sterne(bestwerte[m.stunde], k.runden);
     const best = [...(bestwerte[m.stunde] ?? [])];
     while (best.length <= m.runde) best.push(0);
     best[m.runde] = Math.max(best[m.runde], Math.round((100 * m.richtig) / m.gesamt));
     bestwerte[m.stunde] = best;
-    if (!k.stationSchonBelohnt && k.runden > 0 && Array.from({ length: k.runden }, (_, i) => best[i] ?? 0).every((x) => x > 0)) truhenPlus++;
+    const jetzt = sterne(best, k.runden);
+    sternePlus = neueSterne(sterneStationen[m.stunde], vorher, jetzt);
+    if (sternePlus > 0) {
+      sterneStationen = { ...sterneStationen, [m.stunde]: jetzt };
+      truhenPlus += Math.floor((sterneRest + sternePlus) / STERNE_JE_TRUHE);
+      sterneRest = (sterneRest + sternePlus) % STERNE_JE_TRUHE;
+    }
   }
   const tage = neuerTag ? [...s.tage, tag].sort().slice(-70) : s.tage;
   // Weekly goal reached now: a chest and class points (the server gives both once per week).
@@ -323,6 +342,7 @@ export function rundeAnwenden(
     muenzenPlus,
     truhenPlus,
     punktePlus,
+    sternePlus,
     stand: {
       ...s,
       xp: s.xp + plus,
@@ -331,6 +351,8 @@ export function rundeAnwenden(
       muenzenHeute: mSchon + muenzenPlus,
       truhen: s.truhen + truhenPlus,
       klassenpunkte: (s.klassenpunkte ?? 0) + punktePlus,
+      sterneRest,
+      sterneStationen,
       bestwerte,
       tage,
       leitner: { ...s.leitner, ...m.leitner },

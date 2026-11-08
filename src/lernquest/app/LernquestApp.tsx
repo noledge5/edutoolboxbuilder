@@ -19,6 +19,7 @@ import {
   rundeVon,
   RUNDE_MAX,
   sterne,
+  STERNE_JE_TRUHE,
   tagNummer,
   titel,
   woche,
@@ -67,6 +68,9 @@ export type Screen =
       punktePlus: number;
       sterneVorher: number;
       sterneJetzt: number;
+      /** New stars counted toward chests, and the stars toward the next chest after this round. */
+      sternePlus: number;
+      sterneRest: number;
     };
 
 const codeFromUrl = () => {
@@ -514,8 +518,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     const runden = paket ? rundenZahl(paket.uebungen.length) : 0;
     const vorher = sterne(stand.bestwerte[stunde], runden);
     const bonus = bonusVon(stand.avatar);
-    // A station that shows stars was played through before, so its chest is given already.
-    const r = rundeAnwenden(stand, m, heute(), { herzen: HERZEN + bonus.herz, bonusProzent: bonus.muenzen, runden, stationSchonBelohnt: vorher > 0 });
+    const r = rundeAnwenden(stand, m, heute(), { herzen: HERZEN + bonus.herz, bonusProzent: bonus.muenzen, runden });
     store({ ...daten, stand: r.stand });
     speichereWarteschlange([...ladeWarteschlange(), m]);
     void flush();
@@ -531,6 +534,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       punktePlus: r.punktePlus,
       sterneVorher: vorher,
       sterneJetzt: sterne(r.stand.bestwerte[stunde], runden),
+      sternePlus: r.sternePlus,
+      sterneRest: r.stand.sterneRest,
     });
   };
 
@@ -628,6 +633,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </div>
         </div>
         {!screen.plus && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.</p>}
+        {screen.stunde && <p className="lq-klein lq-mitte">{sterneHinweis(screen.sternePlus, screen.sterneJetzt, screen.sterneRest)}</p>}
         {screen.punktePlus > 0 && (
           <p className="lq-punkte-plus" role="status">
             <TicketIcon /> +{screen.punktePlus} Klassenpunkte fürs Wochenziel – einlösbar unter „Held“ → „Gutscheine“.
@@ -637,7 +643,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           <div className="lq-hinweis-gold lq-mit-icon">
             <TruheIcon />
             <div>
-              <strong>{screen.truhenPlus > 1 ? `${screen.truhenPlus} Truhen verdient!` : w.diese >= WOCHENZIEL && !(screen.sterneJetzt > 0 && screen.sterneVorher === 0) ? 'Wochenziel erreicht!' : 'Truhe verdient!'}</strong>
+              <strong>{screen.truhenPlus > 1 ? `${screen.truhenPlus} Truhen verdient!` : screen.punktePlus > 0 ? 'Wochenziel erreicht!' : 'Truhe verdient!'}</strong>
               <span>{screen.truhenPlus > 1 ? 'Sie warten beim Helden.' : 'Eine Truhe wartet beim Helden.'}</span>
             </div>
           </div>
@@ -849,6 +855,18 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       </div>
     </div>,
   );
+}
+
+/** The line under a station's result: new stars, and how many are missing for the next chest. */
+function sterneHinweis(plus: number, jetzt: number, rest: number): string {
+  const fehlen = STERNE_JE_TRUHE - rest;
+  const bis = `noch ${fehlen} ${fehlen === 1 ? 'Stern' : 'Sterne'} bis zur nächsten Truhe`;
+  const neu = `+${plus} ${plus === 1 ? 'Stern' : 'Sterne'}`;
+  // Fewer stars left over than came in: they filled a chest.
+  if (plus > 0) return rest < plus ? `${neu} – die Truhe ist voll! Noch ${fehlen} bis zur nächsten.` : `${neu} – ${bis}.`;
+  if (jetzt === 0) return `Spiel alle Runden für den ersten Stern – ${bis}.`;
+  if (jetzt < 3) return `Fehlerfreie Runden bringen mehr Sterne – ${bis}.`;
+  return `Alle Sterne geholt – ${bis}.`;
 }
 
 export function Sterne({ n, neu = false, gross = false }: { n: number; neu?: boolean; gross?: boolean }) {

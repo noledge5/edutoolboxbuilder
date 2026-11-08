@@ -20,7 +20,7 @@ dieses Dokuments ist der Plan vor dem Bau.
 | Avatar | Eigene Figur aus Ebenen (Körper, Augen, Kopf, Kleidung, Werkzeug, Begleiter, Hintergrund) als Vektorgrafik; erster Satz ~40 Teile in fünf Seltenheiten. | Eigener Stil, keine fremden Spielfiguren. |
 | Designregeln | Tokens für Farbe, Schrift, Abstände; feste Zustände, Bewegung, Kontrast nach WCAG AA, Layout für Handy/iPad/Laptop und Avatar-Stil in `docs/design/lernquest/README.md` (Designrunde 06.11.2026, Empfehlungen von Claude, von der Lehrkraft so freigegeben). | Einheitlicher, professioneller Look vor dem Bau von Stufe 2. |
 | Ausrüstung | Kleine, gedeckelte Boni nur im Spiel (+Münzen, +Schaden im Bosskampf, ein Herz mehr). Nie Einfluss auf Noten oder echte Belohnungen. | RPG-Gefühl, ohne dass Sammeln wichtiger wird als Lernen. |
-| Truhen | Nur fürs Lernen (Station, Wochenziel, Boss), nie für Geld. Inhalt zufällig, Chancen sichtbar, doppelte Teile → Münzen, Garantie nach einigen Truhen ohne Seltenes. Laden für gezielte Käufe mit Münzen. | Spannung ohne Glücksspiel-Mechanik. |
+| Truhen | Nur fürs Lernen (Sterne: je 3 eine Truhe; Wochenziel, Boss), nie für Geld. Inhalt zufällig, Chancen sichtbar, doppelte Teile → Münzen, Garantie nach einigen Truhen ohne Seltenes. Laden für gezielte Käufe mit Münzen. | Spannung ohne Glücksspiel-Mechanik. |
 | Echte Belohnungen | Gutscheine je Klasse mit Preis (eigene Währung „Klassenpunkte“, nicht die Münzen), z. B. Sitzplatz wählen, Hausaufgaben-Joker. Kind fragt an, Lehrkraft hakt „eingelöst“ ab; Grenzen je Woche. Genauer in „Stufe 4“. | Echte Wirkung, Lehrkraft behält die Hand drauf. |
 | Bosskampf | Klasse gemeinsam gegen einen Boss: Lehrkraft startet am Beamer, Kinder treten mit ihrem Konto bei, Frage am Beamer, Antwort am Gerät mit Zeitlimit; Richtig = Schaden (schneller und in Serie mehr), Falsch = Boss trifft den Klassen-Lebensbalken. Fällt der Boss, gibt es eine Truhe für alle. Keine Einzel-Rangliste. | Teamaufgabe statt Einzelquest, niemand wird bloßgestellt. |
 | Miteinander | Klassen-Ansicht mit Avataren und gemeinsamem Wochenfortschritt, ohne Rangliste und ohne Chat. | Vorschlag, keine Antwort der Lehrkraft; änderbar. |
@@ -208,6 +208,21 @@ mit Schloss, „Öffnet sich, sobald ihr es im Unterricht hattet“) und **Ausge
   (`src/lernquest/sichtbarkeit.ts`). Freigeschaltet geht immer vor ausgeblendet.
 - Die Karte nimmt die längste Stundenliste der Pakete eines Moduls; scheitert das Neusenden mittendrin, hilft
   „Freigeschaltete neu senden“.
+
+## Truhen aus Sternen (08.11.2026)
+
+Wunsch der Lehrkraft: Truhen kamen zu oft, auch für eine Station mit einem oder zwei Sternen. Wer fehlerfrei übt, soll
+mehr bekommen, spätestens beim Wiederholen der Station.
+- **Je 3 Sterne eine Truhe**, über alle Stationen gezählt: drei Stationen mit einem Stern oder eine mit drei. Die
+  Truhe fürs erste Durchspielen einer Station gibt es nicht mehr. Wochenziel- und Boss-Truhe bleiben.
+- Jeder Stern einer Station zählt **einmal** (höchster Stand je Station, `sterneStationen`); was über eine volle Truhe
+  hinausgeht, bleibt als `sterneRest` (0–2) für die nächste. Eine Station später besser spielen bringt die fehlenden
+  Sterne nach; dieselbe Runde nochmal ohne neuen Stern bringt nichts.
+- Alte Stationen (ihre Truhe gab es schon): Es zählen nur Sterne über dem Stand vor der ersten Runde nach der
+  Umstellung. Keine Truhe wird zurückgenommen.
+- Im Ergebnis steht unter den Kacheln, wie viele Sterne neu sind und wie viele bis zur nächsten Truhe fehlen.
+- Regeln doppelt: `sterne`, `neueSterne`, `STERNE_JE_TRUHE`, `rundeAnwenden` in `rules.ts` und `lq_sterne`,
+  `lq_runde_melden`, `lq_stand_json` in `20261113_lernquest_sterne.sql`.
 
 ## Erfolgskriterien Stufe 1
 

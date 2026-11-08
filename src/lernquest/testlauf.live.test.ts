@@ -137,13 +137,13 @@ async function serverDurchNode(ctx: Context) {
 }
 
 /** Plays one exercise as a child would: taps, lays tiles, „Prüfen“, „Weiter“. */
-async function spiele(page: Page, fehler: string[]) {
+async function spiele(page: Page, fehler: string[], fehlerfrei = false) {
   const frage = page.locator('.lq-frage').first();
   await frage.waitFor({ timeout: 15_000 });
   const text = (await frage.textContent()) ?? '';
   const u = [...UEBUNGEN, ...UEBUNGEN2].find((x) => text.includes(`${x.frage.split(':')[0]}:`));
   if (!u) throw new Error(`Unbekannte Übung im Testlauf: „${text}“`);
-  const falsch = u.id === FALSCH;
+  const falsch = !fehlerfrei && u.id === FALSCH;
   const knopf = (name: string) => page.getByRole('button', { name: exact(name) }).first();
   const kachel = (name: string) => page.locator('.lq-kacheln .lq-kachel').filter({ hasText: exact(name) }).first();
   switch (u.art) {
@@ -249,7 +249,15 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
       await page.locator('.lq-ergebnis').first().waitFor({ timeout: 15_000 });
       await page.waitForTimeout(800);
       await page.screenshot({ path: join(BILDER, 'handy-3-ergebnis.png') });
-      // Stufe 2: the chest of the first complete station, the part worn at once, the class.
+      // One mistake: 2 stars, 1 missing for a chest. The station again without mistakes brings the third star.
+      await page.locator('.lq-ergebnis p').filter({ hasText: 'noch 1 Stern bis zur nächsten Truhe' }).first().waitFor({ timeout: 5_000 });
+      await page.getByRole('button', { name: exact('Zur Station') }).click();
+      await page.locator('.lq-runde').first().click();
+      for (let i = 0; i < UEBUNGEN.length; i++) await spiele(page, fehler, true);
+      await page.locator('.lq-ergebnis').first().waitFor({ timeout: 15_000 });
+      await page.waitForTimeout(800);
+      await page.screenshot({ path: join(BILDER, 'handy-3b-ergebnis-perfekt.png') });
+      // Stufe 2: the chest from 3 stars, the part worn at once, the class.
       await page.getByRole('button', { name: exact('Truhe öffnen') }).click();
       await page.getByRole('button', { name: exact('Öffnen') }).click();
       await page.locator('.lq-truhe-buehne.da').first().waitFor({ timeout: 15_000 });
@@ -275,16 +283,19 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
       const token = (JSON.parse(sitzung) as { token: string }).token;
       // The round is sent in the background; wait until it has arrived.
       let { stand } = await meinStand(token, null);
-      for (let i = 0; i < 20 && !stand.bestwerte[STUNDE]; i++) {
+      for (let i = 0; i < 20 && (stand.bestwerte[STUNDE]?.[0] ?? 0) < 100; i++) {
         await new Promise((ok) => setTimeout(ok, 500));
         ({ stand } = await meinStand(token, null));
       }
       const richtig = UEBUNGEN.length - 1;
       const bericht = { url, xp: stand.xp, bestwerte: stand.bestwerte, muenzen: stand.muenzen, truhen: stand.truhen, inventar: stand.inventar, avatar: stand.avatar, fehler };
       writeFileSync(join(BILDER, 'ergebnis.json'), JSON.stringify(bericht, null, 2));
-      expect(stand.xp).toBe(xpFuerRunde(richtig, UEBUNGEN.length));
-      expect(stand.bestwerte[STUNDE]?.[0]).toBe(Math.round((100 * richtig) / UEBUNGEN.length));
-      expect(stand.muenzen).toBe(muenzenFuerRunde(richtig, UEBUNGEN.length, 3, 0) + truhenMuenzen);
+      const xp1 = xpFuerRunde(richtig, UEBUNGEN.length);
+      expect(stand.xp).toBe(xp1 + xpFuerRunde(UEBUNGEN.length, UEBUNGEN.length, xp1));
+      expect(stand.bestwerte[STUNDE]?.[0]).toBe(100);
+      const m1 = muenzenFuerRunde(richtig, UEBUNGEN.length, 3, 0);
+      expect(stand.muenzen).toBe(m1 + muenzenFuerRunde(UEBUNGEN.length, UEBUNGEN.length, 3, 0, m1) + truhenMuenzen);
+      expect(stand).toMatchObject({ sterneRest: 0, sterneStationen: { [STUNDE]: 3 } });
       // The one chest is open: coins only (MUENZ_TRUHE), or its part (never a twin the first time) is owned and worn.
       expect(stand.truhen).toBe(0);
       if (truhenMuenzen) {
