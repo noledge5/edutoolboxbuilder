@@ -16,6 +16,14 @@ export const RUNDEN_MAX = 5;
 export const RUNDE_MAX = 8;
 
 /** How many rounds a station with `n` exercises has. */
+/** The round a station starts with: the first one not played yet, else the weakest (where stars are still to win). */
+export function naechsteRunde(best: number[], runden: number): number {
+  const werte = Array.from({ length: runden }, (_, i) => best[i] ?? 0);
+  const offen = werte.findIndex((b) => !(b > 0));
+  if (offen >= 0) return offen;
+  return werte.reduce((m, b, i) => (b < werte[m] ? i : m), 0);
+}
+
 export function rundenZahl(n: number): number {
   if (n <= 0) return 0;
   if (n <= RUNDE_GROESSE) return 1;
@@ -62,6 +70,9 @@ export function punktTrifft(punkte: [number, number, string][], ziel: number, x:
 }
 
 /** A sentence from tiles: spaces before end marks and commas go. */
+/** Two answers in words are the same, as `istRichtig` compares them (case, spaces, punctuation). */
+export const gleich = (a: string, b: string) => normalize(a) === normalize(b);
+
 export const satz = (tiles: string[]) => tiles.join(' ').replace(/\s+([.,!?;:])/g, '$1');
 
 /** Whether an answer is right. Pairs count as right when no wrong pair was tried. */
@@ -131,7 +142,8 @@ export function loesungText(u: Uebung): string {
     case 'paare':
       return u.paare.map(([l, r]) => `${l} – ${r}`).join('; ');
     case 'luecke':
-      return u.teile.map((t, i) => (i % 2 ? `[${t}]` : t)).join('');
+      // The gaps in bold (`Rich`), not in brackets.
+      return u.teile.map((t, i) => (i % 2 ? `**${t}**` : t)).join('');
     case 'reihenfolge':
       return u.loesung;
     case 'gruppen':

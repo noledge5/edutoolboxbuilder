@@ -4,7 +4,7 @@ import { angelegt, bonusText, bonusVon, SCHADEN_MAX, CHANCEN, MUENZ_CHANCEN, MUE
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
+import { faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
 import { beamerAusHash, beitrittsLink, codeAus, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
@@ -429,5 +429,23 @@ describe('Auswertung je Kind und Kompetenz', () => {
     const fremd = { ...m, competences: m.competences.filter((x) => x.id !== 'k2') } as Module;
     expect(auswerten(fremd, [l], []).ohneKompetenz).toBe(keys(d.id).length + keys(c.id).length);
     expect(auswerten(m, [{ ...l, moduleId: 'm2' } as Lesson], []).zeilen).toEqual([]);
+  });
+});
+
+describe('Station: nächste Runde und Lösungstext', () => {
+  it('nimmt die erste ungespielte Runde, sonst die schwächste', () => {
+    expect(naechsteRunde([], 3)).toBe(0);
+    expect(naechsteRunde([100, 0], 3)).toBe(1);
+    expect(naechsteRunde([100, 80, 60], 3)).toBe(2);
+    expect(naechsteRunde([100, 80, 100], 3)).toBe(1);
+    expect(naechsteRunde([100, 100, 100], 3)).toBe(0);
+    // More values than rounds (the lesson got shorter): only the rounds that exist count.
+    expect(naechsteRunde([100, 100, 40], 2)).toBe(0);
+  });
+  it('zeigt Lücken fett statt in Klammern und vergleicht wie die Prüfung', () => {
+    const u: Uebung = { art: 'luecke', id: 'l', frage: 'Ergänze.', teile: ['The sky is ', 'blue', '.'], kacheln: ['blue', 'red'] };
+    expect(loesungText(u)).toBe('The sky is **blue**.');
+    expect(gleich(' Blue', 'blue')).toBe(true);
+    expect(gleich('red', 'blue')).toBe(false);
   });
 });
