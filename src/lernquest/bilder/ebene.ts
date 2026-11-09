@@ -2,8 +2,8 @@
 // script (`npm run lq:bilder`, scaling with sharp) and on the teacher page (upload, scaling with canvas). Only the
 // scaling differs, so it is passed in; everything else is the pure pixel work of pixel.ts.
 import type { Slot } from '../teile.ts';
-import { aenderung, einpassen, freistellen, hatTransparenz, sichtbar, verschieben, verschiebung, type Anpassung, type Box } from './pixel.ts';
-import { EBENE_GROESSE as G, EDIT_BEREICH, KLEIDUNG_EDIT_MASKE, KLEIDUNG_MASKE, PLAETZE } from './vorlagen.ts';
+import { aenderung, drehen, einpassen, freistellen, grauWeg, hatTransparenz, hexRgb, sichtbar, umformen, verschieben, verschiebung, type Anpassung, type Box } from './pixel.ts';
+import { EBENE_GROESSE as G, EDIT_BEREICH, HINTERGRUND_FARBE, KLEIDUNG_EDIT_MASKE, KLEIDUNG_MASKE, PLAETZE } from './vorlagen.ts';
 
 export interface Roh {
   data: Uint8Array;
@@ -11,8 +11,8 @@ export interface Roh {
   h: number;
 }
 
-/** Fine-tuning per part (src/lernquest/bilder/anpassen.json, or the sliders on the teacher page): `s`, `dx`, `dy`
- *  place a part made on its own; `toleranz` and `loecher` cut the background away (`loecher`: also enclosed grey
+/** Fine-tuning per part (src/lernquest/bilder/anpassen.json, or the sliders on the teacher page): `s`, `dx`, `dy`,
+ *  `r` place a part made on its own (and move a finished layer, `ebeneAnpassen`); `toleranz` and `loecher` cut the background away (`loecher`: also enclosed grey
  *  patches); `schwelle` = how different a pixel of an edit must be from the base figure to count (default 30). */
 export interface Einstellung extends Anpassung {
   toleranz?: number;
@@ -60,6 +60,7 @@ const maskieren = (data: Uint8Array, maske: Uint8Array) => {
  *  transparency), trimmed and placed into its box on an empty layer. Changes `r.data` (the cut-out). */
 export async function einzelEbene(r: Roh, slot: Slot, a: Einstellung, skalieren: Skalieren): Promise<Roh> {
   if (!hatTransparenz(r.data)) freistellen(r.data, r.w, r.h, a.toleranz, a.loecher);
+  if (a.r) r = drehen(r.data, r.w, r.h, a.r);
   const box = sichtbar(r.data, r.w, r.h);
   if (!box) throw new Error('nach dem Freistellen ist nichts mehr zu sehen (Toleranz kleiner?)');
   const z = einpassen(box.w, box.h, PLAETZE[slot], G, a);
@@ -108,4 +109,16 @@ export function editEbene(
   if (bereich !== 'haare' && bereich !== 'mund' && PLAETZE[bereich].weg === 'figur') maskieren(data, kleidungEditMaske());
   if (!sichtbar(data, G, G)) throw new Error('keine Änderung gefunden (schwelle kleiner?)');
   return { ebene: { data, w: G, h: G }, dx: v.dx, dy: v.dy };
+}
+
+/** A finished layer (a built-in or uploaded picture) fine-tuned: grey left around the part cut away (`toleranz`, off
+ *  when 0 or missing), then moved (`dx`, `dy` in canvas units), scaled (`s`) and turned (`r`) around the middle of
+ *  what is visible. With no settings it stays as it is. */
+export function ebeneAnpassen(e: Roh, a: Einstellung): Roh {
+  const data = new Uint8Array(e.data);
+  if (a.toleranz) grauWeg(data, e.w, e.h, hexRgb(HINTERGRUND_FARBE), a.toleranz);
+  const k = e.w / 240;
+  const out = umformen(data, e.w, e.h, { s: a.s, r: a.r, dx: (a.dx ?? 0) * k, dy: (a.dy ?? 0) * k });
+  if (!sichtbar(out, e.w, e.h)) throw new Error('nichts mehr zu sehen (Freistellen kleiner?)');
+  return { data: out, w: e.w, h: e.h };
 }

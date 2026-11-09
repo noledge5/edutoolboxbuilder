@@ -3,7 +3,7 @@
 // before the built-in ones; after „Löschen“ the built-in picture or the drawing shows again. The picture is made into
 // the part's layer in the browser (bildVerarbeiten.ts, the same steps as `npm run lq:bilder`).
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Check, ImagePlus, RotateCcw, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Check, ImagePlus, Pencil, RotateCcw, Sparkles, Trash2, X } from 'lucide-react';
 import { Icon } from '../../icons';
 import { AvatarBild, TeilBild } from '../app/avatar';
 import { HochgeladeneBilder } from '../app/bilderKontext';
@@ -11,14 +11,17 @@ import { useHochgeladen } from '../app/hochgeladen';
 import { TEIL_BILDER } from '../app/teilBilder';
 import ANPASSEN from '../bilder/anpassen.json';
 import type { Einstellung } from '../bilder/ebene';
+import { editPrompt, prompt } from '../bilder/vorlagen';
+import { runImages } from '../../ai/images';
 import { bildLoeschen, bildSetzen, lqText } from '../server';
 import { SLOTS, TEILE, type Avatar, type Teil } from '../teile';
-import { alsBase64, ebeneMachen, kodieren, oeffnen, WEGE, type Quelle, type Weg } from './bildVerarbeiten';
+import { alsBase64, ebeneMachen, grundfigurDataUrl, kodieren, oeffnen, oeffnenUrl, WEGE, type Quelle, type Weg } from './bildVerarbeiten';
 
 const WEG_TEXT: Record<Weg, string> = {
   einzeln: 'Einzeln gemalt (auf Grau)',
   edit: 'Edit der Grundfigur',
   flaeche: 'Ganzes Bild',
+  ebene: 'Fertiges Bild nachjustieren',
 };
 
 interface Regler {
@@ -34,13 +37,27 @@ const REGLER: Record<Weg, Regler[]> = {
     { key: 's', label: 'Größe', min: 0.3, max: 3, step: 0.01, standard: 1 },
     { key: 'dx', label: 'Links / rechts', min: -60, max: 60, step: 1, standard: 0 },
     { key: 'dy', label: 'Hoch / runter', min: -80, max: 80, step: 1, standard: 0 },
+    { key: 'r', label: 'Drehen (Grad)', min: -180, max: 180, step: 1, standard: 0 },
     { key: 'toleranz', label: 'Freistellen (wie grau noch Hintergrund ist)', min: 10, max: 120, step: 1, standard: 36 },
   ],
   edit: [{ key: 'schwelle', label: 'Empfindlichkeit (größer = nur deutliche Änderungen)', min: 10, max: 90, step: 1, standard: 30 }],
   flaeche: [],
+  ebene: [
+    { key: 's', label: 'Größe', min: 0.3, max: 2, step: 0.01, standard: 1 },
+    { key: 'dx', label: 'Links / rechts', min: -60, max: 60, step: 1, standard: 0 },
+    { key: 'dy', label: 'Hoch / runter', min: -80, max: 80, step: 1, standard: 0 },
+    { key: 'r', label: 'Drehen (Grad)', min: -180, max: 180, step: 1, standard: 0 },
+    { key: 'toleranz', label: 'Grauen Rand wegschneiden (0 = aus)', min: 0, max: 80, step: 1, standard: 0 },
+  ],
 };
+/** Backgrounds fill the whole layer: only moving, scaling and turning would leave gaps. */
+const REGLER_HINTERGRUND: Regler[] = [];
 
-const startWerte = (id: string): Einstellung => ({ ...((ANPASSEN as Record<string, Einstellung>)[id] ?? {}) });
+/** The script's settings for a part made on its own; a finished layer starts as it is. */
+const startWerte = (id: string, weg: Weg): Einstellung => (weg === 'einzeln' ? { ...((ANPASSEN as Record<string, Einstellung>)[id] ?? {}) } : {});
+
+/** The prompt for the image model: the part alone on grey, or an edit of the base figure. */
+const kiPrompt = (t: Teil, weg: Weg) => (weg === 'edit' ? (editPrompt(t) ?? prompt(t)) : prompt(t));
 
 /** Where the picture of a part comes from now. */
 const herkunft = (id: string, hoch: Record<string, string>) =>
@@ -68,14 +85,15 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
               key={wahl.id}
               teil={wahl}
               keys={keys}
-              hochgeladen={!!hoch[wahl.id]}
+              hochUrl={hoch[wahl.id]}
               onFertig={() => setStand((s) => s + 1)}
               onClose={() => setWahl(null)}
             />
           )}
           <p className="lqt-note">
-            Teil antippen, Bild aus ComfyUI wählen (der Dateiname ist egal), Vorschau prüfen, „Übernehmen“. Die Kinder sehen
-            es beim nächsten Öffnen von Lernquest. Frisuren, Münder, Hauttöne und die Grundfigur gehen weiter über
+            Teil antippen, dann ein Bild aus ComfyUI wählen (der Dateiname ist egal), mit KI malen lassen oder das
+            vorhandene Bild nachjustieren; Vorschau prüfen, „Übernehmen“. Die Kinder sehen es beim nächsten Öffnen von
+            Lernquest. Frisuren, Münder, Hauttöne und die Grundfigur gehen weiter über
             <code> npm run lq:bilder</code>.
           </p>
           {SLOTS.map(({ slot, label }) => (
@@ -101,20 +119,30 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
 function Bearbeiten({
   teil,
   keys,
-  hochgeladen,
+  hochUrl,
   onFertig,
   onClose,
 }: {
   teil: Teil;
   keys: string[];
-  hochgeladen: boolean;
+  /** The uploaded picture of the part, if there is one. */
+  hochUrl?: string;
   onFertig(): void;
   onClose(): void;
 }) {
-  const wege = WEGE[teil.slot];
+  const hochgeladen = !!hochUrl;
+  const eingebaut = TEIL_BILDER[teil.id];
   const [quelle, setQuelle] = useState<Quelle | null>(null);
-  const [weg, setWeg] = useState<Weg>(wege[0]);
-  const [werte, setWerte] = useState<Einstellung>(() => startWerte(teil.id));
+  /** The picture is a finished layer (built-in or uploaded): it is only fine-tuned. */
+  const [fertig, setFertig] = useState(false);
+  const wege: Weg[] = fertig ? ['ebene'] : WEGE[teil.slot];
+  const [weg, setWeg] = useState<Weg>(WEGE[teil.slot][0]);
+  const [werte, setWerte] = useState<Einstellung>(() => startWerte(teil.id, WEGE[teil.slot][0]));
+  /** The image model: open, the way and the prompt, running. */
+  const [ki, setKi] = useState<{ weg: Weg; prompt: string } | null>(null);
+  const [malt, setMalt] = useState(false);
+  const abbruch = useRef<AbortController | null>(null);
+  useEffect(() => () => abbruch.current?.abort(), []);
   const [vorschau, setVorschau] = useState<{ blob: Blob; url: string } | null>(null);
   const [arbeitet, setArbeitet] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -158,14 +186,42 @@ function Bearbeiten({
     [vorschau],
   );
 
-  const waehlen = async (f: File | undefined) => {
-    if (!f) return;
+  /** A new picture to work on: a raw one (way as chosen) or a finished layer (only fine-tuned). */
+  const nehmen = async (laden: () => Promise<Quelle>, alsEbene: boolean, neuerWeg?: Weg) => {
     setMsg('');
     setFehler('');
     try {
-      setQuelle(await oeffnen(f));
+      const q = await laden();
+      const w = alsEbene ? 'ebene' : (neuerWeg ?? (weg === 'ebene' ? WEGE[teil.slot][0] : weg));
+      setFertig(alsEbene);
+      setWeg(w);
+      setWerte(startWerte(teil.id, w));
+      setQuelle(q);
     } catch (e) {
       setFehler((e as Error).message);
+    }
+  };
+  const waehlen = (f: File | undefined) => (f ? nehmen(() => oeffnen(f), false) : Promise.resolve());
+
+  const malen = async () => {
+    if (!ki) return;
+    abbruch.current?.abort();
+    const ctrl = (abbruch.current = new AbortController());
+    setMalt(true);
+    setFehler('');
+    try {
+      const eingabe = ki.weg === 'edit' ? [await grundfigurDataUrl()] : [];
+      const bilder = await runImages(ki.prompt, '1:1', 1, ctrl.signal, eingabe);
+      if (!bilder) {
+        setFehler('Auf diesem Gerät ist kein OpenRouter-Schlüssel eingetragen: Einstellungen → „KI im Baukasten“.');
+        return;
+      }
+      const blob = await (await fetch(bilder[0].url)).blob();
+      await nehmen(() => oeffnen(blob), false, ki.weg);
+    } catch (e) {
+      if (!ctrl.signal.aborted) setFehler((e as Error).message);
+    } finally {
+      if (abbruch.current === ctrl) setMalt(false);
     }
   };
 
@@ -177,6 +233,7 @@ function Bearbeiten({
       setMsg('Übernommen. Die Kinder sehen das Bild beim nächsten Öffnen von Lernquest.');
       setQuelle(null);
       setVorschau(null);
+      setFertig(false);
       onFertig();
     } catch (e) {
       setFehler(lqText(e));
@@ -200,7 +257,7 @@ function Bearbeiten({
   };
 
   const avatar: Avatar = useMemo(() => ({ [teil.slot]: teil.id }), [teil]);
-  const regler = REGLER[weg];
+  const regler = weg === 'ebene' && teil.slot === 'hintergrund' ? REGLER_HINTERGRUND : REGLER[weg];
 
   return (
     <section ref={oben} className="lqt-card lqt-bild-edit" aria-label={`Bild für ${teil.name}`}>
@@ -221,6 +278,27 @@ function Bearbeiten({
           <Icon icon={ImagePlus} />
           {quelle ? 'Anderes Bild wählen' : 'Bild wählen'}
         </button>
+        {eingebaut && (
+          <button type="button" className="btn btn-secondary ui-btn" disabled={busy} onClick={() => void nehmen(() => oeffnenUrl(eingebaut), true)}>
+            <Icon icon={Pencil} />
+            Eingebautes Bild nachjustieren
+          </button>
+        )}
+        {hochUrl && (
+          <button type="button" className="btn btn-secondary ui-btn" disabled={busy} onClick={() => void nehmen(() => oeffnenUrl(hochUrl), true)}>
+            <Icon icon={Pencil} />
+            Hochgeladenes Bild nachjustieren
+          </button>
+        )}
+        <button
+          type="button"
+          className={`btn btn-secondary ui-btn ${ki ? 'is-on' : ''}`}
+          disabled={busy}
+          onClick={() => setKi(ki ? null : { weg: WEGE[teil.slot][0], prompt: kiPrompt(teil, WEGE[teil.slot][0]) })}
+        >
+          <Icon icon={Sparkles} />
+          Mit KI malen
+        </button>
         {hochgeladen && (
           <button type="button" className="btn btn-secondary ui-btn is-danger" disabled={busy} onClick={() => void loeschen()}>
             <Icon icon={Trash2} />
@@ -228,6 +306,32 @@ function Bearbeiten({
           </button>
         )}
       </div>
+      {ki && (
+        <div className="lqt-bild-ki">
+          {WEGE[teil.slot].length > 1 && (
+            <fieldset className="lqt-bild-wege">
+              <legend>Wie soll das Modell malen?</legend>
+              {WEGE[teil.slot].map((w) => (
+                <label key={w}>
+                  <input type="radio" name="kiweg" checked={ki.weg === w} onChange={() => setKi({ weg: w, prompt: kiPrompt(teil, w) })} />
+                  {w === 'edit' ? 'Auf die Grundfigur (Edit)' : WEG_TEXT[w]}
+                </label>
+              ))}
+            </fieldset>
+          )}
+          <label className="lqt-bild-prompt">
+            <span>Beschreibung für das Bildmodell (englisch, änderbar)</span>
+            <textarea className="input" rows={5} value={ki.prompt} onChange={(e) => setKi({ ...ki, prompt: e.target.value })} />
+          </label>
+          <div className="lqt-bild-zeile">
+            <button type="button" className="btn btn-primary ui-btn" disabled={busy || malt || !ki.prompt.trim()} onClick={() => void malen()}>
+              <Icon icon={Sparkles} />
+              {malt ? 'Malt …' : quelle ? 'Nochmal malen' : 'Malen'}
+            </button>
+            <span className="lqt-hint">Ein Bild mit dem Bildmodell aus den KI-Einstellungen (Nano Banana: etwa 4 Cent).</span>
+          </div>
+        </div>
+      )}
       {msg && (
         <p className="lqt-hint" role="status">
           {msg}
@@ -245,7 +349,15 @@ function Bearbeiten({
               <legend>Wie ist das Bild entstanden?</legend>
               {wege.map((w) => (
                 <label key={w}>
-                  <input type="radio" name="weg" checked={weg === w} onChange={() => setWeg(w)} />
+                  <input
+                    type="radio"
+                    name="weg"
+                    checked={weg === w}
+                    onChange={() => {
+                      setWeg(w);
+                      setWerte(startWerte(teil.id, w));
+                    }}
+                  />
                   {WEG_TEXT[w]}
                 </label>
               ))}
@@ -279,7 +391,7 @@ function Bearbeiten({
                 </label>
               ))}
               {regler.length > 0 && (
-                <button type="button" className="btn btn-secondary ui-btn is-small" onClick={() => setWerte(startWerte(teil.id))}>
+                <button type="button" className="btn btn-secondary ui-btn is-small" onClick={() => setWerte(startWerte(teil.id, weg))}>
                   <Icon icon={RotateCcw} />
                   Regler zurücksetzen
                 </button>
@@ -302,6 +414,7 @@ function Bearbeiten({
                 setQuelle(null);
                 setVorschau(null);
                 setFehler('');
+                setFertig(false);
               }}
             >
               Verwerfen
