@@ -73,6 +73,30 @@ A flower crown of pink, yellow and light blue flowers on a ring of green leaves.
 A round steel viking helmet with two curved cream horns and a leather band, cartoon style. Only the headwear, as if worn on an invisible head, seen straight from the front, fully visible and centred with empty space around it, on a plain flat light grey background. No head, no face, no hair, no person, no shadow on the ground. Detailed, with a pattern and one small gem or emblem. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
 ```
 
+### `kochmuetze` – Kochmütze
+
+```text
+A tall puffy white chef’s hat with soft pleats and a white band. Only the headwear, as if worn on an invisible head, seen straight from the front, fully visible and centred with empty space around it, on a plain flat light grey background. No head, no face, no hair, no person, no shadow on the ground. Simple and plain, one or two colours, no decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `cowboyhut` – Cowboyhut
+
+```text
+A brown leather cowboy hat with a wide curved brim and a braided band with a small silver star. Only the headwear, as if worn on an invisible head, seen straight from the front, fully visible and centred with empty space around it, on a plain flat light grey background. No head, no face, no hair, no person, no shadow on the ground. A few nice details and one small decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `raumhelm` – Raumhelm
+
+```text
+A round white astronaut helmet with a big tinted blue visor, an orange stripe and a tiny antenna, the visor open so the face would show. Only the headwear, as if worn on an invisible head, seen straight from the front, fully visible and centred with empty space around it, on a plain flat light grey background. No head, no face, no hair, no person, no shadow on the ground. Richly detailed and a little magical, with gold accents and a soft glow. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `eiskrone` – Eiskrone
+
+```text
+A crown of pale blue ice crystals with sharp clear points, a frosty silver band and one glowing light blue diamond. Only the headwear, as if worn on an invisible head, seen straight from the front, fully visible and centred with empty space around it, on a plain flat light grey background. No head, no face, no hair, no person, no shadow on the ground. A legendary treasure: ornate gold details, a warm glow and a few tiny sparkles, the most precious looking version. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
 ## Augen (einzeln, grauer Hintergrund; besser als Edit, siehe `edit-prompts.md`)
 
 ### `punktaugen` – Punktaugen
@@ -121,6 +145,30 @@ A pair of pink heart-shaped eyes with a tiny white highlight each. Only the eyes
 
 ```text
 A pair of turquoise diving goggles with two clear lenses and a short strap on each side. Only the eyes as a flat sticker, seen straight from the front, both eyes side by side and centred, on a plain flat light grey background. No face, no skin, no eyebrows, no nose, no head. Detailed, with a pattern and one small gem or emblem. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `schlaefrig` – Schläfrige Augen
+
+```text
+A pair of sleepy half-closed eyes with heavy lids and long lashes, in dark brown. Only the eyes as a flat sticker, seen straight from the front, both eyes side by side and centred, on a plain flat light grey background. No face, no skin, no eyebrows, no nose, no head. Simple and plain, one or two colours, no decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `zwinkern` – Zwinkern
+
+```text
+A pair of eyes with one eye winking as a curved line and the other eye open and round with a white highlight. Only the eyes as a flat sticker, seen straight from the front, both eyes side by side and centred, on a plain flat light grey background. No face, no skin, no eyebrows, no nose, no head. A few nice details and one small decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `monokel` – Monokel
+
+```text
+One round golden monocle with a thin golden chain over the right eye, the left eye a simple round dark eye with a white highlight. Only the eyes as a flat sticker, seen straight from the front, both eyes side by side and centred, on a plain flat light grey background. No face, no skin, no eyebrows, no nose, no head. Detailed, with a pattern and one small gem or emblem. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `feueraugen` – Feueraugen
+
+```text
+A pair of fiery eyes with orange and red flame-shaped irises and a small flickering flame above each eye. Only the eyes as a flat sticker, seen straight from the front, both eyes side by side and centred, on a plain flat light grey background. No face, no skin, no eyebrows, no nose, no head. Richly detailed and a little magical, with gold accents and a soft glow. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
 ```
 
 ## Kleidung (auf der Grundfigur mit `schablonen/kleidung-maske.png`; besser als Edit, siehe `edit-prompts.md`)
@@ -191,6 +239,30 @@ A red football jersey with two white stripes across the chest and a small yellow
 A green dragon-scale armour with golden round shoulder plates and a red gem on the chest. The same cute child hero, standing front-facing with arms down at the sides, now wearing this clothing on the torso. Keep the pose, the body and the plain background unchanged. Richly detailed and a little magical, with gold accents and a soft glow. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
 ```
 
+### `regenjacke` – Regenjacke
+
+```text
+A shiny yellow raincoat with a turned-down collar, big round wooden toggle buttons and two pockets. The same cute child hero, standing front-facing with arms down at the sides, now wearing this clothing on the torso. Keep the pose, the body and the plain background unchanged. Simple and plain, one or two colours, no decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `ninjaanzug` – Ninja-Anzug
+
+```text
+A dark blue ninja suit with a wrapped front, a red cloth belt tied in a knot and light blue trim. The same cute child hero, standing front-facing with arms down at the sides, now wearing this clothing on the torso. Keep the pose, the body and the plain background unchanged. A few nice details and one small decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `raumanzug` – Raumanzug
+
+```text
+A white astronaut suit with a blue chest control panel with little coloured buttons, orange stripes and a round mission patch. The same cute child hero, standing front-facing with arms down at the sides, now wearing this clothing on the torso. Keep the pose, the body and the plain background unchanged. Detailed, with a pattern and one small gem or emblem. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `kristallruestung` – Kristallrüstung
+
+```text
+A shining armour of pale blue crystal plates with silver edges, round crystal shoulder plates and a glowing diamond on the chest. The same cute child hero, standing front-facing with arms down at the sides, now wearing this clothing on the torso. Keep the pose, the body and the plain background unchanged. A legendary treasure: ornate gold details, a warm glow and a few tiny sparkles, the most precious looking version. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
 ## Werkzeug (einzeln, grauer Hintergrund)
 
 ### `lupe` – Lupe
@@ -245,6 +317,30 @@ A small dark metal lantern with a handle on top and a warm glowing candle flame 
 
 ```text
 A golden trident with three sharp prongs and a small turquoise gem. Only the object, standing upright and tilted slightly to the right, fully visible and centred with empty space around it, on a plain flat light grey background. No hand, no person, no shadow on the ground. Richly detailed and a little magical, with gold accents and a soft glow. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `angel` – Angel
+
+```text
+A wooden fishing rod with a small reel, a thin line and a red and white float hanging from the tip. Only the object, standing upright and tilted slightly to the right, fully visible and centred with empty space around it, on a plain flat light grey background. No hand, no person, no shadow on the ground. Simple and plain, one or two colours, no decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `bumerang` – Bumerang
+
+```text
+A wooden boomerang painted with blue and orange stripes and little dots. Only the object, standing upright and tilted slightly to the right, fully visible and centred with empty space around it, on a plain flat light grey background. No hand, no person, no shadow on the ground. A few nice details and one small decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `hammer` – Zwergenhammer
+
+```text
+A sturdy dwarf hammer with a big round steel head, a wooden handle wrapped in leather and a small red rune stone. Only the object, standing upright and tilted slightly to the right, fully visible and centred with empty space around it, on a plain flat light grey background. No hand, no person, no shadow on the ground. Detailed, with a pattern and one small gem or emblem. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `blitzstab` – Blitzstab
+
+```text
+A magic golden staff with a crackling yellow lightning bolt crystal on top and tiny sparks around it. Only the object, standing upright and tilted slightly to the right, fully visible and centred with empty space around it, on a plain flat light grey background. No hand, no person, no shadow on the ground. A legendary treasure: ornate gold details, a warm glow and a few tiny sparkles, the most precious looking version. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
 ```
 
 ## Begleiter (einzeln, grauer Hintergrund)
@@ -303,6 +399,30 @@ A small cute penguin with a white belly and orange feet, standing. A small pet c
 A small cute phoenix bird with red and orange feathers, a golden flame tail and a golden crest, sitting. A small pet companion, full body, facing the viewer, fully visible and centred with empty space around it, on a plain flat light grey background. No person, no shadow on the ground. A legendary treasure: ornate gold details, a warm glow and a few tiny sparkles, the most precious looking version. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
 ```
 
+### `igel` – Igel
+
+```text
+A small cute hedgehog with soft brown spines, a light face and a tiny black nose, sitting. A small pet companion, full body, facing the viewer, fully visible and centred with empty space around it, on a plain flat light grey background. No person, no shadow on the ground. Simple and plain, one or two colours, no decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `papagei` – Papagei
+
+```text
+A small colourful parrot with red, blue and yellow feathers and a curved beak, sitting. A small pet companion, full body, facing the viewer, fully visible and centred with empty space around it, on a plain flat light grey background. No person, no shadow on the ground. A few nice details and one small decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `axolotl` – Axolotl
+
+```text
+A small cute pink axolotl with feathery pink gills on both sides of its head and a big smile, sitting. A small pet companion, full body, facing the viewer, fully visible and centred with empty space around it, on a plain flat light grey background. No person, no shadow on the ground. Detailed, with a pattern and one small gem or emblem. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `einhorn` – Einhorn
+
+```text
+A small cute white unicorn foal with a pastel rainbow mane, a golden spiral horn and tiny hooves, standing. A small pet companion, full body, facing the viewer, fully visible and centred with empty space around it, on a plain flat light grey background. No person, no shadow on the ground. Richly detailed and a little magical, with gold accents and a soft glow. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
 ## Hintergrund (ganzes Bild)
 
 ### `wiese` – Wiese
@@ -357,4 +477,28 @@ A background: an underwater scene with blue water, light rays from above, green 
 
 ```text
 A background: the courtyard of a friendly stone castle with two round towers, a wooden gate, a golden flag and green grass. A square game background scene seen from the front, simple shapes and gentle depth, with a calm empty spot in the lower middle where a character will stand. No characters, no animals, no people. Richly detailed and a little magical, with gold accents and a soft glow. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `wueste` – Wüste
+
+```text
+A background: a warm sunny desert with soft golden sand dunes, two round green cacti and a pale blue sky. A square game background scene seen from the front, simple shapes and gentle depth, with a calm empty spot in the lower middle where a character will stand. No characters, no animals, no people. Simple and plain, one or two colours, no decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `winterwald` – Winterwald
+
+```text
+A background: a quiet snowy winter forest with round snow-covered fir trees, soft falling snowflakes and a pale sky. A square game background scene seen from the front, simple shapes and gentle depth, with a calm empty spot in the lower middle where a character will stand. No characters, no animals, no people. A few nice details and one small decoration. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `vulkan` – Vulkaninsel
+
+```text
+A background: a tropical island with a friendly smoking volcano in the distance, palm trees, a calm turquoise sea and dark sand in front. A square game background scene seen from the front, simple shapes and gentle depth, with a calm empty spot in the lower middle where a character will stand. No characters, no animals, no people. Richly detailed and a little magical, with gold accents and a soft glow. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
+```
+
+### `wolkenschloss` – Wolkenschloss
+
+```text
+A background: a magical castle made of white clouds with golden roofs floating in a pink and golden sunset sky, soft cloud ground in front. A square game background scene seen from the front, simple shapes and gentle depth, with a calm empty spot in the lower middle where a character will stand. No characters, no animals, no people. A legendary treasure: ornate gold details, a warm glow and a few tiny sparkles, the most precious looking version. Cute children’s game art, soft painted digital illustration like a cozy mobile adventure game for 10 to 12 year olds. Rounded, chunky, friendly shapes with a clear silhouette that reads at small sizes. Smooth soft shading with gentle gradients, light from the upper left, a subtle warm rim light. No outlines at all: no black or dark contour lines, no line art, not a flat vector or sticker look; edges are soft and painted, only a slightly darker shade of the fill colour. Bright, warm, saturated but not neon colours. Clean and uncluttered, no text, no letters, no watermark, no frame.
 ```

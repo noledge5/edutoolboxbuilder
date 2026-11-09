@@ -1,6 +1,8 @@
-// The hero's parts (Stufe 2, 16 more on 06.11.2026): 56 parts on six places, five rarities, a few with small bonuses that count only in the
-// game (never for marks or real rewards). The server holds the same catalogue (`lq_teil` in
-// supabase/migrations/20261106b_lernquest_held.sql and 20261109_lernquest_beute.sql); a test checks both are the same.
+// The hero's parts (Stufe 2, 16 more on 06.11.2026, 24 more on 09.11.2026): 80 parts on six places, five rarities, a few
+// with small bonuses that count only in the game (never for marks or real rewards). Some are chest treasures (`nurTruhe`):
+// not in the shop, and unknown (a question mark) until found. The server holds the same catalogue (`lq_teil` in
+// supabase/migrations/20261106b_lernquest_held.sql, 20261109_lernquest_beute.sql and
+// 20261116_lernquest_truhenschaetze.sql); a test checks both are the same.
 
 export type Slot = 'kopf' | 'augen' | 'kleidung' | 'werkzeug' | 'begleiter' | 'hintergrund';
 
@@ -25,6 +27,8 @@ export interface Teil {
   muenzen?: number;
   herz?: number;
   schaden?: number;
+  /** Only from chests, never in the shop (`lq_teil.nur_truhe`). */
+  nurTruhe?: boolean;
 }
 
 export const TEILE: Teil[] = [
@@ -85,6 +89,31 @@ export const TEILE: Teil[] = [
   { id: 'phoenix', slot: 'begleiter', name: 'Phönix', seltenheit: 4, muenzen: 10, herz: 1 },
   { id: 'unterwasser', slot: 'hintergrund', name: 'Unterwasser', seltenheit: 2 },
   { id: 'burg', slot: 'hintergrund', name: 'Burghof', seltenheit: 3, muenzen: 5 },
+  // Added 09.11.2026 (supabase/migrations/20261116_lernquest_truhenschaetze.sql): per place two to buy, two chest treasures
+  { id: 'kochmuetze', slot: 'kopf', name: 'Kochmütze', seltenheit: 0 },
+  { id: 'cowboyhut', slot: 'kopf', name: 'Cowboyhut', seltenheit: 1 },
+  { id: 'raumhelm', slot: 'kopf', name: 'Raumhelm', seltenheit: 3, muenzen: 5, nurTruhe: true },
+  { id: 'eiskrone', slot: 'kopf', name: 'Eiskrone', seltenheit: 4, muenzen: 10, herz: 1, nurTruhe: true },
+  { id: 'schlaefrig', slot: 'augen', name: 'Schläfrige Augen', seltenheit: 0 },
+  { id: 'zwinkern', slot: 'augen', name: 'Zwinkern', seltenheit: 1 },
+  { id: 'monokel', slot: 'augen', name: 'Monokel', seltenheit: 2, muenzen: 5, nurTruhe: true },
+  { id: 'feueraugen', slot: 'augen', name: 'Feueraugen', seltenheit: 3, schaden: 1, nurTruhe: true },
+  { id: 'regenjacke', slot: 'kleidung', name: 'Regenjacke', seltenheit: 0 },
+  { id: 'ninjaanzug', slot: 'kleidung', name: 'Ninja-Anzug', seltenheit: 1 },
+  { id: 'raumanzug', slot: 'kleidung', name: 'Raumanzug', seltenheit: 2, herz: 1, nurTruhe: true },
+  { id: 'kristallruestung', slot: 'kleidung', name: 'Kristallrüstung', seltenheit: 4, muenzen: 10, herz: 1, nurTruhe: true },
+  { id: 'angel', slot: 'werkzeug', name: 'Angel', seltenheit: 0 },
+  { id: 'bumerang', slot: 'werkzeug', name: 'Bumerang', seltenheit: 1 },
+  { id: 'hammer', slot: 'werkzeug', name: 'Zwergenhammer', seltenheit: 2, schaden: 1, nurTruhe: true },
+  { id: 'blitzstab', slot: 'werkzeug', name: 'Blitzstab', seltenheit: 4, muenzen: 10, schaden: 3, nurTruhe: true },
+  { id: 'igel', slot: 'begleiter', name: 'Igel', seltenheit: 0 },
+  { id: 'papagei', slot: 'begleiter', name: 'Papagei', seltenheit: 1 },
+  { id: 'axolotl', slot: 'begleiter', name: 'Axolotl', seltenheit: 2, muenzen: 5, nurTruhe: true },
+  { id: 'einhorn', slot: 'begleiter', name: 'Einhorn', seltenheit: 3, herz: 1, nurTruhe: true },
+  { id: 'wueste', slot: 'hintergrund', name: 'Wüste', seltenheit: 0 },
+  { id: 'winterwald', slot: 'hintergrund', name: 'Winterwald', seltenheit: 1 },
+  { id: 'vulkan', slot: 'hintergrund', name: 'Vulkaninsel', seltenheit: 3, muenzen: 5, nurTruhe: true },
+  { id: 'wolkenschloss', slot: 'hintergrund', name: 'Wolkenschloss', seltenheit: 4, muenzen: 10, nurTruhe: true },
 ];
 
 export const teil = (id: string | undefined) => TEILE.find((t) => t.id === id);
@@ -201,6 +230,10 @@ export function bonusText(b: { muenzen?: number; herz?: number; schaden?: number
     .filter(Boolean)
     .join(', ');
 }
+
+/** What the shop sells on a place: what the child does not have yet, chest treasures never. */
+export const ladenWare = (inventar: string[], slot: Slot) =>
+  TEILE.filter((t) => t.slot === slot && !t.nurTruhe && !hat(inventar, t)).sort((a, b) => a.seltenheit - b.seltenheit);
 
 /** Whether the child may wear a part: a start part or one in the inventory. */
 export const hat = (inventar: string[], t: Teil) => !!t.start || inventar.includes(t.id);

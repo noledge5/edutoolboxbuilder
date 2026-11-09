@@ -247,6 +247,24 @@ Ohne Server-Änderung, Vorschläge von Claude („runder, anschaulicher, Bugs fi
   Karte springt zur aktuellen Station; an der Station, was jeder Stern braucht (abgehakt, was geschafft ist); nach dem
   Prüfen Lücken und gelegter Satz grün oder rot; im Ergebnis ein Punkt je Aufgabe (richtig/falsch).
 
+## Truhen-Schätze (09.11.2026)
+
+Wunsch der Lehrkraft: mehr Teile, manche nur aus Truhen, und die erst sichtbar, wenn man sie hat. Entscheidungen der
+Lehrkraft (Vorschläge von Claude): 24 neue Teile, etwa die Hälfte nur aus Truhen, in der Liste „?“ mit „Nur in Truhen“.
+Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen durchgespielt, **noch nicht
+eingespielt**, erst nach OK der Lehrkraft und vor dem Merge).
+- **24 neue Teile** (jetzt 80), je Platz zwei zum Kaufen (Gewöhnlich, Ungewöhnlich) und zwei **Truhen-Schätze**
+  (Selten bis Legendär): Kochmütze, Cowboyhut, *Raumhelm, Eiskrone*; Schläfrige Augen, Zwinkern, *Monokel,
+  Feueraugen*; Regenjacke, Ninja-Anzug, *Raumanzug, Kristallrüstung*; Angel, Bumerang, *Zwergenhammer, Blitzstab*;
+  Igel, Papagei, *Axolotl, Einhorn*; Wüste, Winterwald, *Vulkaninsel, Wolkenschloss* (kursiv = nur aus Truhen).
+- **Nur aus Truhen:** Spalte `lq_teil.nur_truhe`, `lq_kaufen` lehnt solche Teile ab (`ungueltig`). Truhen ziehen weiter
+  aus allen Teilen einer Seltenheit, Chancen und Garantie bleiben gleich. In der App `nurTruhe` in `teile.ts`;
+  `ladenWare` zeigt sie im Laden nie.
+- **Unbekannt bis gefunden:** In der Teile-Liste steht ein Schatz bis zum Fund als „?“ mit „Nur in Truhen“ und seiner
+  Seltenheit, ohne Bild und Namen. Weil er nicht im Laden steht, sieht man ihn vorher nirgends.
+- Zeichnungen in `avatar.tsx`, Bild-Prompts aus `BESCHREIBUNG` in `vorlagen.ts` (`npm run lq:bilder -- --prompts`
+  schreibt `prompts.md` und `edit-prompts.md` neu).
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.
