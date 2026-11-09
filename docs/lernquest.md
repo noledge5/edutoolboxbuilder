@@ -146,7 +146,7 @@ Wunsch der Lehrkraft, weil die gemalte Grundfigur ein leeres Gesicht hat. Migrat
 ## Bosskampf mit Karten (Fragerunde 08.11.2026, in Klärung)
 
 **Stand (08.11.2026, gebaut):** Server `supabase/migrations/20261115_lernquest_boss_karten.sql` (lokal mit allen
-Migrationen durchgespielt, **noch nicht eingespielt**): Spalte `lq_boss.modus` ('geraete' | 'karten'),
+Migrationen durchgespielt, eingespielt am 09.11.2026 über die Supabase-Verbindung): Spalte `lq_boss.modus` ('geraete' | 'karten'),
 `lq_boss_starten_karten`, `lq_boss_karten` (Scans je Frage, Kind-Id → Wahl, der letzte zählt), `lq_boss_laufend`
 (zweites Gerät findet den Kampf), Auflösen in `lq_boss_aufloesen` (mit Karten erst dort Schaden: 15 + Ausrüstung, ab 3
 in Folge doppelt; `bossKartenSchaden` in `rules.ts`). Mit Karten löst nur „Auflösen“ auf, der Kampf darf ohne
