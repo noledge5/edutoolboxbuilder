@@ -373,6 +373,21 @@ am 09.11.2026 über die Supabase-Verbindung nach OK der Lehrkraft, vor dem Merge
   Beenden); Tests `wiederholen.test.ts`; im Browser (Kind: 1 fällig + 6 freigegeben = 7, Hinweis morgen; Lehrkraft:
   Freigeben, „Läuft vom … bis …“, Beenden).
 
+## Frisuren hochladen und Radiergummi (09.11.2026)
+
+- Wunsch: Frisuren auf „Bilder der Teile“ anpassen wie die Teile, dazu ein Radiergummi.
+- **Frisuren:** eigener Abschnitt mit allen Frisuren (außer Glatze). Gearbeitet wird an der braunen Ebene, immer als Edit
+  der Grundfigur (Bild wählen, mit KI malen mit `editFrisur`, eingebautes oder hochgeladenes Bild nachjustieren); die Seite
+  rechnet daraus alle fünf Haarfarben (`haarFarben`, wie `npm run lq:bilder`) und lädt fünf Dateien
+  `haare-<frisur>-<0–4>` hoch. Vorschau am Helden und als Köpfe in allen Farben. Löschen entfernt alle fünf.
+- **App:** `avatar.tsx` nimmt eine hochgeladene Frisur vor der eingebauten (in der Haarfarbe, sonst die braune), nur mit
+  der gemalten Grundfigur.
+- **Server** (`supabase/migrations/20261120_lernquest_frisur_bilder.sql`): `lq_bild` hängt nicht mehr fest an `lq_teil`;
+  `lq_bild_setzen` nimmt Teile aus `lq_teil` und `haare-<frisur>-<0–4>` (nur Admin, sonst wie bisher).
+- **Radiergummi** (`teacher/Radierer.tsx`, `pixel.ts` `radieren`): in der Vorschau mit Finger oder Maus wegradieren,
+  Radiergröße, „Rückgängig“, „Alles wieder da“. Die Striche liegen in Ebenen-Pixeln und kommen nach den Reglern, also am
+  besten zuletzt radieren. Bei Frisuren vor dem Umfärben, gilt also für alle Farben. Nicht bei Hintergründen.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

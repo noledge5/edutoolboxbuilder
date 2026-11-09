@@ -468,3 +468,33 @@ export function grauWeg(px: Uint8Array, w: number, h: number, grau: Rgb, toleran
   }
   for (let p = 0; p < w * h; p++) if (weg[p]) px[p * 4 + 3] = 0;
 }
+
+/** An eraser stroke on a layer: circles (layer pixels) along the path. */
+export interface Strich {
+  r: number;
+  punkte: [number, number][];
+}
+
+/** Erases the strokes from a layer (transparent inside each circle, a soft edge of about a pixel). Changes `px`. */
+export function radieren(px: Uint8Array, w: number, h: number, striche: Strich[]): void {
+  for (const s of striche) {
+    // Points in between, so a quick stroke leaves no gaps.
+    const punkte: [number, number][] = [];
+    s.punkte.forEach((p, i) => {
+      const q = s.punkte[i - 1];
+      if (q) {
+        const n = Math.ceil(Math.hypot(p[0] - q[0], p[1] - q[1]) / Math.max(1, s.r / 2));
+        for (let k = 1; k < n; k++) punkte.push([q[0] + ((p[0] - q[0]) * k) / n, q[1] + ((p[1] - q[1]) * k) / n]);
+      }
+      punkte.push(p);
+    });
+    for (const [cx, cy] of punkte)
+      for (let y = Math.max(0, Math.floor(cy - s.r - 1)); y <= Math.min(h - 1, Math.ceil(cy + s.r + 1)); y++)
+        for (let x = Math.max(0, Math.floor(cx - s.r - 1)); x <= Math.min(w - 1, Math.ceil(cx + s.r + 1)); x++) {
+          const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy);
+          const k = Math.min(1, Math.max(0, d - s.r + 0.5));
+          const i = (y * w + x) * 4 + 3;
+          px[i] = Math.round(px[i] * k);
+        }
+  }
+}

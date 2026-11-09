@@ -489,4 +489,10 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     await wiederholenSetzen(keyA, a.id, null);
     expect((await meinStand(login.token, null)).extra).toBeNull();
   });
+
+  it('Frisur-Bilder: nur Admins, nur gültige Kennungen', async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await code(bildSetzen(keyA, 'haare-zopf-0', 'image/png', png))).toBe('zugang');
+    expect(await code(bildLoeschen(keyA, 'haare-zopf-0'))).toBe('zugang');
+  });
 });

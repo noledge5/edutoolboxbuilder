@@ -45,7 +45,9 @@ bringt das eingebaute Bild bzw. die Zeichnung zurück.
   Kleidung und Augen als Edit der Grundfigur; etwa 4 Cent je Bild.
 - **Neue Teile:** Kachel „Neues Teil“ je Platz: Name, Seltenheit, „Nur aus Truhen“, Bild → „Teil anlegen“. Sie leben nur
   auf dem Server (kein Eintrag in `teile.ts` nötig) und haben immer ein Bild, nie eine Zeichnung.
-- Frisuren, Münder, Hauttöne und die Grundfigur gehen weiter nur über das Skript.
+- **Frisuren** gehen dort auch: braun als Edit der Grundfigur, die Seite macht die fünf Haarfarben.
+- **Radiergummi** in der Vorschau für Reste (am besten nach den Reglern).
+- Münder, Hauttöne und die Grundfigur gehen weiter nur über das Skript.
 - Ein hochgeladenes Bild liegt auf dem Server, nicht im Repo. Soll es dauerhaft eingebaut werden, weiter wie unten.
 
 ## Der Stil: „weich gemalt“
