@@ -351,6 +351,27 @@ am 09.11.2026 über die Supabase-Verbindung nach OK der Lehrkraft, vor dem Merge
 - Regeln doppelt: `istWiederholung`, `WIEDERHOLUNG_TEILER`, `xpFuerRunde`, `muenzenFuerRunde`, `rundeAnwenden` in
   `rules.ts` und `lq_runde_melden` (gibt jetzt auch `wiederholung` zurück); ein Test vergleicht beides.
 
+## Wiederholen: „Morgen dran“ und „Wiederholen sofort“ (09.11.2026)
+
+- Wunsch der Lehrkraft: ein Hinweis „Morgen sind … dran“ und ein Knopf, um Wiederholungen ausnahmsweise sofort zu
+  geben („z. B. wegen morgen Klassenarbeit“).
+- **Kind** („Wiederholen“): unter dem Knopf „Morgen kommt 1 Aufgabe dazu“ bzw. ohne heutige Aufgaben „Morgen sind 3
+  Aufgaben dran“ (`morgenDran`). Läuft „Wiederholen sofort“, steht dort „Deine Lehrkraft hat Aufgaben zum Üben
+  freigegeben, zum Beispiel vor einer Klassenarbeit.“
+- **Lehrkraft**: Karte „Wiederholen sofort“ je Klasse (`teacher/WiederholenSofort.tsx`): freigeschaltete Stunden nach Modul
+  ankreuzen, Dauer (nur heute, bis morgen, bis übermorgen, eine Woche) → „Freigeben“; „Beenden“ und „Ändern“.
+- **Regel** (`rules.ts` `extraFaellig`, `heuteDran`): in der Zeit sind alle Aufgaben der gewählten Stunden dran, die das
+  Kind seit dem Start nicht beantwortet hat, auch nie gespielte, jede einmal (beantwortet am = fällig am − Abstand des
+  Kastens, darum keine neue Speicherung). Erst die nach Kasten fälligen, dann diese. Belohnung wie jede Wiederholung (ein
+  Drittel). Danach läuft alles nach den Kästen weiter.
+- **Server** (`supabase/migrations/20261119_lernquest_wiederholen_sofort.sql`): `lq_klasse.extra_wdh`
+  ({ab, bis, stunden}); `lq_wiederholen_setzen` (nur Besitzerin, `ab` heute ± 1 Tag, höchstens 14 Tage, nur
+  freigeschaltete Stunden, null beendet); `lq_mein_stand` und `lq_klassen` liefern `extra` mit. Im Gerät des Kindes in
+  `lernquest:daten` (offline).
+- Geprüft: lokal mit allen Migrationen (fremde Lehrkraft, fremde Stunde, zu lang, rückwärts abgelehnt; Kind sieht es;
+  Beenden); Tests `wiederholen.test.ts`; im Browser (Kind: 1 fällig + 6 freigegeben = 7, Hinweis morgen; Lehrkraft:
+  Freigeben, „Läuft vom … bis …“, Beenden).
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

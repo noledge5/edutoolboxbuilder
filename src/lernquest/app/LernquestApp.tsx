@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QrScanner } from '../../sync/QrScanner';
 import { beamerAusHash, codeAus, faecherVon, namensFarbe, regionenVon, vorname, wochenTage, type Station } from '../karte';
 import {
-  faellig,
   heldenstufe,
   heute,
   istRichtig,
@@ -20,6 +19,9 @@ import {
   rundenZahl,
   rundeVon,
   RUNDE_MAX,
+  heuteDran,
+  morgenDran,
+  readExtra,
   sterne,
   STERNE_JE_TRUHE,
   tagNummer,
@@ -429,7 +431,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         if (paket) pakete[p.stunde] = paket;
       }
       const stand = ladeWarteschlange().length && d ? d.stand : r.stand;
-      store({ name: r.name, klasse: r.klasse, stand, pakete, seit: r.jetzt });
+      store({ name: r.name, klasse: r.klasse, stand, pakete, seit: r.jetzt, extra: readExtra(r.extra) });
       setOffline(false);
     } catch (e) {
       fail(e);
@@ -562,7 +564,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const wiederholen = () => {
     const karten = new Map<string, { u: Uebung; stunde: string }>();
     for (const p of pakete) for (const u of p.uebungen) karten.set(karteKey(p.stunde, u.id), { u, stunde: p.stunde });
-    const due = faellig(stand.leitner, tagNummer(heute()), new Set(karten.keys())).slice(0, RUNDE_MAX);
+    const due = heuteDran(stand.leitner, [...karten.keys()], daten?.extra, heute()).slice(0, RUNDE_MAX);
     setScreen({
       kind: 'runde',
       stunde: '',
@@ -701,8 +703,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     );
   }
 
-  const karten = new Set(pakete.flatMap((p) => p.uebungen.map((u) => karteKey(p.stunde, u.id))));
-  const dueCount = faellig(stand.leitner, tagNummer(heute()), karten).length;
+  const karten = pakete.flatMap((p) => p.uebungen.map((u) => karteKey(p.stunde, u.id)));
+  const dueCount = heuteDran(stand.leitner, karten, daten.extra, heute()).length;
+  const morgen = morgenDran(stand.leitner, karten, heute());
+  // „Wiederholen sofort“ from the teacher today: said so on the page.
+  const extraHeute = !!daten.extra && heute() >= daten.extra.ab && heute() <= daten.extra.bis;
   const tab = screen.kind === 'wiederholen' ? 'wiederholen' : screen.kind === 'held' || screen.kind === 'laden' || screen.kind === 'gutscheine' ? 'held' : screen.kind === 'klasse' ? 'klasse' : 'karte';
   const rahmen = (seite: React.ReactNode) => (
     <main className="lq-app lq-mit-leiste">
@@ -777,6 +782,14 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </>
         ) : (
           <p>Gerade ist nichts dran. Spiel Stationen auf der Karte – was du dort übst, kommt hier später wieder.</p>
+        )}
+        {extraHeute && dueCount > 0 && <p className="lq-wdh-hinweis">Deine Lehrkraft hat Aufgaben zum Üben freigegeben, zum Beispiel vor einer Klassenarbeit.</p>}
+        {morgen > 0 && (
+          <p className="lq-wdh-hinweis">
+            {dueCount
+              ? `Morgen ${morgen === 1 ? 'kommt 1 Aufgabe' : `kommen ${morgen} Aufgaben`} dazu.`
+              : `Morgen ${morgen === 1 ? 'ist 1 Aufgabe' : `sind ${morgen} Aufgaben`} dran.`}
+          </p>
         )}
       </section>,
     );

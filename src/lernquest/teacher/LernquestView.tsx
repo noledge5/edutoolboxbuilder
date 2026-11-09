@@ -41,6 +41,7 @@ import { Belohnungen } from './Belohnungen';
 import { PinCards } from './PinCards';
 import { Antwortkarten, type KartenKind } from './Antwortkarten';
 import { Kartenrunde } from './Kartenrunde';
+import { WiederholenSofort } from './WiederholenSofort';
 import { BossScan } from './BossScan';
 import './lernquest-lehrkraft.css';
 
@@ -546,6 +547,8 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
       <Belohnungen klasse={klasse} keys={keys} busy={busy} act={act} />
 
       <Auswertung lib={lib} klasse={klasse} />
+
+      <WiederholenSofort lib={lib} klasse={klasse} busy={busy} act={act} />
 
       <KartenStart lib={lib} klasse={klasse} onKarten={onKarten} />
 
