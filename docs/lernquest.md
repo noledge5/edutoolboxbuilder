@@ -251,8 +251,8 @@ Ohne Server-Änderung, Vorschläge von Claude („runder, anschaulicher, Bugs fi
 
 Wunsch der Lehrkraft: mehr Teile, manche nur aus Truhen, und die erst sichtbar, wenn man sie hat. Entscheidungen der
 Lehrkraft (Vorschläge von Claude): 24 neue Teile, etwa die Hälfte nur aus Truhen, in der Liste „?“ mit „Nur in Truhen“.
-Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen durchgespielt, **noch nicht
-eingespielt**, erst nach OK der Lehrkraft und vor dem Merge).
+Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen durchgespielt, eingespielt am
+09.11.2026 über die Supabase-Verbindung, vor dem Merge von PR #45).
 - **24 neue Teile** (jetzt 80), je Platz zwei zum Kaufen (Gewöhnlich, Ungewöhnlich) und zwei **Truhen-Schätze**
   (Selten bis Legendär): Kochmütze, Cowboyhut, *Raumhelm, Eiskrone*; Schläfrige Augen, Zwinkern, *Monokel,
   Feueraugen*; Regenjacke, Ninja-Anzug, *Raumanzug, Kristallrüstung*; Angel, Bumerang, *Zwergenhammer, Blitzstab*;
