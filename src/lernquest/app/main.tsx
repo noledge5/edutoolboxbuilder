@@ -10,9 +10,12 @@ import '@fontsource/nunito/latin-800.css';
 import '@fontsource/nunito/latin-ext-800.css';
 import './lernquest.css';
 import { LernquestApp } from './LernquestApp';
+import { BilderRahmen } from './hochgeladen';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <LernquestApp />
+    <BilderRahmen>
+      <LernquestApp />
+    </BilderRahmen>
   </StrictMode>,
 );

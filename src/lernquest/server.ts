@@ -397,3 +397,18 @@ export function neuePin(): string {
   const n = crypto.getRandomValues(new Uint32Array(1))[0] % 10000;
   return String(n).padStart(4, '0');
 }
+
+// — Pictures of the parts (supabase/migrations/20261117_lernquest_bilder.sql): uploaded on the teacher page by the
+// admin teacher, for every class; read by everyone. —
+
+/** Whether one of the keys belongs to an admin teacher (who may upload pictures). */
+export const istAdmin = (keys: string[]) => lq<boolean>('lq_ist_admin', { p_schluessel: keys });
+/** Stores the finished layer of a part (base64), replacing an older one; returns the new version. */
+export const bildSetzen = (keys: string[], teil: string, typ: string, daten: string) =>
+  lq<number>('lq_bild_setzen', { p_schluessel: keys, p_teil: teil, p_typ: typ, p_daten: daten });
+export const bildLoeschen = (keys: string[], teil: string) => lq<null>('lq_bild_loeschen', { p_schluessel: keys, p_teil: teil });
+/** Which parts have an uploaded picture: {part id: version}. */
+export const bilderListe = () => lq<Record<string, number>>('lq_bilder', {});
+/** The pictures of up to 10 parts. */
+export const bildDaten = (teile: string[]) =>
+  lq<{ teil: string; version: number; typ: string; daten: string }[]>('lq_bild_daten', { p_teile: teile });

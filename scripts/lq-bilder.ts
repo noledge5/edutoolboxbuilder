@@ -12,29 +12,24 @@ import { existsSync } from 'node:fs';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import sharp, { type OverlayOptions } from 'sharp';
+import { editEbene, einzelEbene, figurEbene, flaecheEbene, type Einstellung as Anpassungen, type Skalieren } from '../src/lernquest/bilder/ebene.ts';
 import {
-  aenderung,
-  einpassen,
-  freistellen,
   hatTransparenz,
   hautMessen,
   hautUmfaerben,
   haareUmfaerben,
   hexRgb,
   mittelFarbe,
-  sichtbar,
-  type Anpassung,
+  freistellen,
   verschieben,
   verschiebung,
 } from '../src/lernquest/bilder/pixel.ts';
 import {
   AUGEN_MASKE,
   EBENE_GROESSE as G,
-  EDIT_BEREICH,
   editListe,
   HAUT_PUNKTE,
   HINTERGRUND_FARBE,
-  KLEIDUNG_EDIT_MASKE,
   KLEIDUNG_MASKE,
   PLAETZE,
   promptListe,
@@ -50,15 +45,6 @@ const wert = (name: string) => {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : undefined;
 };
-
-/** Fine-tuning per part from src/lernquest/bilder/anpassen.json; `toleranz` and `loecher` for cutting away the
- *  background (`loecher`: also enclosed grey patches, e.g. between the legs); `schwelle` for edit pictures (how
- *  different a pixel must be from the base figure to count as the part, default 30). */
-interface Anpassungen extends Anpassung {
-  toleranz?: number;
-  loecher?: boolean;
-  schwelle?: number;
-}
 
 type Roh = { data: Uint8Array; w: number; h: number };
 
@@ -79,20 +65,10 @@ async function speichern(name: string, r: Roh) {
     .toFile(join(ZIEL, `${name}.webp`));
 }
 
-/** A mask drawn from SVG at layer size, white = keep, with a soft edge. */
-async function maske(form: string, groesse: number): Promise<Uint8Array> {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${groesse}" height="${groesse}" viewBox="0 0 240 240"><rect width="240" height="240"/>${form}</svg>`;
-  const { data } = await sharp(Buffer.from(svg)).blur(1.2).greyscale().raw().toBuffer({ resolveWithObject: true });
-  return new Uint8Array(data);
-}
 const kleidungForm = () => {
   const m = KLEIDUNG_MASKE;
   return `<rect x="${m.x}" y="${m.y}" width="${m.width}" height="${m.height}" rx="${m.rx}" fill="#fff"/>`;
 };
-const kleidungEditForm = () =>
-  KLEIDUNG_EDIT_MASKE.map(
-    (m) => `<rect x="${m.x}" y="${m.y}" width="${m.width}" height="${m.height}" rx="${m.rx}" fill="#fff"/>`,
-  ).join('');
 const augenForm = () =>
   `<ellipse cx="${AUGEN_MASKE.cx}" cy="${AUGEN_MASKE.cy}" rx="${AUGEN_MASKE.rx}" ry="${AUGEN_MASKE.ry}" fill="#fff"/>`;
 
@@ -113,41 +89,15 @@ async function aufGrau(datei: string): Promise<Roh> {
   return aufEbene({ data: new Uint8Array(r.data), w: r.info.width, h: r.info.height });
 }
 
-/** A part made on its own: background cut away, trimmed and placed into its box on an empty layer. */
-async function einzeln(r: Roh, id: string, a: Anpassungen): Promise<Roh> {
-  if (!hatTransparenz(r.data)) freistellen(r.data, r.w, r.h, a.toleranz, a.loecher);
-  const box = sichtbar(r.data, r.w, r.h);
-  if (!box) throw new Error('nach dem Freistellen ist nichts mehr zu sehen (Toleranz kleiner?)');
-  const platz = PLAETZE[teil(id)!.slot];
-  const z = einpassen(box.w, box.h, platz, G, a);
-  let bild = await roh(r)
+/** sharp scales a box of a raw picture for `einzelEbene`. */
+const mitSharp: Skalieren = async (r, box, w, h) => {
+  const { data } = await roh(r)
     .extract({ left: box.x, top: box.y, width: box.w, height: box.h })
-    .resize(z.width, z.height)
-    .png()
-    .toBuffer();
-  // Keep what lies outside the layer away, sharp only composites inside.
-  const l = Math.max(0, z.left);
-  const t = Math.max(0, z.top);
-  const w = Math.min(G, z.left + z.width) - l;
-  const h = Math.min(G, z.top + z.height) - t;
-  if (w <= 0 || h <= 0) throw new Error('liegt ganz außerhalb der Fläche (Anpassung prüfen)');
-  if (w !== z.width || h !== z.height)
-    bild = await sharp(bild)
-      .extract({ left: l - z.left, top: t - z.top, width: w, height: h })
-      .toBuffer();
-  const { data } = await sharp({
-    create: {
-      width: G,
-      height: G,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
-  })
-    .composite([{ input: bild, left: l, top: t }])
+    .resize(w, h)
     .raw()
     .toBuffer({ resolveWithObject: true });
-  return { data: new Uint8Array(data), w: G, h: G };
-}
+  return new Uint8Array(data);
+};
 
 async function bauen() {
   const ordner = resolve(WURZEL, wert('--ordner') ?? 'lernquest-roh');
@@ -180,8 +130,6 @@ async function bauen() {
   await mkdir(ZIEL, { recursive: true });
   const fertig: string[] = [];
   const fehler: string[] = [];
-  const kleidungsMaske = await maske(kleidungForm(), G);
-  const kleidungEditMaske = await maske(kleidungEditForm(), G);
   const eins = (map: Map<string, string[]>, id: string, wo = '') => {
     const namen = map.get(id);
     if (namen && namen.length > 1) throw new Error(`mehrere Bilder${wo} (${namen.join(', ')}), bitte nur eins lassen`);
@@ -234,12 +182,9 @@ async function bauen() {
       let e: Roh;
       if (weg === 'flaeche') {
         const { data } = await roh(r).resize(G, G, { fit: 'cover' }).raw().toBuffer({ resolveWithObject: true });
-        e = { data: new Uint8Array(data), w: G, h: G };
-        for (let i = 3; i < e.data.length; i += 4) e.data[i] = 255;
-      } else if (weg === 'figur') {
-        e = await aufEbene(r);
-        for (let p = 0; p < G * G; p++) e.data[p * 4 + 3] = Math.round((e.data[p * 4 + 3] * kleidungsMaske[p]) / 255);
-      } else e = await einzeln(r, id, a);
+        e = flaecheEbene({ data: new Uint8Array(data), w: G, h: G });
+      } else if (weg === 'figur') e = figurEbene(await aufEbene(r));
+      else e = await einzelEbene(r, t.slot, a, mitSharp);
       await speichern(id, e);
       fertig.push(id);
     } catch (err) {
@@ -271,22 +216,9 @@ async function bauen() {
           `ist ${me.width} × ${me.height}, die Grundfigur ${mb.width} × ${mb.height}: das Edit-Bild muss genauso groß sein`,
         );
       const rohBild = await aufGrau(join(ordner, 'edit', name));
-      const k = G / 240;
-      const b = EDIT_BEREICH[frisur ? 'haare' : mund ? 'mund' : t!.slot];
-      const box = {
-        x: Math.round(b.x * k),
-        y: Math.round(b.y * k),
-        w: Math.round(b.width * k),
-        h: Math.round(b.height * k),
-      };
-      const v = verschiebung(basis.data, rohBild.data, G, G, 12, box);
-      const bild = v.dx || v.dy ? verschieben(rohBild.data, G, G, v.dx, v.dy) : rohBild.data;
-      const a = anpassen[id] ?? {};
-      // Only what changed; clothes also stay on the torso and shoulders, off the hands.
-      const data = aenderung(basis.data, bild, G, G, box, a.schwelle);
-      if (t && PLAETZE[t.slot].weg === 'figur')
-        for (let p = 0; p < G * G; p++) data[p * 4 + 3] = Math.round((data[p * 4 + 3] * kleidungEditMaske[p]) / 255);
-      if (!sichtbar(data, G, G)) throw new Error('keine Änderung gefunden (schwelle kleiner?)');
+      const { ebene, dx, dy } = editEbene(basis.data, rohBild.data, frisur ? 'haare' : mund ? 'mund' : t!.slot, anpassen[id]);
+      const data = ebene.data;
+      const v = { dx, dy };
       const zurueck = v.dx || v.dy ? `, um ${v.dx}/${v.dy} px zurückgeschoben` : '';
       if (frisur) {
         // The hair in every colour: painted brown, the others recoloured from its typical colour.

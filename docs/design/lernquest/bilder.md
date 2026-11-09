@@ -28,6 +28,20 @@ Text zu Bild: Wiese            ──►  wiese.png              ──►  ganz
 - **Offline und aktuell.** Beim Bauen bekommen die Bilder einen Namen mit Prüfsumme (`assets/krone-Ab12.webp`). Der
   Offline-Speicher hält sie, und ein neues Bild ersetzt das alte sofort.
 
+## Einfacher: auf der Lehrerseite hochladen (ab 09.11.2026)
+
+Für **Teile** (Kopf, Augen, Kleidung, Werkzeug, Begleiter, Hintergrund) geht es ohne Umbenennen und ohne Skript:
+Baukasten → Lernquest → **„Bilder der Teile“** (nur für die Admin-Lehrkraft sichtbar) → Teil antippen → Bild aus
+ComfyUI wählen (Name egal, z. B. `Flux2-Klein_00042.png`) → Weg wählen (einzeln auf Grau oder Edit der Grundfigur) →
+Vorschau am Helden und als Kachel, mit den Reglern nachjustieren → **„Übernehmen“**. Das Bild gilt sofort für alle
+Klassen (die Kinder sehen es beim nächsten Öffnen) und geht vor das eingebaute Bild. „Hochgeladenes Bild löschen“
+bringt das eingebaute Bild bzw. die Zeichnung zurück.
+
+- Gleiche Regeln wie unten: Edits sind Edits der Grundfigur (verglichen wird mit der eingebauten `koerper-0.webp`),
+  einzeln gemalte Teile auf grauem Grund. Die Regler entsprechen `s`, `dx`, `dy`, `toleranz` und `schwelle`.
+- Frisuren, Münder, Hauttöne und die Grundfigur gehen weiter nur über das Skript.
+- Ein hochgeladenes Bild liegt auf dem Server, nicht im Repo. Soll es dauerhaft eingebaut werden, weiter wie unten.
+
 ## Der Stil: „weich gemalt“
 
 Kindgerechter Spielstil für 10- bis 12-Jährige (`STIL` in `src/lernquest/bilder/vorlagen.ts`). Beim Edit-Weg kommt
@@ -138,11 +152,15 @@ Prompts in [`bilder/prompts.md`](bilder/prompts.md). Krea 2 Turbo: 8 Schritte, 1
 ## Technik kurz
 
 - `src/lernquest/bilder/vorlagen.ts`: Stil, Prompt-Bausteine, Beschreibungen, Plätze, Suchbereiche, Masken.
+- `src/lernquest/bilder/ebene.ts`: vom Rohbild zur Ebene (einzeln, Edit, Kleidung auf der Figur, Hintergrund), gemeinsam
+  für Skript und Lehrerseite; nur das Skalieren wird übergeben (sharp bzw. Canvas). Test: `ebene.test.ts`.
+- `src/lernquest/teacher/bildVerarbeiten.ts` + `TeilBilder.tsx`: Hochladen auf der Lehrerseite;
+  `src/lernquest/app/hochgeladen.tsx`: die hochgeladenen Bilder im Gerät (offline).
 - `src/lernquest/bilder/pixel.ts`: Freistellen, Einpassen, Haut umfärben, Verschiebung finden, Änderung herauslösen,
   Haare umfärben (getestet in `bilder.test.ts`).
 - `scripts/lq-bilder.ts`: das Skript (Node ab 22.18, `sharp`). `--prompts` schreibt `prompts.md` und
   `edit-prompts.md`, `--schablonen` die Masken, die Vorlage und `plaetze.png` (aus `schablonen/figur.svg`).
-- `src/lernquest/app/teilBilder.ts` + `avatar.tsx`: Bild, wenn vorhanden, sonst Vektor. Gemalte Haare erscheinen nur
+- `src/lernquest/app/teilBilder.ts` + `avatar.tsx`: hochgeladenes Bild, sonst eingebautes Bild, sonst Vektor. Gemalte Haare erscheinen nur
   zusammen mit der gemalten Grundfigur, auf der sie entstanden sind.
 
 ## Bewegungsschleifen für Bosse und Begleiter (entschieden 08.11.2026, noch nicht gebaut)

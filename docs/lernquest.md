@@ -265,6 +265,38 @@ Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen d
 - Zeichnungen in `avatar.tsx`, Bild-Prompts aus `BESCHREIBUNG` in `vorlagen.ts` (`npm run lq:bilder -- --prompts`
   schreibt `prompts.md` und `edit-prompts.md` neu).
 
+## Bilder hochladen auf der Lehrerseite (09.11.2026)
+
+- Wunsch: gemalte Bilder nicht mehr von Hand umbenennen, ablegen, Skript laufen lassen und committen, sondern auf der
+  Lehrerseite hochladen und einem Teil zuordnen. Entscheidungen der Lehrkraft: **nur sie lädt hoch, die Bilder gelten
+  für alle Klassen aller Lehrkräfte**; **Vorschau, dann „Übernehmen“**; Ersetzen und Löschen jederzeit, danach gilt
+  wieder das eingebaute Bild bzw. die Vektorzeichnung.
+- **Server** (`supabase/migrations/20261117_lernquest_bilder.sql`): `lq_admin` (Hashes von Lehrkraft-Schlüsseln, ohne
+  Rechte für anon/authenticated, **von Hand per SQL eingetragen**, es gibt bewusst keine Funktion zum Selbst-Eintragen),
+  `lq_bild` (je Teil-ID aus `lq_teil` ein Bild, Version aus einer Folge). Funktionen: `lq_ist_admin`, `lq_bild_setzen`
+  und `lq_bild_loeschen` (nur Admin; WebP oder PNG mit 480 × 480 laut Dateikopf, JPEG nur für Hintergründe, höchstens
+  400 KB; `voll` ab 400 MB Datenbank), `lq_bilder` (`{teil: version}`) und `lq_bild_daten` (höchstens 10 je Aufruf,
+  Base64) für alle, denn die Bilder sind nicht persönlich.
+- **Lehrerseite:** Knopf „Bilder der Teile“ oben, nur wenn `lq_ist_admin` ja sagt (`teacher/TeilBilder.tsx`, lädt erst
+  bei Bedarf). Raster aller Teile mit Herkunft (Hochgeladen / Eingebaut / Zeichnung) → Teil antippen → Bild wählen →
+  Weg wählen, wo es zwei gibt (einzeln gemalt auf Grau oder Edit der Grundfigur; Kleidung nur Edit, Hintergrund ganzes
+  Bild) → Vorschau am Helden und als Kachel, Regler (Größe, links/rechts, hoch/runter, Freistellen; beim Edit die
+  Empfindlichkeit), Startwerte aus `anpassen.json` → „Übernehmen“. Die Vorschau ist genau die Datei, die hochgeht.
+- **Bildarbeit im Browser** (`teacher/bildVerarbeiten.ts`): dieselben Schritte wie `npm run lq:bilder`, gemeinsam in
+  `bilder/ebene.ts`; nur das Skalieren macht dort sharp, hier ein Canvas. Ein Edit wird mit der eingebauten
+  Grundfigur `koerper-0.webp` verglichen (auf dem Grau, das das Edit-Bild am Rand hat). Kodiert als WebP (Chrome,
+  Firefox, Edge); Safari kann kein WebP speichern, dort PNG (Hintergründe JPEG). Geprüft: Browser und Skript liefern
+  fast dieselbe Ebene (Edit 0,03 %, einzeln 0,16 % abweichende Deckung, Farbe im Mittel 0,6 von 255).
+- **Kinder-App** (`app/hochgeladen.tsx`): beim Start und nach 10 Minuten im Hintergrund die Liste holen, fehlende oder
+  neue Versionen laden, gelöschte vergessen; die Bilder liegen im Gerät (IndexedDB `lernquest-bilder`), also auch nach
+  Neuladen und offline da. `avatar.tsx` nimmt ein hochgeladenes Bild vor dem eingebauten (Kontext
+  `HochgeladeneBilder`). Ohne Server-Funktion (vor dem Einspielen) bleibt alles wie bisher.
+- Frisuren, Münder, Hauttöne und die Grundfigur bleiben beim Skript.
+- Geprüft: lokal mit allen Migrationen (Postgres 16; Nicht-Admin, Kinder-Token, falsche Formate und Größen, direkter
+  Tabellenzugriff abgelehnt; Ersetzen, Löschen, neue Version); im Browser mit nachgeahmten RPCs (Hochladen einzeln
+  und als Edit, Löschen, Kinder-App online, nach Neuladen ohne neues Laden, offline). Live-Test im
+  `server.live.test.ts` („Bilder der Teile“) nach dem Einspielen.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.
