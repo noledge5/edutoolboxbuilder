@@ -3159,3 +3159,41 @@ button.lq-teil:active {
   height: 260px;
   border-radius: var(--lq-r-klein);
 }
+
+/* Bosskampf mit Karten: Buchstabe neben der Form (wie auf der Karte), erkannte Namen grün. */
+.lq-antwort-buchstabe {
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-gross);
+  min-width: 1.2em;
+  text-align: center;
+}
+.lq-beamer-erkannt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-2);
+  min-height: 0;
+}
+.lq-beamer-erkannt > span {
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-gross);
+}
+.lq-beamer-erkannt ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lq-a-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 120px;
+  overflow: hidden;
+}
+.lq-beamer-erkannt li {
+  padding: var(--lq-a-1) var(--lq-a-3);
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-ok);
+  color: var(--lq-auf-farbe);
+  font-weight: 700;
+  font-size: var(--lq-t-klein);
+}
