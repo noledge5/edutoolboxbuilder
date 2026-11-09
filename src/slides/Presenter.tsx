@@ -6,18 +6,19 @@
 // show the same state from here.
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Maximize, Minus, NotebookText, PenLine, Plus, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, IdCard, Maximize, Minus, NotebookText, PenLine, Plus, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { boardFromInk, boardName, deckOrder, hasInk, inkFromBoard, type BlankBoard, type Board, type DeckItem, type Paper, type Stroke } from '../model/ink';
 import { uid } from '../model/ops';
-import { gapCount, nextStep, sortTap, stepCount, workSteps, type Slide } from '../model/slides';
+import { gapCount, nextStep, shownItems, sortTap, stepCount, workSteps, type Slide } from '../model/slides';
 import { gong, setSoundOn, soundOn, unlockSound } from './gong';
 import { BoardView, InkSvg } from './Ink';
 import { PenBar, pencilSeen, useInkInput, usePenSettings, type PenSettings } from './Pen';
 import { ToolButtons, ToolOverlays, type ToolActions, type ToolState } from './PresentTools';
 import { preparePopup, type SpeakerWindows } from './speaker';
 import { SLIDE_H, SLIDE_W, SlideView, type SlideContext } from './SlideView';
-import { addMinutes, newTimer, nextAmpel, pauseTimer, startTimer, timeLeft, toggleBlank, type Ampel, type Blank, type Timer } from './tools';
+import { CardScan, CardStrip, NEW_ROUND, type CardRound } from './CardScan';
+import { addMinutes, cardVotes, newTimer, nextAmpel, pauseTimer, startTimer, timeLeft, toggleBlank, type Ampel, type Blank, type Timer } from './tools';
 
 interface PresenterProps {
   slides: Slide[];
@@ -84,10 +85,10 @@ const NONE: ReadonlySet<string> = new Set();
 const NO_STROKES: Stroke[] = [];
 
 /** One page (a slide or a blank board), scaled; kept apart so the ticking clock does not draw it again. */
-const ScaledPage = memo(function ScaledPage(p: { item: Item; ctx: SlideContext; step: number; scale: number; live: boolean; opened: ReadonlySet<string>; votes: Record<number, number> }) {
+const ScaledPage = memo(function ScaledPage(p: { item: Item; ctx: SlideContext; step: number; scale: number; live: boolean; opened: ReadonlySet<string>; votes: Record<number, number>; cards?: 'collect' | 'shown' }) {
   const style = { transform: `scale(${p.scale})` };
   if (p.item.kind === 'board') return <BoardView paper={p.item.board.paper} design={p.ctx.design} style={style} />;
-  return <SlideView slide={p.item.slide} number={p.item.number} ctx={p.ctx} step={p.step} live={p.live} opened={p.opened} votes={p.votes} style={style} />;
+  return <SlideView slide={p.item.slide} number={p.item.number} ctx={p.ctx} step={p.step} live={p.live} opened={p.opened} votes={p.votes} cardVotes={p.cards} style={style} />;
 });
 
 /** What was written on a page, over it. */
@@ -166,6 +167,8 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
   /** Cards, gaps and covers tapped open on this slide; hands counted in a vote. */
   const [opened, setOpened] = useState<ReadonlySet<string>>(NONE);
   const [votes, setVotes] = useState<Record<number, number>>({});
+  /** Answer cards being read on this Quiz slide (Kartenfrage); null while not. */
+  const [cards, setCards] = useState<CardRound | null>(null);
   // Direction of the last change, for the "push" transition.
   const [back, setBack] = useState(false);
   const forward = useRef(true);
@@ -226,6 +229,7 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
       setStep(at);
       setOpened(NONE);
       setVotes({});
+      setCards(null);
     },
     [k],
   );
@@ -326,6 +330,7 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
     setStep(0);
     setOpened(NONE);
     setVotes({});
+    setCards(null);
     if (!penOn) setPenOn(true);
   };
   const loadBoard = (b: Board) => {
@@ -371,6 +376,13 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
   };
   const minutes = slide ? (slide.layout === 'work' && workSteps(slide).length > 1 ? workSteps(slide)[step]?.minutes || slide.minutes : slide.minutes) : 0;
   const tools: ToolState = { timer, now, sound, ampel, blank, minutes };
+
+  // — Answer cards on a Quiz slide —
+  const boxes = slide?.layout === 'quiz' ? shownItems(slide).length : 0;
+  const cardMode = cards && boxes ? (cards.shown ? 'shown' : 'collect') : undefined;
+  /** What the boxes count: the answer cards once resolved, otherwise the hands. */
+  const shownVotes = useMemo(() => (cards?.shown ? cardVotes(cards.answers, boxes) : votes), [cards, boxes, votes]);
+  const toggleCards = () => setCards((c) => (c ? null : NEW_ROUND));
 
   /** T: the timer starts with the slide's minutes, stops or goes on; without minutes the panel is the way. */
   const keyTimer = () => {
@@ -516,6 +528,13 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
     </button>
   );
 
+  const cardButton = boxes > 0 && (
+    <button type="button" className={'iconbtn' + (cards ? ' is-on' : '')} onClick={toggleCards} title="Antwortkarten scannen" aria-label="Antwortkarten scannen" aria-pressed={!!cards}>
+      <Icon icon={IdCard} size={18} />
+    </button>
+  );
+  const cardPanel = (listCards: boolean) => cards && boxes > 0 && <CardScan round={cards} boxes={boxes} set={(f) => setCards((c) => c && f(c))} onClose={() => setCards(null)} listCards={listCards} />;
+
   const saveDialog = saving && (
     <div className="sl-save-board" role="dialog" aria-label="Tafelbild sichern" onClick={stop} onPointerDown={stop} onTouchEnd={stop}>
       <b>Tafelbild sichern?</b>
@@ -542,7 +561,9 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
       ctx={ctx}
       step={step}
       opened={opened}
-      votes={votes}
+      votes={shownVotes}
+      cards={cardMode}
+      strip={cards && boxes ? <CardStrip round={cards} boxes={boxes} /> : null}
       ink={port}
       back={back}
       k={k}
@@ -585,6 +606,7 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
         <span className="sl-sep" />
         <ToolButtons s={tools} act={act} onPanel={setPanelOpen} />
         {penButton}
+        {cardButton}
         <span className="sl-sep" />
         <button type="button" className={'iconbtn' + (notes ? ' is-on' : '')} onClick={() => setNotes((n) => !n)} title="Sprechernotizen (N)" aria-label="Sprechernotizen" aria-pressed={notes}>
           <Icon icon={NotebookText} size={18} />
@@ -596,6 +618,7 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
           <Icon icon={X} size={18} />
         </button>
       </div>
+      {cardPanel(false)}
       {saveDialog}
     </>
   );
@@ -609,7 +632,8 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
       k={k}
       step={step}
       opened={opened}
-      votes={votes}
+      votes={shownVotes}
+      cards={cardMode}
       ink={port}
       allInk={ink}
       now={now}
@@ -629,8 +653,14 @@ export function Presenter({ slides, ctx, start, speaker = null, boards = [], boa
       onPrev={prev}
       onTap={tap}
       onClose={close}
-      penButton={penButton}
+      penButton={
+        <>
+          {penButton}
+          {cardButton}
+        </>
+      }
       penBar={penBar('inline')}
+      cardPanel={cardPanel(true)}
       dialog={saveDialog}
       waiting={pair?.popup === 'audience' && !placed ? 'Das Folienfenster auf den Beamer ziehen und einmal hineinklicken: dann füllt es den Bildschirm.' : ''}
     />
@@ -692,6 +722,9 @@ interface AudienceProps {
   step: number;
   opened: ReadonlySet<string>;
   votes: Record<number, number>;
+  cards?: 'collect' | 'shown';
+  /** Over the slide while answer cards are read: which cards are in. */
+  strip?: ReactNode;
   ink: InkPort;
   back: boolean;
   /** Index of the page, for the transition. */
@@ -711,7 +744,7 @@ interface AudienceProps {
 }
 
 /** What the class sees: the slide with what was written on it, the timer bar and the Ampel, a black or white screen. */
-function Audience({ win, item, ctx, step, opened, votes, ink, back, k, tools, idle, onActivity, onNext, onPrev, onTap, onUnblank, hint, children }: AudienceProps) {
+function Audience({ win, item, ctx, step, opened, votes, cards, strip, ink, back, k, tools, idle, onActivity, onNext, onPrev, onTap, onUnblank, hint, children }: AudienceProps) {
   const size = useWindowSize(win);
   const touch = useRef<{ x: number; y: number } | null>(null);
   /** When the pen last wrote: its touches are not swipes. */
@@ -749,10 +782,11 @@ function Audience({ win, item, ctx, step, opened, votes, ink, back, k, tools, id
       }}
     >
       <InkFrame key={k} ink={ink} scale={scale} design={ctx.design} className={`sl-present-frame sl-trans-${transition}${back ? ' is-back' : ''}`} style={frame} busy={busy}>
-        <ScaledPage item={item} ctx={ctx} step={step} scale={scale} live opened={opened} votes={votes} />
+        <ScaledPage item={item} ctx={ctx} step={step} scale={scale} live opened={opened} votes={votes} cards={cards} />
       </InkFrame>
       <div className="sl-present-over" style={{ ...frame, ['--s' as string]: scale }}>
         <ToolOverlays timer={tools.timer} now={tools.now} ampel={tools.ampel} />
+        {strip}
       </div>
       {tools.blank && (
         <div
@@ -778,6 +812,7 @@ interface SpeakerViewProps {
   step: number;
   opened: ReadonlySet<string>;
   votes: Record<number, number>;
+  cards?: 'collect' | 'shown';
   ink: InkPort;
   /** Strokes of all pages (for the next one). */
   allInk: Record<string, Stroke[]>;
@@ -793,6 +828,8 @@ interface SpeakerViewProps {
   onClose(): void;
   penButton: ReactNode;
   penBar: ReactNode;
+  /** Reading answer cards on a Quiz slide. */
+  cardPanel: ReactNode;
   dialog: ReactNode;
   /** A note while the slides window is not yet on the projector. */
   waiting: string;
@@ -859,7 +896,7 @@ function SpeakerView(p: SpeakerViewProps) {
           onClick={(e) => onTap(e.target) || onNext()}
           title={ink.on ? undefined : 'Klick: weiter'}
         >
-          <ScaledPage item={item} ctx={ctx} step={step} scale={bigScale} live={false} opened={opened} votes={votes} />
+          <ScaledPage item={item} ctx={ctx} step={step} scale={bigScale} live={false} opened={opened} votes={votes} cards={p.cards} />
           <div className="sl-present-over" style={{ width: SLIDE_W * bigScale, height: SLIDE_H * bigScale, ['--s' as string]: bigScale }}>
             <ToolOverlays timer={tools.timer} now={tools.now} ampel={tools.ampel} />
           </div>
@@ -877,6 +914,7 @@ function SpeakerView(p: SpeakerViewProps) {
         </div>
       </div>
       <aside className="sl-speaker-side">
+        {p.cardPanel}
         <div className="sl-speaker-label">{coming ? coming.label : 'Ende der Präsentation'}</div>
         {coming && (
           <div className="sl-speaker-next" style={{ width: SLIDE_W * smallScale, height: SLIDE_H * smallScale }}>

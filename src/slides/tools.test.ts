@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addMinutes, clockText, isOver, isRunning, leftShare, newTimer, nextAmpel, pauseTimer, startTimer, timeLeft, toggleBlank } from './tools';
+import { addMinutes, cardsIn, cardVotes, clockText, isOver, isRunning, leftShare, newTimer, nextAmpel, pauseTimer, startTimer, timeLeft, toggleBlank } from './tools';
 
 describe('timer', () => {
   it('runs, stands and goes on', () => {
@@ -56,5 +56,17 @@ describe('Ampel and blank screen', () => {
     expect(toggleBlank('', 'black')).toBe('black');
     expect(toggleBlank('black', 'black')).toBe('');
     expect(toggleBlank('black', 'white')).toBe('white');
+  });
+});
+
+describe('answer cards on a Quiz slide', () => {
+  it('counts cards per box; the last answer of a card counts, boxes the slide does not have do not', () => {
+    expect(cardVotes({}, 4)).toEqual({});
+    expect(cardVotes({ 1: 0, 2: 0, 7: 2 }, 4)).toEqual({ 0: 2, 2: 1 });
+    // Three boxes: a card held with D on top does not count.
+    expect(cardVotes({ 1: 3, 2: 1 }, 3)).toEqual({ 1: 1 });
+    // Cards know only A–D, also on a slide with more boxes.
+    expect(cardVotes({ 1: 4 }, 6)).toEqual({});
+    expect(cardsIn({ 12: 1, 3: 3, 5: 0 }, 3)).toEqual([5, 12]);
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { drehen, erkennen, KARTEN_MAX, MUSTER, zellen, type Antwort } from './code';
 import { kartenLesen } from './lesen';
-import { kartenNummern, mergeLehrkraft, readLehrkraft, sameLehrkraft } from '../lehrkraft';
+import { alleNummern, kartenNummern, mergeLehrkraft, readLehrkraft, sameLehrkraft } from '../lehrkraft';
 
 const ones = (v: number) => v.toString(2).split('1').length - 1;
 
@@ -145,12 +145,26 @@ describe('Kartennummern', () => {
     expect(Object.keys(kartenNummern(voll))).toHaveLength(63);
   });
 
-  it('travels with the teacher record and the newer numbering of a class wins', () => {
+  it('numbers new children of every class at once, and writes nothing when the numbering stands', () => {
+    const karten = { k1: { b: 2, a: 1 } };
+    expect(alleNummern(karten, [{ id: 'k1', kinder: ['a', 'b'] }])).toBeNull();
+    expect(alleNummern(karten, [{ id: 'k1', kinder: ['a', 'b', 'c'] }, { id: 'k2', kinder: ['x'] }])).toEqual({ k1: { a: 1, b: 2, c: 3 }, k2: { x: 1 } });
+    // A class not in the list keeps its numbering.
+    expect(alleNummern({ ...karten, k3: { y: 4 } }, [{ id: 'k1', kinder: ['b'] }])).toEqual({ k1: { b: 2 }, k3: { y: 4 } });
+  });
+
+  it('travels with the teacher record; the newer number of a child wins, no number is given twice', () => {
     const key = 'a'.repeat(64);
-    expect(readLehrkraft({ keys: [key], karten: { k1: { x: 3, y: 0, z: 'b', w: 64 } }, updatedAt: 1 })?.karten).toEqual({ k1: { x: 3 } });
+    expect(readLehrkraft({ keys: [key], karten: { k1: { x: 3, y: 0, z: 'b', w: 64, v: 3 } }, updatedAt: 1 })?.karten).toEqual({ k1: { x: 3 } });
     const alt = readLehrkraft({ keys: [key], karten: { k1: { x: 1 }, k2: { y: 2 } }, updatedAt: 1 })!;
     const neu = readLehrkraft({ keys: [key], karten: { k1: { x: 5 } }, updatedAt: 2 })!;
     expect(mergeLehrkraft(alt, neu).karten).toEqual({ k1: { x: 5 }, k2: { y: 2 } });
+    // Each device numbered a different new child: both keep theirs, unless the number is taken by the newer record.
+    const a = readLehrkraft({ keys: [key], karten: { k1: { x: 1, y: 2 } }, updatedAt: 1 })!;
+    const b = readLehrkraft({ keys: [key], karten: { k1: { x: 1, z: 3 } }, updatedAt: 2 })!;
+    expect(mergeLehrkraft(a, b).karten).toEqual({ k1: { x: 1, z: 3, y: 2 } });
+    const c = readLehrkraft({ keys: [key], karten: { k1: { x: 1, z: 2 } }, updatedAt: 3 })!;
+    expect(mergeLehrkraft(a, c).karten).toEqual({ k1: { x: 1, z: 2 } });
     expect(sameLehrkraft(alt, { ...alt, karten: {} })).toBe(false);
   });
 });

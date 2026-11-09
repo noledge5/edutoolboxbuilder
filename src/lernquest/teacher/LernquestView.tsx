@@ -11,7 +11,7 @@ import { freigegeben } from '../fragenpool';
 import { FragenpoolDialog } from './Fragenpool';
 import { PunkteDialog } from './PunkteDialog';
 import { paketSenden } from './senden';
-import { ensureLehrkraft, kartenNummern, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
+import { alleNummern, ensureLehrkraft, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
 import { STUFEN, stufenPlan, stufeVon, type Stufe } from '../sichtbarkeit';
 import { BOSS_FRAGEN_MIN, bossFragen, bossVon, type BossFrage } from '../boss';
 import { buildPaket, exercisesOf } from '../paket';
@@ -138,18 +138,28 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
   };
 
   /**
-   * The children of a class with their card numbers. New children get the lowest free number; the numbering is
-   * stored in the teacher record, so printed cards stay valid on both devices.
+   * Class numbers (the numbers of the answer cards): a new child gets the lowest free number as soon as the class list
+   * shows it, so right after „Hinzufügen“. Stored in the teacher record, so printed cards stay valid on both devices.
    */
+  const nummerieren = async (klassen: KlasseInfo[]): Promise<Lehrkraft> => {
+    const liste = klassen.filter((k) => !k.geloescht).map((k) => ({ id: k.id, kinder: k.kinder.map((c) => c.id) }));
+    const l = me ?? (await ensureLehrkraft());
+    if (!alleNummern(l.karten, liste)) return l;
+    const neu = await updateLehrkraft((x) => ({ ...x, karten: alleNummern(x.karten, liste) ?? x.karten }));
+    setMe(neu);
+    onDeviceChange();
+    return neu;
+  };
+  useEffect(() => {
+    if (me && list) void nummerieren(list).catch((e) => setMsg(lqText(e)));
+    // Again when the classes or the teacher record (sync from the other device) change; a run that changes nothing
+    // writes nothing, so this settles.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list, me]);
+
+  /** The children of a class with their card numbers, for printing the cards and scanning. */
   const kartenKinder = async (k: KlasseInfo): Promise<KartenKind[]> => {
-    const ids = k.kinder.map((c) => c.id);
-    let l = me ?? (await ensureLehrkraft());
-    const nummern = kartenNummern(ids, l.karten[k.id]);
-    if (JSON.stringify(nummern) !== JSON.stringify(l.karten[k.id] ?? {})) {
-      l = await updateLehrkraft((x) => ({ ...x, karten: { ...x.karten, [k.id]: nummern } }));
-      setMe(l);
-      onDeviceChange();
-    }
+    const nummern = (await nummerieren([k])).karten[k.id] ?? {};
     return k.kinder
       .filter((c) => !c.geloescht && nummern[c.id])
       .map((c) => ({ nummer: nummern[c.id], name: c.name, id: c.id }))
@@ -234,7 +244,7 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
               </form>
             </nav>
             {klasse ? (
-              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} versteckt={me?.versteckt[klasse.id] ?? []} busy={busy} act={act} savePins={savePins} saveVersteckt={(ids) => saveVersteckt(klasse.id, ids)} onPrint={() => setPrinting(true)} onKarten={(runde) => openKarten(klasse, runde)} onKampf={(id) => openKampf(klasse, id)} />
+              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} versteckt={me?.versteckt[klasse.id] ?? []} nummern={me?.karten[klasse.id] ?? {}} busy={busy} act={act} savePins={savePins} saveVersteckt={(ids) => saveVersteckt(klasse.id, ids)} onPrint={() => setPrinting(true)} onKarten={(runde) => openKarten(klasse, runde)} onKampf={(id) => openKampf(klasse, id)} />
             ) : (
               <p className="lib-empty">Lege zuerst eine Klasse an.</p>
             )}
@@ -278,6 +288,8 @@ interface KlasseProps {
   pins: Record<string, string>;
   /** Lessons hidden from this class (not even a locked station on the map). */
   versteckt: string[];
+  /** Child id → class number (the number on the child's answer card). */
+  nummern: Record<string, number>;
   busy: boolean;
   act(f: (keys: string[]) => Promise<unknown>): Promise<void>;
   savePins(pins: Record<string, string>): Promise<void>;
@@ -289,7 +301,7 @@ interface KlasseProps {
   onKampf(id: string): void;
 }
 
-function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, act, savePins, saveVersteckt, onPrint, onKarten, onKampf }: KlasseProps) {
+function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, nummern, busy, act, savePins, saveVersteckt, onPrint, onKarten, onKampf }: KlasseProps) {
   /** Lesson whose KI-Fragenpool is open. */
   const [poolOf, setPoolOf] = useState<string | null>(null);
   /** Child who gets class points by hand (dialog open). */
@@ -425,6 +437,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
           <table className="ev-table lqt-table">
             <thead>
               <tr>
+                <th title="Klassennummer: die Nummer auf der Antwortkarte des Kindes">Nr.</th>
                 <th>Name</th>
                 <th>
                   <button type="button" className="btn btn-ghost ui-btn is-small" onClick={() => setShowPins(!showPins)} aria-pressed={showPins}>
@@ -445,6 +458,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
                 const stars = Object.entries(rounds).reduce((s, [id, n]) => s + sterne(k.bestwerte[id], n), 0);
                 return (
                   <tr key={k.id} className={k.gesperrt ? 'is-locked' : ''}>
+                    <td className="lqt-nummer">{nummern[k.id] ?? '–'}</td>
                     <th>{k.name}</th>
                     <td className="lqt-code">{pins[k.id] ? (showPins ? pins[k.id] : '••••') : '–'}</td>
                     <td>
@@ -494,6 +508,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
               })}
               {geloescht.map((k) => (
                 <tr key={k.id} className="is-deleted">
+                  <td className="lqt-nummer">{nummern[k.id] ?? '–'}</td>
                   <th>{k.name}</th>
                   <td colSpan={6}>gelöscht am {when(k.geloescht)}, nach 30 Tagen endgültig weg</td>
                   <td>
@@ -513,7 +528,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
           </p>
         )}
         <div className="field lqt-add">
-          <label htmlFor="lqt-names">Kinder hinzufügen (ein Name je Zeile, z. B. „Mia K.“): jedes Kind bekommt eine zufällige PIN</label>
+          <label htmlFor="lqt-names">Kinder hinzufügen (ein Name je Zeile, z. B. „Mia K.“): jedes Kind bekommt eine zufällige PIN und die kleinste freie Nummer für seine Antwortkarte</label>
           <textarea id="lqt-names" className="input" rows={3} value={names} onChange={(e) => setNames(e.target.value)} placeholder={'Mia K.\nJonas B.'} />
           <button type="button" className="btn btn-primary ui-btn" disabled={busy || !names.trim()} onClick={addChildren}>
             <Icon icon={Plus} />
@@ -670,7 +685,8 @@ function KartenStart({ lib, klasse, onKarten }: Pick<KlasseProps, 'lib' | 'klass
           <h2>Kartenfrage ohne Geräte</h2>
           <p className="lqt-hint">
             Jedes Kind hat eine gedruckte Antwortkarte und hält sie hoch, den gewählten Buchstaben (A–D) oben. Du scannst die Klasse mit der Kamera des iPads und siehst sofort, wer was
-            geantwortet hat. Am Beamer stehen nur Kartennummern, Namen nur auf Wunsch.
+            geantwortet hat. Am Beamer stehen nur Kartennummern, Namen nur auf Wunsch. Die Karten tragen keinen Namen, nur die Nummer des Kindes aus der Liste oben. Auch auf Quiz-Folien
+            beim Präsentieren: „Antwortkarten scannen“.
           </p>
         </div>
         <div className="lqt-actions">

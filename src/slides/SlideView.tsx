@@ -1,6 +1,6 @@
 // One slide at its full size (1920 × 1080), after the design's slide reference. The caller scales it.
 import { Fragment, type CSSProperties, type ReactNode } from 'react';
-import { Check, Hand, Lightbulb, MessagesSquare, Star, Timer, User, Users, UsersRound } from 'lucide-react';
+import { Check, Hand, IdCard, Lightbulb, MessagesSquare, Star, Timer, User, Users, UsersRound } from 'lucide-react';
 import { Icon } from '../icons';
 import { partSteps, shownItems, SORT_AT, SORT_PICK, sortGroups, sortMixed, workSteps, type Slide, type SlideAnim, type SlideDesign } from '../model/slides';
 import { THEMES, WORK_FORMS_EN } from '../model/themes';
@@ -53,8 +53,13 @@ interface SlideViewProps {
   noAnswers?: boolean;
   /** Presenting: answers, gaps and covers tapped open before their click (see `nextStep`). */
   opened?: ReadonlySet<string>;
-  /** Presenting a vote: hands counted per box. */
+  /** Presenting a vote: hands counted per box (with `cardVotes` the answer cards per box). */
   votes?: Record<number, number>;
+  /**
+   * Presenting a Quiz slide with answer cards: while they are scanned no box shows a number (nobody follows the
+   * crowd), once resolved each box shows its cards; tapping a box counts nothing then.
+   */
+  cardVotes?: 'collect' | 'shown';
   /** PowerPoint export with clicks: covers stay (they go on their click in PowerPoint). */
   keepCovers?: boolean;
   style?: CSSProperties;
@@ -66,8 +71,8 @@ const NO_KEYS: ReadonlySet<string> = new Set();
 export const formIcon = (form: WorkForm | '') => (form === 'allein' ? User : form === 'zu zweit' ? Users : form === 'Gruppe' ? UsersRound : form === 'Plenum' ? MessagesSquare : User);
 
 const TEXT = {
-  de: { question: 'Leitfrage', note: 'Hinweis', solution: 'Lösung', minutes: 'Minuten', votes: 'Hände' },
-  en: { question: 'Key question', note: 'Note', solution: 'Solution', minutes: 'minutes', votes: 'hands' },
+  de: { question: 'Leitfrage', note: 'Hinweis', solution: 'Lösung', minutes: 'Minuten', votes: 'Hände', cards: 'Karten' },
+  en: { question: 'Key question', note: 'Note', solution: 'Solution', minutes: 'minutes', votes: 'hands', cards: 'cards' },
 };
 
 function Header({ slide, ctx, edit }: { slide: Slide; ctx: SlideContext; edit: boolean }) {
@@ -180,7 +185,7 @@ const FD_BOX_COLORS = ['var(--fd-surface)', 'var(--fd-p-200)', 'var(--fd-s-200)'
 const FD_FLOW_COLORS = ['var(--fd-p-200)', 'var(--fd-s-200)', 'var(--fd-t-200)', 'var(--fd-n-300)'];
 const FLOW_COLORS = ['var(--color-accent-200)', 'var(--color-accent-2-200)', 'var(--color-accent-300)', 'var(--color-neutral-300)', 'var(--color-accent-3-200)', 'var(--color-accent-4-200)'];
 
-export function SlideView({ slide: s, number, ctx, step, edit = false, live = false, print = false, noAnswers = false, opened = NO_KEYS, votes, keepCovers = false, style }: SlideViewProps) {
+export function SlideView({ slide: s, number, ctx, step, edit = false, live = false, print = false, noAnswers = false, opened = NO_KEYS, votes, cardVotes, keepCovers = false, style }: SlideViewProps) {
   const lang = ctx.lang;
   const items = shownItems(s);
   const parts = partSteps(s);
@@ -621,15 +626,21 @@ export function SlideView({ slide: s, number, ctx, step, edit = false, live = fa
               const r = part(`answer:${i}`);
               const shown = right && !r.covered && !r.cls.includes('is-later');
               return (
-                <div key={i} className={'sl-quiz-option' + (shown ? ' is-right' : '') + p.cls} {...p.data} {...(step !== null ? { 'data-vote': i } : {})}>
+                <div key={i} className={'sl-quiz-option' + (shown ? ' is-right' : '') + p.cls} {...p.data} {...(step !== null && !cardVotes ? { 'data-vote': i } : {})}>
                   {p.badge}
                   <div className="sl-quiz-letter">{String.fromCharCode(65 + i)}</div>
                   <div className="sl-quiz-text" {...ed(`item:${i}`)}>
                     <Rich text={answer} lang={lang} />
                   </div>
-                  {step !== null && (
+                  {step !== null && !cardVotes && (
                     <div className="sl-quiz-votes" title={TEXT[lang].votes} data-unvote={i}>
                       <Icon icon={Hand} size={30} />
+                      <b>{votes?.[i] ?? 0}</b>
+                    </div>
+                  )}
+                  {step !== null && cardVotes === 'shown' && i < 4 && (
+                    <div className="sl-quiz-votes" title={TEXT[lang].cards}>
+                      <Icon icon={IdCard} size={30} />
                       <b>{votes?.[i] ?? 0}</b>
                     </div>
                   )}

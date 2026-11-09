@@ -152,7 +152,11 @@ Migrationen durchgespielt, eingespielt am 09.11.2026 über die Supabase-Verbindu
 in Folge doppelt; `bossKartenSchaden` in `rules.ts`). Mit Karten löst nur „Auflösen“ auf, der Kampf darf ohne
 Beigetretene beginnen, ein Boss ohne Lebenspunkte gilt nicht als besiegt, Kinder-Geräte sehen den Kampf nicht.
 Abweichung vom Plan: keine Klassennummer auf dem Server; die Kartennummern liegen wie bei der Kartenfrage im
-Lehrkraft-Datensatz, das Scan-Gerät schickt Kind-Ids. Scannen: Baukasten → Klasse → „Bosskampf am Beamer“ → „Mit
+Lehrkraft-Datensatz, das Scan-Gerät schickt Kind-Ids.
+Seit 09.11.2026 bekommt jedes Kind seine Klassennummer gleich beim Anlegen (kleinste freie, Spalte „Nr.“ in der
+Kinderliste); die Karten tragen nur die Nummer, keinen Namen. Beim Abgleich Mac ↔ iPad gilt je Kind die neuere
+Nummer, Kinder nur eines Geräts behalten ihre, keine Nummer doppelt (`mergeKarten` in `lehrkraft.ts`). Nummern von
+Hand ändern geht noch nicht. Scannen: Baukasten → Klasse → „Bosskampf am Beamer“ → „Mit
 Karten“ (dieses Gerät scannt, der Beamer öffnet sich im neuen Tab) oder auf einem zweiten Gerät „Laufenden Kampf
 scannen“ (`teacher/BossScan.tsx`). Am Beamer stehen die Namen der erkannten Karten grün, nicht ihre Wahl.
 

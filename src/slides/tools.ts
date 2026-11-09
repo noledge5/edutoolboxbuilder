@@ -65,3 +65,23 @@ export function nextAmpel(a: Ampel): Ampel {
 export type Blank = '' | 'black' | 'white';
 
 export const toggleBlank = (now: Blank, to: Exclude<Blank, ''>): Blank => (now === to ? '' : to);
+
+/**
+ * Answer cards on a Quiz slide (Kartenfrage, src/lernquest/karten): card number → chosen box (0 = A). The cards
+ * know only A–D, so a card answering a box the slide does not have does not count.
+ */
+export type CardAnswers = Record<number, number>;
+
+/** Cards per box, like the hands counted in a vote. */
+export function cardVotes(answers: CardAnswers, boxes: number): Record<number, number> {
+  const out: Record<number, number> = {};
+  for (const i of Object.values(answers)) if (i >= 0 && i < Math.min(boxes, 4)) out[i] = (out[i] ?? 0) + 1;
+  return out;
+}
+
+/** Card numbers whose answer counts, in order. */
+export const cardsIn = (answers: CardAnswers, boxes: number) =>
+  Object.entries(answers)
+    .filter(([, i]) => i >= 0 && i < Math.min(boxes, 4))
+    .map(([n]) => Number(n))
+    .sort((a, b) => a - b);

@@ -909,10 +909,36 @@ span.check-ref { cursor: default; }
 .sl-speaker-notes .is-empty { opacity: 0.55; font-size: 16px; }
 @media (hover: none) { .sl-speaker-btn { display: none; } }
 
+/* — Answer cards on a Quiz slide (Kartenfrage): the camera panel for the teacher, the cards read over the slide — */
+.sl-cardscan {
+  display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 18px; box-sizing: border-box;
+  background: var(--color-ui); color: var(--color-text); box-shadow: var(--shadow-lg); font-family: var(--font-ui); cursor: default;
+}
+.sl-present .sl-cardscan { position: fixed; right: 18px; bottom: 76px; z-index: 5; width: min(320px, calc(100vw - 32px)); }
+.sl-cardscan-head { display: flex; align-items: center; gap: 8px; }
+.sl-cardscan-head b { font-size: 15px; }
+.sl-cardscan-count { margin-right: auto; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--color-accent-2-700); }
+.sl-cardscan-head .iconbtn { color: inherit; }
+.sl-cardscan-video { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; background: var(--color-neutral-900); }
+.sl-cardscan-video video, .sl-cardscan-video svg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.sl-cardscan-video polygon { fill: color-mix(in srgb, var(--color-accent-2-500) 35%, transparent); stroke: var(--color-accent-2-400); stroke-width: 4; }
+.sl-cardscan-note { margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--color-neutral-800); }
+.sl-cardscan-error { margin: 0; font-size: 13.5px; line-height: 1.4; font-weight: 600; color: var(--color-accent-7-800); }
+.sl-cardscan-cards { margin: 0; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.5; }
+.sl-cardscan-row { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.sl-cardstrip {
+  position: absolute; left: calc(28px * var(--s)); bottom: calc(34px * var(--s)); max-width: 58%; display: flex; flex-wrap: wrap; align-items: center;
+  gap: calc(8px * var(--s)); padding: calc(10px * var(--s)) calc(18px * var(--s)); border-radius: calc(28px * var(--s));
+  background: color-mix(in srgb, var(--color-neutral-900) 82%, transparent); color: var(--color-neutral-100);
+  font-family: var(--font-ui); font-size: calc(26px * var(--s)); font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.sl-cardstrip span { min-width: calc(40px * var(--s)); padding: calc(2px * var(--s)) calc(8px * var(--s)); border-radius: calc(10px * var(--s)); background: var(--color-accent-2-600); text-align: center; }
+
 /* — The pen while presenting: its bar, and keeping the Tafelbild — */
 .sl-present.is-pen { cursor: crosshair; }
 :is(.sl-present-frame, .sl-speaker-now, .sl-speaker-next) > .sl-board { position: absolute; top: 0; left: 0; }
 .sl-controls .iconbtn.is-on, .sl-speaker-pen .iconbtn.is-on { background: color-mix(in srgb, currentColor 22%, transparent); }
+.sl-speaker-pen { display: flex; align-items: center; gap: 2px; }
 .sl-speaker-pen .iconbtn { color: inherit; }
 .sl-pen-bar {
   display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 4px; padding: 6px 10px; border-radius: 999px;

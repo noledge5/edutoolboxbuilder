@@ -87,6 +87,12 @@
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   letter-spacing: 1px;
 }
+/* Class number = number of the answer card. */
+.lqt-nummer {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: right;
+}
 .lqt-table td {
   padding: 4px 8px;
   white-space: nowrap;
@@ -579,12 +585,15 @@
 .lqt-antwortkarte-buchstabe.is-3 {
   transform: translate(-50%, -50%) translateX(-60mm) rotate(-90deg);
 }
-.lqt-antwortkarte-name {
+/* Only the number, no name: the card is anonymous and fits every class (the child with that class number). */
+.lqt-antwortkarte-nummer {
   position: absolute;
   left: 8mm;
   bottom: 6mm;
-  font-size: 9pt;
+  font-size: 16pt;
+  font-weight: 700;
   color: var(--color-neutral-700);
+  line-height: 1;
 }
 
 /* — Kartenfrage: question on the left (for the projector), camera and cards on the right — */

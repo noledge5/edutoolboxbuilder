@@ -43,7 +43,12 @@ export function readLehrkraft(x: unknown): Lehrkraft | null {
     for (const [klasse, m] of Object.entries(r.karten)) {
       if (!m || typeof m !== 'object') continue;
       const ok: Record<string, number> = {};
-      for (const [kind, n] of Object.entries(m)) if (typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= KARTEN_MAX) ok[kind] = n;
+      const used = new Set<number>();
+      for (const [kind, n] of Object.entries(m))
+        if (typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= KARTEN_MAX && !used.has(n)) {
+          ok[kind] = n;
+          used.add(n);
+        }
       karten[klasse] = ok;
     }
   return {
@@ -64,10 +69,29 @@ export function mergeLehrkraft(a: Lehrkraft, b: Lehrkraft): Lehrkraft {
     pins: { ...older.pins, ...newer.pins },
     // Per class the newer record wins (an empty list too: everything shown again).
     versteckt: { ...older.versteckt, ...newer.versteckt },
-    // Per class the newer numbering wins, so both devices print and read the same cards.
-    karten: { ...older.karten, ...newer.karten },
+    karten: mergeKarten(older.karten, newer.karten),
     updatedAt: Math.max(a.updatedAt, b.updatedAt),
   };
+}
+
+/**
+ * Card numbers of both devices, per class: the newer number of a child wins; a child only the older record knows
+ * keeps its number unless the newer record gave that number to another child. So a child numbered on one device is not
+ * lost when the other device numbered a different child at the same time, and no number is given twice.
+ */
+function mergeKarten(older: Lehrkraft['karten'], newer: Lehrkraft['karten']): Lehrkraft['karten'] {
+  const out: Lehrkraft['karten'] = {};
+  for (const klasse of new Set([...Object.keys(older), ...Object.keys(newer)])) {
+    const m = { ...(newer[klasse] ?? {}) };
+    const used = new Set(Object.values(m));
+    for (const [kind, n] of Object.entries(older[klasse] ?? {}))
+      if (!(kind in m) && !used.has(n)) {
+        m[kind] = n;
+        used.add(n);
+      }
+    out[klasse] = m;
+  }
+  return out;
 }
 
 /** Same keys, PINs and hidden lessons (then nothing needs storing or sending). */
@@ -126,6 +150,21 @@ export function kartenNummern(kinder: string[], bisher: Record<string, number> =
     if (next > KARTEN_MAX) break;
     out[k] = next;
     used.add(next);
+  }
+  return out;
+}
+
+/**
+ * Numbers every child of the given classes (a new child gets the lowest free number as soon as the class list shows
+ * it). Null when nothing changed; the order of the stored entries does not count, so a merge never causes a write.
+ */
+export function alleNummern(karten: Lehrkraft['karten'], klassen: { id: string; kinder: string[] }[]): Lehrkraft['karten'] | null {
+  let out: Lehrkraft['karten'] | null = null;
+  for (const k of klassen) {
+    const bisher = karten[k.id] ?? {};
+    const neu = kartenNummern(k.kinder, bisher);
+    const gleich = Object.keys(neu).length === Object.keys(bisher).length && Object.entries(neu).every(([kind, n]) => bisher[kind] === n);
+    if (!gleich) out = { ...(out ?? karten), [k.id]: neu };
   }
   return out;
 }

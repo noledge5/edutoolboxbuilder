@@ -1,5 +1,6 @@
 // Answer cards to print (Kartenfrage without devices): two per A4 page, to cut apart. Each child holds its card up
-// with the chosen letter on top; the letters are small, so neighbours cannot read them from their seats.
+// with the chosen letter on top; the letters are small, so neighbours cannot read them from their seats. A card shows
+// only its number, no name: it belongs to the child with that class number (see kartenNummern), in every class.
 import { ArrowLeft, Printer } from 'lucide-react';
 import { Icon } from '../../icons';
 import { ANTWORTEN, zellen } from '../karten/code';
@@ -33,7 +34,7 @@ export function Antwortkarten({ titel, kinder, onClose }: { titel: string; kinde
         </button>
         <div className="topbar-name">
           <div className="topbar-title">Antwortkarten: {titel}</div>
-          <div className="topbar-place">Auf festes Papier drucken, in der Mitte durchschneiden. Jedes Kind behält seine Karte.</div>
+          <div className="topbar-place">Auf festes Papier drucken, in der Mitte durchschneiden. Ohne Namen: Jedes Kind bekommt die Karte mit seiner Nummer aus der Kinderliste.</div>
         </div>
         <button type="button" className="btn btn-primary ui-btn" onClick={() => window.print()}>
           <Icon icon={Printer} />
@@ -51,9 +52,7 @@ export function Antwortkarten({ titel, kinder, onClose }: { titel: string; kinde
                     {a}
                   </span>
                 ))}
-                <span className="lqt-antwortkarte-name">
-                  {k.nummer} · {k.name}
-                </span>
+                <span className="lqt-antwortkarte-nummer">{k.nummer}</span>
               </div>
             ))}
           </div>
