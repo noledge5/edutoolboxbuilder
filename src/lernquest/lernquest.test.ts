@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { angelegt, bonusText, bonusVon, SCHADEN_MAX, CHANCEN, MUENZ_CHANCEN, MUENZ_TRUHE, PREISE, TEILE, type Avatar } from './teile';
+import { angelegt, bonusText, bonusVon, ladenWare, SCHADEN_MAX, CHANCEN, MUENZ_CHANCEN, MUENZ_TRUHE, PREISE, TEILE, type Avatar } from './teile';
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
@@ -263,12 +263,20 @@ describe('Held und Beute', () => {
       .map((f) => readFileSync(new URL(`../../supabase/migrations/${f}`, import.meta.url), 'utf8'))
       .join('\n');
     const rows = [...sql.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+)\)/g)].map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]);
+    // Chest treasures (20261116_lernquest_truhenschaetze.sql) carry damage and nur_truhe in the row.
+    const schaetze = readFileSync(new URL('../../supabase/migrations/20261116_lernquest_truhenschaetze.sql', import.meta.url), 'utf8');
+    const neu = [...schaetze.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+), (\d+), (true|false)\)/g)];
+    rows.push(...neu.map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]));
     expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, !!t.start, t.muenzen ?? 0, t.herz ?? 0]));
-    expect(TEILE).toHaveLength(56);
+    expect(neu.map((m) => [m[1], +m[7], m[8] === 'true'])).toEqual(TEILE.slice(56).map((t) => [t.id, t.schaden ?? 0, !!t.nurTruhe]));
+    expect(TEILE.slice(0, 56).filter((t) => t.nurTruhe)).toEqual([]);
+    expect(TEILE).toHaveLength(80);
+    expect(schaetze).toContain('and not x.nur_truhe');
+    expect(schaetze).toContain(`(array[${PREISE.join(', ')}])`);
     // Damage bonus in the boss fight (20261111_lernquest_schaden.sql).
     const schaden = readFileSync(new URL('../../supabase/migrations/20261111_lernquest_schaden.sql', import.meta.url), 'utf8');
     const mitSchaden = [...schaden.matchAll(/\('([a-z]+)', (\d+)\)/g)].map((m) => [m[1], +m[2]]);
-    expect(mitSchaden).toEqual(TEILE.filter((t) => t.schaden).map((t) => [t.id, t.schaden]));
+    expect(mitSchaden).toEqual(TEILE.slice(0, 56).filter((t) => t.schaden).map((t) => [t.id, t.schaden]));
     expect(schaden).toContain(`least(${SCHADEN_MAX},`);
     expect([...MUENZ_CHANCEN, ...CHANCEN].reduce((a, b) => a + b, 0)).toBe(100);
     // Chests and shop as in lq_truhe_oeffnen and lq_kaufen (20261109_lernquest_beute.sql).
@@ -279,6 +287,20 @@ describe('Held und Beute', () => {
     expect(beute).toContain(`when r < ${MUENZ_CHANCEN[0]} then 0`);
     const g = MUENZ_CHANCEN[0] + MUENZ_CHANCEN[1];
     expect(beute).toContain(`when r < ${g + CHANCEN[0]} then 0 when r < ${g + CHANCEN[0] + CHANCEN[1]} then 1`);
+  });
+
+  it('verkauft im Laden keine Truhen-Schätze und nichts, was das Kind schon hat', () => {
+    const kopf = ladenWare(['kappe'], 'kopf').map((t) => t.id);
+    expect(kopf).toContain('kochmuetze');
+    expect(kopf).not.toContain('kappe');
+    expect(kopf).not.toContain('eiskrone');
+    expect(kopf).not.toContain('raumhelm');
+    expect(ladenWare([], 'kopf').map((t) => t.seltenheit)).toEqual([...ladenWare([], 'kopf').map((t) => t.seltenheit)].sort());
+    // Every place keeps something to buy and at least one treasure to find.
+    for (const slot of ['kopf', 'augen', 'kleidung', 'werkzeug', 'begleiter', 'hintergrund'] as const) {
+      expect(ladenWare([], slot).length).toBeGreaterThan(0);
+      expect(TEILE.some((t) => t.slot === slot && t.nurTruhe)).toBe(true);
+    }
   });
 
   it('deckelt die Boni und kennt Startteile', () => {

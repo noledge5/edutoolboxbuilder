@@ -5,7 +5,7 @@ import { hatZeichnung } from './avatar';
 
 describe('avatar drawings', () => {
   it('draws all 56 parts', () => {
-    expect(TEILE).toHaveLength(56);
+    expect(TEILE).toHaveLength(80);
     expect(TEILE.filter((t) => !hatZeichnung(t.id)).map((t) => t.id)).toEqual([]);
   });
 });

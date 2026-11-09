@@ -1,6 +1,6 @@
 # Lernquest: gemalte Bilder für Held und Teile
 
-Anleitung, um Grundfigur, Hauttöne, Frisuren und die 56 Teile lokal in ComfyUI zu malen und in die App zu bringen:
+Anleitung, um Grundfigur, Hauttöne, Frisuren und die 80 Teile lokal in ComfyUI zu malen und in die App zu bringen:
 was am Körper anliegt mit einem Edit-Modell (FLUX.2 Klein Image Edit), Kopf, Werkzeug und Begleiter einzeln. Was noch kein Bild hat, zeichnet die App weiter als
 Vektor. Man kann also Stück für Stück austauschen.
 

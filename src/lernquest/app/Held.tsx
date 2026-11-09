@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { heldenstufe, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
-import { bonusText, bonusVon, CHANCEN, FRISUREN, frisurVon, GARANTIE, HAARFARBEN, haarfarbeVon, HAUT, hat, MUENDER, MUENZ_CHANCEN, mundVon, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
+import { bonusText, bonusVon, CHANCEN, FRISUREN, frisurVon, GARANTIE, HAARFARBEN, haarfarbeVon, HAUT, hat, ladenWare, MUENDER, MUENZ_CHANCEN, mundVon, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
 import { GutscheinLeiste } from './Gutscheine';
@@ -161,12 +161,17 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
             const an = meins && (stand.avatar[t.slot] ?? (t.start ? t.id : '')) === t.id;
             if (!meins) {
               return (
-                <div key={t.id} className="lq-teil zu" aria-label={`Noch nicht gefunden, ${SELTENHEITEN[t.seltenheit].name}`} role="img">
+                <div
+                  key={t.id}
+                  className="lq-teil zu"
+                  aria-label={`${t.nurTruhe ? 'Truhen-Schatz, nur in Truhen zu finden' : 'Noch nicht gefunden'}, ${SELTENHEITEN[t.seltenheit].name}`}
+                  role="img"
+                >
                   <span className="lq-teil-bild lq-fragezeichen" aria-hidden>
                     ?
                   </span>
                   <span className="lq-teil-name" aria-hidden>
-                    Noch nicht gefunden
+                    {t.nurTruhe ? 'Nur in Truhen' : 'Noch nicht gefunden'}
                   </span>
                   <span aria-hidden>
                     <Seltenheit s={t.seltenheit} kurz />
@@ -288,7 +293,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [gekauft, setGekauft] = useState<Teil | null>(null);
-  const ware = TEILE.filter((t) => t.slot === slot && !hat(stand.inventar, t)).sort((a, b) => a.seltenheit - b.seltenheit);
+  const ware = ladenWare(stand.inventar, slot);
   const preis = wahl ? PREISE[wahl.seltenheit] : 0;
 
   const kauf = async () => {
@@ -325,7 +330,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
         ← Zum Helden
       </button>
       <h1 className="lq-seitentitel">Laden</h1>
-      <p className="lq-klein">Münzen gibt es für jede Runde. Gekauft wird nur, was du noch nicht hast.</p>
+      <p className="lq-klein">Münzen gibt es für jede Runde. Gekauft wird nur, was du noch nicht hast. Manche Schätze gibt es nur in Truhen.</p>
       <SlotTabs
         slot={slot}
         setSlot={(s) => {

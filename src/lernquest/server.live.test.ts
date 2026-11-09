@@ -205,6 +205,8 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(await code(kaufen(token, ware.id))).toBe('ungueltig');
     expect(await code(kaufen(token, 'tshirt'))).toBe('ungueltig');
     expect(await code(kaufen(token, 'gibt-es-nicht'))).toBe('ungueltig');
+    // Chest treasures are not for sale (20261116_lernquest_truhenschaetze.sql).
+    expect(await code(kaufen(token, TEILE.find((x) => x.nurTruhe && x.seltenheit === 2)!.id))).toBe('ungueltig');
     if (nachKauf.muenzen < PREISE[0]) expect(await code(kaufen(token, zweite.id))).toBe('muenzen');
 
     // Avatar: only owned or start parts, each in its own place, skin tone 0–5, hair and mouth (an id each) and the hair colour 0–4.
