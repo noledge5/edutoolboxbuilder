@@ -271,7 +271,8 @@ Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen d
   Lehrerseite hochladen und einem Teil zuordnen. Entscheidungen der Lehrkraft: **nur sie lädt hoch, die Bilder gelten
   für alle Klassen aller Lehrkräfte**; **Vorschau, dann „Übernehmen“**; Ersetzen und Löschen jederzeit, danach gilt
   wieder das eingebaute Bild bzw. die Vektorzeichnung.
-- **Server** (`supabase/migrations/20261117_lernquest_bilder.sql`): `lq_admin` (Hashes von Lehrkraft-Schlüsseln, ohne
+- **Server** (`supabase/migrations/20261117_lernquest_bilder.sql`, eingespielt am 09.11.2026 nach OK der Lehrkraft;
+  Admin = der Besitzer-Hash ihrer Klasse „5c“, damals die einzige Klasse): `lq_admin` (Hashes von Lehrkraft-Schlüsseln, ohne
   Rechte für anon/authenticated, **von Hand per SQL eingetragen**, es gibt bewusst keine Funktion zum Selbst-Eintragen),
   `lq_bild` (je Teil-ID aus `lq_teil` ein Bild, Version aus einer Folge). Funktionen: `lq_ist_admin`, `lq_bild_setzen`
   und `lq_bild_loeschen` (nur Admin; WebP oder PNG mit 480 × 480 laut Dateikopf, JPEG nur für Hintergründe, höchstens
@@ -295,7 +296,9 @@ Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen d
 - Geprüft: lokal mit allen Migrationen (Postgres 16; Nicht-Admin, Kinder-Token, falsche Formate und Größen, direkter
   Tabellenzugriff abgelehnt; Ersetzen, Löschen, neue Version); im Browser mit nachgeahmten RPCs (Hochladen einzeln
   und als Edit, Löschen, Kinder-App online, nach Neuladen ohne neues Laden, offline). Live-Test im
-  `server.live.test.ts` („Bilder der Teile“) nach dem Einspielen.
+  `server.live.test.ts` („Bilder der Teile“) nach dem Einspielen grün.
+- Hat die Lehrkraft auf einem Gerät einen anderen Schlüssel (vor dem Abgleich), fehlt dort der Knopf; dann den
+  weiteren Besitzer-Hash ihrer Klassen in `lq_admin` nachtragen.
 
 ## Erfolgskriterien Stufe 1
 
