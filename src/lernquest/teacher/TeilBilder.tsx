@@ -1,9 +1,10 @@
 // „Bilder der Teile“ on the teacher page, only for the admin teacher (lq_admin): upload a painted picture for a part,
 // see it on the hero and as a tile, then „Übernehmen“. The pictures count for every class of every teacher and go
 // before the built-in ones; after „Löschen“ the built-in picture or the drawing shows again. The picture is made into
-// the part's layer in the browser (bildVerarbeiten.ts, the same steps as `npm run lq:bilder`).
+// the part's layer in the browser (bildVerarbeiten.ts, the same steps as `npm run lq:bilder`). New parts (name, place,
+// rarity, only from chests) are made here too, with their picture (supabase/migrations/20261118_lernquest_eigene_teile.sql).
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Check, ImagePlus, Pencil, RotateCcw, Sparkles, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Check, ImagePlus, Pencil, Plus, RotateCcw, Save, Sparkles, Trash2, X } from 'lucide-react';
 import { Icon } from '../../icons';
 import { AvatarBild, TeilBild } from '../app/avatar';
 import { HochgeladeneBilder } from '../app/bilderKontext';
@@ -13,8 +14,8 @@ import ANPASSEN from '../bilder/anpassen.json';
 import type { Einstellung } from '../bilder/ebene';
 import { editPrompt, prompt } from '../bilder/vorlagen';
 import { runImages } from '../../ai/images';
-import { bildLoeschen, bildSetzen, lqText } from '../server';
-import { SLOTS, TEILE, type Avatar, type Teil } from '../teile';
+import { bildLoeschen, bildSetzen, lqText, teilAendern, teilAnlegen } from '../server';
+import { SELTENHEITEN, SLOTS, TEILE, type Avatar, type Slot, type Teil } from '../teile';
 import { alsBase64, ebeneMachen, grundfigurDataUrl, kodieren, oeffnen, oeffnenUrl, WEGE, type Quelle, type Weg } from './bildVerarbeiten';
 
 const WEG_TEXT: Record<Weg, string> = {
@@ -59,14 +60,20 @@ const startWerte = (id: string, weg: Weg): Einstellung => (weg === 'einzeln' ? {
 /** The prompt for the image model: the part alone on grey, or an edit of the base figure. */
 const kiPrompt = (t: Teil, weg: Weg) => (weg === 'edit' ? (editPrompt(t) ?? prompt(t)) : prompt(t));
 
-/** Where the picture of a part comes from now. */
-const herkunft = (id: string, hoch: Record<string, string>) =>
-  hoch[id] ? 'Hochgeladen' : TEIL_BILDER[id] ? 'Eingebaut' : 'Zeichnung';
+/** Where the picture of a part comes from now (own parts: whether they are in the game). */
+const herkunft = (t: Teil, hoch: Record<string, string>) =>
+  t.eigen ? (t.aus ? 'Aus dem Spiel' : 'Eigenes Teil') : hoch[t.id] ? 'Hochgeladen' : TEIL_BILDER[t.id] ? 'Eingebaut' : 'Zeichnung';
+const herkunftKlasse = (h: string) => (h === 'Hochgeladen' || h === 'Eigenes Teil' ? 'is-hochgeladen' : '');
+
+/** A part still to be made: the editor shows name, rarity and „only from chests“ and makes it with its picture. */
+const NEU = 'neu';
+const neuesTeil = (slot: Slot): Teil => ({ id: NEU, slot, name: '', seltenheit: 0, eigen: true });
 
 export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(): void }) {
   const [stand, setStand] = useState(0);
-  const hoch = useHochgeladen(stand);
+  const { bilder: hoch, teile: eigene } = useHochgeladen(stand);
   const [wahl, setWahl] = useState<Teil | null>(null);
+  const [meldung, setMeldung] = useState('');
   return (
     <div className="app lqt-app">
       <header className="topbar">
@@ -82,13 +89,23 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
         <HochgeladeneBilder.Provider value={hoch}>
           {wahl && (
             <Bearbeiten
-              key={wahl.id}
-              teil={wahl}
+              key={wahl.id === NEU ? `neu-${wahl.slot}` : wahl.id}
+              teil={eigene.find((t) => t.id === wahl.id) ?? wahl}
               keys={keys}
               hochUrl={hoch[wahl.id]}
               onFertig={() => setStand((s) => s + 1)}
               onClose={() => setWahl(null)}
+              onAngelegt={(name) => {
+                setWahl(null);
+                setMeldung(`„${name}“ ist angelegt. Die Kinder finden es beim nächsten Öffnen von Lernquest im Laden bzw. in Truhen.`);
+                setStand((s) => s + 1);
+              }}
             />
+          )}
+          {meldung && (
+            <p className="lqt-hint" role="status">
+              {meldung}
+            </p>
           )}
           <p className="lqt-note">
             Teil antippen, dann ein Bild aus ComfyUI wählen (der Dateiname ist egal), mit KI malen lassen oder das
@@ -100,13 +117,26 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
             <section key={slot} className="lqt-card">
               <h2>{label}</h2>
               <div className="lqt-bilder">
-                {TEILE.filter((t) => t.slot === slot).map((t) => (
-                  <button key={t.id} type="button" className={`lqt-bild ${wahl?.id === t.id ? 'is-on' : ''}`} onClick={() => setWahl(t)}>
-                    <TeilBild teil={t} className="lqt-bild-kachel" />
-                    <span>{t.name}</span>
-                    <small className={`lqt-bild-herkunft is-${herkunft(t.id, hoch).toLowerCase()}`}>{herkunft(t.id, hoch)}</small>
-                  </button>
-                ))}
+                {[...TEILE, ...eigene]
+                  .filter((t) => t.slot === slot)
+                  .map((t) => (
+                    <button key={t.id} type="button" className={`lqt-bild ${wahl?.id === t.id ? 'is-on' : ''}`} onClick={() => (setMeldung(''), setWahl(t))}>
+                      <TeilBild teil={t} className="lqt-bild-kachel" />
+                      <span>{t.name}</span>
+                      <small className={`lqt-bild-herkunft ${herkunftKlasse(herkunft(t, hoch))}`}>{herkunft(t, hoch)}</small>
+                    </button>
+                  ))}
+                <button
+                  type="button"
+                  className={`lqt-bild lqt-bild-neu ${wahl?.id === NEU && wahl.slot === slot ? 'is-on' : ''}`}
+                  onClick={() => (setMeldung(''), setWahl(neuesTeil(slot)))}
+                >
+                  <span className="lqt-bild-kachel lqt-bild-plus" aria-hidden>
+                    <Icon icon={Plus} size={28} />
+                  </span>
+                  <span>Neues Teil</span>
+                  <small className="lqt-bild-herkunft">{label}</small>
+                </button>
               </div>
             </section>
           ))}
@@ -122,6 +152,7 @@ function Bearbeiten({
   hochUrl,
   onFertig,
   onClose,
+  onAngelegt,
 }: {
   teil: Teil;
   keys: string[];
@@ -129,7 +160,13 @@ function Bearbeiten({
   hochUrl?: string;
   onFertig(): void;
   onClose(): void;
+  /** A new part was made (`teil.id` is NEU). */
+  onAngelegt(name: string): void;
 }) {
+  const neu = teil.id === NEU;
+  // Own parts: name, rarity and „only from chests“ for a new one; name and „in the game“ for one already made.
+  const [angaben, setAngaben] = useState({ name: teil.name, seltenheit: teil.seltenheit, nurTruhe: !!teil.nurTruhe, aktiv: !teil.aus });
+  const entwurf: Teil = neu ? { ...teil, name: angaben.name.trim() || 'Neues Teil', seltenheit: angaben.seltenheit } : teil;
   const hochgeladen = !!hochUrl;
   const eingebaut = TEIL_BILDER[teil.id];
   const [quelle, setQuelle] = useState<Quelle | null>(null);
@@ -229,11 +266,30 @@ function Bearbeiten({
     if (!vorschau) return;
     setBusy(true);
     try {
+      if (neu) {
+        const name = angaben.name.trim();
+        await teilAnlegen(keys, { name, slot: teil.slot, seltenheit: angaben.seltenheit, nurTruhe: angaben.nurTruhe }, vorschau.blob.type, await alsBase64(vorschau.blob));
+        onAngelegt(name);
+        return;
+      }
       await bildSetzen(keys, teil.id, vorschau.blob.type, await alsBase64(vorschau.blob));
       setMsg('Übernommen. Die Kinder sehen das Bild beim nächsten Öffnen von Lernquest.');
       setQuelle(null);
       setVorschau(null);
       setFertig(false);
+      onFertig();
+    } catch (e) {
+      setFehler(lqText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const speichern = async () => {
+    setBusy(true);
+    try {
+      await teilAendern(keys, teil.id, angaben.name.trim(), angaben.aktiv);
+      setMsg(angaben.aktiv ? 'Gespeichert.' : 'Gespeichert. Das Teil ist nicht mehr im Laden und in Truhen; wer es hat, behält es.');
       onFertig();
     } catch (e) {
       setFehler(lqText(e));
@@ -257,21 +313,73 @@ function Bearbeiten({
   };
 
   const avatar: Avatar = useMemo(() => ({ [teil.slot]: teil.id }), [teil]);
+  const nameOk = angaben.name.trim().length > 0 && angaben.name.trim().length <= 30;
   const regler = weg === 'ebene' && teil.slot === 'hintergrund' ? REGLER_HINTERGRUND : REGLER[weg];
 
   return (
-    <section ref={oben} className="lqt-card lqt-bild-edit" aria-label={`Bild für ${teil.name}`}>
+    <section ref={oben} className="lqt-card lqt-bild-edit" aria-label={neu ? 'Neues Teil' : `Bild für ${teil.name}`}>
       <div className="lqt-head">
         <div>
-          <h2>{teil.name}</h2>
+          <h2>{neu ? 'Neues Teil' : teil.name}</h2>
           <p className="lqt-hint">
-            {SLOTS.find((s) => s.slot === teil.slot)?.label} · {hochgeladen ? 'hat ein hochgeladenes Bild' : TEIL_BILDER[teil.id] ? 'eingebautes Bild' : 'noch als Zeichnung'}
+            {SLOTS.find((s) => s.slot === teil.slot)?.label} ·{' '}
+            {neu
+              ? 'Name, Seltenheit und Bild; der Preis ergibt sich aus der Seltenheit, Boni gibt es keine'
+              : teil.eigen
+                ? 'eigenes Teil'
+                : hochgeladen
+                  ? 'hat ein hochgeladenes Bild'
+                  : TEIL_BILDER[teil.id]
+                    ? 'eingebautes Bild'
+                    : 'noch als Zeichnung'}
           </p>
         </div>
         <button type="button" className="iconbtn" onClick={onClose} title="Schließen" aria-label="Schließen">
           <Icon icon={X} size={18} />
         </button>
       </div>
+      {teil.eigen && (
+        <div className="lqt-bild-angaben">
+          <label>
+            <span>Name</span>
+            <input className="input" value={angaben.name} maxLength={30} onChange={(e) => setAngaben({ ...angaben, name: e.target.value })} aria-invalid={!nameOk} />
+          </label>
+          {neu ? (
+            <>
+              <label>
+                <span>Seltenheit</span>
+                <select className="input" value={angaben.seltenheit} onChange={(e) => setAngaben({ ...angaben, seltenheit: Number(e.target.value) })}>
+                  {SELTENHEITEN.map((x, i) => (
+                    <option key={x.name} value={i}>
+                      {x.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="lqt-bild-check">
+                <input type="checkbox" checked={angaben.nurTruhe} onChange={(e) => setAngaben({ ...angaben, nurTruhe: e.target.checked })} />
+                Nur aus Truhen (nicht im Laden)
+              </label>
+            </>
+          ) : (
+            <>
+              <label className="lqt-bild-check">
+                <input type="checkbox" checked={angaben.aktiv} onChange={(e) => setAngaben({ ...angaben, aktiv: e.target.checked })} />
+                Im Spiel (Laden und Truhen)
+              </label>
+              <button
+                type="button"
+                className="btn btn-secondary ui-btn"
+                disabled={busy || !nameOk || (angaben.name.trim() === teil.name && angaben.aktiv === !teil.aus)}
+                onClick={() => void speichern()}
+              >
+                <Icon icon={Save} />
+                Speichern
+              </button>
+            </>
+          )}
+        </div>
+      )}
       <div className="lqt-bild-zeile">
         <input ref={datei} type="file" accept="image/png,image/webp,image/jpeg" hidden onChange={(e) => void waehlen(e.target.files?.[0]).finally(() => (e.target.value = ''))} />
         <button type="button" className="btn btn-primary ui-btn" disabled={busy} onClick={() => datei.current?.click()}>
@@ -294,12 +402,12 @@ function Bearbeiten({
           type="button"
           className={`btn btn-secondary ui-btn ${ki ? 'is-on' : ''}`}
           disabled={busy}
-          onClick={() => setKi(ki ? null : { weg: WEGE[teil.slot][0], prompt: kiPrompt(teil, WEGE[teil.slot][0]) })}
+          onClick={() => setKi(ki ? null : { weg: WEGE[teil.slot][0], prompt: kiPrompt(entwurf, WEGE[teil.slot][0]) })}
         >
           <Icon icon={Sparkles} />
           Mit KI malen
         </button>
-        {hochgeladen && (
+        {hochgeladen && !teil.eigen && (
           <button type="button" className="btn btn-secondary ui-btn is-danger" disabled={busy} onClick={() => void loeschen()}>
             <Icon icon={Trash2} />
             Hochgeladenes Bild löschen
@@ -313,7 +421,7 @@ function Bearbeiten({
               <legend>Wie soll das Modell malen?</legend>
               {WEGE[teil.slot].map((w) => (
                 <label key={w}>
-                  <input type="radio" name="kiweg" checked={ki.weg === w} onChange={() => setKi({ weg: w, prompt: kiPrompt(teil, w) })} />
+                  <input type="radio" name="kiweg" checked={ki.weg === w} onChange={() => setKi({ weg: w, prompt: kiPrompt(entwurf, w) })} />
                   {w === 'edit' ? 'Auf die Grundfigur (Edit)' : WEG_TEXT[w]}
                 </label>
               ))}
@@ -366,11 +474,11 @@ function Bearbeiten({
           <div className="lqt-bild-vorschau">
             <HochgeladeneBilder.Provider value={vorschau ? { [teil.id]: vorschau.url } : {}}>
               <figure>
-                <AvatarBild avatar={avatar} className="lqt-bild-held" />
+                <AvatarBild avatar={avatar} vorschau={entwurf} className="lqt-bild-held" />
                 <figcaption>Am Helden</figcaption>
               </figure>
               <figure>
-                <TeilBild teil={teil} className="lqt-bild-kachel is-gross" />
+                <TeilBild teil={entwurf} className="lqt-bild-kachel is-gross" />
                 <figcaption>Als Kachel</figcaption>
               </figure>
             </HochgeladeneBilder.Provider>
@@ -402,9 +510,9 @@ function Bearbeiten({
             </div>
           </div>
           <div className="lqt-bild-zeile">
-            <button type="button" className="btn btn-primary ui-btn" disabled={busy || arbeitet || !vorschau || !!fehler} onClick={() => void uebernehmen()}>
-              <Icon icon={Check} />
-              Übernehmen
+            <button type="button" className="btn btn-primary ui-btn" disabled={busy || arbeitet || !vorschau || !!fehler || (neu && !nameOk)} onClick={() => void uebernehmen()}>
+              <Icon icon={neu ? Plus : Check} />
+              {neu ? 'Teil anlegen' : 'Übernehmen'}
             </button>
             <button
               type="button"

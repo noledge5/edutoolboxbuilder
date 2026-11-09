@@ -1,12 +1,13 @@
 // Stufe 2 „Held und Beute“ for the children (docs/design/lernquest/Held.dc.html, Truhe.dc.html): the hero with parts
 // to wear, chests, the shop and the class. Coins, chests and parts come from the server only (`server.ts`); this page
 // shows them and sends what the child chooses.
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { heldenstufe, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
 import { bonusText, bonusVon, CHANCEN, FRISUREN, frisurVon, GARANTIE, HAARFARBEN, haarfarbeVon, HAUT, hat, ladenWare, MUENDER, MUENZ_CHANCEN, mundVon, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
+import { BilderNeuLaden, useAlleTeile } from './bilderKontext';
 import { GutscheinLeiste } from './Gutscheine';
 import type { Daten } from './speicher';
 import { ton } from './ton';
@@ -111,6 +112,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
     });
   };
 
+  const alle = useAlleTeile();
   const tippen = (t: Teil) => {
     const an = stand.avatar[t.slot] ?? TEILE.find((x) => x.slot === t.slot && x.start)?.id ?? '';
     if (an === t.id) {
@@ -120,7 +122,8 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
     anlegen({ ...stand.avatar, [t.slot]: t.id });
   };
 
-  const teile = TEILE.filter((t) => t.slot === slot).sort((a, b) => Number(!hat(stand.inventar, a)) - Number(!hat(stand.inventar, b)) || a.seltenheit - b.seltenheit);
+  // Own parts taken out of the game show only to those who have them.
+  const teile = alle.filter((t) => t.slot === slot && (!t.aus || hat(stand.inventar, t))).sort((a, b) => Number(!hat(stand.inventar, a)) - Number(!hat(stand.inventar, b)) || a.seltenheit - b.seltenheit);
   const eigene = teile.filter((t) => hat(stand.inventar, t) && !t.start).length;
 
   return (
@@ -293,6 +296,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [gekauft, setGekauft] = useState<Teil | null>(null);
+  useAlleTeile(); // own parts arrive later: show them then
   const ware = ladenWare(stand.inventar, slot);
   const preis = wahl ? PREISE[wahl.seltenheit] : 0;
 
@@ -448,6 +452,12 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
   };
 
   const t = inhalt?.teil ? teil(inhalt.teil) : undefined;
+  // A part made on the teacher page after this device loaded the parts: load them (and their pictures) again.
+  const neuLaden = useContext(BilderNeuLaden);
+  const unbekannt = !!inhalt?.teil && !t;
+  useEffect(() => {
+    if (unbekannt) neuLaden();
+  }, [unbekannt, neuLaden]);
   const nurMuenzen = !!inhalt && !inhalt.teil;
   return (
     <main className="lq-app lq-nacht lq-truhe">

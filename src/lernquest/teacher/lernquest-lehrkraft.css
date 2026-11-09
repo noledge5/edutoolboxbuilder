@@ -927,3 +927,34 @@
   padding: 8px 10px;
   line-height: 1.4;
 }
+.lqt-bild-neu {
+  border-style: dashed;
+  border-color: var(--color-neutral-400);
+}
+.lqt-bild-plus {
+  display: grid;
+  place-items: center;
+  color: var(--color-neutral-600);
+}
+.lqt-bild-angaben {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: flex-end;
+}
+.lqt-bild-angaben label:not(.lqt-bild-check) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.lqt-bild-angaben .input {
+  min-width: 200px;
+}
+.lqt-bild-check {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 14px;
+  min-height: 36px;
+}

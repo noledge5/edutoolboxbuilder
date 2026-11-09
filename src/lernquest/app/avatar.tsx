@@ -1156,7 +1156,18 @@ export function KopfBild({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
 export const AUSSCHNITT_KOPF = '45 8 150 150';
 
 /** The whole hero as worn (or the part `ausschnitt` of it). Decorative (the page names the hero in text), so hidden from screen readers. */
-export function AvatarBild({ avatar, className, ausschnitt = '0 0 240 240' }: { avatar: Avatar; className?: string; ausschnitt?: string }) {
+export function AvatarBild({
+  avatar,
+  className,
+  ausschnitt = '0 0 240 240',
+  vorschau,
+}: {
+  avatar: Avatar;
+  className?: string;
+  ausschnitt?: string;
+  /** A part worn for a preview, also one that is not in the catalogue yet (a new part on the teacher page). */
+  vorschau?: Teil;
+}) {
   return (
     <svg className={className} viewBox={ausschnitt} aria-hidden focusable="false">
       {EBENEN.map((e) =>
@@ -1172,7 +1183,7 @@ export function AvatarBild({ avatar, className, ausschnitt = '0 0 240 240' }: { 
           </g>
         ) : (
           <g key={e}>
-            <Zeichnung teil={angelegt(avatar, e)} />
+            <Zeichnung teil={vorschau?.slot === e ? vorschau : angelegt(avatar, e)} />
           </g>
         ),
       )}

@@ -414,3 +414,22 @@ export const bilderListe = () => lq<Record<string, number>>('lq_bilder', {});
 /** The pictures of up to 10 parts. */
 export const bildDaten = (teile: string[]) =>
   lq<{ teil: string; version: number; typ: string; daten: string }[]>('lq_bild_daten', { p_teile: teile });
+
+// — Own parts (supabase/migrations/20261118_lernquest_eigene_teile.sql): made by the admin teacher with their picture. —
+
+/** The own parts, as the server keeps them (checked by `readEigene`). */
+export const teileEigen = () => lq<unknown>('lq_teile_eigen', {});
+/** Makes an own part with its picture (base64); returns its id. */
+export const teilAnlegen = (keys: string[], t: { name: string; slot: string; seltenheit: number; nurTruhe: boolean }, typ: string, daten: string) =>
+  lq<string>('lq_teil_anlegen', {
+    p_schluessel: keys,
+    p_name: t.name,
+    p_slot: t.slot,
+    p_seltenheit: t.seltenheit,
+    p_nur_truhe: t.nurTruhe,
+    p_typ: typ,
+    p_daten: daten,
+  });
+/** Renames an own part and takes it out of the game or back in. */
+export const teilAendern = (keys: string[], teil: string, name: string, aktiv: boolean) =>
+  lq<null>('lq_teil_aendern', { p_schluessel: keys, p_teil: teil, p_name: name, p_aktiv: aktiv });
