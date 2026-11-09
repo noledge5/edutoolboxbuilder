@@ -1,19 +1,17 @@
-# Handoff – 09.11.2026 (Bilder hochladen)
-
-## Ziel
-Die Lehrkraft lädt gemalte Bilder auf der Lehrerseite hoch und ordnet sie direkt einem Teil zu (statt umbenennen,
-`npm run lq:bilder`, committen). Nur sie lädt hoch; die Bilder gelten für alle Klassen.
+# Handoff – 09.11.2026 (Bilder und eigene Teile auf der Lehrerseite)
 
 ## Stand
-- Gebaut auf `claude/sweet-tesla-pcomqy`. Details: `docs/lernquest.md` → „Bilder hochladen auf der Lehrerseite“.
-- Migration `20261117_lernquest_bilder.sql` eingespielt (09.11.2026, mit OK); Admin = Besitzer-Hash der Klasse „5c“.
-  Live-Test „Bilder der Teile“ grün. CI grün.
-- Nicht geprüft: echte Flux2-Klein-Bilder, Safari auf dem iPad.
+- Auf „Bilder der Teile“ (nur Admin): Bilder hochladen (#48), nachjustieren, drehen, mit KI malen (#49), eigene Teile
+  anlegen (dieser Branch). Details: `docs/lernquest.md` → „Bilder hochladen …“, „Bilder nachjustieren …“, „Eigene Teile“.
+- Migrationen `20261117_lernquest_bilder.sql` und `20261118_lernquest_eigene_teile.sql` eingespielt; Admin = Besitzer-Hash
+  der Klasse „5c“. Live-Tests (`LQ_LIVE=1 npx vitest run src/lernquest/server.live.test.ts`) grün.
+- Nicht geprüft: echter OpenRouter-Aufruf, Safari/iPad.
 
 ## Nächste Schritte
-1. Lehrkraft merged (= live), probiert „Bilder der Teile“ mit echten Bildern.
-2. Fehlt der Knopf auf einem Gerät: zweiten Schlüssel-Hash in `lq_admin` nachtragen.
+- Rückmeldung der Lehrkraft abwarten. Fehlt der Knopf auf einem Gerät: zweiten Schlüssel-Hash in `lq_admin` nachtragen.
 
 ## Wichtig zu wissen
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
   `cron.schedule` anlegen, Rollen `anon`, `authenticated`, `service_role` (mit Standardrechten wie bei Supabase).
+- Supabase-Migrationen über die Verbindung brauchen eine Bestätigung der Lehrkraft in ihrer App; ohne Antwort bricht es
+  nach knapp 4 Minuten ab (dann prüfen, ob etwas angekommen ist, und neu versuchen).

@@ -322,7 +322,8 @@ Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen d
   Bild wählen oder mit KI malen → „Teil anlegen“. **Preis aus der Seltenheit wie bei allen Teilen, keine Boni.**
 - **Kein Löschen**, damit kein Inventar ins Leere zeigt: Umbenennen und „Im Spiel“ aus/an. Aus dem Spiel = nicht mehr
   im Laden und in Truhen; wer es hat, behält es und sieht es weiter (andere sehen es in ihrer Liste nicht mehr).
-- **Server** (`supabase/migrations/20261118_lernquest_eigene_teile.sql`): `lq_teil` bekommt `name`, `eigen`, `aktiv`,
+- **Server** (`supabase/migrations/20261118_lernquest_eigene_teile.sql`, eingespielt am 09.11.2026 nach OK der Lehrkraft;
+  Live-Tests grün): `lq_teil` bekommt `name`, `eigen`, `aktiv`,
   `erstellt`; `lq_teil_anlegen` (nur Admin, Teil und Bild in einem Schritt, Kennung `e` + 10 Hexzeichen, höchstens 200
   eigene), `lq_teil_aendern` (nur Admin, nur eigene), `lq_teile_eigen` (für alle); `lq_truhe_oeffnen` und `lq_kaufen`
   nehmen nur Teile im Spiel; das Bild eines eigenen Teils lässt sich nicht löschen (es hat keine Zeichnung).
