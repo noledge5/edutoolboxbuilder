@@ -958,3 +958,34 @@
   font-size: 14px;
   min-height: 36px;
 }
+
+/* „Wiederholen sofort“ (WiederholenSofort.tsx). */
+.lqt-wdh {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lqt-wdh-modul {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+.lqt-wdh-modul legend {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.lqt-wdh-modul label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 14px;
+}
+.lqt-wdh-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}

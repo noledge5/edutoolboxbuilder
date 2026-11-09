@@ -97,6 +97,8 @@ export interface MeinStand {
   pakete: { stunde: string; stand: string; daten: unknown }[];
   /** Server time, for the next `seit`. */
   jetzt: string;
+  /** „Wiederholen sofort“ of the class, if set (checked by `readExtra`). */
+  extra?: unknown;
 }
 
 export async function meinStand(token: string, seit: string | null): Promise<MeinStand> {
@@ -338,6 +340,8 @@ export interface KlasseInfo {
   kinder: KindInfo[];
   /** Stufe 4: open voucher requests. */
   anfragen?: number;
+  /** „Wiederholen sofort“ ({ab, bis, stunden}), if set (20261119_lernquest_wiederholen_sofort.sql). */
+  extra?: unknown;
 }
 
 export const klassen = (keys: string[]) => lq<KlasseInfo[]>('lq_klassen', { p_schluessel: keys });
@@ -433,3 +437,7 @@ export const teilAnlegen = (keys: string[], t: { name: string; slot: string; sel
 /** Renames an own part and takes it out of the game or back in. */
 export const teilAendern = (keys: string[], teil: string, name: string, aktiv: boolean) =>
   lq<null>('lq_teil_aendern', { p_schluessel: keys, p_teil: teil, p_name: name, p_aktiv: aktiv });
+
+/** Sets „Wiederholen sofort“ for a class ({ab, bis, stunden}) or ends it (null). */
+export const wiederholenSetzen = (keys: string[], klasse: string, extra: { ab: string; bis: string; stunden: string[] } | null) =>
+  lq<null>('lq_wiederholen_setzen', { p_schluessel: keys, p_klasse: klasse, p_extra: extra });

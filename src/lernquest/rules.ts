@@ -265,6 +265,8 @@ export function woche(tage: string[], tag = heute()): { diese: number; geschafft
 export const ABSTAND = [0, 1, 3, 7, 14, 30];
 
 export const tagNummer = (tag: string) => Math.round(Date.parse(`${tag}T00:00:00Z`) / 86_400_000);
+/** The day `tage` after `tag` (both like `heute()`). */
+export const tagPlus = (tag: string, tage: number) => new Date((tagNummer(tag) + tage) * 86_400_000).toISOString().slice(0, 10);
 
 /** The key of an exercise card: lesson and exercise. */
 export const karteKey = (stunde: string, uebung: string) => `${stunde}/${uebung}`;
@@ -281,6 +283,52 @@ export function faellig(leitner: Stand['leitner'], heuteNr: number, gueltig?: Se
     .filter(([k, [, due]]) => due <= heuteNr && (!gueltig || gueltig.has(k)))
     .sort(([, a], [, b]) => a[1] - b[1] || a[0] - b[0])
     .map(([k]) => k);
+}
+
+/** „Wiederholen sofort“ from the teacher (e.g. before a test): the exercises of these lessons are due from `ab` to
+ *  `bis` (dates as `heute()`), once each, also those never played. Kept on the class (`lq_klasse.extra_wdh`). */
+export interface ExtraWiederholen {
+  ab: string;
+  bis: string;
+  stunden: string[];
+}
+
+export function readExtra(x: unknown): ExtraWiederholen | null {
+  const r = x as Partial<ExtraWiederholen> | null;
+  const tag = /^\d{4}-\d{2}-\d{2}$/;
+  if (!r || typeof r !== 'object' || typeof r.ab !== 'string' || !tag.test(r.ab) || typeof r.bis !== 'string' || !tag.test(r.bis)) return null;
+  if (!Array.isArray(r.stunden) || !r.stunden.every((s) => typeof s === 'string')) return null;
+  return { ab: r.ab, bis: r.bis, stunden: r.stunden };
+}
+
+/** The day a card was last answered: its due day minus the gap of its box (`karteNach`). */
+const beantwortet = ([box, due]: [number, number]) => due - ABSTAND[box];
+
+/** Cards due because of „Wiederholen sofort“: of the chosen lessons (`karten`: all keys of the lessons there are), not
+ *  answered since `ab`; none outside `ab` … `bis`. */
+export function extraFaellig(leitner: Stand['leitner'], karten: string[], extra: ExtraWiederholen | null | undefined, tag: string): string[] {
+  if (!extra || tag < extra.ab || tag > extra.bis) return [];
+  const ab = tagNummer(extra.ab);
+  const stunden = new Set(extra.stunden);
+  return karten.filter((k) => {
+    if (!stunden.has(k.slice(0, k.indexOf('/')))) return false;
+    const e = leitner[k];
+    return !e || beantwortet(e) < ab;
+  });
+}
+
+/** What the „Wiederholen“ round takes today: the cards due by their box, then those of „Wiederholen sofort“. */
+export function heuteDran(leitner: Stand['leitner'], karten: string[], extra: ExtraWiederholen | null | undefined, tag: string): string[] {
+  const normal = faellig(leitner, tagNummer(tag), new Set(karten));
+  const schon = new Set(normal);
+  return [...normal, ...extraFaellig(leitner, karten, extra, tag).filter((k) => !schon.has(k))];
+}
+
+/** How many cards come due tomorrow that are not due today (for „Morgen sind … dran“). */
+export function morgenDran(leitner: Stand['leitner'], karten: string[], tag: string): number {
+  const g = new Set(karten);
+  const n = tagNummer(tag);
+  return faellig(leitner, n + 1, g).length - faellig(leitner, n, g).length;
 }
 
 // — Coins (Stufe 2) —

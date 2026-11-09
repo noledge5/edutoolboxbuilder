@@ -49,6 +49,7 @@ import {
   teilAendern,
   teilAnlegen,
   teileEigen,
+  wiederholenSetzen,
 } from './server';
 
 const live = process.env.LQ_LIVE === '1';
@@ -470,5 +471,22 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(await code(teilAnlegen(keyA, { name: 'Test', slot: 'kopf', seltenheit: 0, nurTruhe: false }, 'image/png', png))).toBe('zugang');
     expect(await code(teilAendern(keyA, 'krone', 'Test', false))).toBe('zugang');
     expect(Array.isArray(await teileEigen())).toBe(true);
+  });
+
+  it('Wiederholen sofort: nur die eigene Klasse, nur freigeschaltete Stunden, das Kind sieht es', async () => {
+    const a = await klasseAnlegen(keyA, 'Test Wiederholen');
+    made.push({ keys: keyA, id: a.id });
+    const kind = await kindAnlegen(keyA, a.id, 'Wim T.', '4321');
+    await freischalten(keyA, a.id, 'sW', { format: 'lernquest-paket', stunde: 'sW', uebungen: [] });
+    const heute = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+    const extra = { ab: heute, bis: heute, stunden: ['sW'] };
+    expect(await code(wiederholenSetzen(keyB, a.id, extra))).toBe('zugang');
+    expect(await code(wiederholenSetzen(keyA, a.id, { ...extra, stunden: ['fremd'] }))).toBe('ungueltig');
+    await wiederholenSetzen(keyA, a.id, extra);
+    const login = await anmelden(a.code, kind, '4321');
+    if (!login.ok) throw new Error('Anmeldung');
+    expect((await meinStand(login.token, null)).extra).toEqual(extra);
+    await wiederholenSetzen(keyA, a.id, null);
+    expect((await meinStand(login.token, null)).extra).toBeNull();
   });
 });
