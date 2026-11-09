@@ -24,4 +24,4 @@ Lernquest (Kinder-App, `src/lernquest/app/`) runder und anschaulicher machen, Bu
   `npx vite preview`, Seite `/lernquest/`.
 - CSS-Regeln werden getestet (`lernquest.css.test.ts`): nur Tokens für Farben, Schriftgrößen, Abstände, Radien.
 - Mergen nach `main` = veröffentlichen (GitHub Pages).
-- HANDOFF.md ist nicht committet (die Lehrkraft hatte sie aus `main` gelöscht).
+- HANDOFF.md liegt nur auf dem Branch claude/laughing-hawking-c0iobh, nicht in main.
