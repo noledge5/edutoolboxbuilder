@@ -843,10 +843,13 @@ export function KopfBild({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
   );
 }
 
-/** The whole hero as worn. Decorative (the page names the hero in text), so hidden from screen readers. */
-export function AvatarBild({ avatar, className }: { avatar: Avatar; className?: string }) {
+/** The head and shoulders of the whole hero, for small round pictures (the head bar). */
+export const AUSSCHNITT_KOPF = '45 8 150 150';
+
+/** The whole hero as worn (or the part `ausschnitt` of it). Decorative (the page names the hero in text), so hidden from screen readers. */
+export function AvatarBild({ avatar, className, ausschnitt = '0 0 240 240' }: { avatar: Avatar; className?: string; ausschnitt?: string }) {
   return (
-    <svg className={className} viewBox="0 0 240 240" aria-hidden focusable="false">
+    <svg className={className} viewBox={ausschnitt} aria-hidden focusable="false">
       {EBENEN.map((e) =>
         e === 'koerper' ? (
           <Grundfigur key={e} avatar={avatar} />

@@ -235,6 +235,18 @@ mehr bekommen, spätestens beim Wiederholen der Station.
 - Regeln doppelt: `sterne`, `neueSterne`, `STERNE_JE_TRUHE`, `rundeAnwenden` in `rules.ts` und `lq_sterne`,
   `lq_runde_melden`, `lq_stand_json` in `20261113_lernquest_sterne.sql`.
 
+## Feinschliff Kinder-App (09.11.2026)
+
+Ohne Server-Änderung, Vorschläge von Claude („runder, anschaulicher, Bugs finden“).
+- **Behoben:** Truhen-Text beim Helden nannte noch die alte Regel („für ganz gespielte Stationen“); Lösung einer Lücke
+  stand in eckigen Klammern (jetzt fett); eine neue Seite öffnete sich so weit gescrollt wie die vorige; „Los geht’s!“
+  an einer fertigen Station startete immer Runde 1 (jetzt die schwächste Runde, `naechsteRunde` in `rules.ts`, auch für
+  die Probe); das Menü im Kopf schloss nur über den Knopf (jetzt auch Escape und Tippen daneben).
+- **Anschaulicher:** im Kopf der eigene Held statt des Anfangsbuchstabens; auf der Karte „Nächste Truhe“ mit drei
+  Sternen (je 3 Sterne eine Truhe) und Öffnen-Knopf, Sterne je Region im Band, Fußspuren zwischen den Stationen, die
+  Karte springt zur aktuellen Station; an der Station, was jeder Stern braucht (abgehakt, was geschafft ist); nach dem
+  Prüfen Lücken und gelegter Satz grün oder rot; im Ergebnis ein Punkt je Aufgabe (richtig/falsch).
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

@@ -14,7 +14,9 @@ import {
   karteKey,
   karteNach,
   loesungText,
+  naechsteRunde,
   rundeAnwenden,
+  rundenGeschafft,
   rundenZahl,
   rundeVon,
   RUNDE_MAX,
@@ -40,6 +42,7 @@ import { ProbeApp } from './Probe';
 import { probeAusUrl } from '../probe';
 import { Rich, UebungView, Vorlesen } from './Uebungen';
 import { vorlesen } from './vorlesen';
+import { AUSSCHNITT_KOPF, AvatarBild } from './avatar';
 
 export type Screen =
   | { kind: 'karte' }
@@ -62,6 +65,8 @@ export type Screen =
       stunde: string;
       richtig: number;
       gesamt: number;
+      /** Right or wrong per exercise, in order, for the row of dots. */
+      ergebnisse: boolean[];
       plus: number;
       muenzenPlus: number;
       truhenPlus: number;
@@ -488,6 +493,17 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     };
   }, [schauNachBoss, sitzung.token]);
 
+  // A new page starts at its top, the map at the current station (not where the page before was scrolled to).
+  const inhalt = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = inhalt.current;
+    if (!el) return;
+    const ziel = screen.kind === 'karte' ? el.querySelector<HTMLElement>('.lq-knoten.aktuell') : null;
+    if (ziel) ziel.scrollIntoView?.({ block: 'center' });
+    else el.scrollTo?.(0, 0);
+    // Also once the first data is there (the map appears only then).
+  }, [screen, !daten]);
+
   const langsam = useLangsam(!daten && !offline);
   if (!daten || !stand) {
     return (
@@ -528,6 +544,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       stunde,
       richtig: m.richtig,
       gesamt: m.gesamt,
+      ergebnisse,
       plus: r.plus,
       muenzenPlus: r.muenzenPlus,
       truhenPlus: r.truhenPlus,
@@ -597,11 +614,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     );
   }
 
-  const naechsteRunde = (p: Paket) => {
-    const runden = rundenZahl(p.uebungen.length);
-    const best = stand.bestwerte[p.stunde] ?? [];
-    return Array.from({ length: runden }, (_, i) => i).find((i) => !(best[i] > 0)) ?? 0;
-  };
+  const naechste = (p: Paket) => naechsteRunde(stand.bestwerte[p.stunde] ?? [], rundenZahl(p.uebungen.length));
   const starte = (p: Paket, r: number) => setScreen({ kind: 'runde', stunde: p.stunde, runde: r, uebungen: rundeVon(p.uebungen, r).map((u) => ({ u, stunde: p.stunde })) });
 
   if (screen.kind === 'ergebnis') {
@@ -616,6 +629,13 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           {p ? `${p.titel} · ` : ''}
           {screen.richtig} von {screen.gesamt} richtig
         </p>
+        <ol className="lq-punkte-reihe" aria-hidden>
+          {screen.ergebnisse.map((r, i) => (
+            <li key={i} className={r ? 'ok' : 'nein'} style={{ animationDelay: `${i * 60}ms` }}>
+              {r ? <HakenIcon /> : <KreuzIcon />}
+            </li>
+          ))}
+        </ol>
         <div className="lq-kacheln-ergebnis">
           <div>
             <span>Erfahrung</span>
@@ -676,7 +696,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const karten = new Set(pakete.flatMap((p) => p.uebungen.map((u) => karteKey(p.stunde, u.id))));
   const dueCount = faellig(stand.leitner, tagNummer(heute()), karten).length;
   const tab = screen.kind === 'wiederholen' ? 'wiederholen' : screen.kind === 'held' || screen.kind === 'laden' || screen.kind === 'gutscheine' ? 'held' : screen.kind === 'klasse' ? 'klasse' : 'karte';
-  const rahmen = (inhalt: React.ReactNode) => (
+  const rahmen = (seite: React.ReactNode) => (
     <main className="lq-app lq-mit-leiste">
       <Kopf daten={daten} offline={offline} onSignOut={() => onSignOut()} />
       {boss && (
@@ -691,7 +711,9 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           <span className="lq-boss-band-los">Mitmachen</span>
         </button>
       )}
-      <div className="lq-inhalt">{inhalt}</div>
+      <div className="lq-inhalt" ref={inhalt}>
+        {seite}
+      </div>
       <nav className="lq-leiste" aria-label="Hauptmenü">
         <button type="button" className={tab === 'karte' ? 'an' : ''} aria-current={tab === 'karte' ? 'page' : undefined} onClick={() => setScreen({ kind: 'karte' })}>
           <KarteIcon />
@@ -756,7 +778,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   if (paket) {
     const runden = rundenZahl(paket.uebungen.length);
     const best = stand.bestwerte[paket.stunde] ?? [];
-    const naechste = naechsteRunde(paket);
+    const naechsteNr = naechste(paket);
     return rahmen(
       <section className="lq-station">
         <button type="button" className="lq-link" onClick={() => setScreen({ kind: 'karte' })}>
@@ -766,11 +788,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           {paket.fach} · Region {paket.modul.nummer} · Station {paket.nummer}
         </span>
         <h1>{paket.titel}</h1>
-        <Sterne n={sterne(best, runden)} />
+        <SterneRegeln best={best} runden={runden} />
         <ol className="lq-runden">
           {Array.from({ length: runden }, (_, r) => (
             <li key={r}>
-              <button type="button" className={`lq-runde ${best[r] > 0 ? 'geschafft' : ''} ${r === naechste ? 'naechste' : ''}`} onClick={() => starte(paket, r)}>
+              <button type="button" className={`lq-runde ${best[r] > 0 ? 'geschafft' : ''} ${r === naechsteNr ? 'naechste' : ''}`} onClick={() => starte(paket, r)}>
                 <span className="lq-runde-nr">{best[r] >= 100 ? '★' : best[r] > 0 ? '✓' : r + 1}</span>
                 <span>
                   Runde {r + 1}
@@ -780,7 +802,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </li>
           ))}
         </ol>
-        <button type="button" className="lq-knopf" onClick={() => starte(paket, naechste)}>
+        <button type="button" className="lq-knopf" onClick={() => starte(paket, naechsteNr)}>
           Los geht’s!
         </button>
       </section>,
@@ -794,7 +816,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const tippen = (s: Station) => {
     const p = s.stunde ? daten.pakete[s.stunde] : undefined;
     if (!p) return;
-    if (s.zustand === 'aktuell') starte(p, naechsteRunde(p));
+    if (s.zustand === 'aktuell') starte(p, naechste(p));
     else setScreen({ kind: 'station', stunde: p.stunde });
   };
 
@@ -803,6 +825,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     <div className="lq-karte-raster">
       <aside className="lq-karte-seite">
         <Wochenziel tage={stand.tage} />
+        <TruhenFortschritt rest={stand.sterneRest} truhen={stand.truhen} onOeffnen={() => setScreen({ kind: 'truhe', zurueck: 'karte' })} />
       </aside>
       <div className="lq-karte-haupt">
         {faecher.length > 1 && (
@@ -822,10 +845,14 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
                 {aktiv} · Region {r.nummer}
               </span>
               <h2>{r.titel}</h2>
+              <small className="lq-region-sterne" aria-label={`${r.stationen.reduce((n, st) => n + st.sterne, 0)} von ${3 * r.stationen.length} Sternen`}>
+                <SternIcon />
+                {r.stationen.reduce((n, st) => n + st.sterne, 0)} / {3 * r.stationen.length}
+              </small>
             </div>
             <ol className="lq-pfad">
               {r.stationen.map((st, i) => (
-                <li key={st.nummer} className={`lq-versatz-${['0', 'l', '0', 'r'][i % 4]}${st.zustand === 'aktuell' ? ' mit-blase' : ''}`}>
+                <li key={st.nummer} className={`lq-versatz-${['0', 'l', '0', 'r'][i % 4]} lq-weg-${['r', 'r', 'l', 'l'][i % 4]}${st.zustand === 'aktuell' ? ' mit-blase' : ''}`}>
                   {st.zustand === 'aktuell' && <span className="lq-blase">Los geht’s!</span>}
                   <button
                     type="button"
@@ -867,6 +894,62 @@ function sterneHinweis(plus: number, jetzt: number, rest: number): string {
   if (jetzt === 0) return `Spiel alle Runden für den ersten Stern – ${bis}.`;
   if (jetzt < 3) return `Fehlerfreie Runden bringen mehr Sterne – ${bis}.`;
   return `Alle Sterne geholt – ${bis}.`;
+}
+
+/** The stars of a station and what each one needs, ticked when reached (rules in `sterne`, rules.ts). */
+function SterneRegeln({ best, runden }: { best: number[]; runden: number }) {
+  const n = sterne(best, runden);
+  const gespielt = Array.from({ length: runden }, (_, r) => best[r] ?? 0);
+  const regeln = [
+    // A round counts once at least one answer was right (`sterne`).
+    `${runden === 1 ? 'Die Runde' : `Alle ${runden} Runden`} schaffen (${rundenGeschafft(best, runden)} von ${runden})`,
+    'Im Schnitt 80 % richtig',
+    `Jede Runde einmal ohne Fehler (${gespielt.filter((b) => b >= 100).length} von ${runden})`,
+  ];
+  return (
+    <div className="lq-sterne-regeln">
+      <Sterne n={n} gross />
+      <ul>
+        {regeln.map((text, i) => (
+          <li key={i} className={i < n ? 'an' : ''}>
+            <span aria-hidden>{i < n ? <HakenIcon /> : <SternIcon />}</span>
+            {text}
+            <span className="lq-unsichtbar">{i < n ? ' – geschafft' : ''}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Stars toward the next chest (je 3 eine Truhe), and the chests waiting. */
+function TruhenFortschritt({ rest, truhen, onOeffnen }: { rest: number; truhen: number; onOeffnen: () => void }) {
+  const fehlen = STERNE_JE_TRUHE - rest;
+  return (
+    <section className="lq-box lq-truhen-fortschritt">
+      <span className="lq-truhen-icon">
+        <TruheIcon />
+      </span>
+      <div>
+        <h2>Nächste Truhe</h2>
+        <span className="lq-sterne" aria-label={`${rest} von ${STERNE_JE_TRUHE} Sternen, noch ${fehlen}`}>
+          {Array.from({ length: STERNE_JE_TRUHE }, (_, i) => (
+            <span key={i} className={i < rest ? 'an' : ''} aria-hidden>
+              <SternIcon />
+            </span>
+          ))}
+        </span>
+        <span className="lq-klein">
+          Noch {fehlen} {fehlen === 1 ? 'Stern' : 'Sterne'}
+        </span>
+      </div>
+      {truhen > 0 && (
+        <button type="button" className="lq-knopf lq-gold lq-klein-knopf" onClick={onOeffnen}>
+          {truhen > 1 ? `${truhen} öffnen` : 'Öffnen'}
+        </button>
+      )}
+    </section>
+  );
 }
 
 export function Sterne({ n, neu = false, gross = false }: { n: number; neu?: boolean; gross?: boolean }) {
@@ -911,13 +994,26 @@ function Wochenziel({ tage }: { tage: string[] }) {
 
 function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; onSignOut: () => void }) {
   const [menu, setMenu] = useState(false);
+  const kopf = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!menu) return;
+    const zu = (e: Event) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !kopf.current?.contains(e.target as Node)) setMenu(false);
+    };
+    document.addEventListener('keydown', zu);
+    document.addEventListener('pointerdown', zu);
+    return () => {
+      document.removeEventListener('keydown', zu);
+      document.removeEventListener('pointerdown', zu);
+    };
+  }, [menu]);
   const [tonOn, setTonOn] = useState(tonAn);
   const h = heldenstufe(daten.stand.xp);
   const w = woche(daten.stand.tage);
   return (
-    <header className="lq-kopf">
+    <header className="lq-kopf" ref={kopf}>
       <button type="button" className="lq-avatar" aria-label="Menü" aria-expanded={menu} onClick={() => setMenu(!menu)}>
-        <Initiale name={daten.name} />
+        <AvatarBild avatar={daten.stand.avatar} ausschnitt={AUSSCHNITT_KOPF} className="lq-avatar-bild" />
       </button>
       <div className="lq-held">
         <strong>
