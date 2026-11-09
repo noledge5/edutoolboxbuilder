@@ -265,6 +265,23 @@ Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen d
 - Zeichnungen in `avatar.tsx`, Bild-Prompts aus `BESCHREIBUNG` in `vorlagen.ts` (`npm run lq:bilder -- --prompts`
   schreibt `prompts.md` und `edit-prompts.md` neu).
 
+## Wiederholungen geben weniger (09.11.2026)
+
+Wunsch der Lehrkraft: „Wiederholungen bereits erledigter Übungen geben eine kleine Anzahl von EP und Münzen.“
+Entscheidungen der Lehrkraft (Vorschläge von Claude): beides zählt als Wiederholung, sie gibt ein Drittel.
+Migration `20261117_lernquest_wiederholung.sql` (lokal mit allen Migrationen in Postgres 16 durchgespielt; **noch
+nicht eingespielt**, erst nach OK der Lehrkraft, vor dem Merge).
+- **Was zählt:** die Runde „Wiederholen“ (Leitner-Kästen) und eine Stationsrunde, die schon einmal geschafft war
+  (Bestwert dieser Runde über 0, vor dieser Runde). Eine Runde mit 0 % gilt nicht als geschafft und gibt weiter alles.
+- **Wie viel:** ein Drittel der Erfahrung und der Münzen, abgerundet (Münzen erst mit Bonus, dann ein Drittel); danach
+  die Tagesgrenze wie bisher (300 EP, 200 Münzen). Beispiel 5 von 5 richtig: 8 statt 25 EP, 5 statt 16 Münzen.
+- **Bleibt:** Bestwert, Sterne und Truhen aus Sternen (eine Runde besser spielen bringt weiter den fehlenden Stern),
+  Lerntag und Wochenziel, Leitner-Kästen.
+- **Im Ergebnis** steht unter den Kacheln „Diese Runde hattest du schon geschafft. Wiederholen gibt ein Drittel der
+  Erfahrung und Münzen.“ (bei „Wiederholen“ nur der zweite Satz).
+- Regeln doppelt: `istWiederholung`, `WIEDERHOLUNG_TEILER`, `xpFuerRunde`, `muenzenFuerRunde`, `rundeAnwenden` in
+  `rules.ts` und `lq_runde_melden` (gibt jetzt auch `wiederholung` zurück); ein Test vergleicht beides.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.
@@ -292,8 +309,8 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   Antippen; weggelassen, wenn auf der Seite ein Lese- oder Hörtext steht), Zuordnen → Paare (höchstens 5 je Übung),
   Lückentext → je Zeile eine Lücke mit Kacheln (+2 Ablenker aus der Stunde), Satzbau und Umformen → Wortkacheln,
   Knickvokabeln → antippen mit 3 falschen Antworten. Nur mit Lösung; Lehrkraft-Seiten nie.
-- **Regeln** (`src/lernquest/rules.ts`, gleich im Server): Runde 10 + 2 je richtige + 5 ohne Fehler Erfahrung, höchstens
-  300 am Tag; Stufe n → n+1 braucht 50 + 50·n; Sterne: 1 = alle Runden gespielt, 2 = Schnitt ≥ 80 %, 3 = jede Runde
+- **Regeln** (`src/lernquest/rules.ts`, gleich im Server): Runde 10 + 2 je richtige + 5 ohne Fehler Erfahrung
+  (Wiederholung ein Drittel, seit 09.11.2026), höchstens 300 am Tag; Stufe n → n+1 braucht 50 + 50·n; Sterne: 1 = alle Runden gespielt, 2 = Schnitt ≥ 80 %, 3 = jede Runde
   einmal fehlerfrei; Wochenziel 3 Lerntage, gezählt werden geschaffte Wochen (keine Serie, die reißt); Wiederholen mit
   5 Kästen (1, 3, 7, 14, 30 Tage), falsch → Kasten 1.
 - **Aussehen nach dem Prototyp** (`docs/design/lernquest/Main.dc.html`): Start mit Wappen und „Klassen-QR scannen“,
