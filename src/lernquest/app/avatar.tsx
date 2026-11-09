@@ -2,9 +2,10 @@
 // one canvas (viewBox 0 0 240 240) for every part and fixed layers from back to front: background, companion,
 // body/skin, clothes, hair, eyes, mouth, head, tool. Each part is its own group that sits right without its neighbours.
 // Part colours are fixed values here, not UI tokens. Higher rarity = more detail, gold from Episch, sparkle for Legendär.
-import type { ReactNode } from 'react';
+import { useContext, type ReactNode } from 'react';
 import { angelegt, frisurVon, HAARFARBEN, haarfarbeVon, HAUT, mundVon, type Avatar, type Slot, type Teil } from '../teile';
 import { haareBild, koerperBild, mundBild, teilBild } from './teilBilder';
+import { HochgeladeneBilder } from './bilderKontext';
 
 /** Shadow tone per skin tone (`HAUT`). */
 const HAUT_SCHATTEN = ['#DDAE80', '#D29A6E', '#AE744A', '#8E5833', '#5F3A20', '#E8C3A2'];
@@ -1102,10 +1103,12 @@ const FUNKELN: Record<Slot, [number, number]> = {
 /** A whole-canvas layer picture (teilBilder.ts). */
 const ebene = (href: string) => <image href={href} width="240" height="240" />;
 
-/** One part: its painted picture when there is one (src/lernquest/app/teile/), else its vector drawing. */
+/** One part: its uploaded picture (hochgeladen.tsx), else its built-in painted picture (src/lernquest/app/teile/),
+ *  else its vector drawing. */
 function Zeichnung({ teil }: { teil: Teil | undefined }) {
+  const hochgeladen = useContext(HochgeladeneBilder);
   if (!teil) return null;
-  const bild = teilBild(teil.id);
+  const bild = hochgeladen[teil.id] ?? teilBild(teil.id);
   if (!bild) return <>{ZEICHNUNG[teil.id] ?? null}</>;
   return (
     <>

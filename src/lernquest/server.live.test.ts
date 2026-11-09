@@ -41,6 +41,11 @@ import {
   rundeMelden,
   sperren,
   truheOeffnen,
+  bildDaten,
+  bildLoeschen,
+  bildSetzen,
+  bilderListe,
+  istAdmin,
 } from './server';
 
 const live = process.env.LQ_LIVE === '1';
@@ -438,4 +443,22 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     const verbraucht = eingeloest === 'ok' ? 2 : 0;
     expect((await summe()) + offenNoch.reduce((a, x) => a + x.preis, 0) + verbraucht).toBe(n * 5);
   }, 120_000);
+
+  it('Bilder der Teile: nur Admins laden hoch, lesen dürfen alle', async () => {
+    // A 1 × 1 PNG; refused for rights before the size is looked at.
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await istAdmin(keyA)).toBe(false);
+    expect(await code(bildSetzen(keyA, 'krone', 'image/png', png))).toBe('zugang');
+    expect(await code(bildLoeschen(keyA, 'krone'))).toBe('zugang');
+    // A child's session token is no teacher key.
+    expect(await code(bildSetzen(['kind-token'], 'krone', 'image/png', png))).toBe('zugang');
+    expect(typeof (await bilderListe())).toBe('object');
+    expect(Array.isArray(await bildDaten(['krone']))).toBe(true);
+    expect(await code(bildDaten(Array.from({ length: 11 }, (_, i) => `t${i}`)))).toBe('ungueltig');
+    // No direct access to the tables.
+    const r = await fetch(`${(await import('../share/server')).SERVER.url}/rest/v1/lq_bild?select=teil`, {
+      headers: { apikey: (await import('../share/server')).SERVER.key },
+    });
+    expect(r.ok).toBe(false);
+  });
 });

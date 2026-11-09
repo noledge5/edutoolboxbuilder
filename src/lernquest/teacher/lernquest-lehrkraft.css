@@ -790,3 +790,117 @@
   align-items: center;
   min-height: 44px;
 }
+
+/* „Bilder der Teile“ (TeilBilder.tsx), only for the admin teacher. */
+.lqt-bilder {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+}
+.lqt-bild {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: var(--color-surface);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.lqt-bild.is-on {
+  border-color: var(--color-accent-700);
+}
+.lqt-bild-kachel {
+  width: 88px;
+  height: 88px;
+  border-radius: 10px;
+  background: var(--color-neutral-100);
+}
+.lqt-bild-kachel.is-gross {
+  width: 160px;
+  height: 160px;
+}
+.lqt-bild-herkunft {
+  font-size: 11px;
+  color: var(--color-neutral-600);
+}
+.lqt-bild-herkunft.is-hochgeladen {
+  color: var(--color-accent-700);
+  font-weight: 700;
+}
+.lqt-bild-edit {
+  scroll-margin-top: 12px;
+  border: 2px solid var(--color-accent-700);
+}
+.lqt-bild-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.lqt-bild-wege {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+.lqt-bild-wege legend {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.lqt-bild-wege label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.lqt-bild-vorschau {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+.lqt-bild-vorschau figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-neutral-700);
+}
+.lqt-bild-held {
+  width: 240px;
+  height: 240px;
+  border-radius: 14px;
+  background: var(--color-surface);
+}
+.lqt-bild-regler {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.lqt-bild-regler label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.lqt-bild-regler input[type='range'] {
+  width: 100%;
+}
+.lqt-bild-regler .btn {
+  align-self: flex-start;
+}
+.lqt-bild-edit .lqt-head {
+  flex-wrap: nowrap;
+}
+.lqt-bild-edit .lqt-head > div:first-child {
+  flex-basis: auto;
+}

@@ -1,21 +1,19 @@
-# Handoff – 09.11.2026 (Truhen-Schätze)
+# Handoff – 09.11.2026 (Bilder hochladen)
 
 ## Ziel
-Mehr Teile für den Helden; manche nur aus Truhen, bis zum Fund nur als „?“ in der Teile-Liste.
+Die Lehrkraft lädt gemalte Bilder auf der Lehrerseite hoch und ordnet sie direkt einem Teil zu (statt umbenennen,
+`npm run lq:bilder`, committen). Nur sie lädt hoch; die Bilder gelten für alle Klassen.
 
 ## Stand
-- Gebaut auf `claude/optimistic-keller-ypt0vr`: 24 neue Teile (jetzt 80), davon 12 Truhen-Schätze. Zeichnungen,
-  Bild-Prompts (`docs/design/lernquest/bilder/prompts.md`, `edit-prompts.md`), Laden ohne Schätze, Liste „? Nur in
-  Truhen“. Details: `docs/lernquest.md` → „Truhen-Schätze (09.11.2026)“.
-- Migration `supabase/migrations/20261116_lernquest_truhenschaetze.sql` lokal geprüft (alle Migrationen, Kauf eines
-  Schatzes → `ungueltig`, 2000 Truhen finden alle 12 Schätze) und live eingespielt (80 Teile, 12 Schätze).
-- Tests grün (365), Build grün. Nicht geprüft: Held- und Laden-Seite im Browser durchgeklickt.
+- Gebaut auf `claude/sweet-tesla-pcomqy`. Details: `docs/lernquest.md` → „Bilder hochladen auf der Lehrerseite“.
+- Migration `20261117_lernquest_bilder.sql` eingespielt (09.11.2026, mit OK); Admin = Besitzer-Hash der Klasse „5c“.
+  Live-Test „Bilder der Teile“ grün. CI grün.
+- Nicht geprüft: echte Flux2-Klein-Bilder, Safari auf dem iPad.
 
 ## Nächste Schritte
-1. PR #45 gemergt (= live). Deploy prüfen, Rückmeldung der Lehrkraft abwarten.
-2. Neue Arbeit: Branch frisch von `main`.
-3. Gemalte Bilder für die 24 neuen Teile mit den Prompts machen (`npm run lq:bilder`).
+1. Lehrkraft merged (= live), probiert „Bilder der Teile“ mit echten Bildern.
+2. Fehlt der Knopf auf einem Gerät: zweiten Schlüssel-Hash in `lq_admin` nachtragen.
 
 ## Wichtig zu wissen
-- Lokale Datenbank zum Prüfen: Postgres 16 ist installiert; vor den Migrationen Ersatz für `auth`, `extensions`
-  (pgcrypto) und `cron.schedule` anlegen, Rollen `anon`, `authenticated`, `service_role`.
+- Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
+  `cron.schedule` anlegen, Rollen `anon`, `authenticated`, `service_role` (mit Standardrechten wie bei Supabase).

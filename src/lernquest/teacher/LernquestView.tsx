@@ -2,8 +2,8 @@
 // to print, lessons to unlock (their Lernpaket goes to the class), progress at a glance, unlock locked accounts, and
 // the boss fight on the projector (Stufe 3: the questions are made here, the projector view is Lernquest's #beamer=),
 // class points, vouchers and requests, and progress per competence (Stufe 4: `Belohnungen.tsx`, `Auswertung.tsx`).
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, IdCard, Lock, MessageCircleQuestion, Plus, Printer, RefreshCw, RotateCcw, ScanLine, Sparkles, Swords, Trash2, Unlock } from 'lucide-react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, IdCard, Images, Lock, MessageCircleQuestion, Plus, Printer, RefreshCw, RotateCcw, ScanLine, Sparkles, Swords, Trash2, Unlock } from 'lucide-react';
 import { Icon } from '../../icons';
 import { SearchButton } from '../../library/SearchDialog';
 import type { Lesson, Library, Module } from '../../library/types';
@@ -21,6 +21,7 @@ import {
   bossStarten,
   bossStartenKarten,
   entsperren,
+  istAdmin,
   kindAnlegen,
   kindLoeschen,
   klasseAnlegen,
@@ -42,6 +43,9 @@ import { Antwortkarten, type KartenKind } from './Antwortkarten';
 import { Kartenrunde } from './Kartenrunde';
 import { BossScan } from './BossScan';
 import './lernquest-lehrkraft.css';
+
+/** Only the admin teacher opens it, so it loads on demand. */
+const TeilBilder = lazy(() => import('./TeilBilder'));
 
 interface Props {
   lib: Library;
@@ -79,6 +83,9 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
   const [karten, setKarten] = useState<{ kinder: KartenKind[]; runde?: { fragen: BossFrage[] | null } } | null>(null);
   /** Boss fight with cards being scanned on this device. */
   const [kampf, setKampf] = useState<{ id: string; kinder: KartenKind[] } | null>(null);
+  /** May upload pictures of the parts (lq_admin); the page „Bilder der Teile“ is open. */
+  const [admin, setAdmin] = useState(false);
+  const [bilder, setBilder] = useState(false);
 
   const load = useCallback(
     async (l?: Lehrkraft) => {
@@ -99,6 +106,8 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
     void ensureLehrkraft().then((l) => {
       setMe(l);
       void load(l);
+      // Older server without the function, or offline: no pictures page.
+      istAdmin(l.keys).then(setAdmin, () => setAdmin(false));
     });
     // Once on open.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -169,6 +178,12 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
   const trashed = list?.filter((k) => k.geloescht) ?? [];
   const klasse = active.find((k) => k.id === sel) ?? active[0];
 
+  if (bilder && me)
+    return (
+      <Suspense fallback={<p className="lib-empty">Lädt …</p>}>
+        <TeilBilder keys={me.keys} onClose={() => setBilder(false)} />
+      </Suspense>
+    );
   if (kampf && klasse && me) return <BossScan keys={me.keys} id={kampf.id} titel={klasse.name} kinder={kampf.kinder} onClose={() => setKampf(null)} />;
   if (karten && klasse)
     return karten.runde ? (
@@ -188,6 +203,12 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
           <div className="topbar-title">Lernquest</div>
           <div className="topbar-place">Klassen, Freischalten, Fortschritt</div>
         </div>
+        {admin && (
+          <button type="button" className="btn btn-secondary ui-btn" onClick={() => setBilder(true)}>
+            <Icon icon={Images} />
+            Bilder der Teile
+          </button>
+        )}
         <SearchButton />
       </header>
       <main className="lqt-main">
