@@ -291,10 +291,11 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
       const bericht = { url, xp: stand.xp, bestwerte: stand.bestwerte, muenzen: stand.muenzen, truhen: stand.truhen, inventar: stand.inventar, avatar: stand.avatar, fehler };
       writeFileSync(join(BILDER, 'ergebnis.json'), JSON.stringify(bericht, null, 2));
       const xp1 = xpFuerRunde(richtig, UEBUNGEN.length);
-      expect(stand.xp).toBe(xp1 + xpFuerRunde(UEBUNGEN.length, UEBUNGEN.length, xp1));
+      // The second round repeats the first (done before): a third.
+      expect(stand.xp).toBe(xp1 + xpFuerRunde(UEBUNGEN.length, UEBUNGEN.length, xp1, true));
       expect(stand.bestwerte[STUNDE]?.[0]).toBe(100);
       const m1 = muenzenFuerRunde(richtig, UEBUNGEN.length, 3, 0);
-      expect(stand.muenzen).toBe(m1 + muenzenFuerRunde(UEBUNGEN.length, UEBUNGEN.length, 3, 0, m1) + truhenMuenzen);
+      expect(stand.muenzen).toBe(m1 + muenzenFuerRunde(UEBUNGEN.length, UEBUNGEN.length, 3, 0, m1, true) + truhenMuenzen);
       expect(stand).toMatchObject({ sterneRest: 0, sterneStationen: { [STUNDE]: 3 } });
       // The one chest is open: coins only (MUENZ_TRUHE), or its part (never a twin the first time) is owned and worn.
       expect(stand.truhen).toBe(0);

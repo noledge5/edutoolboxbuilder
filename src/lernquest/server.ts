@@ -116,6 +116,8 @@ export interface RundeErgebnis {
   muenzenPlus: number;
   truhenPlus: number;
   punktePlus: number;
+  /** Counted as a repetition (a third of experience and coins); missing from servers before 20261117. */
+  wiederholung?: boolean;
   stand: Stand;
 }
 
@@ -128,7 +130,7 @@ export async function rundeMelden(token: string, stunde: string, runde: number, 
     p_gesamt: gesamt,
     p_leitner: leitner,
   });
-  return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, stand: voll(r.stand) };
+  return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, wiederholung: r.wiederholung, stand: voll(r.stand) };
 }
 
 export interface TruheInhalt {

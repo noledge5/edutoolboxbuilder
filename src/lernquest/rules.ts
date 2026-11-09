@@ -163,9 +163,20 @@ export const gemischt = <T>(xs: T[], seed: string) => shuffle(xs, seeded(seed));
 /** Most experience per day (more rounds still count for stars and repetition). */
 export const XP_TAG = 300;
 
-/** Experience for a round: 10, 2 per right answer, 5 more without mistakes; capped by what is left today. */
-export function xpFuerRunde(richtig: number, gesamt: number, heuteSchon = 0): number {
-  const roh = 10 + 2 * richtig + (richtig === gesamt ? 5 : 0);
+/**
+ * A repetition gives a third of experience and coins (rounded down): the „Wiederholen“ round (`stunde` empty) and a
+ * station round done before (best above 0). As `lq_runde_melden`.
+ */
+export const WIEDERHOLUNG_TEILER = 3;
+
+/** Whether this round is a repetition (see `WIEDERHOLUNG_TEILER`); asked before the round is counted. */
+export const istWiederholung = (bestwerte: Stand['bestwerte'], stunde: string, runde: number) =>
+  !stunde || (bestwerte[stunde]?.[runde] ?? 0) > 0;
+
+/** Experience for a round: 10, 2 per right answer, 5 more without mistakes, a third for a repetition; capped by what is left today. */
+export function xpFuerRunde(richtig: number, gesamt: number, heuteSchon = 0, wiederholung = false): number {
+  let roh = 10 + 2 * richtig + (richtig === gesamt ? 5 : 0);
+  if (wiederholung) roh = Math.floor(roh / WIEDERHOLUNG_TEILER);
   return Math.max(0, Math.min(roh, XP_TAG - heuteSchon));
 }
 
@@ -279,12 +290,13 @@ export const MUENZEN_TAG = 200;
 
 /**
  * Coins for a round: 5, 1 per right answer, 2 per heart left (every mistake costs a heart; empty hearts end nothing),
- * then the bonus percent (rounded down); capped by what is left today. As `lq_runde_melden`.
+ * then the bonus percent (rounded down), a third of it for a repetition; capped by what is left today. As `lq_runde_melden`.
  */
-export function muenzenFuerRunde(richtig: number, gesamt: number, herzen: number, bonusProzent: number, heuteSchon = 0): number {
+export function muenzenFuerRunde(richtig: number, gesamt: number, herzen: number, bonusProzent: number, heuteSchon = 0, wiederholung = false): number {
   const uebrig = Math.max(0, herzen - (gesamt - richtig));
   let roh = 5 + richtig + 2 * uebrig;
   roh += Math.floor((roh * bonusProzent) / 100);
+  if (wiederholung) roh = Math.floor(roh / WIEDERHOLUNG_TEILER);
   return Math.max(0, Math.min(roh, MUENZEN_TAG - heuteSchon));
 }
 
@@ -319,12 +331,13 @@ export function rundeAnwenden(
   m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] },
   tag = heute(),
   k: RundenKontext = { herzen: 3, bonusProzent: 0, runden: 0 },
-): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; stand: Stand } {
+): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; wiederholung: boolean; stand: Stand } {
   const neuerTag = !s.tage.includes(tag);
+  const wiederholung = istWiederholung(s.bestwerte, m.stunde, m.runde);
   const schon = neuerTag ? 0 : s.xpHeute;
-  const plus = xpFuerRunde(m.richtig, m.gesamt, schon);
+  const plus = xpFuerRunde(m.richtig, m.gesamt, schon, wiederholung);
   const mSchon = neuerTag ? 0 : s.muenzenHeute;
-  const muenzenPlus = muenzenFuerRunde(m.richtig, m.gesamt, k.herzen, k.bonusProzent, mSchon);
+  const muenzenPlus = muenzenFuerRunde(m.richtig, m.gesamt, k.herzen, k.bonusProzent, mSchon, wiederholung);
   const bestwerte = { ...s.bestwerte };
   let truhenPlus = 0;
   let sternePlus = 0;
@@ -355,6 +368,7 @@ export function rundeAnwenden(
     truhenPlus,
     punktePlus,
     sternePlus,
+    wiederholung,
     stand: {
       ...s,
       xp: s.xp + plus,

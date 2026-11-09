@@ -71,6 +71,8 @@ export type Screen =
       muenzenPlus: number;
       truhenPlus: number;
       punktePlus: number;
+      /** A repetition (round „Wiederholen“ or a station round done before): a third of experience and coins. */
+      wiederholung: boolean;
       sterneVorher: number;
       sterneJetzt: number;
       /** New stars counted toward chests, and the stars toward the next chest after this round. */
@@ -547,6 +549,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       ergebnisse,
       plus: r.plus,
       muenzenPlus: r.muenzenPlus,
+      wiederholung: r.wiederholung,
       truhenPlus: r.truhenPlus,
       punktePlus: r.punktePlus,
       sterneVorher: vorher,
@@ -653,6 +656,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </div>
         </div>
         {!screen.plus && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.</p>}
+        {screen.wiederholung && (
+          <p className="lq-klein lq-mitte">
+            {screen.stunde ? 'Diese Runde hattest du schon geschafft. ' : ''}Wiederholen gibt ein Drittel der Erfahrung und Münzen.
+          </p>
+        )}
         {screen.stunde && <p className="lq-klein lq-mitte">{sterneHinweis(screen.sternePlus, screen.sterneJetzt, screen.sterneRest)}</p>}
         {screen.punktePlus > 0 && (
           <p className="lq-punkte-plus" role="status">

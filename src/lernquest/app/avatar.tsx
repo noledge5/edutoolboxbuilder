@@ -841,9 +841,9 @@ const ZEICHNUNG: Record<string, ReactNode> = {
       <ellipse cx="44" cy="212" rx="22" ry="14" fill="#F7B8D2" />
       {[-1, 1].map((d) => (
         <g key={d} fill="#E0457B">
-          <path d={`M${44 + d * 16} 186l${d * 12}-8-${d * 2} 6Z`} />
-          <path d={`M${44 + d * 17} 192l${d * 14}-2-${d * 4} 5Z`} />
-          <path d={`M${44 + d * 16} 198l${d * 12} 5-${d * 6} 2Z`} />
+          <path d={`M${44 + d * 16} 186l${d * 12} -8 ${-d * 2} 6Z`} />
+          <path d={`M${44 + d * 17} 192l${d * 14} -2 ${-d * 4} 5Z`} />
+          <path d={`M${44 + d * 16} 198l${d * 12} 5 ${-d * 6} 2Z`} />
         </g>
       ))}
       <ellipse cx="44" cy="192" rx="18" ry="14" fill="#F7B8D2" />
