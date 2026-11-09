@@ -29,6 +29,10 @@ export interface Teil {
   schaden?: number;
   /** Only from chests, never in the shop (`lq_teil.nur_truhe`). */
   nurTruhe?: boolean;
+  /** Made on the teacher page (`lq_teile_eigen`): always an uploaded picture, never a bonus. */
+  eigen?: boolean;
+  /** Taken out of the game: not in the shop or in chests any more; who has it keeps it. */
+  aus?: boolean;
 }
 
 export const TEILE: Teil[] = [
@@ -116,7 +120,33 @@ export const TEILE: Teil[] = [
   { id: 'wolkenschloss', slot: 'hintergrund', name: 'Wolkenschloss', seltenheit: 4, muenzen: 10, nurTruhe: true },
 ];
 
-export const teil = (id: string | undefined) => TEILE.find((t) => t.id === id);
+// — Parts the admin teacher made on the teacher page (supabase/migrations/20261118_lernquest_eigene_teile.sql). The app
+// loads them with the uploaded pictures (app/hochgeladen.tsx) and keeps them here, next to the built-in catalogue. —
+let EIGENE: Teil[] = [];
+
+/** The parts made on the teacher page, as last loaded. */
+export const eigeneTeile = () => EIGENE;
+export const setzeEigene = (liste: Teil[]) => {
+  EIGENE = liste;
+};
+/** Built-in and own parts. */
+export const alleTeile = (): Teil[] => (EIGENE.length ? [...TEILE, ...EIGENE] : TEILE);
+
+/** Own parts from the server or the device, checked: unknown or broken entries are left out. */
+export function readEigene(raw: unknown): Teil[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((x): Teil[] => {
+    if (!x || typeof x !== 'object') return [];
+    const r = x as { id?: unknown; slot?: unknown; name?: unknown; seltenheit?: unknown; nurTruhe?: unknown; aktiv?: unknown; aus?: unknown };
+    if (typeof r.id !== 'string' || !/^e[0-9a-f]{10}$/.test(r.id)) return [];
+    if (!SLOTS.some((s) => s.slot === r.slot) || typeof r.name !== 'string' || !r.name.trim() || r.name.length > 30) return [];
+    if (typeof r.seltenheit !== 'number' || !Number.isInteger(r.seltenheit) || r.seltenheit < 0 || r.seltenheit > 4) return [];
+    const aus = r.aktiv === false || r.aus === true;
+    return [{ id: r.id, slot: r.slot as Slot, name: r.name.trim(), seltenheit: r.seltenheit, eigen: true, ...(r.nurTruhe === true ? { nurTruhe: true } : {}), ...(aus ? { aus: true } : {}) }];
+  });
+}
+
+export const teil = (id: string | undefined) => TEILE.find((t) => t.id === id) ?? (id ? EIGENE.find((t) => t.id === id) : undefined);
 
 /** The five rarities: name and colour (colour and 1–5 dots, never colour alone). */
 export const SELTENHEITEN = [
@@ -231,9 +261,11 @@ export function bonusText(b: { muenzen?: number; herz?: number; schaden?: number
     .join(', ');
 }
 
-/** What the shop sells on a place: what the child does not have yet, chest treasures never. */
+/** What the shop sells on a place: what the child does not have yet, chest treasures and parts out of the game never. */
 export const ladenWare = (inventar: string[], slot: Slot) =>
-  TEILE.filter((t) => t.slot === slot && !t.nurTruhe && !hat(inventar, t)).sort((a, b) => a.seltenheit - b.seltenheit);
+  alleTeile()
+    .filter((t) => t.slot === slot && !t.nurTruhe && !t.aus && !hat(inventar, t))
+    .sort((a, b) => a.seltenheit - b.seltenheit);
 
 /** Whether the child may wear a part: a start part or one in the inventory. */
 export const hat = (inventar: string[], t: Teil) => !!t.start || inventar.includes(t.id);

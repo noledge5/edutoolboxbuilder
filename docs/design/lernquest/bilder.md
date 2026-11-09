@@ -43,6 +43,8 @@ bringt das eingebaute Bild bzw. die Zeichnung zurück.
   grauem Rand befreien; das Ergebnis wird ein hochgeladenes Bild (Löschen bringt das Original zurück).
 - **Mit KI malen:** Nano Banana (OpenRouter-Schlüssel aus „KI im Baukasten“) malt mit dem Prompt von hier ein Bild,
   Kleidung und Augen als Edit der Grundfigur; etwa 4 Cent je Bild.
+- **Neue Teile:** Kachel „Neues Teil“ je Platz: Name, Seltenheit, „Nur aus Truhen“, Bild → „Teil anlegen“. Sie leben nur
+  auf dem Server (kein Eintrag in `teile.ts` nötig) und haben immer ein Bild, nie eine Zeichnung.
 - Frisuren, Münder, Hauttöne und die Grundfigur gehen weiter nur über das Skript.
 - Ein hochgeladenes Bild liegt auf dem Server, nicht im Repo. Soll es dauerhaft eingebaut werden, weiter wie unten.
 

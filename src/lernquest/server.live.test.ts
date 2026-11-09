@@ -46,6 +46,9 @@ import {
   bildSetzen,
   bilderListe,
   istAdmin,
+  teilAendern,
+  teilAnlegen,
+  teileEigen,
 } from './server';
 
 const live = process.env.LQ_LIVE === '1';
@@ -460,5 +463,12 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
       headers: { apikey: (await import('../share/server')).SERVER.key },
     });
     expect(r.ok).toBe(false);
+  });
+
+  it('Eigene Teile: nur Admins legen an und ändern, lesen dürfen alle', async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await code(teilAnlegen(keyA, { name: 'Test', slot: 'kopf', seltenheit: 0, nurTruhe: false }, 'image/png', png))).toBe('zugang');
+    expect(await code(teilAendern(keyA, 'krone', 'Test', false))).toBe('zugang');
+    expect(Array.isArray(await teileEigen())).toBe(true);
   });
 });

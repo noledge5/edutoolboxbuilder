@@ -315,6 +315,24 @@ Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen d
   Kleidung und Augen standardmäßig als Edit: die gemalte Grundfigur (`koerper-0.webp` auf Grau, 1024 px) geht mit.
   Das Ergebnis landet in der Vorschau wie ein gewähltes Bild. Keine Server-Änderung.
 
+## Eigene Teile (09.11.2026)
+
+- Wunsch: ganz neue Teile auf der Lehrerseite anlegen. Umsetzung (Vorschlag von Claude, die Lehrkraft hat „ja mach das“
+  gesagt): auf „Bilder der Teile“ je Platz die Kachel „Neues Teil“ → Name (bis 30 Zeichen), Seltenheit, „Nur aus Truhen“,
+  Bild wählen oder mit KI malen → „Teil anlegen“. **Preis aus der Seltenheit wie bei allen Teilen, keine Boni.**
+- **Kein Löschen**, damit kein Inventar ins Leere zeigt: Umbenennen und „Im Spiel“ aus/an. Aus dem Spiel = nicht mehr
+  im Laden und in Truhen; wer es hat, behält es und sieht es weiter (andere sehen es in ihrer Liste nicht mehr).
+- **Server** (`supabase/migrations/20261118_lernquest_eigene_teile.sql`): `lq_teil` bekommt `name`, `eigen`, `aktiv`,
+  `erstellt`; `lq_teil_anlegen` (nur Admin, Teil und Bild in einem Schritt, Kennung `e` + 10 Hexzeichen, höchstens 200
+  eigene), `lq_teil_aendern` (nur Admin, nur eigene), `lq_teile_eigen` (für alle); `lq_truhe_oeffnen` und `lq_kaufen`
+  nehmen nur Teile im Spiel; das Bild eines eigenen Teils lässt sich nicht löschen (es hat keine Zeichnung).
+- **App:** `teile.ts` kennt neben `TEILE` die eigenen Teile (`setzeEigene`, `alleTeile`, `teil` findet beide;
+  `readEigene` prüft jeden Eintrag). Geladen mit den Bildern (`app/hochgeladen.tsx`), im Gerät in
+  `lernquest:eigeneTeile` (offline). Seiten, die Teile auflisten, lesen den Kontext `EigeneTeile` (`useAlleTeile`).
+  Bringt eine Truhe ein Teil, das das Gerät noch nicht kennt, lädt es Teile und Bilder sofort nach.
+- Geprüft: lokal mit allen Migrationen (nur Admin, Fehler im Bild → kein Teil, aus dem Spiel nie gekauft und in 1500
+  Truhen nie gefunden, im Spiel beides); im Browser (anlegen mit KI, umbenennen, Kind sieht es im Laden, auch offline).
+
 ## Wiederholungen geben weniger (09.11.2026)
 
 Wunsch der Lehrkraft: „Wiederholungen bereits erledigter Übungen geben eine kleine Anzahl von EP und Münzen.“
