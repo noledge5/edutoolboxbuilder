@@ -2,10 +2,10 @@
 // same steps as `npm run lq:bilder` (bilder/ebene.ts); only the scaling is done by a canvas here. Then it is encoded
 // for the server (WebP where the browser can, else PNG; backgrounds as JPEG), at most 400 KB.
 import { ebeneAnpassen, editEbene, einzelEbene, flaecheEbene, type Einstellung, type Roh, type Skalieren } from '../bilder/ebene';
-import { randFarbe } from '../bilder/pixel';
+import { haareUmfaerben, hexRgb, mittelFarbe, radieren, randFarbe, type Strich } from '../bilder/pixel';
 import { EBENE_GROESSE as G, HINTERGRUND_FARBE } from '../bilder/vorlagen';
 import { TEIL_BILDER } from '../app/teilBilder';
-import type { Slot } from '../teile';
+import { HAARFARBEN, type Slot } from '../teile';
 
 /** How a raw picture becomes a layer: made on its own on grey (`einzeln`), an edit of the base figure (`edit`), a
  *  whole background (`flaeche`). The first one per place is the usual way (docs/design/lernquest/bilder.md). A
@@ -19,6 +19,9 @@ export const WEGE: Record<Slot, Weg[]> = {
   begleiter: ['einzeln', 'edit'],
   hintergrund: ['flaeche'],
 };
+
+/** A hair is always an edit of the base figure (painted brown); the other colours are made from it (`haarFarben`). */
+export const WEGE_HAARE: Weg[] = ['edit'];
 
 /** Server limit for one picture. */
 export const MAX_BYTES = 400_000;
@@ -104,7 +107,25 @@ function grundfigurLaden(): Promise<HTMLImageElement> {
 }
 
 /** The layer of a part from a raw picture (480 × 480, RGBA). */
-export async function ebeneMachen(q: Quelle, slot: Slot, weg: Weg, a: Einstellung): Promise<Roh> {
+export async function ebeneMachen(q: Quelle, slot: Slot | 'haare', weg: Weg, a: Einstellung, striche: Strich[] = []): Promise<Roh> {
+  const e = await ebeneRoh(q, slot, weg, a);
+  // The eraser comes last, on the finished layer (so it stays where it was drawn).
+  if (striche.length) radieren(e.data, e.w, e.h, striche);
+  return e;
+}
+
+/** A hair layer (painted brown) in every hair colour, the painted shading kept (as `npm run lq:bilder`). */
+export function haarFarben(e: Roh): Roh[] {
+  let quelle;
+  try {
+    quelle = mittelFarbe(e.data);
+  } catch {
+    throw new Error('Keine Frisur gefunden: Das Bild unterscheidet sich kaum von der Grundfigur. Neu malen oder die Empfindlichkeit kleiner stellen.');
+  }
+  return HAARFARBEN.map((f, i) => ({ ...e, data: i ? haareUmfaerben(e.data, quelle, hexRgb(f.farbe)) : e.data }));
+}
+
+async function ebeneRoh(q: Quelle, slot: Slot | 'haare', weg: Weg, a: Einstellung): Promise<Roh> {
   if (weg === 'ebene') {
     const c = leinwand(G, G);
     const ctx = zeichner(c);
@@ -120,7 +141,10 @@ export async function ebeneMachen(q: Quelle, slot: Slot, weg: Weg, a: Einstellun
     ctx.drawImage(q.bild, (q.bild.width - s) / 2, (q.bild.height - s) / 2, s, s, 0, 0, G, G);
     return flaecheEbene({ data: pixel(ctx, G, G), w: G, h: G });
   }
-  if (weg === 'einzeln') return einzelEbene({ ...q.roh, data: new Uint8Array(q.roh.data) }, slot, a, mitCanvas);
+  if (weg === 'einzeln') {
+    if (slot === 'haare') throw new Error('Frisuren gehen nur als Edit der Grundfigur.');
+    return einzelEbene({ ...q.roh, data: new Uint8Array(q.roh.data) }, slot, a, mitCanvas);
+  }
   if (Math.abs(q.bild.width - q.bild.height) > 2)
     throw new Error(`Ein Edit muss quadratisch sein wie die Grundfigur (ist ${q.bild.width} × ${q.bild.height}).`);
   const bild = aufGrund(q.bild, HINTERGRUND_FARBE);
@@ -152,7 +176,7 @@ const blob = (c: HTMLCanvasElement, typ: string, q?: number) =>
 
 /** The layer as a file for the server: WebP where the browser can encode it (else PNG; a background JPEG), at most
  *  400 KB. */
-export async function kodieren(e: Roh, slot: Slot): Promise<Blob> {
+export async function kodieren(e: Roh, slot: Slot | 'haare'): Promise<Blob> {
   const c = aufLeinwand(e);
   for (const q of [0.85, 0.7, 0.55]) {
     const b = await blob(c, 'image/webp', q);

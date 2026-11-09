@@ -1126,11 +1126,14 @@ function Grundfigur({ avatar }: { avatar: Avatar }) {
   return <Koerper haut={haut} hinten={HAAR_ZEICHNUNG[frisurVon(avatar)]?.hinten?.(HAARFARBEN[haarfarbeVon(avatar)].farbe)} />;
 }
 
-/** The hair over the body: painted when there is a picture, else the front of the vector hair. */
+/** The hair over the body: uploaded on the teacher page (hochgeladen.tsx), else painted, else the front of the vector
+ *  hair. Painted hair belongs to the painted base figure it was made on. */
 function Haare({ avatar }: { avatar: Avatar }) {
+  const hochgeladen = useContext(HochgeladeneBilder);
   const frisur = frisurVon(avatar);
   const farbe = haarfarbeVon(avatar);
-  const bild = haareBild(frisur, farbe);
+  const eigen = koerperBild(0) ? (hochgeladen[`haare-${frisur}-${farbe}`] ?? hochgeladen[`haare-${frisur}-0`]) : undefined;
+  const bild = eigen ?? haareBild(frisur, farbe);
   return bild ? ebene(bild) : <>{HAAR_ZEICHNUNG[frisur]?.vorn?.(HAARFARBEN[farbe].farbe) ?? null}</>;
 }
 

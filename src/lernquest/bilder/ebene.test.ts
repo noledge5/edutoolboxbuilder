@@ -161,3 +161,18 @@ describe('Fertige Ebene anpassen (eingebaute Bilder auf der Lehrerseite)', () =>
   });
 });
 
+
+describe('Radieren', () => {
+  it('erases along the stroke, also between its points, and nothing else', async () => {
+    const { radieren } = await import('./pixel');
+    const px = new Uint8Array(100 * 100 * 4).fill(255);
+    radieren(px, 100, 100, [{ r: 5, punkte: [[10, 50], [90, 50]] }]);
+    const a = (x: number, y: number) => px[(y * 100 + x) * 4 + 3];
+    expect(a(10, 50)).toBe(0);
+    expect(a(50, 50)).toBe(0); // between the two points
+    expect(a(90, 50)).toBe(0);
+    expect(a(50, 60)).toBe(255);
+    expect(a(50, 40)).toBe(255);
+    expect(a(10, 20)).toBe(255);
+  });
+});
