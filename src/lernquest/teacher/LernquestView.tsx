@@ -12,7 +12,7 @@ import { FragenpoolDialog } from './Fragenpool';
 import { PunkteDialog } from './PunkteDialog';
 import { paketSenden } from './senden';
 import { ensureLehrkraft, kartenNummern, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
-import { STUFEN, stufenPlan, stufeVon, type Stufe } from '../sichtbarkeit';
+import { modulPlan, STUFEN, stufenPlan, stufeVon, type Stufe } from '../sichtbarkeit';
 import { BOSS_FRAGEN_MIN, bossFragen, bossVon, type BossFrage } from '../boss';
 import { buildPaket, exercisesOf } from '../paket';
 import { BOSS_FRAGEN, heldenstufe, punkteHandRest, PUNKTE_HAND_WOCHE, rundenZahl, sterne, woche } from '../rules';
@@ -338,6 +338,33 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
     }).finally(() => setWant(({ [l.id]: _, ...rest }) => rest));
   };
 
+  /**
+   * All lessons of a module to one level at once: one plan, every package goes at most once. Lessons without
+   * exercises cannot be unlocked and become locked then (an unlocked one stays).
+   */
+  const setModulStufe = (m: Module, stufe: Stufe) => {
+    const lessons = lib.lessons.filter((x) => x.moduleId === m.id);
+    if (stufe === 'aus' && !window.confirm(`Alle Stunden von Modul ${m.number} für „${klasse.name}“ ausblenden? Die Kinder sehen sie dann gar nicht mehr auf der Karte.`)) return;
+    const plan = modulPlan(
+      stufe,
+      klasse.stunden,
+      versteckt,
+      lessons.map((x) => x.id),
+      lessons.filter((x) => exercisesOf(x.doc.pages).length + freigegeben(x.pool).length > 0).map((x) => x.id),
+    );
+    const ids = lessons.map((x) => x.id);
+    const sendbar = new Set([...plan.senden, ...klasse.stunden]);
+    setWant((w) => ({ ...w, ...Object.fromEntries(ids.map((id) => [id, stufe === 'frei' && !sendbar.has(id) ? 'gesperrt' : stufe])) }));
+    void act(async (keys) => {
+      if (plan.versteckt.join() !== versteckt.join()) await saveVersteckt(plan.versteckt);
+      for (const id of plan.sperren) await sperren(keys, klasse.id, id);
+      for (const id of [...plan.senden, ...plan.neuSenden]) {
+        const x = lessons.find((y) => y.id === id);
+        if (x) await paketSenden(keys, klasse.id, m, x, lib.lessons, plan.versteckt);
+      }
+    }).finally(() => setWant((w) => Object.fromEntries(Object.entries(w).filter(([id]) => !ids.includes(id)))));
+  };
+
   const kinder = klasse.kinder.filter((k) => !k.geloescht);
   const geloescht = klasse.kinder.filter((k) => k.geloescht);
 
@@ -577,9 +604,30 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
         {!modules.length && <p className="lib-empty">Keine Module in diesem Fach und dieser Klassenstufe.</p>}
         {modules.map((m) => (
           <div key={m.id} className="lqt-module">
-            <h3>
-              Modul {m.number}: {m.title}
-            </h3>
+            <div className="lqt-module-head">
+              <h3>
+                Modul {m.number}: {m.title}
+              </h3>
+              <div className="lqt-module-alle" role="group" aria-label={`Alle Stunden von Modul ${m.number}`}>
+                {(
+                  [
+                    ['frei', 'Alle freischalten'],
+                    ['gesperrt', 'Alle sperren'],
+                    ['aus', 'Alle ausblenden'],
+                  ] as const
+                ).map(([stufe, label]) => (
+                  <button
+                    key={stufe}
+                    type="button"
+                    className="btn btn-secondary ui-btn"
+                    disabled={busy || lib.lessons.some((l) => l.moduleId === m.id && l.id in want)}
+                    onClick={() => setModulStufe(m, stufe)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <ul>
               {lib.lessons
                 .filter((l) => l.moduleId === m.id)

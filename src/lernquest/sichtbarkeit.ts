@@ -45,3 +45,36 @@ export function stufenPlan(id: string, stufe: Stufe, frei: readonly string[], ve
     neuSenden: listeAnders ? frei.filter((x) => x !== id && modul.includes(x)) : [],
   };
 }
+
+export interface ModulPlan {
+  /** The class's hidden lessons afterwards. */
+  versteckt: string[];
+  /** Lessons to send (unlock); they go with the new lesson list. */
+  senden: string[];
+  /** Lessons whose package is taken back (lock them). */
+  sperren: string[];
+  /** Lessons that stay unlocked but whose packages must go again with the new lesson list. */
+  neuSenden: string[];
+}
+
+/**
+ * What to do when all lessons of a module get level `stufe` at once (decided with the teacher on 09.11.2026): `modul`
+ * are the ids of the module's lessons, `sendbar` those that can be unlocked (they have exercises). With `frei`, a lesson
+ * that cannot be unlocked becomes locked (an unlocked one stays). Every package goes at most once per click.
+ */
+export function modulPlan(stufe: Stufe, frei: readonly string[], versteckt: readonly string[], modul: readonly string[], sendbar: readonly string[]): ModulPlan {
+  const ziel = stufe === 'frei' ? modul.filter((id) => sendbar.includes(id)) : [...modul];
+  const ohne = versteckt.filter((x) => !modul.includes(x));
+  const neu = stufe === 'aus' ? [...ohne, ...modul] : ohne;
+  const freiNachher = stufe === 'frei' ? modul.filter((id) => frei.includes(id) || ziel.includes(id)) : [];
+  // Only the module's hidden lessons that are not unlocked change the lesson list in the packages.
+  const ausVorher = modul.filter((id) => versteckt.includes(id) && !frei.includes(id));
+  const ausNachher = modul.filter((id) => neu.includes(id) && !freiNachher.includes(id));
+  const senden = freiNachher.filter((id) => !frei.includes(id));
+  return {
+    versteckt: neu,
+    senden,
+    sperren: stufe === 'frei' ? [] : modul.filter((id) => frei.includes(id)),
+    neuSenden: ausVorher.join() !== ausNachher.join() ? freiNachher.filter((id) => frei.includes(id)) : [],
+  };
+}

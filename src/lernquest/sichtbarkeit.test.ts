@@ -3,7 +3,7 @@ import type { Lesson, Module } from '../library/types';
 import { mergeLehrkraft, readLehrkraft, sameLehrkraft, type Lehrkraft } from './lehrkraft';
 import { regionenVon } from './karte';
 import { buildPaket } from './paket';
-import { stufenPlan, stufeVon } from './sichtbarkeit';
+import { modulPlan, stufenPlan, stufeVon } from './sichtbarkeit';
 import { LEERER_STAND } from './types';
 
 const modul = { id: 'm1', number: 1, title: 'Wetter', icon: 'cloud', subject: 'Erdkunde', grade: 5, lang: 'de' } as unknown as Module;
@@ -48,6 +48,23 @@ describe('Sichtbarkeit der Stunden je Klasse', () => {
     expect(stufenPlan('b', 'aus', ['a'], ['b'], modulIds)).toEqual({ versteckt: ['b'], senden: false, sperren: false, neuSenden: [] });
     // Stunden anderer Module werden nicht neu gesendet.
     expect(stufenPlan('b', 'aus', ['a', 'x'], [], modulIds).neuSenden).toEqual(['a']);
+  });
+
+  it('plant die Sammel-Änderung eines ganzen Moduls, jedes Paket höchstens einmal', () => {
+    const modulIds = ['a', 'b', 'c', 'd'];
+    const sendbar = ['a', 'b', 'c'];
+    // Alle freischalten: c war ausgeblendet, d hat keine Übungen und wird gesperrt (sichtbar); a war schon frei und bekommt c und d neu in die Liste.
+    expect(modulPlan('frei', ['a', 'x'], ['c', 'd', 'y'], modulIds, sendbar)).toEqual({ versteckt: ['y'], senden: ['b', 'c'], sperren: [], neuSenden: ['a'] });
+    // Alle freischalten ohne Änderung der Liste: nichts neu senden.
+    expect(modulPlan('frei', ['a'], ['y'], modulIds, sendbar)).toEqual({ versteckt: ['y'], senden: ['b', 'c'], sperren: [], neuSenden: [] });
+    // Schon alle frei: nichts zu tun.
+    expect(modulPlan('frei', ['a', 'b', 'c'], [], modulIds, sendbar)).toEqual({ versteckt: [], senden: [], sperren: [], neuSenden: [] });
+    // Alle sperren: freigeschaltete zurücknehmen, ausgeblendete wieder zeigen, Stunden anderer Module bleiben.
+    expect(modulPlan('gesperrt', ['a', 'x'], ['c', 'y'], modulIds, sendbar)).toEqual({ versteckt: ['y'], senden: [], sperren: ['a'], neuSenden: [] });
+    // Alle ausblenden: auch Stunden ohne Übungen, jede nur einmal gemerkt.
+    expect(modulPlan('aus', ['a', 'x'], ['c', 'y'], modulIds, sendbar)).toEqual({ versteckt: ['y', 'a', 'b', 'c', 'd'], senden: [], sperren: ['a'], neuSenden: [] });
+    // Eine freigeschaltete Stunde ohne Übungen bleibt frei und bekommt die neue Liste.
+    expect(modulPlan('frei', ['d'], ['b'], modulIds, sendbar)).toEqual({ versteckt: [], senden: ['a', 'b', 'c'], sperren: [], neuSenden: ['d'] });
   });
 
   it('speichert ausgeblendete Stunden je Klasse im Lehrkraft-Datensatz und gleicht sie ab', () => {

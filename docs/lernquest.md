@@ -220,6 +220,16 @@ mit Schloss, „Öffnet sich, sobald ihr es im Unterricht hattet“) und **Ausge
 - Die Karte nimmt die längste Stundenliste der Pakete eines Moduls; scheitert das Neusenden mittendrin, hilft
   „Freigeschaltete neu senden“.
 
+## Ganzes Modul umschalten (09.11.2026)
+
+Wunsch der Lehrkraft: alle Stunden eines Moduls auf einmal umschalten. Unter „Stunden freischalten“ hat jedes Modul
+(je Klasse) drei Knöpfe: **Alle freischalten**, **Alle sperren**, **Alle ausblenden** (fragt vorher nach).
+- Ein Klick, ein Plan (`modulPlan` in `src/lernquest/sichtbarkeit.ts`): jedes Paket geht höchstens einmal zum Server,
+  nicht einmal je geänderter Stunde. Erst wird `versteckt` gespeichert, dann gesperrt, dann gesendet.
+- Stunden ohne lösbare Aufgaben lassen sich nicht freischalten; „Alle freischalten“ macht sie zu gesperrten (sichtbar
+  mit Schloss), schon freigeschaltete bleiben frei.
+- Wie bei der einzelnen Auswahl: scheitert das Senden mittendrin, hilft „Freigeschaltete neu senden“.
+
 ## Truhen aus Sternen (08.11.2026)
 
 Wunsch der Lehrkraft: Truhen kamen zu oft, auch für eine Station mit einem oder zwei Sternen. Wer fehlerfrei übt, soll
