@@ -269,8 +269,8 @@ Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen d
 
 Wunsch der Lehrkraft: „Wiederholungen bereits erledigter Übungen geben eine kleine Anzahl von EP und Münzen.“
 Entscheidungen der Lehrkraft (Vorschläge von Claude): beides zählt als Wiederholung, sie gibt ein Drittel.
-Migration `20261117_lernquest_wiederholung.sql` (lokal mit allen Migrationen in Postgres 16 durchgespielt; **noch
-nicht eingespielt**, erst nach OK der Lehrkraft, vor dem Merge).
+Migration `20261117_lernquest_wiederholung.sql` (lokal mit allen Migrationen in Postgres 16 durchgespielt, eingespielt
+am 09.11.2026 über die Supabase-Verbindung nach OK der Lehrkraft, vor dem Merge).
 - **Was zählt:** die Runde „Wiederholen“ (Leitner-Kästen) und eine Stationsrunde, die schon einmal geschafft war
   (Bestwert dieser Runde über 0, vor dieser Runde). Eine Runde mit 0 % gilt nicht als geschafft und gibt weiter alles.
 - **Wie viel:** ein Drittel der Erfahrung und der Münzen, abgerundet (Münzen erst mit Bonus, dann ein Drittel); danach
