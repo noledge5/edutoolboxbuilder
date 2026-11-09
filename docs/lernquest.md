@@ -364,7 +364,8 @@ am 09.11.2026 über die Supabase-Verbindung nach OK der Lehrkraft, vor dem Merge
   Kind seit dem Start nicht beantwortet hat, auch nie gespielte, jede einmal (beantwortet am = fällig am − Abstand des
   Kastens, darum keine neue Speicherung). Erst die nach Kasten fälligen, dann diese. Belohnung wie jede Wiederholung (ein
   Drittel). Danach läuft alles nach den Kästen weiter.
-- **Server** (`supabase/migrations/20261119_lernquest_wiederholen_sofort.sql`): `lq_klasse.extra_wdh`
+- **Server** (`supabase/migrations/20261119_lernquest_wiederholen_sofort.sql`, eingespielt am 09.11.2026 nach OK der
+  Lehrkraft, Live-Tests grün): `lq_klasse.extra_wdh`
   ({ab, bis, stunden}); `lq_wiederholen_setzen` (nur Besitzerin, `ab` heute ± 1 Tag, höchstens 14 Tage, nur
   freigeschaltete Stunden, null beendet); `lq_mein_stand` und `lq_klassen` liefern `extra` mit. Im Gerät des Kindes in
   `lernquest:daten` (offline).
