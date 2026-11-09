@@ -1,15 +1,16 @@
 // The upload on the teacher page: a raw picture from ComfyUI becomes the layer of a part in the browser, with the
 // same steps as `npm run lq:bilder` (bilder/ebene.ts); only the scaling is done by a canvas here. Then it is encoded
 // for the server (WebP where the browser can, else PNG; backgrounds as JPEG), at most 400 KB.
-import { editEbene, einzelEbene, flaecheEbene, type Einstellung, type Roh, type Skalieren } from '../bilder/ebene';
+import { ebeneAnpassen, editEbene, einzelEbene, flaecheEbene, type Einstellung, type Roh, type Skalieren } from '../bilder/ebene';
 import { randFarbe } from '../bilder/pixel';
 import { EBENE_GROESSE as G, HINTERGRUND_FARBE } from '../bilder/vorlagen';
 import { TEIL_BILDER } from '../app/teilBilder';
 import type { Slot } from '../teile';
 
 /** How a raw picture becomes a layer: made on its own on grey (`einzeln`), an edit of the base figure (`edit`), a
- *  whole background (`flaeche`). The first one per place is the usual way (docs/design/lernquest/bilder.md). */
-export type Weg = 'einzeln' | 'edit' | 'flaeche';
+ *  whole background (`flaeche`). The first one per place is the usual way (docs/design/lernquest/bilder.md). A
+ *  finished layer (the built-in or uploaded picture) is only fine-tuned (`ebene`). */
+export type Weg = 'einzeln' | 'edit' | 'flaeche' | 'ebene';
 export const WEGE: Record<Slot, Weg[]> = {
   kopf: ['einzeln', 'edit'],
   augen: ['edit', 'einzeln'],
@@ -104,6 +105,13 @@ function grundfigurLaden(): Promise<HTMLImageElement> {
 
 /** The layer of a part from a raw picture (480 × 480, RGBA). */
 export async function ebeneMachen(q: Quelle, slot: Slot, weg: Weg, a: Einstellung): Promise<Roh> {
+  if (weg === 'ebene') {
+    const c = leinwand(G, G);
+    const ctx = zeichner(c);
+    ctx.drawImage(q.bild, 0, 0, G, G);
+    const e = { data: pixel(ctx, G, G), w: G, h: G };
+    return slot === 'hintergrund' ? flaecheEbene(ebeneAnpassen(e, a)) : ebeneAnpassen(e, a);
+  }
   if (weg === 'flaeche') {
     // Cover: the middle square of the picture.
     const s = Math.min(q.bild.width, q.bild.height);
@@ -120,6 +128,23 @@ export async function ebeneMachen(q: Quelle, slot: Slot, weg: Weg, a: Einstellun
   const [r, g, b] = randFarbe(bild, G, G);
   const basis = aufGrund(await grundfigurLaden(), `rgb(${r}, ${g}, ${b})`);
   return editEbene(basis, bild, slot, a).ebene;
+}
+
+/** A picture by its address (the built-in or uploaded layer of a part), opened like a chosen file. */
+export async function oeffnenUrl(url: string): Promise<Quelle> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Das Bild lädt nicht.');
+  return oeffnen(await res.blob());
+}
+
+/** The painted base figure on grey at 1024 × 1024, as the edit model gets it (the edit prompts expect this). */
+export async function grundfigurDataUrl(): Promise<string> {
+  const c = leinwand(1024, 1024);
+  const ctx = zeichner(c);
+  ctx.fillStyle = HINTERGRUND_FARBE;
+  ctx.fillRect(0, 0, 1024, 1024);
+  ctx.drawImage(await grundfigurLaden(), 0, 0, 1024, 1024);
+  return c.toDataURL('image/png');
 }
 
 const blob = (c: HTMLCanvasElement, typ: string, q?: number) =>

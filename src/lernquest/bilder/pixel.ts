@@ -114,9 +114,11 @@ export function sichtbar(
   return x1 < 0 ? undefined : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }
 
-/** Fine-tuning per part, in canvas units: `s` scales (1 = as the place says), `dx`/`dy` move. */
+/** Fine-tuning per part, in canvas units: `s` scales (1 = as the place says), `dx`/`dy` move, `r` turns (degrees,
+ *  clockwise). */
 export interface Anpassung {
   s?: number;
+  r?: number;
   dx?: number;
   dy?: number;
 }
@@ -367,4 +369,102 @@ export function haareUmfaerben(px: Uint8Array, quelle: Rgb, ziel: Rgb): Uint8Arr
     }
   }
   return out;
+}
+
+/** The colour at (x, y) between the pixels (bilinear, with premultiplied alpha, so transparent pixels do not darken
+ *  the edge); transparent outside the picture. */
+function abtasten(px: Uint8Array, w: number, h: number, x: number, y: number, out: Uint8Array, o: number): void {
+  const x0 = Math.floor(x);
+  const y0 = Math.floor(y);
+  const fx = x - x0;
+  const fy = y - y0;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  let a = 0;
+  for (const [xx, yy, k] of [
+    [x0, y0, (1 - fx) * (1 - fy)],
+    [x0 + 1, y0, fx * (1 - fy)],
+    [x0, y0 + 1, (1 - fx) * fy],
+    [x0 + 1, y0 + 1, fx * fy],
+  ]) {
+    if (k === 0 || xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+    const i = (yy * w + xx) * 4;
+    const al = px[i + 3] * k;
+    r += px[i] * al;
+    g += px[i + 1] * al;
+    b += px[i + 2] * al;
+    a += al;
+  }
+  if (a <= 0) {
+    out[o] = out[o + 1] = out[o + 2] = out[o + 3] = 0;
+    return;
+  }
+  out[o] = Math.round(r / a);
+  out[o + 1] = Math.round(g / a);
+  out[o + 2] = Math.round(b / a);
+  out[o + 3] = Math.round(a);
+}
+
+/** A copy turned by `grad` degrees (clockwise) around its middle, on a canvas large enough for all of it. */
+export function drehen(px: Uint8Array, w: number, h: number, grad: number): { data: Uint8Array; w: number; h: number } {
+  const t = (grad * Math.PI) / 180;
+  const c = Math.cos(t);
+  const s = Math.sin(t);
+  const nw = Math.ceil(Math.abs(w * c) + Math.abs(h * s));
+  const nh = Math.ceil(Math.abs(w * s) + Math.abs(h * c));
+  const data = new Uint8Array(nw * nh * 4);
+  for (let y = 0; y < nh; y++)
+    for (let x = 0; x < nw; x++) {
+      // Back from the new canvas to the picture: turn the other way around the middles.
+      const dx = x + 0.5 - nw / 2;
+      const dy = y + 0.5 - nh / 2;
+      abtasten(px, w, h, c * dx + s * dy + w / 2 - 0.5, -s * dx + c * dy + h / 2 - 0.5, data, (y * nw + x) * 4);
+    }
+  return { data, w: nw, h: nh };
+}
+
+/** A finished layer moved, scaled and turned around the middle of what is visible: `s` scales, `r` turns (degrees,
+ *  clockwise), `dx`/`dy` move (pixels). Returns the same size. */
+export function umformen(px: Uint8Array, w: number, h: number, a: { s?: number; r?: number; dx?: number; dy?: number }): Uint8Array {
+  const s = a.s ?? 1;
+  const r = a.r ?? 0;
+  const box = sichtbar(px, w, h);
+  if (!box || (s === 1 && !r && !a.dx && !a.dy)) return new Uint8Array(px);
+  const cx = box.x + box.w / 2;
+  const cy = box.y + box.h / 2;
+  const t = (r * Math.PI) / 180;
+  const c = Math.cos(t);
+  const sn = Math.sin(t);
+  const out = new Uint8Array(px.length);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const dx = (x + 0.5 - cx - (a.dx ?? 0)) / s;
+      const dy = (y + 0.5 - cy - (a.dy ?? 0)) / s;
+      abtasten(px, w, h, c * dx + sn * dy + cx - 0.5, -sn * dx + c * dy + cy - 0.5, out, (y * w + x) * 4);
+    }
+  return out;
+}
+
+/** Grey left around a cut-out part: pixels within `toleranz` of `grau` that touch the transparent area (directly or
+ *  through other such pixels) become transparent. Changes `px` in place. */
+export function grauWeg(px: Uint8Array, w: number, h: number, grau: Rgb, toleranz: number): void {
+  const weg = new Uint8Array(w * h);
+  const stapel: number[] = [];
+  const nah = (p: number) => abstand([px[p * 4], px[p * 4 + 1], px[p * 4 + 2]], grau) <= toleranz;
+  for (let p = 0; p < w * h; p++)
+    if (px[p * 4 + 3] < 16) {
+      weg[p] = 1;
+      stapel.push(p);
+    }
+  while (stapel.length) {
+    const p = stapel.pop()!;
+    const x = p % w;
+    for (const q of [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p - w, p + w])
+      if (q >= 0 && q < w * h && !weg[q] && nah(q)) {
+        weg[q] = 1;
+        stapel.push(q);
+      }
+  }
+  for (let p = 0; p < w * h; p++) if (weg[p]) px[p * 4 + 3] = 0;
 }

@@ -3,9 +3,9 @@
 // the browser's, so both give the same layer up to the scaling itself.
 import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
-import { editEbene, einzelEbene, kleidungEditMaske, rechteckMaske, type Roh, type Skalieren } from './ebene';
+import { ebeneAnpassen, editEbene, einzelEbene, kleidungEditMaske, rechteckMaske, type Roh, type Skalieren } from './ebene';
 import { EBENE_GROESSE as G, HINTERGRUND_FARBE, PLAETZE } from './vorlagen';
-import { hexRgb, sichtbar } from './pixel';
+import { drehen, hexRgb, sichtbar } from './pixel';
 
 const GRAU = hexRgb(HINTERGRUND_FARBE);
 
@@ -116,4 +116,48 @@ describe('Ebene aus einem Bild (Skript und Lehrerseite)', () => {
     expect(m[240 * G + 80]).toBeGreaterThan(0);
     expect(m[240 * G + 80]).toBeLessThan(255);
   });
+
+  it('turns a part made on its own: a wide hat stands upright at 90°', async () => {
+    const quer = sichtbar((await einzelEbene(kopie(hut()), 'werkzeug', {}, wieCanvas)).data, G, G)!;
+    const hoch = sichtbar((await einzelEbene(kopie(hut()), 'werkzeug', { r: 90 }, wieCanvas)).data, G, G)!;
+    expect(quer.w).toBeGreaterThan(quer.h);
+    expect(hoch.h).toBeGreaterThan(hoch.w);
+  });
+
+  it('turns a picture onto a larger canvas without losing it', () => {
+    const r = hut(100);
+    const d = drehen(r.data, r.w, r.h, 45);
+    expect(d.w).toBe(142);
+    expect(d.h).toBe(142);
+  });
 });
+
+describe('Fertige Ebene anpassen (eingebaute Bilder auf der Lehrerseite)', () => {
+  /** A layer with a solid square at (200..280, 100..180) and a grey rim around it. */
+  function ebene(): Roh {
+    const data = new Uint8Array(G * G * 4);
+    for (let y = 96; y < 184; y++)
+      for (let x = 196; x < 284; x++) data.set(y >= 100 && y < 180 && x >= 200 && x < 280 ? [200, 30, 30, 255] : [...GRAU, 255], (y * G + x) * 4);
+    return { data, w: G, h: G };
+  }
+
+  it('stays the same without settings', () => {
+    const e = ebene();
+    expect(ebeneAnpassen(e, {}).data).toEqual(e.data);
+  });
+
+  it('moves and scales around the middle of the part', () => {
+    const b = sichtbar(ebeneAnpassen(ebene(), { s: 0.5, dx: 10, dy: -5 }).data, G, G)!;
+    // 88 px wide (with the rim) → 44; the middle (240, 140) moves by 20/−10 layer pixels.
+    expect(Math.abs(b.w - 44)).toBeLessThanOrEqual(2);
+    expect(Math.abs(b.x + b.w / 2 - 260)).toBeLessThanOrEqual(1);
+    expect(Math.abs(b.y + b.h / 2 - 130)).toBeLessThanOrEqual(1);
+  });
+
+  it('cuts the grey rim away, keeps the part', () => {
+    const e = ebeneAnpassen(ebene(), { toleranz: 30 });
+    const b = sichtbar(e.data, G, G)!;
+    expect([b.x, b.y, b.w, b.h]).toEqual([200, 100, 80, 80]);
+  });
+});
+

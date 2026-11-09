@@ -300,6 +300,21 @@ Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen d
 - Hat die Lehrkraft auf einem Gerät einen anderen Schlüssel (vor dem Abgleich), fehlt dort der Knopf; dann den
   weiteren Besitzer-Hash ihrer Klassen in `lq_admin` nachtragen.
 
+## Bilder nachjustieren und mit KI malen (09.11.2026)
+
+- Wunsch: auch die eingebauten Bilder auf der Seite bearbeiten (Größe, Freistellen, **Drehen**) und neue Bilder mit
+  Nano Banana über OpenRouter direkt auf der Seite malen lassen. Ganz neue Teile (Name, Platz, Preis) kommen später als
+  eigener Schritt, weil dafür der Server-Katalog und die App umgebaut werden müssen.
+- **Nachjustieren:** „Eingebautes Bild nachjustieren“ bzw. „Hochgeladenes Bild nachjustieren“ nimmt die fertige Ebene;
+  Regler Größe, links/rechts, hoch/runter, Drehen und „Grauen Rand wegschneiden“ (`ebeneAnpassen` in
+  `bilder/ebene.ts`; Hintergründe ohne Regler). Das Ergebnis geht wie ein Upload auf den Server; „Löschen“ bringt das
+  eingebaute Original zurück, das Repo bleibt unverändert.
+- **Drehen** auch für einzeln gemalte Teile (Regler, im Skript `r` in `anpassen.json`, Grad im Uhrzeigersinn).
+- **Mit KI malen:** Prompt aus `vorlagen.ts` (änderbar), ein Bild je Klick mit dem Bildmodell und dem OpenRouter-Schlüssel
+  aus „KI im Baukasten“ (nur auf dem Gerät); Kosten werden wie andere KI-Bilder gezählt (Monatsgrenze fragt vorher).
+  Kleidung und Augen standardmäßig als Edit: die gemalte Grundfigur (`koerper-0.webp` auf Grau, 1024 px) geht mit.
+  Das Ergebnis landet in der Vorschau wie ein gewähltes Bild. Keine Server-Änderung.
+
 ## Wiederholungen geben weniger (09.11.2026)
 
 Wunsch der Lehrkraft: „Wiederholungen bereits erledigter Übungen geben eine kleine Anzahl von EP und Münzen.“

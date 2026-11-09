@@ -39,6 +39,10 @@ bringt das eingebaute Bild bzw. die Zeichnung zurück.
 
 - Gleiche Regeln wie unten: Edits sind Edits der Grundfigur (verglichen wird mit der eingebauten `koerper-0.webp`),
   einzeln gemalte Teile auf grauem Grund. Die Regler entsprechen `s`, `dx`, `dy`, `toleranz` und `schwelle`.
+- **Nachjustieren:** Eingebaute oder hochgeladene Bilder lassen sich dort verschieben, vergrößern, drehen und von
+  grauem Rand befreien; das Ergebnis wird ein hochgeladenes Bild (Löschen bringt das Original zurück).
+- **Mit KI malen:** Nano Banana (OpenRouter-Schlüssel aus „KI im Baukasten“) malt mit dem Prompt von hier ein Bild,
+  Kleidung und Augen als Edit der Grundfigur; etwa 4 Cent je Bild.
 - Frisuren, Münder, Hauttöne und die Grundfigur gehen weiter nur über das Skript.
 - Ein hochgeladenes Bild liegt auf dem Server, nicht im Repo. Soll es dauerhaft eingebaut werden, weiter wie unten.
 
@@ -121,7 +125,7 @@ Bleiben Reste stehen (z. B. Schatten am Boden) oder fehlen zarte Stellen, hilft 
    }
    ```
 
-   `schwelle` (Edits) siehe oben; `toleranz` = wie grau noch als Hintergrund gilt (Standard 36); `loecher` = auch
+   `schwelle` (Edits) siehe oben; `r` dreht (Grad im Uhrzeigersinn, einzeln erzeugte Teile); `toleranz` = wie grau noch als Hintergrund gilt (Standard 36); `loecher` = auch
    eingeschlossenen grauen Grund entfernen (zwischen den Beinen); `s`, `dx`, `dy` nur für einzeln erzeugte Teile
    (unten).
 5. `npm test` prüft Namen, Größe (480 × 480, unter 150 KB) und dass die Grundfigur in allen Hauttönen und jede

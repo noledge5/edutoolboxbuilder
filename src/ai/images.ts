@@ -75,8 +75,8 @@ interface ImageResponse {
   choices?: { message?: { images?: { image_url?: { url?: string } }[]; content?: string } }[];
 }
 
-/** One picture from OpenRouter. */
-export async function makeImage(key: string, model: string, prompt: string, aspect: ImageAspect, signal?: AbortSignal): Promise<MadeImage> {
+/** One picture from OpenRouter; `inputs` (data URLs) go along for an edit of a picture. */
+export async function makeImage(key: string, model: string, prompt: string, aspect: ImageAspect, signal?: AbortSignal, inputs: string[] = []): Promise<MadeImage> {
   let res: Response;
   try {
     res = await fetch(`${OPENROUTER}/chat/completions`, {
@@ -88,7 +88,12 @@ export async function makeImage(key: string, model: string, prompt: string, aspe
         modalities: ['image', 'text'],
         image_config: { aspect_ratio: aspect },
         usage: { include: true },
-        messages: [{ role: 'user', content: prompt }],
+        messages: [
+          {
+            role: 'user',
+            content: inputs.length ? [{ type: 'text', text: prompt }, ...inputs.map((url) => ({ type: 'image_url', image_url: { url } }))] : prompt,
+          },
+        ],
       }),
     });
   } catch (e) {
@@ -108,12 +113,12 @@ export async function makeImage(key: string, model: string, prompt: string, aspe
 }
 
 /** Pictures with this device's key: asks first over the month's limit, counts what they cost. null: no key or not wanted. */
-export async function runImages(prompt: string, aspect: ImageAspect, count: number, signal?: AbortSignal): Promise<MadeImage[] | null> {
+export async function runImages(prompt: string, aspect: ImageAspect, count: number, signal?: AbortSignal, inputs: string[] = []): Promise<MadeImage[] | null> {
   const s = await getAiSettings();
   const key = imageKeyOf(s);
   if (!s || !key) return null;
   if (overLimit(s) && !window.confirm(`Diesen Monat hast du auf diesem Gerät schon ${dollars(s.spent)} für KI ausgegeben (Limit ${dollars(s.limit)}). Trotzdem fortfahren?`)) return null;
-  const made = await Promise.allSettled(Array.from({ length: count }, () => makeImage(key, s.imageModel, prompt, aspect, signal)));
+  const made = await Promise.allSettled(Array.from({ length: count }, () => makeImage(key, s.imageModel, prompt, aspect, signal, inputs)));
   const ok = made.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
   let now = (await getAiSettings()) ?? s;
   for (const m of ok) now = withSpent(now, 'Bild erzeugen', m.model, m.usd);

@@ -904,3 +904,26 @@
 .lqt-bild-edit .lqt-head > div:first-child {
   flex-basis: auto;
 }
+.lqt-bild-ki {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+.lqt-bild-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.lqt-bild-prompt textarea {
+  width: 100%;
+  height: auto;
+  resize: vertical;
+  font-family: inherit;
+  border-radius: 10px;
+  padding: 8px 10px;
+  line-height: 1.4;
+}
