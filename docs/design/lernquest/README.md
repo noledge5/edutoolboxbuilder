@@ -48,3 +48,6 @@ Gilt vor dem Prototyp, wo beide sich widersprechen.
   Teile werden nie gelöscht, nur auf Herkunft **„nicht erhältlich“** gesetzt (auch für Sonderteile zum Verschenken).
 - **Neue Teile legt die Lehrkraft selbst an, mit Bild** (meist mit Nano Banana erzeugt). Nur Rasterbilder (PNG/WebP),
   kein SVG-Upload (Schadcode-Gefahr); Details zu Format und Ablauf folgen.
+- **Alles an einem Ort:** Auf der Seite „Teile“ im Baukasten entsteht und ändert man ein Teil vollständig: Bild
+  (erzeugen mit fester Stil-Vorgabe oder Datei hochladen), Name, Platz, Seltenheit, Herkunft, Bonus. Vorschau auf der
+  Figur vor dem Übernehmen. Der Bild-Schlüssel bleibt auf dem Gerät (`geraet:*`).
