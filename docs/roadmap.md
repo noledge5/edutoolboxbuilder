@@ -139,6 +139,8 @@ Entschieden mit Fragen und Vor- und Nachteilen:
 - ✅ (06.10.2026) PDF einpflegen (Wunsch: Material von anderen ins Baukasten-Format bringen, Abbildungen übernehmen). Entscheidungen: Claude liest die Seiten (Bild und Text), der Baukasten schneidet die Abbildungen aus (eingebettete Bilder genau, sonst nach Claudes Rahmen, auch bei Scans); treu mit Lösungen; nur PDF, eine Datei je Stunde; Lehrkraft-Seite und Kompetenzen dazu; keine Quellenzeile unter den Bildern.
 - ✅ (06.10.2026) Automatischer Abgleich Mac ↔ iPad (Wunsch: das wichtigste offene Audit-Thema). Entscheidungen: eigener Server (Supabase Frankfurt), Ende-zu-Ende-verschlüsselt, ohne Konto; Kopplung per Code/QR-Code; laufend (beim Öffnen, nach Änderungen, alle 3 Minuten); bei Konflikten gewinnt die neuere Fassung, die andere bleibt als frühere Fassung. Der Abgleich per Datei bleibt. Noch offen: Löschen der Daten auf dem Server und Aufräumen alter Kopplungen (die Server-Funktion braucht eine Freigabe im Supabase-Werkzeug).
 - Offen aus dem Audit: Klassenarbeit mit Claude aus dem Kompetenzraster, Didaktik-Check für fertige Stunden, Browser-Tests im CI.
+- ✅ (08.11.2026) Kartenfrage ohne Geräte (wie Plickers; Wunsch: Kernfunktion, nicht verhandelbar). Entscheidungen von Claude: eigene Karten (4 × 4-Muster, 63 je Klasse, ein falsch gelesenes Feld wird korrigiert, zwei werden abgewiesen), eigener Leser ohne Zusatzbibliothek (offline, im Browser), eine Antwort zählt erst, wenn zwei Bilder hintereinander dasselbe zeigen; Karte je Kind der Lernquest-Klasse, Nummern im Lehrkraft-Datensatz (Abgleich Mac ↔ iPad); Fragen aus den freigeschalteten Stunden einer Region oder freie Frage A–D; am Beamer nur Kartennummern, Namen auf Wunsch; Auswertung je Frage und je Kind nur auf dem Bildschirm. Noch offen: Kartenfrage in den Folien, Klassenpunkte für richtige Antworten.
+- ✅ (08.11.2026, Branch `claude/card-answers-boss-fight-21ji1g`) Bosskampf mit Karten: Kinder ohne Handy kämpfen mit ihrer Antwortkarte, Schaden, Herzen, Truhe und Klassenpunkte wie beim Gerätekampf. Einzelheiten in `docs/lernquest.md` „Bosskampf mit Karten“. Server-Teil `20261115_lernquest_boss_karten.sql` eingespielt am 09.11.2026 (Projekt „baukasten“).
 - Offen beim automatischen Abgleich: Daten auf dem Server löschen und alte Kopplungen aufräumen (braucht Freigabe im Supabase-Werkzeug).
 - ✅ (08.10.2026, Befragung zu Zeitfressern: Feinschliff im Editor, KI-Fehler beheben, Folien eigen und passend) Tastenkürzel-Übersicht (?), ↵ bearbeitet auf dem Blatt, 1/2/3/0 Niveau, ⌘P; „Stunde prüfen“ mit Claude (nicht lösbar mit dem Blatt, Reihenfolge, Niveau) mit „Beheben …“ über „Mit Anweisung neu machen“ und Grundsatz „Lösbar mit dem Blatt“ in der Anleitung; Antworten, Tabellen, Zuordnungen, Wortspeicher, Schemata direkt auf dem Blatt bearbeiten; Kopfzeile zeigt die Stunde; Folienarten „Vollbild“ und „Groß“, Suchwörter und Bildbeschreibung je Folie, „Folien mit Claude abwechslungsreicher“. Entscheidungen: Prüfen in Regel und Knopf; Folien erst Regeln, dann Claude obendrauf.
 - ✅ (08.10.2026) „Stunde komplett mit Claude“ (Endziel 2, Stunde in 15 Minuten): ausarbeiten, prüfen, beheben, Folien vorschlagen und abwechslungsreich machen in einem Lauf, am Ende einmal übernehmen. Nur mit Schlüssel (vier Anfragen nacheinander; über den Chat bleiben die einzelnen Dialoge).
@@ -185,8 +187,26 @@ Reihenfolge (je Schritt ein PR):
 
 ### Runde 10 – Lernquest (entschieden am 06.11.2026)
 Wunsch der Lehrkraft: ein Lerntool, verbunden mit den Modulen, Mischung aus Duolingo und Anton, mit Anmeldung über Name und Zugangscode, langfristigem Fortschritt, Avatar, Truhen, echten Belohnungen und Bosskämpfen im Klassenzimmer, gern mit RPG-Gefühl. Plan und alle Entscheidungen: `docs/lernquest.md`. Gebaut auf dem langen Branch `lernquest`, jede Stufe einzeln nach `main`.
-1. Lernen (Klassen, Anmeldung, Weltkarte, Übungsformate, Erfahrung, Wochenziel, Wiederholen). Gebaut am 06.11.2026 auf `lernquest`, noch nicht auf `main`; Einzelheiten unter „Stand Stufe 1“ in `docs/lernquest.md`.
-2. Held und Beute (Avatar, Truhen, Laden)
-3. Bosskampf am Beamer
+1. Lernen (Klassen, Anmeldung, Weltkarte, Übungsformate, Erfahrung, Wochenziel, Wiederholen). Live seit 06.11.2026; Einzelheiten unter „Stand Stufe 1“ in `docs/lernquest.md`.
+2. Held und Beute (Avatar, Truhen, Laden). Live seit 06.11.2026 (PR #23).
+3. Bosskampf am Beamer. Entschieden mit der Lehrkraft am 06.11.2026: 10 Fragen, 20 s je Frage, Schaden 10 + bis 10 fürs Tempo, ab 3 richtig in Folge doppelt, Lebenspunkte so, dass die Klasse mit etwa 70 % richtig gewinnt, 5 Klassen-Herzen (eins weg bei weniger als der Hälfte richtig); Truhe für alle, die mitgemacht haben, nur beim ersten Sieg je Region. Server-Teil eingespielt am 06.11.2026, App auf Branch `claude/lernquest-stufe3`.
 4. Echte Belohnungen und Auswertung
 5. KI-Fragenpool und mehr Formate
+
+Entschieden am 08.11.2026:
+- **Bosskampf mit Karten:** gebaut (siehe oben); offen ist noch der Lehrkraft-Bereich in der Lernquest-App (heute
+  scannt der Baukasten auf iPad oder iPhone).
+- **Stunden ausblenden:** je Klasse drei Stufen (Freigeschaltet, Gesperrt, Ausgeblendet), ohne Server-Änderung;
+  Einzelheiten unter „Stunden ausblenden“ in `docs/lernquest.md`.
+- **Detailarbeit an einen externen Agenten (DeepSeek über OpenRouter):** Claude schreibt je Aufgabe ein Arbeitspaket
+  ins Repo (Ziel, Dateien, Regeln aus `AGENTS.md`, wann fertig), die Lehrkraft startet DeepSeek mit einem
+  Programmier-Werkzeug auf eigenem Branch, Claude prüft (Tests, Bildschirmfotos, Durchsicht) vor dem Merge. Erstes
+  Thema: Animationen der Bosse und Begleiter. Warum: Planen und Prüfen beim stärkeren Modell, viel Kleinarbeit günstig.
+  Der OpenRouter-Schlüssel bleibt auf dem Gerät der Lehrkraft, nie in der Cloud-Sitzung oder im Repo; das Repo enthält
+  keine Kinderdaten.
+- **Animationen der Bosse und Begleiter:** Bewegung der ganzen Figur (atmen, wippen, hüpfen, fliegen), bei den Bossen
+  zusätzlich Treffer-Wackeln und Aufblitzen; bei „Bewegung reduzieren“ steht alles still. Die Lehrkraft kann kurze
+  Bewegungsschleifen selbst machen (MiniMax, lokal in ComfyUI). **Deshalb vorerst kein externer Agent** (Lehrkraft,
+  08.11.2026): Den kleinen Code-Teil (Animation statt Bild, Standbild bei „Bewegung reduzieren“, Treffer per CSS,
+  Prüf- und Umwandlungs-Skript) baut Claude in einer eigenen Sitzung. Die Abmachung zu Arbeitspaketen oben gilt, falls
+  später viel gleichartige Kleinarbeit kommt.

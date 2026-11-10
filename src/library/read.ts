@@ -9,6 +9,7 @@ import { isLessonRole } from './planning';
 import { readSubjectColors } from './subjectColor';
 import type { Competence, Holiday, Lesson, LessonVersion, Module, SchoolYear, Settings, TrashEntry } from './types';
 import { isObj } from '../model/text';
+import { readPool } from '../lernquest/fragenpool';
 
 const str = (x: unknown): string => (typeof x === 'string' ? x : typeof x === 'number' ? String(x) : '');
 const int = (x: unknown, fallback = 0): number => {
@@ -90,11 +91,18 @@ export function readLesson(raw: unknown): Lesson | null {
       slideDesign: isSlideDesign(raw.slideDesign) ? raw.slideDesign : 'organisch',
       boards: normalizeBoards(raw.boards),
       ...(canvaLink(raw.canvaUrl) ? { canvaUrl: canvaLink(raw.canvaUrl) } : {}),
+      ...poolOf(raw.pool),
       updatedAt: Number(raw.updatedAt) || 0,
     };
   } catch {
     return null;
   }
+}
+
+/** The lesson's Lernquest pool, only when it has one (older lessons stay as they were). */
+function poolOf(raw: unknown): { pool?: Lesson['pool'] } {
+  const pool = readPool(raw);
+  return pool.length ? { pool } : {};
 }
 
 /** A handed-out assignment as stored or synced; its pages are checked like a worksheet. */

@@ -1,17 +1,16 @@
 // Local persistence in IndexedDB (more room than localStorage, and it can hold image blobs).
-import { createStore, del, get, keys, set, type UseStore } from 'idb-keyval';
+import { del, get, keys, set } from 'idb-keyval';
 import { normalizeDoc } from '../model/normalize';
 import { referencedImages } from '../model/ops';
 import type { Doc } from '../model/types';
+import { kv } from './kv';
 
 const DOC_KEY = 'doc:aktuell';
 const IMG_PREFIX = 'img:';
 
-let store: UseStore | null = null;
-const db = (): UseStore => (store ??= createStore('arbeitsblatt-baukasten', 'daten'));
-
 /** The shared key-value store (also used by the library, see storage/library.ts). */
-export const kv = db;
+export { kv } from './kv';
+const db = kv;
 
 /** The worksheet of the first version (before the library). */
 export async function loadDoc(): Promise<Doc | null> {

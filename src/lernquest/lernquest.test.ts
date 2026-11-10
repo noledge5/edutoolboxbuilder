@@ -1,11 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { angelegt, bonusText, bonusVon, CHANCEN, TEILE } from './teile';
+import { angelegt, bonusText, bonusVon, ladenWare, SCHADEN_MAX, CHANCEN, MUENZ_CHANCEN, MUENZ_TRUHE, PREISE, TEILE, type Avatar } from './teile';
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import { faellig, heldenstufe, istRichtig, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, muenzenFuerRunde, XP_TAG } from './rules';
-import { codeAus, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
+import { faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
+import { auswerten, kartenJeKompetenz } from './auswertung';
+import type { Lesson, Module } from '../library/types';
+import { beamerAusHash, beitrittsLink, codeAus, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
 import { LEERER_STAND, type Paket, type Uebung } from './types';
 
 const block = (type: Block['type'], props: Block['props']): Block => createBlock(type, props);
@@ -203,7 +205,8 @@ describe('Runde auf dem Gerät', () => {
     expect(r.plus).toBe(10);
     expect(r.stand).toMatchObject({ xp: 50, xpHeute: 300, bestwerte: { s1: [60, 100] }, tage: ['2026-11-06'], leitner: { 'a/1': [1, 5], 'a/2': [2, 9] } });
     const next = rundeAnwenden(r.stand, { stunde: 's1', runde: 0, richtig: 1, gesamt: 5, leitner: {} }, '2026-11-07');
-    expect(next).toMatchObject({ plus: 12, stand: { xpHeute: 12, bestwerte: { s1: [60, 100] }, tage: ['2026-11-06', '2026-11-07'] } });
+    // Round 0 was done before (60 %): a repetition, a third of 12.
+    expect(next).toMatchObject({ plus: 4, wiederholung: true, stand: { xpHeute: 4, bestwerte: { s1: [60, 100] }, tage: ['2026-11-06', '2026-11-07'] } });
   });
 
   it('gibt Münzen mit Herzen und Bonus, gedeckelt am Tag', () => {
@@ -214,33 +217,144 @@ describe('Runde auf dem Gerät', () => {
     expect(muenzenFuerRunde(5, 5, 3, 0, 195)).toBe(5);
   });
 
-  it('gibt eine Truhe für die erste ganz gespielte Station und fürs Wochenziel', () => {
-    const k = { herzen: 3, bonusProzent: 0, runden: 2, stationSchonBelohnt: false };
+  it('gibt für Wiederholungen ein Drittel Erfahrung und Münzen (abgerundet), vor der Tagesgrenze', () => {
+    expect(WIEDERHOLUNG_TEILER).toBe(3);
+    expect(xpFuerRunde(3, 5, 0, true)).toBe(5); // 16 / 3
+    expect(xpFuerRunde(5, 5, 0, true)).toBe(8); // 25 / 3
+    expect(xpFuerRunde(0, 5, 0, true)).toBe(3); // 10 / 3
+    expect(xpFuerRunde(5, 5, XP_TAG - 4, true)).toBe(4);
+    expect(muenzenFuerRunde(5, 5, 3, 0, 0, true)).toBe(5); // 16 / 3
+    expect(muenzenFuerRunde(5, 5, 5, 20, 0, true)).toBe(8); // 24 / 3, bonus first
+    expect(muenzenFuerRunde(5, 5, 3, 0, 198, true)).toBe(2);
+    // What counts: „Wiederholen“, or a station round with a best above 0 before this round.
+    expect(istWiederholung({}, '', 0)).toBe(true);
+    expect(istWiederholung({ s1: [60, 0] }, 's1', 0)).toBe(true);
+    expect(istWiederholung({ s1: [60, 0] }, 's1', 1)).toBe(false);
+    expect(istWiederholung({ s1: [60] }, 's1', 2)).toBe(false);
+    expect(istWiederholung({}, 's1', 0)).toBe(false);
+    const k = { herzen: 3, bonusProzent: 0, runden: 2 };
+    const s0 = { ...LEERER_STAND, tage: ['2026-11-09'] };
+    const erst = rundeAnwenden(s0, { stunde: 's1', runde: 0, richtig: 4, gesamt: 5, leitner: {} }, '2026-11-09', k);
+    expect(erst).toMatchObject({ plus: 18, muenzenPlus: 13, wiederholung: false });
+    // Played again: a third, but a better best still counts and brings its star.
+    const noch = rundeAnwenden(erst.stand, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-09', k);
+    expect(noch).toMatchObject({ plus: 8, muenzenPlus: 5, wiederholung: true, stand: { bestwerte: { s1: [100] } } });
+    const wdh = rundeAnwenden(noch.stand, { stunde: '', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-09', k);
+    expect(wdh).toMatchObject({ plus: 8, muenzenPlus: 5, wiederholung: true });
+  });
+
+  it('rechnet Wiederholungen wie der Server (lq_runde_melden)', () => {
+    const sql = readFileSync(new URL('../../supabase/migrations/20261117_lernquest_wiederholung.sql', import.meta.url), 'utf8');
+    expect(sql).toContain("wdh := p_stunde = '' or coalesce((k.daten -> 'bestwerte' -> p_stunde ->> p_runde)::int, 0) > 0;");
+    expect(sql).toContain(`if wdh then plus := plus / ${WIEDERHOLUNG_TEILER}; end if;`);
+    expect(sql).toContain(`if wdh then m_roh := m_roh / ${WIEDERHOLUNG_TEILER}; end if;`);
+    // Order as in rules.ts: experience third before the daily cap; coins bonus, then third, then the daily cap.
+    expect(sql.indexOf('plus := plus / 3')).toBeLessThan(sql.indexOf('plus := least(plus, greatest(0, 300 - schon))'));
+    expect(sql.indexOf('(m_roh * b.muenzen) / 100')).toBeLessThan(sql.indexOf('m_roh := m_roh / 3'));
+    expect(sql.indexOf('m_roh := m_roh / 3')).toBeLessThan(sql.indexOf('m_plus := least(m_roh'));
+    // Asked before this round changes the best.
+    expect(sql.indexOf('wdh :=')).toBeLessThan(sql.indexOf("jsonb_set(d, '{bestwerte}'"));
+  });
+
+  it('gibt eine Truhe je 3 neue Sterne und eine fürs Wochenziel', () => {
+    const k = { herzen: 3, bonusProzent: 0, runden: 2 };
     const s0 = { ...LEERER_STAND, bestwerte: { s1: [80] }, tage: ['2026-11-02', '2026-11-03'] };
-    const r = rundeAnwenden(s0, { stunde: 's1', runde: 1, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-04', k);
-    expect(r.truhenPlus).toBe(2);
-    expect(r.stand.truhen).toBe(2);
-    expect(r.muenzenPlus).toBe(10);
-    expect(rundeAnwenden(r.stand, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', { ...k, stationSchonBelohnt: true }).truhenPlus).toBe(0);
+    // Station done with 2 stars (average 80 %): no chest yet, but the weekly goal brings one.
+    const r = rundeAnwenden(s0, { stunde: 's1', runde: 1, richtig: 4, gesamt: 5, leitner: {} }, '2026-11-04', k);
+    expect(r).toMatchObject({ sternePlus: 2, truhenPlus: 1, punktePlus: 3, muenzenPlus: 13 });
+    expect(r.stand).toMatchObject({ truhen: 1, sterneRest: 2, sterneStationen: { s1: 2 } });
+    // Replaying without a better star gives nothing.
+    const r2 = rundeAnwenden(r.stand, { stunde: 's1', runde: 1, richtig: 4, gesamt: 5, leitner: {} }, '2026-11-04', k);
+    expect(r2).toMatchObject({ sternePlus: 0, truhenPlus: 0 });
+    // Both rounds once without mistakes: the third star fills the chest.
+    const r3 = rundeAnwenden(r2.stand, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', k);
+    expect(r3.truhenPlus).toBe(0);
+    const r4 = rundeAnwenden(r3.stand, { stunde: 's1', runde: 1, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', k);
+    expect(r4).toMatchObject({ sternePlus: 1, truhenPlus: 1, stand: { truhen: 2, sterneRest: 0, sterneStationen: { s1: 3 } } });
+    expect(rundeAnwenden(r4.stand, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', k).truhenPlus).toBe(0);
+  });
+
+  it('zählt Sterne über Stationen hinweg: drei Stationen mit einem Stern sind eine Truhe', () => {
+    const k = { herzen: 3, bonusProzent: 0, runden: 1 };
+    let s = { ...LEERER_STAND, tage: ['2026-11-04'] };
+    const truhen: number[] = [];
+    for (const st of ['a', 'b', 'c']) {
+      const r = rundeAnwenden(s, { stunde: st, runde: 0, richtig: 2, gesamt: 5, leitner: {} }, '2026-11-04', k);
+      truhen.push(r.truhenPlus);
+      s = r.stand;
+    }
+    expect(truhen).toEqual([0, 0, 1]);
+    expect(s).toMatchObject({ truhen: 1, sterneRest: 0 });
+  });
+
+  it('zählt bei alten Stationen ohne Eintrag nur neue Sterne (ihre Truhe gab es schon)', () => {
+    expect(neueSterne(undefined, 1, 3)).toBe(2);
+    expect(neueSterne(undefined, 0, 2)).toBe(2);
+    expect(neueSterne(3, 1, 2)).toBe(0);
+    const s0 = { ...LEERER_STAND, bestwerte: { s1: [60] }, tage: ['2026-11-04'] };
+    const r = rundeAnwenden(s0, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', { herzen: 3, bonusProzent: 0, runden: 1 });
+    expect(r).toMatchObject({ sternePlus: 2, truhenPlus: 0, stand: { sterneRest: 2, sterneStationen: { s1: 3 } } });
   });
 });
 
 describe('Held und Beute', () => {
   it('hat denselben Katalog wie der Server', () => {
-    const sql = readFileSync(new URL('../../supabase/migrations/20261106b_lernquest_held.sql', import.meta.url), 'utf8');
+    const sql = ['20261106b_lernquest_held.sql', '20261109_lernquest_beute.sql']
+      .map((f) => readFileSync(new URL(`../../supabase/migrations/${f}`, import.meta.url), 'utf8'))
+      .join('\n');
     const rows = [...sql.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+)\)/g)].map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]);
+    // Chest treasures (20261116_lernquest_truhenschaetze.sql) carry damage and nur_truhe in the row.
+    const schaetze = readFileSync(new URL('../../supabase/migrations/20261116_lernquest_truhenschaetze.sql', import.meta.url), 'utf8');
+    const neu = [...schaetze.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+), (\d+), (true|false)\)/g)];
+    rows.push(...neu.map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]));
     expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, !!t.start, t.muenzen ?? 0, t.herz ?? 0]));
-    expect(TEILE).toHaveLength(40);
-    expect(CHANCEN.reduce((a, b) => a + b, 0)).toBe(100);
+    expect(neu.map((m) => [m[1], +m[7], m[8] === 'true'])).toEqual(TEILE.slice(56).map((t) => [t.id, t.schaden ?? 0, !!t.nurTruhe]));
+    expect(TEILE.slice(0, 56).filter((t) => t.nurTruhe)).toEqual([]);
+    expect(TEILE).toHaveLength(80);
+    expect(schaetze).toContain('and not x.nur_truhe');
+    expect(schaetze).toContain(`(array[${PREISE.join(', ')}])`);
+    // Damage bonus in the boss fight (20261111_lernquest_schaden.sql).
+    const schaden = readFileSync(new URL('../../supabase/migrations/20261111_lernquest_schaden.sql', import.meta.url), 'utf8');
+    const mitSchaden = [...schaden.matchAll(/\('([a-z]+)', (\d+)\)/g)].map((m) => [m[1], +m[2]]);
+    expect(mitSchaden).toEqual(TEILE.slice(0, 56).filter((t) => t.schaden).map((t) => [t.id, t.schaden]));
+    expect(schaden).toContain(`least(${SCHADEN_MAX},`);
+    expect([...MUENZ_CHANCEN, ...CHANCEN].reduce((a, b) => a + b, 0)).toBe(100);
+    // Chests and shop as in lq_truhe_oeffnen and lq_kaufen (20261109_lernquest_beute.sql).
+    const beute = readFileSync(new URL('../../supabase/migrations/20261109_lernquest_beute.sql', import.meta.url), 'utf8');
+    expect(beute).toContain(`(array[${MUENZ_TRUHE.join(', ')}])`);
+    expect(beute).toContain(`(array[${PREISE.join(', ')}])`);
+    expect(beute).toContain(`r < ${MUENZ_CHANCEN[0] + MUENZ_CHANCEN[1]}`);
+    expect(beute).toContain(`when r < ${MUENZ_CHANCEN[0]} then 0`);
+    const g = MUENZ_CHANCEN[0] + MUENZ_CHANCEN[1];
+    expect(beute).toContain(`when r < ${g + CHANCEN[0]} then 0 when r < ${g + CHANCEN[0] + CHANCEN[1]} then 1`);
+  });
+
+  it('verkauft im Laden keine Truhen-Schätze und nichts, was das Kind schon hat', () => {
+    const kopf = ladenWare(['kappe'], 'kopf').map((t) => t.id);
+    expect(kopf).toContain('kochmuetze');
+    expect(kopf).not.toContain('kappe');
+    expect(kopf).not.toContain('eiskrone');
+    expect(kopf).not.toContain('raumhelm');
+    expect(ladenWare([], 'kopf').map((t) => t.seltenheit)).toEqual([...ladenWare([], 'kopf').map((t) => t.seltenheit)].sort());
+    // Every place keeps something to buy and at least one treasure to find.
+    for (const slot of ['kopf', 'augen', 'kleidung', 'werkzeug', 'begleiter', 'hintergrund'] as const) {
+      expect(ladenWare([], slot).length).toBeGreaterThan(0);
+      expect(TEILE.some((t) => t.slot === slot && t.nurTruhe)).toBe(true);
+    }
   });
 
   it('deckelt die Boni und kennt Startteile', () => {
-    expect(bonusVon({ kopf: 'krone', kleidung: 'goldruestung', werkzeug: 'sternenschwert', begleiter: 'drache' })).toEqual({ muenzen: 20, herz: 2 });
-    expect(bonusVon({})).toEqual({ muenzen: 0, herz: 0 });
+    expect(bonusVon({ kopf: 'krone', kleidung: 'goldruestung', werkzeug: 'sternenschwert', begleiter: 'drache' })).toEqual({ muenzen: 20, herz: 2, schaden: 3 });
+    expect(bonusVon({})).toEqual({ muenzen: 0, herz: 0, schaden: 0 });
+    // Damage: Ritterhelm +1 and Dreizack +2; capped at +3.
+    expect(bonusVon({ kopf: 'ritterhelm', werkzeug: 'dreizack' }).schaden).toBe(3);
+    expect(bonusVon({ kopf: 'ritterhelm', werkzeug: 'fernrohr' }).schaden).toBe(2);
+    expect(bonusVon({ frisur: 'ritterhelm' } satisfies Avatar).schaden).toBe(0);
     expect(angelegt({}, 'kleidung')?.id).toBe('tshirt');
     expect(angelegt({ kleidung: 'pulli' }, 'kleidung')?.id).toBe('pulli');
     expect(angelegt({}, 'kopf')).toBeUndefined();
     expect(bonusText({ muenzen: 5, herz: 1 })).toBe('+5 % Münzen, +1 Herz');
+    expect(bonusText({ muenzen: 5, herz: 1, schaden: 3 })).toBe('+5 % Münzen, +1 Herz, +3 Schaden');
   });
 });
 
@@ -287,5 +401,113 @@ describe('Weltkarte', () => {
     expect(codeAus('https://example.com')).toBe('');
     expect(vorname('Mia K.')).toBe('Mia');
     expect(namensFarbe('Mia K.')).toBe(namensFarbe('Mia K.'));
+  });
+
+  it('liest den Beamer-Link, mit und ohne Klassencode', () => {
+    const id = '3f2a9c1e-7b4d-4e0a-9c55-0d1e2f3a4b5c';
+    expect(beamerAusHash(`#beamer=${id}`)).toEqual({ id, klasse: '' });
+    expect(beamerAusHash(`#beamer=${id}&klasse=7a2e2gj9`)).toEqual({ id, klasse: '7A2E2GJ9' });
+    expect(beamerAusHash(`#beamer=${id}&klasse=zu-kurz`)).toBeNull();
+    expect(beamerAusHash('#7A2E2GJ9')).toBeNull();
+  });
+
+  it('macht aus der Beamer-Seite den Beitrittslink, den der Scanner wieder liest', () => {
+    const link = beitrittsLink('https://noledge5.github.io/edutoolboxbuilder/lernquest/index.html?x=1#beamer=abc', '7A2E2GJ9');
+    expect(link).toBe('https://noledge5.github.io/edutoolboxbuilder/lernquest/#7A2E2GJ9');
+    expect(codeAus(link)).toBe('7A2E2GJ9');
+    expect(beitrittsLink('http://localhost:5173/lernquest/', 'ABCD2345')).toBe('http://localhost:5173/lernquest/#ABCD2345');
+  });
+});
+
+describe('Echte Belohnungen (Stufe 4)', () => {
+  it('gibt fürs Wochenziel 3 Klassenpunkte, einmal je Woche', () => {
+    const s0 = { ...LEERER_STAND, tage: ['2026-11-02', '2026-11-03'] };
+    const r = rundeAnwenden(s0, { stunde: '', runde: 0, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-04');
+    expect(r.punktePlus).toBe(PUNKTE_WOCHENZIEL);
+    expect(r.stand.klassenpunkte).toBe(3);
+    expect(rundeAnwenden(r.stand, { stunde: '', runde: 0, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-05').punktePlus).toBe(0);
+    expect(rundeAnwenden(r.stand, { stunde: '', runde: 0, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-04').punktePlus).toBe(0);
+    // An older Stand without class points counts from 0.
+    const alt = { ...s0 } as Partial<typeof s0>;
+    delete alt.klassenpunkte;
+    expect(rundeAnwenden(alt as typeof s0, { stunde: '', runde: 0, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-04').stand.klassenpunkte).toBe(3);
+  });
+
+  it('prüft Gutscheine wie der Server: Punkte, Grenze je Kind, Grenze der Klasse, offene Anfragen', () => {
+    const g = { preis: 5, jeKind: 1, jeKlasse: 3, ich: 0, klasse: 0 };
+    expect(gutscheinFrei(g, 4, 0)).toBe('punkte');
+    expect(gutscheinFrei(g, 5, 0)).toBe('ok');
+    expect(gutscheinFrei({ ...g, ich: 1 }, 5, 0)).toBe('grenze');
+    expect(gutscheinFrei({ ...g, klasse: 3 }, 5, 0)).toBe('grenze');
+    expect(gutscheinFrei({ ...g, jeKind: null, jeKlasse: null, ich: 9, klasse: 99 }, 5, 0)).toBe('ok');
+    expect(gutscheinFrei(g, 5, 10)).toBe('voll');
+    expect(punkteHandRest(3)).toBe(2);
+    expect(punkteHandRest(7)).toBe(0);
+  });
+});
+
+describe('Auswertung je Kind und Kompetenz', () => {
+  const m = {
+    id: 'm1',
+    competences: [
+      { id: 'k1', area: 'Karten lesen', g: '', m: '', e: '', lessons: '', domain: '' },
+      { id: 'k2', area: 'Klima erklären', g: '', m: '', e: '', lessons: '', domain: '' },
+      { id: 'k3', area: 'Ohne Aufgaben', g: '', m: '', e: '', lessons: '', domain: '' },
+    ],
+  } as unknown as Module;
+  const a = block('mc', { options: 'A\n*B', competence: 'k1' });
+  const b = block('truefalse', { items: 'Erde ist rund | R\nMond ist Käse | F', competence: 'k1' });
+  const c = block('mc', { options: '*A\nB', competence: 'k2' });
+  const d = block('mc', { options: '*A\nB' });
+  const l = { id: 'l1', moduleId: 'm1', doc: { pages: [page([a, b, c, d])] } } as unknown as Lesson;
+  const keys = (blockId: string) => exercisesOf(l.doc.pages).filter((u) => u.id === blockId || u.id.startsWith(`${blockId}:`)).map((u) => `l1/${u.id}`);
+
+  it('ordnet Übungen über die Aufgabe einer Kompetenz zu', () => {
+    const { je, ohne } = kartenJeKompetenz([l]);
+    expect(je.get('k1')).toEqual([...keys(a.id), ...keys(b.id)]);
+    expect(je.get('k2')).toEqual(keys(c.id));
+    expect(ohne).toBe(keys(d.id).length);
+  });
+
+  it('zeigt je Kind, was sitzt, was wackelt und wer Hilfe braucht', () => {
+    const k1 = [...keys(a.id), ...keys(b.id)];
+    const leitner = Object.fromEntries(k1.map((k, i) => [k, [i === 0 ? 1 : 3, 0] as [number, number]]));
+    const r = auswerten(m, [l], [
+      { id: 'anna', leitner },
+      { id: 'ben', leitner: { [k1[0]]: [1, 0] } },
+      { id: 'cem', leitner: {} },
+    ]);
+    expect(r.zeilen.map((z) => z.id)).toEqual(['k1', 'k2']);
+    const z = r.zeilen[0];
+    expect(z.kinder.anna).toMatchObject({ aufgaben: k1.length, geuebt: k1.length, sitzt: k1.length - 1, wackelt: 1, hilfe: false });
+    expect(z.kinder.ben).toMatchObject({ geuebt: 1, sitzt: 0, anteil: 0, hilfe: true });
+    expect(z.kinder.cem).toMatchObject({ geuebt: 0, anteil: null, hilfe: false });
+    expect(z.anteil).toBeCloseTo((k1.length - 1) / k1.length / 2);
+    expect(r.zeilen[1].anteil).toBeNull();
+    expect(r.ohneKompetenz).toBe(keys(d.id).length);
+  });
+
+  it('zählt Links auf gelöschte Kompetenzen und andere Module nicht mit', () => {
+    const fremd = { ...m, competences: m.competences.filter((x) => x.id !== 'k2') } as Module;
+    expect(auswerten(fremd, [l], []).ohneKompetenz).toBe(keys(d.id).length + keys(c.id).length);
+    expect(auswerten(m, [{ ...l, moduleId: 'm2' } as Lesson], []).zeilen).toEqual([]);
+  });
+});
+
+describe('Station: nächste Runde und Lösungstext', () => {
+  it('nimmt die erste ungespielte Runde, sonst die schwächste', () => {
+    expect(naechsteRunde([], 3)).toBe(0);
+    expect(naechsteRunde([100, 0], 3)).toBe(1);
+    expect(naechsteRunde([100, 80, 60], 3)).toBe(2);
+    expect(naechsteRunde([100, 80, 100], 3)).toBe(1);
+    expect(naechsteRunde([100, 100, 100], 3)).toBe(0);
+    // More values than rounds (the lesson got shorter): only the rounds that exist count.
+    expect(naechsteRunde([100, 100, 40], 2)).toBe(0);
+  });
+  it('zeigt Lücken fett statt in Klammern und vergleicht wie die Prüfung', () => {
+    const u: Uebung = { art: 'luecke', id: 'l', frage: 'Ergänze.', teile: ['The sky is ', 'blue', '.'], kacheln: ['blue', 'red'] };
+    expect(loesungText(u)).toBe('The sky is **blue**.');
+    expect(gleich(' Blue', 'blue')).toBe(true);
+    expect(gleich('red', 'blue')).toBe(false);
   });
 });

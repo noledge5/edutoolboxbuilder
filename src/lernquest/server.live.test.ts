@@ -3,8 +3,29 @@
 // two test classes with fresh teacher keys and deletes them for good at the end.
 import { afterAll, describe, expect, it } from 'vitest';
 import { newKey } from './lehrkraft';
+import { bossLp, bossSchaden, muenzenFuerRunde } from './rules';
+import type { BossFrage } from './boss';
+import { MUENZ_TRUHE, PREISE, TEILE, teil } from './teile';
 import {
+  anfrageErledigen,
+  anfrageZurueck,
+  anfragen,
+  belohnungen,
+  gutscheinLoeschen,
+  gutscheinSpeichern,
+  gutscheine,
+  punkteGeben,
   anmelden,
+  avatarSetzen,
+  bossAntworten,
+  bossBeamer,
+  bossBeenden,
+  bossOffen,
+  bossStand,
+  bossStarten,
+  bossWeiter,
+  kaufen,
+  klasseAnsicht,
   entsperren,
   freischalten,
   kindAnlegen,
@@ -19,6 +40,16 @@ import {
   pinSetzen,
   rundeMelden,
   sperren,
+  truheOeffnen,
+  bildDaten,
+  bildLoeschen,
+  bildSetzen,
+  bilderListe,
+  istAdmin,
+  teilAendern,
+  teilAnlegen,
+  teileEigen,
+  wiederholenSetzen,
 } from './server';
 
 const live = process.env.LQ_LIVE === '1';
@@ -130,4 +161,338 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(await code(klasseOeffnen(b.code))).toBe('code');
     expect(await code(anmelden(b.code, ben, '1111'))).toBe('code');
   }, 60_000);
+
+  it('Stufe 2: Truhe, Laden, Avatar und Klassen-Ansicht', async () => {
+    const keyC = [newKey()];
+    const keyD = [newKey()];
+    const c = await klasseAnlegen(keyC, 'Held C');
+    made.push({ keys: keyC, id: c.id });
+    const d = await klasseAnlegen(keyD, 'Held D');
+    made.push({ keys: keyD, id: d.id });
+    const mia = await kindAnlegen(keyC, c.id, 'Mia H.', '1234');
+    await kindAnlegen(keyC, c.id, 'Tom H.', '5678');
+    const ben = await kindAnlegen(keyD, d.id, 'Ben H.', '1111');
+    // Five exercises: one round makes the station complete.
+    await freischalten(keyC, c.id, 'sH', { format: 'lernquest-paket', stunde: 'sH', uebungen: [{}, {}, {}, {}, {}], modul: { id: 'm' } });
+    const ok = await anmelden(c.code, mia, '1234');
+    const okBen = await anmelden(d.code, ben, '1111');
+    if (!ok.ok || !okBen.ok) throw new Error('Anmeldung fehlgeschlagen');
+    const token = ok.token;
+
+    // Nothing to open or buy at the start.
+    expect(await code(truheOeffnen(token))).toBe('ungueltig');
+    expect(await code(kaufen(token, 'lupe'))).toBe('muenzen');
+
+    // The first complete station gives a chest, the second time not; coins as in rules.ts.
+    const r1 = await rundeMelden(token, 'sH', 0, 5, 5, {});
+    expect(r1).toMatchObject({ muenzenPlus: muenzenFuerRunde(5, 5, 3, 0, 0), truhenPlus: 1 });
+    expect(r1.stand).toMatchObject({ truhen: 1, muenzen: r1.muenzenPlus, inventar: [] });
+    const r2 = await rundeMelden(token, 'sH', 0, 5, 5, {});
+    expect(r2.truhenPlus).toBe(0);
+
+    // A chest gives coins only (MUENZ_TRUHE) or one part that is no start part; a new part is never a double.
+    const t = await truheOeffnen(token);
+    const gefunden = teil(t.teil ?? undefined);
+    const eigene = gefunden ? [gefunden.id] : [];
+    if (gefunden) {
+      expect(!gefunden.start).toBe(true);
+      expect(t).toMatchObject({ seltenheit: gefunden.seltenheit, doppelt: false, muenzen: 0 });
+    } else {
+      expect(t).toMatchObject({ teil: null, doppelt: false, muenzen: MUENZ_TRUHE[t.seltenheit] });
+    }
+    expect(t.stand).toMatchObject({ truhen: 0, inventar: eigene, pech: t.seltenheit >= 2 ? 0 : 1 });
+    expect(await code(truheOeffnen(token))).toBe('ungueltig');
+
+    // Shop: a common part costs PREISE[0]; play rounds until the coins reach it.
+    let muenzen = t.stand.muenzen;
+    for (let i = 0; i < 8 && muenzen < PREISE[0]; i++) muenzen = (await rundeMelden(token, '', 0, 5, 5, {})).stand.muenzen;
+    expect(muenzen).toBeGreaterThanOrEqual(PREISE[0]);
+    const [ware, zweite] = TEILE.filter((x) => x.seltenheit === 0 && !x.start && !eigene.includes(x.id));
+    const nachKauf = await kaufen(token, ware.id);
+    expect(nachKauf.muenzen).toBe(muenzen - PREISE[0]);
+    expect(nachKauf.inventar).toEqual([...eigene, ware.id]);
+    expect(await code(kaufen(token, ware.id))).toBe('ungueltig');
+    expect(await code(kaufen(token, 'tshirt'))).toBe('ungueltig');
+    expect(await code(kaufen(token, 'gibt-es-nicht'))).toBe('ungueltig');
+    // Chest treasures are not for sale (20261116_lernquest_truhenschaetze.sql).
+    expect(await code(kaufen(token, TEILE.find((x) => x.nurTruhe && x.seltenheit === 2)!.id))).toBe('ungueltig');
+    if (nachKauf.muenzen < PREISE[0]) expect(await code(kaufen(token, zweite.id))).toBe('muenzen');
+
+    // Avatar: only owned or start parts, each in its own place, skin tone 0–5, hair and mouth (an id each) and the hair colour 0–4.
+    const avatar = { kleidung: 'tshirt', augen: 'punktaugen', [ware.slot]: ware.id, begleiter: '', haut: 2, frisur: 'zopf', haarfarbe: 3, mund: 'lachen' };
+    expect((await avatarSetzen(token, avatar)).avatar).toEqual(avatar);
+    const fremd = TEILE.find((x) => x.seltenheit === 4 && !eigene.includes(x.id));
+    if (!fremd) throw new Error('Katalog');
+    expect(await code(avatarSetzen(token, { [fremd.slot]: fremd.id }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { kopf: 'tshirt' }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { haut: 6 }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { figur: 3 }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { haarfarbe: 5 }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { frisur: 'Zopf!' }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { mund: 'Lachen!' }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { mund: 7 as never }))).toBe('ungueltig');
+    expect(await code(avatarSetzen(token, { name: 'x' } as never))).toBe('ungueltig');
+    expect((await meinStand(token, null)).stand.avatar).toEqual(avatar);
+    // Any hair or mouth id is stored as is (new ones need no server change); one named like a part is only hair.
+    expect((await avatarSetzen(token, { frisur: fremd.id })).avatar).toEqual({ frisur: fremd.id });
+    expect((await avatarSetzen(token, { mund: fremd.id })).avatar).toEqual({ mund: fremd.id });
+    await avatarSetzen(token, avatar);
+
+    // The class view: names and avatars of the own class only, no experience, coins or PINs.
+    const ansicht = await klasseAnsicht(token);
+    expect(ansicht).toEqual({
+      klasse: 'Held C',
+      tage: 1,
+      kinder: [
+        { name: 'Mia H.', avatar, ich: true },
+        { name: 'Tom H.', avatar: {}, ich: false },
+      ],
+    });
+    expect(JSON.stringify(ansicht)).not.toMatch(/pin|hash|xp|muenzen|inventar|truhen/i);
+    expect((await klasseAnsicht(okBen.token)).kinder.map((k) => k.name)).toEqual(['Ben H.']);
+    expect(await code(klasseAnsicht('falsch'))).not.toBe('ok');
+  }, 60_000);
+
+  it('Stufe 3: Bosskampf – Lösungen verborgen, Schaden, Herzen, Truhe einmal je Region', async () => {
+    const keyE = [newKey()];
+    const keyF = [newKey()];
+    const e = await klasseAnlegen(keyE, 'Boss E');
+    made.push({ keys: keyE, id: e.id });
+    const f = await klasseAnlegen(keyF, 'Boss F');
+    made.push({ keys: keyF, id: f.id });
+    const mia = await kindAnlegen(keyE, e.id, 'Mia B.', '1234');
+    const tom = await kindAnlegen(keyE, e.id, 'Tom B.', '5678');
+    const ben = await kindAnlegen(keyF, f.id, 'Ben B.', '1111');
+    const [m, t, b] = await Promise.all([anmelden(e.code, mia, '1234'), anmelden(e.code, tom, '5678'), anmelden(f.code, ben, '1111')]);
+    if (!m.ok || !t.ok || !b.ok) throw new Error('Anmeldung fehlgeschlagen');
+    const fragen: BossFrage[] = [
+      { frage: 'F1', aussage: 'A1', optionen: ['a', 'b', 'c', 'd'], richtig: 2 },
+      { frage: 'F2', aussage: '', optionen: ['richtig', 'falsch'], richtig: 0 },
+      { frage: 'F3', aussage: '', optionen: ['x', 'y', 'z'], richtig: 1 },
+    ];
+    expect(await code(bossStarten(keyF, e.id, 'm1', 'T', 0, fragen))).toBe('zugang');
+    expect(await code(bossStarten(keyE, e.id, 'm1', 'T', 0, fragen.slice(0, 2)))).toBe('ungueltig');
+    const id = await bossStarten(keyE, e.id, 'm1', 'Erdkunde · Region 1', 0, fragen);
+
+    // Only the own class sees and joins the fight; the teacher of another class sees nothing.
+    expect(await bossOffen(m.token)).toEqual({ id, titel: 'Erdkunde · Region 1', boss: 0 });
+    expect(await bossOffen(b.token)).toBeNull();
+    expect(await code(bossStand(b.token, id))).toBe('ungueltig');
+    expect(await code(bossBeamer(keyF, id))).toBe('zugang');
+    expect(await code(bossWeiter(keyE, id))).toBe('leer');
+    await bossStand(m.token, id);
+    await bossStand(t.token, id);
+    const los = await bossWeiter(keyE, id);
+    expect(los).toMatchObject({ phase: 'frage', frage: 0, kinder: 2, lpMax: bossLp(2, 3), herzen: 5, aussage: 'A1' });
+
+    // While the question runs the phones get the options, never the solution.
+    const handy = await bossStand(m.token, id);
+    expect(handy.optionen).toEqual(['a', 'b', 'c', 'd']);
+    expect(handy.richtig).toBeNull();
+    expect(JSON.stringify(handy)).not.toMatch(/A1|F1|"text"/);
+
+    // Mia right (fast), Tom wrong: half right, no heart lost; all answered, so it resolves.
+    expect(await bossAntworten(m.token, id, 0, 2)).toEqual({ angenommen: true });
+    expect(await bossAntworten(m.token, id, 0, 1)).toEqual({ angenommen: false });
+    expect(await code(bossAntworten(t.token, id, 0, 9))).toBe('ungueltig');
+    expect(await bossAntworten(t.token, id, 0, 0)).toEqual({ angenommen: true });
+    const auf = await bossBeamer(keyE, id);
+    expect(auf).toMatchObject({ phase: 'aufloesung', richtig: 2, herzen: 5, verteilung: [1, 0, 1, 0] });
+    const nachMia = await bossStand(m.token, id);
+    expect(nachMia).toMatchObject({ richtig: 2, wahl: 2, serie: 1 });
+    // The server's damage follows bossSchaden: between a slow and an instant answer.
+    expect(nachMia.schaden).toBeGreaterThanOrEqual(bossSchaden(5000, 1));
+    expect(nachMia.schaden).toBeLessThanOrEqual(bossSchaden(0, 1));
+    expect(auf.lp).toBe(bossLp(2, 3) - (nachMia.schaden ?? 0));
+
+    // Question 2: both wrong -> the boss hits; question 3 resolved early by the teacher -> lost, no chest.
+    await bossWeiter(keyE, id);
+    await bossAntworten(m.token, id, 1, 1);
+    await bossAntworten(t.token, id, 1, 1);
+    expect((await bossBeamer(keyE, id)).herzen).toBe(4);
+    await bossWeiter(keyE, id);
+    const ende = await bossWeiter(keyE, id);
+    expect(ende).toMatchObject({ phase: 'ende', sieg: false, truhen: 0 });
+    expect(await bossOffen(m.token)).toBeNull();
+    expect((await meinStand(m.token, null)).stand.truhen).toBe(0);
+
+    // A new fight for the same region; a fight ended by the teacher gives nothing.
+    const id2 = await bossStarten(keyE, e.id, 'm1', 'R1', 1, fragen);
+    await bossStand(m.token, id2);
+    expect((await bossBeenden(keyE, id2)).phase).toBe('ende');
+    expect(await bossOffen(m.token)).toBeNull();
+  }, 60_000);
+  it('Stufe 4: Klassenpunkte, Gutscheine, Grenzen, Anfragen abhaken', async () => {
+    const keyG = [newKey()];
+    const keyH = [newKey()];
+    const g = await klasseAnlegen(keyG, 'Belohnung G');
+    made.push({ keys: keyG, id: g.id });
+    const h = await klasseAnlegen(keyH, 'Belohnung H');
+    made.push({ keys: keyH, id: h.id });
+    const ida = await kindAnlegen(keyG, g.id, 'Ida T.', '1111');
+    const jan = await kindAnlegen(keyG, g.id, 'Jan T.', '2222');
+    const kai = await kindAnlegen(keyH, h.id, 'Kai T.', '3333');
+    const login = async (code: string, kind: string, pin: string) => {
+      const r = await anmelden(code, kind, pin);
+      if (!r.ok) throw new Error('Anmeldung fehlgeschlagen');
+      return r.token;
+    };
+    const ti = await login(g.code, ida, '1111');
+    const tj = await login(g.code, jan, '2222');
+    const tk = await login(h.code, kai, '3333');
+
+    // Vouchers belong to the class of the teacher key.
+    const gs = await gutscheinSpeichern(keyG, g.id, null, { name: 'Sitzplatz', preis: 2, jeKind: 1, jeKlasse: 1, aktiv: true });
+    expect(await code(gutscheinSpeichern(keyH, g.id, null, { name: 'X', preis: 1, jeKind: null, jeKlasse: null, aktiv: true }))).toBe('zugang');
+    expect(await code(gutscheinLoeschen(keyH, gs))).toBe('zugang');
+    expect(await code(belohnungen(keyH, g.id))).toBe('zugang');
+    expect((await gutscheine(tk)).gutscheine).toEqual([]);
+    expect(await code(anfragen(tk, gs))).toBe('ungueltig');
+
+    // Points by hand: own children only, at most 5 a week.
+    expect(await code(anfragen(ti, gs))).toBe('punkte');
+    expect(await code(punkteGeben(keyH, ida, 1))).toBe('zugang');
+    expect(await punkteGeben(keyG, ida, 3)).toBe(3);
+    expect(await code(punkteGeben(keyG, ida, 3))).toBe('grenze');
+    expect(await punkteGeben(keyG, jan, 5)).toBe(5);
+    expect((await klassen(keyG))[0].kinder.find((k) => k.id === ida)).toMatchObject({ klassenpunkte: 3, punkteHand: 3, leitner: {} });
+
+    // Asking sets the points aside; limits per child and for the class.
+    const nachIda = await anfragen(ti, gs);
+    expect(nachIda.punkte).toBe(1);
+    expect(nachIda.gutscheine[0]).toMatchObject({ ich: 1, klasse: 1 });
+    expect((await meinStand(ti, null)).stand.klassenpunkte).toBe(1);
+    expect(await code(anfragen(tj, gs))).toBe('grenze');
+    expect((await klassen(keyG))[0].anfragen).toBe(1);
+
+    // Taking back gives the points back and frees the class limit; another child cannot take it back.
+    const offen = nachIda.anfragen[0];
+    expect(await code(anfrageZurueck(tj, offen.id))).toBe('ungueltig');
+    expect((await anfrageZurueck(ti, offen.id)).punkte).toBe(3);
+    const nachJan = await anfragen(tj, gs);
+    expect(nachJan.punkte).toBe(3);
+
+    // The teacher ticks off: refused gives back, redeemed uses up, twice is refused.
+    const liste = await belohnungen(keyG, g.id);
+    const jansAnfrage = liste.anfragen.find((a) => a.kind === jan && a.zustand === 'offen');
+    expect(jansAnfrage).toBeDefined();
+    expect(await code(anfrageErledigen(keyH, jansAnfrage!.id, true))).toBe('zugang');
+    await anfrageErledigen(keyG, jansAnfrage!.id, false);
+    expect((await gutscheine(tj)).punkte).toBe(5);
+    expect(await code(anfrageErledigen(keyG, jansAnfrage!.id, true))).toBe('ungueltig');
+    const zweite = (await anfragen(tj, gs)).anfragen.find((a) => a.zustand === 'offen')!;
+    await anfrageErledigen(keyG, zweite.id, true);
+    const jetzt = await gutscheine(tj);
+    expect(jetzt.punkte).toBe(3);
+    expect(jetzt.anfragen.map((a) => a.zustand)).toEqual(['eingeloest', 'abgelehnt']);
+    // Redeemed still counts for this week's limit.
+    expect(await code(anfragen(tj, gs))).toBe('grenze');
+
+    // Off: hidden and not askable; deleting gives open requests back.
+    const joker = await gutscheinSpeichern(keyG, g.id, null, { name: 'Joker', preis: 1, jeKind: null, jeKlasse: null, aktiv: true });
+    expect((await anfragen(ti, joker)).punkte).toBe(2);
+    await gutscheinSpeichern(keyG, g.id, joker, { name: 'Joker', preis: 1, jeKind: null, jeKlasse: null, aktiv: false });
+    expect((await gutscheine(ti)).gutscheine.map((x) => x.name)).toEqual(['Sitzplatz']);
+    expect(await code(anfragen(ti, joker))).toBe('ungueltig');
+    await gutscheinLoeschen(keyG, joker);
+    expect((await gutscheine(ti)).punkte).toBe(3);
+    expect((await belohnungen(keyG, g.id)).gutscheine.map((x) => x.name)).toEqual(['Sitzplatz']);
+  }, 60_000);
+
+  it('Stufe 4: Gutscheine – viele Kinder gleichzeitig halten Grenzen und Punkte', async () => {
+    const keyV = [newKey()];
+    const v = await klasseAnlegen(keyV, 'Gleichzeitig V');
+    made.push({ keys: keyV, id: v.id });
+    const n = 12;
+    const kinder = await Promise.all(Array.from({ length: n }, (_, i) => kindAnlegen(keyV, v.id, `Kind ${i} T.`, String(1000 + i))));
+    const tokens = await Promise.all(
+      kinder.map(async (id, i) => {
+        const r = await anmelden(v.code, id, String(1000 + i));
+        if (!r.ok) throw new Error('Anmeldung fehlgeschlagen');
+        return r.token;
+      }),
+    );
+    await Promise.all(kinder.map((id) => punkteGeben(keyV, id, 5)));
+    const summe = async () => (await klassen(keyV))[0].kinder.reduce((a, k) => a + (k.klassenpunkte ?? 0), 0);
+    expect(await summe()).toBe(n * 5);
+
+    // Twelve children ask at the same moment for a voucher the class may get 3 times: exactly 3 get it.
+    const platz = await gutscheinSpeichern(keyV, v.id, null, { name: 'Sitzplatz', preis: 2, jeKind: null, jeKlasse: 3, aktiv: true });
+    const alle = await Promise.all(tokens.map((t) => code(anfragen(t, platz))));
+    expect(alle.filter((c) => c === 'ok')).toHaveLength(3);
+    expect(alle.filter((c) => c === 'grenze')).toHaveLength(n - 3);
+    expect(await summe()).toBe(n * 5 - 3 * 2);
+
+    // One child taps five times at once (5 points, price 2, no limits): only twice, never below zero.
+    const joker = await gutscheinSpeichern(keyV, v.id, null, { name: 'Joker', preis: 2, jeKind: null, jeKlasse: null, aktiv: true });
+    const reich = alle.findIndex((c) => c === 'grenze');
+    const fuenf = await Promise.all(Array.from({ length: 5 }, () => code(anfragen(tokens[reich], joker))));
+    expect(fuenf.filter((c) => c === 'ok')).toHaveLength(2);
+    expect(fuenf.filter((c) => c === 'punkte')).toHaveLength(3);
+    expect((await gutscheine(tokens[reich])).punkte).toBe(1);
+
+    // The child takes back while the teacher redeems the same request: exactly one wins, the points add up.
+    const offen = (await gutscheine(tokens[reich])).anfragen.filter((a) => a.zustand === 'offen');
+    const [zurueck, eingeloest] = await Promise.all([code(anfrageZurueck(tokens[reich], offen[0].id)), code(anfrageErledigen(keyV, offen[0].id, true))]);
+    expect([zurueck, eingeloest].sort()).toEqual(['ok', 'ungueltig']);
+    expect((await gutscheine(tokens[reich])).punkte).toBe(zurueck === 'ok' ? 3 : 1);
+
+    // Deleting the voucher while children ask: open requests come back, nothing is lost or counted twice.
+    const andere = tokens.filter((_, i) => i !== reich).slice(0, 6);
+    await Promise.all([...andere.map((t) => code(anfragen(t, joker))), gutscheinLoeschen(keyV, joker)]);
+    const nachher = (await Promise.all(tokens.map((t) => gutscheine(t)))).flatMap((g) => g.anfragen);
+    // Requests of the deleted voucher are gone with it (open ones paid back); only the 3 for Sitzplatz stay open.
+    const offenNoch = nachher.filter((a) => a.zustand === 'offen');
+    expect(offenNoch.map((a) => a.name)).toEqual(['Sitzplatz', 'Sitzplatz', 'Sitzplatz']);
+    const verbraucht = eingeloest === 'ok' ? 2 : 0;
+    expect((await summe()) + offenNoch.reduce((a, x) => a + x.preis, 0) + verbraucht).toBe(n * 5);
+  }, 120_000);
+
+  it('Bilder der Teile: nur Admins laden hoch, lesen dürfen alle', async () => {
+    // A 1 × 1 PNG; refused for rights before the size is looked at.
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await istAdmin(keyA)).toBe(false);
+    expect(await code(bildSetzen(keyA, 'krone', 'image/png', png))).toBe('zugang');
+    expect(await code(bildLoeschen(keyA, 'krone'))).toBe('zugang');
+    // A child's session token is no teacher key.
+    expect(await code(bildSetzen(['kind-token'], 'krone', 'image/png', png))).toBe('zugang');
+    expect(typeof (await bilderListe())).toBe('object');
+    expect(Array.isArray(await bildDaten(['krone']))).toBe(true);
+    expect(await code(bildDaten(Array.from({ length: 11 }, (_, i) => `t${i}`)))).toBe('ungueltig');
+    // No direct access to the tables.
+    const r = await fetch(`${(await import('../share/server')).SERVER.url}/rest/v1/lq_bild?select=teil`, {
+      headers: { apikey: (await import('../share/server')).SERVER.key },
+    });
+    expect(r.ok).toBe(false);
+  });
+
+  it('Eigene Teile: nur Admins legen an und ändern, lesen dürfen alle', async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await code(teilAnlegen(keyA, { name: 'Test', slot: 'kopf', seltenheit: 0, nurTruhe: false }, 'image/png', png))).toBe('zugang');
+    expect(await code(teilAendern(keyA, 'krone', 'Test', false))).toBe('zugang');
+    expect(Array.isArray(await teileEigen())).toBe(true);
+  });
+
+  it('Wiederholen sofort: nur die eigene Klasse, nur freigeschaltete Stunden, das Kind sieht es', async () => {
+    const a = await klasseAnlegen(keyA, 'Test Wiederholen');
+    made.push({ keys: keyA, id: a.id });
+    const kind = await kindAnlegen(keyA, a.id, 'Wim T.', '4321');
+    await freischalten(keyA, a.id, 'sW', { format: 'lernquest-paket', stunde: 'sW', uebungen: [] });
+    const heute = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+    const extra = { ab: heute, bis: heute, stunden: ['sW'] };
+    expect(await code(wiederholenSetzen(keyB, a.id, extra))).toBe('zugang');
+    expect(await code(wiederholenSetzen(keyA, a.id, { ...extra, stunden: ['fremd'] }))).toBe('ungueltig');
+    await wiederholenSetzen(keyA, a.id, extra);
+    const login = await anmelden(a.code, kind, '4321');
+    if (!login.ok) throw new Error('Anmeldung');
+    expect((await meinStand(login.token, null)).extra).toEqual(extra);
+    await wiederholenSetzen(keyA, a.id, null);
+    expect((await meinStand(login.token, null)).extra).toBeNull();
+  });
+
+  it('Frisur-Bilder: nur Admins, nur gültige Kennungen', async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await code(bildSetzen(keyA, 'haare-zopf-0', 'image/png', png))).toBe('zugang');
+    expect(await code(bildLoeschen(keyA, 'haare-zopf-0'))).toBe('zugang');
+  });
 });

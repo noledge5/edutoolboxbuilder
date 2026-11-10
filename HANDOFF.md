@@ -1,33 +1,17 @@
-# Handoff – 06.11.2026
-
-## Ziel
-Lernquest (Lern-App für die Schüler, `docs/lernquest.md`) auf dem Branch `lernquest`. Nächste Sitzung: **Designrunde
-zur Professionalisierung des Lernquest-Designs mit Grill-Session** (Skill `grill-with-docs`), bevor Stufe 2 Oberfläche bekommt.
+# Handoff – 09.11.2026 (Bilder und eigene Teile auf der Lehrerseite)
 
 ## Stand
-- Stufe 1 fertig und gepusht: Server, Kinder-App (`lernquest/`, `src/lernquest/app/`) nach Prototyp
-  `docs/design/lernquest/Main.dc.html`, Lehrkraft-Bereich im Baukasten (Übersicht → „Lernquest“).
-- Freigabe der Schule für Klarnamen liegt vor (in `docs/lernquest.md` vermerkt).
-- Stufe 2 „Held und Beute“ halb fertig:
-  - Server eingespielt (freigegeben): `supabase/migrations/20261106b_lernquest_held.sql` (Münzen, Truhen mit Garantie,
-    Laden, Avatar, Klassen-Ansicht, Katalog `lq_teil` mit 40 Teilen).
-  - Im Browser: `src/lernquest/teile.ts` (Katalog, Seltenheiten, Preise, Boni), Münzen/Truhen in `rules.ts`, Tests grün.
-  - **Fehlt:** Oberfläche (Held-Seite, Truhe, Laden, Klasse, Münzen im Kopf, Herzen in der Runde, Kacheln im Ergebnis),
-    Avatar-Zeichnungen (SVG je Teil), Server-Aufrufe in `server.ts`, Live-Test für Stufe 2, Doku.
-- Tests: Typprüfung grün, 280 Tests grün (Live-Servertest nur mit `LQ_LIVE=1`).
-- Letzter Commit: siehe `git log -1` (wip Stufe 2).
+- Auf „Bilder der Teile“ (nur Admin): Bilder hochladen (#48), nachjustieren, drehen, mit KI malen (#49), eigene Teile
+  anlegen (dieser Branch). Details: `docs/lernquest.md` → „Bilder hochladen …“, „Bilder nachjustieren …“, „Eigene Teile“.
+- Migrationen `20261117_lernquest_bilder.sql` und `20261118_lernquest_eigene_teile.sql` eingespielt; Admin = Besitzer-Hash
+  der Klasse „5c“. Live-Tests (`LQ_LIVE=1 npx vitest run src/lernquest/server.live.test.ts`) grün.
+- Nicht geprüft: echter OpenRouter-Aufruf, Safari/iPad.
 
 ## Nächste Schritte
-1. Designrunde mit `grill-with-docs`: Prototyp (`docs/design/lernquest/*.dc.html`, README dort) gegen die gebaute App
-   prüfen und schärfen: Typo-Skala, Abstände, Farben als Tokens, Zustände, Animationen, Barrierefreiheit, iPad/Laptop-Layout,
-   Avatar-Stil für 40 Teile. Entscheidungen in `docs/lernquest.md` / `docs/design/lernquest/README.md` festhalten.
-2. Danach Stufe 2 Oberfläche nach dem geschärften Design bauen (Held.dc.html, Truhe.dc.html als Vorlage).
-3. Browser-Check wie bisher (Skript-Idee: Playwright, Supabase über Node-`fetch` in `page.route`), dann PR nach Freigabe.
+- Rückmeldung der Lehrkraft abwarten. Fehlt der Knopf auf einem Gerät: zweiten Schlüssel-Hash in `lq_admin` nachtragen.
 
 ## Wichtig zu wissen
-- Entschieden: Herzen = nur Bonus-Polster (Fehler kostet ein Herz, übrige Herzen geben Bonus-Münzen, nichts endet).
-- Münzen: 5 + 1 je richtige + 2 je übriges Herz, + Bonus-% (max. 20 %), max. 200/Tag. Truhe: Station erstmals ganz
-  gespielt, Wochenziel erstmals in der Woche. Chancen 55/28/12/4/1, spätestens jede 5. Truhe selten. Regeln doppelt (TS + SQL).
-- Der Server von Stufe 2 läuft schon live; die Stufe-1-App kommt damit klar (zusätzliche Felder werden ignoriert).
-- Look-Werte des Prototyps stecken in `src/lernquest/app/lernquest.css` (`--lq-*`, Namen teils noch aus der grünen Fassung).
-- Auf `lernquest` arbeiten; `main` = veröffentlichen, nur nach Freigabe.
+- Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
+  `cron.schedule` anlegen, Rollen `anon`, `authenticated`, `service_role` (mit Standardrechten wie bei Supabase).
+- Supabase-Migrationen über die Verbindung brauchen eine Bestätigung der Lehrkraft in ihrer App; ohne Antwort bricht es
+  nach knapp 4 Minuten ab (dann prüfen, ob etwas angekommen ist, und neu versuchen).
