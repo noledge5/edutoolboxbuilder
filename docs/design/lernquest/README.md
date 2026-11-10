@@ -34,3 +34,7 @@ Gilt vor dem Prototyp, wo beide sich widersprechen.
   `--lq-gold`, `--lq-gold-dunkel`, `--lq-tinte`, `--lq-grau`, `--lq-linie`, `--lq-grund`, `--lq-nacht`), darüber
   Rollen (`--lq-knopf`, `--lq-knopf-stufe`, `--lq-richtig`/`-grund`, `--lq-falsch`/`-grund`, `--lq-auswahl`,
   `--lq-selten-1` … `-5`). Im CSS sonst keine festen Farbwerte. Eigene Datei für Lernquest, nicht `src/styles/tokens.css`.
+- **Neuer Platz „Frisur“.** Liegt unter dem Kopfteil; jede Frisur gibt es ganz und kurz (unter Hut/Helm). Haar- und
+  Hautfarbe frei wählbar, keine Beute. Frisuren sind Teile wie alle anderen (Start, Truhe, Laden).
+- **Herkunft je Teil:** Start, Truhe, Truhe + Laden oder Laden. Dazu wie bisher Seltenheit und Bonus.
+- **Die Lehrkraft stellt die Teile im Baukasten ein** (Seite „Teile“ im Lernquest-Bereich): Seltenheit, Herkunft, Bonus.
