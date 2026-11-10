@@ -51,6 +51,9 @@ import {
   teileEigen,
   teileWerte,
   teilEinstellen,
+  frisurAnlegen,
+  frisurAendern,
+  frisurenEigen,
   wiederholenSetzen,
 } from './server';
 import { readWerte } from './teile';
@@ -505,5 +508,12 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     const w = readWerte(await teileWerte());
     expect(w.krone).toBeDefined();
     expect(w['frisur-kurz']).toBeDefined();
+  });
+
+  it('Eigene Frisuren: nur Admins legen an und benennen um, lesen dürfen alle', async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await code(frisurAnlegen(keyA, 'Test', Array.from({ length: 5 }, () => ({ typ: 'image/png', daten: png }))))).toBe('zugang');
+    expect(await code(frisurAendern(keyA, 'f0123456789', 'Test'))).toBe('zugang');
+    expect(Array.isArray(await frisurenEigen())).toBe(true);
   });
 });

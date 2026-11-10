@@ -8,7 +8,6 @@ import {
   bonusText,
   bonusVon,
   CHANCEN,
-  FRISUREN,
   frisurAusTeil,
   frisurTeil,
   frisurVon,
@@ -34,7 +33,7 @@ import {
 } from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
-import { BilderNeuLaden, useAlleTeile } from './bilderKontext';
+import { BilderNeuLaden, useAlleFrisuren, useAlleTeile } from './bilderKontext';
 import { GutscheinLeiste } from './Gutscheine';
 import type { Daten } from './speicher';
 import { ton } from './ton';
@@ -109,9 +108,11 @@ interface HeldProps {
   onTruhe: () => void;
   onLaden: () => void;
   onGutscheine: () => void;
+  /** Sign out on this device (also in the menu behind the picture in the head bar). */
+  onAbmelden: () => void;
 }
 
-export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutscheine }: HeldProps) {
+export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutscheine, onAbmelden }: HeldProps) {
   const { stand } = daten;
   const [slot, setSlot] = useState<Slot>('kopf');
   const [msg, setMsg] = useState('');
@@ -140,6 +141,9 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
   };
 
   const alle = useAlleTeile();
+  // Own hair taken out of the choice stays only for who wears it.
+  // Hairstyles not to be had show only to who has them (see below).
+  const frisuren = useAlleFrisuren();
   const tippen = (t: Teil) => {
     const an = stand.avatar[t.slot] ?? standardTeil(t.slot)?.id ?? '';
     if (an === t.id) {
@@ -245,7 +249,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
         </div>
         <div className="lq-frisur" role="radiogroup" aria-label="Frisur">
           <span className="lq-klein">Frisur</span>
-          {FRISUREN.map((f) => {
+          {frisuren.map((f) => {
             const an = frisurVon(stand.avatar) === f.id;
             const ft = frisurTeil(f);
             if (!hatFrisur(stand.inventar, f.id, stand.avatar)) {
@@ -316,6 +320,9 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
             );
           })}
         </div>
+        <button type="button" className="lq-knopf lq-hell lq-abmelden" onClick={onAbmelden}>
+          Abmelden
+        </button>
       </div>
     </div>
   );

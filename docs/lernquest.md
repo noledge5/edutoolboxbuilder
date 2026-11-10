@@ -408,6 +408,20 @@ Migrationen in Postgres 16 durchgespielt, eingespielt am 10.11.2026 auf Wunsch d
   `teil`, `alleTeile`, `angelegt`, `bonusVon` und `ladenWare` rechnen mit den Werten der Lehrkraft (`mitWerten`).
   Ohne Werte (älterer Server, offline beim ersten Start) gilt der Katalog in `teile.ts`.
 
+## Eigene Frisuren und Abmelden (10.11.2026)
+
+Wunsch der Lehrkraft: auf „Bilder der Teile“ neue Frisuren anlegen; ein sichtbarer „Abmelden“-Knopf für die Kinder.
+Migration `supabase/migrations/20261122_lernquest_eigene_frisuren.sql` (lokal mit allen Migrationen geprüft).
+- **Neue Frisur:** Kachel „Neue Frisur“ → Name → Bild wählen oder mit KI malen (braun, als Edit der Grundfigur) → Vorschau
+  am Helden und in allen fünf Haarfarben → „Frisur anlegen“ (Frisur und fünf Bilder in einem Schritt, `lq_frisur_anlegen`,
+  höchstens 50). Umbenennen über „Speichern“; kein Löschen, die Bilder einer eigenen Frisur lassen sich nicht löschen.
+- Jede eigene Frisur steht auch im Teile-Katalog als `frisur-<id>`: zu Beginn frei; unter „Einstellungen“ wie jede Frisur
+  Seltenheit und Herkunft (frei, Laden, Truhe, nicht erhältlich).
+- **App:** `lq_frisuren_eigen` wird mit den Bildern geladen (offline in `lernquest:eigeneFrisuren`); Held-Wahl, Laden und
+  Truhe kennen eigene Frisuren (`alleFrisuren`).
+- **Abmelden:** Knopf unten auf der Held-Seite und im Menü oben, beide fragen nach (mit Warnung, wenn ungesendete Runden
+  verloren gingen).
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

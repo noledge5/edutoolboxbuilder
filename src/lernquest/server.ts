@@ -450,3 +450,13 @@ export const teilAendern = (keys: string[], teil: string, name: string, aktiv: b
 /** Sets „Wiederholen sofort“ for a class ({ab, bis, stunden}) or ends it (null). */
 export const wiederholenSetzen = (keys: string[], klasse: string, extra: { ab: string; bis: string; stunden: string[] } | null) =>
   lq<null>('lq_wiederholen_setzen', { p_schluessel: keys, p_klasse: klasse, p_extra: extra });
+
+// — Own hair (supabase/migrations/20261121_lernquest_eigene_frisuren.sql): name and five colour layers. —
+
+/** The own hair, as the server keeps it (checked by `readEigeneFrisuren`). */
+export const frisurenEigen = () => lq<unknown>('lq_frisuren_eigen', {});
+/** Makes an own hair with its five colour layers (base64, colour 0–4); returns its id. */
+export const frisurAnlegen = (keys: string[], name: string, bilder: { typ: string; daten: string }[]) =>
+  lq<string>('lq_frisur_anlegen', { p_schluessel: keys, p_name: name, p_bilder: bilder });
+/** Renames an own hairstyle (whether it is to be had: `teilEinstellen` on `frisur-<id>`). */
+export const frisurAendern = (keys: string[], frisur: string, name: string) => lq<null>('lq_frisur_aendern', { p_schluessel: keys, p_frisur: frisur, p_name: name });

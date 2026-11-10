@@ -9,8 +9,11 @@
 - Migration `20261121_lernquest_teile_einstellen.sql`: eingespielt am 10.11.2026, Live-Tests grün; lokal geprüft; Browser-Durchlauf
   Lehrerseite + Kinder-App gegen die lokale Datenbank.
 
+- Eigene Frisuren und Abmelden-Knopf (aus dem WIP von `claude/sweet-tesla-pcomqy`, mit dem Teile-Katalog verbunden):
+  Migration `20261122_lernquest_eigene_frisuren.sql`. Details: `docs/lernquest.md` → „Eigene Frisuren und Abmelden“.
+
 ## Nächste Schritte
-- Rückmeldung der Lehrkraft. WIP auf `claude/sweet-tesla-pcomqy` (Abmelden-Knopf, eigene Frisuren) ist noch nicht auf `main`.
+- Rückmeldung der Lehrkraft. `claude/sweet-tesla-pcomqy` ist damit erledigt.
 
 ## Wichtig zu wissen
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und

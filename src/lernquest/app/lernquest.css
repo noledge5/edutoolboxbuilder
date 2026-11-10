@@ -3415,3 +3415,9 @@ button.lq-teil:active {
   margin: 0;
   color: var(--lq-gedaempft);
 }
+
+/* Sign out, at the end of the hero page. */
+.lq-abmelden {
+  margin-top: var(--lq-a-5);
+  width: 100%;
+}

@@ -287,9 +287,37 @@ export const HAARFARBEN = [
   { name: 'Rot', farbe: '#A8441E' },
 ];
 
+/** A hair made on the teacher page (`lq_frisuren_eigen`): only painted (uploaded), never a vector drawing. */
+export interface Frisur {
+  id: string;
+  name: string;
+  eigen?: boolean;
+  /** No longer to choose; who wears it keeps it. */
+  aus?: boolean;
+}
+let EIGENE_FRISUREN: Frisur[] = [];
+export const eigeneFrisuren = () => EIGENE_FRISUREN;
+export const setzeEigeneFrisuren = (liste: Frisur[]) => {
+  EIGENE_FRISUREN = liste;
+};
+/** Built-in and own hair (the own ones before „Keine“). */
+export const alleFrisuren = (): Frisur[] =>
+  EIGENE_FRISUREN.length ? [...FRISUREN.filter((f) => f.id !== 'glatze'), ...EIGENE_FRISUREN, ...FRISUREN.filter((f) => f.id === 'glatze')] : FRISUREN;
+
+/** Own hair from the server or the device, checked: unknown or broken entries are left out. */
+export function readEigeneFrisuren(raw: unknown): Frisur[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((x): Frisur[] => {
+    if (!x || typeof x !== 'object') return [];
+    const r = x as { id?: unknown; name?: unknown; aktiv?: unknown; aus?: unknown };
+    if (typeof r.id !== 'string' || !/^f[0-9a-f]{10}$/.test(r.id) || typeof r.name !== 'string' || !r.name.trim() || r.name.length > 30) return [];
+    return [{ id: r.id, name: r.name.trim(), eigen: true, ...(r.aktiv === false || r.aus === true ? { aus: true } : {}) }];
+  });
+}
+
 /** The hair worn: `frisur` if known, else the older `figur`, else short hair. */
 export function frisurVon(a: Avatar): string {
-  if (a.frisur && FRISUREN.some((f) => f.id === a.frisur)) return a.frisur;
+  if (a.frisur && alleFrisuren().some((f) => f.id === a.frisur)) return a.frisur;
   return FIGUR_FRISUR[a.figur ?? 0] ?? 'kurz';
 }
 /** The mouth worn: `mund` if known, else the smile. */
@@ -341,7 +369,7 @@ export function bonusText(b: { muenzen?: number; herz?: number; schaden?: number
 
 export const frisurTeilId = (f: string) => `frisur-${f}`;
 /** The hairstyle of a catalogue id (`frisur-locken` → its entry in `FRISUREN`), or undefined. */
-export const frisurAusTeil = (id: string | null | undefined) => (id?.startsWith('frisur-') ? FRISUREN.find((f) => `frisur-${f.id}` === id) : undefined);
+export const frisurAusTeil = (id: string | null | undefined) => (id?.startsWith('frisur-') ? alleFrisuren().find((f) => `frisur-${f.id}` === id) : undefined);
 
 /** A hairstyle as a part (slot only for its type; it is worn as `avatar.frisur`). */
 export function frisurTeil(f: { id: string; name: string }): Teil {
@@ -352,7 +380,8 @@ export const hatFrisur = (inventar: string[], f: string, a?: Avatar) => !!frisur
 
 /** Hairstyles the shop sells: not free, not had yet, not only from chests, in the game. */
 export const ladenFrisuren = (inventar: string[]) =>
-  FRISUREN.map((f) => ({ f, t: frisurTeil(f) }))
+  alleFrisuren()
+    .map((f) => ({ f, t: frisurTeil(f) }))
     .filter(({ f, t }) => !t.start && !t.nurTruhe && !t.aus && !inventar.includes(frisurTeilId(f.id)))
     .sort((a, b) => a.t.seltenheit - b.t.seltenheit);
 
