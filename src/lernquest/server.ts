@@ -1,6 +1,6 @@
 // Lernquest on the server (Supabase, Frankfurt): only database functions (RPC), no direct table access, like the
 // handouts. Children prove themselves with a session token, the teacher with the teacher keys of the device.
-// The SQL is in supabase/migrations/20261106_lernquest.sql.
+// The SQL is in supabase/migrations/ (20261106_lernquest.sql, 20261106b_lernquest_held.sql, 20261110_lernquest_katalog.sql).
 import { SERVER } from '../share/server';
 import { LEERER_STAND, type Stand } from './types';
 
@@ -47,6 +47,8 @@ export function lqText(e: unknown): string {
     zugang: 'Der Server kennt diese Klasse auf diesem Gerät nicht.',
     voll: 'Es ist kein Platz mehr frei.',
     ungueltig: 'Das hat der Server nicht angenommen.',
+    leer: 'In den Truhen ist gerade nichts. Deine Lehrkraft kann Teile hineinlegen.',
+    muenzen: 'Dafür reichen die Münzen noch nicht.',
   };
   return texts[code] ?? `Der Server antwortet nicht wie erwartet (${code || String(e)}).`;
 }
@@ -181,6 +183,22 @@ export const sperren = (keys: string[], klasse: string, stunde: string) =>
     p_klasse: klasse,
     p_stunde: stunde,
   });
+
+// — Catalogue of parts (Designrunde 10.11.2026) —
+
+export interface KatalogAntwort {
+  /** Parts without pictures. */
+  teile: unknown[];
+  /** Pictures changed since `seit`: id → {bild, bildKurz} (null = none). */
+  bilder: Record<string, { bild: string | null; bildKurz: string | null }>;
+  jetzt: string;
+}
+
+export const katalogLaden = (seit: string | null) => lq<KatalogAntwort>('lq_katalog', { p_seit: seit });
+export const katalogRecht = (keys: string[]) => lq<{ admin: boolean; frei: boolean }>('lq_katalog_recht', { p_schluessel: keys });
+export const katalogUebernehmen = (keys: string[]) => lq<null>('lq_katalog_uebernehmen', { p_schluessel: keys });
+/** Saves a part; `bild` / `bildKurz` only when they change (null removes the picture). */
+export const teilSpeichern = (keys: string[], teil: Record<string, unknown>) => lq<null>('lq_teil_speichern', { p_schluessel: keys, p_teil: teil });
 
 /** A random 4-digit PIN. */
 export function neuePin(): string {

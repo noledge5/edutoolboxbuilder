@@ -47,9 +47,23 @@ Gilt vor dem Prototyp, wo beide sich widersprechen.
   sofort für alle. Wird ein Teil Startteil, haben es alle; verliert es den Start, behält es nur, wer es gerade trägt.
   Teile werden nie gelöscht, nur auf Herkunft **„nicht erhältlich“** gesetzt (auch für Sonderteile zum Verschenken).
 - **Neue Teile legt die Lehrkraft selbst an, mit Bild** (meist mit Nano Banana erzeugt). Nur Rasterbilder (PNG/WebP),
-  kein SVG-Upload (Schadcode-Gefahr); Details zu Format und Ablauf folgen.
+  kein SVG-Upload (Schadcode-Gefahr). Gespeichert als WebP 512 × 512, transparent, höchstens ~190 KB.
 - **Alles an einem Ort:** Auf der Seite „Teile“ im Baukasten entsteht und ändert man ein Teil vollständig: Bild
   (erzeugen mit fester Stil-Vorgabe oder Datei hochladen), Name, Platz, Seltenheit, Herkunft, Bonus. Vorschau auf der
   Figur vor dem Übernehmen. Der Bild-Schlüssel bleibt auf dem Gerät (`geraet:*`).
 - **Bild für ein Teil:** die vorhandene Bild-KI des Baukastens (`src/ai/ImageAiPane.tsx`, OpenRouter, Nano Banana 2,
   Schlüssel auf dem Gerät, Kosten mitgezählt) mit eigenem Stil „Avatar-Teil“, dazu der normale Datei-Upload.
+- **Freistellen im Browser:** Die Bild-KI malt das Teil auf reines Grün (#00FF00); der Baukasten macht den Grund
+  durchsichtig (nur was mit dem Rand verbunden ist, wahlweise auch eingeschlossene Flächen wie das Gesicht einer Frisur),
+  Regler „Rand glätten“, auch Weiß für Dateien. Kein Freistell-Dienst im Netz.
+- **Platzieren:** Jeder Platz hat einen festen Kasten auf der Bühne (358 × 268, `SLOT_BOX` in `src/lernquest/Avatar.tsx`);
+  das Bild wird hineingesetzt, in der Vorschau per Ziehen verschoben und per Regler vergrößert (gespeichert als `lage`).
+  Frisuren sind hellgrau und werden mit der Haarfarbe eingefärbt; unter einem Hut zeigt der Held das Kurzbild, sonst
+  wird die Frisur an der Hutkante abgeschnitten.
+- **Schriftskala** (7 Stufen): klein 13, Text 16, Aufgabe 19, Knopf 20, Titel 26, groß 34, Held 48 px; nichts unter 13 px.
+  Grafiken (Logo, Sterne, Anfangsbuchstaben im Kreis) dürfen eigene Größen haben. Sichtbarer Tastatur-Fokus.
+- Die Farb-Tokens heißen am Ende: Grundfarben `--lq-grund`, `--lq-weiss`, `--lq-tinte`, `--lq-grau`, `--lq-linie`,
+  `--lq-violett(-dunkel/-hell)`, `--lq-gold(-dunkel/-hell/-tinte)`, `--lq-gruen(-hell)`, `--lq-rot(-hell)`, `--lq-nebel*`,
+  `--lq-nacht`, `--lq-selten-1` … `-5`; Rollen `--lq-seite`, `--lq-karte`, `--lq-text(-leise)`, `--lq-rand`, `--lq-knopf`,
+  `--lq-knopf-stufe`, `--lq-auf-knopf`, `--lq-auswahl(-grund)`, `--lq-richtig(-grund)`, `--lq-falsch(-grund)`,
+  `--lq-belohnung(-dunkel/-grund)`, `--lq-auf-gold`, `--lq-gesperrt*`, `--lq-fokus`.

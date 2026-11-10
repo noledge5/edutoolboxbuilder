@@ -1,7 +1,7 @@
 // The teacher's Lernquest page in the Baukasten (#/lernquest): classes and children with PINs, cards with QR code
 // to print, lessons to unlock (their Lernpaket goes to the class), progress at a glance, unlock locked accounts.
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Lock, Plus, Printer, RefreshCw, RotateCcw, Trash2, Unlock } from 'lucide-react';
+import { ArrowLeft, Lock, Plus, Printer, RefreshCw, RotateCcw, Shirt, Trash2, Unlock } from 'lucide-react';
 import { Icon } from '../../icons';
 import { SearchButton } from '../../library/SearchDialog';
 import type { Library } from '../../library/types';
@@ -25,6 +25,7 @@ import {
   type KlasseInfo,
 } from '../server';
 import { PinCards } from './PinCards';
+import { TeileView } from './TeileView';
 import './lernquest-lehrkraft.css';
 
 interface Props {
@@ -53,6 +54,8 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
   const [msg, setMsg] = useState('');
   const [newName, setNewName] = useState('');
   const [printing, setPrinting] = useState(false);
+  /** The catalogue of parts instead of a class. */
+  const [teile, setTeile] = useState(false);
 
   const load = useCallback(
     async (l?: Lehrkraft) => {
@@ -115,7 +118,7 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
         </button>
         <div className="topbar-name">
           <div className="topbar-title">Lernquest</div>
-          <div className="topbar-place">Klassen, Freischalten, Fortschritt</div>
+          <div className="topbar-place">Klassen, Freischalten, Fortschritt, Teile</div>
         </div>
         <SearchButton />
       </header>
@@ -132,11 +135,23 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
           <>
             <nav className="lqt-tabs" aria-label="Klassen">
               {active.map((k) => (
-                <button key={k.id} type="button" className={`btn btn-secondary ui-btn ${k.id === klasse?.id ? 'is-on' : ''}`} onClick={() => setSel(k.id)}>
+                <button
+                  key={k.id}
+                  type="button"
+                  className={`btn btn-secondary ui-btn ${!teile && k.id === klasse?.id ? 'is-on' : ''}`}
+                  onClick={() => {
+                    setSel(k.id);
+                    setTeile(false);
+                  }}
+                >
                   {k.name}
                   <small>{k.kinder.filter((c) => !c.geloescht).length}</small>
                 </button>
               ))}
+              <button type="button" className={`btn btn-secondary ui-btn ${teile ? 'is-on' : ''}`} onClick={() => setTeile(true)}>
+                <Icon icon={Shirt} />
+                Teile
+              </button>
               <form
                 className="lqt-new"
                 onSubmit={(e) => {
@@ -146,6 +161,7 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
                   void act(async (keys) => {
                     const r = await klasseAnlegen(keys, name);
                     setSel(r.id);
+                    setTeile(false);
                     setNewName('');
                   });
                 }}
@@ -157,7 +173,9 @@ export function LernquestView({ lib, onBack, onDeviceChange }: Props) {
                 </button>
               </form>
             </nav>
-            {klasse ? (
+            {teile && me ? (
+              <TeileView keys={me.keys} />
+            ) : klasse ? (
               <KlasseView key={klasse.id} lib={lib} klasse={klasse} pins={me?.pins ?? {}} busy={busy} act={act} savePins={savePins} onPrint={() => setPrinting(true)} />
             ) : (
               <p className="lib-empty">Lege zuerst eine Klasse an.</p>
