@@ -51,3 +51,5 @@ Gilt vor dem Prototyp, wo beide sich widersprechen.
 - **Alles an einem Ort:** Auf der Seite „Teile“ im Baukasten entsteht und ändert man ein Teil vollständig: Bild
   (erzeugen mit fester Stil-Vorgabe oder Datei hochladen), Name, Platz, Seltenheit, Herkunft, Bonus. Vorschau auf der
   Figur vor dem Übernehmen. Der Bild-Schlüssel bleibt auf dem Gerät (`geraet:*`).
+- **Bild für ein Teil:** die vorhandene Bild-KI des Baukastens (`src/ai/ImageAiPane.tsx`, OpenRouter, Nano Banana 2,
+  Schlüssel auf dem Gerät, Kosten mitgezählt) mit eigenem Stil „Avatar-Teil“, dazu der normale Datei-Upload.
