@@ -4,10 +4,10 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { heldenstufe, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
-import { bonusText, bonusVon, CHANCEN, FRISUREN, frisurVon, GARANTIE, HAARFARBEN, haarfarbeVon, HAUT, hat, ladenWare, MUENDER, MUENZ_CHANCEN, mundVon, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
+import { bonusText, bonusVon, CHANCEN, frisurVon, GARANTIE, HAARFARBEN, haarfarbeVon, HAUT, hat, ladenWare, MUENDER, MUENZ_CHANCEN, mundVon, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
-import { BilderNeuLaden, useAlleTeile } from './bilderKontext';
+import { BilderNeuLaden, useAlleFrisuren, useAlleTeile } from './bilderKontext';
 import { GutscheinLeiste } from './Gutscheine';
 import type { Daten } from './speicher';
 import { ton } from './ton';
@@ -82,9 +82,11 @@ interface HeldProps {
   onTruhe: () => void;
   onLaden: () => void;
   onGutscheine: () => void;
+  /** Sign out on this device (also in the menu behind the picture in the head bar). */
+  onAbmelden: () => void;
 }
 
-export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutscheine }: HeldProps) {
+export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutscheine, onAbmelden }: HeldProps) {
   const { stand } = daten;
   const [slot, setSlot] = useState<Slot>('kopf');
   const [msg, setMsg] = useState('');
@@ -113,6 +115,8 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
   };
 
   const alle = useAlleTeile();
+  // Own hair taken out of the choice stays only for who wears it.
+  const frisuren = useAlleFrisuren().filter((f) => !f.aus || f.id === frisurVon(stand.avatar));
   const tippen = (t: Teil) => {
     const an = stand.avatar[t.slot] ?? TEILE.find((x) => x.slot === t.slot && x.start)?.id ?? '';
     if (an === t.id) {
@@ -218,7 +222,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
         </div>
         <div className="lq-frisur" role="radiogroup" aria-label="Frisur">
           <span className="lq-klein">Frisur</span>
-          {FRISUREN.map((f) => {
+          {frisuren.map((f) => {
             const an = frisurVon(stand.avatar) === f.id;
             return (
               <button
@@ -270,6 +274,9 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
             );
           })}
         </div>
+        <button type="button" className="lq-knopf lq-hell lq-abmelden" onClick={onAbmelden}>
+          Abmelden
+        </button>
       </div>
     </div>
   );

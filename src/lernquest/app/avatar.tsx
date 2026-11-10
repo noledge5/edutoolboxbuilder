@@ -5,7 +5,7 @@
 import { useContext, type ReactNode } from 'react';
 import { angelegt, frisurVon, HAARFARBEN, haarfarbeVon, HAUT, mundVon, type Avatar, type Slot, type Teil } from '../teile';
 import { haareBild, koerperBild, mundBild, teilBild } from './teilBilder';
-import { HochgeladeneBilder } from './bilderKontext';
+import { FrisurVorschau, HochgeladeneBilder } from './bilderKontext';
 
 /** Shadow tone per skin tone (`HAUT`). */
 const HAUT_SCHATTEN = ['#DDAE80', '#D29A6E', '#AE744A', '#8E5833', '#5F3A20', '#E8C3A2'];
@@ -1130,7 +1130,7 @@ function Grundfigur({ avatar }: { avatar: Avatar }) {
  *  hair. Painted hair belongs to the painted base figure it was made on. */
 function Haare({ avatar }: { avatar: Avatar }) {
   const hochgeladen = useContext(HochgeladeneBilder);
-  const frisur = frisurVon(avatar);
+  const frisur = useContext(FrisurVorschau) ?? frisurVon(avatar);
   const farbe = haarfarbeVon(avatar);
   const eigen = koerperBild(0) ? (hochgeladen[`haare-${frisur}-${farbe}`] ?? hochgeladen[`haare-${frisur}-0`]) : undefined;
   const bild = eigen ?? haareBild(frisur, farbe);

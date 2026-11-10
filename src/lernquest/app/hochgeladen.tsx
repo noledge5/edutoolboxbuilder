@@ -4,31 +4,49 @@
 // shows again). The parts made on the teacher page come with them (`eigeneLaden`), kept in localStorage for offline.
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { createStore, del, entries, set, type UseStore } from 'idb-keyval';
-import { bildDaten, bilderListe, teileEigen } from '../server';
-import { eigeneTeile, readEigene, setzeEigene, type Teil } from '../teile';
-import { BilderNeuLaden, EigeneTeile, HochgeladeneBilder } from './bilderKontext';
+import { bildDaten, bilderListe, frisurenEigen, teileEigen } from '../server';
+import { eigeneFrisuren, eigeneTeile, readEigene, readEigeneFrisuren, setzeEigene, setzeEigeneFrisuren, type Frisur, type Teil } from '../teile';
+import { BilderNeuLaden, EigeneFrisuren, EigeneTeile, HochgeladeneBilder } from './bilderKontext';
 
 const K_EIGENE = 'lernquest:eigeneTeile';
-const lesen = () => {
+const K_FRISUREN = 'lernquest:eigeneFrisuren';
+const lesen = <T,>(key: string, read: (x: unknown) => T[]): T[] => {
   try {
-    return readEigene(JSON.parse(localStorage.getItem(K_EIGENE) ?? '[]'));
+    return read(JSON.parse(localStorage.getItem(key) ?? '[]'));
   } catch {
     return [];
   }
 };
+const merken = (key: string, liste: unknown) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(liste));
+  } catch {
+    // Storage full or blocked: only for now.
+  }
+};
 // Known at once, also offline.
-if (typeof localStorage !== 'undefined' && !eigeneTeile().length) setzeEigene(lesen());
+if (typeof localStorage !== 'undefined') {
+  if (!eigeneTeile().length) setzeEigene(lesen(K_EIGENE, readEigene));
+  if (!eigeneFrisuren().length) setzeEigeneFrisuren(lesen(K_FRISUREN, readEigeneFrisuren));
+}
+
+/** The hair made on the teacher page from the server (offline: as last kept on the device). */
+export async function frisurenLaden(server = frisurenEigen): Promise<Frisur[]> {
+  try {
+    const liste = readEigeneFrisuren(await server());
+    merken(K_FRISUREN, liste);
+    setzeEigeneFrisuren(liste);
+  } catch {
+    // Offline or an older server: keep what there is.
+  }
+  return eigeneFrisuren();
+}
 
 /** The parts made on the teacher page from the server (offline: as last kept on the device). */
 export async function eigeneLaden(server = teileEigen): Promise<Teil[]> {
   try {
-    const raw = await server();
-    const liste = readEigene(raw);
-    try {
-      localStorage.setItem(K_EIGENE, JSON.stringify(liste));
-    } catch {
-      // Storage full or blocked: only for now.
-    }
+    const liste = readEigene(await server());
+    merken(K_EIGENE, liste);
     setzeEigene(liste);
   } catch {
     // Offline or an older server: keep what there is.
@@ -118,15 +136,19 @@ export function alsUrls(bilder: Record<string, Gespeichert>): Record<string, str
 
 /** Keeps the uploaded pictures current: on start, and when the page comes back after 10 minutes or more. A new
  *  `stand` loads again at once (the teacher page after an upload). */
-export function useHochgeladen(stand = 0): { bilder: Record<string, string>; teile: Teil[] } {
-  const [stand2, setStand2] = useState<{ bilder: Record<string, string>; teile: Teil[] }>({ bilder: {}, teile: eigeneTeile() });
+export function useHochgeladen(stand = 0): { bilder: Record<string, string>; teile: Teil[]; frisuren: Frisur[] } {
+  const [stand2, setStand2] = useState<{ bilder: Record<string, string>; teile: Teil[]; frisuren: Frisur[] }>({
+    bilder: {},
+    teile: eigeneTeile(),
+    frisuren: eigeneFrisuren(),
+  });
   useEffect(() => {
     let aus = false;
     let zuletzt = 0;
     const laden = () => {
       zuletzt = Date.now();
-      void Promise.all([bilderLaden(), eigeneLaden()]).then(([b, teile]) => {
-        if (!aus) setStand2({ bilder: alsUrls(b), teile });
+      void Promise.all([bilderLaden(), eigeneLaden(), frisurenLaden()]).then(([b, teile, frisuren]) => {
+        if (!aus) setStand2({ bilder: alsUrls(b), teile, frisuren });
       });
     };
     const sichtbar = () => {
@@ -145,12 +167,14 @@ export function useHochgeladen(stand = 0): { bilder: Record<string, string>; tei
 /** Gives the uploaded pictures to every hero below it. */
 export function BilderRahmen({ children }: { children: ReactNode }) {
   const [stand, setStand] = useState(0);
-  const { bilder, teile } = useHochgeladen(stand);
+  const { bilder, teile, frisuren } = useHochgeladen(stand);
   const neu = useCallback(() => setStand((s) => s + 1), []);
   return (
     <BilderNeuLaden.Provider value={neu}>
       <EigeneTeile.Provider value={teile}>
-        <HochgeladeneBilder.Provider value={bilder}>{children}</HochgeladeneBilder.Provider>
+        <EigeneFrisuren.Provider value={frisuren}>
+          <HochgeladeneBilder.Provider value={bilder}>{children}</HochgeladeneBilder.Provider>
+        </EigeneFrisuren.Provider>
       </EigeneTeile.Provider>
     </BilderNeuLaden.Provider>
   );

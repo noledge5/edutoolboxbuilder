@@ -709,9 +709,17 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   // „Wiederholen sofort“ from the teacher today: said so on the page.
   const extraHeute = !!daten.extra && heute() >= daten.extra.ab && heute() <= daten.extra.bis;
   const tab = screen.kind === 'wiederholen' ? 'wiederholen' : screen.kind === 'held' || screen.kind === 'laden' || screen.kind === 'gutscheine' ? 'held' : screen.kind === 'klasse' ? 'klasse' : 'karte';
+  /** Sign out after asking; rounds not sent yet would be lost, so that is said. */
+  const abmeldenFragen = () => {
+    const offen = ladeWarteschlange().length;
+    const frage = offen
+      ? `Abmelden? ${offen === 1 ? 'Eine Runde ist' : `${offen} Runden sind`} noch nicht gesendet und ginge verloren. Besser erst mit Internet öffnen.`
+      : 'Abmelden? Zum Weiterspielen brauchst du wieder Klassencode, Namen und PIN.';
+    if (window.confirm(frage)) onSignOut();
+  };
   const rahmen = (seite: React.ReactNode) => (
     <main className="lq-app lq-mit-leiste">
-      <Kopf daten={daten} offline={offline} onSignOut={() => onSignOut()} />
+      <Kopf daten={daten} offline={offline} onSignOut={abmeldenFragen} />
       {boss && (
         <button type="button" className="lq-boss-band" onClick={() => setScreen({ kind: 'boss', id: boss.id })}>
           <BossBild boss={boss.boss} size={56} />
@@ -755,7 +763,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   );
 
   if (screen.kind === 'held') {
-    return rahmen(<HeldSeite daten={daten} aktion={aktion} setStand={setStand} onTruhe={() => setScreen({ kind: 'truhe', zurueck: 'held' })} onLaden={() => setScreen({ kind: 'laden' })} onGutscheine={() => setScreen({ kind: 'gutscheine' })} />);
+    return rahmen(<HeldSeite daten={daten} aktion={aktion} setStand={setStand} onTruhe={() => setScreen({ kind: 'truhe', zurueck: 'held' })} onLaden={() => setScreen({ kind: 'laden' })} onGutscheine={() => setScreen({ kind: 'gutscheine' })} onAbmelden={abmeldenFragen} />);
   }
   if (screen.kind === 'gutscheine') {
     return rahmen(<GutscheineSeite daten={daten} aktion={aktion} setStand={setStand} onZurueck={() => setScreen({ kind: 'held' })} />);

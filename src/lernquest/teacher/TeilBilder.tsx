@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Check, Eraser, ImagePlus, Pencil, Plus, RotateCcw, Save, Sparkles, Trash2, X } from 'lucide-react';
 import { Icon } from '../../icons';
 import { AvatarBild, KopfBild, TeilBild } from '../app/avatar';
-import { HochgeladeneBilder } from '../app/bilderKontext';
+import { FrisurVorschau, HochgeladeneBilder } from '../app/bilderKontext';
 import { useHochgeladen } from '../app/hochgeladen';
 import { TEIL_BILDER } from '../app/teilBilder';
 import ANPASSEN from '../bilder/anpassen.json';
@@ -15,8 +15,8 @@ import type { Einstellung } from '../bilder/ebene';
 import { editFrisur, editPrompt, prompt } from '../bilder/vorlagen';
 import type { Strich } from '../bilder/pixel';
 import { runImages } from '../../ai/images';
-import { bildLoeschen, bildSetzen, lqText, teilAendern, teilAnlegen } from '../server';
-import { FRISUREN, HAARFARBEN, SELTENHEITEN, SLOTS, TEILE, type Avatar, type Slot, type Teil } from '../teile';
+import { bildLoeschen, bildSetzen, frisurAendern, frisurAnlegen, lqText, teilAendern, teilAnlegen } from '../server';
+import { FRISUREN, HAARFARBEN, SELTENHEITEN, SLOTS, TEILE, type Avatar, type Frisur, type Slot, type Teil } from '../teile';
 import { alsBase64, ebeneMachen, grundfigurDataUrl, haarFarben, kodieren, oeffnen, oeffnenUrl, WEGE, WEGE_HAARE, type Quelle, type Weg } from './bildVerarbeiten';
 import { Radierer } from './Radierer';
 
@@ -73,12 +73,12 @@ const neuesTeil = (slot: Slot): Teil => ({ id: NEU, slot, name: '', seltenheit: 
 
 export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(): void }) {
   const [stand, setStand] = useState(0);
-  const { bilder: hoch, teile: eigene } = useHochgeladen(stand);
+  const { bilder: hoch, teile: eigene, frisuren: eigeneFrisuren } = useHochgeladen(stand);
   const [wahl, setWahl] = useState<Teil | null>(null);
   /** A hair being worked on instead of a part. */
-  const [frisur, setFrisur] = useState<{ id: string; name: string } | null>(null);
+  const [frisur, setFrisur] = useState<Frisur | null>(null);
   const [meldung, setMeldung] = useState('');
-  const waehlen = (t: Teil | null, f: { id: string; name: string } | null = null) => {
+  const waehlen = (t: Teil | null, f: Frisur | null = null) => {
     setMeldung('');
     setWahl(t);
     setFrisur(f);
@@ -96,18 +96,27 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
       </header>
       <main className="lqt-main">
         <HochgeladeneBilder.Provider value={hoch}>
-          {frisur && (
-            <Bearbeiten
-              key={`haare-${frisur.id}`}
-              teil={{ id: `haare-${frisur.id}`, slot: 'kopf', name: frisur.name, seltenheit: 0 }}
-              frisur={frisur.id}
-              keys={keys}
-              hochUrl={hoch[`haare-${frisur.id}-0`]}
-              onFertig={() => setStand((s) => s + 1)}
-              onClose={() => setFrisur(null)}
-              onAngelegt={() => undefined}
-            />
-          )}
+          {frisur &&
+            (() => {
+              // An own hair as it is now (after renaming), or the one being made.
+              const f = eigeneFrisuren.find((x) => x.id === frisur.id) ?? frisur;
+              return (
+                <Bearbeiten
+                  key={`haare-${f.id}`}
+                  teil={{ id: `haare-${f.id}`, slot: 'kopf', name: f.name, seltenheit: 0, eigen: f.eigen || f.id === NEU, aus: f.aus }}
+                  frisur={f.id}
+                  keys={keys}
+                  hochUrl={hoch[`haare-${f.id}-0`]}
+                  onFertig={() => setStand((s) => s + 1)}
+                  onClose={() => setFrisur(null)}
+                  onAngelegt={(name) => {
+                    setFrisur(null);
+                    setMeldung(`„${name}“ ist angelegt. Die Kinder finden die Frisur beim nächsten Öffnen von Lernquest auf der Held-Seite.`);
+                    setStand((s) => s + 1);
+                  }}
+                />
+              );
+            })()}
           {wahl && (
             <Bearbeiten
               key={wahl.id === NEU ? `neu-${wahl.slot}` : wahl.id}
@@ -164,18 +173,37 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
             <h2>Frisuren</h2>
             <p className="lqt-hint">Gemalt wird die Frisur in Braun als Edit der Grundfigur; die anderen vier Haarfarben rechnet die Seite daraus.</p>
             <div className="lqt-bilder">
-              {FRISUREN.filter((f) => f.id !== 'glatze').map((f) => {
-                const h = hoch[`haare-${f.id}-0`] ? 'Hochgeladen' : TEIL_BILDER[`haare-${f.id}-0`] ? 'Eingebaut' : 'Zeichnung';
+              {[...FRISUREN.filter((f) => f.id !== 'glatze'), ...eigeneFrisuren].map((f: Frisur) => {
+                const h = f.eigen
+                  ? f.aus
+                    ? 'Nicht zur Wahl'
+                    : 'Eigene Frisur'
+                  : hoch[`haare-${f.id}-0`]
+                    ? 'Hochgeladen'
+                    : TEIL_BILDER[`haare-${f.id}-0`]
+                      ? 'Eingebaut'
+                      : 'Zeichnung';
                 return (
                   <button key={f.id} type="button" className={`lqt-bild ${frisur?.id === f.id ? 'is-on' : ''}`} onClick={() => waehlen(null, f)}>
                     <span className="lqt-bild-kachel">
                       <KopfBild avatar={{ frisur: f.id }} />
                     </span>
                     <span>{f.name}</span>
-                    <small className={`lqt-bild-herkunft ${herkunftKlasse(h)}`}>{h}</small>
+                    <small className={`lqt-bild-herkunft ${herkunftKlasse(h === 'Eigene Frisur' ? 'Eigenes Teil' : h)}`}>{h}</small>
                   </button>
                 );
               })}
+              <button
+                type="button"
+                className={`lqt-bild lqt-bild-neu ${frisur?.id === NEU ? 'is-on' : ''}`}
+                onClick={() => waehlen(null, { id: NEU, name: '', eigen: true })}
+              >
+                <span className="lqt-bild-kachel lqt-bild-plus" aria-hidden>
+                  <Icon icon={Plus} size={28} />
+                </span>
+                <span>Neue Frisur</span>
+                <small className="lqt-bild-herkunft">Frisuren</small>
+              </button>
             </div>
           </section>
         </HochgeladeneBilder.Provider>
@@ -204,7 +232,7 @@ function Bearbeiten({
   /** A new part was made (`teil.id` is NEU). */
   onAngelegt(name: string): void;
 }) {
-  const neu = teil.id === NEU;
+  const neu = frisur ? frisur === NEU : teil.id === NEU;
   // Own parts: name, rarity and „only from chests“ for a new one; name and „in the game“ for one already made.
   const [angaben, setAngaben] = useState({ name: teil.name, seltenheit: teil.seltenheit, nurTruhe: !!teil.nurTruhe, aktiv: !teil.aus });
   const entwurf: Teil = neu ? { ...teil, name: angaben.name.trim() || 'Neues Teil', seltenheit: angaben.seltenheit } : teil;
@@ -318,6 +346,14 @@ function Bearbeiten({
     setBusy(true);
     try {
       const erste = vorschau.dateien[0].blob;
+      if (neu && frisur) {
+        const name = angaben.name.trim();
+        const bilder = [];
+        for (const d of vorschau.dateien) bilder.push({ typ: d.blob.type, daten: await alsBase64(d.blob) });
+        await frisurAnlegen(keys, name, bilder);
+        onAngelegt(name);
+        return;
+      }
       if (neu) {
         const name = angaben.name.trim();
         await teilAnlegen(keys, { name, slot: teil.slot, seltenheit: angaben.seltenheit, nurTruhe: angaben.nurTruhe }, erste.type, await alsBase64(erste));
@@ -342,8 +378,15 @@ function Bearbeiten({
   const speichern = async () => {
     setBusy(true);
     try {
-      await teilAendern(keys, teil.id, angaben.name.trim(), angaben.aktiv);
-      setMsg(angaben.aktiv ? 'Gespeichert.' : 'Gespeichert. Das Teil ist nicht mehr im Laden und in Truhen; wer es hat, behält es.');
+      if (frisur) await frisurAendern(keys, frisur, angaben.name.trim(), angaben.aktiv);
+      else await teilAendern(keys, teil.id, angaben.name.trim(), angaben.aktiv);
+      setMsg(
+        angaben.aktiv
+          ? 'Gespeichert.'
+          : frisur
+            ? 'Gespeichert. Die Frisur steht nicht mehr zur Wahl; wer sie trägt, behält sie.'
+            : 'Gespeichert. Das Teil ist nicht mehr im Laden und in Truhen; wer es hat, behält es.',
+      );
       onFertig();
     } catch (e) {
       setFehler(lqText(e));
@@ -372,13 +415,17 @@ function Bearbeiten({
   const regler = weg === 'ebene' && teil.slot === 'hintergrund' ? REGLER_HINTERGRUND : REGLER[weg];
 
   return (
-    <section ref={oben} className="lqt-card lqt-bild-edit" aria-label={neu ? 'Neues Teil' : `Bild für ${teil.name}`}>
+    <section ref={oben} className="lqt-card lqt-bild-edit" aria-label={neu ? (frisur ? 'Neue Frisur' : 'Neues Teil') : `Bild für ${teil.name}`}>
       <div className="lqt-head">
         <div>
-          <h2>{neu ? 'Neues Teil' : teil.name}</h2>
+          <h2>{neu ? (frisur ? 'Neue Frisur' : 'Neues Teil') : teil.name}</h2>
           <p className="lqt-hint">
             {frisur ? 'Frisur' : SLOTS.find((s) => s.slot === teil.slot)?.label} ·{' '}
-            {frisur
+            {frisur && neu
+              ? 'Name und Bild; gemalt in Braun als Edit der Grundfigur, die Seite macht die anderen Haarfarben'
+              : frisur && teil.eigen
+                ? 'eigene Frisur'
+                : frisur
               ? hochgeladen
                 ? 'hochgeladen, in allen fünf Haarfarben'
                 : eingebaut
@@ -405,7 +452,7 @@ function Bearbeiten({
             <span>Name</span>
             <input className="input" value={angaben.name} maxLength={30} onChange={(e) => setAngaben({ ...angaben, name: e.target.value })} aria-invalid={!nameOk} />
           </label>
-          {neu ? (
+          {neu && frisur ? null : neu ? (
             <>
               <label>
                 <span>Seltenheit</span>
@@ -426,7 +473,7 @@ function Bearbeiten({
             <>
               <label className="lqt-bild-check">
                 <input type="checkbox" checked={angaben.aktiv} onChange={(e) => setAngaben({ ...angaben, aktiv: e.target.checked })} />
-                Im Spiel (Laden und Truhen)
+                {frisur ? 'Zur Wahl für die Kinder' : 'Im Spiel (Laden und Truhen)'}
               </label>
               <button
                 type="button"
@@ -533,29 +580,31 @@ function Bearbeiten({
             </fieldset>
           )}
           <div className="lqt-bild-vorschau">
-            <HochgeladeneBilder.Provider value={vorschau ? Object.fromEntries(vorschau.dateien.map((d) => [d.id, d.url])) : {}}>
-              <figure>
-                <AvatarBild avatar={avatar} vorschau={frisur ? undefined : entwurf} className="lqt-bild-held" />
-                <figcaption>Am Helden</figcaption>
-              </figure>
-              {frisur ? (
+            <FrisurVorschau.Provider value={frisur}>
+              <HochgeladeneBilder.Provider value={vorschau ? Object.fromEntries(vorschau.dateien.map((d) => [d.id, d.url])) : {}}>
                 <figure>
-                  <div className="lqt-bild-farben">
-                    {HAARFARBEN.map((f, i) => (
-                      <span key={f.name} className="lqt-bild-kachel" title={f.name}>
-                        <KopfBild avatar={{ frisur, haarfarbe: i }} />
-                      </span>
-                    ))}
-                  </div>
-                  <figcaption>In allen Haarfarben</figcaption>
+                  <AvatarBild avatar={avatar} vorschau={frisur ? undefined : entwurf} className="lqt-bild-held" />
+                  <figcaption>Am Helden</figcaption>
                 </figure>
-              ) : (
-                <figure>
-                  <TeilBild teil={entwurf} className="lqt-bild-kachel is-gross" />
-                  <figcaption>Als Kachel</figcaption>
-                </figure>
-              )}
-            </HochgeladeneBilder.Provider>
+                {frisur ? (
+                  <figure>
+                    <div className="lqt-bild-farben">
+                      {HAARFARBEN.map((f, i) => (
+                        <span key={f.name} className="lqt-bild-kachel" title={f.name}>
+                          <KopfBild avatar={{ frisur, haarfarbe: i }} />
+                        </span>
+                      ))}
+                    </div>
+                    <figcaption>In allen Haarfarben</figcaption>
+                  </figure>
+                ) : (
+                  <figure>
+                    <TeilBild teil={entwurf} className="lqt-bild-kachel is-gross" />
+                    <figcaption>Als Kachel</figcaption>
+                  </figure>
+                )}
+              </HochgeladeneBilder.Provider>
+            </FrisurVorschau.Provider>
             <div className="lqt-bild-regler">
               {regler.map((r) => (
                 <label key={r.key}>
@@ -599,7 +648,7 @@ function Bearbeiten({
           <div className="lqt-bild-zeile">
             <button type="button" className="btn btn-primary ui-btn" disabled={busy || arbeitet || !vorschau || !!fehler || (neu && !nameOk)} onClick={() => void uebernehmen()}>
               <Icon icon={neu ? Plus : Check} />
-              {neu ? 'Teil anlegen' : 'Übernehmen'}
+              {neu ? (frisur ? 'Frisur anlegen' : 'Teil anlegen') : 'Übernehmen'}
             </button>
             <button
               type="button"
