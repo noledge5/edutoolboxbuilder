@@ -46,3 +46,5 @@ Gilt vor dem Prototyp, wo beide sich widersprechen.
 - **Änderungen am Katalog:** Besitz bleibt immer. Neue Werte (Bonus, Seltenheit, Preis, Münzen für Doppelte) gelten
   sofort für alle. Wird ein Teil Startteil, haben es alle; verliert es den Start, behält es nur, wer es gerade trägt.
   Teile werden nie gelöscht, nur auf Herkunft **„nicht erhältlich“** gesetzt (auch für Sonderteile zum Verschenken).
+- **Neue Teile legt die Lehrkraft selbst an, mit Bild** (meist mit Nano Banana erzeugt). Nur Rasterbilder (PNG/WebP),
+  kein SVG-Upload (Schadcode-Gefahr); Details zu Format und Ablauf folgen.
