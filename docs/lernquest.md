@@ -107,3 +107,4 @@ Gebaut und geprüft (Tests, Rechte-Test gegen den Server, Durchlauf im Browser a
 - Supabase-Tabellen und -Funktionen für Stufe 1: von der Lehrkraft am 06.11.2026 freigegeben (Projekt „baukasten“).
   Spätere Stufen, die den Server ändern, wieder kurz ankündigen.
 - Lernquest ist erst nach dem Merge nach `main` für Kinder erreichbar; bis dahin Test über die Vorschau.
+- Langfristig ein richtiges Login für Lehrkräfte statt „wer zuerst kommt“ beim Teile-Katalog (Designrunde 10.11.2026).

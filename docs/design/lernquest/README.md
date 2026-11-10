@@ -39,3 +39,7 @@ Gilt vor dem Prototyp, wo beide sich widersprechen.
 - **Herkunft je Teil:** Start, Truhe, Truhe + Laden oder Laden. Dazu wie bisher Seltenheit und Bonus.
 - **Die Lehrkraft stellt die Teile im Baukasten ein** (Seite „Teile“ im Lernquest-Bereich): Seltenheit, Herkunft, Bonus.
   Die Einstellung gilt global für alle Klassen (es gibt nur eine Lehrkraft); kein Katalog je Klasse oder Lehrkraft.
+- **Wer den Katalog ändern darf (vorläufig):** der erste Lehrkraft-Schlüssel, der ausdrücklich „Katalog übernehmen“
+  tippt, wird Admin (Hash in `lq_admin`); danach dürfen nur Admin-Schlüssel ändern, alle anderen nur lesen. Bewusst
+  in Kauf genommen: wer zuerst tippt, gewinnt. Darum direkt nach dem Einspielen selbst übernehmen. Langfristig ein
+  richtiges Login (offener Punkt in `docs/lernquest.md`).
