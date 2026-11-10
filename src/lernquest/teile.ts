@@ -33,6 +33,8 @@ export interface Teil {
   eigen?: boolean;
   /** Taken out of the game: not in the shop or in chests any more; who has it keeps it. */
   aus?: boolean;
+  /** Only in the shop, never in chests (`lq_teil.nur_laden`, set by the teacher). */
+  nurLaden?: boolean;
 }
 
 export const TEILE: Teil[] = [
@@ -128,9 +130,76 @@ let EIGENE: Teil[] = [];
 export const eigeneTeile = () => EIGENE;
 export const setzeEigene = (liste: Teil[]) => {
   EIGENE = liste;
+  MIT_WERTEN = null;
 };
-/** Built-in and own parts. */
-export const alleTeile = (): Teil[] => (EIGENE.length ? [...TEILE, ...EIGENE] : TEILE);
+// — What the admin teacher set for each part on the teacher page (supabase/migrations/20261121_lernquest_teile_einstellen.sql):
+// rarity, where it comes from and bonuses, for built-in and own parts and for hairstyles (`frisur-<id>`). Loaded with the
+// pictures; they go before the values written here. —
+
+export interface TeilWerte {
+  seltenheit: number;
+  start: boolean;
+  nurTruhe: boolean;
+  nurLaden: boolean;
+  aus: boolean;
+  muenzen: number;
+  herz: number;
+  schaden: number;
+}
+let WERTE: Record<string, TeilWerte> = {};
+let MIT_WERTEN: Teil[] | null = null;
+
+export const teilWerte = () => WERTE;
+export const setzeWerte = (w: Record<string, TeilWerte>) => {
+  WERTE = w;
+  MIT_WERTEN = null;
+};
+
+/** Values from the server or the device, checked: unknown or broken entries are left out. */
+export function readWerte(raw: unknown): Record<string, TeilWerte> {
+  const out: Record<string, TeilWerte> = {};
+  if (!Array.isArray(raw)) return out;
+  const zahl = (x: unknown, max: number) => (typeof x === 'number' && Number.isInteger(x) && x >= 0 && x <= max ? x : null);
+  for (const x of raw) {
+    if (!x || typeof x !== 'object') continue;
+    const r = x as Record<string, unknown>;
+    if (typeof r.id !== 'string' || !/^[a-z0-9-]{1,40}$/.test(r.id)) continue;
+    const seltenheit = zahl(r.seltenheit, 4);
+    if (seltenheit === null) continue;
+    out[r.id] = {
+      seltenheit,
+      start: r.start === true,
+      nurTruhe: r.nurTruhe === true,
+      nurLaden: r.nurLaden === true,
+      aus: r.aktiv === false,
+      muenzen: zahl(r.muenzen, 20) ?? 0,
+      herz: zahl(r.herz, 2) ?? 0,
+      schaden: zahl(r.schaden, 3) ?? 0,
+    };
+  }
+  return out;
+}
+
+/** A part with the teacher's values (a copy; without values the part as it is). */
+export function mitWerten(t: Teil): Teil {
+  const w = WERTE[t.id];
+  if (!w) return t;
+  const { start: _s, nurTruhe: _t, nurLaden: _l, aus: _a, muenzen: _m, herz: _h, schaden: _d, ...rest } = t;
+  return {
+    ...rest,
+    seltenheit: w.seltenheit,
+    ...(w.start ? { start: true } : {}),
+    ...(w.nurTruhe ? { nurTruhe: true } : {}),
+    ...(w.nurLaden ? { nurLaden: true } : {}),
+    ...(w.aus ? { aus: true } : {}),
+    ...(w.muenzen ? { muenzen: w.muenzen } : {}),
+    ...(w.herz ? { herz: w.herz } : {}),
+    ...(w.schaden ? { schaden: w.schaden } : {}),
+  };
+}
+
+/** Built-in and own parts, with the teacher's values. */
+export const alleTeile = (): Teil[] => (MIT_WERTEN ??= [...TEILE, ...EIGENE].map(mitWerten));
 
 /** Own parts from the server or the device, checked: unknown or broken entries are left out. */
 export function readEigene(raw: unknown): Teil[] {
@@ -146,7 +215,7 @@ export function readEigene(raw: unknown): Teil[] {
   });
 }
 
-export const teil = (id: string | undefined) => TEILE.find((t) => t.id === id) ?? (id ? EIGENE.find((t) => t.id === id) : undefined);
+export const teil = (id: string | undefined) => (id ? alleTeile().find((t) => t.id === id) : undefined);
 
 /** The five rarities: name and colour (colour and 1–5 dots, never colour alone). */
 export const SELTENHEITEN = [
@@ -230,11 +299,18 @@ export const haarfarbeVon = (a: Avatar) => (a.haarfarbe !== undefined && a.haarf
 /** Skin tones to choose freely (not collected). */
 export const HAUT = ['#F2C9A0', '#E8B48A', '#C98E62', '#A86E45', '#7A4E2E', '#F6DCC4'];
 
+/** The start part a place shows when nothing is chosen: the one with the smallest id (as `lq_standard_teil`). */
+export function standardTeil(slot: Slot): Teil | undefined {
+  return alleTeile()
+    .filter((t) => t.slot === slot && t.start)
+    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))[0];
+}
+
 /** What is worn on a place: the chosen part, else the start part (or nothing). */
 export function angelegt(a: Avatar, slot: Slot): Teil | undefined {
   const id = a[slot];
   if (id === '') return undefined;
-  return teil(id) ?? TEILE.find((t) => t.slot === slot && t.start);
+  return teil(id) ?? standardTeil(slot);
 }
 
 /** Most extra damage per right answer in the boss fight from what is worn (as `lq_bonus_schaden`). */
@@ -260,6 +336,25 @@ export function bonusText(b: { muenzen?: number; herz?: number; schaden?: number
     .filter(Boolean)
     .join(', ');
 }
+
+// — Hairstyles as parts: `frisur-<id>` in the catalogue. Without values from the server every hairstyle is free. —
+
+export const frisurTeilId = (f: string) => `frisur-${f}`;
+/** The hairstyle of a catalogue id (`frisur-locken` → its entry in `FRISUREN`), or undefined. */
+export const frisurAusTeil = (id: string | null | undefined) => (id?.startsWith('frisur-') ? FRISUREN.find((f) => `frisur-${f.id}` === id) : undefined);
+
+/** A hairstyle as a part (slot only for its type; it is worn as `avatar.frisur`). */
+export function frisurTeil(f: { id: string; name: string }): Teil {
+  return mitWerten({ id: frisurTeilId(f.id), slot: 'kopf', name: f.name, seltenheit: 0, start: true });
+}
+/** Whether the child may wear a hairstyle: free, in the inventory, or worn already. */
+export const hatFrisur = (inventar: string[], f: string, a?: Avatar) => !!frisurTeil({ id: f, name: '' }).start || inventar.includes(frisurTeilId(f)) || (!!a && frisurVon(a) === f);
+
+/** Hairstyles the shop sells: not free, not had yet, not only from chests, in the game. */
+export const ladenFrisuren = (inventar: string[]) =>
+  FRISUREN.map((f) => ({ f, t: frisurTeil(f) }))
+    .filter(({ f, t }) => !t.start && !t.nurTruhe && !t.aus && !inventar.includes(frisurTeilId(f.id)))
+    .sort((a, b) => a.t.seltenheit - b.t.seltenheit);
 
 /** What the shop sells on a place: what the child does not have yet, chest treasures and parts out of the game never. */
 export const ladenWare = (inventar: string[], slot: Slot) =>

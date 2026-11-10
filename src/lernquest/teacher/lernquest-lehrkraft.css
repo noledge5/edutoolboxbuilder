@@ -827,6 +827,19 @@
   font-size: 11px;
   color: var(--color-neutral-600);
 }
+.lqt-bild-werte {
+  font-size: 11px;
+  color: var(--color-neutral-700);
+}
+.lqt-einstellungen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-divider);
+}
 .lqt-bild-herkunft.is-hochgeladen {
   color: var(--color-accent-700);
   font-weight: 700;

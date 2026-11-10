@@ -49,8 +49,11 @@ import {
   teilAendern,
   teilAnlegen,
   teileEigen,
+  teileWerte,
+  teilEinstellen,
   wiederholenSetzen,
 } from './server';
+import { readWerte } from './teile';
 
 const live = process.env.LQ_LIVE === '1';
 
@@ -494,5 +497,13 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
     expect(await code(bildSetzen(keyA, 'haare-zopf-0', 'image/png', png))).toBe('zugang');
     expect(await code(bildLoeschen(keyA, 'haare-zopf-0'))).toBe('zugang');
+  });
+
+  it('Teile einstellen: nur Admins, Werte und Frisuren lesen dürfen alle', async () => {
+    expect(await code(teilEinstellen(keyA, 'krone', { seltenheit: 0, herkunft: 'laden', muenzen: 20, herz: 2, schaden: 3 }))).toBe('zugang');
+    expect(await code(teilEinstellen(keyA, 'frisur-locken', { seltenheit: 1, herkunft: 'laden', muenzen: 0, herz: 0, schaden: 0 }))).toBe('zugang');
+    const w = readWerte(await teileWerte());
+    expect(w.krone).toBeDefined();
+    expect(w['frisur-kurz']).toBeDefined();
   });
 });

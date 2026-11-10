@@ -389,6 +389,25 @@ am 09.11.2026 über die Supabase-Verbindung nach OK der Lehrkraft, vor dem Merge
   Radiergröße, „Rückgängig“, „Alles wieder da“. Die Striche liegen in Ebenen-Pixeln und kommen nach den Reglern, also am
   besten zuletzt radieren. Bei Frisuren vor dem Umfärben, gilt also für alle Farben. Nicht bei Hintergründen.
 
+## Teile einstellen und Frisuren sammeln (10.11.2026)
+
+Wunsch der Lehrkraft (Designrunde): bei jedem Teil Seltenheit, Herkunft und Effekte einstellen; Frisuren teils frei,
+teils aus Truhen und Laden. Migration `supabase/migrations/20261121_lernquest_teile_einstellen.sql` (lokal mit allen
+Migrationen in Postgres 16 durchgespielt, eingespielt am 10.11.2026 auf Wunsch der Lehrkraft, Live-Tests grün).
+- **Lehrerseite** („Bilder der Teile“, nur Admin): bei jedem Teil und jeder Frisur ein Kasten „Einstellungen“ mit
+  Seltenheit, Herkunft (Start, Nur Truhe, Truhe und Laden, Nur Laden, Nicht erhältlich) und Bonus Münzen / Herzen /
+  Schaden (Frisuren ohne Boni). Die Kacheln zeigen die Werte. Gilt auch für eingebaute und eigene Teile.
+- **Frisuren** stehen als `frisur-<id>` in `lq_teil`, zu Beginn alle Start (frei wie bisher). Nicht freie stehen in der
+  Kinder-App grau mit „Im Laden“ bzw. „Nur in Truhen“; der Laden hat den Bereich „Frisur“, Truhen können Frisuren bringen.
+- **Regeln:** Besitz bleibt. Verliert ein Teil „Start“, bekommen es alle, die es tragen (auch als Standard ohne eigene
+  Wahl); was ein Kind gerade trägt, darf es behalten. Wird ein Teil neu Start, behalten Kinder ohne eigene Wahl ihren
+  bisherigen Standard. Der Standard eines Platzes ist das Startteil mit der kleinsten Kennung (`standardTeil`,
+  `lq_standard_teil`). Das letzte Startteil von Kleidung, Augen, Hintergrund und Frisur bleibt Start (`letztes`).
+  Findet die Truhe in der gezogenen Seltenheit kein Truhen-Teil, nimmt sie die nächste daneben, sonst gibt sie Münzen.
+- **App:** `lq_teile_werte` wird mit den Bildern geladen (`app/hochgeladen.tsx`, offline in `lernquest:teilWerte`);
+  `teil`, `alleTeile`, `angelegt`, `bonusVon` und `ladenWare` rechnen mit den Werten der Lehrkraft (`mitWerten`).
+  Ohne Werte (älterer Server, offline beim ersten Start) gilt der Katalog in `teile.ts`.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

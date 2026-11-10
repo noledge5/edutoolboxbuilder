@@ -15,8 +15,8 @@ import type { Einstellung } from '../bilder/ebene';
 import { editFrisur, editPrompt, prompt } from '../bilder/vorlagen';
 import type { Strich } from '../bilder/pixel';
 import { runImages } from '../../ai/images';
-import { bildLoeschen, bildSetzen, lqText, teilAendern, teilAnlegen } from '../server';
-import { FRISUREN, HAARFARBEN, SELTENHEITEN, SLOTS, TEILE, type Avatar, type Slot, type Teil } from '../teile';
+import { bildLoeschen, bildSetzen, lqText, teilAendern, teilAnlegen, teilEinstellen, type Herkunft } from '../server';
+import { bonusText, FRISUREN, frisurTeil, frisurTeilId, HAARFARBEN, mitWerten, SELTENHEITEN, SLOTS, TEILE, type Avatar, type Slot, type Teil } from '../teile';
 import { alsBase64, ebeneMachen, grundfigurDataUrl, haarFarben, kodieren, oeffnen, oeffnenUrl, WEGE, WEGE_HAARE, type Quelle, type Weg } from './bildVerarbeiten';
 import { Radierer } from './Radierer';
 
@@ -138,12 +138,17 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
               <h2>{label}</h2>
               <div className="lqt-bilder">
                 {[...TEILE, ...eigene]
+                  .map(mitWerten)
                   .filter((t) => t.slot === slot)
                   .map((t) => (
                     <button key={t.id} type="button" className={`lqt-bild ${wahl?.id === t.id ? 'is-on' : ''}`} onClick={() => waehlen(t)}>
                       <TeilBild teil={t} className="lqt-bild-kachel" />
                       <span>{t.name}</span>
                       <small className={`lqt-bild-herkunft ${herkunftKlasse(herkunft(t, hoch))}`}>{herkunft(t, hoch)}</small>
+                      <small className="lqt-bild-werte">
+                        {SELTENHEITEN[t.seltenheit].kurz} · {HERKUNFT_TEXT[herkunftVon(t)]}
+                        {bonusText(t) ? ` · ${bonusText(t)}` : ''}
+                      </small>
                     </button>
                   ))}
                 <button
@@ -162,9 +167,12 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
           ))}
           <section className="lqt-card">
             <h2>Frisuren</h2>
-            <p className="lqt-hint">Gemalt wird die Frisur in Braun als Edit der Grundfigur; die anderen vier Haarfarben rechnet die Seite daraus.</p>
+            <p className="lqt-hint">
+              Gemalt wird die Frisur in Braun als Edit der Grundfigur; die anderen vier Haarfarben rechnet die Seite daraus. Unter
+              „Einstellungen“ legst du fest, ob eine Frisur frei ist oder aus Truhen bzw. dem Laden kommt.
+            </p>
             <div className="lqt-bilder">
-              {FRISUREN.filter((f) => f.id !== 'glatze').map((f) => {
+              {FRISUREN.map((f) => {
                 const h = hoch[`haare-${f.id}-0`] ? 'Hochgeladen' : TEIL_BILDER[`haare-${f.id}-0`] ? 'Eingebaut' : 'Zeichnung';
                 return (
                   <button key={f.id} type="button" className={`lqt-bild ${frisur?.id === f.id ? 'is-on' : ''}`} onClick={() => waehlen(null, f)}>
@@ -173,6 +181,7 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
                     </span>
                     <span>{f.name}</span>
                     <small className={`lqt-bild-herkunft ${herkunftKlasse(h)}`}>{h}</small>
+                    <small className="lqt-bild-werte">{HERKUNFT_TEXT[herkunftVon(frisurTeil(f))]}</small>
                   </button>
                 );
               })}
@@ -371,6 +380,23 @@ function Bearbeiten({
   const nameOk = angaben.name.trim().length > 0 && angaben.name.trim().length <= 30;
   const regler = weg === 'ebene' && teil.slot === 'hintergrund' ? REGLER_HINTERGRUND : REGLER[weg];
 
+  // „Keine“ (bald) has no picture: only its settings.
+  if (frisur === 'glatze')
+    return (
+      <section ref={oben} className="lqt-card lqt-bild-edit" aria-label={teil.name}>
+        <div className="lqt-head">
+          <div>
+            <h2>{teil.name}</h2>
+            <p className="lqt-hint">Frisur ohne Haare, ohne Bild</p>
+          </div>
+          <button type="button" className="iconbtn" onClick={onClose} title="Schließen" aria-label="Schließen">
+            <Icon icon={X} size={18} />
+          </button>
+        </div>
+        <Einstellungen teil={frisurTeil({ id: frisur, name: teil.name })} frisur keys={keys} onFertig={onFertig} />
+      </section>
+    );
+
   return (
     <section ref={oben} className="lqt-card lqt-bild-edit" aria-label={neu ? 'Neues Teil' : `Bild für ${teil.name}`}>
       <div className="lqt-head">
@@ -399,6 +425,15 @@ function Bearbeiten({
           <Icon icon={X} size={18} />
         </button>
       </div>
+      {!neu && (
+        <Einstellungen
+          key={frisur ? frisurTeilId(frisur) : teil.id}
+          teil={frisur ? frisurTeil({ id: frisur, name: teil.name }) : mitWerten(teil)}
+          frisur={!!frisur}
+          keys={keys}
+          onFertig={onFertig}
+        />
+      )}
       {teil.eigen && (
         <div className="lqt-bild-angaben">
           <label>
@@ -620,5 +655,102 @@ function Bearbeiten({
         </>
       )}
     </section>
+  );
+}
+
+// — Settings of a part or hairstyle (supabase/migrations/20261121_lernquest_teile_einstellen.sql) —
+
+const HERKUNFT_TEXT: Record<Herkunft, string> = {
+  start: 'Start (alle haben es)',
+  truhe: 'Nur Truhe',
+  truhe_laden: 'Truhe und Laden',
+  laden: 'Nur Laden',
+  aus: 'Nicht erhältlich',
+};
+
+/** Where a part comes from, as one choice. */
+export const herkunftVon = (t: Teil): Herkunft => (t.aus ? 'aus' : t.start ? 'start' : t.nurTruhe ? 'truhe' : t.nurLaden ? 'laden' : 'truhe_laden');
+
+function Einstellungen({ teil, frisur, keys, onFertig }: { teil: Teil; frisur: boolean; keys: string[]; onFertig(): void }) {
+  const vorher = { seltenheit: teil.seltenheit, herkunft: herkunftVon(teil), muenzen: teil.muenzen ?? 0, herz: teil.herz ?? 0, schaden: teil.schaden ?? 0 };
+  const [w, setW] = useState(vorher);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const geaendert = JSON.stringify(w) !== JSON.stringify(vorher);
+  const speichern = async () => {
+    setBusy(true);
+    setMsg('');
+    try {
+      await teilEinstellen(keys, teil.id, w);
+      setMsg('Gespeichert. Die Kinder sehen es beim nächsten Öffnen von Lernquest.');
+      onFertig();
+    } catch (e) {
+      setMsg(
+        e instanceof Error && e.message === 'letztes'
+          ? 'Das ist das letzte Start-Teil auf diesem Platz. Mach zuerst ein anderes zum Start-Teil, sonst stünde ein neues Kind ohne da.'
+          : lqText(e),
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+  const zahl = (key: 'muenzen' | 'herz' | 'schaden', label: string, werte: number[], text: (n: number) => string) => (
+    <label>
+      <span>{label}</span>
+      <select className="input" value={w[key]} onChange={(e) => setW({ ...w, [key]: Number(e.target.value) })}>
+        {werte.map((n) => (
+          <option key={n} value={n}>
+            {n ? text(n) : 'keiner'}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+  return (
+    <div className="lqt-einstellungen" aria-label="Einstellungen">
+      <strong>Einstellungen</strong>
+      <div className="lqt-bild-angaben">
+        <label>
+          <span>Seltenheit</span>
+          <select className="input" value={w.seltenheit} onChange={(e) => setW({ ...w, seltenheit: Number(e.target.value) })}>
+            {SELTENHEITEN.map((x, i) => (
+              <option key={x.name} value={i}>
+                {x.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>Herkunft</span>
+          <select className="input" value={w.herkunft} onChange={(e) => setW({ ...w, herkunft: e.target.value as Herkunft })}>
+            {(Object.keys(HERKUNFT_TEXT) as Herkunft[]).map((h) => (
+              <option key={h} value={h}>
+                {HERKUNFT_TEXT[h]}
+              </option>
+            ))}
+          </select>
+        </label>
+        {!frisur && (
+          <>
+            {zahl('muenzen', 'Bonus Münzen', [0, 5, 10, 15, 20], (n) => `+${n} %`)}
+            {zahl('herz', 'Bonus Herzen', [0, 1, 2], (n) => `+${n}`)}
+            {zahl('schaden', 'Bonus Schaden (Boss)', [0, 1, 2, 3], (n) => `+${n}`)}
+          </>
+        )}
+        <button type="button" className="btn btn-secondary ui-btn" disabled={busy || !geaendert} onClick={() => void speichern()}>
+          <Icon icon={Save} />
+          Speichern
+        </button>
+      </div>
+      <p className="lqt-hint">
+        Preis im Laden aus der Seltenheit. Boni zählen nur im Spiel, zusammen höchstens +20 % Münzen, +2 Herzen und +3 Schaden.
+        Besitz bleibt immer: Wer es hat oder gerade trägt, behält es.
+      </p>
+      {msg && (
+        <p className="lqt-hint" role="status">
+          {msg}
+        </p>
+      )}
+    </div>
   );
 }
