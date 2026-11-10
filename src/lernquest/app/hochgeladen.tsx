@@ -4,8 +4,8 @@
 // shows again). The parts made on the teacher page come with them (`eigeneLaden`), kept in localStorage for offline.
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { createStore, del, entries, set, type UseStore } from 'idb-keyval';
-import { bildDaten, bilderListe, teileEigen } from '../server';
-import { eigeneTeile, readEigene, setzeEigene, type Teil } from '../teile';
+import { bildDaten, bilderListe, teileEigen, teileWerte } from '../server';
+import { eigeneTeile, readEigene, readWerte, setzeEigene, setzeWerte, type Teil } from '../teile';
 import { BilderNeuLaden, EigeneTeile, HochgeladeneBilder } from './bilderKontext';
 
 const K_EIGENE = 'lernquest:eigeneTeile';
@@ -16,8 +16,33 @@ const lesen = () => {
     return [];
   }
 };
+const K_WERTE = 'lernquest:teilWerte';
+const werteLesen = () => {
+  try {
+    return readWerte(JSON.parse(localStorage.getItem(K_WERTE) ?? '[]'));
+  } catch {
+    return {};
+  }
+};
 // Known at once, also offline.
 if (typeof localStorage !== 'undefined' && !eigeneTeile().length) setzeEigene(lesen());
+if (typeof localStorage !== 'undefined') setzeWerte(werteLesen());
+
+/** The teacher's values of all parts (rarity, where from, bonuses; offline: as last kept on the device). */
+export async function werteLaden(server = teileWerte): Promise<void> {
+  try {
+    const raw = await server();
+    const w = readWerte(raw);
+    try {
+      localStorage.setItem(K_WERTE, JSON.stringify(raw));
+    } catch {
+      // Storage full or blocked: only for now.
+    }
+    setzeWerte(w);
+  } catch {
+    // Offline or an older server: keep what there is.
+  }
+}
 
 /** The parts made on the teacher page from the server (offline: as last kept on the device). */
 export async function eigeneLaden(server = teileEigen): Promise<Teil[]> {
@@ -125,8 +150,9 @@ export function useHochgeladen(stand = 0): { bilder: Record<string, string>; tei
     let zuletzt = 0;
     const laden = () => {
       zuletzt = Date.now();
-      void Promise.all([bilderLaden(), eigeneLaden()]).then(([b, teile]) => {
-        if (!aus) setStand2({ bilder: alsUrls(b), teile });
+      void Promise.all([bilderLaden(), eigeneLaden(), werteLaden()]).then(([b, teile]) => {
+        // A new array, so pages listing parts render again (the values may have changed even if the own parts did not).
+        if (!aus) setStand2({ bilder: alsUrls(b), teile: [...teile] });
       });
     };
     const sichtbar = () => {

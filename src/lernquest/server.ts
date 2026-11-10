@@ -423,6 +423,15 @@ export const bildDaten = (teile: string[]) =>
 
 /** The own parts, as the server keeps them (checked by `readEigene`). */
 export const teileEigen = () => lq<unknown>('lq_teile_eigen', {});
+
+// — Values of all parts (supabase/migrations/20261121_lernquest_teile_einstellen.sql): rarity, where from, bonuses. —
+
+export type Herkunft = 'start' | 'truhe' | 'truhe_laden' | 'laden' | 'aus';
+/** All parts' values for everyone ([{id, slot, seltenheit, start, nurTruhe, nurLaden, aktiv, muenzen, herz, schaden}]). */
+export const teileWerte = () => lq<unknown>('lq_teile_werte', {});
+/** Sets a part's (or hairstyle's, `frisur-<id>`) values; only the admin teacher. Refusal 'letztes': the last start part. */
+export const teilEinstellen = (keys: string[], teil: string, werte: { seltenheit: number; herkunft: Herkunft; muenzen: number; herz: number; schaden: number }) =>
+  lq<null>('lq_teil_einstellen', { p_schluessel: keys, p_teil: teil, p_werte: werte });
 /** Makes an own part with its picture (base64); returns its id. */
 export const teilAnlegen = (keys: string[], t: { name: string; slot: string; seltenheit: number; nurTruhe: boolean }, typ: string, daten: string) =>
   lq<string>('lq_teil_anlegen', {

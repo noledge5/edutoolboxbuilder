@@ -4,7 +4,34 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { heldenstufe, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
-import { bonusText, bonusVon, CHANCEN, FRISUREN, frisurVon, GARANTIE, HAARFARBEN, haarfarbeVon, HAUT, hat, ladenWare, MUENDER, MUENZ_CHANCEN, mundVon, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
+import {
+  bonusText,
+  bonusVon,
+  CHANCEN,
+  FRISUREN,
+  frisurAusTeil,
+  frisurTeil,
+  frisurVon,
+  GARANTIE,
+  HAARFARBEN,
+  haarfarbeVon,
+  hatFrisur,
+  HAUT,
+  hat,
+  ladenFrisuren,
+  ladenWare,
+  MUENDER,
+  MUENZ_CHANCEN,
+  mundVon,
+  PREISE,
+  SELTENHEITEN,
+  SLOTS,
+  standardTeil,
+  teil,
+  type Avatar,
+  type Slot,
+  type Teil,
+} from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
 import { BilderNeuLaden, useAlleTeile } from './bilderKontext';
@@ -114,7 +141,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
 
   const alle = useAlleTeile();
   const tippen = (t: Teil) => {
-    const an = stand.avatar[t.slot] ?? TEILE.find((x) => x.slot === t.slot && x.start)?.id ?? '';
+    const an = stand.avatar[t.slot] ?? standardTeil(t.slot)?.id ?? '';
     if (an === t.id) {
       if (ABNEHMBAR.includes(t.slot)) anlegen({ ...stand.avatar, [t.slot]: '' });
       return;
@@ -161,20 +188,20 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
         <div className="lq-teile" role="tabpanel" aria-label={slotName(slot)}>
           {teile.map((t) => {
             const meins = hat(stand.inventar, t);
-            const an = meins && (stand.avatar[t.slot] ?? (t.start ? t.id : '')) === t.id;
+            const an = meins && (stand.avatar[t.slot] ?? standardTeil(t.slot)?.id ?? '') === t.id;
             if (!meins) {
               return (
                 <div
                   key={t.id}
                   className="lq-teil zu"
-                  aria-label={`${t.nurTruhe ? 'Truhen-Schatz, nur in Truhen zu finden' : 'Noch nicht gefunden'}, ${SELTENHEITEN[t.seltenheit].name}`}
+                  aria-label={`${t.nurTruhe ? 'Truhen-Schatz, nur in Truhen zu finden' : t.nurLaden ? 'Nur im Laden' : 'Noch nicht gefunden'}, ${SELTENHEITEN[t.seltenheit].name}`}
                   role="img"
                 >
                   <span className="lq-teil-bild lq-fragezeichen" aria-hidden>
                     ?
                   </span>
                   <span className="lq-teil-name" aria-hidden>
-                    {t.nurTruhe ? 'Nur in Truhen' : 'Noch nicht gefunden'}
+                    {t.nurTruhe ? 'Nur in Truhen' : t.nurLaden ? 'Nur im Laden' : 'Noch nicht gefunden'}
                   </span>
                   <span aria-hidden>
                     <Seltenheit s={t.seltenheit} kurz />
@@ -220,6 +247,25 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
           <span className="lq-klein">Frisur</span>
           {FRISUREN.map((f) => {
             const an = frisurVon(stand.avatar) === f.id;
+            const ft = frisurTeil(f);
+            if (!hatFrisur(stand.inventar, f.id, stand.avatar)) {
+              // Not free: found in chests or bought in the shop (out of the game: not shown).
+              if (ft.aus) return null;
+              const wo = ft.nurTruhe ? 'Nur in Truhen' : 'Im Laden';
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  className="zu"
+                  aria-label={`${f.name}: ${wo}, ${SELTENHEITEN[ft.seltenheit].name}`}
+                  disabled={ft.nurTruhe}
+                  onClick={onLaden}
+                >
+                  <KopfBild avatar={{ ...stand.avatar, frisur: f.id }} />
+                  <span>{wo}</span>
+                </button>
+              );
+            }
             return (
               <button
                 key={f.id}
@@ -275,10 +321,13 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
   );
 }
 
-function SlotTabs({ slot, setSlot, label }: { slot: Slot; setSlot: (s: Slot) => void; label: string }) {
+type LadenSlot = Slot | 'frisur';
+
+function SlotTabs<S extends LadenSlot>({ slot, setSlot, label, frisur = false }: { slot: S; setSlot: (s: S) => void; label: string; frisur?: boolean }) {
+  const tabs = (frisur ? [...SLOTS, { slot: 'frisur' as const, label: 'Frisur' }] : SLOTS) as { slot: S; label: string }[];
   return (
     <div className="lq-faecher lq-slots" role="tablist" aria-label={label}>
-      {SLOTS.map((s) => (
+      {tabs.map((s) => (
         <button key={s.slot} type="button" role="tab" aria-selected={s.slot === slot} className={s.slot === slot ? 'an' : ''} onClick={() => setSlot(s.slot)}>
           {s.label}
         </button>
@@ -291,13 +340,14 @@ function SlotTabs({ slot, setSlot, label }: { slot: Slot; setSlot: (s: Slot) => 
 
 export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Daten; aktion: Aktion; setStand: (s: Stand) => void; onZurueck: () => void }) {
   const { stand } = daten;
-  const [slot, setSlot] = useState<Slot>('kopf');
+  const [slot, setSlot] = useState<LadenSlot>('kopf');
   const [wahl, setWahl] = useState<Teil | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [gekauft, setGekauft] = useState<Teil | null>(null);
-  useAlleTeile(); // own parts arrive later: show them then
-  const ware = ladenWare(stand.inventar, slot);
+  useAlleTeile(); // own parts and the teacher's values arrive later: show them then
+  // Hairstyles are parts too (`frisur-<id>`): shown as a head with that hair.
+  const ware = slot === 'frisur' ? ladenFrisuren(stand.inventar).map((x) => x.t) : ladenWare(stand.inventar, slot);
   const preis = wahl ? PREISE[wahl.seltenheit] : 0;
 
   const kauf = async () => {
@@ -319,7 +369,8 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
   const anlegen = async (t: Teil) => {
     setBusy(true);
     try {
-      setStand(await aktion((tok) => avatarSetzen(tok, { ...stand.avatar, [t.slot]: t.id })));
+      const f = frisurAusTeil(t.id);
+      setStand(await aktion((tok) => avatarSetzen(tok, f ? { ...ohneFigur(stand.avatar), frisur: f.id } : { ...stand.avatar, [t.slot]: t.id })));
       onZurueck();
     } catch (e) {
       setMsg(lqText(e));
@@ -342,6 +393,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
           setWahl(null);
         }}
         label="Bereiche im Laden"
+        frisur
       />
       {gekauft && (
         <div className="lq-hinweis-gold" role="status">
@@ -365,7 +417,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
               setWahl(wahl?.id === t.id ? null : t);
             }}
           >
-            <TeilBild teil={t} avatar={stand.avatar} className="lq-teil-bild" />
+            <WareBild teil={t} avatar={stand.avatar} />
             <span className="lq-teil-name">{t.name}</span>
             <Seltenheit s={t.seltenheit} kurz />
             <Muenzen n={PREISE[t.seltenheit]} />
@@ -388,6 +440,17 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
         </div>
       )}
     </section>
+  );
+}
+
+/** A part's picture, or for a hairstyle the head with that hair. */
+function WareBild({ teil: t, avatar, className = 'lq-teil-bild' }: { teil: Teil; avatar: Avatar; className?: string }) {
+  const f = frisurAusTeil(t.id);
+  if (!f) return <TeilBild teil={t} avatar={avatar} className={className} />;
+  return (
+    <span className={`${className} lq-frisur-bild`}>
+      <KopfBild avatar={{ ...avatar, frisur: f.id }} />
+    </span>
   );
 }
 
@@ -441,9 +504,10 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
     if (!inhalt) return;
     setBusy(true);
     try {
+      const f = frisurAusTeil(inhalt.teil);
       const neu = teil(inhalt.teil ?? undefined);
-      if (!neu) return;
-      setStand(await aktion((t) => avatarSetzen(t, { ...stand.avatar, [neu.slot]: neu.id })));
+      if (!neu && !f) return;
+      setStand(await aktion((t) => avatarSetzen(t, f ? { ...ohneFigur(stand.avatar), frisur: f.id } : { ...stand.avatar, [neu!.slot]: neu!.id })));
       onFertig(true);
     } catch (e) {
       setMsg(lqText(e));
@@ -451,7 +515,9 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
     }
   };
 
-  const t = inhalt?.teil ? teil(inhalt.teil) : undefined;
+  // A hairstyle from the chest shows as a part with its head picture.
+  const fr = frisurAusTeil(inhalt?.teil);
+  const t = inhalt?.teil ? (fr ? frisurTeil(fr) : teil(inhalt.teil)) : undefined;
   // A part made on the teacher page after this device loaded the parts: load them (and their pictures) again.
   const neuLaden = useContext(BilderNeuLaden);
   const unbekannt = !!inhalt?.teil && !t;
@@ -473,7 +539,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
       >
         <span className="lq-truhe-glanz" aria-hidden />
         {phase === 'da' && t ? (
-          <TeilBild teil={t} avatar={stand.avatar} className="lq-truhe-teil" />
+          <WareBild teil={t} avatar={stand.avatar} className="lq-truhe-teil" />
         ) : phase === 'da' && nurMuenzen ? (
           <MuenzHaufen />
         ) : (
@@ -489,7 +555,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
             </span>
             <h1>{t.name}</h1>
             <p>
-              {slotName(t.slot)}
+              {fr ? 'Frisur' : slotName(t.slot)}
               {bonusText(t) ? ` · Bonus im Spiel: ${bonusText(t)}` : ''}
             </p>
             {inhalt.doppelt && <p className="lq-truhe-doppelt">Hast du schon – dafür bekommst du {inhalt.muenzen} Münzen.</p>}

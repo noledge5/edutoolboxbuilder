@@ -1,14 +1,16 @@
-# Handoff – 09.11.2026 (Bilder und eigene Teile auf der Lehrerseite)
+# Handoff – 10.11.2026 (Teile einstellen, Frisuren sammeln)
 
 ## Stand
-- Auf „Bilder der Teile“ (nur Admin): Bilder hochladen (#48), nachjustieren, drehen, mit KI malen (#49), eigene Teile
-  anlegen (dieser Branch). Details: `docs/lernquest.md` → „Bilder hochladen …“, „Bilder nachjustieren …“, „Eigene Teile“.
-- Migrationen `20261117_lernquest_bilder.sql` und `20261118_lernquest_eigene_teile.sql` eingespielt; Admin = Besitzer-Hash
-  der Klasse „5c“. Live-Tests (`LQ_LIVE=1 npx vitest run src/lernquest/server.live.test.ts`) grün.
-- Nicht geprüft: echter OpenRouter-Aufruf, Safari/iPad.
+- Branch `lernquest` = `main` + diese Arbeit (alle Lernquest-Arbeit liegt auf `main`; `lernquest` stand bis 10.11. auf dem
+  06.11. – die alte Designrunde ist auf `lernquest-designrunde-alt` gesichert, nicht mergen).
+- Neu: auf „Bilder der Teile“ bei jedem Teil und jeder Frisur „Einstellungen“ (Seltenheit, Herkunft, Boni); Frisuren als
+  Teile (`frisur-<id>`), in der Kinder-App gesperrt mit „Im Laden“/„Nur in Truhen“, Laden-Bereich „Frisur“.
+  Details: `docs/lernquest.md` → „Teile einstellen und Frisuren sammeln“.
+- Migration `20261121_lernquest_teile_einstellen.sql`: lokal mit allen Migrationen geprüft (Postgres 16); Browser-Durchlauf
+  Lehrerseite + Kinder-App gegen die lokale Datenbank.
 
 ## Nächste Schritte
-- Rückmeldung der Lehrkraft abwarten. Fehlt der Knopf auf einem Gerät: zweiten Schlüssel-Hash in `lq_admin` nachtragen.
+- Rückmeldung der Lehrkraft. WIP auf `claude/sweet-tesla-pcomqy` (Abmelden-Knopf, eigene Frisuren) ist noch nicht auf `main`.
 
 ## Wichtig zu wissen
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
