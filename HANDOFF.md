@@ -6,7 +6,7 @@
 - Neu: auf „Bilder der Teile“ bei jedem Teil und jeder Frisur „Einstellungen“ (Seltenheit, Herkunft, Boni); Frisuren als
   Teile (`frisur-<id>`), in der Kinder-App gesperrt mit „Im Laden“/„Nur in Truhen“, Laden-Bereich „Frisur“.
   Details: `docs/lernquest.md` → „Teile einstellen und Frisuren sammeln“.
-- Migration `20261121_lernquest_teile_einstellen.sql`: lokal mit allen Migrationen geprüft (Postgres 16); Browser-Durchlauf
+- Migration `20261121_lernquest_teile_einstellen.sql`: eingespielt am 10.11.2026, Live-Tests grün; lokal geprüft; Browser-Durchlauf
   Lehrerseite + Kinder-App gegen die lokale Datenbank.
 
 ## Nächste Schritte

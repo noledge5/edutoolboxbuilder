@@ -393,7 +393,7 @@ am 09.11.2026 über die Supabase-Verbindung nach OK der Lehrkraft, vor dem Merge
 
 Wunsch der Lehrkraft (Designrunde): bei jedem Teil Seltenheit, Herkunft und Effekte einstellen; Frisuren teils frei,
 teils aus Truhen und Laden. Migration `supabase/migrations/20261121_lernquest_teile_einstellen.sql` (lokal mit allen
-Migrationen in Postgres 16 durchgespielt).
+Migrationen in Postgres 16 durchgespielt, eingespielt am 10.11.2026 auf Wunsch der Lehrkraft, Live-Tests grün).
 - **Lehrerseite** („Bilder der Teile“, nur Admin): bei jedem Teil und jeder Frisur ein Kasten „Einstellungen“ mit
   Seltenheit, Herkunft (Start, Nur Truhe, Truhe und Laden, Nur Laden, Nicht erhältlich) und Bonus Münzen / Herzen /
   Schaden (Frisuren ohne Boni). Die Kacheln zeigen die Werte. Gilt auch für eingebaute und eigene Teile.
