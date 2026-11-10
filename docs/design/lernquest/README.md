@@ -43,3 +43,6 @@ Gilt vor dem Prototyp, wo beide sich widersprechen.
   tippt, wird Admin (Hash in `lq_admin`); danach dürfen nur Admin-Schlüssel ändern, alle anderen nur lesen. Bewusst
   in Kauf genommen: wer zuerst tippt, gewinnt. Darum direkt nach dem Einspielen selbst übernehmen. Langfristig ein
   richtiges Login (offener Punkt in `docs/lernquest.md`).
+- **Änderungen am Katalog:** Besitz bleibt immer. Neue Werte (Bonus, Seltenheit, Preis, Münzen für Doppelte) gelten
+  sofort für alle. Wird ein Teil Startteil, haben es alle; verliert es den Start, behält es nur, wer es gerade trägt.
+  Teile werden nie gelöscht, nur auf Herkunft **„nicht erhältlich“** gesetzt (auch für Sonderteile zum Verschenken).
