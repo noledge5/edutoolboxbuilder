@@ -10,7 +10,7 @@
   Lehrerseite + Kinder-App gegen die lokale Datenbank.
 
 - Eigene Frisuren und Abmelden-Knopf (aus dem WIP von `claude/sweet-tesla-pcomqy`, mit dem Teile-Katalog verbunden):
-  Migration `20261122_lernquest_eigene_frisuren.sql`. Details: `docs/lernquest.md` → „Eigene Frisuren und Abmelden“.
+  Migration `20261122_lernquest_eigene_frisuren.sql` (eingespielt, Live-Tests grün). Details: `docs/lernquest.md` → „Eigene Frisuren und Abmelden“.
 
 ## Nächste Schritte
 - Rückmeldung der Lehrkraft. `claude/sweet-tesla-pcomqy` ist damit erledigt.

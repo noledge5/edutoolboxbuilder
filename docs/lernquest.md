@@ -411,7 +411,7 @@ Migrationen in Postgres 16 durchgespielt, eingespielt am 10.11.2026 auf Wunsch d
 ## Eigene Frisuren und Abmelden (10.11.2026)
 
 Wunsch der Lehrkraft: auf „Bilder der Teile“ neue Frisuren anlegen; ein sichtbarer „Abmelden“-Knopf für die Kinder.
-Migration `supabase/migrations/20261122_lernquest_eigene_frisuren.sql` (lokal mit allen Migrationen geprüft).
+Migration `supabase/migrations/20261122_lernquest_eigene_frisuren.sql` (lokal mit allen Migrationen geprüft, am 10.11.2026 von der Lehrkraft im SQL-Editor eingespielt, Live-Tests grün).
 - **Neue Frisur:** Kachel „Neue Frisur“ → Name → Bild wählen oder mit KI malen (braun, als Edit der Grundfigur) → Vorschau
   am Helden und in allen fünf Haarfarben → „Frisur anlegen“ (Frisur und fünf Bilder in einem Schritt, `lq_frisur_anlegen`,
   höchstens 50). Umbenennen über „Speichern“; kein Löschen, die Bilder einer eigenen Frisur lassen sich nicht löschen.
