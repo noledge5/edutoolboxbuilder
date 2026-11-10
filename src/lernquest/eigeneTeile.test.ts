@@ -1,7 +1,7 @@
 // Own parts made on the teacher page (20261118_lernquest_eigene_teile.sql): checked when read, found by `teil`, in the
 // shop only while in the game, kept on the device for offline.
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { alleTeile, ladenWare, readEigene, setzeEigene, teil, TEILE } from './teile';
+import { alleFrisuren, alleTeile, frisurVon, ladenWare, readEigene, readEigeneFrisuren, setzeEigene, setzeEigeneFrisuren, teil, TEILE } from './teile';
 
 const hut = { id: 'e0123456789', slot: 'kopf', name: 'Drachenhut', seltenheit: 2, nurTruhe: false, aktiv: true };
 
@@ -66,5 +66,26 @@ describe('Eigene Teile im Gerät', () => {
     };
     setzeEigene(readEigene(JSON.parse(speicher.get('lernquest:eigeneTeile')!)));
     expect((await eigeneLaden(offline)).map((t) => t.id)).toEqual([hut.id]);
+  });
+});
+
+describe('Eigene Frisuren', () => {
+  afterEach(() => setzeEigeneFrisuren([]));
+
+  it('reads only well-formed hair and lets it be worn', () => {
+    const liste = readEigeneFrisuren([
+      { id: 'f0123456789', name: 'Irokese', aktiv: true },
+      { id: 'zopf', name: 'Fremd' },
+      { id: 'f0123456789x', name: 'Zu lang' },
+      { id: 'fabcdefabcd', name: '' },
+      null,
+    ]);
+    expect(liste).toEqual([{ id: 'f0123456789', name: 'Irokese', eigen: true }]);
+    expect(frisurVon({ frisur: 'f0123456789' })).toBe('kurz'); // not known yet
+    setzeEigeneFrisuren(liste);
+    expect(frisurVon({ frisur: 'f0123456789' })).toBe('f0123456789');
+    // Own hair before „Keine“.
+    expect(alleFrisuren().map((f) => f.id).slice(-2)).toEqual(['f0123456789', 'glatze']);
+    expect(readEigeneFrisuren([{ id: 'f0123456789', name: 'X', aktiv: false }])[0].aus).toBe(true);
   });
 });

@@ -51,6 +51,9 @@ import {
   teileEigen,
   teileWerte,
   teilEinstellen,
+  frisurAnlegen,
+  frisurAendern,
+  frisurenEigen,
   wiederholenSetzen,
 } from './server';
 import { readWerte } from './teile';
@@ -206,9 +209,9 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(t.stand).toMatchObject({ truhen: 0, inventar: eigene, pech: t.seltenheit >= 2 ? 0 : 1 });
     expect(await code(truheOeffnen(token))).toBe('ungueltig');
 
-    // Shop: a common part costs PREISE[0]; play rounds until the coins reach it.
+    // Shop: a common part costs PREISE[0]; play rounds until the coins reach it (repeats give a third, so up to 20).
     let muenzen = t.stand.muenzen;
-    for (let i = 0; i < 8 && muenzen < PREISE[0]; i++) muenzen = (await rundeMelden(token, '', 0, 5, 5, {})).stand.muenzen;
+    for (let i = 0; i < 20 && muenzen < PREISE[0]; i++) muenzen = (await rundeMelden(token, '', 0, 5, 5, {})).stand.muenzen;
     expect(muenzen).toBeGreaterThanOrEqual(PREISE[0]);
     const [ware, zweite] = TEILE.filter((x) => x.seltenheit === 0 && !x.start && !eigene.includes(x.id));
     const nachKauf = await kaufen(token, ware.id);
@@ -505,5 +508,12 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     const w = readWerte(await teileWerte());
     expect(w.krone).toBeDefined();
     expect(w['frisur-kurz']).toBeDefined();
+  });
+
+  it('Eigene Frisuren: nur Admins legen an und benennen um, lesen dürfen alle', async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await code(frisurAnlegen(keyA, 'Test', Array.from({ length: 5 }, () => ({ typ: 'image/png', daten: png }))))).toBe('zugang');
+    expect(await code(frisurAendern(keyA, 'f0123456789', 'Test'))).toBe('zugang');
+    expect(Array.isArray(await frisurenEigen())).toBe(true);
   });
 });
