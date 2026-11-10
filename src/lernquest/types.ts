@@ -1,8 +1,6 @@
 // Lernquest: what the class gets per lesson (the Lernpaket) and what the server keeps per child (the Spielstand).
 // Plan and decisions: docs/lernquest.md.
 
-import type { Avatar } from './teile';
-
 export const PAKET_FORMAT = 'lernquest-paket';
 
 /** One exercise in the style of Anton/Duolingo, made from a task block of a lesson. */
@@ -85,8 +83,8 @@ export interface Stand {
   pech: number;
   /** Parts found or bought (ids from `TEILE`). */
   inventar: string[];
-  /** What is worn: part id per place ('' = nothing), skin tone and hair colour. */
-  avatar: Avatar;
+  /** What is worn: part id per place ('' = nothing) and the skin tone. */
+  avatar: Partial<Record<'kopf' | 'augen' | 'kleidung' | 'werkzeug' | 'begleiter' | 'hintergrund', string>> & { haut?: number };
 }
 
 export const LEERER_STAND: Stand = { xp: 0, xpHeute: 0, bestwerte: {}, tage: [], leitner: {}, muenzen: 0, muenzenHeute: 0, truhen: 0, pech: 0, inventar: [], avatar: {} };

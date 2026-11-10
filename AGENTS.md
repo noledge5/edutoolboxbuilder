@@ -51,8 +51,6 @@ Vite + React + TypeScript, no backend of its own (Supabase only for sync and for
   `src/sheet/`). Reward rules live twice, in `src/lernquest/rules.ts` and in `lq_runde_melden`
   (`supabase/migrations/`): change both. A new task block that should become an exercise also touches
   `src/lernquest/paket.ts`. The server test `src/lernquest/server.live.test.ts` runs only with `LQ_LIVE=1`.
-  The parts catalogue lives on the server (`lq_teil`, edited by the teacher on the „Teile“ page); `TEILE` is only the
-  seed of `20261110_lernquest_katalog.sql` and the offline fallback. Part pictures are WebP data URLs only, never SVG.
 
 ## Commands and checks
 - `npm run dev`, `npm run typecheck`, `npm test` (Vitest), `npm run build`; the CI (`.github/workflows/ci.yml`) runs the same.

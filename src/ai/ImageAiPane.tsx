@@ -26,13 +26,9 @@ interface ImageAiPaneProps {
   aspect?: ImageAspect;
   onPick(file: File, credit: string): void;
   onClose(): void;
-  /** Own prompt instead of the worksheet styles (Lernquest parts): square, no style choice, the picture as it came. */
-  prompt?: (what: string) => string;
-  /** Hint under the pictures instead of the one about the source line. */
-  hint?: string;
 }
 
-export function ImageAiPane({ initial, aspect: firstAspect = '4:3', onPick, onClose, prompt, hint }: ImageAiPaneProps) {
+export function ImageAiPane({ initial, aspect: firstAspect = '4:3', onPick, onClose }: ImageAiPaneProps) {
   const grade = useContext(AiGradeContext);
   const settings = useAiSettings();
   const [what, setWhat] = useState(initial);
@@ -64,7 +60,7 @@ export function ImageAiPane({ initial, aspect: firstAspect = '4:3', onPick, onCl
     setBusy(Date.now());
     setNow(Date.now());
     try {
-      const pics = await runImages(prompt ? prompt(what) : imagePrompt(what, style), prompt ? '1:1' : aspect, two ? 2 : 1, ctrl.signal);
+      const pics = await runImages(imagePrompt(what, style), aspect, two ? 2 : 1, ctrl.signal);
       if (pics) {
         setMade((m) => [...pics, ...m]);
         setPicked(0);
@@ -79,8 +75,7 @@ export function ImageAiPane({ initial, aspect: firstAspect = '4:3', onPick, onCl
   const take = async () => {
     const m = made[picked];
     if (!m) return;
-    // Own prompt: the picture as it came (PNG keeps the flat background clean for cutting out).
-    onPick(prompt ? new File([await (await fetch(m.url)).blob()], 'ki-bild.png', { type: 'image/png' }) : await fileOfDataUrl(m.url, 'ki-bild'), imageCredit(m.model));
+    onPick(await fileOfDataUrl(m.url, 'ki-bild'), imageCredit(m.model));
   };
   const cost = made.reduce((n, m) => n + m.usd, 0);
   const seconds = busy === null ? 0 : Math.round((now - busy) / 1000);
@@ -101,7 +96,6 @@ export function ImageAiPane({ initial, aspect: firstAspect = '4:3', onPick, onCl
           <label htmlFor="img-ai-what">Was soll zu sehen sein? (Deutsch oder Englisch)</label>
           <textarea id="img-ai-what" className="input" rows={3} value={what} placeholder="z. B. ein Kompass auf einer Wanderkarte, daneben ein Rucksack" onChange={(e) => setWhat(e.target.value)} />
         </div>
-        {!prompt && (
         <div className="img-ai-row">
           <div className="seg-pills" role="radiogroup" aria-label="Stil">
             {IMAGE_STYLES.map((s) => (
@@ -111,9 +105,7 @@ export function ImageAiPane({ initial, aspect: firstAspect = '4:3', onPick, onCl
             ))}
           </div>
         </div>
-        )}
         <div className="img-ai-row">
-          {!prompt && (
           <div className="seg-pills" role="radiogroup" aria-label="Format">
             {ASPECTS.map((a) => (
               <button key={a.v} type="button" role="radio" aria-checked={aspect === a.v} className={'seg-pill' + (aspect === a.v ? ' is-on' : '')} onClick={() => setAspect(a.v)}>
@@ -121,7 +113,6 @@ export function ImageAiPane({ initial, aspect: firstAspect = '4:3', onPick, onCl
               </button>
             ))}
           </div>
-          )}
           <label className="img-search-free">
             <input type="checkbox" checked={two} onChange={(e) => setTwo(e.target.checked)} />
             zwei Vorschläge
@@ -150,8 +141,7 @@ export function ImageAiPane({ initial, aspect: firstAspect = '4:3', onPick, onCl
       </div>
       <div className="img-search-foot">
         <p className="img-search-picked img-search-hint">
-          {made.length ? `Bisher etwa ${dollars(cost)}. ` : ''}
-          {hint ?? 'Als Quelle steht „KI-Bild“ unter dem Bild. Prüfe, ob alles stimmt: KI-Bilder irren sich gern bei Karten, Zahlen und Händen.'}
+          {made.length ? `Bisher etwa ${dollars(cost)}. ` : ''}Als Quelle steht „KI-Bild“ unter dem Bild. Prüfe, ob alles stimmt: KI-Bilder irren sich gern bei Karten, Zahlen und Händen.
         </p>
         <div className="dialog-actions">
           <button type="button" className="btn btn-secondary ui-btn" onClick={onClose}>

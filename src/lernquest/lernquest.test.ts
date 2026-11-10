@@ -1,8 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { angelegt, ausTruhe, bonusText, bonusVon, CHANCEN, ersterStart, hat, imLaden, leseKatalog, leseTeil, neueId, TEILE, teilPrompt, type Teil } from './teile';
-import { freistellen, grundVon, inhalt } from './freistellen';
-import { zusammen } from './katalog';
+import { angelegt, bonusText, bonusVon, CHANCEN, TEILE } from './teile';
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
@@ -229,10 +227,10 @@ describe('Runde auf dem Gerät', () => {
 
 describe('Held und Beute', () => {
   it('hat denselben Katalog wie der Server', () => {
-    const sql = readFileSync(new URL('../../supabase/migrations/20261110_lernquest_katalog.sql', import.meta.url), 'utf8');
-    const rows = [...sql.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), '([a-z_]+)', (\d+), (\d+), '([^']+)'\)/g)].map((m) => [m[1], m[2], +m[3], m[4], +m[5], +m[6], m[7]]);
-    expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, t.herkunft, t.muenzen ?? 0, t.herz ?? 0, t.name]));
-    expect(TEILE).toHaveLength(46);
+    const sql = readFileSync(new URL('../../supabase/migrations/20261106b_lernquest_held.sql', import.meta.url), 'utf8');
+    const rows = [...sql.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+)\)/g)].map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]);
+    expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, !!t.start, t.muenzen ?? 0, t.herz ?? 0]));
+    expect(TEILE).toHaveLength(40);
     expect(CHANCEN.reduce((a, b) => a + b, 0)).toBe(100);
   });
 
@@ -243,97 +241,6 @@ describe('Held und Beute', () => {
     expect(angelegt({ kleidung: 'pulli' }, 'kleidung')?.id).toBe('pulli');
     expect(angelegt({}, 'kopf')).toBeUndefined();
     expect(bonusText({ muenzen: 5, herz: 1 })).toBe('+5 % Münzen, +1 Herz');
-  });
-});
-
-describe('Teile-Katalog', () => {
-  const webp = 'data:image/webp;base64,UklGRg==';
-
-  it('liest Teile vom Server sicher', () => {
-    expect(leseTeil({ id: 'roter-schal-ab12', slot: 'kleidung', name: ' Roter Schal ', seltenheit: 9, herkunft: 'laden', muenzen: 50, herz: -1, bild: webp, lage: { x: 80, y: 3, s: 1 } })).toEqual({
-      id: 'roter-schal-ab12',
-      slot: 'kleidung',
-      name: 'Roter Schal',
-      seltenheit: 4,
-      herkunft: 'laden',
-      muenzen: 20,
-      bild: webp,
-      lage: { x: 50, y: 3, s: 1 },
-    });
-    expect(leseTeil({ id: 'Böse', slot: 'kopf' })).toBeNull();
-    expect(leseTeil({ id: 'x', slot: 'schuhe' })).toBeNull();
-    // Only WebP as data URL: no SVG (scripts), no links to elsewhere.
-    expect(leseTeil({ id: 'x', slot: 'kopf', bild: 'data:image/svg+xml;base64,PHN2Zz4=' })?.bild).toBeUndefined();
-    expect(leseTeil({ id: 'x', slot: 'kopf', bild: 'https://example.org/a.webp' })?.bild).toBeUndefined();
-    expect(leseTeil({ id: 'x', slot: 'kopf', herkunft: 'irgendwo' })?.herkunft).toBe('keine');
-    expect(leseTeil({ id: 'x', slot: 'kopf', bildKurz: webp })?.bildKurz).toBeUndefined();
-    expect(leseTeil({ id: 'x', slot: 'frisur', bildKurz: webp })?.bildKurz).toBe(webp);
-    expect(leseKatalog([])).toBe(TEILE);
-  });
-
-  it('setzt Bilder und Teile zusammen', () => {
-    const k = zusammen([{ id: 'a', slot: 'kopf', name: 'A', seltenheit: 0, herkunft: 'truhe' }], { a: { bild: webp, bildKurz: null } });
-    expect(k[0].bild).toBe(webp);
-    expect(k[0].bildKurz).toBeUndefined();
-  });
-
-  it('macht neue ids aus dem Namen', () => {
-    expect(neueId('Grüner Schal!', () => 0)).toBe('gruener-schal-aaaa');
-    expect(neueId('???', () => 0.999)).toBe('teil-9999');
-    expect(neueId('Grüner Schal')).toMatch(/^[a-z0-9-]{1,40}$/);
-  });
-
-  it('kennt Herkunft und Startteile', () => {
-    const t = (id: string, herkunft: Teil['herkunft']): Teil => ({ id, slot: 'frisur', name: id, seltenheit: 0, herkunft });
-    const k = [t('zopf', 'start'), t('kurz', 'start'), t('locken', 'laden')];
-    expect(ersterStart('frisur', k)?.id).toBe('kurz');
-    expect(angelegt({}, 'frisur', k)?.id).toBe('kurz');
-    expect(angelegt({ frisur: 'locken' }, 'frisur', k)?.id).toBe('locken');
-    expect(angelegt({ frisur: '' }, 'frisur', k)).toBeUndefined();
-    // A part of another place does not count.
-    expect(angelegt({ frisur: 'krone' }, 'frisur', k)?.id).toBe('kurz');
-    expect(hat([], k[0])).toBe(true);
-    expect(hat([], k[2])).toBe(false);
-    expect(imLaden(k[2]) && !ausTruhe(k[2])).toBe(true);
-    expect(TEILE.filter((x) => x.slot === 'frisur')).toHaveLength(6);
-  });
-
-  it('beschreibt das Bild für die Bild-KI', () => {
-    expect(teilPrompt('kopf', 'ein Wikingerhelm')).toContain('#00FF00');
-    expect(teilPrompt('hintergrund', 'Wüste')).not.toContain('#00FF00');
-    expect(teilPrompt('frisur', 'Zöpfe', true)).toContain('under a hat');
-  });
-
-  it('stellt grünen Hintergrund frei, auch nicht innen', () => {
-    // 5 × 5: green everywhere, a red square in the middle with a green dot inside.
-    const w = 5;
-    const px = new Uint8ClampedArray(w * w * 4);
-    for (let i = 0; i < w * w; i++) px.set([0, 255, 0, 255], i * 4);
-    for (const [x, y] of [[1, 1], [2, 1], [3, 1], [1, 2], [3, 2], [1, 3], [2, 3], [3, 3]]) px.set([200, 30, 30, 255], (y * w + x) * 4);
-    expect(grundVon(px, w, w)).toBe('gruen');
-    freistellen(px, w, w, 'gruen');
-    expect(px[3]).toBe(0);
-    expect(px[(1 * w + 1) * 4 + 3]).toBe(255);
-    // The inner green dot is not connected to the edge: it stays.
-    expect(px[(2 * w + 2) * 4 + 3]).toBe(255);
-    expect(inhalt(px, w, w)).toEqual({ x: 1, y: 1, w: 3, h: 3 });
-    // With `innen` the enclosed dot goes too (the face opening of a hairstyle).
-    px.set([0, 255, 0, 255], (2 * w + 2) * 4);
-    freistellen(px, w, w, 'gruen', 0.5, true);
-    expect(px[(2 * w + 2) * 4 + 3]).toBe(0);
-  });
-
-  it('erkennt weißen und durchsichtigen Hintergrund', () => {
-    const px = new Uint8ClampedArray(4 * 4 * 4).fill(255);
-    expect(grundVon(px, 4, 4)).toBe('weiss');
-    freistellen(px, 4, 4, 'weiss');
-    expect(inhalt(px, 4, 4)).toBeNull();
-    expect(grundVon(new Uint8ClampedArray(16 * 4), 4, 4)).toBe('keiner');
-    // Light grey (hair to be tinted) next to white stays.
-    const g = new Uint8ClampedArray(2 * 4).fill(255);
-    g.set([200, 200, 205, 255], 4);
-    freistellen(g, 2, 1, 'weiss');
-    expect([g[3], g[7]]).toEqual([0, 255]);
   });
 });
 

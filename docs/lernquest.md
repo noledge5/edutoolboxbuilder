@@ -101,26 +101,9 @@ Gebaut und geprüft (Tests, Rechte-Test gegen den Server, Durchlauf im Browser a
 - **Noch nicht:** Vorlesen, Ton-Dateien, App-Hülle offline (Daten sind offline da, die Seite selbst braucht beim
   ersten Öffnen Netz), Bild-Aufgaben (Bildvokabeln, Tabelle, Wortnetz, Satzbaustellen kommen in Stufe 5).
 
-## Stand Teile-Katalog (10.11.2026, Designrunde)
-
-Entscheidungen: `docs/design/lernquest/README.md` („Designrunde 10.11.2026“). Gebaut auf `lernquest`:
-- **Look:** Farben in zwei Ebenen (Grundfarben, Rollen) und Schriftskala mit 7 Stufen in `src/lernquest/app/lernquest.css`;
-  sichtbarer Tastatur-Fokus. Layout für iPad/Laptop noch offen (nicht besprochen).
-- **Katalog auf dem Server:** `supabase/migrations/20261110_lernquest_katalog.sql` (**noch nicht eingespielt**, erst nach
-  Freigabe). Neuer Platz Frisur (6 Frisuren), Haarfarbe, je Teil Name, Herkunft, Bild (WebP), Kurzbild, Lage. Truhe zieht
-  nur Truhen-Teile (fehlt eine Seltenheit, die nächste daneben), Laden verkauft nur Laden-Teile. `TEILE` in
-  `src/lernquest/teile.ts` ist nur noch der Startkatalog (Test vergleicht ihn mit der Migration).
-- **Seite „Teile“** (Lernquest im Baukasten → „Teile“): „Katalog übernehmen“, Teile anlegen und ändern, Bild per Bild-KI
-  (Stil „Avatar-Teil“, grüner Grund) oder Datei, Freistellen im Browser, Vorschau auf dem Helden (ziehen, Größe, Haut- und
-  Haarfarbe, mit Hut). Katalog-Cache auf dem Gerät (`geraet:lq-katalog`), Bilder werden nur einmal geladen.
-- **Noch nicht:** Held, Truhe, Laden und Klasse in der Kinder-App (Stufe 2 Oberfläche) – `src/lernquest/Avatar.tsx`
-  und `src/lernquest/katalog.ts` sind dafür schon da.
-
 ## Offene Punkte
 
 - ✅ Freigabe der Schule für Klarnamen auf dem Server: liegt vor (Lehrkraft, 06.11.2026).
 - Supabase-Tabellen und -Funktionen für Stufe 1: von der Lehrkraft am 06.11.2026 freigegeben (Projekt „baukasten“).
   Spätere Stufen, die den Server ändern, wieder kurz ankündigen.
 - Lernquest ist erst nach dem Merge nach `main` für Kinder erreichbar; bis dahin Test über die Vorschau.
-- Migration `20261110_lernquest_katalog.sql` einspielen (nach Freigabe), danach sofort „Katalog übernehmen“.
-- Langfristig ein richtiges Login für Lehrkräfte statt „wer zuerst kommt“ beim Teile-Katalog (Designrunde 10.11.2026).
