@@ -3,7 +3,7 @@ import { createBlock, createPage } from '../model/ops';
 import { readLesson } from '../library/read';
 import type { Lesson, Module } from '../library/types';
 import { fragenAus } from './boss';
-import { ablenkerVon, bilderDerStunde, freigegeben, punktAufgabe, lueckeAus, lueckeText, neueId, poolAusAntwort, poolPrompt, readPool, readUebung, reihenfolgeAus, stundenText } from './fragenpool';
+import { ablenkerVon, bilderDerStunde, freigegeben, mitZusatz, punktAufgabe, lueckeAus, lueckeText, neueId, poolAnfrage, poolAusAntwort, poolPrompt, readPool, readUebung, reihenfolgeAus, stundenText } from './fragenpool';
 import { buildPaket, exercisesOf, KARTE_SEITE, KARTEN_MAX, mitBildern, readPaket } from './paket';
 import { istRichtig, loesungText, punktTrifft, richtigeAntwort } from './rules';
 import type { PoolEintrag, Uebung } from './types';
@@ -232,5 +232,61 @@ describe('Punkt auf Karte/Bild (Stufe 5)', () => {
     expect(readPaket({ ...p, bilder: {} })?.uebungen.filter((x) => x.art === 'punkt')).toHaveLength(0);
     const ohne = await mitBildern(buildPaket(modul, l), async () => null);
     expect(ohne.uebungen.some((x) => x.art === 'punkt')).toBe(false);
+  });
+});
+
+describe('KI-Pool automatisch (Stufe B)', () => {
+  const b = {
+    uebungen: [
+      { art: 'schreiben', frage: 'Schreib es auf Englisch.', aussage: 'die Schwester', loesungen: ['sister', 'the sister'], niveau: 3, erklaerung: 'sister = Schwester.' },
+      { art: 'richtigfalsch', aussage: 'Tom has got a sister.', richtig: true, niveau: 1, erklaerung: 'So steht es im Text.' },
+      { art: 'luecke', satz: 'Tom has got a [sister].', ablenker: ['aunt'], niveau: 2, erklaerung: 'x'.repeat(300) },
+      { art: 'waehlen', optionen: ['a', 'b'], richtig: [0], niveau: 7 },
+      { art: 'schreiben', aussage: 'ohne Lösung', loesungen: [] },
+    ],
+  };
+
+  it('liest Niveau, Erklärung und „Selbst schreiben“ aus Claudes Antwort', () => {
+    const { neu, verworfen } = poolAusAntwort(b, [], true);
+    expect(verworfen).toBe(1);
+    expect(neu.map((u) => [u.art, u.niveau, u.erklaerung])).toEqual([
+      ['schreiben', 3, 'sister = Schwester.'],
+      ['richtigfalsch', 1, 'So steht es im Text.'],
+      // A too long explanation and an unknown level are dropped, the exercise stays.
+      ['luecke', 2, undefined],
+      ['waehlen', undefined, undefined],
+    ]);
+    for (const u of neu) expect(readUebung(u)).toEqual(u);
+  });
+
+  it('wertet Getipptes nachsichtig: Groß und klein, Leerzeichen, Satzzeichen am Ende, jede Schreibweise', () => {
+    const u = poolAusAntwort(b, [], true).neu[0];
+    expect(istRichtig(u, richtigeAntwort(u))).toBe(true);
+    for (const text of ['Sister', '  sister ', 'THE SISTER', 'sister.']) expect(istRichtig(u, { art: 'schreiben', text }), text).toBe(true);
+    for (const text of ['sistar', 'brother', '']) expect(istRichtig(u, { art: 'schreiben', text }), text).toBe(false);
+    expect(loesungText(u)).toBe('sister');
+    expect(fragenAus(u)).toEqual([]);
+  });
+
+  it('legt Freigegebenes von leicht nach schwer ins Paket, ohne Niveau in die Mitte', () => {
+    const u = (id: string, niveau?: 1 | 2 | 3): PoolEintrag => ({ u: { art: 'richtigfalsch', id, frage: 'Stimmt das?', aussage: id, richtig: true, ...(niveau ? { niveau } : {}) }, frei: true });
+    const p = buildPaket(modul, stunde([u('s', 3), u('ohne'), u('l', 1), u('m', 2), u('l2', 1)]));
+    expect(p.uebungen.slice(1).map((x) => x.id)).toEqual(['l', 'l2', 'ohne', 'm', 's']);
+  });
+
+  it('behält Erklärung und Niveau, wenn die Lehrkraft eine Aufgabe ändert', () => {
+    const alt = poolAusAntwort(b, [], true).neu[1];
+    const neu = reihenfolgeAus(alt.id, 'Ordne.', 'Tom has got a sister.');
+    expect(mitZusatz(neu!, alt.erklaerung ?? '', alt.niveau)).toMatchObject({ art: 'reihenfolge', erklaerung: 'So steht es im Text.', niveau: 1 });
+    expect(mitZusatz(neu!, '  ', undefined)).toEqual(neu);
+  });
+
+  it('bittet um 30 Übungen in drei Stufen mit Erklärung', () => {
+    const a = poolAnfrage({ modul, stunde: stunde(), klasse: '', vorhanden: [], wuensche: '' });
+    expect(a.system).toMatch(/30 Übungen/);
+    expect(a.system).toMatch(/"niveau"/);
+    expect(a.system).toMatch(/"erklaerung"/);
+    expect(a.system).toMatch(/schreiben/);
+    expect(a.user).toContain('My family');
   });
 });

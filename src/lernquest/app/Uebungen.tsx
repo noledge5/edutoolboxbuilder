@@ -38,6 +38,8 @@ interface Props {
   lang?: 'de' | 'en';
   /** The package's own pictures for „Bild wählen“ (key → data URL). */
   bilder?: Record<string, string>;
+  /** Enter in a typed answer: the round checks it. */
+  onEnter?: () => void;
 }
 
 /** A speaker that reads `text` in English (nothing on devices without a voice). */
@@ -89,6 +91,7 @@ export function UebungView(props: Props) {
       {u.art === 'gruppen' && <Gruppen {...props} u={u} />}
       {u.art === 'bild' && <Bild {...props} u={u} />}
       {u.art === 'punkt' && <Punkt {...props} u={u} />}
+      {u.art === 'schreiben' && <Schreiben {...props} u={u} />}
     </div>
   );
 }
@@ -413,6 +416,36 @@ function Bild({ u, seed, locked, onChange, lang, bilder = {} }: P<'bild'>) {
           );
         })}
       </div>
+    </>
+  );
+}
+
+function Schreiben({ u, locked, onChange, lang, onEnter }: P<'schreiben'>) {
+  const [text, setText] = useState('');
+  return (
+    <>
+      {u.aussage && <Aussage text={u.aussage} />}
+      {/* No help from the keyboard: it would write the answer, or „correct“ a right one. */}
+      <input
+        className={`lq-eingabe ${locked ? (u.loesungen.some((l) => gleich(l, text)) ? 'ok' : 'nein') : ''}`}
+        value={text}
+        readOnly={locked}
+        autoFocus
+        aria-label="Deine Antwort"
+        placeholder="Tippe deine Antwort"
+        lang={lang}
+        autoCapitalize="off"
+        autoCorrect="off"
+        autoComplete="off"
+        spellCheck={false}
+        enterKeyHint="done"
+        maxLength={120}
+        onChange={(e) => {
+          setText(e.target.value);
+          onChange(e.target.value.trim() ? { art: 'schreiben', text: e.target.value } : null);
+        }}
+        onKeyDown={(e) => e.key === 'Enter' && !locked && onEnter?.()}
+      />
     </>
   );
 }

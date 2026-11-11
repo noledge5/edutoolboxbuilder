@@ -50,6 +50,7 @@
       { art: 'reihenfolge', id: 'c3', frage: 'Forme um.', hinweis: 'There is a book. → Frage', kacheln: ['a', 'Is', 'book', 'there', '?'], loesung: 'Is there a book?' },
       { art: 'luecke', id: 'c4', frage: 'Fill in.', teile: ['There ', 'are', ' two pens.'], kacheln: ['is', 'are', 'am'] },
       { art: 'richtigfalsch', id: 'c5', frage: 'Stimmt das?', aussage: '12 = twelve', richtig: true },
+      { art: 'schreiben', id: 'c6', frage: 'Schreib das Wort auf Englisch.', aussage: 'das Buch', loesungen: ['book', 'the book'], niveau: 3, erklaerung: 'book = Buch. Im Englischen schreibt man es klein.' },
     ], { lang: 'en', bilder: { 'img:x': bild('#e8b04a') } }),
   };
   const heute = Math.floor(Date.now() / 86400000);

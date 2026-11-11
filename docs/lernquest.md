@@ -448,6 +448,37 @@ Server bekommt wie bisher „richtig von gesamt“, gezählt werden die ersten V
   `scripts/spieltest-helfer.js` spielt Aufgaben richtig oder falsch. So gespielt am 11.11.2026: alle Formate, Wiederholen,
   Held, Laden, Truhe, Gutscheine und Klasse ohne Netz, offene Übung mit Probetest, Zurück-Taste überall.
 
+## Inhalte, die reichen (11.11.2026, „Stufe B“ aus `docs/kritik-und-plan.md`)
+
+Entscheidung der Lehrkraft: Die KI füllt jede Stunde automatisch auf, die Lehrkraft prüft grob. **Keine
+Server-Änderung:** Der Pool reist wie bisher im Lernpaket, der Server zählt nur die Übungen.
+- **Automatisch:** Wird eine Stunde für eine Klasse freigeschaltet und ihr Pool ist leer, schreibt Claude von selbst
+  etwa 30 Fragen (`fragenErzeugen` in `teacher/LernquestView.tsx`, eine Stunde nach der anderen). Nur mit einem
+  KI-Schlüssel auf dem Gerät; ohne bleibt der Knopf „Fragen erzeugen“. Am Knopf steht „Claude schreibt …“, danach
+  „30 zu prüfen“. Die Monatsgrenze fragt wie bei jeder KI-Anfrage vorher. Wechselt die Lehrkraft die Seite, läuft
+  die Anfrage zu Ende.
+- **Drei Schwierigkeiten:** Jede Pool-Frage trägt `niveau` (1 leicht: wiedererkennen, 2 mittel: anwenden, 3 schwer:
+  selbst erzeugen oder übertragen), je etwa ein Drittel, und eine `erklaerung`; falsche Antworten sollen typische
+  Denkfehler sein (`poolSystem`). Im Paket stehen die freigegebenen Fragen von leicht nach schwer hinter den
+  Übungen der Stunde (`buildPaket`), also werden die Runden einer Station schwerer. Die drei Stufen je Station
+  kommen mit Stufe C; bis dahin gilt weiter: höchstens 40 Übungen je Station kommen dran, höchstens 40 im Pool.
+- **Alle freigeben:** ein Knopf im Dialog, daneben wie bisher einzeln freigeben, ändern, löschen. Ist die Stunde für
+  die geöffnete Klasse freigeschaltet, geht das Paket beim Schließen des Dialogs von selbst neu an diese Klasse,
+  wenn sich das Freigegebene geändert hat; andere Klassen bekommen es mit „Freigeschaltete neu senden“.
+- **Ändern:** Erklärung und Schwierigkeit lassen sich bearbeiten und bleiben erhalten (vorher gingen sie bei Lücke
+  und Reihenfolge verloren, `mitZusatz`).
+- **Selbst schreiben** (`schreiben`): Das Kind tippt ein Wort oder einen kurzen Satz. Bis zu vier Schreibweisen
+  zählen (`loesungen`, die erste wird gezeigt); Groß- und Kleinschreibung, Leerzeichen und der Punkt am Ende zählen
+  nicht (`gleich`), Tippfehler schon. Die Tastatur hilft nicht mit (keine Autokorrektur, keine Großschreibung).
+  Entsteht vorerst nur im KI-Pool, nicht aus den Bausteinen der Arbeitsblätter (sonst änderten sich die Runden
+  schon freigeschalteter Stunden). Im Bosskampf wird daraus keine Frage. Ältere geöffnete Lernquest-Seiten kennen
+  das Format erst nach dem Neuladen.
+- **Nicht gebaut:** „Frage melden“ durch Kinder (braucht eine Server-Änderung).
+- Geprüft: Tests (`fragenpool.test.ts`, `teacher/Fragenpool.test.tsx`), Typprüfung, Build; im Spieltest ohne Server
+  „Selbst schreiben“ falsch und richtig gespielt (Erklärung, kommt wieder, „  BOOK. “ zählt als „book“). **Nicht
+  geprüft:** eine echte KI-Anfrage mit 30 Fragen und der Lehrkraft-Dialog im Browser (beides braucht Server und
+  Schlüssel der Lehrkraft), die Tastatur am echten Handy.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.
