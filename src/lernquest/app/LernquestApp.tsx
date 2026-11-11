@@ -5,7 +5,7 @@
 // see Boss.tsx); the class code lets it show a QR code to sign in.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QrScanner } from '../../sync/QrScanner';
-import { beamerAusHash, codeAus, faecherVon, namensFarbe, regionenVon, vorname, wochenTage, type Station } from '../karte';
+import { beamerAusHash, codeAus, faecherVon, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage, type Region, type Station } from '../karte';
 import {
   heldenstufe,
   heute,
@@ -13,14 +13,16 @@ import {
   naechsteRunde,
   rundeAnwenden,
   rundenFazit,
-  rundenGeschafft,
+  rundenStufen,
   rundenZahl,
+  sternZiele,
+  sterneVon,
+  geschafft,
   rundeVon,
   RUNDE_MAX,
   heuteDran,
   morgenDran,
   readExtra,
-  sterne,
   STERNE_JE_TRUHE,
   titel,
   woche,
@@ -33,13 +35,13 @@ import { readPaket } from '../paket';
 import { bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
-import { allesWeg, ladeDaten, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereSitzung, speichereWarteschlange, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
+import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
 import { useZurueck } from './zurueck';
 import { GutscheineSeite, TicketIcon } from './Gutscheine';
 import { ProbeApp } from './Probe';
-import { probeAusUrl } from '../probe';
+import { gemischterTest, probeAusUrl } from '../probe';
 import { AUSSCHNITT_KOPF, AvatarBild } from './avatar';
 
 export type Screen =
@@ -59,6 +61,8 @@ export type Screen =
       uebungen: { u: Uebung; stunde: string }[];
       /** Counts the rounds started, so the same round played again starts fresh. */
       nr: number;
+      /** The mixed test at the end of a region (sent as „Wiederholen“). */
+      meilenstein?: Meilenstein;
     }
   | {
       kind: 'ergebnis';
@@ -80,7 +84,16 @@ export type Screen =
       /** New stars counted toward chests, and the stars toward the next chest after this round. */
       sternePlus: number;
       sterneRest: number;
+      meilenstein?: Meilenstein;
     };
+
+interface Meilenstein {
+  id: string;
+  titel: string;
+}
+
+/** A Meilenstein counts as passed from this percent. */
+const MEILENSTEIN_GUT = 80;
 
 const codeFromUrl = () => {
   const h = location.hash.replace(/^#\/?/, '');
@@ -533,7 +546,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   }
 
   /** A round is over: shown at once, sent now or later. */
-  const fertig = (stunde: string, runde: number, ergebnisse: boolean[], leitner: Stand['leitner']) => {
+  const fertig = (stunde: string, runde: number, ergebnisse: boolean[], leitner: Stand['leitner'], meilenstein?: Meilenstein) => {
     const m: Meldung = {
       stunde,
       runde,
@@ -542,11 +555,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       leitner,
     };
     const paket = daten.pakete[stunde];
-    const runden = paket ? rundenZahl(paket.uebungen.length) : 0;
-    const vorher = sterne(stand.bestwerte[stunde], runden);
+    const vorher = paket ? sterneVon(stand, paket) : 0;
     const bonus = bonusVon(stand.avatar);
-    const r = rundeAnwenden(stand, m, heute(), { herzen: HERZEN + bonus.herz, bonusProzent: bonus.muenzen, runden });
+    const r = rundeAnwenden(stand, m, heute(), { herzen: HERZEN + bonus.herz, bonusProzent: bonus.muenzen, stufen: paket ? rundenStufen(paket.uebungen) : [] });
     store({ ...daten, stand: r.stand });
+    if (meilenstein) speichereMeilenstein(meilenstein.id, Math.round((100 * m.richtig) / m.gesamt));
     speichereWarteschlange([...ladeWarteschlange(), m]);
     void flush();
     ton('fertig');
@@ -563,16 +576,18 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       truhenPlus: r.truhenPlus,
       punktePlus: r.punktePlus,
       sterneVorher: vorher,
-      sterneJetzt: sterne(r.stand.bestwerte[stunde], runden),
+      sterneJetzt: paket ? sterneVon(r.stand, paket) : 0,
       sternePlus: r.sternePlus,
       sterneRest: r.stand.sterneRest,
+      meilenstein,
     });
   };
 
-  const wiederholen = () => {
+  /** A round of „Wiederholen“: what is due today, or only `nur` (a fading station, the node on the path). */
+  const wiederholen = (nur?: string[]) => {
     const karten = new Map<string, { u: Uebung; stunde: string }>();
     for (const p of pakete) for (const u of p.uebungen) karten.set(karteKey(p.stunde, u.id), { u, stunde: p.stunde });
-    const due = heuteDran(stand.leitner, [...karten.keys()], daten?.extra, heute()).slice(0, RUNDE_MAX);
+    const due = (nur ?? heuteDran(stand.leitner, [...karten.keys()], daten?.extra, heute())).filter((k) => karten.has(k)).slice(0, RUNDE_MAX);
     setScreen({
       kind: 'runde',
       nr: Date.now(),
@@ -580,6 +595,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       runde: 0,
       uebungen: due.map((k) => karten.get(k)!),
     });
+  };
+
+  const meilensteinStarten = (r: Region) => {
+    const stationen = r.stationen.flatMap((s) => (s.stunde && daten.pakete[s.stunde] ? [daten.pakete[s.stunde]] : []));
+    setScreen({ kind: 'runde', nr: Date.now(), stunde: '', runde: 0, uebungen: gemischterTest(stationen, `${r.id}:${Date.now()}`, MEILENSTEIN_GROESSE), meilenstein: { id: r.id, titel: r.titel } });
   };
 
   if (screen.kind === 'runde') {
@@ -593,9 +613,9 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         zurueck={zurueckTaste}
         stand={stand}
         herzen={HERZEN + bonusVon(stand.avatar).herz}
-        titel={screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : 'Wiederholen'}
+        titel={screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Meilenstein · ${screen.meilenstein.titel}` : 'Wiederholen'}
         onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
-        onFertig={fertig}
+        onFertig={(st, r, e, l) => fertig(st, r, e, l, screen.meilenstein)}
         paketVon={(st) => daten.pakete[st]}
       />
     );
@@ -636,7 +656,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const starte = (p: Paket, r: number) => setScreen({ kind: 'runde', nr: Date.now(), stunde: p.stunde, runde: r, uebungen: rundeVon(p.uebungen, r).map((u) => ({ u, stunde: p.stunde })) });
 
   const karten = pakete.flatMap((p) => p.uebungen.map((u) => karteKey(p.stunde, u.id)));
-  const dueCount = heuteDran(stand.leitner, karten, daten.extra, heute()).length;
+  const dran = heuteDran(stand.leitner, karten, daten.extra, heute());
+  const dueCount = dran.length;
   const morgen = morgenDran(stand.leitner, karten, heute());
   // „Wiederholen sofort“ from the teacher today: said so on the page.
   const extraHeute = !!daten.extra && heute() >= daten.extra.ab && heute() <= daten.extra.bis;
@@ -647,23 +668,28 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     const fazit = rundenFazit(screen.richtig, screen.gesamt);
     // „Fast!“ only for a station's round, which can be played again at once; what was missed in „Wiederholen“ comes back by itself.
     const schwach = fazit === 'schwach' && !!p;
-    const titelText = schwach ? 'Fast!' : !screen.stunde ? 'Wiederholt!' : screen.sterneJetzt > 0 && screen.sterneVorher === 0 ? 'Station geschafft!' : fazit === 'perfekt' ? 'Perfekt!' : 'Runde geschafft!';
+    const ms = screen.meilenstein;
+    const msGut = !!ms && screen.richtig * 100 >= screen.gesamt * MEILENSTEIN_GUT;
+    const titelText = ms ? (msGut ? 'Meilenstein geschafft!' : 'Fast!') : schwach ? 'Fast!' : !screen.stunde ? 'Wiederholt!' : screen.sterneJetzt > 0 && screen.sterneVorher === 0 ? 'Station geschafft!' : fazit === 'perfekt' ? 'Perfekt!' : 'Runde geschafft!';
+    const msRegion = ms && regionenVon(pakete, pakete.find((x) => x.modul.id === ms.id)?.fach ?? '', stand).find((r) => r.id === ms.id);
     // What comes next, as the main button: a weak round again, else the station's next open round, else more to repeat.
-    const offeneRunde = p ? Array.from({ length: rundenZahl(p.uebungen.length) }, (_, i) => i).find((i) => !((stand.bestwerte[p.stunde]?.[i] ?? 0) > 0)) : undefined;
+    const offeneRunde = p ? Array.from({ length: rundenZahl(p.uebungen.length) }, (_, i) => i).find((i) => !geschafft(stand.bestwerte[p.stunde]?.[i])) : undefined;
     const weiter: { text: string; los: () => void } | null =
-      schwach && p
+      ms && !msGut && msRegion
+        ? { text: 'Meilenstein nochmal', los: () => meilensteinStarten(msRegion) }
+        : schwach && p
         ? { text: 'Runde nochmal spielen', los: () => starte(p, screen.runde) }
         : p && offeneRunde !== undefined
           ? { text: 'Nächste Runde', los: () => starte(p, offeneRunde) }
-          : !screen.stunde && dueCount > 0
-            ? { text: 'Weiter wiederholen', los: wiederholen }
+          : !screen.stunde && !ms && dueCount > 0
+            ? { text: 'Weiter wiederholen', los: () => wiederholen() }
             : null;
     return (
       <main className="lq-app lq-ergebnis">
         {screen.stunde && <Sterne n={screen.sterneJetzt} neu={screen.sterneJetzt > screen.sterneVorher} gross />}
         <h1>{titelText}</h1>
         <p className="lq-untertitel">
-          {p ? `${p.titel} · ` : ''}
+          {p ? `${p.titel} · ` : ms ? `${ms.titel} · ` : ''}
           {screen.richtig} von {screen.gesamt} beim ersten Versuch richtig
         </p>
         <ol className="lq-punkte-reihe" aria-hidden>
@@ -675,6 +701,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         </ol>
         {!screen.stunde && screen.richtig < screen.gesamt && <p className="lq-klein lq-mitte">Was noch nicht saß, kommt morgen wieder dran.</p>}
         {schwach && <p className="lq-klein lq-mitte">Das sitzt noch nicht. Spiel die Runde gleich nochmal, dann klappt es besser.</p>}
+        {ms && <p className="lq-klein lq-mitte">{msGut ? 'Du kannst die ganze Region. Stark!' : `Ab ${MEILENSTEIN_GUT} % ist der Meilenstein geschafft.`}</p>}
         <div className="lq-kacheln-ergebnis">
           <div>
             <span>Erfahrung</span>
@@ -818,7 +845,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             <p>
               {dueCount} {dueCount === 1 ? 'Aufgabe ist' : 'Aufgaben sind'} heute dran: Was du schon kannst, kommt seltener, was noch schwer ist, öfter.
             </p>
-            <button type="button" className="lq-knopf" onClick={wiederholen}>
+            <button type="button" className="lq-knopf" onClick={() => wiederholen()}>
               Los geht’s!
             </button>
           </>
@@ -851,12 +878,12 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           {paket.fach} · Region {paket.modul.nummer} · Station {paket.nummer}
         </span>
         <h1>{paket.titel}</h1>
-        <SterneRegeln best={best} runden={runden} />
+        <SterneRegeln best={best} stufen={rundenStufen(paket.uebungen)} n={sterneVon(stand, paket)} />
         <ol className="lq-runden">
           {Array.from({ length: runden }, (_, r) => (
             <li key={r}>
-              <button type="button" className={`lq-runde ${best[r] > 0 ? 'geschafft' : ''} ${r === naechsteNr ? 'naechste' : ''}`} onClick={() => starte(paket, r)}>
-                <span className="lq-runde-nr">{best[r] >= 100 ? '★' : best[r] > 0 ? '✓' : r + 1}</span>
+              <button type="button" className={`lq-runde ${geschafft(best[r]) ? 'geschafft' : ''} ${r === naechsteNr ? 'naechste' : ''}`} onClick={() => starte(paket, r)}>
+                <span className="lq-runde-nr">{best[r] >= 100 ? '★' : geschafft(best[r]) ? '✓' : r + 1}</span>
                 <span>
                   Runde {r + 1}
                   {best[r] > 0 && <small> · bestes Ergebnis {best[r]} %</small>}
@@ -875,13 +902,31 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   // The map.
   const faecher = faecherVon(pakete);
   const aktiv = faecher.includes(fach) ? fach : (faecher[0] ?? '');
-  const regionen = regionenVon(pakete, aktiv, stand);
+  const regionen = regionenVon(pakete, aktiv, stand, new Set(dran));
   const tippen = (s: Station) => {
     const p = s.stunde ? daten.pakete[s.stunde] : undefined;
     if (!p) return;
     if (s.zustand === 'aktuell') starte(p, naechste(p));
+    // A faded station is refreshed at once; its rounds stay a tap away on the station page.
+    else if (s.zustand === 'erledigt' && s.faellig.length) wiederholen(s.faellig);
     else setScreen({ kind: 'station', stunde: p.stunde });
   };
+  // Stufe C: what is due in this subject waits as a node on the path, right before the current station (or at the end).
+  const fachDran = regionen.flatMap((r) => r.stationen.flatMap((s) => s.faellig));
+  const wdhBei = regionen.findIndex((r) => r.stationen.some((s) => s.zustand === 'aktuell'));
+  const wdhRegion = wdhBei >= 0 ? wdhBei : regionen.length - 1;
+  const meilensteine = ladeMeilensteine();
+  const wdhKnoten = (
+    <>
+      <button type="button" className="lq-knoten wdh" aria-label={`Wiederholen: ${fachDran.length} Aufgaben aus früheren Stationen`} onClick={() => wiederholen(fachDran)}>
+        <WiederholenIcon />
+      </button>
+      <span className="lq-knoten-titel">Wiederholen</span>
+      <span className="lq-klein">
+        {fachDran.length} {fachDran.length === 1 ? 'Aufgabe' : 'Aufgaben'} von früher
+      </span>
+    </>
+  );
 
   // From 1024 px (iPad landscape, laptop) two columns: the week goal beside the map; on a phone one after the other.
   return rahmen(
@@ -901,7 +946,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </nav>
         )}
         {!pakete.length && <p className="lq-leer">Deine Lehrkraft hat noch keine Station freigeschaltet. Schau bald wieder vorbei!</p>}
-        {regionen.map((r) => (
+        {regionen.map((r, ri) => (
           <section key={r.id} className="lq-region">
             <div className="lq-region-band">
               <span>
@@ -914,37 +959,72 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
               </small>
             </div>
             <ol className="lq-pfad">
-              {r.stationen.map((st, i) => (
-                <li key={st.nummer} className={`lq-versatz-${['0', 'l', '0', 'r'][i % 4]} lq-weg-${['r', 'r', 'l', 'l'][i % 4]}${st.zustand === 'aktuell' ? ' mit-blase' : ''}`}>
-                  {st.zustand === 'aktuell' && <span className="lq-blase">Los geht’s!</span>}
-                  <button
-                    type="button"
-                    className={`lq-knoten ${st.zustand}`}
-                    disabled={st.zustand === 'gesperrt'}
-                    aria-label={`${st.zustand === 'gesperrt' ? 'Gesperrt' : st.zustand === 'aktuell' ? 'Station starten' : 'Station'}: ${st.titel}`}
-                    onClick={() => tippen(st)}
-                  >
-                    {st.zustand === 'erledigt' ? (
-                      <HakenIcon />
-                    ) : st.zustand === 'gesperrt' ? (
-                      <SchlossIcon />
-                    ) : st.zustand === 'aktuell' ? (
-                      <SternIcon />
-                    ) : (
-                      <span className="lq-knoten-nr">{st.nummer}</span>
-                    )}
-                  </button>
-                  <span className="lq-knoten-titel">{st.titel}</span>
-                  {st.zustand === 'erledigt' && <Sterne n={st.sterne} />}
-                  {st.zustand === 'gesperrt' && <span className="lq-klein">Öffnet sich, sobald ihr es im Unterricht hattet.</span>}
-                </li>
-              ))}
+              {pfadVon(r, ri === wdhRegion && fachDran.length > 0).map((x, i) => {
+                const cls = `lq-versatz-${['0', 'l', '0', 'r'][i % 4]} lq-weg-${['r', 'r', 'l', 'l'][i % 4]}`;
+                if (x === 'wdh') return <li key="wdh" className={cls}>{wdhKnoten}</li>;
+                if (x === 'meilenstein') {
+                  const best = meilensteine[r.id];
+                  return (
+                    <li key="meilenstein" className={cls}>
+                      <button type="button" className="lq-knoten meilenstein" disabled={!r.meilenstein} aria-label={`Meilenstein: ${r.titel}`} onClick={() => meilensteinStarten(r)}>
+                        {best !== undefined && best >= MEILENSTEIN_GUT ? <HakenIcon /> : <FahneIcon />}
+                      </button>
+                      <span className="lq-knoten-titel">Meilenstein</span>
+                      <span className="lq-klein">
+                        {!r.meilenstein ? 'Öffnet sich, wenn alle Stationen geschafft sind.' : best !== undefined ? `Bestes Ergebnis ${best} %` : 'Gemischter Test über die ganze Region'}
+                      </span>
+                    </li>
+                  );
+                }
+                const st = x;
+                const blass = st.zustand === 'erledigt' && st.faellig.length > 0;
+                return (
+                  <li key={st.nummer} className={`${cls}${st.zustand === 'aktuell' ? ' mit-blase' : ''}`}>
+                    {st.zustand === 'aktuell' && <span className="lq-blase">Los geht’s!</span>}
+                    <button
+                      type="button"
+                      className={`lq-knoten ${st.zustand}${blass ? ' faellig' : ''}`}
+                      disabled={st.zustand === 'gesperrt'}
+                      aria-label={`${st.zustand === 'gesperrt' ? 'Gesperrt' : st.zustand === 'aktuell' ? 'Station starten' : blass ? 'Auffrischen' : 'Station'}: ${st.titel}`}
+                      onClick={() => tippen(st)}
+                    >
+                      {blass ? (
+                        <WiederholenIcon />
+                      ) : st.zustand === 'erledigt' ? (
+                        <HakenIcon />
+                      ) : st.zustand === 'gesperrt' ? (
+                        <SchlossIcon />
+                      ) : st.zustand === 'aktuell' ? (
+                        <SternIcon />
+                      ) : (
+                        <span className="lq-knoten-nr">{st.nummer}</span>
+                      )}
+                    </button>
+                    <span className="lq-knoten-titel">{st.titel}</span>
+                    {st.zustand === 'erledigt' && <Sterne n={st.sterne} />}
+                    {blass && <span className="lq-klein">{st.faellig.length} zum Auffrischen</span>}
+                    {st.zustand === 'gesperrt' && <span className="lq-klein">Öffnet sich, sobald ihr es im Unterricht hattet.</span>}
+                  </li>
+                );
+              })}
             </ol>
           </section>
         ))}
       </div>
     </div>,
   );
+}
+
+/** The nodes on a region's path: its stations, the „Wiederholen“ node before the current one (or at the end), the
+ *  Meilenstein last (regions with at least two stations). */
+function pfadVon(r: Region, mitWdh: boolean): (Station | 'wdh' | 'meilenstein')[] {
+  const out: (Station | 'wdh' | 'meilenstein')[] = [...r.stationen];
+  if (mitWdh) {
+    const i = out.findIndex((s) => s !== 'wdh' && s !== 'meilenstein' && s.zustand === 'aktuell');
+    out.splice(i >= 0 ? i : out.length, 0, 'wdh');
+  }
+  if (r.stationen.length >= 2) out.push('meilenstein');
+  return out;
 }
 
 /** The line under a station's result: new stars, and how many are missing for the next chest. */
@@ -959,16 +1039,17 @@ function sterneHinweis(plus: number, jetzt: number, rest: number): string {
   return `Alle Sterne geholt – ${bis}.`;
 }
 
-/** The stars of a station and what each one needs, ticked when reached (rules in `sterne`, rules.ts). */
-function SterneRegeln({ best, runden }: { best: number[]; runden: number }) {
-  const n = sterne(best, runden);
-  const gespielt = Array.from({ length: runden }, (_, r) => best[r] ?? 0);
-  const regeln = [
-    // A round counts once at least one answer was right (`sterne`).
-    `${runden === 1 ? 'Die Runde' : `Alle ${runden} Runden`} schaffen (${rundenGeschafft(best, runden)} von ${runden})`,
-    'Im Schnitt 80 % richtig',
-    `Jede Runde einmal ohne Fehler (${gespielt.filter((b) => b >= 100).length} von ${runden})`,
-  ];
+/** The stars of a station and what each one needs, ticked when reached (rules in `sternZiele`, rules.ts). `n`: the stars shown. */
+function SterneRegeln({ best, stufen, n }: { best: number[]; stufen: readonly number[]; n: number }) {
+  const alle = stufen.length;
+  const name = ['Kennenlernen', 'Anwenden', 'Meistern'];
+  const regeln = sternZiele(stufen).map((z, i) => {
+    if (z.art === 'schnitt') return `${name[i]}: im Schnitt 80 % richtig`;
+    if (z.art === 'fehlerfrei') return `${name[i]}: jede Runde einmal ohne Fehler (${best.slice(0, alle).filter((b) => b >= 100).length} von ${alle})`;
+    const k = z.runden.length;
+    const was = k === alle ? (alle === 1 ? 'die Runde' : `alle ${alle} Runden`) : k === 1 ? `Runde ${z.runden[0] + 1}` : `Runde ${z.runden.slice(0, -1).map((r) => r + 1).join(', ')} und ${z.runden[k - 1] + 1}`;
+    return `${name[i]}: ${was} mit 60 % schaffen${k > 1 ? ` (${z.runden.filter((r) => geschafft(best[r])).length} von ${k})` : ''}`;
+  });
   return (
     <div className="lq-sterne-regeln">
       <Sterne n={n} gross />
@@ -1153,6 +1234,11 @@ const KarteIcon = () => (
   <svg {...svg} strokeWidth={2.2}>
     <path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5Z" />
     <path d="M9 4v13.5M15 6.5V20" />
+  </svg>
+);
+const FahneIcon = () => (
+  <svg {...svg} width={30} height={30} strokeWidth={2.4}>
+    <path d="M6 21V4M6 4h11l-2.5 4L17 12H6" />
   </svg>
 );
 const WiederholenIcon = () => (

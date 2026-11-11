@@ -1,7 +1,9 @@
 // The world map of one subject: regions (modules) with their stations (lessons) and the state of each station, as in
 // the design prototype (docs/design/lernquest/Main.dc.html): done (gold, tick), current (the next one to play, with
-// „Los geht’s!“), open (unlocked, started or not), locked (not yet in class). Pure, so it is tested without a browser.
-import { rundenZahl, sterne, wochenStart } from './rules';
+// „Los geht’s!“), open (unlocked, started or not), locked (not yet in class). Stufe C: a done station with exercises
+// due again fades until they are refreshed; a region whose stations are all done ends in a Meilenstein, a mixed test
+// over all of them. Pure, so it is tested without a browser.
+import { karteKey, sterneVon, wochenStart } from './rules';
 import type { Paket, Stand } from './types';
 
 export type StationsZustand = 'erledigt' | 'aktuell' | 'offen' | 'gesperrt';
@@ -13,6 +15,8 @@ export interface Station {
   /** Lesson id; absent for a locked station. */
   stunde?: string;
   sterne: number;
+  /** Exercises of this station due again today (`karteKey`s): a done station fades until they are refreshed. */
+  faellig: string[];
 }
 
 export interface Region {
@@ -21,7 +25,12 @@ export interface Region {
   titel: string;
   icon: string;
   stationen: Station[];
+  /** The mixed test at the end: open once every station of the region is unlocked and done (at least two). */
+  meilenstein: boolean;
 }
+
+/** Exercises in the Meilenstein of a region (the server takes at most 20 per round). */
+export const MEILENSTEIN_GROESSE = 10;
 
 /** Subjects of the packages, sorted. */
 export const faecherVon = (pakete: Paket[]) => [...new Set(pakete.map((p) => p.fach))].sort((a, b) => a.localeCompare(b, 'de'));
@@ -29,9 +38,9 @@ export const faecherVon = (pakete: Paket[]) => [...new Set(pakete.map((p) => p.f
 /**
  * Regions of a subject in module order. A station is done once it has stars (every round played); the first
  * unlocked station without stars is the current one (one per subject); locked stations come from the module's lesson
- * list in the package (older packages without it show only the unlocked ones).
+ * list in the package (older packages without it show only the unlocked ones). `dran`: the exercises due today.
  */
-export function regionenVon(pakete: Paket[], fach: string, stand: Stand): Region[] {
+export function regionenVon(pakete: Paket[], fach: string, stand: Stand, dran: ReadonlySet<string> = new Set()): Region[] {
   const byModule = new Map<string, Paket[]>();
   for (const p of pakete.filter((x) => x.fach === fach)) byModule.set(p.modul.id, [...(byModule.get(p.modul.id) ?? []), p]);
   const regionen = [...byModule.values()]
@@ -41,11 +50,13 @@ export function regionenVon(pakete: Paket[], fach: string, stand: Stand): Region
       const nummern = [...new Set([...(m.stunden ?? []).map((s) => s.nummer), ...offen.keys()])].sort((a, b) => a - b);
       const stationen = nummern.map((n): Station => {
         const p = offen.get(n);
-        if (!p) return { nummer: n, titel: m.stunden?.find((s) => s.nummer === n)?.titel ?? '', zustand: 'gesperrt', sterne: 0 };
-        const st = sterne(stand.bestwerte[p.stunde], rundenZahl(p.uebungen.length));
-        return { nummer: n, titel: p.titel, zustand: st > 0 ? 'erledigt' : 'offen', stunde: p.stunde, sterne: st };
+        if (!p) return { nummer: n, titel: m.stunden?.find((s) => s.nummer === n)?.titel ?? '', zustand: 'gesperrt', sterne: 0, faellig: [] };
+        const st = sterneVon(stand, p);
+        const faellig = p.uebungen.map((u) => karteKey(p.stunde, u.id)).filter((k) => dran.has(k));
+        return { nummer: n, titel: p.titel, zustand: st > 0 ? 'erledigt' : 'offen', stunde: p.stunde, sterne: st, faellig };
       });
-      return { id: m.id, nummer: m.nummer, titel: m.titel, icon: m.icon, stationen };
+      const meilenstein = stationen.length >= 2 && stationen.every((s) => s.zustand === 'erledigt');
+      return { id: m.id, nummer: m.nummer, titel: m.titel, icon: m.icon, stationen, meilenstein };
     })
     .sort((a, b) => a.nummer - b.nummer);
   const next = regionen.flatMap((r) => r.stationen).find((s) => s.zustand === 'offen');

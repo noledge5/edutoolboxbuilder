@@ -118,7 +118,7 @@ gibt; das ist eine Server-Änderung.
 - Neues Format „Selbst schreiben“ (Wort oder kurzer Satz tippen, nachsichtig bei Groß- und Kleinschreibung), zuerst
   für Vokabeln.
 
-### Stufe C: Die Lernspirale im Pfad (Neubau der Karte und der Stationen)
+### Stufe C: Die Lernspirale im Pfad (Neubau der Karte und der Stationen) – ✅ gebaut am 11.11.2026
 
 - Jede Station hat drei Stufen statt gleichförmiger Runden: **Kennenlernen** (leicht, antippen), **Anwenden**
   (mittel, legen und sortieren), **Meistern** (schwer, selbst schreiben). Daraus werden die drei Sterne.
