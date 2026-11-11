@@ -224,7 +224,9 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
   Server (Migration; verdiente Sterne und Truhen bleiben). Die drei Sterne einer Station kommen aus drei Stufen
   (Kennenlernen leicht, Anwenden mittel, Meistern schwer); Aufgaben ohne Stufe werden nach Format eingeordnet
   (Server-Änderung). Zuerst kam der Teil ohne Server (Wiederholen im Pfad, verblassende Stationen, Meilenstein je
-  Region), gebaut am 11.11.2026; der Server-Teil folgt.
+  Region), gebaut am 11.11.2026; danach der Server-Teil (Stufen und 60 %, gebaut am 11.11.2026). Fehlt einer
+  Station eine Stufe, verlangen die übrigen Sterne im Schnitt 80 %, dann jede Runde ohne Fehler (beim Bau so festgelegt).
+  Einzelheiten unter „Sterne aus drei Stufen“ in `docs/lernquest.md`.
 - **Held und Teile wieder als Vektorgrafik aus dem Code**, detailreich und im Stil von Duolingo, statt gemalter
   Bilder aus ComfyUI (Wunsch der Lehrkraft). Noch nicht gebaut.
 - **Aussehen professioneller, Richtung Duolingo:** Die Lehrkraft hat ein Mockup gezeigt, das ihr gefällt (Fuchs als

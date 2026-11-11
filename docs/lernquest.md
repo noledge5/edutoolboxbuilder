@@ -494,11 +494,33 @@ läuft als Runde „Wiederholen“ (ein Drittel der Erfahrung und Münzen, Wiede
   `probe.ts`, auch für den Probetest der offenen Übung). Fehler kommen wieder wie in jeder Runde; ab 80 % beim
   ersten Versuch heißt es „Meilenstein geschafft!“, sonst „Fast!“ mit „Meilenstein nochmal“. Das beste Ergebnis
   steht am Knoten. **Nur auf dem Gerät** gespeichert (`lernquest:meilensteine`, beim Abmelden gelöscht): Der Server
-  kennt Meilensteine noch nicht; das kommt mit dem Server-Teil von Stufe C, wenn nötig. Der Bosskampf hängt nicht
+  kennt Meilensteine nicht; der Server-Teil von Stufe C brachte nur Stufen und 60 %. Der Bosskampf hängt nicht
   am Meilenstein (ihn startet die Lehrkraft).
 - Geprüft: Tests (`lernquest.test.ts`, „Weltkarte“), Typprüfung, Build; im Spieltest ohne Server am Handy-Format:
   verblasste Station aufgefrischt (glänzt danach, Wiederholen-Knoten weg), Meilenstein mit 7 von 10 („Fast!“) und
   10 von 10 („geschafft“, Haken und Bestwert am Knoten). Nicht mit echtem Server gespielt.
+
+## Sterne aus drei Stufen, Runden ab 60 % (11.11.2026, Server-Teil von „Stufe C“)
+
+Entscheidungen der Lehrkraft siehe `docs/roadmap.md` (Stufe C). Migration `20261123_lernquest_stufen.sql`; die Regeln
+stehen gleich in `rules.ts` (`GESCHAFFT_AB`, `niveauVon`, `rundenStufen`, `sternZiele`, `sterne`, `sterneVon`).
+- **Geschafft ab 60 %:** Eine Runde zählt erst ab 60 % beim ersten Versuch als geschafft (vorher: eine richtige
+  Antwort). Das gilt für die Sterne, für „nächste Runde“ und dafür, ob eine Runde als Wiederholung zählt.
+- **Stufe einer Runde:** ihre schwerste Übung. Pool-Fragen bringen `niveau` mit; sonst nach Format: Antippen,
+  Richtig/Falsch, Bild wählen, Punkt auf der Karte leicht; Lücke, Paare, Reihenfolge, Gruppen mittel; Selbst
+  schreiben schwer. Die Runden selbst bleiben, wie sie waren (`rundeVon`).
+- **Sterne:** Jede Stufe, die die Station hat, gibt einen Stern, von leicht nach schwer: ihre Runden und alle
+  leichteren geschafft. Fehlen Stufen, verlangen die übrigen Sterne im Schnitt 80 %, danach jede Runde einmal ohne
+  Fehler. Eine Station nur mit leichten Aufgaben hat also die alte Regel, nur mit 60 % statt einer richtigen Antwort.
+  Die Station zeigt bei jedem Stern, was fehlt (Kennenlernen, Anwenden, Meistern).
+- **Verdient bleibt verdient:** Die Migration schreibt für jedes Kind die Sterne nach der alten Regel in
+  `sterneStationen` (nur nach oben). Die App zeigt nie weniger Sterne als dort stehen (`sterneVon`); Truhen gibt es
+  nur für Sterne darüber hinaus. Die Lehrkraft-Tabelle rechnet die Sterne neu (ohne diesen Stand) und nimmt die
+  Runden aus dem Paket mit dem freigegebenen Pool (vorher nur aus dem Arbeitsblatt).
+- Geprüft: Tests (`lernquest.test.ts`), Typprüfung, Build; Migration lokal in Postgres 16 auf alle früheren
+  Migrationen mit alten Spielständen (Sterne übernommen, Runde mit 40 % keine Wiederholung, 60 % ein Stern, keine
+  Truhe doppelt); App und Server rechnen Stufen und Sterne in 1500 Zufallsfällen gleich; im Spieltest am
+  Handy-Format zwei Stationen angesehen und eine Runde gespielt.
 
 ## Erfolgskriterien Stufe 1
 
@@ -528,8 +550,8 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   Lückentext → je Zeile eine Lücke mit Kacheln (+2 Ablenker aus der Stunde), Satzbau und Umformen → Wortkacheln,
   Knickvokabeln → antippen mit 3 falschen Antworten. Nur mit Lösung; Lehrkraft-Seiten nie.
 - **Regeln** (`src/lernquest/rules.ts`, gleich im Server): Runde 10 + 2 je richtige + 5 ohne Fehler Erfahrung
-  (Wiederholung ein Drittel, seit 09.11.2026), höchstens 300 am Tag; Stufe n → n+1 braucht 50 + 50·n; Sterne: 1 = alle Runden gespielt, 2 = Schnitt ≥ 80 %, 3 = jede Runde
-  einmal fehlerfrei; Wochenziel 3 Lerntage, gezählt werden geschaffte Wochen (keine Serie, die reißt); Wiederholen mit
+  (Wiederholung ein Drittel, seit 09.11.2026), höchstens 300 am Tag; Stufe n → n+1 braucht 50 + 50·n; Sterne aus drei Stufen, eine Runde
+  geschafft ab 60 % (seit Stufe C, siehe oben); Wochenziel 3 Lerntage, gezählt werden geschaffte Wochen (keine Serie, die reißt); Wiederholen mit
   5 Kästen (1, 3, 7, 14, 30 Tage), falsch → Kasten 1.
 - **Aussehen nach dem Prototyp** (`docs/design/lernquest/Main.dc.html`): Start mit Wappen und „Klassen-QR scannen“,
   Namen mit farbigen Anfangsbuchstaben, Karte mit Kopfleiste, Wochenziel-Karte (Mo–So), Regions-Band, Stationen

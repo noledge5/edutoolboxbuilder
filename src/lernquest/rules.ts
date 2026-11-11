@@ -3,7 +3,7 @@
 // rules in `lq_runde_melden` (supabase/migrations/20261106_lernquest.sql); change both together.
 import { normalize } from '../share/grade';
 import { seeded, shuffle } from '../model/language';
-import type { Stand, Uebung } from './types';
+import type { Niveau, Stand, Uebung } from './types';
 
 // — Rounds —
 
@@ -15,15 +15,19 @@ export const RUNDEN_MAX = 5;
 /** Most exercises in one round. */
 export const RUNDE_MAX = 8;
 
-/** How many rounds a station with `n` exercises has. */
-/** The round a station starts with: the first one not played yet, else the weakest (where stars are still to win). */
+/** A round counts as done from this percent right (Stufe C; `lq_runde_melden` uses the same). */
+export const GESCHAFFT_AB = 60;
+export const geschafft = (best: number | undefined) => (best ?? 0) >= GESCHAFFT_AB;
+
+/** The round a station starts with: the first one not done yet, else the weakest (where stars are still to win). */
 export function naechsteRunde(best: number[], runden: number): number {
   const werte = Array.from({ length: runden }, (_, i) => best[i] ?? 0);
-  const offen = werte.findIndex((b) => !(b > 0));
+  const offen = werte.findIndex((b) => !geschafft(b));
   if (offen >= 0) return offen;
   return werte.reduce((m, b, i) => (b < werte[m] ? i : m), 0);
 }
 
+/** How many rounds a station with `n` exercises has. */
 export function rundenZahl(n: number): number {
   if (n <= 0) return 0;
   if (n <= RUNDE_GROESSE) return 1;
@@ -199,13 +203,13 @@ export const XP_TAG = 300;
 
 /**
  * A repetition gives a third of experience and coins (rounded down): the „Wiederholen“ round (`stunde` empty) and a
- * station round done before (best above 0). As `lq_runde_melden`.
+ * station round done before (`geschafft`). As `lq_runde_melden`.
  */
 export const WIEDERHOLUNG_TEILER = 3;
 
 /** Whether this round is a repetition (see `WIEDERHOLUNG_TEILER`); asked before the round is counted. */
 export const istWiederholung = (bestwerte: Stand['bestwerte'], stunde: string, runde: number) =>
-  !stunde || (bestwerte[stunde]?.[runde] ?? 0) > 0;
+  !stunde || geschafft(bestwerte[stunde]?.[runde]);
 
 /** Experience for a round: 10, 2 per right answer, 5 more without mistakes, a third for a repetition; capped by what is left today. */
 export function xpFuerRunde(richtig: number, gesamt: number, heuteSchon = 0, wiederholung = false): number {
@@ -250,21 +254,49 @@ export function titel(stufe: number): string {
 
 // — Stars —
 
-/**
- * Stars of a station from the best percent per round: none until every round is done once; 1 for all done, 2 when
- * the rounds average at least 80 %, 3 when every round was once without mistakes.
- */
-export function sterne(bestwerte: number[] | undefined, runden: number): number {
-  if (!runden || !bestwerte) return 0;
-  const b = Array.from({ length: runden }, (_, i) => bestwerte[i]);
-  if (b.some((x) => x === undefined || x <= 0)) return 0;
-  if (b.every((x) => x! >= 100)) return 3;
-  const avg = b.reduce((s, x) => s + x!, 0) / runden;
-  return avg >= 80 ? 2 : 1;
+/** Difficulty of an exercise: its `niveau` (KI pool), else by format: tapping easy, filling in and sorting medium, writing hard. */
+export function niveauVon(u: Uebung): Niveau {
+  if (u.niveau === 1 || u.niveau === 2 || u.niveau === 3) return u.niveau;
+  return u.art === 'schreiben' ? 3 : u.art === 'paare' || u.art === 'luecke' || u.art === 'reihenfolge' || u.art === 'gruppen' ? 2 : 1;
 }
 
-/** Rounds of a station that are done (best above 0). */
-export const rundenGeschafft = (bestwerte: number[] | undefined, runden: number) => Array.from({ length: runden }, (_, i) => (bestwerte?.[i] ?? 0) > 0).filter(Boolean).length;
+/** The level of each round of a station: its hardest exercise (`lq_stufen` on the server). */
+export const rundenStufen = (uebungen: Uebung[]): Niveau[] =>
+  Array.from({ length: rundenZahl(uebungen.length) }, (_, r) => Math.max(...rundeVon(uebungen, r).map(niveauVon)) as Niveau);
+
+/**
+ * What each of the three stars needs (Stufe C): Kennenlernen, Anwenden, Meistern. Each level the station has gives one
+ * star, from easy to hard: its rounds and all easier ones done (`geschafft`). Stars left over (a station without some
+ * level) ask for at least 80 % on average over all rounds, then for every round once without mistakes.
+ */
+export type SternZiel = { art: 'runden'; runden: number[] } | { art: 'schnitt' } | { art: 'fehlerfrei' };
+export function sternZiele(stufen: readonly number[]): SternZiel[] {
+  const ziele: SternZiel[] = [...new Set(stufen)].sort((a, b) => a - b).map((n) => ({ art: 'runden', runden: stufen.flatMap((s, i) => (s <= n ? [i] : [])) }));
+  return [...ziele, { art: 'schnitt' } as const, { art: 'fehlerfrei' } as const].slice(0, 3);
+}
+
+/** Whether a star's goal is met (`sternZiele`). */
+export function sternErreicht(z: SternZiel, bestwerte: number[], runden: number): boolean {
+  const b = Array.from({ length: runden }, (_, i) => bestwerte[i] ?? 0);
+  if (z.art === 'runden') return z.runden.every((i) => geschafft(b[i]));
+  if (z.art === 'fehlerfrei') return b.every((x) => x >= 100);
+  return b.every(geschafft) && b.reduce((s, x) => s + x, 0) >= 80 * runden;
+}
+
+/** Stars of a station from the best percent per round and the rounds' levels (`rundenStufen`); as `lq_sterne`. */
+export function sterne(bestwerte: number[] | undefined, stufen: readonly number[]): number {
+  if (!stufen.length || !bestwerte) return 0;
+  const ziele = sternZiele(stufen);
+  const n = ziele.findIndex((z) => !sternErreicht(z, bestwerte, stufen.length));
+  return n < 0 ? 3 : n;
+}
+
+/** Stars a station shows: by the rules now, but never fewer than once counted (`sterneStationen`, earned stays earned). */
+export const sterneVon = (s: Stand, p: { stunde: string; uebungen: Uebung[] }) =>
+  Math.max(sterne(s.bestwerte[p.stunde], rundenStufen(p.uebungen)), s.sterneStationen?.[p.stunde] ?? 0);
+
+/** Rounds of a station that are done (`geschafft`). */
+export const rundenGeschafft = (bestwerte: number[] | undefined, runden: number) => Array.from({ length: runden }, (_, i) => geschafft(bestwerte?.[i])).filter(Boolean).length;
 
 // — Weekly goal —
 
@@ -388,8 +420,8 @@ export interface RundenKontext {
   /** Hearts and coin bonus of what the child wears. */
   herzen: number;
   bonusProzent: number;
-  /** Rounds of the station (0 for „Wiederholen“). */
-  runden: number;
+  /** Levels of the station's rounds (`rundenStufen`; none for „Wiederholen“). */
+  stufen: readonly number[];
 }
 
 /** Stars that fill one chest. Every star of a station counts once, so better rounds later fill the next chest. */
@@ -412,7 +444,7 @@ export function rundeAnwenden(
   s: Stand,
   m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] },
   tag = heute(),
-  k: RundenKontext = { herzen: 3, bonusProzent: 0, runden: 0 },
+  k: RundenKontext = { herzen: 3, bonusProzent: 0, stufen: [] },
 ): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; wiederholung: boolean; stand: Stand } {
   const neuerTag = !s.tage.includes(tag);
   const wiederholung = istWiederholung(s.bestwerte, m.stunde, m.runde);
@@ -426,12 +458,12 @@ export function rundeAnwenden(
   let sterneRest = s.sterneRest ?? 0;
   let sterneStationen = s.sterneStationen ?? {};
   if (m.stunde) {
-    const vorher = sterne(bestwerte[m.stunde], k.runden);
+    const vorher = sterne(bestwerte[m.stunde], k.stufen);
     const best = [...(bestwerte[m.stunde] ?? [])];
     while (best.length <= m.runde) best.push(0);
     best[m.runde] = Math.max(best[m.runde], Math.round((100 * m.richtig) / m.gesamt));
     bestwerte[m.stunde] = best;
-    const jetzt = sterne(best, k.runden);
+    const jetzt = sterne(best, k.stufen);
     sternePlus = neueSterne(sterneStationen[m.stunde], vorher, jetzt);
     if (sternePlus > 0) {
       sterneStationen = { ...sterneStationen, [m.stunde]: jetzt };

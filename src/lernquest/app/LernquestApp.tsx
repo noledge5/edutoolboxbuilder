@@ -13,14 +13,16 @@ import {
   naechsteRunde,
   rundeAnwenden,
   rundenFazit,
-  rundenGeschafft,
+  rundenStufen,
   rundenZahl,
+  sternZiele,
+  sterneVon,
+  geschafft,
   rundeVon,
   RUNDE_MAX,
   heuteDran,
   morgenDran,
   readExtra,
-  sterne,
   STERNE_JE_TRUHE,
   titel,
   woche,
@@ -553,10 +555,9 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       leitner,
     };
     const paket = daten.pakete[stunde];
-    const runden = paket ? rundenZahl(paket.uebungen.length) : 0;
-    const vorher = sterne(stand.bestwerte[stunde], runden);
+    const vorher = paket ? sterneVon(stand, paket) : 0;
     const bonus = bonusVon(stand.avatar);
-    const r = rundeAnwenden(stand, m, heute(), { herzen: HERZEN + bonus.herz, bonusProzent: bonus.muenzen, runden });
+    const r = rundeAnwenden(stand, m, heute(), { herzen: HERZEN + bonus.herz, bonusProzent: bonus.muenzen, stufen: paket ? rundenStufen(paket.uebungen) : [] });
     store({ ...daten, stand: r.stand });
     if (meilenstein) speichereMeilenstein(meilenstein.id, Math.round((100 * m.richtig) / m.gesamt));
     speichereWarteschlange([...ladeWarteschlange(), m]);
@@ -575,7 +576,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       truhenPlus: r.truhenPlus,
       punktePlus: r.punktePlus,
       sterneVorher: vorher,
-      sterneJetzt: sterne(r.stand.bestwerte[stunde], runden),
+      sterneJetzt: paket ? sterneVon(r.stand, paket) : 0,
       sternePlus: r.sternePlus,
       sterneRest: r.stand.sterneRest,
       meilenstein,
@@ -672,7 +673,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     const titelText = ms ? (msGut ? 'Meilenstein geschafft!' : 'Fast!') : schwach ? 'Fast!' : !screen.stunde ? 'Wiederholt!' : screen.sterneJetzt > 0 && screen.sterneVorher === 0 ? 'Station geschafft!' : fazit === 'perfekt' ? 'Perfekt!' : 'Runde geschafft!';
     const msRegion = ms && regionenVon(pakete, pakete.find((x) => x.modul.id === ms.id)?.fach ?? '', stand).find((r) => r.id === ms.id);
     // What comes next, as the main button: a weak round again, else the station's next open round, else more to repeat.
-    const offeneRunde = p ? Array.from({ length: rundenZahl(p.uebungen.length) }, (_, i) => i).find((i) => !((stand.bestwerte[p.stunde]?.[i] ?? 0) > 0)) : undefined;
+    const offeneRunde = p ? Array.from({ length: rundenZahl(p.uebungen.length) }, (_, i) => i).find((i) => !geschafft(stand.bestwerte[p.stunde]?.[i])) : undefined;
     const weiter: { text: string; los: () => void } | null =
       ms && !msGut && msRegion
         ? { text: 'Meilenstein nochmal', los: () => meilensteinStarten(msRegion) }
@@ -877,12 +878,12 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           {paket.fach} · Region {paket.modul.nummer} · Station {paket.nummer}
         </span>
         <h1>{paket.titel}</h1>
-        <SterneRegeln best={best} runden={runden} />
+        <SterneRegeln best={best} stufen={rundenStufen(paket.uebungen)} n={sterneVon(stand, paket)} />
         <ol className="lq-runden">
           {Array.from({ length: runden }, (_, r) => (
             <li key={r}>
-              <button type="button" className={`lq-runde ${best[r] > 0 ? 'geschafft' : ''} ${r === naechsteNr ? 'naechste' : ''}`} onClick={() => starte(paket, r)}>
-                <span className="lq-runde-nr">{best[r] >= 100 ? '★' : best[r] > 0 ? '✓' : r + 1}</span>
+              <button type="button" className={`lq-runde ${geschafft(best[r]) ? 'geschafft' : ''} ${r === naechsteNr ? 'naechste' : ''}`} onClick={() => starte(paket, r)}>
+                <span className="lq-runde-nr">{best[r] >= 100 ? '★' : geschafft(best[r]) ? '✓' : r + 1}</span>
                 <span>
                   Runde {r + 1}
                   {best[r] > 0 && <small> · bestes Ergebnis {best[r]} %</small>}
@@ -1038,16 +1039,17 @@ function sterneHinweis(plus: number, jetzt: number, rest: number): string {
   return `Alle Sterne geholt – ${bis}.`;
 }
 
-/** The stars of a station and what each one needs, ticked when reached (rules in `sterne`, rules.ts). */
-function SterneRegeln({ best, runden }: { best: number[]; runden: number }) {
-  const n = sterne(best, runden);
-  const gespielt = Array.from({ length: runden }, (_, r) => best[r] ?? 0);
-  const regeln = [
-    // A round counts once at least one answer was right (`sterne`).
-    `${runden === 1 ? 'Die Runde' : `Alle ${runden} Runden`} schaffen (${rundenGeschafft(best, runden)} von ${runden})`,
-    'Im Schnitt 80 % richtig',
-    `Jede Runde einmal ohne Fehler (${gespielt.filter((b) => b >= 100).length} von ${runden})`,
-  ];
+/** The stars of a station and what each one needs, ticked when reached (rules in `sternZiele`, rules.ts). `n`: the stars shown. */
+function SterneRegeln({ best, stufen, n }: { best: number[]; stufen: readonly number[]; n: number }) {
+  const alle = stufen.length;
+  const name = ['Kennenlernen', 'Anwenden', 'Meistern'];
+  const regeln = sternZiele(stufen).map((z, i) => {
+    if (z.art === 'schnitt') return `${name[i]}: im Schnitt 80 % richtig`;
+    if (z.art === 'fehlerfrei') return `${name[i]}: jede Runde einmal ohne Fehler (${best.slice(0, alle).filter((b) => b >= 100).length} von ${alle})`;
+    const k = z.runden.length;
+    const was = k === alle ? (alle === 1 ? 'die Runde' : `alle ${alle} Runden`) : k === 1 ? `Runde ${z.runden[0] + 1}` : `Runde ${z.runden.slice(0, -1).map((r) => r + 1).join(', ')} und ${z.runden[k - 1] + 1}`;
+    return `${name[i]}: ${was} mit 60 % schaffen${k > 1 ? ` (${z.runden.filter((r) => geschafft(best[r])).length} von ${k})` : ''}`;
+  });
   return (
     <div className="lq-sterne-regeln">
       <Sterne n={n} gross />

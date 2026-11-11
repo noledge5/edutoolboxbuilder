@@ -3,7 +3,7 @@
 // „Los geht’s!“), open (unlocked, started or not), locked (not yet in class). Stufe C: a done station with exercises
 // due again fades until they are refreshed; a region whose stations are all done ends in a Meilenstein, a mixed test
 // over all of them. Pure, so it is tested without a browser.
-import { karteKey, rundenZahl, sterne, wochenStart } from './rules';
+import { karteKey, sterneVon, wochenStart } from './rules';
 import type { Paket, Stand } from './types';
 
 export type StationsZustand = 'erledigt' | 'aktuell' | 'offen' | 'gesperrt';
@@ -51,7 +51,7 @@ export function regionenVon(pakete: Paket[], fach: string, stand: Stand, dran: R
       const stationen = nummern.map((n): Station => {
         const p = offen.get(n);
         if (!p) return { nummer: n, titel: m.stunden?.find((s) => s.nummer === n)?.titel ?? '', zustand: 'gesperrt', sterne: 0, faellig: [] };
-        const st = sterne(stand.bestwerte[p.stunde], rundenZahl(p.uebungen.length));
+        const st = sterneVon(stand, p);
         const faellig = p.uebungen.map((u) => karteKey(p.stunde, u.id)).filter((k) => dran.has(k));
         return { nummer: n, titel: p.titel, zustand: st > 0 ? 'erledigt' : 'offen', stunde: p.stunde, sterne: st, faellig };
       });

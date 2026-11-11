@@ -18,7 +18,7 @@ import { ensureLehrkraft, kartenNummern, updateLehrkraft, type Lehrkraft } from 
 import { STUFEN, stufenPlan, stufeVon, type Stufe } from '../sichtbarkeit';
 import { BOSS_FRAGEN_MIN, bossFragen, bossVon, type BossFrage } from '../boss';
 import { buildPaket, exercisesOf } from '../paket';
-import { BOSS_FRAGEN, heldenstufe, punkteHandRest, PUNKTE_HAND_WOCHE, rundenZahl, sterne, woche } from '../rules';
+import { BOSS_FRAGEN, heldenstufe, punkteHandRest, PUNKTE_HAND_WOCHE, rundenStufen, rundenZahl, sterne, woche } from '../rules';
 import {
   bossLaufend,
   bossStarten,
@@ -376,12 +376,15 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
   const g = grades.includes(grade) ? grade : (grades[0] ?? 0);
   const modules = lib.modules.filter((m) => m.subject === subject && m.grade === g).sort((a, b) => a.number - b.number);
 
-  /** Rounds per unlocked lesson, for the stars in the progress table. */
+  /** Round levels per unlocked lesson, from the package as sent (with the released pool), for the stars in the progress table. */
   const rounds = useMemo(() => {
-    const out: Record<string, number> = {};
-    for (const l of lib.lessons) if (klasse.stunden.includes(l.id)) out[l.id] = rundenZahl(exercisesOf(l.doc.pages).length);
+    const out: Record<string, number[]> = {};
+    for (const l of lib.lessons) {
+      const m = lib.modules.find((x) => x.id === l.moduleId);
+      if (m && klasse.stunden.includes(l.id)) out[l.id] = rundenStufen(buildPaket(m, l, lib.lessons).uebungen);
+    }
     return out;
-  }, [lib.lessons, klasse.stunden]);
+  }, [lib.lessons, lib.modules, klasse.stunden]);
 
   /**
    * Unlocked, locked or hidden. Hiding changes the module's lesson list in the packages, so the other unlocked lessons

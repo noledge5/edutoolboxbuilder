@@ -4,7 +4,7 @@ import { angelegt, bonusText, bonusVon, ladenWare, SCHADEN_MAX, CHANCEN, MUENZ_C
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import { faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
+import { niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
 import { beamerAusHash, beitrittsLink, codeAus, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
@@ -157,11 +157,46 @@ describe('Belohnungen', () => {
     expect(titel(9)).toBe('Abenteurer');
   });
 
-  it('gibt Sterne erst, wenn alle Runden gespielt sind', () => {
-    expect(sterne([100, 100], 3)).toBe(0);
-    expect(sterne([60, 70, 80], 3)).toBe(1);
-    expect(sterne([80, 100, 80], 3)).toBe(2);
-    expect(sterne([100, 100, 100], 3)).toBe(3);
+  it('gibt Sterne aus drei Stufen; eine Runde zählt ab 60 %', () => {
+    // Kennenlernen, Anwenden, Meistern: one round each.
+    expect(sterne([60, 59, 100], [1, 2, 3])).toBe(1);
+    expect(sterne([60, 60, 0], [1, 2, 3])).toBe(2);
+    expect(sterne([60, 60, 60], [1, 2, 3])).toBe(3);
+    expect(sterne([0, 100, 100], [1, 2, 3])).toBe(0);
+    // Only easy rounds: all done, then 80 % on average, then every round without mistakes.
+    expect(sterne([100, 100], [1, 1, 1])).toBe(0);
+    expect(sterne([50, 100, 100], [1, 1, 1])).toBe(0);
+    expect(sterne([60, 70, 80], [1, 1, 1])).toBe(1);
+    expect(sterne([80, 100, 80], [1, 1, 1])).toBe(2);
+    expect(sterne([100, 100, 100], [1, 1, 1])).toBe(3);
+    // Two levels: the third star is 80 % on average.
+    expect(sterne([60, 60], [1, 2])).toBe(2);
+    expect(sterne([80, 90], [1, 2])).toBe(3);
+    expect(sterne([60, 0], [2, 3])).toBe(1);
+    expect(sterne([60, 60], [2, 3])).toBe(2);
+    expect(sterne([80, 80], [2, 3])).toBe(3);
+    // One level only, but not easy: the same as only easy rounds.
+    expect(sterne([60, 60], [2, 2])).toBe(1);
+    expect(sterne(undefined, [1])).toBe(0);
+    expect(sterne([100], [])).toBe(0);
+  });
+
+  it('nimmt die Stufe einer Runde von ihrer schwersten Übung, ohne niveau nach dem Format', () => {
+    const w = (id: string, niveau?: 1 | 2 | 3) => ({ art: 'waehlen' as const, id, frage: '', optionen: ['a', 'b'], richtig: [0], niveau });
+    const l = { art: 'luecke' as const, id: 'l', satz: '', luecken: [] } as unknown as Parameters<typeof niveauVon>[0];
+    const s = { art: 'schreiben' as const, id: 's', frage: '', loesungen: ['x'] };
+    expect([niveauVon(w('a')), niveauVon(l), niveauVon(s), niveauVon(w('b', 3)), niveauVon({ ...s, niveau: 1 })]).toEqual([1, 2, 3, 3, 1]);
+    // 6 exercises, 3 rounds of 5 walking through the list: [0-4], [2-6], [4-8] (mod 6).
+    expect(rundenStufen([w('1'), w('2'), w('3'), w('4'), w('5'), w('6', 3)])).toEqual([1, 3, 3]);
+    expect(rundenStufen([w('1', 2)])).toEqual([2]);
+    expect(rundenStufen([])).toEqual([]);
+  });
+
+  it('nimmt verdiente Sterne nicht weg', () => {
+    const p = { stunde: 's1', uebungen: [{ art: 'waehlen' as const, id: 'a', frage: '', optionen: ['a', 'b'], richtig: [0] }] };
+    expect(sterneVon({ ...LEERER_STAND, bestwerte: { s1: [40] } }, p)).toBe(0);
+    expect(sterneVon({ ...LEERER_STAND, bestwerte: { s1: [40] }, sterneStationen: { s1: 2 } }, p)).toBe(2);
+    expect(sterneVon({ ...LEERER_STAND, bestwerte: { s1: [100] }, sterneStationen: { s1: 2 } }, p)).toBe(3);
   });
 
   it('zählt das Wochenziel ohne Serie, die reißen kann', () => {
@@ -227,13 +262,14 @@ describe('Runde auf dem Gerät', () => {
     expect(muenzenFuerRunde(5, 5, 3, 0, 0, true)).toBe(5); // 16 / 3
     expect(muenzenFuerRunde(5, 5, 5, 20, 0, true)).toBe(8); // 24 / 3, bonus first
     expect(muenzenFuerRunde(5, 5, 3, 0, 198, true)).toBe(2);
-    // What counts: „Wiederholen“, or a station round with a best above 0 before this round.
+    // What counts: „Wiederholen“, or a station round done (from 60 %) before this round.
     expect(istWiederholung({}, '', 0)).toBe(true);
+    expect(istWiederholung({ s1: [59] }, 's1', 0)).toBe(false);
     expect(istWiederholung({ s1: [60, 0] }, 's1', 0)).toBe(true);
     expect(istWiederholung({ s1: [60, 0] }, 's1', 1)).toBe(false);
     expect(istWiederholung({ s1: [60] }, 's1', 2)).toBe(false);
     expect(istWiederholung({}, 's1', 0)).toBe(false);
-    const k = { herzen: 3, bonusProzent: 0, runden: 2 };
+    const k = { herzen: 3, bonusProzent: 0, stufen: [1, 1] };
     const s0 = { ...LEERER_STAND, tage: ['2026-11-09'] };
     const erst = rundeAnwenden(s0, { stunde: 's1', runde: 0, richtig: 4, gesamt: 5, leitner: {} }, '2026-11-09', k);
     expect(erst).toMatchObject({ plus: 18, muenzenPlus: 13, wiederholung: false });
@@ -245,8 +281,8 @@ describe('Runde auf dem Gerät', () => {
   });
 
   it('rechnet Wiederholungen wie der Server (lq_runde_melden)', () => {
-    const sql = readFileSync(new URL('../../supabase/migrations/20261117_lernquest_wiederholung.sql', import.meta.url), 'utf8');
-    expect(sql).toContain("wdh := p_stunde = '' or coalesce((k.daten -> 'bestwerte' -> p_stunde ->> p_runde)::int, 0) > 0;");
+    const sql = readFileSync(new URL('../../supabase/migrations/20261123_lernquest_stufen.sql', import.meta.url), 'utf8');
+    expect(sql).toContain(`wdh := p_stunde = '' or coalesce((k.daten -> 'bestwerte' -> p_stunde ->> p_runde)::int, 0) >= ${GESCHAFFT_AB};`);
     expect(sql).toContain(`if wdh then plus := plus / ${WIEDERHOLUNG_TEILER}; end if;`);
     expect(sql).toContain(`if wdh then m_roh := m_roh / ${WIEDERHOLUNG_TEILER}; end if;`);
     // Order as in rules.ts: experience third before the daily cap; coins bonus, then third, then the daily cap.
@@ -258,7 +294,7 @@ describe('Runde auf dem Gerät', () => {
   });
 
   it('gibt eine Truhe je 3 neue Sterne und eine fürs Wochenziel', () => {
-    const k = { herzen: 3, bonusProzent: 0, runden: 2 };
+    const k = { herzen: 3, bonusProzent: 0, stufen: [1, 1] };
     const s0 = { ...LEERER_STAND, bestwerte: { s1: [80] }, tage: ['2026-11-02', '2026-11-03'] };
     // Station done with 2 stars (average 80 %): no chest yet, but the weekly goal brings one.
     const r = rundeAnwenden(s0, { stunde: 's1', runde: 1, richtig: 4, gesamt: 5, leitner: {} }, '2026-11-04', k);
@@ -276,11 +312,11 @@ describe('Runde auf dem Gerät', () => {
   });
 
   it('zählt Sterne über Stationen hinweg: drei Stationen mit einem Stern sind eine Truhe', () => {
-    const k = { herzen: 3, bonusProzent: 0, runden: 1 };
+    const k = { herzen: 3, bonusProzent: 0, stufen: [1] };
     let s = { ...LEERER_STAND, tage: ['2026-11-04'] };
     const truhen: number[] = [];
     for (const st of ['a', 'b', 'c']) {
-      const r = rundeAnwenden(s, { stunde: st, runde: 0, richtig: 2, gesamt: 5, leitner: {} }, '2026-11-04', k);
+      const r = rundeAnwenden(s, { stunde: st, runde: 0, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-04', k);
       truhen.push(r.truhenPlus);
       s = r.stand;
     }
@@ -293,7 +329,7 @@ describe('Runde auf dem Gerät', () => {
     expect(neueSterne(undefined, 0, 2)).toBe(2);
     expect(neueSterne(3, 1, 2)).toBe(0);
     const s0 = { ...LEERER_STAND, bestwerte: { s1: [60] }, tage: ['2026-11-04'] };
-    const r = rundeAnwenden(s0, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', { herzen: 3, bonusProzent: 0, runden: 1 });
+    const r = rundeAnwenden(s0, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-04', { herzen: 3, bonusProzent: 0, stufen: [1] });
     expect(r).toMatchObject({ sternePlus: 2, truhenPlus: 0, stand: { sterneRest: 2, sterneStationen: { s1: 3 } } });
   });
 });
