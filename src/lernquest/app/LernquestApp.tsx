@@ -12,6 +12,11 @@ import {
   karteKey,
   naechsteRunde,
   rundeAnwenden,
+  aufgabenVon,
+  AUFGABE_MUENZEN,
+  AUFGABEN_BONUS,
+  TAGESAUFGABEN,
+  tagesStand,
   rundenFazit,
   rundenStufen,
   rundenZahl,
@@ -75,6 +80,9 @@ export type Screen =
       ergebnisse: boolean[];
       plus: number;
       muenzenPlus: number;
+      /** Stufe D: coins for daily tasks done with this round, and their ids. */
+      aufgabenPlus: number;
+      aufgabenNeu: string[];
       truhenPlus: number;
       punktePlus: number;
       /** A repetition (round „Wiederholen“ or a station round done before): a third of experience and coins. */
@@ -572,6 +580,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       ergebnisse,
       plus: r.plus,
       muenzenPlus: r.muenzenPlus,
+      aufgabenPlus: r.aufgabenPlus,
+      aufgabenNeu: r.aufgabenNeu,
       wiederholung: r.wiederholung,
       truhenPlus: r.truhenPlus,
       punktePlus: r.punktePlus,
@@ -709,7 +719,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </div>
           <div>
             <span>Münzen</span>
-            <strong className="lq-gold-zahl">+{screen.muenzenPlus}</strong>
+            <strong className="lq-gold-zahl">+{screen.muenzenPlus + screen.aufgabenPlus}</strong>
           </div>
           <div>
             <span>Woche</span>
@@ -725,6 +735,12 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </p>
         )}
         {screen.stunde && <p className="lq-klein lq-mitte">{sterneHinweis(screen.sternePlus, screen.sterneJetzt, screen.sterneRest)}</p>}
+        {screen.aufgabenNeu.length > 0 && (
+          <p className="lq-punkte-plus" role="status">
+            <HakenIcon /> {screen.aufgabenNeu.length > 1 ? 'Tagesaufgaben' : 'Tagesaufgabe'} geschafft:{' '}
+            {screen.aufgabenNeu.map((id) => TAGESAUFGABEN.find((t) => t.id === id)?.text).join(', ')} · +{screen.aufgabenPlus} Münzen
+          </p>
+        )}
         {screen.punktePlus > 0 && (
           <p className="lq-punkte-plus" role="status">
             <TicketIcon /> +{screen.punktePlus} Klassenpunkte fürs Wochenziel – einlösbar unter „Held“ → „Gutscheine“.
@@ -933,6 +949,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     <div className="lq-karte-raster">
       <aside className="lq-karte-seite">
         <Wochenziel tage={stand.tage} />
+        <Tagesaufgaben stand={stand} />
         <TruhenFortschritt rest={stand.sterneRest} truhen={stand.truhen} onOeffnen={() => setScreen({ kind: 'truhe', zurueck: 'karte' })} />
       </aside>
       <div className="lq-karte-haupt">
@@ -981,6 +998,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
                 return (
                   <li key={st.nummer} className={`${cls}${st.zustand === 'aktuell' ? ' mit-blase' : ''}`}>
                     {st.zustand === 'aktuell' && <span className="lq-blase">Los geht’s!</span>}
+                    {st.zustand === 'aktuell' && <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} className="lq-pfad-held" />}
                     <button
                       type="button"
                       className={`lq-knoten ${st.zustand}${blass ? ' faellig' : ''}`}
@@ -1113,6 +1131,40 @@ function Initiale({ name, gross = false }: { name: string; gross?: boolean }) {
     <span className={`lq-ini ${gross ? 'gross' : ''}`} style={{ background: namensFarbe(name) }} aria-hidden>
       {name.trim().slice(0, 1).toUpperCase()}
     </span>
+  );
+}
+
+/** Stufe D: today's three tasks, the same for the whole class; the server pays them with the round. */
+function Tagesaufgaben({ stand }: { stand: Stand }) {
+  const tag = heute();
+  const a = tagesStand(stand.aufgaben, tag);
+  const liste = aufgabenVon(tag);
+  const fertig = liste.filter((t) => a.erledigt.includes(t.id)).length;
+  return (
+    <section className="lq-box lq-tagesaufgaben">
+      <div className="lq-zeile-zwischen">
+        <h2>Tagesaufgaben</h2>
+        <strong>{fertig === 3 ? 'Alle geschafft!' : `${fertig} von 3`}</strong>
+      </div>
+      <ul>
+        {liste.map((t) => {
+          const ok = a.erledigt.includes(t.id);
+          const n = Math.min(t.ziel, a.zaehler[t.zaehler] ?? 0);
+          return (
+            <li key={t.id} className={ok ? 'ok' : ''}>
+              <span className="lq-aufgabe-haken" aria-hidden="true">{ok && <HakenIcon />}</span>
+              <span>
+                {t.text}
+                {t.ziel > 1 && !ok && <small> · {n} / {t.ziel}</small>}
+                {ok && <span className="lq-unsichtbar"> (geschafft)</span>}
+              </span>
+              <small className="lq-gold-zahl">+{AUFGABE_MUENZEN}</small>
+            </li>
+          );
+        })}
+      </ul>
+      <span className="lq-klein">Alle drei: +{AUFGABEN_BONUS} Münzen extra. Morgen gibt es neue.</span>
+    </section>
   );
 }
 

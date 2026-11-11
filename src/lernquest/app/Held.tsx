@@ -2,7 +2,7 @@
 // to wear, chests, the shop and the class. Coins, chests and parts come from the server only (`server.ts`); this page
 // shows them and sends what the child chooses.
 import { useContext, useEffect, useRef, useState } from 'react';
-import { heldenstufe, titel } from '../rules';
+import { heldenstufe, ladenAb, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
 import {
   bonusText,
@@ -356,6 +356,8 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
   // Hairstyles are parts too (`frisur-<id>`): shown as a head with that hair.
   const ware = slot === 'frisur' ? ladenFrisuren(stand.inventar).map((x) => x.t) : ladenWare(stand.inventar, slot);
   const preis = wahl ? PREISE[wahl.seltenheit] : 0;
+  // Stufe D: the shop sells a rarity from a hero level on (chests give everything).
+  const stufe = heldenstufe(stand.xp).stufe;
 
   const kauf = async () => {
     if (!wahl || busy) return;
@@ -392,7 +394,10 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
         ← Zum Helden
       </button>
       <h1 className="lq-seitentitel">Laden</h1>
-      <p className="lq-klein">Münzen gibt es für jede Runde. Gekauft wird nur, was du noch nicht hast. Manche Schätze gibt es nur in Truhen.</p>
+      <p className="lq-klein">
+        Münzen gibt es für jede Runde. Gekauft wird nur, was du noch nicht hast. Manche Schätze gibt es nur in Truhen. Seltene Teile
+        öffnen sich mit deiner Heldenstufe.
+      </p>
       <SlotTabs
         slot={slot}
         setSlot={(s) => {
@@ -418,7 +423,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
             type="button"
             className={`lq-teil ${wahl?.id === t.id ? 'gewaehlt' : ''}`}
             aria-pressed={wahl?.id === t.id}
-            aria-label={`${t.name}, ${SELTENHEITEN[t.seltenheit].name}, ${PREISE[t.seltenheit]} Münzen`}
+            aria-label={`${t.name}, ${SELTENHEITEN[t.seltenheit].name}, ${stufe < ladenAb(t.seltenheit) ? `ab Heldenstufe ${ladenAb(t.seltenheit)}` : `${PREISE[t.seltenheit]} Münzen`}`}
             onClick={() => {
               setGekauft(null);
               setWahl(wahl?.id === t.id ? null : t);
@@ -427,14 +432,25 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
             <WareBild teil={t} avatar={stand.avatar} />
             <span className="lq-teil-name">{t.name}</span>
             <Seltenheit s={t.seltenheit} kurz />
-            <Muenzen n={PREISE[t.seltenheit]} />
+            {stufe < ladenAb(t.seltenheit) ? (
+              <span className="lq-teil-ab">
+                <SchlossIcon /> Stufe {ladenAb(t.seltenheit)}
+              </span>
+            ) : (
+              <Muenzen n={PREISE[t.seltenheit]} />
+            )}
           </button>
         ))}
       </div>
       {!ware.length && <p className="lq-leer">Hier hast du schon alles. Schau in einem anderen Bereich.</p>}
       {wahl && (
         <div className="lq-kaufleiste">
-          {stand.muenzen >= preis ? (
+          {stufe < ladenAb(wahl.seltenheit) ? (
+            <button type="button" className="lq-knopf" disabled>
+              <SchlossIcon />
+              Ab Heldenstufe {ladenAb(wahl.seltenheit)} · {titel(ladenAb(wahl.seltenheit))}
+            </button>
+          ) : stand.muenzen >= preis ? (
             <button type="button" className="lq-knopf lq-gold" disabled={busy} aria-busy={busy} onClick={() => void kauf()}>
               {busy ? 'Einen Moment …' : `${wahl.name} kaufen · ${preis} Münzen`}
             </button>

@@ -4,12 +4,12 @@ import { angelegt, bonusText, bonusVon, ladenWare, SCHADEN_MAX, CHANCEN, MUENZ_C
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import { niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
+import { aufgabenNach, aufgabenVon, AUFGABE_MUENZEN, AUFGABEN_BONUS, ladenAb, TAGESAUFGABEN, tagPlus, niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
 import { beamerAusHash, beitrittsLink, codeAus, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
 import { gemischterTest } from './probe';
-import { LEERER_STAND, type Paket, type Uebung } from './types';
+import { LEERER_STAND, type Paket, type TagesStand, type Uebung } from './types';
 
 const block = (type: Block['type'], props: Block['props']): Block => createBlock(type, props);
 const page = (blocks: Block[], type: Page['type'] = 'uebung'): Page => ({
@@ -568,5 +568,59 @@ describe('Station: nächste Runde und Lösungstext', () => {
     expect(loesungText(u)).toBe('The sky is **blue**.');
     expect(gleich(' Blue', 'blue')).toBe(true);
     expect(gleich('red', 'blue')).toBe(false);
+  });
+});
+
+describe('Tagesaufgaben und Laden nach Heldenstufe (Stufe D)', () => {
+  const tag = '2026-11-12';
+  const ids = aufgabenVon(tag).map((t) => t.id);
+
+  it('gibt jeden Tag drei verschiedene Aufgaben, über acht Tage jede einmal an jeder Stelle', () => {
+    const erste = new Set<string>();
+    for (let i = 0; i < 8; i++) {
+      const a = aufgabenVon(tagPlus(tag, i)).map((t) => t.id);
+      expect(new Set(a).size).toBe(3);
+      erste.add(a[0]);
+    }
+    expect(erste.size).toBe(TAGESAUFGABEN.length);
+  });
+
+  it('zählt eine Aufgabe einmal, die dritte bringt den Bonus, ein neuer Tag beginnt leer', () => {
+    let a: TagesStand | undefined;
+    let muenzen = 0;
+    const erledigt: string[] = [];
+    // Viele perfekte neue und wiederholte Runden mit Stern erfüllen jede Aufgabe der Liste.
+    for (let i = 0; i < 6; i++) {
+      const r = aufgabenNach(a, tag, { richtig: 5, gesamt: 5, wiederholung: i % 2 === 1, sterne: 1 });
+      a = r.aufgaben;
+      muenzen += r.muenzen;
+      erledigt.push(...r.neu);
+    }
+    expect(erledigt.sort()).toEqual([...ids].sort());
+    expect(muenzen).toBe(3 * AUFGABE_MUENZEN + AUFGABEN_BONUS);
+    expect(aufgabenNach(a, tagPlus(tag, 1), { richtig: 0, gesamt: 5, wiederholung: true, sterne: 0 }).aufgaben.zaehler).toEqual({ runden: 1, geschafft: 0, fehlerfrei: 0, wdh: 1, richtig: 0, sterne: 0 });
+  });
+
+  it('eine schwache Runde schafft nichts außer Zählern', () => {
+    const r = aufgabenNach(undefined, tag, { richtig: 2, gesamt: 5, wiederholung: false, sterne: 0 });
+    expect(r.aufgaben.zaehler).toMatchObject({ runden: 1, geschafft: 0, fehlerfrei: 0, neu: 1, richtig: 2 });
+  });
+
+  it('rundeAnwenden zahlt die Aufgaben zusätzlich zur Tagesgrenze', () => {
+    const s = { ...LEERER_STAND, muenzenHeute: 200, tage: [tag] };
+    let st = s;
+    let plus = 0;
+    for (let i = 0; i < 4; i++) {
+      const r = rundeAnwenden(st, { stunde: '', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, tag);
+      expect(r.muenzenPlus).toBe(0);
+      plus += r.aufgabenPlus;
+      st = r.stand;
+    }
+    expect(st.muenzen).toBe(plus);
+  });
+
+  it('Laden öffnet Seltenheiten mit den Titeln', () => {
+    expect([0, 1, 2, 3, 4].map(ladenAb)).toEqual([1, 3, 5, 12, 16]);
+    expect([3, 5, 12, 16].map(titel)).toEqual(['Lehrling', 'Entdecker', 'Held', 'Meister']);
   });
 });
