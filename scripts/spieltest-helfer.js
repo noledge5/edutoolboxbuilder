@@ -36,6 +36,7 @@ window.T = {
         : u.art === 'reihenfolge' ? u.kacheln.every((k) => body.includes(k))
         : u.art === 'gruppen' ? u.gruppen.every((g) => body.includes(g))
         : u.art === 'bild' ? body.includes(u.wort)
+        : u.art === 'schreiben' ? !!document.querySelector('.lq-eingabe')
         : true,
       );
   },
@@ -98,6 +99,11 @@ window.T = {
       const want = u.bilder[u.richtig];
       const hit = bs.find((b) => b.querySelector('.lq-emoji')?.innerText === want || (want.startsWith('img:') && b.querySelector('img')));
       (right ? hit : bs.find((b) => b !== hit)).click();
+    } else if (u.art === 'schreiben') {
+      // React listens to `input`; the value must go in through the native setter.
+      const el = document.querySelector('.lq-eingabe');
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, right ? `  ${u.loesungen[0].toUpperCase()}. ` : 'xyz');
+      el.dispatchEvent(new Event('input', { bubbles: true }));
     } else if (u.art === 'punkt') {
       const fl = document.querySelector('.lq-karte-flaeche');
       for (let n = 0; n < u.punkte.length; n++) {

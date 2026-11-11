@@ -270,7 +270,14 @@ export function buildPaket(m: Module, l: Lesson, lessons: Lesson[] = [l], verste
     fach: m.subject,
     lang: m.lang,
     // The released exercises of the KI-Fragenpool come after the lesson's own ones.
-    uebungen: [...exercisesOf(l.doc.pages), ...(l.pool ?? []).filter((e) => e.frei).map((e) => e.u)],
+    // Easy ones first, so the rounds of a station get harder (the sort is stable; no level counts as the middle).
+    uebungen: [
+      ...exercisesOf(l.doc.pages),
+      ...(l.pool ?? [])
+        .filter((e) => e.frei)
+        .map((e) => e.u)
+        .sort((a, b) => (a.niveau ?? 2) - (b.niveau ?? 2)),
+    ],
   };
 }
 

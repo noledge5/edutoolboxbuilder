@@ -141,6 +141,7 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
         locked={ok !== null}
         lang={paket?.lang}
         bilder={paket?.bilder}
+        onEnter={() => pruefen()}
         onChange={(a) => {
           setAntwort(a);
           if (a && prueftSelbst(item.u)) pruefen(a);

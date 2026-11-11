@@ -217,6 +217,9 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
   Lehrkraft prüft grob.
 - **Stufe A gebaut** (Übungsrunde neu: Fehler kommen wieder, ehrliches Ergebnis, faire Wertung, Zurück-Taste);
   Einzelheiten unter „Die Runde, die lehrt“ in `docs/lernquest.md`.
+- **Stufe B gebaut** (KI-Pool automatisch beim Freischalten, etwa 30 Fragen in drei Schwierigkeiten mit Erklärung,
+  „Alle freigeben“, neues Format „Selbst schreiben“); Einzelheiten unter „Inhalte, die reichen“ in
+  `docs/lernquest.md`. Offen: „Frage melden“ (Server-Änderung), echte KI-Anfrage noch nicht ausprobiert.
 - **Held und Teile wieder als Vektorgrafik aus dem Code**, detailreich und im Stil von Duolingo, statt gemalter
   Bilder aus ComfyUI (Wunsch der Lehrkraft). Noch nicht gebaut.
 - **Aussehen professioneller, Richtung Duolingo:** Die Lehrkraft hat ein Mockup gezeigt, das ihr gefällt (Fuchs als

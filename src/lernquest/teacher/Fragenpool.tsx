@@ -1,10 +1,11 @@
-// „Fragen erzeugen“ for a lesson (Lernquest Stufe 5): Claude writes about 15 exercises from the student pages (over the
-// chat or directly with the key of this device); the teacher reads each one, corrects it, releases or deletes it, one
-// by one. Tasks with places on a picture of the worksheet the teacher makes here by hand („Punkte im Bild“).
+// „Fragen erzeugen“ for a lesson (Lernquest Stufe 5, Stufe B): Claude writes about 30 exercises in three levels from the
+// student pages (over the chat or directly with the key of this device); the teacher skims them, releases all at once
+// („Alle freigeben“) and corrects or deletes single ones. Tasks with places on a picture of the worksheet the teacher
+// makes here by hand („Punkte im Bild“).
 // Changes are saved at once in the lesson (it syncs like the rest of the lesson); the class gets the released ones
 // with the next sending of the package.
 import { useEffect, useMemo, useState } from 'react';
-import { Check, ClipboardCopy, ClipboardPaste, KeyRound, MapPin, Move, Pencil, Sparkles, Trash2, Undo2 } from 'lucide-react';
+import { Check, CheckCheck, ClipboardCopy, ClipboardPaste, KeyRound, MapPin, Move, Pencil, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../../icons';
 import { AiSettingsDialog } from '../../ai/AiSettingsDialog';
 import { classProfileOf } from '../../ai/classNotes';
@@ -16,9 +17,9 @@ import type { Lesson, Module, Settings } from '../../library/types';
 import { useImageUrl } from '../../storage/images';
 import { exercisesOf } from '../paket';
 import { RUNDE_MAX, RUNDEN_MAX } from '../rules';
-import { ablenkerVon, bilderDerStunde, kurzText, lueckeAus, lueckeText, neueId, POOL_MAX, poolAusAntwort, poolPrompt, poolSystem, POOL_ZIEL, PUNKTE, punktAufgabe, readUebung, reihenfolgeAus } from '../fragenpool';
+import { ablenkerVon, bilderDerStunde, kurzText, lueckeAus, lueckeText, mitZusatz, neueId, NIVEAUS, POOL_MAX, poolAnfrage, poolAusAntwort, poolPrompt, poolSystem, POOL_ZIEL, PUNKTE, punktAufgabe, readUebung, reihenfolgeAus } from '../fragenpool';
 import { KARTE_KEY } from '../paket';
-import type { PoolEintrag, Uebung, UebungsArt } from '../types';
+import type { Niveau, PoolEintrag, Uebung, UebungsArt } from '../types';
 
 const ARTEN: Record<UebungsArt, string> = {
   waehlen: 'Antippen',
@@ -29,6 +30,7 @@ const ARTEN: Record<UebungsArt, string> = {
   gruppen: 'Sortieren',
   bild: 'Bild wählen',
   punkt: 'Punkte im Bild',
+  schreiben: 'Selbst schreiben',
 };
 /** Exercises the rounds of one station show at most (5 rounds × 8). */
 const RUNDEN_PLATZ = RUNDEN_MAX * RUNDE_MAX;
@@ -79,7 +81,7 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
   };
   const run = () => {
     setMeldung('');
-    void job.run({ job: 'small', what: 'Lernquest-Fragenpool', system: poolSystem(), user: poolPrompt(auftrag()), maxTokens: 8000, effort: 'low' }, read);
+    void job.run(poolAnfrage(auftrag()), read);
   };
   const close = () => {
     if (busy && !window.confirm('Claude arbeitet noch. Abbrechen und schließen?')) return;
@@ -103,8 +105,9 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
             <Icon icon={Sparkles} /> Fragen erzeugen · Stunde {stunde.number}: {stunde.title}
           </div>
           <p className="dialog-body">
-            Claude schreibt nur aus den Arbeitsblättern der Kinder etwa {POOL_ZIEL} weitere Fragen (ohne Lehrkraft-Seiten, ohne Kinderdaten). Du prüfst jede einzeln, änderst oder löschst sie und gibst sie frei. Nur Freigegebenes kommt ins
-            Lernpaket, hinter die Übungen der Stunde; die Klasse bekommt es beim nächsten Freischalten oder mit „Freigeschaltete neu senden“. Mit „Punkte im Bild“ setzt du selbst Stellen auf ein Bild vom Arbeitsblatt.
+            Claude schreibt nur aus den Arbeitsblättern der Kinder etwa {POOL_ZIEL} weitere Fragen in drei Stufen (leicht, mittel, schwer), jede mit einer kurzen Erklärung (ohne Lehrkraft-Seiten, ohne Kinderdaten). Lies sie durch, nimm
+            Schlechtes heraus und gib den Rest mit „Alle freigeben“ frei. Nur Freigegebenes kommt ins Lernpaket, hinter die Übungen der Stunde, von leicht nach schwer. Ist die Stunde für diese Klasse freigeschaltet, bekommt die Klasse
+            die Änderungen beim Schließen; andere Klassen mit „Freigeschaltete neu senden“. Mit „Punkte im Bild“ setzt du selbst Stellen auf ein Bild vom Arbeitsblatt.
           </p>
           <p className="lqt-pool-stand">
             {pool.length ? `${pool.length} im Pool, ${frei} freigegeben` : 'Der Pool ist noch leer.'}
@@ -122,7 +125,7 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
               <input id="lqt-pool-wishes" className="input" value={wuensche} placeholder="z. B. mehr zu den Himmelsrichtungen, leichter, keine Paare" onChange={(e) => setWuensche(e.target.value)} />
             </div>
           )}
-          {busy && <AiBusy busy={busy} hint="Das dauert meist zwanzig bis vierzig Sekunden." onStop={job.stop} />}
+          {busy && <AiBusy busy={busy} hint="Das dauert meist ein bis zwei Minuten." onStop={job.stop} />}
           {error && <p className="json-err">{error}</p>}
           {meldung && !busy && <p className="lqt-hint">{meldung}</p>}
           {answer && !busy && (
@@ -151,7 +154,10 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
               {pool.map((e) => (
                 <li key={e.u.id} className={e.frei ? 'is-frei' : ''}>
                   <div className="lqt-pool-kopf">
-                    <span className="lqt-pool-art">{artName(e.u)}</span>
+                    <span className="lqt-pool-art">
+                      {artName(e.u)}
+                      {e.u.niveau && ` · ${NIVEAUS[e.u.niveau]}`}
+                    </span>
                     <span className={`lqt-pool-status ${e.frei ? 'is-frei' : ''}`}>{e.frei ? 'freigegeben' : 'zu prüfen'}</span>
                   </div>
                   {edit === e.u.id && e.u.art === 'punkt' ? (
@@ -199,6 +205,12 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
           )}
 
           <div className="dialog-actions">
+            {frei < pool.length && !chatOpen && (
+              <button type="button" className="btn btn-secondary ui-btn" disabled={!!edit || neuesBild} onClick={() => onChange(pool.map((e) => ({ ...e, frei: true })))} title="Alle Fragen im Pool für die Klasse freigeben">
+                <Icon icon={CheckCheck} />
+                Alle freigeben ({pool.length - frei})
+              </button>
+            )}
             {!chatOpen && !voll && (
               <button type="button" className="btn btn-secondary ui-btn" onClick={() => setChatOpen(true)} style={{ marginRight: 'auto' }} disabled={!!busy}>
                 <Icon icon={ClipboardCopy} />
@@ -294,6 +306,14 @@ function Vorschau({ u }: { u: Uebung }) {
       )}
       {u.art === 'bild' && <p>{kurzText(u)}</p>}
       {u.art === 'punkt' && <BildMitPunkten bildId={u.bild.slice(KARTE_KEY.length)} punkte={u.punkte} klein />}
+      {u.art === 'schreiben' && (
+        <p>
+          {u.aussage && `${u.aussage} → `}
+          <b>{u.loesungen[0]}</b>
+          {u.loesungen.length > 1 && <span className="lqt-pool-neben"> · auch richtig: {u.loesungen.slice(1).join(', ')}</span>}
+        </p>
+      )}
+      {u.erklaerung && <p className="lqt-pool-neben">Erklärung: {u.erklaerung}</p>}
     </div>
   );
 }
@@ -303,6 +323,10 @@ function PoolEditor({ u, onSave, onCancel }: { u: Uebung; onSave(u: Uebung): voi
   const [d, setD] = useState<Uebung>(u);
   const [satz, setSatz] = useState(u.art === 'luecke' ? lueckeText(u) : '');
   const [ablenker, setAblenker] = useState(u.art === 'luecke' ? ablenkerVon(u).join(', ') : '');
+  const [loesungen, setLoesungen] = useState(u.art === 'schreiben' ? u.loesungen.join(' / ') : '');
+  // Kept apart from the exercise: gap and word order are built anew on saving and would lose them.
+  const [erklaerung, setErklaerung] = useState(u.erklaerung ?? '');
+  const [niveau, setNiveau] = useState<Niveau | undefined>(u.niveau);
   const [fehler, setFehler] = useState('');
   const set = (patch: Partial<Uebung>) => setD((x) => ({ ...x, ...patch }) as Uebung);
 
@@ -310,14 +334,19 @@ function PoolEditor({ u, onSave, onCancel }: { u: Uebung; onSave(u: Uebung): voi
     let next: Uebung | null = d;
     if (d.art === 'luecke') next = lueckeAus(d.id, d.frage, satz, ablenker.split(','));
     if (d.art === 'reihenfolge') next = reihenfolgeAus(d.id, d.frage, d.loesung, d.hinweis.trim());
-    const ok = next && readUebung(next);
+    if (d.art === 'schreiben') next = { ...d, loesungen: loesungen.split(/\s+\/\s+/).map((l) => l.trim()).filter(Boolean) };
+    const ok = next && mitZusatz(next, erklaerung, niveau);
     if (!ok) {
       setFehler(
-        d.art === 'luecke'
+        erklaerung.length > 240
+          ? 'Die Erklärung darf höchstens 240 Zeichen haben.'
+          : d.art === 'schreiben'
+            ? 'Schreib 1 bis 4 richtige Schreibweisen, mit Leerzeichen und Schrägstrich getrennt, z. B. „sister / the sister“.'
+            : d.art === 'luecke'
           ? 'So geht die Lücke nicht: Schreib die Lösung in eckige Klammern, z. B. „Die Sonne ist ein [Stern].“'
           : d.art === 'reihenfolge'
-            ? 'Der Satz braucht 2 bis 14 Wörter.'
-            : 'So geht die Aufgabe nicht: Kein Feld darf leer sein, Texte höchstens 240 Zeichen, jede Gruppe braucht eine Karte.',
+              ? 'Der Satz braucht 2 bis 14 Wörter.'
+              : 'So geht die Aufgabe nicht: Kein Feld darf leer sein, Texte höchstens 240 Zeichen, jede Gruppe braucht eine Karte.',
       );
       return;
     }
@@ -400,6 +429,24 @@ function PoolEditor({ u, onSave, onCancel }: { u: Uebung; onSave(u: Uebung): voi
           ))}
         </>
       )}
+      {d.art === 'schreiben' && (
+        <>
+          {feld('Was übersetzt oder beantwortet wird (freiwillig)', d.aussage ?? '', (aussage) => set({ aussage }))}
+          {feld('Richtige Schreibweisen, mit „ / “ getrennt (die erste wird gezeigt)', loesungen, setLoesungen)}
+        </>
+      )}
+      {feld('Erklärung nach einem Fehler (freiwillig)', erklaerung, setErklaerung)}
+      <label className="lqt-pool-feld">
+        <span>Schwierigkeit</span>
+        <select className="input" value={niveau ?? ''} onChange={(e) => setNiveau(e.target.value ? (Number(e.target.value) as Niveau) : undefined)}>
+          <option value="">keine Angabe</option>
+          {([1, 2, 3] as const).map((n) => (
+            <option key={n} value={n}>
+              {NIVEAUS[n]}
+            </option>
+          ))}
+        </select>
+      </label>
       {fehler && <p className="json-err">{fehler}</p>}
       <div className="lqt-pool-aktionen">
         <button type="button" className="btn btn-secondary ui-btn" onClick={onCancel}>

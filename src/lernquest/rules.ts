@@ -77,7 +77,8 @@ export type Antwort =
   | { art: 'gruppen'; zuordnung: number[] }
   | { art: 'bild'; gewaehlt: number }
   /** One tap per point: which point was asked for and where the child tapped (percent of the picture). */
-  | { art: 'punkt'; getippt: { ziel: number; x: number; y: number }[] };
+  | { art: 'punkt'; getippt: { ziel: number; x: number; y: number }[] }
+  | { art: 'schreiben'; text: string };
 
 /** How far from a point a tap may land, in percent of the picture. */
 export const PUNKT_RADIUS = 12;
@@ -127,6 +128,8 @@ export function istRichtig(u: Uebung, a: Antwort): boolean {
       const daneben = a.getippt.filter((t) => !punktTrifft(u.punkte, t.ziel, t.x, t.y)).length;
       return asked.size === u.punkte.length && daneben <= fehlgriffeFrei(u.punkte.length);
     }
+    case 'schreiben':
+      return a.art === 'schreiben' && u.loesungen.some((l) => gleich(l, a.text));
   }
 }
 
@@ -149,6 +152,8 @@ export function richtigeAntwort(u: Uebung): Antwort {
       return { art: 'bild', gewaehlt: u.richtig };
     case 'punkt':
       return { art: 'punkt', getippt: u.punkte.map(([x, y], ziel) => ({ ziel, x, y })) };
+    case 'schreiben':
+      return { art: 'schreiben', text: u.loesungen[0] };
   }
 }
 
@@ -179,6 +184,8 @@ export function loesungText(u: Uebung): string {
       return u.wort;
     case 'punkt':
       return 'die grünen Punkte im Bild';
+    case 'schreiben':
+      return u.loesungen[0];
   }
 }
 

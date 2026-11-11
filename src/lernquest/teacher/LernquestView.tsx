@@ -2,12 +2,15 @@
 // to print, lessons to unlock (their Lernpaket goes to the class), progress at a glance, unlock locked accounts, and
 // the boss fight on the projector (Stufe 3: the questions are made here, the projector view is Lernquest's #beamer=),
 // class points, vouchers and requests, and progress per competence (Stufe 4: `Belohnungen.tsx`, `Auswertung.tsx`).
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, IdCard, Images, Lock, MessageCircleQuestion, Plus, Printer, RefreshCw, RotateCcw, ScanLine, Sparkles, Swords, Trash2, Unlock } from 'lucide-react';
 import { Icon } from '../../icons';
 import { SearchButton } from '../../library/SearchDialog';
 import type { Lesson, Library, Module } from '../../library/types';
-import { freigegeben } from '../fragenpool';
+import { classProfileOf } from '../../ai/classNotes';
+import { jsonOf } from '../../ai/client';
+import { runAi, useAiSettings } from '../../ai/useAi';
+import { freigegeben, POOL_MAX, poolAnfrage, poolAusAntwort } from '../fragenpool';
 import { FragenpoolDialog } from './Fragenpool';
 import { PunkteDialog } from './PunkteDialog';
 import { paketSenden } from './senden';
@@ -312,8 +315,52 @@ interface KlasseProps {
 }
 
 function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, act, savePins, saveVersteckt, onPrint, onKarten, onKampf }: KlasseProps) {
-  /** Lesson whose KI-Fragenpool is open. */
+  /** Lesson whose KI-Fragenpool is open, and what was released when it opened (to send the class what changed). */
   const [poolOf, setPoolOf] = useState<string | null>(null);
+  const freiVorher = useRef('');
+  const frei = (id: string) => JSON.stringify(freigegeben(lib.lessons.find((x) => x.id === id)?.pool));
+  const openPool = (id: string) => {
+    freiVorher.current = frei(id);
+    setPoolOf(id);
+  };
+  const closePool = () => {
+    const l = lib.lessons.find((x) => x.id === poolOf);
+    const m = l && lib.modules.find((x) => x.id === l.moduleId);
+    setPoolOf(null);
+    if (l && m && klasse.stunden.includes(l.id) && frei(l.id) !== freiVorher.current) void act((keys) => paketSenden(keys, klasse.id, m, l, lib.lessons, versteckt));
+  };
+
+  /**
+   * After a lesson is unlocked, Claude fills its empty pool by itself (Stufe B), one lesson after the other. Lesson id
+   * → '' while it runs, else what went wrong. Nothing happens without a key on this device.
+   */
+  const ai = useAiSettings();
+  const [auto, setAuto] = useState<Record<string, string>>({});
+  const kette = useRef(Promise.resolve());
+  const neueste = useRef({ lib, onLessonChange });
+  neueste.current = { lib, onLessonChange };
+  const fragenErzeugen = (id: string) => {
+    setAuto((a) => ({ ...a, [id]: '' }));
+    kette.current = kette.current.then(async () => {
+      let fehler = '';
+      try {
+        const { lessons, modules, settings } = neueste.current.lib;
+        const l = lessons.find((x) => x.id === id);
+        const m = l && modules.find((x) => x.id === l.moduleId);
+        if (!l || !m || l.pool?.length) return;
+        const a = await runAi(poolAnfrage({ modul: m, stunde: l, klasse: classProfileOf(settings, m.subject, m.grade), vorhanden: exercisesOf(l.doc.pages), wuensche: '' }));
+        if (!a) return;
+        const { neu } = poolAusAntwort(jsonOf(a.text), [], m.lang === 'en');
+        // The lesson as it is now: the teacher may have worked on it in the meantime.
+        const jetzt = neueste.current.lib.lessons.find((x) => x.id === id);
+        if (jetzt && !jetzt.pool?.length) neueste.current.onLessonChange({ ...jetzt, pool: neu.slice(0, POOL_MAX).map((u) => ({ u, frei: false })) });
+      } catch (e) {
+        fehler = e instanceof Error ? e.message : String(e);
+      } finally {
+        setAuto(({ [id]: _, ...rest }) => (fehler ? { ...rest, [id]: fehler } : rest));
+      }
+    });
+  };
   /** Child who gets class points by hand (dialog open). */
   const [punkteFuer, setPunkteFuer] = useState<KindInfo | null>(null);
   const [names, setNames] = useState('');
@@ -357,6 +404,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
         const x = lib.lessons.find((y) => y.id === id);
         if (x) await paketSenden(keys, klasse.id, m, x, lib.lessons, plan.versteckt);
       }
+      if (stufe === 'frei' && ai && !l.pool?.length) fragenErzeugen(l.id);
     }).finally(() => setWant(({ [l.id]: _, ...rest }) => rest));
   };
 
@@ -560,7 +608,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
             <h2>Stunden freischalten</h2>
             <p className="lqt-hint">
               Eine freigeschaltete Stunde wird eine Station auf der Weltkarte. Aus ihren lösbaren Aufgaben (mit Lösung) werden Übungen; Lehrkraft-Seiten bleiben draußen. Gesperrte Stunden
-              sehen die Kinder mit Schloss, ausgeblendete gar nicht.
+              sehen die Kinder mit Schloss, ausgeblendete gar nicht. {ai ? 'Nach dem Freischalten schreibt Claude von selbst etwa 30 weitere Fragen; die Klasse sieht sie erst, wenn du sie unter „Fragen prüfen“ freigibst.' : ''}
             </p>
           </div>
           <div className="lqt-actions">
@@ -633,10 +681,18 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
                         </span>
                         <small>{n ? `${n} ${n === 1 ? 'Übung' : 'Übungen'} · ${rundenZahl(n)} ${rundenZahl(n) === 1 ? 'Runde' : 'Runden'}` : 'keine lösbaren Aufgaben'}</small>
                       </label>
-                      <button type="button" className="btn btn-secondary ui-btn lqt-pool-knopf" onClick={() => setPoolOf(l.id)} title="Weitere Fragen aus dem Stundeninhalt erzeugen, prüfen und freigeben">
+                      <button type="button" className="btn btn-secondary ui-btn lqt-pool-knopf" onClick={() => openPool(l.id)} title={auto[l.id] || 'Weitere Fragen aus dem Stundeninhalt erzeugen, prüfen und freigeben'}>
                         <Icon icon={Sparkles} />
-                        Fragen erzeugen
-                        {imPool > 0 && <small className="lqt-pool-zahl">{freigegeben(l.pool).length} von {imPool} frei</small>}
+                        {imPool > 0 ? 'Fragen prüfen' : 'Fragen erzeugen'}
+                        {auto[l.id] === '' ? (
+                          <small className="lqt-pool-zahl" role="status">
+                            Claude schreibt …
+                          </small>
+                        ) : auto[l.id] ? (
+                          <small className="lqt-pool-zahl">hat nicht geklappt</small>
+                        ) : (
+                          imPool > 0 && <small className="lqt-pool-zahl">{imPool - freigegeben(l.pool).length > 0 ? `${imPool - freigegeben(l.pool).length} zu prüfen` : `${imPool} frei`}</small>
+                        )}
                       </button>
                     </li>
                   );
@@ -646,7 +702,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
         ))}
       </section>
       {punkteFuer && <PunkteDialog name={punkteFuer.name} rest={punkteHandRest(punkteFuer.punkteHand ?? 0)} onGive={onGivePoints} onClose={closePoints} />}
-      {poolOf && <PoolFuer lib={lib} id={poolOf} onLessonChange={onLessonChange} onClose={() => setPoolOf(null)} />}
+      {poolOf && <PoolFuer lib={lib} id={poolOf} onLessonChange={onLessonChange} onClose={closePool} />}
     </>
   );
 }

@@ -7,6 +7,9 @@ Klassenkonto am Server nötig ist.
 
 Entscheidungen der Lehrkraft vom 11.11.2026 (Fragerunde):
 
+Nachgezogen am 11.11.2026 nach Stufe A: Teil 1 und 2 beschreiben den Stand **vor** Stufe A. Was seitdem erledigt
+ist, trägt ein ✅ mit Datum. Einzelheiten stehen in `docs/lernquest.md`.
+
 | Frage | Entscheidung |
 |---|---|
 | Spielkern | **Duolingo-Pfad, perfektioniert.** Kein Umbau zum Kampf-Rollenspiel; Held, Truhen und Boss bleiben Beiwerk, das Üben selbst wird Spitzenniveau. |
@@ -44,7 +47,8 @@ Entscheidungen der Lehrkraft vom 11.11.2026 (Fragerunde):
 7. **Kein Test der echten Oberfläche.** Die Tests prüfen Regeln, nicht, ob ein Kind sich anmelden und eine Runde
    spielen kann. Steht seit Oktober als offen in der Roadmap.
 8. **Kleinkram:** 36 alte Entwicklungszweige auf GitHub, 19 Schriftfamilien im Paket, Lernquest-Regeln doppelt
-   gepflegt (App und Server), die Kartenfrage ist noch nicht mit Bosskampf und Belohnungen verbunden.
+   gepflegt (App und Server). Die freie Kartenfrage gibt noch keine Klassenpunkte (der Bosskampf mit Karten ist seit
+   08.11.2026 gebaut und gibt Schaden und Truhe).
 
 ## Teil 2: Lernquest gegen den Stand der Kunst
 
@@ -53,22 +57,22 @@ Vergleich mit Duolingo, Anton, Kahoot/Blooket und Lern-Rollenspielen wie Prodigy
 | Thema | Was die Besten machen | Lernquest heute | Urteil |
 |---|---|---|---|
 | Einstieg | Erst spielen, dann anmelden; Figur bauen; erster Erfolg nach zwei Minuten | Code, Name, PIN, dann die Karte. Kein Willkommen, keine Figur am Anfang | Anmeldung gut, Einstieg fehlt |
-| Fehler in der Runde | Falsche Aufgaben kommen am Ende wieder, bis sie sitzen | Lösung wird gezeigt, dann weiter. 1 von 5 richtig heißt trotzdem „Runde geschafft!“ | **Größte Lücke** |
-| Erklärung bei Fehlern | Kurzer Grund, warum es falsch war | Nur „Richtig wäre: …“. Im Plan versprochen, nicht gebaut | Lücke |
+| Fehler in der Runde | Falsche Aufgaben kommen am Ende wieder, bis sie sitzen | Lösung wird gezeigt, dann weiter. 1 von 5 richtig heißt trotzdem „Runde geschafft!“ | **Größte Lücke**, ✅ behoben mit Stufe A |
+| Erklärung bei Fehlern | Kurzer Grund, warum es falsch war | Nur „Richtig wäre: …“. Im Plan versprochen, nicht gebaut | Lücke. Seit Stufe A zeigt die Runde eine Erklärung, wenn die Aufgabe eine hat; geschrieben wird sie erst mit Stufe B |
 | Schwierigkeit | Steigt je Lektion, passt sich an (leicht, mittel, schwer; erst erkennen, dann selbst schreiben) | Die Runden sind Scheiben derselben Liste in Blatt-Reihenfolge. Die Niveaus G/M/E der Aufgaben gehen beim Senden verloren | Lücke |
 | Lernspirale | Altes taucht von selbst im Pfad wieder auf, gemischt mit Neuem | Wiederholen ist ein eigener Reiter, den ein Kind selbst finden muss. Eine fertige Station bleibt für immer fertig | Technik da, falsch platziert |
 | Aufgabenformate | Erkennen **und** selbst erzeugen (tippen, sprechen) | 8 Formate, alle zum Antippen. Nichts zum Selbstschreiben | Für Vokabeln zu schwach |
 | Inhaltsmenge | Viele Varianten je Thema | So viel, wie das Arbeitsblatt hergibt; dieselben Aufgaben wortgleich wieder | Wird durch den KI-Pool gelöst |
-| Tagesanreiz | Tagesaufgaben, kleine Überraschungen, „noch eine Runde“ | Nur das Wochenziel. Nach der Runde führt der Hauptknopf zurück zur Karte | Lücke |
+| Tagesanreiz | Tagesaufgaben, kleine Überraschungen, „noch eine Runde“ | Nur das Wochenziel. Nach der Runde führt der Hauptknopf zurück zur Karte | Lücke. ✅ Hauptknopf ist seit Stufe A „Nächste Runde“; Tagesaufgaben fehlen weiter |
 | Stufen und Punkte | Stufen schalten etwas frei | Die Heldenstufe ändert nur den Titel | Wirkt hohl |
 | Herzen | Echte Folge (oder bewusst keine) | Drei Herzen, die nur ein paar Münzen kosten | Unklar für Kinder |
-| Gefühl | Figur reagiert, Jubel, echte Töne, lebendige Karte | 10 kleine Animationen, Pieptöne aus dem Browser, Karte ist eine Liste von Kreisen. Oben steht der Anfangsbuchstabe statt des eigenen Helden | Sauber, aber kühl |
+| Gefühl | Figur reagiert, Jubel, echte Töne, lebendige Karte | 10 kleine Animationen, Pieptöne aus dem Browser, Karte ist eine Liste von Kreisen (seit 09.11.2026 mit Fußspuren, Sternen je Region und „Nächste Truhe“) | Sauber, aber kühl. ✅ Der eigene Held steht seit 09.11.2026 oben und reagiert seit Stufe A in der Runde |
 | Miteinander | Ligen, Freunde, Team-Ziele | Klassenliste zum Anschauen; Bosskampf als Team | Boss stark, Alltag leer |
 | Belohnung | Nur virtuell | Truhen fair (Chancen sichtbar, Garantie), **echte Gutscheine in der Klasse** | **Besser als die Großen** |
 | Lehrkraft | Aufgaben zuweisen, sehen, wer Hilfe braucht | Freischalten, Auswertung je Kompetenz. Keine Aufträge mit Termin, kein „diese drei Kinder hängen“ | Brauchbar, ausbaufähig |
-| Bedienung | Zurück-Taste geht einen Schritt zurück | Die Zurück-Taste des Handys verlässt die App | Fehler |
+| Bedienung | Zurück-Taste geht einen Schritt zurück | Die Zurück-Taste des Handys verlässt die App | Fehler, ✅ behoben mit Stufe A |
 
-Zwei Dinge, die ich beim Spielen selbst gesehen habe:
+Zwei Dinge, die ich beim Spielen selbst gesehen habe (beide ✅ behoben mit Stufe A):
 
 - **Paare finden:** Ein einziger Fehlgriff, danach alle fünf Paare richtig gefunden, Ergebnis: „Nicht ganz“, ein
   Herz weg, und die Lösung wird noch einmal komplett vorgelesen, obwohl sie schon auf dem Bildschirm steht. Das
@@ -91,6 +95,8 @@ und der Pfad von allein wiederholt, ist das stärker als jede fertige Lern-App.
 ## Teil 3: Plan
 
 Jede Stufe ist für sich im Unterricht nutzbar. Vor jeder Änderung am Server frage ich wie bisher.
+Stufe C soll auch lösen, dass eine schwache Runde (unter 60 %) beim Server als gespielt gilt und den ersten Stern
+gibt; das ist eine Server-Änderung.
 
 ### Stufe A: Die Runde, die wirklich lehrt (Neubau der Übungsrunde) ✅ gebaut am 11.11.2026
 
@@ -103,12 +109,12 @@ Jede Stufe ist für sich im Unterricht nutzbar. Vor jeder Änderung am Server fr
 - Hauptknopf nach der Runde: „Nächste Runde“. Zurück-Taste des Handys geht einen Schritt zurück.
 - Herzen: bleiben als Münz-Bonus, sperren nie aus (Schule, kein Bezahlmodell), werden aber so erklärt.
 
-### Stufe B: Inhalte, die reichen (KI-Pool automatisch)
+### Stufe B: Inhalte, die reichen (KI-Pool automatisch) ✅ gebaut am 11.11.2026, bis auf „Frage melden“
 
 - Beim Freischalten einer Stunde entstehen automatisch rund 30 Fragen in drei Schwierigkeiten (wie G/M/E), mit
   Erklärung und typischen Denkfehlern als falsche Antworten.
 - „Alle freigeben“ mit einem Klick, Schlechtes einzeln rausnehmen. Kinder können eine Frage melden; die Meldung
-  landet bei der Lehrkraft.
+  landet bei der Lehrkraft (offen: braucht eine Server-Änderung).
 - Neues Format „Selbst schreiben“ (Wort oder kurzer Satz tippen, nachsichtig bei Groß- und Kleinschreibung), zuerst
   für Vokabeln.
 
@@ -129,7 +135,7 @@ Jede Stufe ist für sich im Unterricht nutzbar. Vor jeder Änderung am Server fr
 - Drei kleine Tagesaufgaben („eine Runde ohne Fehler“, „5 Wiederholungen“), das Wochenziel bleibt.
 - Klassen-Aufgabe der Woche: Alle zusammen sammeln Sterne für ein gemeinsames Ziel. Weiter keine Einzel-Rangliste.
 - Heldenstufen schalten etwas frei (Begleiter wachsen, neue Laden-Regale, Titel am Beamer).
-- Der eigene Held steht oben in der Leiste und läuft auf der Karte mit.
+- Der eigene Held läuft auf der Karte mit (oben in der Leiste steht er seit 09.11.2026).
 - Offen, deine Entscheidung: Erinnerungen aufs Handy (nur wenn die App installiert ist und Kind und Eltern es wollen).
 
 ### Stufe E: Aussehen und Gefühl
@@ -145,19 +151,21 @@ Nachtrag 11.11.2026 (Wünsche der Lehrkraft während Stufe A):
 
 ### Stufe F: Klassenzimmer
 
-- Kartenfrage mit dem Bosskampf verbinden (schon entschieden am 08.11.2026): Schaden, Truhe, Klassenpunkte.
+- ✅ Bosskampf mit Karten (gebaut am 08.11.2026): Schaden und Truhe. Offen: Klassenpunkte für richtige Antworten
+  in der freien Kartenfrage.
 - Schnellrunde wie Kahoot aus denselben Fragen, mit Geräten oder Karten.
-- Lehrkraft-Bereich in der App (schon entschieden): Boss steuern, scannen, Fortschritt, schnelle Hilfe.
+- Lehrkraft-Bereich in der App (schon entschieden, noch nicht gebaut): Boss steuern, scannen, Fortschritt, schnelle
+  Hilfe.
 - Aufträge mit Termin („bis Freitag Station 3“) und eine Liste „diese Kinder brauchen Hilfe“.
 
 ### Stufe G: Fundament (läuft nebenher)
 
 - Arbeitsregeln (`AGENTS.md`) knapp wiederherstellen.
-- Die Kinder-App in überschaubare Teile zerlegen (heute eine Datei mit 1.150 Zeilen und ein Stilblatt mit 3.160).
+- Die Kinder-App in überschaubare Teile zerlegen (nach Stufe A: eine Datei mit 1.170 Zeilen und ein Stilblatt mit 3.490; die Runde liegt schon in `Runde.tsx`).
 - Ein Test, der wie ein Kind anmeldet und eine Runde spielt, bei jeder Änderung automatisch.
 - Zahlen für die Lehrkraft: Lerntage je Kind und Woche, Anteil der Fehler, die in derselben Runde behoben wurden,
   Aufgaben, die sitzen. Aus Daten, die der Server schon hat.
-- Alte Zweige aufräumen. Entscheidung offen: eingefrorene Folien ganz entfernen?
+- Alte Zweige aufräumen (am 11.11.2026 sind es 45 auf GitHub). Entscheidung offen: eingefrorene Folien ganz entfernen?
 - Später, erst wenn Kolleginnen wirklich mitmachen wollen: Lehrkraft-Konto statt Geräteschlüssel.
 
 ### Reihenfolge und warum
