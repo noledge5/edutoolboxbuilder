@@ -142,7 +142,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
           <TruheIcon />
           <div>
             <strong>{stand.truhen ? `${stand.truhen} ${stand.truhen === 1 ? 'Truhe' : 'Truhen'} bereit` : 'Keine Truhe bereit'}</strong>
-            <span className="lq-klein">Für ganz gespielte Stationen und das Wochenziel</span>
+            <span className="lq-klein">Für je 3 Sterne, das Wochenziel und Bosskämpfe</span>
           </div>
           <button type="button" className="lq-knopf lq-gold" disabled={!stand.truhen} onClick={onTruhe}>
             Öffnen
@@ -486,7 +486,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
             <p>Diesmal nur Münzen – damit kannst du im Laden einkaufen.</p>
           </>
         )}
-        {phase === 'zu' && !stand.truhen && <p>Gerade wartet keine Truhe. Truhen gibt es für ganz gespielte Stationen und das Wochenziel.</p>}
+        {phase === 'zu' && !stand.truhen && <p>Gerade wartet keine Truhe. Truhen gibt es für je 3 Sterne, das Wochenziel und gewonnene Bosskämpfe.</p>}
       </div>
       <Meldung text={msg} />
       {phase !== 'auf' && (

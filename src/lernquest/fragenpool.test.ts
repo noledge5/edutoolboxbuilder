@@ -192,7 +192,8 @@ describe('Punkt auf Karte/Bild (Stufe 5)', () => {
     expect(punktTrifft([[10, 10, 'a'], [14, 10, 'b']], 0, 12.5, 10)).toBe(false); // nearer to b
     expect(istRichtig(u, richtigeAntwort(u))).toBe(true);
     expect(istRichtig(u, { art: 'punkt', getippt: [{ ziel: 0, x: 20, y: 30 }, { ziel: 0, x: 20, y: 30 }, { ziel: 2, x: 50, y: 80 }] })).toBe(false);
-    expect(istRichtig(u, { art: 'punkt', getippt: [{ ziel: 0, x: 20, y: 30 }, { ziel: 1, x: 90, y: 90 }, { ziel: 2, x: 50, y: 80 }] })).toBe(false);
+    expect(istRichtig(u, { art: 'punkt', getippt: [{ ziel: 0, x: 20, y: 30 }, { ziel: 1, x: 90, y: 90 }, { ziel: 2, x: 50, y: 80 }] })).toBe(true); // one slip of three is allowed
+    expect(istRichtig(u, { art: 'punkt', getippt: [{ ziel: 0, x: 20, y: 30 }, { ziel: 1, x: 90, y: 90 }, { ziel: 2, x: 5, y: 5 }] })).toBe(false);
     expect(loesungText(u)).toContain('grünen Punkte');
     expect(fragenAus(u)).toEqual([]);
   });

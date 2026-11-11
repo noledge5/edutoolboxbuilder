@@ -224,6 +224,32 @@ mehr bekommen, spätestens beim Wiederholen der Station.
 - Regeln doppelt: `sterne`, `neueSterne`, `STERNE_JE_TRUHE`, `rundeAnwenden` in `rules.ts` und `lq_sterne`,
   `lq_runde_melden`, `lq_stand_json` in `20261113_lernquest_sterne.sql`.
 
+## Die Runde, die lehrt (11.11.2026, „Stufe A“ aus `docs/kritik-und-plan.md`)
+
+Entscheidung der Lehrkraft: Lernquest bleibt ein Duolingo-Pfad und wird dort Spitzenniveau, kein Umbau zum
+Kampf-Rollenspiel. Erster Schritt ist die Übungsrunde, neu gebaut in `app/Runde.tsx`. **Keine Server-Änderung:** Der
+Server bekommt wie bisher „richtig von gesamt“, gezählt werden die ersten Versuche.
+- **Fehler kommen wieder:** Eine falsch beantwortete Aufgabe wird hinten angehängt („Nochmal: das war vorhin falsch“),
+  bis sie richtig ist, höchstens dreimal je Aufgabe (`nachAntwort`, `WIEDER_MAX`; eine kaputte Frage darf niemanden
+  festhalten). Für Ergebnis, Herzen, Sterne und die Wiederhol-Kästen zählt nur der erste Versuch. Im Probetest der
+  offenen Übung kommt nichts wieder (er bietet „Fehler nochmal üben“ am Ende).
+- **Ehrliches Ergebnis:** Unter 60 % heißt es „Fast!“ mit dem Hauptknopf „Runde nochmal spielen“ (`rundenFazit`).
+  Sonst ist der Hauptknopf „Nächste Runde“, solange die Station offene Runden hat. Offen: Für den Server gilt auch
+  eine schwache Runde als gespielt (erster Stern); das zu ändern wäre eine Server-Änderung.
+- **Faire Wertung:** Bei Paaren und Punkten im Bild geht ab drei Teilen ein Fehlgriff durch (`fehlgriffeFrei`). Paare
+  mit gleichem Wort („big – groß“, „large – groß“) passen in beiden Richtungen. Die Lösung steht nicht doppelt da,
+  wenn sie in der Aufgabe schon zu sehen ist; „Prüfen“ fehlt, wo die Aufgabe sich selbst prüft.
+- **Erklärung:** Jede Aufgabe kann einen kurzen Satz `erklaerung` tragen, der nach einem Fehler erscheint. Noch
+  schreibt ihn niemand automatisch; das kommt mit dem KI-Pool (Stufe B).
+- **Gefühl:** Der eigene Held lacht oder staunt in der Rückmeldung, ab drei richtigen in Folge steht „3 in Folge!“.
+- **Verlassen:** Die Zurück-Taste des Handys geht einen Schritt zurück statt aus der App (`app/zurueck.ts`), auch in
+  der Anmeldung. Eine Runde mit Antworten fragt vorher „Runde beenden?“. Ein neuer Link im selben Tab lädt neu.
+- **Hören ohne Stimme:** „Ich höre nichts – Text zeigen“ unter dem Lautsprecher.
+- **Spieltest ohne Server:** `npm run spieltest` startet Lernquest gegen einen toten Server (offline); die Daten einer
+  erfundenen Schülerin mit allen acht Formaten legt `scripts/spieltest-daten.js` in den Browser,
+  `scripts/spieltest-helfer.js` spielt Aufgaben richtig oder falsch. So gespielt am 11.11.2026: alle Formate, Wiederholen,
+  Held, Laden, Truhe, Gutscheine und Klasse ohne Netz, offene Übung mit Probetest, Zurück-Taste überall.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

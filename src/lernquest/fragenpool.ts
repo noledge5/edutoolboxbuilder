@@ -26,6 +26,8 @@ const KACHELN_MAX = 14;
 /** Places on one picture: enough for a map, few enough to tap on a phone. */
 export const PUNKTE = [1, 6] as const;
 const NAME_MAX = 60;
+/** The sentence after a mistake: short, a child reads it on a phone. */
+const ERKLAERUNG_MAX = 240;
 /** Image ids a task with places can name (the key travels in the package and is checked strictly). */
 const BILD_ID = /^[\w-]{1,64}$/;
 const ABLENKER_MAX = 3;
@@ -43,6 +45,12 @@ const index = (x: unknown, n: number): number | null => (Number.isInteger(x) && 
 
 /** One exercise, checked strictly (a broken one is null): what the teacher keeps must also play. */
 export function readUebung(x: unknown): Uebung | null {
+  const u = liesUebung(x);
+  const erklaerung = isObj(x) ? text(x.erklaerung, ERKLAERUNG_MAX)?.trim() : null;
+  return u && erklaerung ? { ...u, erklaerung } : u;
+}
+
+function liesUebung(x: unknown): Uebung | null {
   if (!isObj(x) || typeof x.id !== 'string' || !x.id || x.id.length > 80) return null;
   const id = x.id;
   const frage = text(x.frage);

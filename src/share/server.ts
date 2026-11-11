@@ -3,7 +3,8 @@
 // the results of one assignment). The key here is the public one meant for browsers.
 
 export const SERVER = {
-  url: 'https://txafdkaeotgekoxzgcxd.supabase.co',
+  // `npm run spieltest` points this at a closed port, so Lernquest can be played offline with made-up data.
+  url: (import.meta.env?.VITE_SERVER_URL as string | undefined) ?? 'https://txafdkaeotgekoxzgcxd.supabase.co',
   key: 'sb_publishable_956BMuhr1RsRXwF3gQ4-3Q_bMXrUxFS',
 };
 
