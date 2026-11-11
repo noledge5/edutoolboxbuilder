@@ -136,6 +136,9 @@ async function serverDurchNode(ctx: Context) {
   });
 }
 
+/** Exercises already answered wrong once: since Stufe A a missed one comes again at the end, and then it is answered right. */
+const schonFalsch = new Set<string>();
+
 /** Plays one exercise as a child would: taps, lays tiles, „Prüfen“, „Weiter“. */
 async function spiele(page: Page, fehler: string[], fehlerfrei = false) {
   const frage = page.locator('.lq-frage').first();
@@ -143,7 +146,8 @@ async function spiele(page: Page, fehler: string[], fehlerfrei = false) {
   const text = (await frage.textContent()) ?? '';
   const u = [...UEBUNGEN, ...UEBUNGEN2].find((x) => text.includes(`${x.frage.split(':')[0]}:`));
   if (!u) throw new Error(`Unbekannte Übung im Testlauf: „${text}“`);
-  const falsch = !fehlerfrei && u.id === FALSCH;
+  const falsch = !fehlerfrei && u.id === FALSCH && !schonFalsch.has(u.id);
+  if (falsch) schonFalsch.add(u.id);
   const knopf = (name: string) => page.getByRole('button', { name: exact(name) }).first();
   const kachel = (name: string) => page.locator('.lq-kacheln .lq-kachel').filter({ hasText: exact(name) }).first();
   switch (u.art) {
@@ -242,7 +246,8 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
       await station.waitFor({ timeout: 20_000 });
       await page.screenshot({ path: join(BILDER, 'handy-1-karte.png') });
       await station.click();
-      for (let i = 0; i < UEBUNGEN.length; i++) {
+      // One more than the exercises: the wrong one comes again at the end of the round.
+      for (let i = 0; i < UEBUNGEN.length + 1; i++) {
         await spiele(page, fehler);
         if (i === 0) await page.screenshot({ path: join(BILDER, 'handy-2-runde.png') });
       }
@@ -251,7 +256,7 @@ describe.skipIf(!an)('Testlauf: Lernquest wie ein Kind spielen (live)', () => {
       await page.screenshot({ path: join(BILDER, 'handy-3-ergebnis.png') });
       // One mistake: 2 stars, 1 missing for a chest. The station again without mistakes brings the third star.
       await page.locator('.lq-ergebnis p').filter({ hasText: 'noch 1 Stern bis zur nächsten Truhe' }).first().waitFor({ timeout: 5_000 });
-      await page.getByRole('button', { name: exact('Zur Station') }).click();
+      await page.getByRole('button', { name: exact('Für mehr Sterne nochmal') }).click();
       await page.locator('.lq-runde').first().click();
       for (let i = 0; i < UEBUNGEN.length; i++) await spiele(page, fehler, true);
       await page.locator('.lq-ergebnis').first().waitFor({ timeout: 15_000 });

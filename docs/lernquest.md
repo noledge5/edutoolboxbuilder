@@ -611,4 +611,8 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   Spätere Stufen, die den Server ändern, wieder kurz ankündigen.
 - Testlauf (`npm run lq:testlauf`, `src/lernquest/testlauf.live.test.ts`): spielt Lernquest wie ein Kind gegen den echten
   Server, mit Wegwerf-Schlüssel und Testklasse, die am Ende gelöscht wird (Wunsch der Lehrkraft, 06.11.2026).
+  Unter Windows geht das npm-Skript nicht (Umgebungsvariable auf Unix-Art): `vite build`, dann in Git Bash
+  `LQ_TESTLAUF=1 NODE_PATH=<Ordner mit playwright>/node_modules npx vitest run src/lernquest/testlauf.live.test.ts`.
+  Seit Stufe A spielt das Skript die absichtlich falsche Aufgabe am Ende der Runde nochmal richtig. Zuletzt grün am
+  11.11.2026 nach Stufe B (Anmelden, Runde, Truhe, Held, Klasse, Bosskampf, Gutschein, neue Formate).
 - Lernquest ist seit 06.11.2026 live unter `…/lernquest/`; Kinder erreichen es erst mit einem Klassencode der Lehrkraft.
