@@ -1874,6 +1874,24 @@ mark {
   width: 56px;
   height: 46px;
 }
+/* A hairstyle the child does not have yet: from the shop or only from chests. */
+.lq-frisur button.zu {
+  opacity: 0.6;
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+  color: var(--lq-gedaempft);
+}
+.lq-frisur button.zu svg {
+  filter: grayscale(1);
+}
+/* A hairstyle as a part (shop, chest): the head with that hair. */
+.lq-frisur-bild {
+  display: grid;
+  place-items: center;
+}
+.lq-frisur-bild svg {
+  width: 100%;
+  height: 100%;
+}
 
 .lq-truhen-leiste {
   display: grid;
@@ -3225,4 +3243,248 @@ button.lq-teil:active {
   /* Kept in the page (not display: none), so the feedback that appears in it is still read out. */
   padding: 0;
   border: 0;
+}
+
+/* Bosskampf mit Karten: Buchstabe neben der Form (wie auf der Karte), erkannte Namen grün. */
+.lq-antwort-buchstabe {
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-gross);
+  min-width: 1.2em;
+  text-align: center;
+}
+.lq-beamer-erkannt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-2);
+  min-height: 0;
+}
+.lq-beamer-erkannt > span {
+  font-family: Fredoka, Nunito, sans-serif;
+  font-weight: 600;
+  font-size: var(--lq-t-gross);
+}
+.lq-beamer-erkannt ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lq-a-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 120px;
+  overflow: hidden;
+}
+.lq-beamer-erkannt li {
+  padding: var(--lq-a-1) var(--lq-a-3);
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-ok);
+  color: var(--lq-auf-farbe);
+  font-weight: 700;
+  font-size: var(--lq-t-klein);
+}
+
+/* — Runder und anschaulicher (09.11.2026) — */
+
+/* Only for screen readers. */
+.lq-unsichtbar {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The hero's head in the head bar, round, instead of the initial. */
+.lq-avatar-bild {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--lq-primary-flaeche);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+  display: block;
+}
+
+/* Footsteps from one station up to the one before, slanted toward it. */
+.lq-pfad li + li::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  width: 8px;
+  height: calc(var(--lq-a-5) + 4px);
+  margin-left: -4px;
+  background: radial-gradient(circle, var(--lq-linie) 3.5px, transparent 4px) center bottom / 8px 12px repeat-y;
+  transform-origin: bottom center;
+}
+.lq-pfad li.lq-weg-r::before {
+  transform: rotate(28deg);
+}
+.lq-pfad li.lq-weg-l::before {
+  transform: rotate(-28deg);
+}
+
+/* Stars of a region on its band. */
+.lq-region-band {
+  position: relative;
+}
+.lq-region-sterne {
+  position: absolute;
+  top: var(--lq-a-3);
+  right: var(--lq-a-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lq-a-1);
+  padding: var(--lq-a-1) var(--lq-a-2);
+  border-radius: var(--lq-r-pille);
+  background: color-mix(in srgb, var(--lq-auf-farbe) 18%, transparent);
+  font-size: var(--lq-t-klein);
+  font-weight: 800;
+}
+.lq-region-sterne svg {
+  width: 16px;
+  height: 16px;
+  color: var(--lq-stern);
+}
+
+/* Next chest: three stars to fill. */
+.lq-truhen-fortschritt {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--lq-a-3);
+}
+.lq-truhen-fortschritt h2 {
+  font-size: var(--lq-t-text);
+}
+.lq-truhen-fortschritt > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--lq-a-2);
+}
+.lq-truhen-fortschritt > div h2 {
+  flex-basis: 100%;
+}
+.lq-truhen-fortschritt .lq-sterne svg {
+  width: 22px;
+  height: 22px;
+}
+.lq-truhen-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--lq-r-klein);
+  background: var(--lq-gold-flaeche);
+}
+.lq-truhen-icon svg {
+  width: 36px;
+  height: 36px;
+}
+.lq-klein-knopf {
+  min-height: var(--lq-tippen);
+  width: auto;
+  padding: 0 var(--lq-a-4);
+  font-size: var(--lq-t-text);
+}
+
+/* A station: its stars and what each one needs. */
+.lq-sterne-regeln {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-2);
+}
+.lq-sterne-regeln ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+}
+.lq-sterne-regeln li {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-2);
+  font-size: var(--lq-t-klein);
+  color: var(--lq-gedaempft);
+}
+.lq-sterne-regeln li > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--lq-linie);
+  color: var(--lq-stern-aus);
+  flex: none;
+}
+.lq-sterne-regeln li svg {
+  width: 14px;
+  height: 14px;
+}
+.lq-sterne-regeln li.an {
+  color: var(--lq-schrift);
+  font-weight: 700;
+}
+.lq-sterne-regeln li.an > span:first-child {
+  background: var(--lq-ok);
+  color: var(--lq-auf-farbe);
+}
+
+/* Result: one dot per exercise, right or wrong. */
+.lq-punkte-reihe {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--lq-a-2);
+}
+.lq-punkte-reihe li {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--lq-auf-farbe);
+  animation: lq-plopp var(--lq-dauer-lang) ease both;
+}
+.lq-punkte-reihe li.ok {
+  background: var(--lq-ok);
+}
+.lq-punkte-reihe li.nein {
+  background: var(--lq-fehler);
+}
+.lq-punkte-reihe svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* After „Prüfen“: each gap and the laid sentence green or red. */
+.lq-luecke.ok,
+.lq-zeile.ok .lq-kachel {
+  background: var(--lq-ok-flaeche);
+  color: var(--lq-ok);
+  box-shadow: inset 0 0 0 2px var(--lq-ok);
+}
+.lq-luecke.nein,
+.lq-zeile.nein .lq-kachel {
+  background: var(--lq-fehler-flaeche);
+  color: var(--lq-fehler);
+  box-shadow: inset 0 0 0 2px var(--lq-fehler);
+}
+
+/* „Wiederholen“: why something is due today, and what comes tomorrow. */
+.lq-wdh-hinweis {
+  margin: 0;
+  color: var(--lq-gedaempft);
+}
+
+/* Sign out, at the end of the hero page. */
+.lq-abmelden {
+  margin-top: var(--lq-a-5);
+  width: 100%;
 }

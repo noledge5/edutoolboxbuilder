@@ -3,7 +3,7 @@
 // experience, coins or chests.
 import { useState } from 'react';
 import { ladeProbe, probeTest, PROBEN, schwachePunkte, speichereProbe, stationPaket, type ProbeStand } from '../probe';
-import { rundenFazit, rundenGeschafft, rundenZahl, rundeVon, sterne } from '../rules';
+import { naechsteRunde, rundenFazit, rundenGeschafft, rundenZahl, rundeVon, sterne } from '../rules';
 import { LEERER_STAND, type Paket, type Uebung } from '../types';
 import { Sterne, SternIcon, type Screen } from './LernquestApp';
 import { HakenIcon, Runde } from './Runde';
@@ -38,13 +38,7 @@ export function ProbeApp({ id }: { id: string }) {
   const pakete = p.stationen.map((_, i) => stationPaket(p, i));
   const runden = (pk: Paket) => rundenZahl(pk.uebungen.length);
   const sterneVon = (pk: Paket) => sterne(stand.bestwerte[pk.stunde], runden(pk));
-  const naechste = (pk: Paket) => {
-    const best = stand.bestwerte[pk.stunde] ?? [];
-    const offen = Array.from({ length: runden(pk) }, (_, i) => i).find((i) => !(best[i] > 0));
-    if (offen !== undefined) return offen;
-    // All played: the round with the lowest best value.
-    return best.slice(0, runden(pk)).reduce((m, x, i, a) => (x < a[m] ? i : m), 0);
-  };
+  const naechste = (pk: Paket) => naechsteRunde(stand.bestwerte[pk.stunde] ?? [], runden(pk));
   const starte = (pk: Paket, r = naechste(pk)) => setScreen({ kind: 'runde', nr: Date.now(), stunde: pk.stunde, runde: r, uebungen: rundeVon(pk.uebungen, r).map((u) => ({ u, stunde: pk.stunde })) });
   const testStarten = (items = probeTest(p, Date.now().toString(36))) => setScreen({ kind: 'runde', nr: Date.now(), stunde: TEST, runde: 0, uebungen: items });
   const merke = (s: ProbeStand) => {

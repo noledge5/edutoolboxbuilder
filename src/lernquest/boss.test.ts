@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { seeded } from '../model/language';
 import { bossFragen, bossVon, BOSSE, fragenAus, OPTIONEN_MAX } from './boss';
-import { BOSS_FRAGEN, BOSS_LP_JE, bossLp, bossSchaden, bossTrifft } from './rules';
+import { BOSS_FRAGEN, BOSS_KARTE_SCHADEN, BOSS_LP_JE, bossKartenSchaden, bossLp, bossSchaden, bossTrifft } from './rules';
 import { PAKET_FORMAT, type Paket, type Uebung } from './types';
 
 const paket = (stunde: string, uebungen: Uebung[]): Paket => ({
@@ -95,6 +95,33 @@ describe('Bosskampf: Regeln (gleich in lq_boss_antworten und lq_boss_ticken)', (
     expect(spiel(0.7)).toBe(true);
     expect(spiel(0.6)).toBe(false);
     // Even if every child wore +1 damage, 60 % would still not be enough.
+    expect(spiel(0.6, 1)).toBe(false);
+  });
+
+  it('Mit Karten: 15 Schaden je richtiger Karte ohne Tempo, Bonus vor dem Verdoppeln', () => {
+    expect(BOSS_KARTE_SCHADEN).toBe(15);
+    expect(bossKartenSchaden(1)).toBe(15);
+    expect(bossKartenSchaden(2, 3)).toBe(18);
+    expect(bossKartenSchaden(3)).toBe(30);
+    expect(bossKartenSchaden(5, 1)).toBe(32);
+  });
+
+  it('Mit Karten gilt dasselbe Gleichgewicht: 70 % gewinnt, 60 % nicht', () => {
+    const spiel = (p: number, bonus = 0) => {
+      const zufall = seeded(`karte${p}`);
+      let schaden = 0;
+      for (let k = 0; k < 26 * 200; k++) {
+        let serie = 0;
+        for (let f = 0; f < 10; f++) {
+          const richtig = zufall() < p;
+          serie = richtig ? serie + 1 : 0;
+          if (richtig) schaden += bossKartenSchaden(serie, bonus);
+        }
+      }
+      return schaden / 200 >= bossLp(26, 10);
+    };
+    expect(spiel(0.7)).toBe(true);
+    expect(spiel(0.6)).toBe(false);
     expect(spiel(0.6, 1)).toBe(false);
   });
 

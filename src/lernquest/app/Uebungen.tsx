@@ -3,7 +3,7 @@
 // and places check themselves when all are done). In English packages a speaker reads statements and words aloud.
 import { useMemo, useState, type MouseEvent } from 'react';
 import { richParts } from '../../model/text';
-import { gemischt, punktTrifft, type Antwort } from '../rules';
+import { gemischt, gleich, punktTrifft, satz, type Antwort } from '../rules';
 import type { Uebung } from '../types';
 import { ton } from './ton';
 import { kannVorlesen, vorlesen } from './vorlesen';
@@ -278,7 +278,7 @@ function Luecke({ u, seed, locked, onChange }: P<'luecke'>) {
               <Rich text={t} />
             </span>
           ) : (
-            <button key={i} type="button" className={`lq-luecke ${gelegt[(i - 1) / 2] !== null ? 'voll' : ''}`} onClick={() => take((i - 1) / 2)}>
+            <button key={i} type="button" className={`lq-luecke ${gelegt[(i - 1) / 2] !== null ? 'voll' : ''} ${locked ? (gleich(tiles[gelegt[(i - 1) / 2] ?? -1] ?? '', t) ? 'ok' : 'nein') : ''}`} onClick={() => take((i - 1) / 2)}>
               {gelegt[(i - 1) / 2] !== null ? tiles[gelegt[(i - 1) / 2]!] : ' '}
             </button>
           ),
@@ -306,7 +306,7 @@ function Reihenfolge({ u, seed, locked, onChange }: P<'reihenfolge'>) {
           <Rich text={u.hinweis} />
         </p>
       )}
-      <div className="lq-zeile" aria-label="Dein Satz">
+      <div className={`lq-zeile ${locked ? (gleich(satz(gelegt.map((k) => tiles[k!])), u.loesung) ? 'ok' : 'nein') : ''}`} aria-label="Dein Satz">
         {gelegt.map((k, pos) => (
           <button key={pos} type="button" className="lq-kachel" onClick={() => take(pos)}>
             {tiles[k!]}

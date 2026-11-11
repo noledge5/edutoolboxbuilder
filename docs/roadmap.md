@@ -139,7 +139,8 @@ Entschieden mit Fragen und Vor- und Nachteilen:
 - ✅ (06.10.2026) PDF einpflegen (Wunsch: Material von anderen ins Baukasten-Format bringen, Abbildungen übernehmen). Entscheidungen: Claude liest die Seiten (Bild und Text), der Baukasten schneidet die Abbildungen aus (eingebettete Bilder genau, sonst nach Claudes Rahmen, auch bei Scans); treu mit Lösungen; nur PDF, eine Datei je Stunde; Lehrkraft-Seite und Kompetenzen dazu; keine Quellenzeile unter den Bildern.
 - ✅ (06.10.2026) Automatischer Abgleich Mac ↔ iPad (Wunsch: das wichtigste offene Audit-Thema). Entscheidungen: eigener Server (Supabase Frankfurt), Ende-zu-Ende-verschlüsselt, ohne Konto; Kopplung per Code/QR-Code; laufend (beim Öffnen, nach Änderungen, alle 3 Minuten); bei Konflikten gewinnt die neuere Fassung, die andere bleibt als frühere Fassung. Der Abgleich per Datei bleibt. Noch offen: Löschen der Daten auf dem Server und Aufräumen alter Kopplungen (die Server-Funktion braucht eine Freigabe im Supabase-Werkzeug).
 - Offen aus dem Audit: Klassenarbeit mit Claude aus dem Kompetenzraster, Didaktik-Check für fertige Stunden, Browser-Tests im CI.
-- ✅ (08.11.2026) Kartenfrage ohne Geräte (wie Plickers; Wunsch: Kernfunktion, nicht verhandelbar). Entscheidungen von Claude: eigene Karten (4 × 4-Muster, 63 je Klasse, ein falsch gelesenes Feld wird korrigiert, zwei werden abgewiesen), eigener Leser ohne Zusatzbibliothek (offline, im Browser), eine Antwort zählt erst, wenn zwei Bilder hintereinander dasselbe zeigen; Karte je Kind der Lernquest-Klasse, Nummern im Lehrkraft-Datensatz (Abgleich Mac ↔ iPad); Fragen aus den freigeschalteten Stunden einer Region oder freie Frage A–D; am Beamer nur Kartennummern, Namen auf Wunsch; Auswertung je Frage und je Kind nur auf dem Bildschirm. Noch offen: Kartenfrage im Bosskampf (Schaden und Truhe) und in den Folien, Klassenpunkte für richtige Antworten.
+- ✅ (08.11.2026) Kartenfrage ohne Geräte (wie Plickers; Wunsch: Kernfunktion, nicht verhandelbar). Entscheidungen von Claude: eigene Karten (4 × 4-Muster, 63 je Klasse, ein falsch gelesenes Feld wird korrigiert, zwei werden abgewiesen), eigener Leser ohne Zusatzbibliothek (offline, im Browser), eine Antwort zählt erst, wenn zwei Bilder hintereinander dasselbe zeigen; Karte je Kind der Lernquest-Klasse, Nummern im Lehrkraft-Datensatz (Abgleich Mac ↔ iPad); Fragen aus den freigeschalteten Stunden einer Region oder freie Frage A–D; am Beamer nur Kartennummern, Namen auf Wunsch; Auswertung je Frage und je Kind nur auf dem Bildschirm. Noch offen: Kartenfrage in den Folien, Klassenpunkte für richtige Antworten.
+- ✅ (08.11.2026, Branch `claude/card-answers-boss-fight-21ji1g`) Bosskampf mit Karten: Kinder ohne Handy kämpfen mit ihrer Antwortkarte, Schaden, Herzen, Truhe und Klassenpunkte wie beim Gerätekampf. Einzelheiten in `docs/lernquest.md` „Bosskampf mit Karten“. Server-Teil `20261115_lernquest_boss_karten.sql` eingespielt am 09.11.2026 (Projekt „baukasten“).
 - Offen beim automatischen Abgleich: Daten auf dem Server löschen und alte Kopplungen aufräumen (braucht Freigabe im Supabase-Werkzeug).
 - ✅ (08.10.2026, Befragung zu Zeitfressern: Feinschliff im Editor, KI-Fehler beheben, Folien eigen und passend) Tastenkürzel-Übersicht (?), ↵ bearbeitet auf dem Blatt, 1/2/3/0 Niveau, ⌘P; „Stunde prüfen“ mit Claude (nicht lösbar mit dem Blatt, Reihenfolge, Niveau) mit „Beheben …“ über „Mit Anweisung neu machen“ und Grundsatz „Lösbar mit dem Blatt“ in der Anleitung; Antworten, Tabellen, Zuordnungen, Wortspeicher, Schemata direkt auf dem Blatt bearbeiten; Kopfzeile zeigt die Stunde; Folienarten „Vollbild“ und „Groß“, Suchwörter und Bildbeschreibung je Folie, „Folien mit Claude abwechslungsreicher“. Entscheidungen: Prüfen in Regel und Knopf; Folien erst Regeln, dann Claude obendrauf.
 - ✅ (08.10.2026) „Stunde komplett mit Claude“ (Endziel 2, Stunde in 15 Minuten): ausarbeiten, prüfen, beheben, Folien vorschlagen und abwechslungsreich machen in einem Lauf, am Ende einmal übernehmen. Nur mit Schlüssel (vier Anfragen nacheinander; über den Chat bleiben die einzelnen Dialoge).
@@ -193,9 +194,8 @@ Wunsch der Lehrkraft: ein Lerntool, verbunden mit den Modulen, Mischung aus Duol
 5. KI-Fragenpool und mehr Formate
 
 Entschieden am 08.11.2026:
-- **Bosskampf mit Karten** (wie Plickers, eigene ArUco-Karten, Lehrkraft-Bereich in der App, iPhone/iPad scannt):
-  alle Entscheidungen unter „Bosskampf mit Karten“ in `docs/lernquest.md`. Noch nicht gebaut; die Server-Änderung
-  (Klassennummer, Kartenantworten) erst nach Rückfrage.
+- **Bosskampf mit Karten:** gebaut (siehe oben); offen ist noch der Lehrkraft-Bereich in der Lernquest-App (heute
+  scannt der Baukasten auf iPad oder iPhone).
 - **Stunden ausblenden:** je Klasse drei Stufen (Freigeschaltet, Gesperrt, Ausgeblendet), ohne Server-Änderung;
   Einzelheiten unter „Stunden ausblenden“ in `docs/lernquest.md`.
 - **Detailarbeit an einen externen Agenten (DeepSeek über OpenRouter):** Claude schreibt je Aufgabe ein Arbeitspaket
@@ -223,3 +223,9 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
   Maskottchen, Grün und Creme, Karte als Landschaft mit Burgen, Tagesaufgaben, Truhen-Bild). Es ist Richtung, nicht
   Vorgabe. Offen und zu fragen, weil es früheren Entscheidungen widerspricht: Rangliste, Tagesserie, Maskottchen statt
   oder neben dem eigenen Helden.
+- Antworten der Lehrkraft (11.11.2026): Der erste Stern trotz schwacher Runde wird mit Stufe C gelöst; es bleibt beim
+  **Wochenziel** (keine Tagesserie); der **Fuchs kommt als Begleiter und Führer** durch die App, der eigene Held
+  bleibt. Zur Rangliste gab es keine Antwort, also weiter keine Einzel-Rangliste.
+- Hinweis: `docs/kritik-und-plan.md` entstand auf einem Stand vor PR #42–#54. Einiges daraus war auf `main` schon
+  behoben (Held statt Anfangsbuchstabe im Kopf, Truhen-Text, schwächste Runde bei „Los geht’s!“); die Kritik ist an
+  diesen Stellen überholt und muss noch nachgezogen werden.

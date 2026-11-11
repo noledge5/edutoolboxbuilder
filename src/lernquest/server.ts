@@ -97,6 +97,8 @@ export interface MeinStand {
   pakete: { stunde: string; stand: string; daten: unknown }[];
   /** Server time, for the next `seit`. */
   jetzt: string;
+  /** „Wiederholen sofort“ of the class, if set (checked by `readExtra`). */
+  extra?: unknown;
 }
 
 export async function meinStand(token: string, seit: string | null): Promise<MeinStand> {
@@ -116,6 +118,8 @@ export interface RundeErgebnis {
   muenzenPlus: number;
   truhenPlus: number;
   punktePlus: number;
+  /** Counted as a repetition (a third of experience and coins); missing from servers before 20261117. */
+  wiederholung?: boolean;
   stand: Stand;
 }
 
@@ -128,7 +132,7 @@ export async function rundeMelden(token: string, stunde: string, runde: number, 
     p_gesamt: gesamt,
     p_leitner: leitner,
   });
-  return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, stand: voll(r.stand) };
+  return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, wiederholung: r.wiederholung, stand: voll(r.stand) };
 }
 
 export interface TruheInhalt {
@@ -166,6 +170,7 @@ export const klasseAnsicht = (token: string) => lq<KlasseAnsicht>('lq_klasse_ans
 // — Bosskampf (Stufe 3) —
 
 export type BossPhase = 'warten' | 'frage' | 'aufloesung' | 'ende';
+export type BossModus = 'geraete' | 'karten';
 
 /** A fight as everyone sees it (`lq_boss_json`); the right answer only after the question. */
 export interface BossStand {
@@ -174,6 +179,8 @@ export interface BossStand {
   /** Index in `BOSSE`. */
   boss: number;
   phase: BossPhase;
+  /** 'karten': the children hold up answer cards, the teacher scans; no time limit (docs/lernquest.md). */
+  modus: BossModus;
   /** Current question (0-based), -1 while waiting. */
   frage: number;
   fragen: number;
@@ -211,6 +218,8 @@ export interface BossBeamerStand extends BossStand {
   verteilung: number[] | null;
   /** Children who got a chest. */
   truhen: number;
+  /** With cards: names of the children whose card was read for this question (not what they chose); else null. */
+  erkannt: string[] | null;
 }
 
 export interface BossOffen {
@@ -229,8 +238,16 @@ export const bossAntworten = (token: string, boss: string, frage: number, wahl: 
 
 export const bossStarten = (keys: string[], klasse: string, region: string, titel: string, boss: number, fragen: BossFrage[]) =>
   lq<string>('lq_boss_starten', { p_schluessel: keys, p_klasse: klasse, p_region: region, p_titel: titel, p_boss: boss, p_fragen: fragen });
+/** Starts a fight with answer cards (no devices; children join with their first scanned card). */
+export const bossStartenKarten = (keys: string[], klasse: string, region: string, titel: string, boss: number, fragen: BossFrage[]) =>
+  lq<string>('lq_boss_starten_karten', { p_schluessel: keys, p_klasse: klasse, p_region: region, p_titel: titel, p_boss: boss, p_fragen: fragen });
+/** The running fight of a class, or null (a second device of the teacher scans it). */
+export const bossLaufend = (keys: string[], klasse: string) => lq<{ id: string; modus: BossModus } | null>('lq_boss_laufend', { p_schluessel: keys, p_klasse: klasse });
+/** Scanned cards of question `frage` (child id → option, at most 40); the last scan counts until resolved. */
+export const bossKarten = (keys: string[], boss: string, frage: number, antworten: Record<string, number>) =>
+  lq<{ angenommen: boolean; neu?: number }>('lq_boss_karten', { p_schluessel: keys, p_boss: boss, p_frage: frage, p_antworten: antworten });
 export const bossBeamer = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_beamer', { p_schluessel: keys, p_boss: boss });
-/** Next step: first question (error 'leer' while nobody joined), next question, or resolve the running one now. */
+/** Next step: first question (error 'leer' while nobody joined; with cards allowed), next question, or resolve the running one now. */
 export const bossWeiter = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_weiter', { p_schluessel: keys, p_boss: boss });
 export const bossBeenden = (keys: string[], boss: string) => lq<BossBeamerStand>('lq_boss_beenden', { p_schluessel: keys, p_boss: boss });
 
@@ -323,6 +340,8 @@ export interface KlasseInfo {
   kinder: KindInfo[];
   /** Stufe 4: open voucher requests. */
   anfragen?: number;
+  /** „Wiederholen sofort“ ({ab, bis, stunden}), if set (20261119_lernquest_wiederholen_sofort.sql). */
+  extra?: unknown;
 }
 
 export const klassen = (keys: string[]) => lq<KlasseInfo[]>('lq_klassen', { p_schluessel: keys });
@@ -384,3 +403,60 @@ export function neuePin(): string {
   const n = crypto.getRandomValues(new Uint32Array(1))[0] % 10000;
   return String(n).padStart(4, '0');
 }
+
+// — Pictures of the parts (supabase/migrations/20261117_lernquest_bilder.sql): uploaded on the teacher page by the
+// admin teacher, for every class; read by everyone. —
+
+/** Whether one of the keys belongs to an admin teacher (who may upload pictures). */
+export const istAdmin = (keys: string[]) => lq<boolean>('lq_ist_admin', { p_schluessel: keys });
+/** Stores the finished layer of a part (base64), replacing an older one; returns the new version. */
+export const bildSetzen = (keys: string[], teil: string, typ: string, daten: string) =>
+  lq<number>('lq_bild_setzen', { p_schluessel: keys, p_teil: teil, p_typ: typ, p_daten: daten });
+export const bildLoeschen = (keys: string[], teil: string) => lq<null>('lq_bild_loeschen', { p_schluessel: keys, p_teil: teil });
+/** Which parts have an uploaded picture: {part id: version}. */
+export const bilderListe = () => lq<Record<string, number>>('lq_bilder', {});
+/** The pictures of up to 10 parts. */
+export const bildDaten = (teile: string[]) =>
+  lq<{ teil: string; version: number; typ: string; daten: string }[]>('lq_bild_daten', { p_teile: teile });
+
+// — Own parts (supabase/migrations/20261118_lernquest_eigene_teile.sql): made by the admin teacher with their picture. —
+
+/** The own parts, as the server keeps them (checked by `readEigene`). */
+export const teileEigen = () => lq<unknown>('lq_teile_eigen', {});
+
+// — Values of all parts (supabase/migrations/20261121_lernquest_teile_einstellen.sql): rarity, where from, bonuses. —
+
+export type Herkunft = 'start' | 'truhe' | 'truhe_laden' | 'laden' | 'aus';
+/** All parts' values for everyone ([{id, slot, seltenheit, start, nurTruhe, nurLaden, aktiv, muenzen, herz, schaden}]). */
+export const teileWerte = () => lq<unknown>('lq_teile_werte', {});
+/** Sets a part's (or hairstyle's, `frisur-<id>`) values; only the admin teacher. Refusal 'letztes': the last start part. */
+export const teilEinstellen = (keys: string[], teil: string, werte: { seltenheit: number; herkunft: Herkunft; muenzen: number; herz: number; schaden: number }) =>
+  lq<null>('lq_teil_einstellen', { p_schluessel: keys, p_teil: teil, p_werte: werte });
+/** Makes an own part with its picture (base64); returns its id. */
+export const teilAnlegen = (keys: string[], t: { name: string; slot: string; seltenheit: number; nurTruhe: boolean }, typ: string, daten: string) =>
+  lq<string>('lq_teil_anlegen', {
+    p_schluessel: keys,
+    p_name: t.name,
+    p_slot: t.slot,
+    p_seltenheit: t.seltenheit,
+    p_nur_truhe: t.nurTruhe,
+    p_typ: typ,
+    p_daten: daten,
+  });
+/** Renames an own part and takes it out of the game or back in. */
+export const teilAendern = (keys: string[], teil: string, name: string, aktiv: boolean) =>
+  lq<null>('lq_teil_aendern', { p_schluessel: keys, p_teil: teil, p_name: name, p_aktiv: aktiv });
+
+/** Sets „Wiederholen sofort“ for a class ({ab, bis, stunden}) or ends it (null). */
+export const wiederholenSetzen = (keys: string[], klasse: string, extra: { ab: string; bis: string; stunden: string[] } | null) =>
+  lq<null>('lq_wiederholen_setzen', { p_schluessel: keys, p_klasse: klasse, p_extra: extra });
+
+// — Own hair (supabase/migrations/20261121_lernquest_eigene_frisuren.sql): name and five colour layers. —
+
+/** The own hair, as the server keeps it (checked by `readEigeneFrisuren`). */
+export const frisurenEigen = () => lq<unknown>('lq_frisuren_eigen', {});
+/** Makes an own hair with its five colour layers (base64, colour 0–4); returns its id. */
+export const frisurAnlegen = (keys: string[], name: string, bilder: { typ: string; daten: string }[]) =>
+  lq<string>('lq_frisur_anlegen', { p_schluessel: keys, p_name: name, p_bilder: bilder });
+/** Renames an own hairstyle (whether it is to be had: `teilEinstellen` on `frisur-<id>`). */
+export const frisurAendern = (keys: string[], frisur: string, name: string) => lq<null>('lq_frisur_aendern', { p_schluessel: keys, p_frisur: frisur, p_name: name });

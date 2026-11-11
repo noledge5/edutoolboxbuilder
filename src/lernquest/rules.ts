@@ -16,6 +16,14 @@ export const RUNDEN_MAX = 5;
 export const RUNDE_MAX = 8;
 
 /** How many rounds a station with `n` exercises has. */
+/** The round a station starts with: the first one not played yet, else the weakest (where stars are still to win). */
+export function naechsteRunde(best: number[], runden: number): number {
+  const werte = Array.from({ length: runden }, (_, i) => best[i] ?? 0);
+  const offen = werte.findIndex((b) => !(b > 0));
+  if (offen >= 0) return offen;
+  return werte.reduce((m, b, i) => (b < werte[m] ? i : m), 0);
+}
+
 export function rundenZahl(n: number): number {
   if (n <= 0) return 0;
   if (n <= RUNDE_GROESSE) return 1;
@@ -88,6 +96,9 @@ export function punktTrifft(punkte: [number, number, string][], ziel: number, x:
 export const fehlgriffeFrei = (n: number) => (n >= 3 ? 1 : 0);
 
 /** A sentence from tiles: spaces before end marks and commas go. */
+/** Two answers in words are the same, as `istRichtig` compares them (case, spaces, punctuation). */
+export const gleich = (a: string, b: string) => normalize(a) === normalize(b);
+
 export const satz = (tiles: string[]) => tiles.join(' ').replace(/\s+([.,!?;:])/g, '$1');
 
 /** Whether an answer is right. Pairs and places allow `fehlgriffeFrei` slips. */
@@ -158,7 +169,8 @@ export function loesungText(u: Uebung): string {
     case 'paare':
       return u.paare.map(([l, r]) => `${l} – ${r}`).join('; ');
     case 'luecke':
-      return u.teile.map((t, i) => (i % 2 ? `[${t}]` : t)).join('');
+      // The gaps in bold (`Rich`), not in brackets.
+      return u.teile.map((t, i) => (i % 2 ? `**${t}**` : t)).join('');
     case 'reihenfolge':
       return u.loesung;
     case 'gruppen':
@@ -178,9 +190,20 @@ export const gemischt = <T>(xs: T[], seed: string) => shuffle(xs, seeded(seed));
 /** Most experience per day (more rounds still count for stars and repetition). */
 export const XP_TAG = 300;
 
-/** Experience for a round: 10, 2 per right answer, 5 more without mistakes; capped by what is left today. */
-export function xpFuerRunde(richtig: number, gesamt: number, heuteSchon = 0): number {
-  const roh = 10 + 2 * richtig + (richtig === gesamt ? 5 : 0);
+/**
+ * A repetition gives a third of experience and coins (rounded down): the „Wiederholen“ round (`stunde` empty) and a
+ * station round done before (best above 0). As `lq_runde_melden`.
+ */
+export const WIEDERHOLUNG_TEILER = 3;
+
+/** Whether this round is a repetition (see `WIEDERHOLUNG_TEILER`); asked before the round is counted. */
+export const istWiederholung = (bestwerte: Stand['bestwerte'], stunde: string, runde: number) =>
+  !stunde || (bestwerte[stunde]?.[runde] ?? 0) > 0;
+
+/** Experience for a round: 10, 2 per right answer, 5 more without mistakes, a third for a repetition; capped by what is left today. */
+export function xpFuerRunde(richtig: number, gesamt: number, heuteSchon = 0, wiederholung = false): number {
+  let roh = 10 + 2 * richtig + (richtig === gesamt ? 5 : 0);
+  if (wiederholung) roh = Math.floor(roh / WIEDERHOLUNG_TEILER);
   return Math.max(0, Math.min(roh, XP_TAG - heuteSchon));
 }
 
@@ -269,6 +292,8 @@ export function woche(tage: string[], tag = heute()): { diese: number; geschafft
 export const ABSTAND = [0, 1, 3, 7, 14, 30];
 
 export const tagNummer = (tag: string) => Math.round(Date.parse(`${tag}T00:00:00Z`) / 86_400_000);
+/** The day `tage` after `tag` (both like `heute()`). */
+export const tagPlus = (tag: string, tage: number) => new Date((tagNummer(tag) + tage) * 86_400_000).toISOString().slice(0, 10);
 
 /** The key of an exercise card: lesson and exercise. */
 export const karteKey = (stunde: string, uebung: string) => `${stunde}/${uebung}`;
@@ -287,6 +312,52 @@ export function faellig(leitner: Stand['leitner'], heuteNr: number, gueltig?: Se
     .map(([k]) => k);
 }
 
+/** „Wiederholen sofort“ from the teacher (e.g. before a test): the exercises of these lessons are due from `ab` to
+ *  `bis` (dates as `heute()`), once each, also those never played. Kept on the class (`lq_klasse.extra_wdh`). */
+export interface ExtraWiederholen {
+  ab: string;
+  bis: string;
+  stunden: string[];
+}
+
+export function readExtra(x: unknown): ExtraWiederholen | null {
+  const r = x as Partial<ExtraWiederholen> | null;
+  const tag = /^\d{4}-\d{2}-\d{2}$/;
+  if (!r || typeof r !== 'object' || typeof r.ab !== 'string' || !tag.test(r.ab) || typeof r.bis !== 'string' || !tag.test(r.bis)) return null;
+  if (!Array.isArray(r.stunden) || !r.stunden.every((s) => typeof s === 'string')) return null;
+  return { ab: r.ab, bis: r.bis, stunden: r.stunden };
+}
+
+/** The day a card was last answered: its due day minus the gap of its box (`karteNach`). */
+const beantwortet = ([box, due]: [number, number]) => due - ABSTAND[box];
+
+/** Cards due because of „Wiederholen sofort“: of the chosen lessons (`karten`: all keys of the lessons there are), not
+ *  answered since `ab`; none outside `ab` … `bis`. */
+export function extraFaellig(leitner: Stand['leitner'], karten: string[], extra: ExtraWiederholen | null | undefined, tag: string): string[] {
+  if (!extra || tag < extra.ab || tag > extra.bis) return [];
+  const ab = tagNummer(extra.ab);
+  const stunden = new Set(extra.stunden);
+  return karten.filter((k) => {
+    if (!stunden.has(k.slice(0, k.indexOf('/')))) return false;
+    const e = leitner[k];
+    return !e || beantwortet(e) < ab;
+  });
+}
+
+/** What the „Wiederholen“ round takes today: the cards due by their box, then those of „Wiederholen sofort“. */
+export function heuteDran(leitner: Stand['leitner'], karten: string[], extra: ExtraWiederholen | null | undefined, tag: string): string[] {
+  const normal = faellig(leitner, tagNummer(tag), new Set(karten));
+  const schon = new Set(normal);
+  return [...normal, ...extraFaellig(leitner, karten, extra, tag).filter((k) => !schon.has(k))];
+}
+
+/** How many cards come due tomorrow that are not due today (for „Morgen sind … dran“). */
+export function morgenDran(leitner: Stand['leitner'], karten: string[], tag: string): number {
+  const g = new Set(karten);
+  const n = tagNummer(tag);
+  return faellig(leitner, n + 1, g).length - faellig(leitner, n, g).length;
+}
+
 // — Coins (Stufe 2) —
 
 /** Most coins per day. */
@@ -294,12 +365,13 @@ export const MUENZEN_TAG = 200;
 
 /**
  * Coins for a round: 5, 1 per right answer, 2 per heart left (every mistake costs a heart; empty hearts end nothing),
- * then the bonus percent (rounded down); capped by what is left today. As `lq_runde_melden`.
+ * then the bonus percent (rounded down), a third of it for a repetition; capped by what is left today. As `lq_runde_melden`.
  */
-export function muenzenFuerRunde(richtig: number, gesamt: number, herzen: number, bonusProzent: number, heuteSchon = 0): number {
+export function muenzenFuerRunde(richtig: number, gesamt: number, herzen: number, bonusProzent: number, heuteSchon = 0, wiederholung = false): number {
   const uebrig = Math.max(0, herzen - (gesamt - richtig));
   let roh = 5 + richtig + 2 * uebrig;
   roh += Math.floor((roh * bonusProzent) / 100);
+  if (wiederholung) roh = Math.floor(roh / WIEDERHOLUNG_TEILER);
   return Math.max(0, Math.min(roh, MUENZEN_TAG - heuteSchon));
 }
 
@@ -334,12 +406,13 @@ export function rundeAnwenden(
   m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] },
   tag = heute(),
   k: RundenKontext = { herzen: 3, bonusProzent: 0, runden: 0 },
-): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; stand: Stand } {
+): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; wiederholung: boolean; stand: Stand } {
   const neuerTag = !s.tage.includes(tag);
+  const wiederholung = istWiederholung(s.bestwerte, m.stunde, m.runde);
   const schon = neuerTag ? 0 : s.xpHeute;
-  const plus = xpFuerRunde(m.richtig, m.gesamt, schon);
+  const plus = xpFuerRunde(m.richtig, m.gesamt, schon, wiederholung);
   const mSchon = neuerTag ? 0 : s.muenzenHeute;
-  const muenzenPlus = muenzenFuerRunde(m.richtig, m.gesamt, k.herzen, k.bonusProzent, mSchon);
+  const muenzenPlus = muenzenFuerRunde(m.richtig, m.gesamt, k.herzen, k.bonusProzent, mSchon, wiederholung);
   const bestwerte = { ...s.bestwerte };
   let truhenPlus = 0;
   let sternePlus = 0;
@@ -370,6 +443,7 @@ export function rundeAnwenden(
     truhenPlus,
     punktePlus,
     sternePlus,
+    wiederholung,
     stand: {
       ...s,
       xp: s.xp + plus,
@@ -410,6 +484,14 @@ export function bossSchaden(ms: number, serie: number, bonus = 0): number {
   const tempo = Math.round(10 * Math.max(0, 1 - Math.max(0, ms) / BOSS_ZEIT_MS));
   return (10 + tempo + bonus) * (serie >= 3 ? 2 : 1);
 }
+
+/**
+ * Fight with answer cards (no devices): no time limit, so no speed part; a right card does 15 (the middle speed of a
+ * device answer), doubled from the third right one in a row, the child's damage bonus added before doubling.
+ * As lq_boss_aufloesen on the server.
+ */
+export const BOSS_KARTE_SCHADEN = 15;
+export const bossKartenSchaden = (serie: number, bonus = 0) => (BOSS_KARTE_SCHADEN + bonus) * (serie >= 3 ? 2 : 1);
 
 /** The boss's life points for `kinder` children and `fragen` questions. */
 export const bossLp = (kinder: number, fragen: number) => Math.max(1, kinder * fragen * BOSS_LP_JE);

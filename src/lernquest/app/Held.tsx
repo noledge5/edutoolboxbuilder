@@ -1,12 +1,39 @@
 // Stufe 2 „Held und Beute“ for the children (docs/design/lernquest/Held.dc.html, Truhe.dc.html): the hero with parts
 // to wear, chests, the shop and the class. Coins, chests and parts come from the server only (`server.ts`); this page
 // shows them and sends what the child chooses.
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { heldenstufe, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
-import { bonusText, bonusVon, CHANCEN, FRISUREN, frisurVon, GARANTIE, HAARFARBEN, haarfarbeVon, HAUT, hat, MUENDER, MUENZ_CHANCEN, mundVon, PREISE, SELTENHEITEN, SLOTS, TEILE, teil, type Avatar, type Slot, type Teil } from '../teile';
+import {
+  bonusText,
+  bonusVon,
+  CHANCEN,
+  frisurAusTeil,
+  frisurTeil,
+  frisurVon,
+  GARANTIE,
+  HAARFARBEN,
+  haarfarbeVon,
+  hatFrisur,
+  HAUT,
+  hat,
+  ladenFrisuren,
+  ladenWare,
+  MUENDER,
+  MUENZ_CHANCEN,
+  mundVon,
+  PREISE,
+  SELTENHEITEN,
+  SLOTS,
+  standardTeil,
+  teil,
+  type Avatar,
+  type Slot,
+  type Teil,
+} from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
+import { BilderNeuLaden, useAlleFrisuren, useAlleTeile } from './bilderKontext';
 import { GutscheinLeiste } from './Gutscheine';
 import type { Daten } from './speicher';
 import { ton } from './ton';
@@ -81,9 +108,11 @@ interface HeldProps {
   onTruhe: () => void;
   onLaden: () => void;
   onGutscheine: () => void;
+  /** Sign out on this device (also in the menu behind the picture in the head bar). */
+  onAbmelden: () => void;
 }
 
-export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutscheine }: HeldProps) {
+export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutscheine, onAbmelden }: HeldProps) {
   const { stand } = daten;
   const [slot, setSlot] = useState<Slot>('kopf');
   const [msg, setMsg] = useState('');
@@ -111,8 +140,12 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
     });
   };
 
+  const alle = useAlleTeile();
+  // Own hair taken out of the choice stays only for who wears it.
+  // Hairstyles not to be had show only to who has them (see below).
+  const frisuren = useAlleFrisuren();
   const tippen = (t: Teil) => {
-    const an = stand.avatar[t.slot] ?? TEILE.find((x) => x.slot === t.slot && x.start)?.id ?? '';
+    const an = stand.avatar[t.slot] ?? standardTeil(t.slot)?.id ?? '';
     if (an === t.id) {
       if (ABNEHMBAR.includes(t.slot)) anlegen({ ...stand.avatar, [t.slot]: '' });
       return;
@@ -120,7 +153,8 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
     anlegen({ ...stand.avatar, [t.slot]: t.id });
   };
 
-  const teile = TEILE.filter((t) => t.slot === slot).sort((a, b) => Number(!hat(stand.inventar, a)) - Number(!hat(stand.inventar, b)) || a.seltenheit - b.seltenheit);
+  // Own parts taken out of the game show only to those who have them.
+  const teile = alle.filter((t) => t.slot === slot && (!t.aus || hat(stand.inventar, t))).sort((a, b) => Number(!hat(stand.inventar, a)) - Number(!hat(stand.inventar, b)) || a.seltenheit - b.seltenheit);
   const eigene = teile.filter((t) => hat(stand.inventar, t) && !t.start).length;
 
   return (
@@ -142,7 +176,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
           <TruheIcon />
           <div>
             <strong>{stand.truhen ? `${stand.truhen} ${stand.truhen === 1 ? 'Truhe' : 'Truhen'} bereit` : 'Keine Truhe bereit'}</strong>
-            <span className="lq-klein">Für je 3 Sterne, das Wochenziel und Bosskämpfe</span>
+            <span className="lq-klein">Je 3 Sterne, fürs Wochenziel und den Bosssieg</span>
           </div>
           <button type="button" className="lq-knopf lq-gold" disabled={!stand.truhen} onClick={onTruhe}>
             Öffnen
@@ -158,15 +192,20 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
         <div className="lq-teile" role="tabpanel" aria-label={slotName(slot)}>
           {teile.map((t) => {
             const meins = hat(stand.inventar, t);
-            const an = meins && (stand.avatar[t.slot] ?? (t.start ? t.id : '')) === t.id;
+            const an = meins && (stand.avatar[t.slot] ?? standardTeil(t.slot)?.id ?? '') === t.id;
             if (!meins) {
               return (
-                <div key={t.id} className="lq-teil zu" aria-label={`Noch nicht gefunden, ${SELTENHEITEN[t.seltenheit].name}`} role="img">
+                <div
+                  key={t.id}
+                  className="lq-teil zu"
+                  aria-label={`${t.nurTruhe ? 'Truhen-Schatz, nur in Truhen zu finden' : t.nurLaden ? 'Nur im Laden' : 'Noch nicht gefunden'}, ${SELTENHEITEN[t.seltenheit].name}`}
+                  role="img"
+                >
                   <span className="lq-teil-bild lq-fragezeichen" aria-hidden>
                     ?
                   </span>
                   <span className="lq-teil-name" aria-hidden>
-                    Noch nicht gefunden
+                    {t.nurTruhe ? 'Nur in Truhen' : t.nurLaden ? 'Nur im Laden' : 'Noch nicht gefunden'}
                   </span>
                   <span aria-hidden>
                     <Seltenheit s={t.seltenheit} kurz />
@@ -210,8 +249,27 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
         </div>
         <div className="lq-frisur" role="radiogroup" aria-label="Frisur">
           <span className="lq-klein">Frisur</span>
-          {FRISUREN.map((f) => {
+          {frisuren.map((f) => {
             const an = frisurVon(stand.avatar) === f.id;
+            const ft = frisurTeil(f);
+            if (!hatFrisur(stand.inventar, f.id, stand.avatar)) {
+              // Not free: found in chests or bought in the shop (out of the game: not shown).
+              if (ft.aus) return null;
+              const wo = ft.nurTruhe ? 'Nur in Truhen' : 'Im Laden';
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  className="zu"
+                  aria-label={`${f.name}: ${wo}, ${SELTENHEITEN[ft.seltenheit].name}`}
+                  disabled={ft.nurTruhe}
+                  onClick={onLaden}
+                >
+                  <KopfBild avatar={{ ...stand.avatar, frisur: f.id }} />
+                  <span>{wo}</span>
+                </button>
+              );
+            }
             return (
               <button
                 key={f.id}
@@ -262,15 +320,21 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
             );
           })}
         </div>
+        <button type="button" className="lq-knopf lq-hell lq-abmelden" onClick={onAbmelden}>
+          Abmelden
+        </button>
       </div>
     </div>
   );
 }
 
-function SlotTabs({ slot, setSlot, label }: { slot: Slot; setSlot: (s: Slot) => void; label: string }) {
+type LadenSlot = Slot | 'frisur';
+
+function SlotTabs<S extends LadenSlot>({ slot, setSlot, label, frisur = false }: { slot: S; setSlot: (s: S) => void; label: string; frisur?: boolean }) {
+  const tabs = (frisur ? [...SLOTS, { slot: 'frisur' as const, label: 'Frisur' }] : SLOTS) as { slot: S; label: string }[];
   return (
     <div className="lq-faecher lq-slots" role="tablist" aria-label={label}>
-      {SLOTS.map((s) => (
+      {tabs.map((s) => (
         <button key={s.slot} type="button" role="tab" aria-selected={s.slot === slot} className={s.slot === slot ? 'an' : ''} onClick={() => setSlot(s.slot)}>
           {s.label}
         </button>
@@ -283,12 +347,14 @@ function SlotTabs({ slot, setSlot, label }: { slot: Slot; setSlot: (s: Slot) => 
 
 export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Daten; aktion: Aktion; setStand: (s: Stand) => void; onZurueck: () => void }) {
   const { stand } = daten;
-  const [slot, setSlot] = useState<Slot>('kopf');
+  const [slot, setSlot] = useState<LadenSlot>('kopf');
   const [wahl, setWahl] = useState<Teil | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [gekauft, setGekauft] = useState<Teil | null>(null);
-  const ware = TEILE.filter((t) => t.slot === slot && !hat(stand.inventar, t)).sort((a, b) => a.seltenheit - b.seltenheit);
+  useAlleTeile(); // own parts and the teacher's values arrive later: show them then
+  // Hairstyles are parts too (`frisur-<id>`): shown as a head with that hair.
+  const ware = slot === 'frisur' ? ladenFrisuren(stand.inventar).map((x) => x.t) : ladenWare(stand.inventar, slot);
   const preis = wahl ? PREISE[wahl.seltenheit] : 0;
 
   const kauf = async () => {
@@ -310,7 +376,8 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
   const anlegen = async (t: Teil) => {
     setBusy(true);
     try {
-      setStand(await aktion((tok) => avatarSetzen(tok, { ...stand.avatar, [t.slot]: t.id })));
+      const f = frisurAusTeil(t.id);
+      setStand(await aktion((tok) => avatarSetzen(tok, f ? { ...ohneFigur(stand.avatar), frisur: f.id } : { ...stand.avatar, [t.slot]: t.id })));
       onZurueck();
     } catch (e) {
       setMsg(lqText(e));
@@ -325,7 +392,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
         ← Zum Helden
       </button>
       <h1 className="lq-seitentitel">Laden</h1>
-      <p className="lq-klein">Münzen gibt es für jede Runde. Gekauft wird nur, was du noch nicht hast.</p>
+      <p className="lq-klein">Münzen gibt es für jede Runde. Gekauft wird nur, was du noch nicht hast. Manche Schätze gibt es nur in Truhen.</p>
       <SlotTabs
         slot={slot}
         setSlot={(s) => {
@@ -333,6 +400,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
           setWahl(null);
         }}
         label="Bereiche im Laden"
+        frisur
       />
       {gekauft && (
         <div className="lq-hinweis-gold" role="status">
@@ -356,7 +424,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
               setWahl(wahl?.id === t.id ? null : t);
             }}
           >
-            <TeilBild teil={t} avatar={stand.avatar} className="lq-teil-bild" />
+            <WareBild teil={t} avatar={stand.avatar} />
             <span className="lq-teil-name">{t.name}</span>
             <Seltenheit s={t.seltenheit} kurz />
             <Muenzen n={PREISE[t.seltenheit]} />
@@ -379,6 +447,17 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
         </div>
       )}
     </section>
+  );
+}
+
+/** A part's picture, or for a hairstyle the head with that hair. */
+function WareBild({ teil: t, avatar, className = 'lq-teil-bild' }: { teil: Teil; avatar: Avatar; className?: string }) {
+  const f = frisurAusTeil(t.id);
+  if (!f) return <TeilBild teil={t} avatar={avatar} className={className} />;
+  return (
+    <span className={`${className} lq-frisur-bild`}>
+      <KopfBild avatar={{ ...avatar, frisur: f.id }} />
+    </span>
   );
 }
 
@@ -432,9 +511,10 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
     if (!inhalt) return;
     setBusy(true);
     try {
+      const f = frisurAusTeil(inhalt.teil);
       const neu = teil(inhalt.teil ?? undefined);
-      if (!neu) return;
-      setStand(await aktion((t) => avatarSetzen(t, { ...stand.avatar, [neu.slot]: neu.id })));
+      if (!neu && !f) return;
+      setStand(await aktion((t) => avatarSetzen(t, f ? { ...ohneFigur(stand.avatar), frisur: f.id } : { ...stand.avatar, [neu!.slot]: neu!.id })));
       onFertig(true);
     } catch (e) {
       setMsg(lqText(e));
@@ -442,7 +522,15 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
     }
   };
 
-  const t = inhalt?.teil ? teil(inhalt.teil) : undefined;
+  // A hairstyle from the chest shows as a part with its head picture.
+  const fr = frisurAusTeil(inhalt?.teil);
+  const t = inhalt?.teil ? (fr ? frisurTeil(fr) : teil(inhalt.teil)) : undefined;
+  // A part made on the teacher page after this device loaded the parts: load them (and their pictures) again.
+  const neuLaden = useContext(BilderNeuLaden);
+  const unbekannt = !!inhalt?.teil && !t;
+  useEffect(() => {
+    if (unbekannt) neuLaden();
+  }, [unbekannt, neuLaden]);
   const nurMuenzen = !!inhalt && !inhalt.teil;
   return (
     <main className="lq-app lq-nacht lq-truhe">
@@ -458,7 +546,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
       >
         <span className="lq-truhe-glanz" aria-hidden />
         {phase === 'da' && t ? (
-          <TeilBild teil={t} avatar={stand.avatar} className="lq-truhe-teil" />
+          <WareBild teil={t} avatar={stand.avatar} className="lq-truhe-teil" />
         ) : phase === 'da' && nurMuenzen ? (
           <MuenzHaufen />
         ) : (
@@ -474,7 +562,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
             </span>
             <h1>{t.name}</h1>
             <p>
-              {slotName(t.slot)}
+              {fr ? 'Frisur' : slotName(t.slot)}
               {bonusText(t) ? ` · Bonus im Spiel: ${bonusText(t)}` : ''}
             </p>
             {inhalt.doppelt && <p className="lq-truhe-doppelt">Hast du schon – dafür bekommst du {inhalt.muenzen} Münzen.</p>}
@@ -486,7 +574,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
             <p>Diesmal nur Münzen – damit kannst du im Laden einkaufen.</p>
           </>
         )}
-        {phase === 'zu' && !stand.truhen && <p>Gerade wartet keine Truhe. Truhen gibt es für je 3 Sterne, das Wochenziel und gewonnene Bosskämpfe.</p>}
+        {phase === 'zu' && !stand.truhen && <p>Gerade wartet keine Truhe. Truhen gibt es für je 3 Sterne, fürs Wochenziel und den Bosssieg.</p>}
       </div>
       <Meldung text={msg} />
       {phase !== 'auf' && (

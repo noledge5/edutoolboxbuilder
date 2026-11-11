@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { FRISUREN, frisurVon, haarfarbeVon, MUENDER, mundVon, TEILE } from '../teile';
 import { AvatarBild, hatHaarZeichnung, hatMundZeichnung, TeilBild } from './avatar';
+import { HochgeladeneBilder } from './bilderKontext';
 
 vi.mock('./teilBilder', () => ({
   teilBild: (id?: string) => (id === 'krone' ? 'assets/krone.webp' : undefined),
@@ -23,6 +24,19 @@ describe('avatar with pictures', () => {
     expect(svg).toContain('fill="#2F6FDB"'); // the T-shirt is still drawn
     const reihe = ['koerper-3', '#2F6FDB', 'haare-zopf', 'krone.webp'].map((s) => svg.indexOf(s));
     expect(reihe).toEqual([...reihe].sort((a, b) => a - b));
+  });
+  it('takes uploaded pictures (teacher page) before built-in ones, hair in its colour or else the brown one', () => {
+    const mit = (bilder: Record<string, string>, avatar: object) =>
+      renderToStaticMarkup(
+        <HochgeladeneBilder.Provider value={bilder}>
+          <AvatarBild avatar={avatar} />
+        </HochgeladeneBilder.Provider>,
+      );
+    const svg = mit({ krone: 'blob:krone', 'haare-zopf-2': 'blob:zopf2', 'haare-locken-0': 'blob:locken0' }, { kopf: 'krone', frisur: 'zopf', haarfarbe: 2 });
+    expect(svg).toContain('href="blob:krone"');
+    expect(svg).toContain('href="blob:zopf2"');
+    expect(svg).not.toContain('assets/haare-zopf');
+    expect(mit({ 'haare-locken-0': 'blob:locken0' }, { frisur: 'locken', haarfarbe: 3 })).toContain('href="blob:locken0"');
   });
   it('shows a painted part alone in its cut-out', () => {
     const svg = renderToStaticMarkup(<TeilBild teil={TEILE.find((t) => t.id === 'krone')!} />);

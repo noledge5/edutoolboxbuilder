@@ -190,6 +190,30 @@ Paint a pair of pink heart-shaped eyes with a tiny white highlight each on the c
 Paint a pair of turquoise diving goggles with two clear lenses and a short strap on each side on the character's face where the eyes belong, between the forehead and the cheeks, both eyes the same size. In the same soft painted style. Detailed, with a pattern and one small gem or emblem. Keep everything else exactly as it is: the same character, the same pose, the same position and size in the picture, the bald head, no mouth, the skin colour, the body, the plain flat light grey background and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.
 ```
 
+### `schlaefrig` – Schläfrige Augen
+
+```text
+Paint a pair of sleepy half-closed eyes with heavy lids and long lashes, in dark brown on the character's face where the eyes belong, between the forehead and the cheeks, both eyes the same size. In the same soft painted style. Simple and plain, one or two colours, no decoration. Keep everything else exactly as it is: the same character, the same pose, the same position and size in the picture, the bald head, no mouth, the skin colour, the body, the plain flat light grey background and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `zwinkern` – Zwinkern
+
+```text
+Paint a pair of eyes with one eye winking as a curved line and the other eye open and round with a white highlight on the character's face where the eyes belong, between the forehead and the cheeks, both eyes the same size. In the same soft painted style. A few nice details and one small decoration. Keep everything else exactly as it is: the same character, the same pose, the same position and size in the picture, the bald head, no mouth, the skin colour, the body, the plain flat light grey background and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `monokel` – Monokel
+
+```text
+Paint one round golden monocle with a thin golden chain over the right eye, the left eye a simple round dark eye with a white highlight on the character's face where the eyes belong, between the forehead and the cheeks, both eyes the same size. In the same soft painted style. Detailed, with a pattern and one small gem or emblem. Keep everything else exactly as it is: the same character, the same pose, the same position and size in the picture, the bald head, no mouth, the skin colour, the body, the plain flat light grey background and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `feueraugen` – Feueraugen
+
+```text
+Paint a pair of fiery eyes with orange and red flame-shaped irises and a small flickering flame above each eye on the character's face where the eyes belong, between the forehead and the cheeks, both eyes the same size. In the same soft painted style. Richly detailed and a little magical, with gold accents and a soft glow. Keep everything else exactly as it is: the same character, the same pose, the same position and size in the picture, the bald head, no mouth, the skin colour, the body, the plain flat light grey background and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
 ## Kleidung (Eingabe: `koerper.png`, Ablage in `lernquest-roh/edit/`)
 
 ### `tshirt` – T-Shirt
@@ -256,6 +280,30 @@ Dress the character in a red football jersey with two white stripes across the c
 
 ```text
 Dress the character in a green dragon-scale armour with golden round shoulder plates and a red gem on the chest. It covers only the upper body (chest, belly and shoulders); the hands, legs and head stay unchanged. In the same soft painted style. Richly detailed and a little magical, with gold accents and a soft glow. Keep everything else exactly as it is: the same character, the same pose, the same position and size in the picture, the bald head, the blank face without eyes or mouth, the skin colour, the body, the plain flat light grey background and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `regenjacke` – Regenjacke
+
+```text
+Dress the character in a shiny yellow raincoat with a turned-down collar, big round wooden toggle buttons and two pockets. It covers only the upper body (chest, belly and shoulders); the hands, legs and head stay unchanged. In the same soft painted style. Simple and plain, one or two colours, no decoration. Keep everything else exactly as it is: the same character, the same pose, the same position and size in the picture, the bald head, the blank face without eyes or mouth, the skin colour, the body, the plain flat light grey background and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `ninjaanzug` – Ninja-Anzug
+
+```text
+Dress the character in a dark blue ninja suit with a wrapped front, a red cloth belt tied in a knot and light blue trim. It covers only the upper body (chest, belly and shoulders); the hands, legs and head stay unchanged. In the same soft painted style. A few nice details and one small decoration. Keep everything else exactly as it is: the same character, the same pose, the same position and size in the picture, the bald head, the blank face without eyes or mouth, the skin colour, the body, the plain flat light grey background and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `raumanzug` – Raumanzug
+
+```text
+Dress the character in a white astronaut suit with a blue chest control panel with little coloured buttons, orange stripes and a round mission patch. It covers only the upper body (chest, belly and shoulders); the hands, legs and head stay unchanged. In the same soft painted style. Detailed, with a pattern and one small gem or emblem. Keep everything else exactly as it is: the same character, the same pose, the same position and size in the picture, the bald head, the blank face without eyes or mouth, the skin colour, the body, the plain flat light grey background and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.
+```
+
+### `kristallruestung` – Kristallrüstung
+
+```text
+Dress the character in a shining armour of pale blue crystal plates with silver edges, round crystal shoulder plates and a glowing diamond on the chest. It covers only the upper body (chest, belly and shoulders); the hands, legs and head stay unchanged. In the same soft painted style. A legendary treasure: ornate gold details, a warm glow and a few tiny sparkles, the most precious looking version. Keep everything else exactly as it is: the same character, the same pose, the same position and size in the picture, the bald head, the blank face without eyes or mouth, the skin colour, the body, the plain flat light grey background and the soft painted style. Do not move, crop or zoom. Change nothing else and add nothing else.
 ```
 
 ## Kopf, Werkzeug, Begleiter und Hintergründe

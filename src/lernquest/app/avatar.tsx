@@ -2,9 +2,10 @@
 // one canvas (viewBox 0 0 240 240) for every part and fixed layers from back to front: background, companion,
 // body/skin, clothes, hair, eyes, mouth, head, tool. Each part is its own group that sits right without its neighbours.
 // Part colours are fixed values here, not UI tokens. Higher rarity = more detail, gold from Episch, sparkle for Legendär.
-import type { ReactNode } from 'react';
+import { useContext, type ReactNode } from 'react';
 import { angelegt, frisurVon, HAARFARBEN, haarfarbeVon, HAUT, mundVon, type Avatar, type Slot, type Teil } from '../teile';
 import { haareBild, koerperBild, mundBild, teilBild } from './teilBilder';
+import { FrisurVorschau, HochgeladeneBilder } from './bilderKontext';
 
 /** Shadow tone per skin tone (`HAUT`). */
 const HAUT_SCHATTEN = ['#DDAE80', '#D29A6E', '#AE744A', '#8E5833', '#5F3A20', '#E8C3A2'];
@@ -635,6 +636,312 @@ const ZEICHNUNG: Record<string, ReactNode> = {
       <path d="M0 204c60-10 140-10 240 0v36H0Z" fill="#8FCB8F" />
     </>
   ),
+  // — Added 09.11.2026: two to buy and two chest treasures per place —
+  kochmuetze: (
+    <>
+      <circle cx="96" cy="52" r="18" fill="#F4F1EA" />
+      <circle cx="144" cy="52" r="18" fill="#DCD5C8" />
+      <circle cx="120" cy="40" r="22" fill="#F4F1EA" />
+      <path d="M120 18a22 22 0 0 1 0 44Z" fill="#E6E0D4" />
+      <rect x="86" y="52" width="68" height="26" fill="#F4F1EA" />
+      <rect x="120" y="52" width="34" height="26" fill="#E6E0D4" />
+      <path d="M106 56v20M134 56v20" stroke="#CFC7B8" strokeWidth="3" strokeLinecap="round" />
+      <rect x="80" y="74" width="80" height="13" rx="6" fill="#CFC7B8" />
+    </>
+  ),
+  cowboyhut: (
+    <>
+      <path d="M60 80c10 10 30 12 60 12s50-2 60-12c-2 10-20 18-60 18s-58-8-60-18Z" fill="#8A5A32" />
+      <path d="M90 82c-4-24 4-42 14-42 6 0 10 6 16 6s10-6 16-6c10 0 18 18 14 42Z" fill="#A86E45" />
+      <path d="M120 46c6 0 10-6 16-6 10 0 18 18 14 42h-30Z" fill="#8A5A32" />
+      <rect x="89" y="70" width="62" height="9" rx="3" fill="#5C3A1E" />
+      <path d={stern(120, 74, 5)} fill="#D9DEE8" />
+    </>
+  ),
+  raumhelm: (
+    <>
+      <path d="M120 42a56 56 0 1 1 0 112a56 56 0 1 1 0-112Zm0 18c-24 0-40 16-40 40s16 40 40 40 40-16 40-40-16-40-40-40Z" fill="#F4F6FA" fillRule="evenodd" />
+      <path d="M120 42a56 56 0 0 1 0 112v-14c24 0 40-16 40-40s-16-40-40-40Z" fill="#D5DBE6" />
+      <circle cx="120" cy="100" r="40" fill="#9FC6FF" opacity=".25" />
+      <path d="M92 76a34 34 0 0 1 22-14" fill="none" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" opacity=".8" />
+      <rect x="58" y="92" width="10" height="20" rx="4" fill="#FF9F43" />
+      <rect x="172" y="92" width="10" height="20" rx="4" fill="#FF9F43" />
+      <path d="M156 56l10-16" stroke="#9AA3B5" strokeWidth="3" strokeLinecap="round" />
+      <circle cx="167" cy="38" r="4" fill="#FFC531" />
+    </>
+  ),
+  eiskrone: (
+    <>
+      <path d="M80 72 84 40l12 18 10-30 14 22 14-22 10 30 12-18 4 32Z" fill="#BFE8FF" />
+      <path d="M120 50l14-22 10 30 12-18 4 32h-40Z" fill="#8FD0F2" />
+      <rect x="80" y="62" width="80" height="12" rx="3" fill="#D9DEE8" />
+      <path d="m120 60 7 8-7 8-7-8Z" fill="#4FB3E8" />
+      <circle cx="98" cy="68" r="3" fill="#FFFFFF" />
+      <circle cx="142" cy="68" r="3" fill="#FFFFFF" />
+      <path d="M96 52l4-14M118 46l2-12" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity=".8" />
+      {funkeln(172, 30, 7)}
+    </>
+  ),
+  schlaefrig: (
+    <>
+      <path d="M97 100a7 7 0 0 0 14 0Z" fill={INK} />
+      <path d="M129 100a7 7 0 0 0 14 0Z" fill={INK} />
+      <circle cx="107" cy="103" r="1.5" fill="#FFFFFF" />
+      <circle cx="139" cy="103" r="1.5" fill="#FFFFFF" />
+      <path d="M95 99h18M127 99h18" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+      <path d="M97 99l-3-3M111 99l3-3M129 99l-3-3M143 99l3-3" stroke={INK} strokeWidth="1.6" strokeLinecap="round" />
+    </>
+  ),
+  zwinkern: (
+    <>
+      <path d="M97 101q7-7 14 0" fill="none" stroke={INK} strokeWidth="3.5" strokeLinecap="round" />
+      <circle cx="136" cy="100" r="6" fill={INK} />
+      <circle cx="138" cy="98" r="2" fill="#FFFFFF" />
+      <path d="M95 93l5 3" stroke={INK} strokeWidth="2" strokeLinecap="round" />
+    </>
+  ),
+  monokel: (
+    <>
+      <circle cx="104" cy="100" r="5.5" fill={INK} />
+      <circle cx="106" cy="98" r="1.8" fill="#FFFFFF" />
+      <circle cx="136" cy="100" r="11" fill="#CDEBF7" opacity=".7" />
+      <circle cx="136" cy="100" r="5.5" fill={INK} />
+      <circle cx="138" cy="98" r="1.8" fill="#FFFFFF" />
+      <circle cx="136" cy="100" r="11" fill="none" stroke="#FFC531" strokeWidth="3.5" />
+      <path d="M146 106q8 10 4 24" fill="none" stroke="#C98F00" strokeWidth="2" strokeDasharray="3 2" />
+      <path d="M129 94a8 8 0 0 1 6-3" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
+    </>
+  ),
+  feueraugen: (
+    <>
+      {[104, 136].map((x) => (
+        <g key={x}>
+          <path d={`M${x - 5} 90q-2-7 3-11 0 5 3 5 0-6 4-9 0 8 2 15Z`} fill="#FFA531" />
+          <circle cx={x} cy="100" r="8" fill="#FFFFFF" />
+          <circle cx={x} cy="101" r="6" fill="#E4572E" />
+          <circle cx={x} cy="102" r="3" fill="#FFC531" />
+          <circle cx={x + 2} cy="98" r="1.8" fill="#FFFFFF" />
+        </g>
+      ))}
+    </>
+  ),
+  regenjacke: (
+    <>
+      <rect {...TORSO} fill="#FFC531" />
+      <path d="M96 132l24 16 24-16v10l-24 14-24-14Z" fill="#E5A800" />
+      <rect x="118" y="148" width="4" height="60" fill="#E5A800" />
+      {[160, 178, 196].map((y) => (
+        <rect key={y} x="112" y={y} width="16" height="5" rx="2.5" fill="#8A5A32" />
+      ))}
+      <rect x="92" y="180" width="18" height="12" rx="3" fill="#E5A800" />
+      <rect x="130" y="180" width="18" height="12" rx="3" fill="#E5A800" />
+    </>
+  ),
+  ninjaanzug: (
+    <>
+      <rect {...TORSO} fill="#2B3A67" />
+      <path d="M100 133l20 26 20-26" fill="none" stroke="#5C8FE0" strokeWidth="4" />
+      <path d="M120 159l18-26h6l-22 32Z" fill="#1E2A50" />
+      <rect x="84" y="172" width="72" height="10" fill="#C4321F" />
+      <path d="M126 182l6 16 6-2-6-14Z" fill="#C4321F" />
+      <circle cx="126" cy="177" r="5" fill="#9E2617" />
+    </>
+  ),
+  raumanzug: (
+    <>
+      <rect {...TORSO} fill="#F4F6FA" />
+      <rect x="84" y="186" width="72" height="22" rx="10" fill="#D5DBE6" />
+      <rect x="84" y="148" width="72" height="5" fill="#FF9F43" />
+      <rect x="104" y="158" width="32" height="20" rx="4" fill="#2F6FDB" />
+      <circle cx="112" cy="168" r="3" fill="#E4572E" />
+      <circle cx="120" cy="168" r="3" fill="#FFC531" />
+      <circle cx="128" cy="168" r="3" fill="#3FB37F" />
+      <circle cx="98" cy="140" r="6" fill="#2F6FDB" />
+      <path d={stern(98, 140, 4)} fill="#FFFFFF" />
+    </>
+  ),
+  kristallruestung: (
+    <>
+      <rect {...TORSO} fill="#BFE8FF" />
+      <path d="M84 160l18-20 18 20 18-20 18 20v20l-18-12-18 12-18-12-18 12Z" fill="#8FD0F2" />
+      <rect x="84" y="196" width="72" height="6" fill="#D9DEE8" />
+      <path d="M78 142l10-12 12 12-12 12Z" fill="#8FD0F2" />
+      <path d="M162 142l-10-12-12 12 12 12Z" fill="#8FD0F2" />
+      <path d="m120 150 9 10-9 12-9-12Z" fill="#4FB3E8" />
+      <path d="m120 150 9 10h-9Z" fill="#FFFFFF" opacity=".7" />
+      {funkeln(146, 156, 6)}
+    </>
+  ),
+  angel: (
+    <>
+      <path d="M160 198l40-90" stroke="#A86E45" strokeWidth="5" strokeLinecap="round" />
+      <circle cx="172" cy="178" r="6" fill="#7F8AA1" />
+      <path d="M200 108q16 20 12 58" fill="none" stroke="#9AA3B5" strokeWidth="1.5" />
+      <circle cx="212" cy="170" r="6" fill="#FFFFFF" />
+      <path d="M206 170a6 6 0 0 1 12 0Z" fill="#E4572E" />
+    </>
+  ),
+  bumerang: (
+    <g transform="rotate(-20 176 166)">
+      <path d="M150 190c4-26 14-44 30-52l8 8c-12 8-20 24-24 46Z" fill="#C98F4A" />
+      <path d="M180 138c18 0 32 8 40 22l-8 8c-6-10-18-18-32-20Z" fill="#B87333" />
+      <path d="M156 178l10 2M162 160l10 4M196 146l2 10M208 152l-2 10" stroke="#2F6FDB" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="182" cy="146" r="3" fill="#FF9F43" />
+    </g>
+  ),
+  hammer: (
+    <g transform="rotate(18 168 180)">
+      <rect x="162" y="128" width="9" height="76" rx="4" fill="#8A6A3A" />
+      <rect x="161" y="176" width="11" height="22" rx="3" fill="#5C3A1E" />
+      <rect x="142" y="112" width="50" height="28" rx="10" fill="#9AA3B5" />
+      <rect x="142" y="126" width="50" height="14" rx="6" fill="#7F8AA1" />
+      <circle cx="167" cy="126" r="5" fill="#C4321F" />
+    </g>
+  ),
+  blitzstab: (
+    <>
+      <path d="M162 200l26-74" stroke="#C98F00" strokeWidth="7" strokeLinecap="round" />
+      <circle cx="189" cy="124" r="10" fill="#FFC531" />
+      <path d="M194 92l-16 26h10l-8 24 20-30h-11l9-20Z" fill="#FFE07A" />
+      <path d="M194 92l-6 20h11l-19 30 4-14" fill="#FFC531" />
+      <circle cx="210" cy="108" r="2.5" fill="#FFE07A" />
+      <circle cx="172" cy="100" r="2" fill="#FFE07A" />
+      {funkeln(214, 90, 7)}
+    </>
+  ),
+  igel: (
+    <>
+      <path d="M18 218c0-26 14-38 30-38s28 12 28 26l-6 12Z" fill="#7A4E2E" />
+      {[24, 34, 44, 54, 64].map((x) => (
+        <path key={x} d={`M${x - 6} ${196 - (x === 44 ? 6 : 0)}l6-12 6 12Z`} fill="#5F3A20" />
+      ))}
+      <ellipse cx="62" cy="214" rx="14" ry="12" fill="#E8C3A2" />
+      <circle cx="76" cy="214" r="3" fill={INK} />
+      <circle cx="62" cy="209" r="2.4" fill={INK} />
+      <ellipse cx="36" cy="226" rx="6" ry="3" fill="#5F3A20" />
+      <ellipse cx="58" cy="226" rx="6" ry="3" fill="#5F3A20" />
+    </>
+  ),
+  papagei: (
+    <>
+      <path d="M38 214l-8 22h12l4-18Z" fill="#2F6FDB" />
+      <ellipse cx="44" cy="198" rx="16" ry="22" fill="#E4572E" />
+      <path d="M32 194c-6 10-4 22 6 26 0-10 2-18 6-24Z" fill="#2F6FDB" />
+      <path d="M56 194c4 10 2 20-6 24 0-8-2-16-4-22Z" fill="#FFC531" />
+      <circle cx="44" cy="182" r="12" fill="#E4572E" />
+      <circle cx="40" cy="179" r="2.6" fill={INK} />
+      <path d="M46 184c6-2 10 2 8 8-2-3-5-4-8-4Z" fill="#3B3B4F" />
+      <ellipse cx="38" cy="226" rx="5" ry="2.5" fill="#7F8AA1" />
+      <ellipse cx="50" cy="226" rx="5" ry="2.5" fill="#7F8AA1" />
+    </>
+  ),
+  axolotl: (
+    <>
+      <path d="M60 214c12 0 20-6 22-14-8 4-14 4-20 6Z" fill="#F29AC0" />
+      <ellipse cx="44" cy="212" rx="22" ry="14" fill="#F7B8D2" />
+      {[-1, 1].map((d) => (
+        <g key={d} fill="#E0457B">
+          <path d={`M${44 + d * 16} 186l${d * 12} -8 ${-d * 2} 6Z`} />
+          <path d={`M${44 + d * 17} 192l${d * 14} -2 ${-d * 4} 5Z`} />
+          <path d={`M${44 + d * 16} 198l${d * 12} 5 ${-d * 6} 2Z`} />
+        </g>
+      ))}
+      <ellipse cx="44" cy="192" rx="18" ry="14" fill="#F7B8D2" />
+      <circle cx="37" cy="190" r="2.6" fill={INK} />
+      <circle cx="51" cy="190" r="2.6" fill={INK} />
+      <path d="M38 197q6 5 12 0" fill="none" stroke="#B8336A" strokeWidth="2" strokeLinecap="round" />
+    </>
+  ),
+  einhorn: (
+    <>
+      <path d="M18 202c-10 2-14 14-8 22 2-8 6-12 12-14Z" fill="#B79CFF" />
+      <path d="M16 206c-6 6-4 16 2 18 0-6 2-10 6-12Z" fill="#F29AC0" />
+      <rect x="24" y="210" width="7" height="20" rx="3" fill="#E6D8F0" />
+      <rect x="50" y="210" width="7" height="20" rx="3" fill="#E6D8F0" />
+      <ellipse cx="40" cy="204" rx="24" ry="14" fill="#FBF3FF" />
+      <ellipse cx="40" cy="210" rx="20" ry="7" fill="#EFE3F6" />
+      <path d="M56 200l8-18 10 4-6 16Z" fill="#FBF3FF" />
+      <circle cx="68" cy="180" r="13" fill="#FBF3FF" />
+      <ellipse cx="78" cy="186" rx="8" ry="6" fill="#EFE3F6" />
+      <path d="M58 172c-6 6-6 18 0 26 2-8 4-14 8-18Z" fill="#F29AC0" />
+      <path d="M62 168c-4 4-6 10-4 14 4-4 8-6 12-6Z" fill="#9FC6FF" />
+      <path d="M70 168l4-20 6 18Z" fill="#FFC531" />
+      <circle cx="70" cy="178" r="2.6" fill={INK} />
+      <circle cx="80" cy="186" r="1.3" fill="#C9A9D9" />
+    </>
+  ),
+  wueste: (
+    <>
+      <rect width="240" height="240" fill="#FFE9C2" />
+      <circle cx="190" cy="48" r="20" fill="#FFC531" />
+      <path d="M0 176c40-24 90-24 130-6s70 10 110-4v74H0Z" fill="#F0C77A" />
+      <path d="M0 202c70-16 150-16 240 0v38H0Z" fill="#E5B05E" />
+      <rect x="30" y="140" width="12" height="50" rx="6" fill="#4F9A5F" />
+      <path d="M30 168h-8v-14" fill="none" stroke="#4F9A5F" strokeWidth="8" strokeLinecap="round" />
+      <path d="M42 160h8v-12" fill="none" stroke="#3E8450" strokeWidth="8" strokeLinecap="round" />
+      <rect x="200" y="154" width="10" height="38" rx="5" fill="#3E8450" />
+      <path d="M210 172h6v-10" fill="none" stroke="#3E8450" strokeWidth="7" strokeLinecap="round" />
+    </>
+  ),
+  winterwald: (
+    <>
+      <rect width="240" height="240" fill="#DDEBF5" />
+      {[
+        [26, 196, 30],
+        [212, 196, 32],
+        [62, 200, 22],
+        [178, 200, 24],
+      ].map(([x, y, h]) => (
+        <g key={x}>
+          <path d={`M${x - h * 0.6} ${y}L${x} ${y - h * 3}L${x + h * 0.6} ${y}Z`} fill="#2E6F48" />
+          <path d={`M${x - h * 0.4} ${y - h * 1.6}L${x} ${y - h * 3}L${x + h * 0.4} ${y - h * 1.6}q-${h * 0.4} 6-${h * 0.8} 0Z`} fill="#FFFFFF" />
+        </g>
+      ))}
+      {[
+        [40, 40],
+        [96, 70],
+        [150, 30],
+        [200, 90],
+        [120, 120],
+        [70, 140],
+      ].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="3" fill="#FFFFFF" />
+      ))}
+      <path d="M0 194c60-14 140-14 240 0v46H0Z" fill="#FFFFFF" />
+      <path d="M0 214c80-8 160-8 240 0v26H0Z" fill="#E6EEF5" />
+    </>
+  ),
+  vulkan: (
+    <>
+      <rect width="240" height="240" fill="#FFD9B8" />
+      <path d="M60 150l46-74h28l46 74Z" fill="#7A5A4A" />
+      <path d="M120 76h14l46 74h-36Z" fill="#5F4436" />
+      <path d="M106 76h28l-6 12-8-6-8 6Z" fill="#FF7A3D" />
+      <ellipse cx="128" cy="52" rx="18" ry="12" fill="#C9BDB8" />
+      <ellipse cx="146" cy="34" rx="14" ry="10" fill="#DDD4D0" />
+      <rect y="148" width="240" height="44" fill="#2BB3C0" />
+      <path d="M0 190c60-12 140-12 240 0v50H0Z" fill="#5A4E4E" />
+      <path d="M200 200c-2-24 2-44 6-56" fill="none" stroke="#8A5A32" strokeWidth="6" strokeLinecap="round" />
+      <path d="M206 144c-16-6-28 0-32 8 12-4 22-4 32-8Zm0 0c14-8 28-4 32 4-12-2-22-2-32-4Z" fill="#3FB37F" />
+    </>
+  ),
+  wolkenschloss: (
+    <>
+      <rect width="240" height="240" fill="#FFD3E2" />
+      <rect width="240" height="110" fill="#FFC9A8" />
+      <rect x="64" y="100" width="112" height="80" fill="#FFFFFF" />
+      <rect x="52" y="70" width="30" height="110" rx="6" fill="#F4F0FA" />
+      <rect x="158" y="70" width="30" height="110" rx="6" fill="#F4F0FA" />
+      <rect x="104" y="56" width="32" height="64" rx="6" fill="#FFFFFF" />
+      <path d="M48 72l19-30 19 30ZM154 72l19-30 19 30ZM100 58l20-34 20 34Z" fill="#FFC531" />
+      <path d="M108 180v-26a12 12 0 0 1 24 0v26Z" fill="#F29AC0" />
+      <circle cx="40" cy="190" r="26" fill="#FFFFFF" />
+      <circle cx="200" cy="190" r="28" fill="#FFFFFF" />
+      <path d="M0 196c60-14 140-14 240 0v44H0Z" fill="#FFFFFF" />
+      <path d="M0 220c80-8 160-8 240 0v20H0Z" fill="#F4F0FA" />
+      {funkeln(206, 36, 8)}
+    </>
+  ),
 };
 
 /** Hair as vector, in a colour: `hinten` goes behind the head and body (ponytail, long hair), `vorn` on top. */
@@ -796,10 +1103,12 @@ const FUNKELN: Record<Slot, [number, number]> = {
 /** A whole-canvas layer picture (teilBilder.ts). */
 const ebene = (href: string) => <image href={href} width="240" height="240" />;
 
-/** One part: its painted picture when there is one (src/lernquest/app/teile/), else its vector drawing. */
+/** One part: its uploaded picture (hochgeladen.tsx), else its built-in painted picture (src/lernquest/app/teile/),
+ *  else its vector drawing. */
 function Zeichnung({ teil }: { teil: Teil | undefined }) {
+  const hochgeladen = useContext(HochgeladeneBilder);
   if (!teil) return null;
-  const bild = teilBild(teil.id);
+  const bild = hochgeladen[teil.id] ?? teilBild(teil.id);
   if (!bild) return <>{ZEICHNUNG[teil.id] ?? null}</>;
   return (
     <>
@@ -817,11 +1126,14 @@ function Grundfigur({ avatar }: { avatar: Avatar }) {
   return <Koerper haut={haut} hinten={HAAR_ZEICHNUNG[frisurVon(avatar)]?.hinten?.(HAARFARBEN[haarfarbeVon(avatar)].farbe)} />;
 }
 
-/** The hair over the body: painted when there is a picture, else the front of the vector hair. */
+/** The hair over the body: uploaded on the teacher page (hochgeladen.tsx), else painted, else the front of the vector
+ *  hair. Painted hair belongs to the painted base figure it was made on. */
 function Haare({ avatar }: { avatar: Avatar }) {
-  const frisur = frisurVon(avatar);
+  const hochgeladen = useContext(HochgeladeneBilder);
+  const frisur = useContext(FrisurVorschau) ?? frisurVon(avatar);
   const farbe = haarfarbeVon(avatar);
-  const bild = haareBild(frisur, farbe);
+  const eigen = koerperBild(0) ? (hochgeladen[`haare-${frisur}-${farbe}`] ?? hochgeladen[`haare-${frisur}-0`]) : undefined;
+  const bild = eigen ?? haareBild(frisur, farbe);
   return bild ? ebene(bild) : <>{HAAR_ZEICHNUNG[frisur]?.vorn?.(HAARFARBEN[farbe].farbe) ?? null}</>;
 }
 
@@ -843,10 +1155,24 @@ export function KopfBild({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
   );
 }
 
-/** The whole hero as worn. Decorative (the page names the hero in text), so hidden from screen readers. */
-export function AvatarBild({ avatar, className }: { avatar: Avatar; className?: string }) {
+/** The head and shoulders of the whole hero, for small round pictures (the head bar). */
+export const AUSSCHNITT_KOPF = '45 8 150 150';
+
+/** The whole hero as worn (or the part `ausschnitt` of it). Decorative (the page names the hero in text), so hidden from screen readers. */
+export function AvatarBild({
+  avatar,
+  className,
+  ausschnitt = '0 0 240 240',
+  vorschau,
+}: {
+  avatar: Avatar;
+  className?: string;
+  ausschnitt?: string;
+  /** A part worn for a preview, also one that is not in the catalogue yet (a new part on the teacher page). */
+  vorschau?: Teil;
+}) {
   return (
-    <svg className={className} viewBox="0 0 240 240" aria-hidden focusable="false">
+    <svg className={className} viewBox={ausschnitt} aria-hidden focusable="false">
       {EBENEN.map((e) =>
         e === 'koerper' ? (
           <Grundfigur key={e} avatar={avatar} />
@@ -860,7 +1186,7 @@ export function AvatarBild({ avatar, className }: { avatar: Avatar; className?: 
           </g>
         ) : (
           <g key={e}>
-            <Zeichnung teil={angelegt(avatar, e)} />
+            <Zeichnung teil={vorschau?.slot === e ? vorschau : angelegt(avatar, e)} />
           </g>
         ),
       )}

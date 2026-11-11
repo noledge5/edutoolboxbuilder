@@ -287,6 +287,7 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
   }
 
   const offen = s.phase === 'aufloesung' || s.phase === 'ende';
+  const karten = s.modus === 'karten';
   const weiterText = s.phase === 'warten' ? 'Los geht’s!' : s.phase === 'frage' ? 'Auflösen' : 'Nächste Frage';
   return (
     <main className="lq-beamer-rahmen">
@@ -299,9 +300,17 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
             <h1>{s.phase === 'warten' ? BOSSE[s.boss]?.name : s.phase === 'ende' ? (s.sieg ? 'Gewonnen!' : 'Der Boss ist entkommen') : `Frage ${s.frage + 1} von ${s.fragen}`}</h1>
           </div>
           <div className="lq-beamer-mitmachen">
-            Mitmachen: Lernquest öffnen → <strong>Bosskampf</strong>
+            {karten ? (
+              <>
+                Mitmachen: <strong>Karte hochhalten</strong>, deine Antwort oben
+              </>
+            ) : (
+              <>
+                Mitmachen: Lernquest öffnen → <strong>Bosskampf</strong>
+              </>
+            )}
           </div>
-          {s.phase === 'frage' ? <Zeitring sekunden={sekunden} gross /> : <div className="lq-zeitring gross" aria-hidden="true" />}
+          {s.phase === 'frage' && !karten ? <Zeitring sekunden={sekunden} gross /> : <div className="lq-zeitring gross" aria-hidden="true" />}
         </header>
 
         <div className="lq-beamer-mitte">
@@ -315,13 +324,22 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
           <div className="lq-beamer-frage" aria-live="polite">
             {s.phase === 'warten' ? (
               <div className="lq-beamer-karte lq-beamer-warten">
-                <div className="lq-beamer-warten-text">
-                  <p className="lq-beamer-text">
-                    <strong>{s.kinder}</strong> {s.kinder === 1 ? 'Kind ist' : 'Kinder sind'} dabei.
-                  </p>
-                  <p className="lq-beamer-klein">Richtig = Schaden, schnell und in Serie mehr. Liegt weniger als die Hälfte richtig, trifft der Boss die Klasse.</p>
-                </div>
-                {link && (
+                {karten ? (
+                  <div className="lq-beamer-warten-text">
+                    <p className="lq-beamer-text">Kampf mit Antwortkarten</p>
+                    <p className="lq-beamer-klein">
+                      Steht die Frage da, haltet eure Karte hoch: Der Buchstabe eurer Antwort zeigt nach oben. Wer erkannt ist, wird grün. Richtig = Schaden, ab 3 in Folge doppelt. Liegt weniger als die Hälfte richtig, trifft der Boss die Klasse.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="lq-beamer-warten-text">
+                    <p className="lq-beamer-text">
+                      <strong>{s.kinder}</strong> {s.kinder === 1 ? 'Kind ist' : 'Kinder sind'} dabei.
+                    </p>
+                    <p className="lq-beamer-klein">Richtig = Schaden, schnell und in Serie mehr. Liegt weniger als die Hälfte richtig, trifft der Boss die Klasse.</p>
+                  </div>
+                )}
+                {link && !karten && (
                   <figure className="lq-beamer-qr">
                     <QrBild link={link} label="QR-Code zum Mitmachen beim Bosskampf" />
                     <figcaption>Scannen, anmelden und mitmachen</figcaption>
@@ -362,6 +380,7 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
                   {s.optionen.map((o, i) => (
                     <li key={i} className={`lq-antwort a${i} ${offen ? (i === s.richtig ? 'richtig' : 'aus') : ''}`}>
                       <Form i={i} />
+                      {karten && <span className="lq-antwort-buchstabe">{'ABCD'[i]}</span>}
                       <span className="lq-antwort-text">
                         <Rich text={o} />
                       </span>
@@ -377,7 +396,19 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
               </>
             )}
             <div className="lq-platz" />
-            {s.phase !== 'warten' && s.phase !== 'ende' && (
+            {karten && s.phase !== 'warten' && s.phase !== 'ende' && (
+              <div className="lq-beamer-erkannt" aria-label="Erkannte Karten">
+                <span>
+                  {s.antworten} {s.antworten === 1 ? 'Karte' : 'Karten'} erkannt
+                </span>
+                <ul>
+                  {(s.erkannt ?? []).map((n, k) => (
+                    <li key={k}>{n}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {!karten && s.phase !== 'warten' && s.phase !== 'ende' && (
               <div className="lq-beamer-geantwortet">
                 <span>
                   {s.antworten} von {s.kinder} haben geantwortet
@@ -401,7 +432,7 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
               <button type="button" className="lq-knopf lq-nacht-knopf" onClick={() => void beenden()}>
                 Beenden
               </button>
-              <button type="button" className="lq-knopf lq-gold" onClick={() => void weiter()} disabled={busy || (s.phase === 'warten' && !s.kinder)} aria-busy={busy}>
+              <button type="button" className="lq-knopf lq-gold" onClick={() => void weiter()} disabled={busy || (s.phase === 'warten' && !s.kinder && !karten)} aria-busy={busy}>
                 {busy ? 'Einen Moment …' : weiterText}
               </button>
             </>

@@ -41,7 +41,22 @@ import {
   rundeMelden,
   sperren,
   truheOeffnen,
+  bildDaten,
+  bildLoeschen,
+  bildSetzen,
+  bilderListe,
+  istAdmin,
+  teilAendern,
+  teilAnlegen,
+  teileEigen,
+  teileWerte,
+  teilEinstellen,
+  frisurAnlegen,
+  frisurAendern,
+  frisurenEigen,
+  wiederholenSetzen,
 } from './server';
+import { readWerte } from './teile';
 
 const live = process.env.LQ_LIVE === '1';
 
@@ -194,9 +209,9 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(t.stand).toMatchObject({ truhen: 0, inventar: eigene, pech: t.seltenheit >= 2 ? 0 : 1 });
     expect(await code(truheOeffnen(token))).toBe('ungueltig');
 
-    // Shop: a common part costs PREISE[0]; play rounds until the coins reach it.
+    // Shop: a common part costs PREISE[0]; play rounds until the coins reach it (repeats give a third, so up to 20).
     let muenzen = t.stand.muenzen;
-    for (let i = 0; i < 8 && muenzen < PREISE[0]; i++) muenzen = (await rundeMelden(token, '', 0, 5, 5, {})).stand.muenzen;
+    for (let i = 0; i < 20 && muenzen < PREISE[0]; i++) muenzen = (await rundeMelden(token, '', 0, 5, 5, {})).stand.muenzen;
     expect(muenzen).toBeGreaterThanOrEqual(PREISE[0]);
     const [ware, zweite] = TEILE.filter((x) => x.seltenheit === 0 && !x.start && !eigene.includes(x.id));
     const nachKauf = await kaufen(token, ware.id);
@@ -205,6 +220,8 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(await code(kaufen(token, ware.id))).toBe('ungueltig');
     expect(await code(kaufen(token, 'tshirt'))).toBe('ungueltig');
     expect(await code(kaufen(token, 'gibt-es-nicht'))).toBe('ungueltig');
+    // Chest treasures are not for sale (20261116_lernquest_truhenschaetze.sql).
+    expect(await code(kaufen(token, TEILE.find((x) => x.nurTruhe && x.seltenheit === 2)!.id))).toBe('ungueltig');
     if (nachKauf.muenzen < PREISE[0]) expect(await code(kaufen(token, zweite.id))).toBe('muenzen');
 
     // Avatar: only owned or start parts, each in its own place, skin tone 0–5, hair and mouth (an id each) and the hair colour 0–4.
@@ -436,4 +453,67 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     const verbraucht = eingeloest === 'ok' ? 2 : 0;
     expect((await summe()) + offenNoch.reduce((a, x) => a + x.preis, 0) + verbraucht).toBe(n * 5);
   }, 120_000);
+
+  it('Bilder der Teile: nur Admins laden hoch, lesen dürfen alle', async () => {
+    // A 1 × 1 PNG; refused for rights before the size is looked at.
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await istAdmin(keyA)).toBe(false);
+    expect(await code(bildSetzen(keyA, 'krone', 'image/png', png))).toBe('zugang');
+    expect(await code(bildLoeschen(keyA, 'krone'))).toBe('zugang');
+    // A child's session token is no teacher key.
+    expect(await code(bildSetzen(['kind-token'], 'krone', 'image/png', png))).toBe('zugang');
+    expect(typeof (await bilderListe())).toBe('object');
+    expect(Array.isArray(await bildDaten(['krone']))).toBe(true);
+    expect(await code(bildDaten(Array.from({ length: 11 }, (_, i) => `t${i}`)))).toBe('ungueltig');
+    // No direct access to the tables.
+    const r = await fetch(`${(await import('../share/server')).SERVER.url}/rest/v1/lq_bild?select=teil`, {
+      headers: { apikey: (await import('../share/server')).SERVER.key },
+    });
+    expect(r.ok).toBe(false);
+  });
+
+  it('Eigene Teile: nur Admins legen an und ändern, lesen dürfen alle', async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await code(teilAnlegen(keyA, { name: 'Test', slot: 'kopf', seltenheit: 0, nurTruhe: false }, 'image/png', png))).toBe('zugang');
+    expect(await code(teilAendern(keyA, 'krone', 'Test', false))).toBe('zugang');
+    expect(Array.isArray(await teileEigen())).toBe(true);
+  });
+
+  it('Wiederholen sofort: nur die eigene Klasse, nur freigeschaltete Stunden, das Kind sieht es', async () => {
+    const a = await klasseAnlegen(keyA, 'Test Wiederholen');
+    made.push({ keys: keyA, id: a.id });
+    const kind = await kindAnlegen(keyA, a.id, 'Wim T.', '4321');
+    await freischalten(keyA, a.id, 'sW', { format: 'lernquest-paket', stunde: 'sW', uebungen: [] });
+    const heute = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+    const extra = { ab: heute, bis: heute, stunden: ['sW'] };
+    expect(await code(wiederholenSetzen(keyB, a.id, extra))).toBe('zugang');
+    expect(await code(wiederholenSetzen(keyA, a.id, { ...extra, stunden: ['fremd'] }))).toBe('ungueltig');
+    await wiederholenSetzen(keyA, a.id, extra);
+    const login = await anmelden(a.code, kind, '4321');
+    if (!login.ok) throw new Error('Anmeldung');
+    expect((await meinStand(login.token, null)).extra).toEqual(extra);
+    await wiederholenSetzen(keyA, a.id, null);
+    expect((await meinStand(login.token, null)).extra).toBeNull();
+  });
+
+  it('Frisur-Bilder: nur Admins, nur gültige Kennungen', async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await code(bildSetzen(keyA, 'haare-zopf-0', 'image/png', png))).toBe('zugang');
+    expect(await code(bildLoeschen(keyA, 'haare-zopf-0'))).toBe('zugang');
+  });
+
+  it('Teile einstellen: nur Admins, Werte und Frisuren lesen dürfen alle', async () => {
+    expect(await code(teilEinstellen(keyA, 'krone', { seltenheit: 0, herkunft: 'laden', muenzen: 20, herz: 2, schaden: 3 }))).toBe('zugang');
+    expect(await code(teilEinstellen(keyA, 'frisur-locken', { seltenheit: 1, herkunft: 'laden', muenzen: 0, herz: 0, schaden: 0 }))).toBe('zugang');
+    const w = readWerte(await teileWerte());
+    expect(w.krone).toBeDefined();
+    expect(w['frisur-kurz']).toBeDefined();
+  });
+
+  it('Eigene Frisuren: nur Admins legen an und benennen um, lesen dürfen alle', async () => {
+    const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    expect(await code(frisurAnlegen(keyA, 'Test', Array.from({ length: 5 }, () => ({ typ: 'image/png', daten: png }))))).toBe('zugang');
+    expect(await code(frisurAendern(keyA, 'f0123456789', 'Test'))).toBe('zugang');
+    expect(Array.isArray(await frisurenEigen())).toBe(true);
+  });
 });

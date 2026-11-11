@@ -776,3 +776,291 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Bosskampf: mit Geräten oder mit Karten */
+.lqt-wahl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: center;
+}
+.lqt-wahl label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* „Bilder der Teile“ (TeilBilder.tsx), only for the admin teacher. */
+.lqt-bilder {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+}
+.lqt-bild {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: var(--color-surface);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.lqt-bild.is-on {
+  border-color: var(--color-accent-700);
+}
+.lqt-bild-kachel {
+  width: 88px;
+  height: 88px;
+  border-radius: 10px;
+  background: var(--color-neutral-100);
+}
+.lqt-bild-kachel.is-gross {
+  width: 160px;
+  height: 160px;
+}
+.lqt-bild-herkunft {
+  font-size: 11px;
+  color: var(--color-neutral-600);
+}
+.lqt-bild-werte {
+  font-size: 11px;
+  color: var(--color-neutral-700);
+}
+.lqt-einstellungen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-divider);
+}
+.lqt-bild-herkunft.is-hochgeladen {
+  color: var(--color-accent-700);
+  font-weight: 700;
+}
+.lqt-bild-edit {
+  scroll-margin-top: 12px;
+  border: 2px solid var(--color-accent-700);
+}
+.lqt-bild-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.lqt-bild-wege {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+.lqt-bild-wege legend {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.lqt-bild-wege label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.lqt-bild-vorschau {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+.lqt-bild-vorschau figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-neutral-700);
+}
+.lqt-bild-held {
+  width: 240px;
+  height: 240px;
+  border-radius: 14px;
+  background: var(--color-surface);
+}
+.lqt-bild-regler {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.lqt-bild-regler label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.lqt-bild-regler input[type='range'] {
+  width: 100%;
+}
+.lqt-bild-regler .btn {
+  align-self: flex-start;
+}
+.lqt-bild-edit .lqt-head {
+  flex-wrap: nowrap;
+}
+.lqt-bild-edit .lqt-head > div:first-child {
+  flex-basis: auto;
+}
+.lqt-bild-ki {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+.lqt-bild-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.lqt-bild-prompt textarea {
+  width: 100%;
+  height: auto;
+  resize: vertical;
+  font-family: inherit;
+  border-radius: 10px;
+  padding: 8px 10px;
+  line-height: 1.4;
+}
+.lqt-bild-neu {
+  border-style: dashed;
+  border-color: var(--color-neutral-400);
+}
+.lqt-bild-plus {
+  display: grid;
+  place-items: center;
+  color: var(--color-neutral-600);
+}
+.lqt-bild-angaben {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: flex-end;
+}
+.lqt-bild-angaben label:not(.lqt-bild-check) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.lqt-bild-angaben .input {
+  min-width: 200px;
+}
+.lqt-bild-check {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 14px;
+  min-height: 36px;
+}
+
+/* „Wiederholen sofort“ (WiederholenSofort.tsx). */
+.lqt-wdh {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lqt-wdh-modul {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+.lqt-wdh-modul legend {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.lqt-wdh-modul label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 14px;
+}
+.lqt-wdh-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Eraser (Radierer.tsx) and the hair colours of a hair. */
+.lqt-radierer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+.lqt-radierer-flaeche {
+  position: relative;
+  max-width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+  background: repeating-conic-gradient(var(--color-neutral-200) 0 25%, var(--color-surface) 0 50%) 0 0 / 20px 20px;
+}
+.lqt-radierer-flaeche img,
+.lqt-radierer-flaeche svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+.lqt-radierer-leiste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 200px;
+}
+.lqt-radierer-leiste label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.lqt-radierer-leiste .btn {
+  align-self: flex-start;
+}
+.lqt-bild-farben {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 6px;
+}
+.lqt-bild-farben .lqt-bild-kachel {
+  width: 72px;
+  height: 72px;
+  display: block;
+}
+.lqt-bild-kachel svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.lqt-radierer-leiste label > span {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}

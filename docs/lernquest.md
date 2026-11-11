@@ -145,6 +145,17 @@ Wunsch der Lehrkraft, weil die gemalte Grundfigur ein leeres Gesicht hat. Migrat
 
 ## Bosskampf mit Karten (Fragerunde 08.11.2026, in Klärung)
 
+**Stand (08.11.2026, gebaut):** Server `supabase/migrations/20261115_lernquest_boss_karten.sql` (lokal mit allen
+Migrationen durchgespielt, eingespielt am 09.11.2026 über die Supabase-Verbindung): Spalte `lq_boss.modus` ('geraete' | 'karten'),
+`lq_boss_starten_karten`, `lq_boss_karten` (Scans je Frage, Kind-Id → Wahl, der letzte zählt), `lq_boss_laufend`
+(zweites Gerät findet den Kampf), Auflösen in `lq_boss_aufloesen` (mit Karten erst dort Schaden: 15 + Ausrüstung, ab 3
+in Folge doppelt; `bossKartenSchaden` in `rules.ts`). Mit Karten löst nur „Auflösen“ auf, der Kampf darf ohne
+Beigetretene beginnen, ein Boss ohne Lebenspunkte gilt nicht als besiegt, Kinder-Geräte sehen den Kampf nicht.
+Abweichung vom Plan: keine Klassennummer auf dem Server; die Kartennummern liegen wie bei der Kartenfrage im
+Lehrkraft-Datensatz, das Scan-Gerät schickt Kind-Ids. Scannen: Baukasten → Klasse → „Bosskampf am Beamer“ → „Mit
+Karten“ (dieses Gerät scannt, der Beamer öffnet sich im neuen Tab) oder auf einem zweiten Gerät „Laufenden Kampf
+scannen“ (`teacher/BossScan.tsx`). Am Beamer stehen die Namen der erkannten Karten grün, nicht ihre Wahl.
+
 Wunsch der Lehrkraft: Bosskampf „wie Plickers“, ohne Geräte der Kinder.
 - **Zwei Ausführungen des Bosskampfs:** mit **Geräten** (Beitritt per QR-Code, wie gebaut) oder mit **nummerierten
   Karten**, die die Kinder hochhalten und die Lehrkraft scannt. Die Klasse hat bereits einen Original-Satz
@@ -224,6 +235,193 @@ mehr bekommen, spätestens beim Wiederholen der Station.
 - Regeln doppelt: `sterne`, `neueSterne`, `STERNE_JE_TRUHE`, `rundeAnwenden` in `rules.ts` und `lq_sterne`,
   `lq_runde_melden`, `lq_stand_json` in `20261113_lernquest_sterne.sql`.
 
+## Feinschliff Kinder-App (09.11.2026)
+
+Ohne Server-Änderung, Vorschläge von Claude („runder, anschaulicher, Bugs finden“).
+- **Behoben:** Truhen-Text beim Helden nannte noch die alte Regel („für ganz gespielte Stationen“); Lösung einer Lücke
+  stand in eckigen Klammern (jetzt fett); eine neue Seite öffnete sich so weit gescrollt wie die vorige; „Los geht’s!“
+  an einer fertigen Station startete immer Runde 1 (jetzt die schwächste Runde, `naechsteRunde` in `rules.ts`, auch für
+  die Probe); das Menü im Kopf schloss nur über den Knopf (jetzt auch Escape und Tippen daneben).
+- **Anschaulicher:** im Kopf der eigene Held statt des Anfangsbuchstabens; auf der Karte „Nächste Truhe“ mit drei
+  Sternen (je 3 Sterne eine Truhe) und Öffnen-Knopf, Sterne je Region im Band, Fußspuren zwischen den Stationen, die
+  Karte springt zur aktuellen Station; an der Station, was jeder Stern braucht (abgehakt, was geschafft ist); nach dem
+  Prüfen Lücken und gelegter Satz grün oder rot; im Ergebnis ein Punkt je Aufgabe (richtig/falsch).
+
+## Truhen-Schätze (09.11.2026)
+
+Wunsch der Lehrkraft: mehr Teile, manche nur aus Truhen, und die erst sichtbar, wenn man sie hat. Entscheidungen der
+Lehrkraft (Vorschläge von Claude): 24 neue Teile, etwa die Hälfte nur aus Truhen, in der Liste „?“ mit „Nur in Truhen“.
+Migration `20261116_lernquest_truhenschaetze.sql` (lokal mit allen Migrationen durchgespielt, eingespielt am
+09.11.2026 über die Supabase-Verbindung, vor dem Merge von PR #45).
+- **24 neue Teile** (jetzt 80), je Platz zwei zum Kaufen (Gewöhnlich, Ungewöhnlich) und zwei **Truhen-Schätze**
+  (Selten bis Legendär): Kochmütze, Cowboyhut, *Raumhelm, Eiskrone*; Schläfrige Augen, Zwinkern, *Monokel,
+  Feueraugen*; Regenjacke, Ninja-Anzug, *Raumanzug, Kristallrüstung*; Angel, Bumerang, *Zwergenhammer, Blitzstab*;
+  Igel, Papagei, *Axolotl, Einhorn*; Wüste, Winterwald, *Vulkaninsel, Wolkenschloss* (kursiv = nur aus Truhen).
+- **Nur aus Truhen:** Spalte `lq_teil.nur_truhe`, `lq_kaufen` lehnt solche Teile ab (`ungueltig`). Truhen ziehen weiter
+  aus allen Teilen einer Seltenheit, Chancen und Garantie bleiben gleich. In der App `nurTruhe` in `teile.ts`;
+  `ladenWare` zeigt sie im Laden nie.
+- **Unbekannt bis gefunden:** In der Teile-Liste steht ein Schatz bis zum Fund als „?“ mit „Nur in Truhen“ und seiner
+  Seltenheit, ohne Bild und Namen. Weil er nicht im Laden steht, sieht man ihn vorher nirgends.
+- Zeichnungen in `avatar.tsx`, Bild-Prompts aus `BESCHREIBUNG` in `vorlagen.ts` (`npm run lq:bilder -- --prompts`
+  schreibt `prompts.md` und `edit-prompts.md` neu).
+
+## Bilder hochladen auf der Lehrerseite (09.11.2026)
+
+- Wunsch: gemalte Bilder nicht mehr von Hand umbenennen, ablegen, Skript laufen lassen und committen, sondern auf der
+  Lehrerseite hochladen und einem Teil zuordnen. Entscheidungen der Lehrkraft: **nur sie lädt hoch, die Bilder gelten
+  für alle Klassen aller Lehrkräfte**; **Vorschau, dann „Übernehmen“**; Ersetzen und Löschen jederzeit, danach gilt
+  wieder das eingebaute Bild bzw. die Vektorzeichnung.
+- **Server** (`supabase/migrations/20261117_lernquest_bilder.sql`, eingespielt am 09.11.2026 nach OK der Lehrkraft;
+  Admin = der Besitzer-Hash ihrer Klasse „5c“, damals die einzige Klasse): `lq_admin` (Hashes von Lehrkraft-Schlüsseln, ohne
+  Rechte für anon/authenticated, **von Hand per SQL eingetragen**, es gibt bewusst keine Funktion zum Selbst-Eintragen),
+  `lq_bild` (je Teil-ID aus `lq_teil` ein Bild, Version aus einer Folge). Funktionen: `lq_ist_admin`, `lq_bild_setzen`
+  und `lq_bild_loeschen` (nur Admin; WebP oder PNG mit 480 × 480 laut Dateikopf, JPEG nur für Hintergründe, höchstens
+  400 KB; `voll` ab 400 MB Datenbank), `lq_bilder` (`{teil: version}`) und `lq_bild_daten` (höchstens 10 je Aufruf,
+  Base64) für alle, denn die Bilder sind nicht persönlich.
+- **Lehrerseite:** Knopf „Bilder der Teile“ oben, nur wenn `lq_ist_admin` ja sagt (`teacher/TeilBilder.tsx`, lädt erst
+  bei Bedarf). Raster aller Teile mit Herkunft (Hochgeladen / Eingebaut / Zeichnung) → Teil antippen → Bild wählen →
+  Weg wählen, wo es zwei gibt (einzeln gemalt auf Grau oder Edit der Grundfigur; Kleidung nur Edit, Hintergrund ganzes
+  Bild) → Vorschau am Helden und als Kachel, Regler (Größe, links/rechts, hoch/runter, Freistellen; beim Edit die
+  Empfindlichkeit), Startwerte aus `anpassen.json` → „Übernehmen“. Die Vorschau ist genau die Datei, die hochgeht.
+- **Bildarbeit im Browser** (`teacher/bildVerarbeiten.ts`): dieselben Schritte wie `npm run lq:bilder`, gemeinsam in
+  `bilder/ebene.ts`; nur das Skalieren macht dort sharp, hier ein Canvas. Ein Edit wird mit der eingebauten
+  Grundfigur `koerper-0.webp` verglichen (auf dem Grau, das das Edit-Bild am Rand hat). Kodiert als WebP (Chrome,
+  Firefox, Edge); Safari kann kein WebP speichern, dort PNG (Hintergründe JPEG). Geprüft: Browser und Skript liefern
+  fast dieselbe Ebene (Edit 0,03 %, einzeln 0,16 % abweichende Deckung, Farbe im Mittel 0,6 von 255).
+- **Kinder-App** (`app/hochgeladen.tsx`): beim Start und nach 10 Minuten im Hintergrund die Liste holen, fehlende oder
+  neue Versionen laden, gelöschte vergessen; die Bilder liegen im Gerät (IndexedDB `lernquest-bilder`), also auch nach
+  Neuladen und offline da. `avatar.tsx` nimmt ein hochgeladenes Bild vor dem eingebauten (Kontext
+  `HochgeladeneBilder`). Ohne Server-Funktion (vor dem Einspielen) bleibt alles wie bisher.
+- Frisuren, Münder, Hauttöne und die Grundfigur bleiben beim Skript.
+- Geprüft: lokal mit allen Migrationen (Postgres 16; Nicht-Admin, Kinder-Token, falsche Formate und Größen, direkter
+  Tabellenzugriff abgelehnt; Ersetzen, Löschen, neue Version); im Browser mit nachgeahmten RPCs (Hochladen einzeln
+  und als Edit, Löschen, Kinder-App online, nach Neuladen ohne neues Laden, offline). Live-Test im
+  `server.live.test.ts` („Bilder der Teile“) nach dem Einspielen grün.
+- Hat die Lehrkraft auf einem Gerät einen anderen Schlüssel (vor dem Abgleich), fehlt dort der Knopf; dann den
+  weiteren Besitzer-Hash ihrer Klassen in `lq_admin` nachtragen.
+
+## Bilder nachjustieren und mit KI malen (09.11.2026)
+
+- Wunsch: auch die eingebauten Bilder auf der Seite bearbeiten (Größe, Freistellen, **Drehen**) und neue Bilder mit
+  Nano Banana über OpenRouter direkt auf der Seite malen lassen. Ganz neue Teile (Name, Platz, Preis) kommen später als
+  eigener Schritt, weil dafür der Server-Katalog und die App umgebaut werden müssen.
+- **Nachjustieren:** „Eingebautes Bild nachjustieren“ bzw. „Hochgeladenes Bild nachjustieren“ nimmt die fertige Ebene;
+  Regler Größe, links/rechts, hoch/runter, Drehen und „Grauen Rand wegschneiden“ (`ebeneAnpassen` in
+  `bilder/ebene.ts`; Hintergründe ohne Regler). Das Ergebnis geht wie ein Upload auf den Server; „Löschen“ bringt das
+  eingebaute Original zurück, das Repo bleibt unverändert.
+- **Drehen** auch für einzeln gemalte Teile (Regler, im Skript `r` in `anpassen.json`, Grad im Uhrzeigersinn).
+- **Mit KI malen:** Prompt aus `vorlagen.ts` (änderbar), ein Bild je Klick mit dem Bildmodell und dem OpenRouter-Schlüssel
+  aus „KI im Baukasten“ (nur auf dem Gerät); Kosten werden wie andere KI-Bilder gezählt (Monatsgrenze fragt vorher).
+  Kleidung und Augen standardmäßig als Edit: die gemalte Grundfigur (`koerper-0.webp` auf Grau, 1024 px) geht mit.
+  Das Ergebnis landet in der Vorschau wie ein gewähltes Bild. Keine Server-Änderung.
+
+## Eigene Teile (09.11.2026)
+
+- Wunsch: ganz neue Teile auf der Lehrerseite anlegen. Umsetzung (Vorschlag von Claude, die Lehrkraft hat „ja mach das“
+  gesagt): auf „Bilder der Teile“ je Platz die Kachel „Neues Teil“ → Name (bis 30 Zeichen), Seltenheit, „Nur aus Truhen“,
+  Bild wählen oder mit KI malen → „Teil anlegen“. **Preis aus der Seltenheit wie bei allen Teilen, keine Boni.**
+- **Kein Löschen**, damit kein Inventar ins Leere zeigt: Umbenennen und „Im Spiel“ aus/an. Aus dem Spiel = nicht mehr
+  im Laden und in Truhen; wer es hat, behält es und sieht es weiter (andere sehen es in ihrer Liste nicht mehr).
+- **Server** (`supabase/migrations/20261118_lernquest_eigene_teile.sql`, eingespielt am 09.11.2026 nach OK der Lehrkraft;
+  Live-Tests grün): `lq_teil` bekommt `name`, `eigen`, `aktiv`,
+  `erstellt`; `lq_teil_anlegen` (nur Admin, Teil und Bild in einem Schritt, Kennung `e` + 10 Hexzeichen, höchstens 200
+  eigene), `lq_teil_aendern` (nur Admin, nur eigene), `lq_teile_eigen` (für alle); `lq_truhe_oeffnen` und `lq_kaufen`
+  nehmen nur Teile im Spiel; das Bild eines eigenen Teils lässt sich nicht löschen (es hat keine Zeichnung).
+- **App:** `teile.ts` kennt neben `TEILE` die eigenen Teile (`setzeEigene`, `alleTeile`, `teil` findet beide;
+  `readEigene` prüft jeden Eintrag). Geladen mit den Bildern (`app/hochgeladen.tsx`), im Gerät in
+  `lernquest:eigeneTeile` (offline). Seiten, die Teile auflisten, lesen den Kontext `EigeneTeile` (`useAlleTeile`).
+  Bringt eine Truhe ein Teil, das das Gerät noch nicht kennt, lädt es Teile und Bilder sofort nach.
+- Geprüft: lokal mit allen Migrationen (nur Admin, Fehler im Bild → kein Teil, aus dem Spiel nie gekauft und in 1500
+  Truhen nie gefunden, im Spiel beides); im Browser (anlegen mit KI, umbenennen, Kind sieht es im Laden, auch offline).
+
+## Wiederholungen geben weniger (09.11.2026)
+
+Wunsch der Lehrkraft: „Wiederholungen bereits erledigter Übungen geben eine kleine Anzahl von EP und Münzen.“
+Entscheidungen der Lehrkraft (Vorschläge von Claude): beides zählt als Wiederholung, sie gibt ein Drittel.
+Migration `20261117_lernquest_wiederholung.sql` (lokal mit allen Migrationen in Postgres 16 durchgespielt, eingespielt
+am 09.11.2026 über die Supabase-Verbindung nach OK der Lehrkraft, vor dem Merge).
+- **Was zählt:** die Runde „Wiederholen“ (Leitner-Kästen) und eine Stationsrunde, die schon einmal geschafft war
+  (Bestwert dieser Runde über 0, vor dieser Runde). Eine Runde mit 0 % gilt nicht als geschafft und gibt weiter alles.
+- **Wie viel:** ein Drittel der Erfahrung und der Münzen, abgerundet (Münzen erst mit Bonus, dann ein Drittel); danach
+  die Tagesgrenze wie bisher (300 EP, 200 Münzen). Beispiel 5 von 5 richtig: 8 statt 25 EP, 5 statt 16 Münzen.
+- **Bleibt:** Bestwert, Sterne und Truhen aus Sternen (eine Runde besser spielen bringt weiter den fehlenden Stern),
+  Lerntag und Wochenziel, Leitner-Kästen.
+- **Im Ergebnis** steht unter den Kacheln „Diese Runde hattest du schon geschafft. Wiederholen gibt ein Drittel der
+  Erfahrung und Münzen.“ (bei „Wiederholen“ nur der zweite Satz).
+- Regeln doppelt: `istWiederholung`, `WIEDERHOLUNG_TEILER`, `xpFuerRunde`, `muenzenFuerRunde`, `rundeAnwenden` in
+  `rules.ts` und `lq_runde_melden` (gibt jetzt auch `wiederholung` zurück); ein Test vergleicht beides.
+
+## Wiederholen: „Morgen dran“ und „Wiederholen sofort“ (09.11.2026)
+
+- Wunsch der Lehrkraft: ein Hinweis „Morgen sind … dran“ und ein Knopf, um Wiederholungen ausnahmsweise sofort zu
+  geben („z. B. wegen morgen Klassenarbeit“).
+- **Kind** („Wiederholen“): unter dem Knopf „Morgen kommt 1 Aufgabe dazu“ bzw. ohne heutige Aufgaben „Morgen sind 3
+  Aufgaben dran“ (`morgenDran`). Läuft „Wiederholen sofort“, steht dort „Deine Lehrkraft hat Aufgaben zum Üben
+  freigegeben, zum Beispiel vor einer Klassenarbeit.“
+- **Lehrkraft**: Karte „Wiederholen sofort“ je Klasse (`teacher/WiederholenSofort.tsx`): freigeschaltete Stunden nach Modul
+  ankreuzen, Dauer (nur heute, bis morgen, bis übermorgen, eine Woche) → „Freigeben“; „Beenden“ und „Ändern“.
+- **Regel** (`rules.ts` `extraFaellig`, `heuteDran`): in der Zeit sind alle Aufgaben der gewählten Stunden dran, die das
+  Kind seit dem Start nicht beantwortet hat, auch nie gespielte, jede einmal (beantwortet am = fällig am − Abstand des
+  Kastens, darum keine neue Speicherung). Erst die nach Kasten fälligen, dann diese. Belohnung wie jede Wiederholung (ein
+  Drittel). Danach läuft alles nach den Kästen weiter.
+- **Server** (`supabase/migrations/20261119_lernquest_wiederholen_sofort.sql`, eingespielt am 09.11.2026 nach OK der
+  Lehrkraft, Live-Tests grün): `lq_klasse.extra_wdh`
+  ({ab, bis, stunden}); `lq_wiederholen_setzen` (nur Besitzerin, `ab` heute ± 1 Tag, höchstens 14 Tage, nur
+  freigeschaltete Stunden, null beendet); `lq_mein_stand` und `lq_klassen` liefern `extra` mit. Im Gerät des Kindes in
+  `lernquest:daten` (offline).
+- Geprüft: lokal mit allen Migrationen (fremde Lehrkraft, fremde Stunde, zu lang, rückwärts abgelehnt; Kind sieht es;
+  Beenden); Tests `wiederholen.test.ts`; im Browser (Kind: 1 fällig + 6 freigegeben = 7, Hinweis morgen; Lehrkraft:
+  Freigeben, „Läuft vom … bis …“, Beenden).
+
+## Frisuren hochladen und Radiergummi (09.11.2026)
+
+- Wunsch: Frisuren auf „Bilder der Teile“ anpassen wie die Teile, dazu ein Radiergummi.
+- **Frisuren:** eigener Abschnitt mit allen Frisuren (außer Glatze). Gearbeitet wird an der braunen Ebene, immer als Edit
+  der Grundfigur (Bild wählen, mit KI malen mit `editFrisur`, eingebautes oder hochgeladenes Bild nachjustieren); die Seite
+  rechnet daraus alle fünf Haarfarben (`haarFarben`, wie `npm run lq:bilder`) und lädt fünf Dateien
+  `haare-<frisur>-<0–4>` hoch. Vorschau am Helden und als Köpfe in allen Farben. Löschen entfernt alle fünf.
+- **App:** `avatar.tsx` nimmt eine hochgeladene Frisur vor der eingebauten (in der Haarfarbe, sonst die braune), nur mit
+  der gemalten Grundfigur.
+- **Server** (`supabase/migrations/20261120_lernquest_frisur_bilder.sql`, eingespielt am 09.11.2026 nach OK, Live-Tests
+  grün): `lq_bild` hängt nicht mehr fest an `lq_teil`;
+  `lq_bild_setzen` nimmt Teile aus `lq_teil` und `haare-<frisur>-<0–4>` (nur Admin, sonst wie bisher).
+- **Radiergummi** (`teacher/Radierer.tsx`, `pixel.ts` `radieren`): in der Vorschau mit Finger oder Maus wegradieren,
+  Radiergröße, „Rückgängig“, „Alles wieder da“. Die Striche liegen in Ebenen-Pixeln und kommen nach den Reglern, also am
+  besten zuletzt radieren. Bei Frisuren vor dem Umfärben, gilt also für alle Farben. Nicht bei Hintergründen.
+
+## Teile einstellen und Frisuren sammeln (10.11.2026)
+
+Wunsch der Lehrkraft (Designrunde): bei jedem Teil Seltenheit, Herkunft und Effekte einstellen; Frisuren teils frei,
+teils aus Truhen und Laden. Migration `supabase/migrations/20261121_lernquest_teile_einstellen.sql` (lokal mit allen
+Migrationen in Postgres 16 durchgespielt, eingespielt am 10.11.2026 auf Wunsch der Lehrkraft, Live-Tests grün).
+- **Lehrerseite** („Bilder der Teile“, nur Admin): bei jedem Teil und jeder Frisur ein Kasten „Einstellungen“ mit
+  Seltenheit, Herkunft (Start, Nur Truhe, Truhe und Laden, Nur Laden, Nicht erhältlich) und Bonus Münzen / Herzen /
+  Schaden (Frisuren ohne Boni). Die Kacheln zeigen die Werte. Gilt auch für eingebaute und eigene Teile.
+- **Frisuren** stehen als `frisur-<id>` in `lq_teil`, zu Beginn alle Start (frei wie bisher). Nicht freie stehen in der
+  Kinder-App grau mit „Im Laden“ bzw. „Nur in Truhen“; der Laden hat den Bereich „Frisur“, Truhen können Frisuren bringen.
+- **Regeln:** Besitz bleibt. Verliert ein Teil „Start“, bekommen es alle, die es tragen (auch als Standard ohne eigene
+  Wahl); was ein Kind gerade trägt, darf es behalten. Wird ein Teil neu Start, behalten Kinder ohne eigene Wahl ihren
+  bisherigen Standard. Der Standard eines Platzes ist das Startteil mit der kleinsten Kennung (`standardTeil`,
+  `lq_standard_teil`). Das letzte Startteil von Kleidung, Augen, Hintergrund und Frisur bleibt Start (`letztes`).
+  Findet die Truhe in der gezogenen Seltenheit kein Truhen-Teil, nimmt sie die nächste daneben, sonst gibt sie Münzen.
+- **App:** `lq_teile_werte` wird mit den Bildern geladen (`app/hochgeladen.tsx`, offline in `lernquest:teilWerte`);
+  `teil`, `alleTeile`, `angelegt`, `bonusVon` und `ladenWare` rechnen mit den Werten der Lehrkraft (`mitWerten`).
+  Ohne Werte (älterer Server, offline beim ersten Start) gilt der Katalog in `teile.ts`.
+
+## Eigene Frisuren und Abmelden (10.11.2026)
+
+Wunsch der Lehrkraft: auf „Bilder der Teile“ neue Frisuren anlegen; ein sichtbarer „Abmelden“-Knopf für die Kinder.
+Migration `supabase/migrations/20261122_lernquest_eigene_frisuren.sql` (lokal mit allen Migrationen geprüft, am 10.11.2026 von der Lehrkraft im SQL-Editor eingespielt, Live-Tests grün).
+- **Neue Frisur:** Kachel „Neue Frisur“ → Name → Bild wählen oder mit KI malen (braun, als Edit der Grundfigur) → Vorschau
+  am Helden und in allen fünf Haarfarben → „Frisur anlegen“ (Frisur und fünf Bilder in einem Schritt, `lq_frisur_anlegen`,
+  höchstens 50). Umbenennen über „Speichern“; kein Löschen, die Bilder einer eigenen Frisur lassen sich nicht löschen.
+- Jede eigene Frisur steht auch im Teile-Katalog als `frisur-<id>`: zu Beginn frei; unter „Einstellungen“ wie jede Frisur
+  Seltenheit und Herkunft (frei, Laden, Truhe, nicht erhältlich).
+- **App:** `lq_frisuren_eigen` wird mit den Bildern geladen (offline in `lernquest:eigeneFrisuren`); Held-Wahl, Laden und
+  Truhe kennen eigene Frisuren (`alleFrisuren`).
+- **Abmelden:** Knopf unten auf der Held-Seite und im Menü oben, beide fragen nach (mit Warnung, wenn ungesendete Runden
+  verloren gingen).
+
 ## Die Runde, die lehrt (11.11.2026, „Stufe A“ aus `docs/kritik-und-plan.md`)
 
 Entscheidung der Lehrkraft: Lernquest bleibt ein Duolingo-Pfad und wird dort Spitzenniveau, kein Umbau zum
@@ -277,8 +475,8 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   Antippen; weggelassen, wenn auf der Seite ein Lese- oder Hörtext steht), Zuordnen → Paare (höchstens 5 je Übung),
   Lückentext → je Zeile eine Lücke mit Kacheln (+2 Ablenker aus der Stunde), Satzbau und Umformen → Wortkacheln,
   Knickvokabeln → antippen mit 3 falschen Antworten. Nur mit Lösung; Lehrkraft-Seiten nie.
-- **Regeln** (`src/lernquest/rules.ts`, gleich im Server): Runde 10 + 2 je richtige + 5 ohne Fehler Erfahrung, höchstens
-  300 am Tag; Stufe n → n+1 braucht 50 + 50·n; Sterne: 1 = alle Runden gespielt, 2 = Schnitt ≥ 80 %, 3 = jede Runde
+- **Regeln** (`src/lernquest/rules.ts`, gleich im Server): Runde 10 + 2 je richtige + 5 ohne Fehler Erfahrung
+  (Wiederholung ein Drittel, seit 09.11.2026), höchstens 300 am Tag; Stufe n → n+1 braucht 50 + 50·n; Sterne: 1 = alle Runden gespielt, 2 = Schnitt ≥ 80 %, 3 = jede Runde
   einmal fehlerfrei; Wochenziel 3 Lerntage, gezählt werden geschaffte Wochen (keine Serie, die reißt); Wiederholen mit
   5 Kästen (1, 3, 7, 14, 30 Tage), falsch → Kasten 1.
 - **Aussehen nach dem Prototyp** (`docs/design/lernquest/Main.dc.html`): Start mit Wappen und „Klassen-QR scannen“,
