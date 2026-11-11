@@ -7,7 +7,8 @@ import { exercisesOf, readPaket } from './paket';
 import { faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
-import { beamerAusHash, beitrittsLink, codeAus, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
+import { beamerAusHash, beitrittsLink, codeAus, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
+import { gemischterTest } from './probe';
 import { LEERER_STAND, type Paket, type Uebung } from './types';
 
 const block = (type: Block['type'], props: Block['props']): Block => createBlock(type, props);
@@ -388,6 +389,28 @@ describe('Weltkarte', () => {
     const rs = regionenVon([pk('x', 2, { id: 'm2', nummer: 2 }), pk('a', 1, m1)], 'Erdkunde', LEERER_STAND);
     expect(rs.map((r) => r.nummer)).toEqual([1, 2]);
     expect(rs[1].stationen.map((s) => s.zustand)).toEqual(['offen']);
+  });
+
+  it('lässt fertige Stationen mit Fälligem verblassen und öffnet den Meilenstein erst, wenn die Region fertig ist (Stufe C)', () => {
+    const stand = { ...LEERER_STAND, bestwerte: { a: [100], b: [60] } };
+    const m = { id: 'm1', nummer: 1, stunden: [1, 2].map((n) => ({ nummer: n, titel: `Titel ${n}` })) };
+    const [r] = regionenVon([pk('a', 1, m), pk('b', 2, m)], 'Erdkunde', stand, new Set(['a/u0', 'a/u2', 'x/u0']));
+    expect(r.stationen.map((s) => s.faellig)).toEqual([['a/u0', 'a/u2'], []]);
+    expect(r.meilenstein).toBe(true);
+    // A locked station, an unfinished one or a region of one station: no Meilenstein yet.
+    expect(regionenVon([pk('a', 1, m1), pk('b', 2, m1)], 'Erdkunde', stand)[0].meilenstein).toBe(false);
+    expect(regionenVon([pk('a', 1, m), pk('b', 2, m)], 'Erdkunde', { ...stand, bestwerte: { a: [100] } })[0].meilenstein).toBe(false);
+    expect(regionenVon([pk('a', 1, { id: 'm3', nummer: 3 })], 'Erdkunde', stand)[0].meilenstein).toBe(false);
+  });
+
+  it('mischt den Meilenstein aus allen Stationen der Region, jede Übung behält ihre Station', () => {
+    const a = pk('a', 1, m1);
+    const b = pk('b', 2, m1, 9);
+    // 3 + 9 exercises, 10 taken: all 3 of the small station, 7 of the large one.
+    const t = gemischterTest([a, b], 'seed', MEILENSTEIN_GROESSE);
+    expect(t).toHaveLength(10);
+    expect(t.filter((x) => x.stunde === 'a')).toHaveLength(3);
+    expect(gemischterTest([a, b], 'seed', 4).map((x) => x.stunde).sort()).toEqual(['a', 'a', 'b', 'b']);
   });
 
   it('zeigt die Woche von Montag bis Sonntag', () => {

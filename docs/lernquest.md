@@ -479,6 +479,27 @@ Server-Änderung:** Der Pool reist wie bisher im Lernpaket, der Server zählt nu
   geprüft:** eine echte KI-Anfrage mit 30 Fragen und der Lehrkraft-Dialog im Browser (beides braucht Server und
   Schlüssel der Lehrkraft), die Tastatur am echten Handy.
 
+## Die Lernspirale im Pfad (11.11.2026, „Stufe C“ ohne Server)
+
+Entscheidungen der Lehrkraft siehe `docs/roadmap.md` (Stufe C). Dieser Teil braucht **keine Server-Änderung**: Alles
+läuft als Runde „Wiederholen“ (ein Drittel der Erfahrung und Münzen, Wiederhol-Kästen wie bisher).
+- **Verblassen:** Eine fertige Station mit heute fälligen Aufgaben wird blass (Auffrisch-Zeichen statt Haken, „2 zum
+  Auffrischen“). Antippen startet gleich eine Runde mit genau diesen Aufgaben; danach glänzt sie wieder. Ihre Runden
+  bleiben über die Station erreichbar (`faellig` in `regionenVon`, `karte.ts`).
+- **Wiederholen im Pfad:** Ist im Fach etwas fällig, steht vor der aktuellen Station ein Knoten „Wiederholen“ mit dem
+  gemischten Stoff früherer Stationen (höchstens 8 je Runde); ohne aktuelle Station am Ende des Pfads. Der Reiter
+  „Wiederholen“ bleibt für alle Fächer zusammen.
+- **Meilenstein:** Am Ende jeder Region mit mindestens zwei Stationen. Er öffnet sich, wenn alle Stationen der Region
+  freigeschaltet und geschafft sind, und mischt 10 Aufgaben gleichmäßig aus allen Stationen (`gemischterTest` in
+  `probe.ts`, auch für den Probetest der offenen Übung). Fehler kommen wieder wie in jeder Runde; ab 80 % beim
+  ersten Versuch heißt es „Meilenstein geschafft!“, sonst „Fast!“ mit „Meilenstein nochmal“. Das beste Ergebnis
+  steht am Knoten. **Nur auf dem Gerät** gespeichert (`lernquest:meilensteine`, beim Abmelden gelöscht): Der Server
+  kennt Meilensteine noch nicht; das kommt mit dem Server-Teil von Stufe C, wenn nötig. Der Bosskampf hängt nicht
+  am Meilenstein (ihn startet die Lehrkraft).
+- Geprüft: Tests (`lernquest.test.ts`, „Weltkarte“), Typprüfung, Build; im Spieltest ohne Server am Handy-Format:
+  verblasste Station aufgefrischt (glänzt danach, Wiederholen-Knoten weg), Meilenstein mit 7 von 10 („Fast!“) und
+  10 von 10 („geschafft“, Haken und Bestwert am Knoten). Nicht mit echtem Server gespielt.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

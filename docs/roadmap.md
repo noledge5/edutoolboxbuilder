@@ -220,6 +220,11 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
 - **Stufe B gebaut** (KI-Pool automatisch beim Freischalten, etwa 30 Fragen in drei Schwierigkeiten mit Erklärung,
   „Alle freigeben“, neues Format „Selbst schreiben“); Einzelheiten unter „Inhalte, die reichen“ in
   `docs/lernquest.md`. Offen: „Frage melden“ (Server-Änderung), echte KI-Anfrage noch nicht ausprobiert.
+- **Stufe C, Entscheidungen der Lehrkraft (11.11.2026):** Eine Runde gilt erst ab 60 % als geschafft, auch am
+  Server (Migration; verdiente Sterne und Truhen bleiben). Die drei Sterne einer Station kommen aus drei Stufen
+  (Kennenlernen leicht, Anwenden mittel, Meistern schwer); Aufgaben ohne Stufe werden nach Format eingeordnet
+  (Server-Änderung). Zuerst kam der Teil ohne Server (Wiederholen im Pfad, verblassende Stationen, Meilenstein je
+  Region), gebaut am 11.11.2026; der Server-Teil folgt.
 - **Held und Teile wieder als Vektorgrafik aus dem Code**, detailreich und im Stil von Duolingo, statt gemalter
   Bilder aus ComfyUI (Wunsch der Lehrkraft). Noch nicht gebaut.
 - **Aussehen professioneller, Richtung Duolingo:** Die Lehrkraft hat ein Mockup gezeigt, das ihr gefällt (Fuchs als

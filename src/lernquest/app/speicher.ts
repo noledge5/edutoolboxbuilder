@@ -36,6 +36,7 @@ const K_SITZUNG = 'lernquest:sitzung';
 const K_DATEN = 'lernquest:daten';
 const K_WARTE = 'lernquest:warteschlange';
 const K_TON = 'lernquest:ton';
+const K_MEILENSTEINE = 'lernquest:meilensteine';
 
 function read<T>(key: string): T | null {
   try {
@@ -86,7 +87,17 @@ export const speichereWarteschlange = (m: Meldung[]) => write(K_WARTE, m.length 
 export const tonAn = () => read<boolean>(K_TON) !== false;
 export const setzeTon = (an: boolean) => write(K_TON, an);
 
+/**
+ * Best percent per Meilenstein (region id). ponytail: only on this device, the server does not know Meilensteine yet;
+ * they move to the server with the rest of Stufe C (stars from levels), if children play on several devices.
+ */
+export const ladeMeilensteine = (): Record<string, number> => read<Record<string, number>>(K_MEILENSTEINE) ?? {};
+export function speichereMeilenstein(id: string, prozent: number) {
+  const alt = ladeMeilensteine();
+  if (prozent > (alt[id] ?? -1)) write(K_MEILENSTEINE, { ...alt, [id]: prozent });
+}
+
 /** Everything of this child off the device (sign out). */
 export function allesWeg() {
-  for (const k of [K_SITZUNG, K_DATEN, K_WARTE]) write(k, null);
+  for (const k of [K_SITZUNG, K_DATEN, K_WARTE, K_MEILENSTEINE]) write(k, null);
 }

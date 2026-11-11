@@ -37,8 +37,11 @@ export function stationPaket(p: Probe, n: number): Paket {
 }
 
 /** The mixed test: the same share from every station, mixed by `seed`; each exercise keeps its station. */
-export function probeTest(p: Probe, seed: string, n = TEST_GROESSE): { u: Uebung; stunde: string }[] {
-  const je = p.stationen.map((s, i) => gemischt(s.uebungen, `${seed}:${i}`).map((u) => ({ u, stunde: `${p.id}:${i}` })));
+export const probeTest = (p: Probe, seed: string, n = TEST_GROESSE) => gemischterTest(p.stationen.map((s, i) => ({ stunde: `${p.id}:${i}`, uebungen: s.uebungen })), seed, n);
+
+/** `n` exercises, the same share from every station, mixed by `seed` (also the Meilenstein of a region on the map). */
+export function gemischterTest(stationen: { stunde: string; uebungen: Uebung[] }[], seed: string, n: number): { u: Uebung; stunde: string }[] {
+  const je = stationen.map((s, i) => gemischt(s.uebungen, `${seed}:${i}`).map((u) => ({ u, stunde: s.stunde })));
   const out: { u: Uebung; stunde: string }[] = [];
   for (let k = 0; out.length < n && je.some((x) => x.length > k); k++) for (const x of je) if (x[k] && out.length < n) out.push(x[k]);
   return gemischt(out, `${seed}:test`);

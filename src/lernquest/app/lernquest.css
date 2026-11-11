@@ -3516,3 +3516,25 @@ button.lq-teil:active {
   color: var(--lq-fehler);
   box-shadow: inset 0 0 0 2px var(--lq-fehler);
 }
+
+/* Stufe C on the map: a done station with exercises due again fades until they are refreshed; the „Wiederholen“ node
+   on the path; the Meilenstein at the end of a region. */
+.lq-knoten.erledigt.faellig {
+  background: var(--lq-gold-flaeche);
+  color: var(--lq-gold-schrift);
+  box-shadow:
+    inset 0 0 0 2px var(--lq-gold),
+    0 6px 0 var(--lq-stern-aus);
+}
+.lq-knoten.wdh {
+  background: var(--lq-primary-flaeche);
+  color: var(--lq-primary);
+  box-shadow:
+    inset 0 0 0 2px var(--lq-primary),
+    0 6px 0 var(--lq-primary-tief);
+}
+.lq-knoten.meilenstein:not(:disabled) {
+  background: var(--lq-nacht);
+  color: var(--lq-gold);
+  box-shadow: 0 6px 0 var(--lq-primary-tief);
+}

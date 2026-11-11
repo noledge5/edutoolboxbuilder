@@ -67,7 +67,8 @@ window.T = {
       for (const l of L) {
         l.click();
         await T.sleep(60);
-        R.find((b) => b.innerText.trim() === m[l.innerText.trim()]).click();
+        // Two pairs may share a word („big – groß“, „large – groß“): take one that is still open.
+        R.find((b) => b.innerText.trim() === m[l.innerText.trim()] && !b.disabled).click();
         await T.sleep(120);
       }
       await T.sleep(200);
