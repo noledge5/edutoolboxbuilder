@@ -3178,6 +3178,73 @@ button.lq-teil:active {
   border-radius: var(--lq-r-klein);
 }
 
+/* — The round rebuilt (Stufe A): the hero in the feedback, the reason after a mistake, „Runde beenden?“ — */
+.lq-held-kopf {
+  width: 56px;
+  height: 48px;
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+.lq-held-kopf svg {
+  width: 100%;
+  height: 100%;
+}
+.lq-held-kopf.freut {
+  animation: lq-huepfen var(--lq-dauer-lang) var(--lq-feder);
+}
+.lq-held-kopf.schuettelt {
+  animation: lq-wackeln var(--lq-dauer);
+}
+@keyframes lq-huepfen {
+  40% {
+    transform: translateY(-10px) scale(1.08);
+  }
+}
+.lq-erklaerung {
+  padding: var(--lq-a-2) var(--lq-a-3);
+  border-radius: var(--lq-r-klein);
+  background: var(--lq-karte);
+  font-size: var(--lq-t-text);
+}
+.lq-dialog-grund {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: end center;
+  padding: var(--lq-a-4);
+  background: color-mix(in srgb, var(--lq-nacht) 55%, transparent);
+}
+.lq-dialog {
+  width: min(100%, 480px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-3);
+  padding: var(--lq-a-5);
+  margin-bottom: env(safe-area-inset-bottom);
+  border-radius: var(--lq-r);
+  background: var(--lq-karte);
+  animation: lq-hoch var(--lq-dauer) ease-out;
+}
+.lq-dialog h2,
+.lq-dialog p {
+  margin: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-held-kopf.freut,
+  .lq-held-kopf.schuettelt,
+  .lq-dialog {
+    animation: none;
+  }
+}
+/* Nothing to press yet (pairs, places): no empty bar at the bottom. */
+.lq-fuss.leer {
+  /* Kept in the page (not display: none), so the feedback that appears in it is still read out. */
+  padding: 0;
+  border: 0;
+}
+
 /* Bosskampf mit Karten: Buchstabe neben der Form (wie auf der Karte), erkannte Namen grün. */
 .lq-antwort-buchstabe {
   font-family: Fredoka, Nunito, sans-serif;

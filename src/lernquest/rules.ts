@@ -44,6 +44,26 @@ export function rundeVon(uebungen: Uebung[], r: number): Uebung[] {
   return Array.from({ length: take }, (_, k) => uebungen[(start + k) % n]);
 }
 
+/** How often one exercise comes up in a round at most: once, then again after each mistake. A broken exercise (wrong
+ *  solution) must not hold a child in the round for ever. */
+export const WIEDER_MAX = 3;
+
+/**
+ * The order of a round after the answer at `pos`: `reihe` holds exercise indexes; a missed exercise is put at the
+ * end again, so the child meets it once more before the round is over.
+ */
+export function nachAntwort(reihe: number[], pos: number, richtig: boolean): number[] {
+  const i = reihe[pos];
+  if (richtig || i === undefined || reihe.filter((x) => x === i).length >= WIEDER_MAX) return reihe;
+  return [...reihe, i];
+}
+
+/** How a round went, by the first tries: below 60 % it is not called done („Fast!“), all right is „Perfekt!“. */
+export function rundenFazit(richtig: number, gesamt: number): 'schwach' | 'gut' | 'perfekt' {
+  if (gesamt > 0 && richtig === gesamt) return 'perfekt';
+  return gesamt > 0 && richtig * 5 >= gesamt * 3 ? 'gut' : 'schwach';
+}
+
 // — Checking —
 
 /** What a child gave: chosen option indexes, true/false, pairs matched (left index → right index), tiles laid. */
@@ -69,13 +89,19 @@ export function punktTrifft(punkte: [number, number, string][], ziel: number, x:
   return p !== undefined && p <= PUNKT_RADIUS && d.every((o, i) => i === ziel || o > p);
 }
 
+/**
+ * Slips that still count as right when finding pairs or tapping places: one from three items on. Trying is part of
+ * these formats; with two items a slip gives the rest away.
+ */
+export const fehlgriffeFrei = (n: number) => (n >= 3 ? 1 : 0);
+
 /** A sentence from tiles: spaces before end marks and commas go. */
 /** Two answers in words are the same, as `istRichtig` compares them (case, spaces, punctuation). */
 export const gleich = (a: string, b: string) => normalize(a) === normalize(b);
 
 export const satz = (tiles: string[]) => tiles.join(' ').replace(/\s+([.,!?;:])/g, '$1');
 
-/** Whether an answer is right. Pairs count as right when no wrong pair was tried. */
+/** Whether an answer is right. Pairs and places allow `fehlgriffeFrei` slips. */
 export function istRichtig(u: Uebung, a: Antwort): boolean {
   switch (u.art) {
     case 'waehlen':
@@ -83,7 +109,7 @@ export function istRichtig(u: Uebung, a: Antwort): boolean {
     case 'richtigfalsch':
       return a.art === 'richtigfalsch' && a.wert === u.richtig;
     case 'paare':
-      return a.art === 'paare' && a.fehler === 0;
+      return a.art === 'paare' && a.fehler <= fehlgriffeFrei(u.paare.length);
     case 'luecke': {
       if (a.art !== 'luecke') return false;
       const want = u.teile.filter((_, i) => i % 2 === 1);
@@ -98,7 +124,8 @@ export function istRichtig(u: Uebung, a: Antwort): boolean {
     case 'punkt': {
       if (a.art !== 'punkt' || a.getippt.length !== u.punkte.length) return false;
       const asked = new Set(a.getippt.map((t) => t.ziel));
-      return asked.size === u.punkte.length && a.getippt.every((t) => punktTrifft(u.punkte, t.ziel, t.x, t.y));
+      const daneben = a.getippt.filter((t) => !punktTrifft(u.punkte, t.ziel, t.x, t.y)).length;
+      return asked.size === u.punkte.length && daneben <= fehlgriffeFrei(u.punkte.length);
     }
   }
 }

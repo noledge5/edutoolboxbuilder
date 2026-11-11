@@ -210,3 +210,22 @@ Entschieden am 08.11.2026:
   08.11.2026): Den kleinen Code-Teil (Animation statt Bild, Standbild bei „Bewegung reduzieren“, Treffer per CSS,
   Prüf- und Umwandlungs-Skript) baut Claude in einer eigenen Sitzung. Die Abmachung zu Arbeitspaketen oben gilt, falls
   später viel gleichartige Kleinarbeit kommt.
+
+Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-plan.md`):
+- **Lernquest bleibt ein Duolingo-Pfad** und wird dort perfektioniert (kein Kampf-Rollenspiel); Nutzung im Unterricht
+  und zuhause freiwillig; erst die eigenen Klassen, später andere Lehrkräfte; die KI füllt den Fragenpool, die
+  Lehrkraft prüft grob.
+- **Stufe A gebaut** (Übungsrunde neu: Fehler kommen wieder, ehrliches Ergebnis, faire Wertung, Zurück-Taste);
+  Einzelheiten unter „Die Runde, die lehrt“ in `docs/lernquest.md`.
+- **Held und Teile wieder als Vektorgrafik aus dem Code**, detailreich und im Stil von Duolingo, statt gemalter
+  Bilder aus ComfyUI (Wunsch der Lehrkraft). Noch nicht gebaut.
+- **Aussehen professioneller, Richtung Duolingo:** Die Lehrkraft hat ein Mockup gezeigt, das ihr gefällt (Fuchs als
+  Maskottchen, Grün und Creme, Karte als Landschaft mit Burgen, Tagesaufgaben, Truhen-Bild). Es ist Richtung, nicht
+  Vorgabe. Offen und zu fragen, weil es früheren Entscheidungen widerspricht: Rangliste, Tagesserie, Maskottchen statt
+  oder neben dem eigenen Helden.
+- Antworten der Lehrkraft (11.11.2026): Der erste Stern trotz schwacher Runde wird mit Stufe C gelöst; es bleibt beim
+  **Wochenziel** (keine Tagesserie); der **Fuchs kommt als Begleiter und Führer** durch die App, der eigene Held
+  bleibt. Zur Rangliste gab es keine Antwort, also weiter keine Einzel-Rangliste.
+- Hinweis: `docs/kritik-und-plan.md` entstand auf einem Stand vor PR #42–#54. Einiges daraus war auf `main` schon
+  behoben (Held statt Anfangsbuchstabe im Kopf, Truhen-Text, schwächste Runde bei „Los geht’s!“); die Kritik ist an
+  diesen Stellen überholt und muss noch nachgezogen werden.

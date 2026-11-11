@@ -3,8 +3,13 @@
 
 export const PAKET_FORMAT = 'lernquest-paket';
 
-/** One exercise in the style of Anton/Duolingo, made from a task block of a lesson. */
-export type Uebung =
+/**
+ * One exercise in the style of Anton/Duolingo, made from a task block of a lesson. `erklaerung` is one short sentence
+ * a child reads after a mistake (why the answer is what it is); most exercises have none.
+ */
+export type Uebung = UebungArt & { erklaerung?: string };
+
+type UebungArt =
   /** Tap the right answer (or all right ones, when `richtig` has more than one). */
   | {
       art: 'waehlen';

@@ -3,16 +3,18 @@
 // experience, coins or chests.
 import { useState } from 'react';
 import { ladeProbe, probeTest, PROBEN, schwachePunkte, speichereProbe, stationPaket, type ProbeStand } from '../probe';
-import { naechsteRunde, rundenGeschafft, rundenZahl, rundeVon, sterne } from '../rules';
+import { naechsteRunde, rundenFazit, rundenGeschafft, rundenZahl, rundeVon, sterne } from '../rules';
 import { LEERER_STAND, type Paket, type Uebung } from '../types';
-import { HakenIcon, Runde, Sterne, SternIcon, type Screen } from './LernquestApp';
+import { Sterne, SternIcon, type Screen } from './LernquestApp';
+import { HakenIcon, Runde } from './Runde';
+import { useZurueck } from './zurueck';
 import { ton } from './ton';
 
 type Item = { u: Uebung; stunde: string };
 type ProbeScreen =
   | { kind: 'karte' }
   | Extract<Screen, { kind: 'runde' }>
-  | { kind: 'ergebnis'; station: number; richtig: number; gesamt: number; vorher: number; jetzt: number }
+  | { kind: 'ergebnis'; station: number; runde: number; richtig: number; gesamt: number; vorher: number; jetzt: number }
   | { kind: 'test-ergebnis'; richtig: number; gesamt: number; schwach: string[]; falsch: Item[] };
 
 const TEST = 'test';
@@ -21,6 +23,8 @@ export function ProbeApp({ id }: { id: string }) {
   const p = PROBEN[id];
   const [stand, setStand] = useState<ProbeStand>(() => ladeProbe(id));
   const [screen, setScreen] = useState<ProbeScreen>({ kind: 'karte' });
+  const [zurueckTaste, setZurueckTaste] = useState(0);
+  useZurueck(screen.kind !== 'karte', () => (screen.kind === 'runde' ? setZurueckTaste((t) => t + 1) : setScreen({ kind: 'karte' })));
 
   if (!p) {
     return (
@@ -35,8 +39,8 @@ export function ProbeApp({ id }: { id: string }) {
   const runden = (pk: Paket) => rundenZahl(pk.uebungen.length);
   const sterneVon = (pk: Paket) => sterne(stand.bestwerte[pk.stunde], runden(pk));
   const naechste = (pk: Paket) => naechsteRunde(stand.bestwerte[pk.stunde] ?? [], runden(pk));
-  const starte = (pk: Paket, r = naechste(pk)) => setScreen({ kind: 'runde', stunde: pk.stunde, runde: r, uebungen: rundeVon(pk.uebungen, r).map((u) => ({ u, stunde: pk.stunde })) });
-  const testStarten = (items = probeTest(p, Date.now().toString(36))) => setScreen({ kind: 'runde', stunde: TEST, runde: 0, uebungen: items });
+  const starte = (pk: Paket, r = naechste(pk)) => setScreen({ kind: 'runde', nr: Date.now(), stunde: pk.stunde, runde: r, uebungen: rundeVon(pk.uebungen, r).map((u) => ({ u, stunde: pk.stunde })) });
+  const testStarten = (items = probeTest(p, Date.now().toString(36))) => setScreen({ kind: 'runde', nr: Date.now(), stunde: TEST, runde: 0, uebungen: items });
   const merke = (s: ProbeStand) => {
     setStand(s);
     speichereProbe(id, s);
@@ -46,7 +50,12 @@ export function ProbeApp({ id }: { id: string }) {
     const station = pakete.findIndex((x) => x.stunde === screen.stunde);
     return (
       <Runde
-        screen={screen}
+        key={screen.nr}
+        uebungen={screen.uebungen}
+        stunde={screen.stunde}
+        runde={screen.runde}
+        zurueck={zurueckTaste}
+        wieder={screen.stunde !== TEST}
         stand={LEERER_STAND}
         herzen={3}
         titel={screen.stunde === TEST ? 'Probetest · alles gemischt' : `Station ${station + 1} · ${pakete[station]?.titel ?? ''}`}
@@ -70,7 +79,7 @@ export function ProbeApp({ id }: { id: string }) {
           best[runde] = Math.max(best[runde], prozent);
           const neu = { ...stand, bestwerte: { ...stand.bestwerte, [stunde]: best } };
           merke(neu);
-          setScreen({ kind: 'ergebnis', station, richtig, gesamt: ergebnisse.length, vorher, jetzt: sterne(best, runden(pk)) });
+          setScreen({ kind: 'ergebnis', station, runde, richtig, gesamt: ergebnisse.length, vorher, jetzt: sterne(best, runden(pk)) });
         }}
       />
     );
@@ -78,17 +87,19 @@ export function ProbeApp({ id }: { id: string }) {
 
   if (screen.kind === 'ergebnis') {
     const pk = pakete[screen.station];
+    const schwach = rundenFazit(screen.richtig, screen.gesamt) === 'schwach';
     const fertig = (stand.bestwerte[pk.stunde] ?? []).slice(0, runden(pk)).filter((x) => x > 0).length >= runden(pk);
     return (
       <main className="lq-app lq-ergebnis">
         <Sterne n={screen.jetzt} neu={screen.jetzt > screen.vorher} gross />
-        <h1>{screen.richtig === screen.gesamt ? 'Perfekt!' : fertig && screen.vorher === 0 ? 'Station geschafft!' : 'Runde geschafft!'}</h1>
+        <h1>{schwach ? 'Fast!' : screen.richtig === screen.gesamt ? 'Perfekt!' : fertig && screen.vorher === 0 ? 'Station geschafft!' : 'Runde geschafft!'}</h1>
         <p className="lq-untertitel">
-          {pk.titel} · {screen.richtig} von {screen.gesamt} richtig
+          {pk.titel} · {screen.richtig} von {screen.gesamt} beim ersten Versuch richtig
         </p>
+        {schwach && <p className="lq-klein lq-mitte">Das sitzt noch nicht. Spiel die Runde gleich nochmal, dann klappt es besser.</p>}
         <div className="lq-platz" />
-        <button type="button" className="lq-knopf" onClick={() => starte(pk)}>
-          {fertig ? 'Nochmal üben' : 'Nächste Runde'}
+        <button type="button" className="lq-knopf" onClick={() => (schwach ? starte(pk, screen.runde) : starte(pk))}>
+          {schwach ? 'Runde nochmal spielen' : fertig ? 'Nochmal üben' : 'Nächste Runde'}
         </button>
         <button type="button" className="lq-knopf lq-hell" onClick={() => setScreen({ kind: 'karte' })}>
           Zur Übersicht
