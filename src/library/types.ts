@@ -83,6 +83,8 @@ export interface Lesson {
   pool?: PoolEintrag[];
   /** Help cards („So geht's“) the KI-Fragenpool wrote for the lesson (Stufe E); they go to the class with the package. */
   poolHilfe?: Lernkarte[];
+  /** Tips Claude wrote for the sheet's own exercises, by exercise id. */
+  poolTipps?: Record<string, string>;
   updatedAt: number;
 }
 

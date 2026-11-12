@@ -272,13 +272,12 @@ export function buildPaket(m: Module, l: Lesson, lessons: Lesson[] = [l], verste
     // The released exercises of the KI-Fragenpool come after the lesson's own ones.
     // Easy ones first, so the rounds of a station get harder (the sort is stable; no level counts as the middle).
     hilfe: [...hilfeAusStunde(l.doc.pages), ...(l.poolHilfe ?? [])].slice(0, 4),
+    // Easy to hard over the whole station (Stufe E): the introduction comes first; the sheet's own exercises have no
+    // level and count as the middle one. Tips Claude wrote for the sheet's exercises are put on them.
     uebungen: [
-      ...exercisesOf(l.doc.pages),
-      ...(l.pool ?? [])
-        .filter((e) => e.frei)
-        .map((e) => e.u)
-        .sort((a, b) => (a.niveau ?? 2) - (b.niveau ?? 2)),
-    ],
+      ...exercisesOf(l.doc.pages).map((u) => (!u.tipp && l.poolTipps?.[u.id] ? { ...u, tipp: l.poolTipps[u.id] } : u)),
+      ...(l.pool ?? []).filter((e) => e.frei).map((e) => e.u),
+    ].sort((a, b) => (a.niveau ?? 2) - (b.niveau ?? 2)),
   };
 }
 

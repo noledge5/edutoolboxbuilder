@@ -268,10 +268,12 @@ describe('KI-Pool automatisch (Stufe B)', () => {
     expect(fragenAus(u)).toEqual([]);
   });
 
-  it('legt Freigegebenes von leicht nach schwer ins Paket, ohne Niveau in die Mitte', () => {
+  it('legt die ganze Station von leicht nach schwer ins Paket, ohne Niveau (auch die Arbeitsblatt-Aufgaben) in die Mitte', () => {
     const u = (id: string, niveau?: 1 | 2 | 3): PoolEintrag => ({ u: { art: 'richtigfalsch', id, frage: 'Stimmt das?', aussage: id, richtig: true, ...(niveau ? { niveau } : {}) }, frei: true });
-    const p = buildPaket(modul, stunde([u('s', 3), u('ohne'), u('l', 1), u('m', 2), u('l2', 1)]));
-    expect(p.uebungen.slice(1).map((x) => x.id)).toEqual(['l', 'l2', 'ohne', 'm', 's']);
+    const l = stunde([u('s', 3), u('ohne'), u('l', 1), u('m', 2), u('l2', 1)]);
+    const p = buildPaket(modul, l);
+    const blatt = exercisesOf(l.doc.pages)[0].id;
+    expect(p.uebungen.map((x) => x.id)).toEqual(['l', 'l2', blatt, 'ohne', 'm', 's']);
   });
 
   it('behält Erklärung und Niveau, wenn die Lehrkraft eine Aufgabe ändert', () => {

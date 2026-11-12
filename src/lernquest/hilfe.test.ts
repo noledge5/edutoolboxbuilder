@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { createBlock, createPage } from '../model/ops';
 import { readLesson } from '../library/read';
 import type { Lesson, Module } from '../library/types';
-import { frueherVon, poolAusAntwort, poolPrompt, poolSystem, readUebung } from './fragenpool';
+import { frueherVon, mitZusatz, poolAusAntwort, poolPrompt, poolSystem, readUebung } from './fragenpool';
 import { istRichtig, richtigeAntwort } from './rules';
 import { buildPaket, hilfeAusStunde, readLernkarte, readPaket } from './paket';
 
@@ -95,5 +95,26 @@ describe('test stations', () => {
       expect(n).toEqual([...n].sort((a, b) => a - b));
       expect(new Set(back.uebungen.map((u) => u.id)).size).toBe(back.uebungen.length);
     }
+  });
+});
+
+describe('tips for the sheet’s own exercises and the order of a station', () => {
+  it('reads Claude’s tips by id, puts them on the sheet’s exercises and orders the station easy to hard', () => {
+    const l = stunde(4, [createBlock('mc', { prompt: 'Wähle.', options: '* am\nis' })]);
+    const eigene = buildPaket(modul, l).uebungen[0];
+    const p = poolPrompt({ modul, stunde: l, klasse: '', vorhanden: [eigene], wuensche: '' });
+    expect(p).toContain(`[${eigene.id}]`);
+    const r = poolAusAntwort({ tipps: { [eigene.id]: 'Schau, wer gemeint ist.', kaputt: 5 }, uebungen: [{ art: 'richtigfalsch', frage: 'Stimmt das?', aussage: 'I am Tom.', richtig: true, niveau: 1 }] }, [], true);
+    expect(r.tipps).toEqual({ [eigene.id]: 'Schau, wer gemeint ist.' });
+    const mit = { ...l, poolTipps: r.tipps, pool: r.neu.map((u) => ({ u, frei: true })) } as Lesson;
+    const paket = buildPaket(modul, mit);
+    expect(paket.uebungen.map((u) => u.niveau ?? 2)).toEqual([1, 2]);
+    expect(paket.uebungen[1].tipp).toBe('Schau, wer gemeint ist.');
+    expect(readLesson(JSON.parse(JSON.stringify(mit)))?.poolTipps).toEqual(r.tipps);
+  });
+
+  it('keeps the tip when the teacher edits an exercise', () => {
+    const u = { art: 'richtigfalsch', id: 'a', frage: 'Stimmt das?', aussage: 'I is Tom.', richtig: false } as const;
+    expect(mitZusatz(u, '', 1, 'Bei I immer am.')?.tipp).toBe('Bei I immer am.');
   });
 });

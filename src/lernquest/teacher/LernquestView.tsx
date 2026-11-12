@@ -351,10 +351,12 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
         if (!l || !m || l.pool?.length) return;
         const a = await runAi(poolAnfrage({ modul: m, stunde: l, klasse: classProfileOf(settings, m.subject, m.grade), vorhanden: exercisesOf(l.doc.pages), wuensche: '', frueher: frueherVon(lessons, l) }));
         if (!a) return;
-        const { neu, hilfe } = poolAusAntwort(jsonOf(a.text), [], m.lang === 'en');
+        const { neu, hilfe, tipps } = poolAusAntwort(jsonOf(a.text), [], m.lang === 'en');
+        const eigeneIds = new Set(exercisesOf(l.doc.pages).map((u) => u.id));
+        const poolTipps = Object.fromEntries(Object.entries(tipps).filter(([id]) => eigeneIds.has(id)));
         // The lesson as it is now: the teacher may have worked on it in the meantime.
         const jetzt = neueste.current.lib.lessons.find((x) => x.id === id);
-        if (jetzt && !jetzt.pool?.length) neueste.current.onLessonChange({ ...jetzt, pool: neu.slice(0, POOL_MAX).map((u) => ({ u, frei: false })), ...(hilfe.length ? { poolHilfe: hilfe } : {}) });
+        if (jetzt && !jetzt.pool?.length) neueste.current.onLessonChange({ ...jetzt, pool: neu.slice(0, POOL_MAX).map((u) => ({ u, frei: false })), ...(hilfe.length ? { poolHilfe: hilfe } : {}), ...(Object.keys(poolTipps).length ? { poolTipps } : {}) });
       } catch (e) {
         fehler = e instanceof Error ? e.message : String(e);
       } finally {
@@ -718,7 +720,7 @@ function PoolFuer({ lib, id, onLessonChange, onClose }: { lib: Library; id: stri
   const l = lib.lessons.find((x) => x.id === id);
   const m = l && lib.modules.find((x) => x.id === l.moduleId);
   if (!l || !m) return null;
-  return <FragenpoolDialog modul={m} stunde={l} settings={lib.settings} stunden={lib.lessons} onChange={(pool, hilfe) => onLessonChange({ ...l, pool, ...(hilfe ? { poolHilfe: hilfe } : {}) })} onClose={onClose} />;
+  return <FragenpoolDialog modul={m} stunde={l} settings={lib.settings} stunden={lib.lessons} onChange={(pool, hilfe, tipps) => onLessonChange({ ...l, pool, ...(hilfe ? { poolHilfe: hilfe } : {}), ...(tipps ? { poolTipps: tipps } : {}) })} onClose={onClose} />;
 }
 
 /** The regions of a class (modules with unlocked lessons), the chosen one and the questions it can give. */
