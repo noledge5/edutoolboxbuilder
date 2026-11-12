@@ -43,8 +43,8 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
    `20261125_lernquest_klassenaufgabe.sql` ist jetzt im Repo): Reiter „Aufgaben“ (Heute/Woche), Truhe als Vektor, Fuchs
    beim Fund. **Teil 6 fertig:** Glockentöne (`app/ton.ts`), Konfetti (`app/Jubel.tsx`) bei Stern, perfekter Runde,
    Meilenstein und seltenem Fund, Held jubelt über dem Ergebnis, Schalter „Bewegung reduzieren“ im Menü (Klasse
-   `lq-ruhig`), **`UMBAU = false`**. Gemergt (PR #61) und veröffentlicht am 12.11.; die Kinder-App ist live. Noch offen: Live-Tests gegen den Server laufen lassen, Lehrkraft-Seite „Teile und Wünsche“
-   einmal angemeldet ansehen (nur ohne Anmeldung nicht prüfbar). Früher zu Teil 5: Dateien von
+   `lq-ruhig`), **`UMBAU = false`**. Gemergt (PR #61) und veröffentlicht am 12.11.; die Kinder-App ist live. Live-Tests gegen den Server: grün am 12.11.2026 auf `main` nach PR #63 (12 von 12). Noch offen: Lehrkraft-Seite
+   „Teile und Wünsche“ einmal angemeldet ansehen (ohne Anmeldung nicht prüfbar). Früher zu Teil 5: Dateien von
    `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
 ## Stand nach Stufe E (12.11.2026, gemergt als PR #62, Teststationen live)
@@ -53,6 +53,10 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
 - Teststationen in `src/lernquest/testpakete.ts`; Migration `20261127_lernquest_testphase.sql` archiviert die alten
   Stationen und schaltet die Teststationen frei (live eingespielt; alte Stationen in `lq_paket_archiv`).
 - Fuchs: flache Augen nach Prüfung der Lehrkraft; Avatar-Teile noch ungeprüft.
+- Prüfungen der Lehrkraft vom 12.11. abgearbeitet (Branch `claude/held-flache-augen-einhorn`, nicht in `main`): Held
+  mit flachen Augen ohne Weißglanz, kein Ring mehr am Ellenbogen (Unterarm endet oben gerade), Einhorn mit Pferdekopf
+  und Horn auf der Stirn. Werkstatt-Artefakt aktualisiert; die Lehrkraft prüft Held und Einhorn neu. Übrige Hüte,
+  Werkzeuge, Begleiter am Foto durchgesehen, nichts Auffälliges. Fotos ohne Playwright: Chrome `--headless --screenshot`.
 
 ## Wichtig zu wissen
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
