@@ -164,7 +164,9 @@ Plan, entschieden mit der Lehrkraft am 12.11.2026 (Mockup: `docs/design/lernques
 - Stand: Teil 1 gebaut (12.11.2026, `claude/amazing-newton-h940fp`, mit Figuren-Werkstatt); Teil 2 gebaut
   (12.11.2026, `claude/clever-hamilton-ztdfgt`): Karte als Landschaft je Region mit Burg, Weg, Bäumen, Boss-Burg mit
   dem Meilenstein, drei Sterne je Station als Bogen, Held neben der aktuellen Station, Fuchs sagt, was dran ist,
-  Leiste unten im Mockup-Look. Die Reiter der Leiste bleiben vorerst (Karte, Wiederholen, Held, Klasse); „Aufgaben“
+  Leiste unten im Mockup-Look. Teil 4 gebaut (gleicher Branch): Held als Vektorfigur mit allen 80 Teilen, Frisuren,
+  Mündern und Hautfarben, überall in der App; Werkstatt `#avatar`. Teil 3 gebaut (gleicher Branch): Runde mit grünem
+  Balken, Antwortkarten mit rundem Haken, Rückmeldekarte mit jubelndem Held oder tröstendem Fuchs. Die Reiter der Leiste bleiben vorerst (Karte, Wiederholen, Held, Klasse); „Aufgaben“
   und „Inventar“ kommen mit Teil 5, wenn es die Bildschirme gibt.
 - Erfolg: Bildschirmfotos am Handy-Format je Teil an die Lehrkraft; Tests, Typprüfung, Build grün; Spieltest ohne
   Server über jeden Bildschirm; Kontrast WCAG AA; alte Spielstände zeigen alles richtig.

@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Stufe E: Teile 1, 2 und 4 fertig, als Nächstes Teil 3)
+# Handoff – 12.11.2026 (Stufe E: Teile 1 bis 4 fertig, als Nächstes Teil 5)
 
 ## Stand
 - **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
@@ -36,7 +36,8 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
    Zusammenstellen und Prüfen. Die Lehrkraft prüft jetzt die Teile am Helden; ihre Prüfungen zuerst lesen (Skill
    `figur`). Offen: die gemalten ComfyUI-Bilder (`src/lernquest/bilder/`, `app/teile/`) werden nicht mehr gezeigt;
    Löschen nur nach Rückfrage.
-4. **Als Nächstes Teil 3 (Runde im neuen Look)**, danach 5 und 6. Teil 5: Dateien von
+4. **Teil 3 fertig auf demselben Branch:** Runde im Mockup-Look (`app/Runde.tsx`, CSS-Block „Stufe E, Teil 3“ am Ende
+   von `lernquest.css`); Logik unverändert. **Als Nächstes Teil 5**, dann 6. Teil 5: Dateien von
    `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
 ## Wichtig zu wissen

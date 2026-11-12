@@ -3878,3 +3878,92 @@ button.lq-teil:active {
     transform: scale(1.1);
   }
 }
+
+/* — Stufe E, Teil 3: the round in the mockup look — */
+/* A green bar with a light stripe, like the mockup's level bar. */
+.lq-fortschritt .lq-balken {
+  height: 18px;
+  background: var(--lq-primary-flaeche);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+}
+.lq-fortschritt .lq-balken > span {
+  background: var(--lq-primary);
+  box-shadow:
+    inset 0 -4px 0 var(--lq-primary-tief),
+    inset 0 4px 0 color-mix(in srgb, var(--lq-auf-farbe) 30%, transparent);
+}
+/* Chosen answer: a green card with a round tick in the corner. */
+.lq-option {
+  position: relative;
+}
+.lq-option.an:not(.ok):not(.nein)::after,
+.lq-option.ok::after,
+.lq-option.nein::after {
+  position: absolute;
+  top: var(--lq-a-2);
+  right: var(--lq-a-2);
+  float: none;
+  margin: 0;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--lq-r-pille);
+  font-size: var(--lq-t-text);
+  color: var(--lq-auf-farbe);
+}
+.lq-option.an:not(.ok):not(.nein)::after {
+  background: var(--lq-primary);
+  color: var(--lq-auf-farbe);
+}
+.lq-option.ok::after {
+  background: var(--lq-ok);
+  color: var(--lq-auf-farbe);
+}
+.lq-option.nein::after {
+  background: var(--lq-fehler);
+  color: var(--lq-auf-farbe);
+}
+/* Text answers keep room for the tick. */
+.lq-optionen .lq-option {
+  padding-right: var(--lq-a-6);
+}
+/* Feedback: a card that rises from the bottom, with the hero or the fox beside the words. */
+.lq-fuss.ok,
+.lq-fuss.nein {
+  border-top: 0;
+  border-radius: var(--lq-r) var(--lq-r) 0 0;
+  box-shadow: 0 -6px 18px color-mix(in srgb, var(--lq-schrift) 12%, transparent);
+}
+.lq-rueck-figur {
+  width: 76px;
+  height: 76px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  margin-top: calc(-1 * var(--lq-a-6));
+}
+.lq-rueck-figur svg {
+  width: 100%;
+  height: 100%;
+}
+.lq-rueck-figur.freut {
+  animation: lq-huepfen var(--lq-dauer-lang) var(--lq-feder);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-rueck-figur.freut {
+    animation: none;
+  }
+}
+.lq-rueckmeldung {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--lq-a-3);
+}
+.lq-rueck-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+  min-width: 0;
+  flex: 1;
+}
