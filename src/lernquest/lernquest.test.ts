@@ -7,7 +7,7 @@ import { exercisesOf, readPaket } from './paket';
 import { aufgabenNach, aufgabenVon, AUFGABE_MUENZEN, AUFGABEN_BONUS, ladenAb, TAGESAUFGABEN, tagPlus, niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
-import { beamerAusHash, beitrittsLink, codeAus, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
+import { beamerAusHash, beitrittsLink, codeAus, MEILENSTEIN_GROESSE, namensFarbe, proberundeVon, regionenVon, vorname, wochenTage } from './karte';
 import { gemischterTest } from './probe';
 import { LEERER_STAND, type Paket, type TagesStand, type Uebung } from './types';
 
@@ -419,6 +419,15 @@ describe('Weltkarte', () => {
       [4, 'gesperrt', 0],
     ]);
     expect(r.stationen[3].titel).toBe('Titel 4');
+  });
+
+  it('Willkommen: die Proberunde kommt aus der aktuellen Station, sonst aus einer Stunde mit Übungen', () => {
+    const a = pk('a', 1, m1);
+    const b = pk('b', 2, m1);
+    expect(proberundeVon([b, a], LEERER_STAND)?.stunde).toBe('a');
+    expect(proberundeVon([a, b], { ...LEERER_STAND, bestwerte: { a: [100] } })?.stunde).toBe('b');
+    expect(proberundeVon([pk('leer', 1, m1, 0)], LEERER_STAND)).toBeUndefined();
+    expect(proberundeVon([], LEERER_STAND)).toBeUndefined();
   });
 
   it('kommt mit älteren Paketen ohne Stundenliste aus und ordnet Regionen nach Modul', () => {

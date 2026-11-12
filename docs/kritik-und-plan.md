@@ -129,7 +129,7 @@ gibt; das ist eine Server-Änderung.
 - Vor einer Klassenarbeit schaltet die Lehrkraft einen „Probetest“ über gewählte Stunden frei (die Technik gibt es
   schon in der offenen Übung).
 
-### Stufe D: Gründe zum Wiederkommen
+### Stufe D: Gründe zum Wiederkommen – ✅ gebaut am 12.11.2026 (bis auf „Begleiter wachsen“, „Titel am Beamer“ und die offene Frage zu Erinnerungen)
 
 - Einstieg: Held bauen, erste Mini-Runde, erste Truhe, alles in zwei Minuten.
 - Drei kleine Tagesaufgaben („eine Runde ohne Fehler“, „5 Wiederholungen“), das Wochenziel bleibt.

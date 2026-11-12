@@ -522,6 +522,26 @@ stehen gleich in `rules.ts` (`GESCHAFFT_AB`, `niveauVon`, `rundenStufen`, `stern
   Truhe doppelt); App und Server rechnen Stufen und Sterne in 1500 Zufallsfällen gleich; im Spieltest am
   Handy-Format zwei Stationen angesehen und eine Runde gespielt.
 
+## Willkommen und Klassen-Aufgabe der Woche (12.11.2026, „Stufe D, Teil 2“)
+
+Entscheidungen der Lehrkraft (12.11.2026) siehe `docs/roadmap.md`. Migration `20261125_lernquest_willkommen_klassenziel.sql`.
+- **Willkommen:** Ein neues Kind (noch keine Erfahrung, Spielstand `willkommen: false`) sieht nach der Anmeldung
+  „Hallo …! In zwei Minuten bist du dabei“: Held bauen (die Held-Seite nur mit Hautfarbe, Frisur, Haarfarbe und Mund),
+  eine Proberunde mit 3 Aufgaben aus der aktuellen Station (`proberundeVon` in `karte.ts`; wird **nicht** gemeldet,
+  zählt nicht für Sterne, Erfahrung oder Wiederholen), dann „Truhe holen“ (`lq_willkommen`, einmal je Kind, nur ohne
+  Erfahrung) und die Truhe öffnen. „Später“ springt zur Karte; beim nächsten Öffnen kommt das Willkommen wieder, bis die
+  Truhe geholt ist. Ohne freigeschaltete Station fällt die Proberunde weg.
+- **Klassen-Aufgabe der Woche:** Jede geschaffte Runde (ab 60 %, auch Wiederholen) zählt für die Klasse
+  (`daten.klassenRunden` je Kind und Woche). Ziel: 5 Runden je Kind, das in den letzten 28 Tagen da war
+  (`KLASSEN_ZIEL_JE_KIND`, `lq_klassen_ziel`). Ist es erreicht, bekommt **jedes** Kind der Klasse eine Truhe
+  (`lq_klassen_truhe`, einmal je Woche), sobald es in derselben Woche eine Runde meldet, die App lädt oder die
+  Klassen-Seite öffnet. Erreicht bleibt erreicht, auch wenn das Ziel danach steigt (ein Kind kommt neu dazu). Wer die
+  ganze Woche nicht da war, bekommt diese Truhe nicht. Die Klassen-Seite zeigt Balken, Stand und „Truhe öffnen“. Keine
+  Einzel-Rangliste.
+- Geprüft: Migration lokal in Postgres 16 auf alle früheren (Willkommens-Truhe einmal, nicht nach dem Spielen; schwache
+  Runde zählt nicht; Truhe für alle beim Erreichen, einmal; Ziel steigt danach, erreicht bleibt); Tests, Typprüfung,
+  Build; im Spieltest (Server-Antworten nachgestellt) am Handy-Format: Hallo, Held bauen, Proberunde, Truhe, Klassen-Seite.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

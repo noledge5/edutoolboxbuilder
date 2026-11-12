@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Stand nach Stufe D, Teil 1)
+# Handoff – 12.11.2026 (Stufe D, Teil 2 gebaut)
 
 ## Stand
 - `main` hat alles: Teile einstellen, Frisuren, eigene Frisuren, Abmelden (PR #53, #54) und Stufe A–D Teil 1
@@ -7,8 +7,12 @@
   `lernquest-designrunde-alt` ist nur eine Sicherung, nicht mergen.
 - Alle Migrationen bis `20261124_lernquest_tagesaufgaben.sql` sind live eingespielt.
 
+- Stufe D, Teil 2 (Willkommen, Klassen-Aufgabe der Woche) auf `claude/intelligent-knuth-ddy0o4`, Details in
+  `docs/lernquest.md`. Migration `20261125_lernquest_willkommen_klassenziel.sql` lokal geprüft, **noch nicht live**.
+
 ## Nächste Schritte (Plan: `docs/kritik-und-plan.md`, Teil 3)
-- Stufe D, Teil 2: Willkommen (Held bauen, erste Mini-Runde, erste Truhe in zwei Minuten) und Klassen-Aufgabe der Woche.
+- Migration 20261125 einspielen (Freigabe der Lehrkraft), dann `LQ_LIVE=1 npx vitest run src/lernquest/server.live.test.ts`.
+  Erst danach mergen: Die App zeigt Willkommen und Klassenziel nur mit dem neuen Server, alte Server stören nicht.
 - Danach Stufe E (Aussehen: Karte als Landschaft, Vektor-Held, Töne, Jubel), dann F (Klassenzimmer). G läuft nebenher.
 - Offene Entscheidungen der Lehrkraft: Erinnerungen aufs Handy (Stufe D); eingefrorene Folien entfernen (Stufe G).
 

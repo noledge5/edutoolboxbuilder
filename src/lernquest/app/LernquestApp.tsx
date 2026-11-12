@@ -5,7 +5,7 @@
 // see Boss.tsx); the class code lets it show a QR code to sign in.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QrScanner } from '../../sync/QrScanner';
-import { beamerAusHash, codeAus, faecherVon, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage, type Region, type Station } from '../karte';
+import { beamerAusHash, codeAus, faecherVon, MEILENSTEIN_GROESSE, namensFarbe, proberundeVon, regionenVon, vorname, wochenTage, type Region, type Station } from '../karte';
 import {
   heldenstufe,
   heute,
@@ -33,13 +33,13 @@ import {
   woche,
   WOCHENZIEL,
 } from '../rules';
-import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, type BossOffen, type KlasseOffen } from '../server';
+import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, willkommen as willkommenTruhe, type BossOffen, type KlasseOffen } from '../server';
 import { BOSSE } from '../boss';
 import { BossBeamer, BossBild, BossKind, useLangsam } from './Boss';
 import { readPaket } from '../paket';
 import { bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
-import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
+import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
 import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
@@ -56,7 +56,9 @@ export type Screen =
   | { kind: 'held' }
   | { kind: 'laden' }
   | { kind: 'gutscheine' }
-  | { kind: 'truhe'; zurueck: 'held' | 'karte' }
+  | { kind: 'truhe'; zurueck: 'held' | 'karte' | 'klasse' }
+  /** Stufe D, Teil 2: the welcome of a new child – hello, build the hero, a trial round (not sent), the first chest. */
+  | { kind: 'willkommen'; schritt: 'hallo' | 'held' | 'truhe' }
   | { kind: 'klasse' }
   | { kind: 'boss'; id: string }
   | {
@@ -68,6 +70,8 @@ export type Screen =
       nr: number;
       /** The mixed test at the end of a region (sent as „Wiederholen“). */
       meilenstein?: Meilenstein;
+      /** The trial round of the welcome: not sent, it leads to the welcome chest. */
+      willkommen?: true;
     }
   | {
       kind: 'ergebnis';
@@ -536,6 +540,14 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     // Also once the first data is there (the map appears only then).
   }, [screen, !daten]);
 
+  // A new child gets the welcome once per visit (it can skip it; it comes again until the welcome chest is taken).
+  const willkommenGezeigt = useRef(false);
+  useEffect(() => {
+    if (willkommenGezeigt.current || !stand || stand.willkommen !== false || screen.kind !== 'karte' || ladeWarteschlange().length) return;
+    willkommenGezeigt.current = true;
+    setScreen({ kind: 'willkommen', schritt: 'hallo' });
+  }, [stand, screen.kind]);
+
   const langsam = useLangsam(!daten && !offline);
   if (!daten || !stand) {
     return (
@@ -623,9 +635,13 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         zurueck={zurueckTaste}
         stand={stand}
         herzen={HERZEN + bonusVon(stand.avatar).herz}
-        titel={screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Meilenstein · ${screen.meilenstein.titel}` : 'Wiederholen'}
-        onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
-        onFertig={(st, r, e, l) => fertig(st, r, e, l, screen.meilenstein)}
+        titel={screen.willkommen ? 'Deine erste Runde' : screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Meilenstein · ${screen.meilenstein.titel}` : 'Wiederholen'}
+        onAbbruch={() => setScreen(screen.willkommen ? { kind: 'willkommen', schritt: 'truhe' } : screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
+        onFertig={(st, r, e, l) => {
+          if (!screen.willkommen) return fertig(st, r, e, l, screen.meilenstein);
+          ton('fertig');
+          setScreen({ kind: 'willkommen', schritt: 'truhe' });
+        }}
         paketVon={(st) => daten.pakete[st]}
       />
     );
@@ -651,13 +667,31 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     );
   }
 
+  if (screen.kind === 'willkommen') {
+    return (
+      <Willkommen
+        schritt={screen.schritt}
+        daten={daten}
+        aktion={aktion}
+        setStand={setStand}
+        onSchritt={(schritt) => setScreen({ kind: 'willkommen', schritt })}
+        onRunde={() => {
+          const p = proberundeVon(pakete, stand);
+          if (!p) return setScreen({ kind: 'willkommen', schritt: 'truhe' });
+          setScreen({ kind: 'runde', nr: Date.now(), stunde: '', runde: 0, uebungen: rundeVon(p.uebungen, 0).slice(0, PROBERUNDE).map((u) => ({ u, stunde: p.stunde })), willkommen: true });
+        }}
+        onFertig={(truhe) => setScreen(truhe ? { kind: 'truhe', zurueck: 'karte' } : { kind: 'karte' })}
+      />
+    );
+  }
+
   if (screen.kind === 'truhe') {
     return (
       <TruheSeite
         daten={daten}
         aktion={aktion}
         setStand={setStand}
-        onFertig={(angelegt) => setScreen(angelegt || screen.zurueck === 'held' ? { kind: 'held' } : { kind: 'karte' })}
+        onFertig={(angelegt) => setScreen(angelegt || screen.zurueck === 'held' ? { kind: 'held' } : { kind: screen.zurueck })}
       />
     );
   }
@@ -849,7 +883,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     return rahmen(<LadenSeite daten={daten} aktion={aktion} setStand={setStand} onZurueck={() => setScreen({ kind: 'held' })} />);
   }
   if (screen.kind === 'klasse') {
-    return rahmen(<KlasseSeite aktion={aktion} />);
+    return rahmen(<KlasseSeite aktion={aktion} setStand={setStand} truhen={stand.truhen} onTruhe={() => setScreen({ kind: 'truhe', zurueck: 'klasse' })} />);
   }
 
   if (screen.kind === 'wiederholen') {
@@ -1185,6 +1219,79 @@ function Wochenziel({ tage }: { tage: string[] }) {
       </div>
       <span className="lq-klein">Wochenenden und Ferien setzen nichts zurück.</span>
     </section>
+  );
+}
+
+/** Exercises in the trial round of the welcome. */
+const PROBERUNDE = 3;
+
+/** Welcome of a new child (Stufe D, Teil 2): about two minutes from hello to the first chest. */
+function Willkommen({ schritt, daten, aktion, setStand, onSchritt, onRunde, onFertig }: {
+  schritt: 'hallo' | 'held' | 'truhe';
+  daten: Daten;
+  aktion: Aktion;
+  setStand: (s: Stand) => void;
+  onSchritt: (s: 'hallo' | 'held' | 'truhe') => void;
+  onRunde: () => void;
+  onFertig: (truhe: boolean) => void;
+}) {
+  const [msg, setMsg] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const truheHolen = async () => {
+    setBusy(true);
+    setMsg('');
+    try {
+      const r = await aktion(willkommenTruhe);
+      setStand(r.stand);
+      onFertig(r.truhe);
+    } catch (e) {
+      setMsg(lqText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (schritt === 'held') {
+    return (
+      <main className="lq-app">
+        <div className="lq-inhalt">
+          <HeldSeite daten={daten} aktion={aktion} setStand={setStand} onTruhe={() => {}} onLaden={() => {}} onGutscheine={() => {}} onAbmelden={() => {}} willkommen={{ knopf: 'Fertig – zur ersten Runde', weiter: onRunde }} />
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="lq-app lq-login lq-willkommen">
+      <Wappen />
+      {schritt === 'hallo' ? (
+        <>
+          <h1 className="lq-logo">Hallo {vorname(daten.name)}!</h1>
+          <p>In zwei Minuten bist du dabei:</p>
+          <ol className="lq-willkommen-schritte">
+            <li>Deinen Helden bauen</li>
+            <li>Eine kurze erste Runde spielen</li>
+            <li>Deine erste Truhe öffnen</li>
+          </ol>
+          <button type="button" className="lq-knopf" onClick={() => onSchritt('held')}>
+            Los geht’s!
+          </button>
+          <button type="button" className="lq-knopf lq-hell" onClick={() => onFertig(false)}>
+            Später
+          </button>
+        </>
+      ) : (
+        <>
+          <h1 className="lq-logo">Super gemacht!</h1>
+          <p>Für deinen Start wartet eine Truhe auf dich. Später gibt es Truhen für Sterne, fürs Wochenziel und wenn eure Klasse ihr Ziel schafft.</p>
+          <MeldungText text={msg} />
+          <button type="button" className="lq-knopf lq-gold" disabled={busy} onClick={() => void truheHolen()}>
+            <TruheIcon /> Truhe holen
+          </button>
+        </>
+      )}
+    </main>
   );
 }
 

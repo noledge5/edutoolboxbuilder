@@ -55,6 +55,7 @@ import {
   frisurAendern,
   frisurenEigen,
   wiederholenSetzen,
+  willkommen,
 } from './server';
 import { readWerte } from './teile';
 
@@ -167,6 +168,43 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(await code(klasseOeffnen(b.code))).toBe('code');
     expect(await code(anmelden(b.code, ben, '1111'))).toBe('code');
   }, 60_000);
+
+  it('Stufe D, Teil 2: Willkommens-Truhe einmal, Klassen-Aufgabe der Woche gibt allen eine Truhe', async () => {
+    const keyW = [newKey()];
+    const c = await klasseAnlegen(keyW, 'Willkommen W');
+    made.push({ keys: keyW, id: c.id });
+    const ida = await kindAnlegen(keyW, c.id, 'Ida W.', '1234');
+    const ole = await kindAnlegen(keyW, c.id, 'Ole W.', '5678');
+    const a = await anmelden(c.code, ida, '1234');
+    const b = await anmelden(c.code, ole, '5678');
+    if (!a.ok || !b.ok) throw new Error('Anmeldung fehlgeschlagen');
+    await meinStand(a.token, null);
+    await meinStand(b.token, null);
+
+    // Welcome: a new child gets one chest, once; a child that has played gets none.
+    expect((await meinStand(a.token, null)).stand.willkommen).toBe(false);
+    const w1 = await willkommen(a.token);
+    expect(w1).toMatchObject({ truhe: true, stand: { truhen: 1, willkommen: true } });
+    expect(await willkommen(a.token)).toMatchObject({ truhe: false, stand: { truhen: 1 } });
+    await rundeMelden(b.token, '', 0, 5, 5, {});
+    expect(await willkommen(b.token)).toMatchObject({ truhe: false, stand: { truhen: 0 } });
+
+    // Class goal: rounds from 60 % count for everyone; reaching it gives every child one chest, once a week.
+    const v = await klasseAnsicht(a.token);
+    expect(v).toMatchObject({ runden: 1, erreicht: false, truhe: false });
+    const ziel = v.ziel!;
+    expect(ziel).toBe(10);
+    await rundeMelden(b.token, '', 0, 2, 5, {});
+    expect((await klasseAnsicht(a.token)).runden).toBe(1);
+    for (let i = 1; i < ziel - 1; i++) await rundeMelden(i % 2 ? a.token : b.token, '', 0, 5, 5, {});
+    expect((await klasseAnsicht(b.token)).erreicht).toBe(false);
+    const letzte = await rundeMelden(b.token, '', 0, 5, 5, {});
+    expect(letzte.truhenPlus).toBeGreaterThanOrEqual(1);
+    expect((await rundeMelden(b.token, '', 0, 5, 5, {})).stand.truhen).toBe(letzte.stand.truhen);
+    const va = await klasseAnsicht(a.token);
+    expect(va).toMatchObject({ erreicht: true, truhe: true, truheNeu: true, stand: { truhen: 2 } });
+    expect((await klasseAnsicht(a.token)).truheNeu).toBe(false);
+  });
 
   it('Stufe 2: Truhe, Laden, Avatar und Klassen-Ansicht', async () => {
     const keyC = [newKey()];

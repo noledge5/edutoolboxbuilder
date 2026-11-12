@@ -166,9 +166,26 @@ export interface KlasseAnsicht {
   tage: number;
   /** Names and avatars only, no experience and no ranking; `ich` marks the asking child. */
   kinder: { name: string; avatar: Avatar; ich: boolean }[];
+  /** Klassen-Aufgabe der Woche (missing before 20261125): rounds passed this week, the goal, whether it is reached,
+   *  whether this child has its chest for it and whether that chest came just now; the child's Spielstand after. */
+  runden?: number;
+  ziel?: number;
+  erreicht?: boolean;
+  truhe?: boolean;
+  truheNeu?: boolean;
+  stand?: Stand;
 }
 
-export const klasseAnsicht = (token: string) => lq<KlasseAnsicht>('lq_klasse_ansicht', { p_token: token });
+export async function klasseAnsicht(token: string): Promise<KlasseAnsicht> {
+  const r = await lq<KlasseAnsicht>('lq_klasse_ansicht', { p_token: token });
+  return r.stand ? { ...r, stand: voll(r.stand) } : r;
+}
+
+/** The welcome chest, once for a child without experience (`truhe` false otherwise); marks the welcome as done. */
+export async function willkommen(token: string): Promise<{ truhe: boolean; stand: Stand }> {
+  const r = await lq<{ truhe: boolean; stand: Partial<Stand> }>('lq_willkommen', { p_token: token });
+  return { truhe: !!r.truhe, stand: voll(r.stand) };
+}
 
 // — Bosskampf (Stufe 3) —
 

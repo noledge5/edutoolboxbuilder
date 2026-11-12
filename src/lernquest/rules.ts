@@ -300,6 +300,10 @@ export const rundenGeschafft = (bestwerte: number[] | undefined, runden: number)
 
 // — Weekly goal —
 
+/** Klassen-Aufgabe der Woche: rounds passed (from 60 %) per child who played in the last 28 days; the server counts
+ *  (`lq_klassen_ziel` in 20261125_lernquest_willkommen_klassenziel.sql, change both together). */
+export const KLASSEN_ZIEL_JE_KIND = 5;
+
 /** Learning days per week for the weekly goal. Weekends and holidays never reset anything. */
 export const WOCHENZIEL = 3;
 

@@ -106,3 +106,15 @@ export function beamerAusHash(hash: string): { id: string; klasse: string } | nu
 /** The link in the QR code at the projector: Lernquest of this page with the class code, where the children sign in
  *  (the same link as on their cards). `seite` is this page's address; query and hash are dropped. */
 export const beitrittsLink = (seite: string, code: string): string => `${seite.replace(/[?#].*$/, '').replace(/[^/]*$/, '')}#${code}`;
+
+/** The station for the trial round: the current one of the first subject, else any lesson with exercises. */
+export function proberundeVon(pakete: Paket[], stand: Stand): Paket | undefined {
+  for (const f of faecherVon(pakete)) {
+    for (const r of regionenVon(pakete, f, stand)) {
+      const st = r.stationen.find((x) => x.zustand === 'aktuell' && x.stunde);
+      const p = st && pakete.find((x) => x.stunde === st.stunde);
+      if (p?.uebungen.length) return p;
+    }
+  }
+  return pakete.find((p) => p.uebungen.length);
+}
