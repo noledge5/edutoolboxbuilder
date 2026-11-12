@@ -239,3 +239,8 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
 - Hinweis: `docs/kritik-und-plan.md` entstand auf einem Stand vor PR #42–#54. Einiges daraus war auf `main` schon
   behoben (Held statt Anfangsbuchstabe im Kopf, Truhen-Text, schwächste Runde bei „Los geht’s!“); die Kritik ist an
   diesen Stellen überholt und muss noch nachgezogen werden.
+- **Stufe D, Teil 1 (Entscheidungen der Lehrkraft 11.11.2026), gebaut am 12.11.2026 auf `claude/lernquest-stufe-d`:**
+  Tagesaufgaben (täglich 3 aus 8, nach Datum, für alle gleich; je 15 Münzen, alle drei +30, zusätzlich zur Grenze
+  von 200), Laden nach Heldenstufe (Seltenheit 1 ab Stufe 3, 2 ab 5, 3 ab 12, 4 ab 16; Truhen geben alles), eigener
+  Held neben der aktuellen Station. Migration `20261124_lernquest_tagesaufgaben.sql` eingespielt am 12.11.2026
+  (Freigabe der Lehrkraft), Live-Tests grün; App und Server rechnen in 1925 Zufallsrunden gleich (PGlite). Teil 2: Willkommen und Klassen-Aufgabe der Woche.

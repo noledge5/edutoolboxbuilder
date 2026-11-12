@@ -3,7 +3,7 @@
 // rules in `lq_runde_melden` (supabase/migrations/20261106_lernquest.sql); change both together.
 import { normalize } from '../share/grade';
 import { seeded, shuffle } from '../model/language';
-import type { Niveau, Stand, Uebung } from './types';
+import type { Niveau, Stand, TagesStand, Uebung, Zaehler } from './types';
 
 // — Rounds —
 
@@ -325,6 +325,71 @@ export function woche(tage: string[], tag = heute()): { diese: number; geschafft
   };
 }
 
+// — Daily tasks (Stufe D), as lq_runde_melden —
+
+export interface Tagesaufgabe {
+  id: string;
+  text: string;
+  zaehler: Zaehler;
+  ziel: number;
+}
+
+/** The list the day's three tasks come from. Ids, order and goals are the server's too (`lq_aufgaben`); change both. */
+export const TAGESAUFGABEN: Tagesaufgabe[] = [
+  { id: 'schaffen', text: 'Schaffe eine Runde', zaehler: 'geschafft', ziel: 1 },
+  { id: 'fehlerfrei', text: 'Spiele eine Runde ohne Fehler', zaehler: 'fehlerfrei', ziel: 1 },
+  { id: 'wiederholen', text: 'Spiele eine Wiederholung', zaehler: 'wdh', ziel: 1 },
+  { id: 'drei', text: 'Spiele 3 Runden', zaehler: 'runden', ziel: 3 },
+  { id: 'richtig', text: 'Beantworte 15 Aufgaben richtig', zaehler: 'richtig', ziel: 15 },
+  { id: 'stern', text: 'Hol dir einen Stern', zaehler: 'sterne', ziel: 1 },
+  { id: 'zwei', text: 'Schaffe 2 Runden', zaehler: 'geschafft', ziel: 2 },
+  { id: 'neu', text: 'Spiele eine neue Runde', zaehler: 'neu', ziel: 1 },
+];
+
+/** Coins per task done and for all three of a day; on top of `MUENZEN_TAG`. */
+export const AUFGABE_MUENZEN = 15;
+export const AUFGABEN_BONUS = 30;
+
+/** The three tasks of a day, the same for everyone: day number + 0, 3 and 5 in the list (never twice the same). */
+export const aufgabenVon = (tag: string): Tagesaufgabe[] =>
+  [0, 3, 5].map((o) => TAGESAUFGABEN[(tagNummer(tag) + o) % TAGESAUFGABEN.length]);
+
+/** Today's counters; a Stand from another day counts as empty. */
+export const tagesStand = (a: TagesStand | undefined, tag: string): TagesStand =>
+  a?.tag === tag ? a : { tag, zaehler: {}, erledigt: [] };
+
+/**
+ * Counts one round into the day's tasks: tasks reaching their goal now give `AUFGABE_MUENZEN`, the third one
+ * `AUFGABEN_BONUS` on top. `sterne` are the stars the station gained this round.
+ */
+export function aufgabenNach(
+  a: TagesStand | undefined,
+  tag: string,
+  r: { richtig: number; gesamt: number; wiederholung: boolean; sterne: number },
+): { aufgaben: TagesStand; muenzen: number; neu: string[] } {
+  const alt = tagesStand(a, tag);
+  const z = { ...alt.zaehler };
+  const add = (k: Zaehler, n: number) => (z[k] = (z[k] ?? 0) + n);
+  add('runden', 1);
+  add('geschafft', geschafft(Math.round((100 * r.richtig) / r.gesamt)) ? 1 : 0);
+  add('fehlerfrei', r.richtig === r.gesamt ? 1 : 0);
+  add(r.wiederholung ? 'wdh' : 'neu', 1);
+  add('richtig', r.richtig);
+  add('sterne', Math.max(0, r.sterne));
+  const neu = aufgabenVon(tag)
+    .filter((t) => !alt.erledigt.includes(t.id) && (z[t.zaehler] ?? 0) >= t.ziel)
+    .map((t) => t.id);
+  const erledigt = [...alt.erledigt, ...neu];
+  const alle = neu.length > 0 && erledigt.length === 3;
+  return { aufgaben: { tag, zaehler: z, erledigt }, muenzen: neu.length * AUFGABE_MUENZEN + (alle ? AUFGABEN_BONUS : 0), neu };
+}
+
+// — Shop by hero level (Stufe D), as lq_kaufen —
+
+/** Hero level from which the shop sells a rarity (0 common … 4 legendary). Chests give everything. */
+export const LADEN_AB = [1, 3, 5, 12, 16];
+export const ladenAb = (seltenheit: number) => LADEN_AB[seltenheit] ?? 1;
+
 // — Repetition (Leitner boxes) —
 
 /** Days until an exercise is due again, by box 1–5. */
@@ -445,7 +510,7 @@ export function rundeAnwenden(
   m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] },
   tag = heute(),
   k: RundenKontext = { herzen: 3, bonusProzent: 0, stufen: [] },
-): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; wiederholung: boolean; stand: Stand } {
+): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; aufgabenPlus: number; aufgabenNeu: string[]; wiederholung: boolean; stand: Stand } {
   const neuerTag = !s.tage.includes(tag);
   const wiederholung = istWiederholung(s.bestwerte, m.stunde, m.runde);
   const schon = neuerTag ? 0 : s.xpHeute;
@@ -457,6 +522,7 @@ export function rundeAnwenden(
   let sternePlus = 0;
   let sterneRest = s.sterneRest ?? 0;
   let sterneStationen = s.sterneStationen ?? {};
+  let sterneGewonnen = 0;
   if (m.stunde) {
     const vorher = sterne(bestwerte[m.stunde], k.stufen);
     const best = [...(bestwerte[m.stunde] ?? [])];
@@ -464,6 +530,7 @@ export function rundeAnwenden(
     best[m.runde] = Math.max(best[m.runde], Math.round((100 * m.richtig) / m.gesamt));
     bestwerte[m.stunde] = best;
     const jetzt = sterne(best, k.stufen);
+    sterneGewonnen = jetzt - vorher;
     sternePlus = neueSterne(sterneStationen[m.stunde], vorher, jetzt);
     if (sternePlus > 0) {
       sterneStationen = { ...sterneStationen, [m.stunde]: jetzt };
@@ -476,18 +543,21 @@ export function rundeAnwenden(
   const ziel = neuerTag && woche(s.tage, tag).diese === WOCHENZIEL - 1;
   if (ziel) truhenPlus++;
   const punktePlus = ziel ? PUNKTE_WOCHENZIEL : 0;
+  const auf = aufgabenNach(s.aufgaben, tag, { richtig: m.richtig, gesamt: m.gesamt, wiederholung, sterne: sterneGewonnen });
   return {
     plus,
     muenzenPlus,
     truhenPlus,
     punktePlus,
     sternePlus,
+    aufgabenPlus: auf.muenzen,
+    aufgabenNeu: auf.neu,
     wiederholung,
     stand: {
       ...s,
       xp: s.xp + plus,
       xpHeute: schon + plus,
-      muenzen: s.muenzen + muenzenPlus,
+      muenzen: s.muenzen + muenzenPlus + auf.muenzen,
       muenzenHeute: mSchon + muenzenPlus,
       truhen: s.truhen + truhenPlus,
       klassenpunkte: (s.klassenpunkte ?? 0) + punktePlus,
@@ -496,6 +566,7 @@ export function rundeAnwenden(
       bestwerte,
       tage,
       leitner: { ...s.leitner, ...m.leitner },
+      aufgaben: auf.aufgaben,
     },
   };
 }

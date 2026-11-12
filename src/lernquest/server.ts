@@ -55,6 +55,7 @@ export function lqText(e: unknown): string {
     voll: 'Es ist kein Platz mehr frei.',
     ungueltig: 'Das hat der Server nicht angenommen.',
     muenzen: 'Dafür reichen deine Münzen noch nicht.',
+    stufe: 'Das gibt es erst ab einer höheren Heldenstufe.',
     leer: 'Noch ist niemand beigetreten.',
     punkte: 'Dafür reichen deine Klassenpunkte noch nicht.',
     grenze: 'Für diese Woche ist die Grenze erreicht.',
@@ -118,6 +119,8 @@ export interface RundeErgebnis {
   muenzenPlus: number;
   truhenPlus: number;
   punktePlus: number;
+  /** Coins for daily tasks done with this round (Stufe D, on top of `muenzenPlus`); missing before 20261124. */
+  aufgabenPlus: number;
   /** Counted as a repetition (a third of experience and coins); missing from servers before 20261117. */
   wiederholung?: boolean;
   stand: Stand;
@@ -132,7 +135,7 @@ export async function rundeMelden(token: string, stunde: string, runde: number, 
     p_gesamt: gesamt,
     p_leitner: leitner,
   });
-  return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, wiederholung: r.wiederholung, stand: voll(r.stand) };
+  return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, aufgabenPlus: r.aufgabenPlus ?? 0, wiederholung: r.wiederholung, stand: voll(r.stand) };
 }
 
 export interface TruheInhalt {
@@ -151,7 +154,7 @@ export async function truheOeffnen(token: string): Promise<TruheInhalt> {
   return { ...r, stand: voll(r.stand) };
 }
 
-/** Buys a part in the shop. 'muenzen' when the coins do not reach, 'ungueltig' for owned or start parts. */
+/** Buys a part in the shop. 'muenzen' when the coins do not reach, 'stufe' below `ladenAb`, 'ungueltig' for owned or start parts. */
 export const kaufen = async (token: string, teil: string) => voll(await lq<Stand>('lq_kaufen', { p_token: token, p_teil: teil }));
 
 /** Wears parts: per place an owned or start part, '' for nothing, the skin tone 0–5, the hair and its colour 0–4. Replaces the whole avatar. */

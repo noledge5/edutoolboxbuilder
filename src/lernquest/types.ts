@@ -127,6 +127,16 @@ export interface Stand {
   /** Stars toward the next chest (0 … STERNE_JE_TRUHE − 1) and, per lesson, the stars counted for chests so far. */
   sterneRest: number;
   sterneStationen: Record<string, number>;
+  /** Stufe D: today's task counters and the ids of tasks done (`aufgabenNach`); missing before 20261124 or on a new day. */
+  aufgaben?: TagesStand;
+}
+
+/** Counters of one day for the daily tasks (`TAGESAUFGABEN` in rules.ts). */
+export type Zaehler = 'runden' | 'geschafft' | 'fehlerfrei' | 'wdh' | 'neu' | 'richtig' | 'sterne';
+export interface TagesStand {
+  tag: string;
+  zaehler: Partial<Record<Zaehler, number>>;
+  erledigt: string[];
 }
 
 export const LEERER_STAND: Stand = { xp: 0, xpHeute: 0, bestwerte: {}, tage: [], leitner: {}, muenzen: 0, muenzenHeute: 0, truhen: 0, pech: 0, inventar: [], avatar: {}, klassenpunkte: 0, sterneRest: 0, sterneStationen: {} };
