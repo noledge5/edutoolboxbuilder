@@ -110,13 +110,30 @@ const codeFromUrl = () => {
 
 const beamerFromUrl = () => beamerAusHash(location.hash);
 
+/** The children's app (sign-in, game, boss fight) is switched off while it is rebuilt (decision of the teacher,
+ *  12.11.2026). Open exercises from a public link keep working. Nothing on the device is deleted: Spielstand and rounds
+ *  not yet sent stay and go out once the app is back. Set to false to switch it on again. */
+export const UMBAU = true;
+
 export function LernquestApp() {
-  const beamer = beamerFromUrl();
-  if (beamer) return <BossBeamer id={beamer.id} klasse={beamer.klasse} />;
   // Open exercises from a public link: no sign-in, no server (`probe.ts`).
   const probe = probeAusUrl();
   if (probe) return <ProbeApp id={probe} />;
+  if (UMBAU) return <Umbau />;
+  const beamer = beamerFromUrl();
+  if (beamer) return <BossBeamer id={beamer.id} klasse={beamer.klasse} />;
   return <KinderApp />;
+}
+
+function Umbau() {
+  return (
+    <main className="lq-app lq-login lq-umbau">
+      <Wappen />
+      <h1 className="lq-logo">Lernquest wird umgebaut</h1>
+      <p>Wir bauen gerade eine neue Lernquest für dich. Bald geht es weiter!</p>
+      <p className="lq-klein">Dein Held, deine Sterne und deine Münzen bleiben gespeichert.</p>
+    </main>
+  );
 }
 
 function KinderApp() {
