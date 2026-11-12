@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Stufe E, Teil 1 gebaut)
+# Handoff – 12.11.2026 (Stufe E: Teil 1 und Figuren-Baukasten gebaut)
 
 ## Stand
 - **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
@@ -21,7 +21,12 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
    `lernquest.css` (wirkt auf alle Bildschirme), Fuchs als Vektor `src/lernquest/app/Fuchs.tsx` (5 Posen, `FuchsSagt`),
    Landschaft mit Burg `Landschaft.tsx`, Start, Namen, PIN und Umbau-Seite neu. `npm run spieltest` zeigt die App
    trotz `UMBAU` (nur dieser Modus). Wartet auf Rückmeldung der Lehrkraft zu den Bildschirmfotos.
-2. **Als Nächstes Teil 2** (Karte als Landschaft mit Burgen, baut auf `Landschaft.tsx`). Teile 2–6 je eigene Sitzung. Für Teil 5 die Dateien von `claude/lucid-galileo-0dvocr` holen (Migration
+   **Figuren-Baukasten** (Wunsch der Lehrkraft, gleicher Branch): `src/lernquest/figuren/` mit Gerüst, Posen,
+   Bewegungen (SMIL), Ankern für Teile; Fuchs, Tintenkrake (Boss-Probe), 6 Probe-Teile. Werkstatt
+   `lernquest/werkstatt.html` (nicht im Produktions-Build), Artefakt https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG
+   (`npm run werkstatt`), Fotos `node scripts/werkstatt-fotos.mjs <ordner>`. Skill `figur` für jede Zeichnung.
+2. **Als Nächstes Teil 2** (Karte als Landschaft mit Burgen, baut auf `Landschaft.tsx`). Für Teil 4 den Held als Figur mit denselben
+   Ankern (`hut`, `hand-links`, `hand-rechts`, dazu `ruecken`) bauen, jedes Teil aus `teile.ts` als Item. Teile 2–6 je eigene Sitzung. Für Teil 5 die Dateien von `claude/lucid-galileo-0dvocr` holen (Migration
    `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
 ## Wichtig zu wissen

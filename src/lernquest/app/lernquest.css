@@ -1029,7 +1029,7 @@ mark {
   object-fit: cover;
 }
 
-/* — The fox: speech bubble and a short wave (Stufe E) — */
+/* — The fox and its speech bubble (Stufe E; the fox itself: src/lernquest/figuren/) — */
 .lq-fuchs {
   flex: none;
   overflow: visible;
@@ -1071,25 +1071,6 @@ mark {
 .lq-sprech p {
   margin: 0;
   color: var(--lq-gedaempft);
-}
-.lq-fuchs-winken .lq-fuchs-arm-rechts,
-.lq-fuchs-winken .lq-fuchs-schwung {
-  transform-box: view-box;
-  transform-origin: 126px 150px;
-  animation: lq-winken 1.4s ease-in-out 2;
-}
-@keyframes lq-winken {
-  0%,
-  100% {
-    transform: rotate(0);
-  }
-  25%,
-  75% {
-    transform: rotate(-10deg);
-  }
-  50% {
-    transform: rotate(6deg);
-  }
 }
 
 /* — Names and PIN — */

@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "anleitung": "vitest run src/claude -u",
     "spieltest": "vite --mode spieltest --port 4174 --strictPort",
+    "werkstatt": "vite build -c vite.werkstatt.config.ts && node scripts/werkstatt-artefakt.mjs",
     "lq:bilder": "node scripts/lq-bilder.ts",
     "lq:testlauf": "vite build && LQ_TESTLAUF=1 vitest run src/lernquest/testlauf.live.test.ts"
   },

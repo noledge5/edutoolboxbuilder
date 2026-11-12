@@ -23,8 +23,13 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
   gedämpft `#556149`, Linie `#E6DDC4`, Grün `#2E7D18`/`#1F5C0F` (Weiß darauf 5,2 : 1), Gold `#FFC531`/`#C98F00`,
   richtig `#0F7543` auf `#DDF5E7`, falsch `#C4321F` auf `#FDE6E1`; Bosskampf und Truhe auf dunklem Waldgrün `#173A1C`.
   Die Werte des Prototyps unten (Violett) sind überholt; es gelten die Tokens in `lernquest.css`.
-- Fuchs (`src/lernquest/app/Fuchs.tsx`): Vektor aus dem Code, Posen `stehen`, `winken`, `jubeln`, `denken`,
-  `troesten`; `FuchsSagt` = Fuchs mit Sprechblase. Landschaft mit Burg: `Landschaft.tsx`. Ihre Farben stehen im TSX.
+- Figuren, Teile und Bosse: Vektor aus dem Code im Figuren-Baukasten `src/lernquest/figuren/` (Gerüst aus Teilen
+  mit Drehpunkten, Posen, Bewegungen, Anker für Teile; Regeln im Skill `.claude/skills/figur`). Der Fuchs hat die
+  Posen `stehen`, `winken`, `jubeln`, `denken`, `troesten`; in der App `Fuchs`/`FuchsSagt` (`app/Fuchs.tsx`).
+  Landschaft mit Burg: `app/Landschaft.tsx`.
+- **Figuren-Werkstatt** (alle Figuren, Posen, Bewegungen, Teile zum Durchklicken): lokal
+  `npm run spieltest` → `/lernquest/werkstatt.html`; für die Lehrkraft als privates Artefakt
+  https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG (neu bauen: `npm run werkstatt`, dieselbe Adresse aktualisieren).
 - Seltenheiten: Gewöhnlich, Ungewöhnlich, Selten, Episch, Legendär – Farbe **und** 1–5 Punkte.
 - Rückmeldung nie nur über Farbe: Haken/Kreuz und Text; Antworten im Bosskampf mit Form (Dreieck, Raute, Kreis,
   Quadrat).

@@ -1,0 +1,312 @@
+/* Figure workshop: the Lernquest cream and green, laid out as a work bench: stage left, controls right, sheet below.
+   One light look on purpose (the figures are drawn for the light app). */
+:root {
+  --ws-grund: #fbf6e9;
+  --ws-karte: #fffdf7;
+  --ws-schrift: #263322;
+  --ws-gedaempft: #556149;
+  --ws-linie: #e6ddc4;
+  --ws-gruen: #2e7d18;
+  --ws-gruen-tief: #1f5c0f;
+  --ws-gruen-flaeche: #e6f4d7;
+  --ws-himmel: #d9eef3;
+  --ws-wiese: #cfe7b0;
+  --ws-s1: #6e6990;
+  --ws-s2: #13804a;
+  --ws-s3: #2459b8;
+  --ws-s4: #6a2fc4;
+  --ws-s5: #8a6100;
+  --ws-titel: Fredoka, Nunito, system-ui, sans-serif;
+  --ws-text: Nunito, system-ui, sans-serif;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--ws-grund);
+  color: var(--ws-schrift);
+  font: 700 15px/1.45 var(--ws-text);
+}
+h1,
+h2 {
+  font-family: var(--ws-titel);
+  font-weight: 600;
+  margin: 0;
+  text-wrap: balance;
+}
+h1 {
+  font-size: clamp(28px, 5vw, 40px);
+  color: var(--ws-gruen);
+}
+h2 {
+  font-size: 15px;
+  color: var(--ws-gedaempft);
+  letter-spacing: 0.04em;
+}
+h2 small {
+  font-family: var(--ws-text);
+  font-weight: 700;
+  color: var(--ws-gedaempft);
+}
+
+.ws {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.ws-kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ws-marke {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ws-gedaempft);
+}
+.ws-figuren {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ws-figuren a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px 14px 6px 8px;
+  border-radius: 14px;
+  background: var(--ws-karte);
+  color: var(--ws-schrift);
+  text-decoration: none;
+  box-shadow:
+    inset 0 0 0 2px var(--ws-linie),
+    0 3px 0 var(--ws-linie);
+}
+.ws-figuren a span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.ws-figuren small {
+  font-size: 12px;
+  color: var(--ws-gedaempft);
+}
+.ws-figuren a.an {
+  box-shadow:
+    inset 0 0 0 2px var(--ws-gruen),
+    0 3px 0 var(--ws-gruen-tief);
+  background: var(--ws-gruen-flaeche);
+}
+
+.ws-pult {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 20px;
+}
+.ws-buehne {
+  position: relative;
+  border-radius: 22px;
+  background: linear-gradient(var(--ws-himmel) 0 62%, var(--ws-wiese) 62%);
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+  display: grid;
+  place-items: center;
+  padding: 32px 16px 56px;
+  min-height: 380px;
+}
+.ws-buehne svg {
+  max-width: 100%;
+  height: auto;
+}
+.ws-schalter {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.ws-schalter input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--ws-gruen);
+}
+.ws-regler {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.ws-gruppe {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ws-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ws button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ws-karte);
+  box-shadow:
+    inset 0 0 0 2px var(--ws-linie),
+    0 3px 0 var(--ws-linie);
+  min-height: 44px;
+  padding: 8px 14px;
+  transition: transform 120ms ease-out;
+}
+.ws button:active {
+  transform: translateY(3px);
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+}
+.ws button.an {
+  background: var(--ws-gruen);
+  color: var(--ws-karte);
+  box-shadow: 0 3px 0 var(--ws-gruen-tief);
+}
+.ws-mit-bild {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ws button.an.ws-mit-bild {
+  background: var(--ws-gruen-flaeche);
+  color: var(--ws-schrift);
+  box-shadow:
+    inset 0 0 0 2px var(--ws-gruen),
+    0 3px 0 var(--ws-gruen-tief);
+}
+:focus-visible {
+  outline: 3px solid var(--ws-gruen);
+  outline-offset: 3px;
+}
+.ws-hinweis {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ws-gedaempft);
+}
+.ws-groessen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 20px;
+}
+figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+figcaption {
+  font-size: 13px;
+  color: var(--ws-gedaempft);
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-posen {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ws-reihe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.ws-reihe button,
+.ws-bogen .ws-reihe figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 10px 8px;
+}
+.ws-bogen .ws-reihe figure {
+  background: var(--ws-karte);
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+}
+.ws-reihe button.an {
+  background: var(--ws-gruen-flaeche);
+  color: var(--ws-schrift);
+  box-shadow:
+    inset 0 0 0 2px var(--ws-gruen),
+    0 3px 0 var(--ws-gruen-tief);
+}
+
+.ws-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ws-items ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+.ws-items li {
+  background: var(--ws-karte);
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.ws-item-name {
+  font-family: var(--ws-titel);
+  font-weight: 600;
+  font-size: 17px;
+}
+.ws-item-info {
+  font-size: 13px;
+  color: var(--ws-gedaempft);
+}
+.ws-selten {
+  letter-spacing: 1px;
+}
+.ws-selten.s1 { color: var(--ws-s1); }
+.ws-selten.s2 { color: var(--ws-s2); }
+.ws-selten.s3 { color: var(--ws-s3); }
+.ws-selten.s4 { color: var(--ws-s4); }
+.ws-selten.s5 { color: var(--ws-s5); }
+
+@media (max-width: 760px) {
+  .ws-pult {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ws-buehne {
+    min-height: 320px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ws button {
+    transition: none;
+  }
+}

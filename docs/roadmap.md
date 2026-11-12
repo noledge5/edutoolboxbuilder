@@ -250,3 +250,6 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
 - **Stufe E, Entscheidungen der Lehrkraft (12.11.2026):** Lernweg bleibt und wird auf der Karte sichtbarer; Stufe D,
   Teil 2 wird übernommen; Spielstände bleiben; weiter keine Rangliste und keine Tagesserie. Plan in sechs Teilen unter
   „Stufe E“ in `docs/kritik-und-plan.md`, Mockup in `docs/design/lernquest/mockup-stufe-e.png`.
+- **Figuren-Baukasten vor Teil 2 (Lehrkraft, 12.11.2026):** Fuchs, Held, Teile und Bosse entstehen in einem
+  gemeinsamen System mit Gerüst, Posen und Bewegungen (`src/lernquest/figuren/`, Skill `figur`); die Lehrkraft sieht
+  alles in der Figuren-Werkstatt als Artefakt.
