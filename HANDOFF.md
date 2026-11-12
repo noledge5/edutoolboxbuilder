@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Stufe E: Teil 1 und Figuren-Baukasten gebaut)
+# Handoff – 12.11.2026 (Stufe E: Teil 1 und Figuren-Werkstatt fertig, als Nächstes Teil 2)
 
 ## Stand
 - **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
@@ -17,21 +17,23 @@
 ## Nächste Schritte: Stufe E bauen (Plan steht, entschieden am 12.11.2026)
 Plan und Entscheidungen: „Stufe E“ in `docs/kritik-und-plan.md`; Mockup: `docs/design/lernquest/mockup-stufe-e.png`.
 Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände bleiben, keine Rangliste/Tagesserie.
-1. **Teil 1 fertig** (Branch `claude/amazing-newton-h940fp`, nicht in `main`): Farb-Tokens Grün/Creme in
-   `lernquest.css` (wirkt auf alle Bildschirme), Fuchs als Vektor `src/lernquest/app/Fuchs.tsx` (5 Posen, `FuchsSagt`),
-   Landschaft mit Burg `Landschaft.tsx`, Start, Namen, PIN und Umbau-Seite neu. `npm run spieltest` zeigt die App
-   trotz `UMBAU` (nur dieser Modus). Wartet auf Rückmeldung der Lehrkraft zu den Bildschirmfotos.
-   **Figuren-Baukasten** (Wunsch der Lehrkraft, gleicher Branch): `src/lernquest/figuren/` mit Gerüst, Posen,
-   Bewegungen (SMIL), Ankern für Teile; Fuchs, Tintenkrake (Boss-Probe), 6 Probe-Teile. Werkstatt
-   `lernquest/werkstatt.html` (nicht im Produktions-Build), Artefakt https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG
-   (`npm run werkstatt`), Fotos `node scripts/werkstatt-fotos.mjs <ordner>`. Skill `figur` für jede Zeichnung.
-   **Werkstatt 2** (nach Rückmeldung „keine Bewegung zu sehen“): eigener Animationsmotor `figuren/bewegung.ts`
-   (requestAnimationFrame statt SMIL), Blinzeln, Strecken/Stauchen, Kurven; Fuchs und Krake detaillierter, 7 bzw. 4
-   Posen, 12 Teile (manche bewegt). Werkstatt mit Zeitleiste, Pose-Editor → Code, Bewegung als JSON live → Code,
-   Übergang, Prüfen mit Speicher. **Zu Beginn der nächsten Sitzung die Prüfungen lesen** (Skill `figur`, Schritt 1).
-2. **Als Nächstes Teil 2** (Karte als Landschaft mit Burgen, baut auf `Landschaft.tsx`). Für Teil 4 den Held als Figur mit denselben
-   Ankern (`hut`, `hand-links`, `hand-rechts`, dazu `ruecken`) bauen, jedes Teil aus `teile.ts` als Item. Teile 2–6 je eigene Sitzung. Für Teil 5 die Dateien von `claude/lucid-galileo-0dvocr` holen (Migration
-   `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
+1. **Fertig auf Branch `claude/amazing-newton-h940fp`** (nicht in `main`, von der Lehrkraft am 12.11. für gut befunden):
+   - Teil 1: Farb-Tokens Grün/Creme in `lernquest.css` (wirkt auf alle Bildschirme), Start, Namen, PIN und Umbau-Seite
+     neu, `Landschaft.tsx` (Landschaft mit Burg). `npm run spieltest` zeigt die App trotz `UMBAU` (nur dieser Modus).
+   - Figuren-Baukasten `src/lernquest/figuren/`: Gerüst aus Teilen, Posen, Animationsmotor `bewegung.ts`
+     (requestAnimationFrame, Blinzeln, Strecken, Kurven), Anker für Teile. Fuchs (7 Posen), Tintenkrake (Boss, 4 Posen),
+     12 Teile. In der App: `app/Fuchs.tsx` (`Fuchs`, `FuchsSagt`).
+   - Figuren-Werkstatt `lernquest/werkstatt.html` (nicht im Produktions-Build), Artefakt
+     https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG (`npm run werkstatt`, mit Speicher für die Prüfungen der
+     Lehrkraft). Fotos: `node scripts/werkstatt-fotos.mjs <ordner>`. **Jede Zeichnung über den Skill `figur`**; zu
+     Beginn die Prüfungen lesen (Schritt 1; am 12.11. noch keine gespeichert).
+2. **Als Nächstes Teil 2: Karte als Landschaft mit Burgen** (Mockup, drittes Bild oben): Stationen als Wegpunkte mit
+   den drei Stufen je Station, Burgen für Module, Boss-Burg am Ende, Held/Fuchs auf dem Weg, Leiste unten (Karte,
+   Aufgaben, Inventar, Held). Baut auf `Landschaft.tsx`; neue Bauteile (Burg, Baum, Wegpunkt) im Stil von
+   `figuren/stil.ts`, ansehen in der Werkstatt. Bisherige Karte: `Spiel`/Pfad in `app/LernquestApp.tsx` (`lq-pfad`).
+3. Danach Teile 3–6 je eigene Sitzung. Teil 4: Held als Figur mit denselben Ankern (`hut`, `hand-links`,
+   `hand-rechts`, dazu `ruecken`), jedes Teil aus `teile.ts` als Item. Teil 5: Dateien von
+   `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
 ## Wichtig zu wissen
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
