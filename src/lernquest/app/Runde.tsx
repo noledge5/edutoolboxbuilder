@@ -6,6 +6,8 @@ import { heute, istRichtig, karteKey, karteNach, loesungText, nachAntwort, tagNu
 import type { Avatar } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { KopfBild } from './avatar';
+import { Fuchs } from './Fuchs';
+import { HeldBild, nurAlsBild } from './heldVektor';
 import { Herzen } from './Held';
 import { tonAn } from './speicher';
 import { ton } from './ton';
@@ -150,30 +152,31 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
       <footer className={`lq-fuss ${ok === true ? 'ok' : ok === false ? 'nein' : prueftSelbst(item.u) ? 'leer' : ''}`} aria-live="polite">
         {ok !== null && (
           <div className="lq-rueckmeldung">
-            <strong>
-              {held ? (
-                <span className={`lq-held-kopf ${ok ? 'freut' : 'schuettelt'}`} aria-hidden>
-                  <KopfBild avatar={{ ...held, mund: ok ? 'lachen' : 'staunen' }} />
-                </span>
+            {/* Right: the child's hero cheers (or the fox, without a hero); wrong: the fox comforts. */}
+            <span className={`lq-rueck-figur ${ok ? 'freut' : 'troestet'}`} aria-hidden>
+              {ok && held && !nurAlsBild(held) ? (
+                <HeldBild avatar={held} pose="jubeln" ohneHintergrund ausschnitt="20 0 200 200" />
+              ) : ok && held ? (
+                <KopfBild avatar={{ ...held, mund: 'lachen' }} />
               ) : (
-                <span className="lq-zeichen" aria-hidden>
-                  {ok ? <HakenIcon /> : <KreuzIcon />}
+                <Fuchs pose={ok ? 'jubeln' : 'troesten'} groesse={76} />
+              )}
+            </span>
+            <div className="lq-rueck-text">
+              <strong>{ok ? (nochmal ? 'Jetzt sitzt es!' : serie >= 3 ? `${serie} in Folge!` : 'Richtig!') : 'Nicht ganz.'}</strong>
+              {!ok && !loesungSichtbar(item.u) && (
+                <span>
+                  Richtig wäre: <Rich text={loesungText(item.u)} />
                 </span>
               )}
-              {ok ? (nochmal ? 'Jetzt sitzt es!' : serie >= 3 ? `${serie} in Folge!` : 'Richtig!') : 'Nicht ganz.'}
-            </strong>
-            {!ok && !loesungSichtbar(item.u) && (
-              <span>
-                Richtig wäre: <Rich text={loesungText(item.u)} />
-              </span>
-            )}
-            {!ok && item.u.erklaerung && (
-              <span className="lq-erklaerung">
-                <Rich text={item.u.erklaerung} />
-              </span>
-            )}
-            {kommtWieder && <span className="lq-klein">Die Aufgabe kommt am Ende nochmal.</span>}
-            {hoerSatz && <Vorlesen text={hoerSatz} />}
+              {!ok && item.u.erklaerung && (
+                <span className="lq-erklaerung">
+                  <Rich text={item.u.erklaerung} />
+                </span>
+              )}
+              {kommtWieder && <span className="lq-klein">Die Aufgabe kommt am Ende nochmal.</span>}
+              {hoerSatz && <Vorlesen text={hoerSatz} />}
+            </div>
           </div>
         )}
         {ok === null ? (

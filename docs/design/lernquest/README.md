@@ -19,9 +19,24 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 - Eigener Spiel-Look, nicht `src/sheet/`. Handy zuerst (390 × 844), große Knöpfe (mind. 44 px), Knöpfe mit
   „Stufe“ darunter (`box-shadow: 0 4px 0 …`).
 - Schriften: Überschriften **Fredoka** 600, Text **Nunito** 700/800 (in der App selbst hosten).
-- Farben: Grund `#F3F0FF`, Schrift `#1F1A3D`, gedämpft `#57527A`, Linie `#DCD6F5`, Violett `#5B3FD9`/`#3F28A8`,
-  Gold `#FFC531`/`#C98F00`, richtig `#13804A` auf `#DDF5E7`, falsch `#C4321F` auf `#FDE6E1`; Bosskampf und Truhe
-  auf dunklem Grund `#1F1A3D`.
+- Farben seit Stufe E (Mockup `mockup-stufe-e.png`): Grund Creme `#FBF6E9`, Karte `#FFFDF7`, Schrift `#263322`,
+  gedämpft `#556149`, Linie `#E6DDC4`, Grün `#2E7D18`/`#1F5C0F` (Weiß darauf 5,2 : 1), Gold `#FFC531`/`#C98F00`,
+  richtig `#0F7543` auf `#DDF5E7`, falsch `#C4321F` auf `#FDE6E1`; Bosskampf und Truhe auf dunklem Waldgrün `#173A1C`.
+  Die Werte des Prototyps unten (Violett) sind überholt; es gelten die Tokens in `lernquest.css`.
+- Figuren, Teile und Bosse: Vektor aus dem Code im Figuren-Baukasten `src/lernquest/figuren/` (Gerüst aus Teilen
+  mit Drehpunkten, Posen, Bewegungen, Anker für Teile; Regeln im Skill `.claude/skills/figur`). Der Fuchs hat die
+  Posen `stehen`, `winken`, `jubeln`, `denken`, `troesten`; in der App `Fuchs`/`FuchsSagt` (`app/Fuchs.tsx`).
+  Landschaft mit Burg: `app/Landschaft.tsx` (Start, Anmeldung). Karte (Teil 2): je Region eine Landschaft
+  (`app/Landkarte.tsx`), Lage von Burg, Wegpunkten, Boss-Burg und Bäumen aus `src/lernquest/weg.ts` (rein, getestet),
+  Bauteile (Burg, Boss-Burg, Laubbaum, Tanne, Busch, Blume, Stein) in `figuren/gelaende.tsx`, in der Werkstatt unter `#karte`.
+  Die Wegpunkte sind echte Knöpfe über dem Bild; Sterne der drei Stufen als Bogen über der Station; der Fuchs sagt
+  über der Karte, was dran ist (`fuchsHinweis` in `karte.ts`).
+- **Figuren-Werkstatt** (alle Figuren, Posen, Bewegungen, Teile zum Durchklicken): lokal
+  `npm run spieltest` → `/lernquest/werkstatt.html`; für die Lehrkraft als privates Artefakt
+  https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG (neu bauen: `npm run werkstatt`, dieselbe Adresse aktualisieren).
+  Dort: Zeitleiste zum Abspielen und Spulen, Pose-Editor mit Schiebern, Bewegungen live bearbeiten, Übergänge,
+  Ausrüstung, Größenprobe, Farbliste, Vorlage (Mockup). Die Lehrkraft speichert je Figur und Teil „Passt“ / „Bitte
+  ändern“ mit Notiz (Artefakt-Datenbank, Sammlung `pruefung`); Claude liest sie mit ArtifactData (Skill `figur`).
 - Seltenheiten: Gewöhnlich, Ungewöhnlich, Selten, Episch, Legendär – Farbe **und** 1–5 Punkte.
 - Rückmeldung nie nur über Farbe: Haken/Kreuz und Text; Antworten im Bosskampf mit Form (Dreieck, Raute, Kreis,
   Quadrat).
@@ -31,7 +46,7 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 Gelten für den Nachbau in `src/lernquest/app/lernquest.css`; der Prototyp bleibt Bildvorlage, diese Regeln gehen vor.
 
 ### Farben
-- Tokens heißen nach ihrer Aufgabe, nicht nach dem Farbton: `--lq-primary` `#5B3FD9`, `--lq-primary-tief` `#3F28A8`,
+- Tokens heißen nach ihrer Aufgabe, nicht nach dem Farbton: `--lq-primary` (seit Stufe E Grün), `--lq-primary-tief`,
   `--lq-gold` `#FFC531`, `--lq-gold-tief` `#C98F00`, `--lq-ok` `#0F7543` (siehe Barrierefreiheit) / `--lq-ok-flaeche` `#DDF5E7`,
   `--lq-fehler` `#C4321F` / `--lq-fehler-flaeche` `#FDE6E1`, dazu Grund, Karte, Schrift, gedämpft, Linie.
 - Seltenheiten `--lq-selten-1` … `--lq-selten-5` (Werte wie `SELTENHEIT` in `src/lernquest/teile.ts`); dunkles Set
@@ -74,7 +89,7 @@ Jedes antippbare Teil hat dieselben Zustände, nie nur über Farbe unterschieden
 - Kontrast nach WCAG AA (Kontrastnorm fürs Web): Text 4,5 : 1, große Schrift und Symbole 3 : 1. Daraus:
   - Gold nur als Fläche, nie als Schrift; goldene Zahlen in `--lq-gold-schrift` `#7A5600` (6,7 : 1).
   - `--lq-ok` wird `#0F7543` (5,0 : 1 auf der grünen Fläche; `#13804A` hatte nur 4,3 : 1).
-  - Auf dunklem Grund ist Violett `--lq-primary-nacht` `#A99BFF` (6,9 : 1), nicht `#5B3FD9` (2,5 : 1).
+  - Auf dunklem Grund ist die Hauptfarbe `--lq-primary-nacht` `#A8E07A` (8,2 : 1), nicht `--lq-primary`.
 - Symbol-Knöpfe haben ein `aria-label`; Rückmeldungen stehen zusätzlich in einem `aria-live`-Bereich.
 - Bis 200 % Zoom kein seitliches Scrollen; Stationen ohne Zeitdruck (Zeitlimit nur im Bosskampf, Stufe 3).
 - Alles geht auch mit Tastatur (Ziehen hat immer eine Antipp-Alternative).
@@ -86,7 +101,23 @@ Jedes antippbare Teil hat dieselben Zustände, nie nur über Farbe unterschieden
 - Stationen bleiben einspaltig und mittig (max. 720 px), damit die Aufgabe allein im Blick ist.
 - Handy quer: Kopfzeile schrumpft auf eine Zeile, nichts wird abgeschnitten.
 
-### Avatar-Stil (40 Teile)
+### Held als Vektorfigur (Stufe E, Teil 4, ersetzt den Avatar-Stil darunter)
+- Der Held ist eine Figur im Figuren-Baukasten (`src/lernquest/figuren/held.tsx`, `held(aussehen)`), im Stil des
+  Fuchses: dicke Umrisse, Licht oben links, Chibi. Hautfarbe, Frisur, Haarfarbe, Mund, Augen und Kleidung sind in die
+  Figur gezeichnet; Kopf-Teile (`items-kopf.tsx`, Anker `hut`), Werkzeuge (`items-werkzeug.tsx`, `hand-rechts`) und
+  Begleiter (`begleiter.tsx`, Anker `begleiter` neben den Füßen) sind Items; Hintergründe sind Szenen
+  (`hintergruende.tsx`, 240 × 240, Held steht bei 120/230).
+- In der App: `app/heldVektor.tsx` (`HeldBild`, `HeldKopfBild`, `HeldTeilBild`); `AvatarBild`, `KopfBild` und `TeilBild`
+  in `app/avatar.tsx` nehmen sie. Die alte Zeichnung mit den gemalten Bildern bleibt nur für Teile und Frisuren, die es
+  nur als hochgeladenes Bild gibt (Lehrkraft-Seite), und für die Vorschau beim Hochladen.
+- Die gemalten Bilder (ComfyUI) sind gelöscht (Entscheidung der Lehrkraft 12.11.2026). Eigene Teile und Frisuren der
+  Lehrkraft zeichnet Claude als Vektor unter ihrer id nach (`EIGENE_ZEICHNUNGEN` in `figuren/held.tsx`); bis dahin
+  zeigt die App das hochgeladene Bild im alten Stil.
+- Werkstatt `#avatar`: Held aus allen Teilen zusammenstellen und jedes Teil am Helden prüfen.
+- Schnell ansehen ohne Werkstatt: `VORSCHAU=<ordner> VORSCHAU_TEIL=held npx vitest run src/lernquest/figuren/vorschau`
+  (auch `kopf`, `werkzeug`, `begleiter`, `hintergrund`).
+
+### Avatar-Stil (40 Teile, bis Stufe D)
 - Flache Vektorgrafik ohne Umrisslinien, je Fläche zwei Töne (Grundton und Schatten), Formen rund und kindlich, Stil
   wie der Held in `Held.dc.html`.
 - Eine gemeinsame Zeichenfläche (`viewBox` 0 0 240 240) für alle Teile; feste Ebenen von hinten nach vorn:

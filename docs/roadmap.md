@@ -247,3 +247,23 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
   von 200), Laden nach Heldenstufe (Seltenheit 1 ab Stufe 3, 2 ab 5, 3 ab 12, 4 ab 16; Truhen geben alles), eigener
   Held neben der aktuellen Station. Migration `20261124_lernquest_tagesaufgaben.sql` eingespielt am 12.11.2026
   (Freigabe der Lehrkraft), Live-Tests grün; App und Server rechnen in 1925 Zufallsrunden gleich (PGlite). Teil 2: Willkommen und Klassen-Aufgabe der Woche.
+- **Stufe E, Entscheidungen der Lehrkraft (12.11.2026):** Lernweg bleibt und wird auf der Karte sichtbarer; Stufe D,
+  Teil 2 wird übernommen; Spielstände bleiben; weiter keine Rangliste und keine Tagesserie. Plan in sechs Teilen unter
+  „Stufe E“ in `docs/kritik-und-plan.md`, Mockup in `docs/design/lernquest/mockup-stufe-e.png`.
+- **Figuren-Baukasten vor Teil 2 (Lehrkraft, 12.11.2026):** Fuchs, Held, Teile und Bosse entstehen in einem
+  gemeinsamen System mit Gerüst, Posen und Bewegungen (`src/lernquest/figuren/`, Skill `figur`); die Lehrkraft sieht
+  alles in der Figuren-Werkstatt als Artefakt.
+- **Gemalte Bilder (Entscheidung der Lehrkraft 12.11.2026):** Die gemalten Bilder werden gelöscht. Eigene Teile und
+Frisuren der Lehrkraft bekommen ebenfalls eine Vektorzeichnung (Claude zeichnet sie nach), die das hochgeladene Bild ersetzt.
+Neue eigene Teile legt sie als Wunsch an (Name, Platz, Seltenheit, Beschreibung); Claude zeichnet, sie stellt dann die
+Herkunft ein. Hochladen und Bild-Bearbeiten auf der Lehrkraft-Seite sind entfernt.
+
+**Prüfen der Teile (Entscheidung der Lehrkraft 12.11.2026):** Die Lehrkraft prüft Teile und Gegenstände erst, wenn die
+  Spieler-Avatare gebaut sind (Teil 4), an den Avataren und nicht nur an Fuchs und Boss. Dafür braucht Teil 4: Vorlagen
+  mit verschiedenen Hautfarben, dazu Münder, Augen, Frisuren, Helme, Ausrüstung, Begleiter und Gegenstände.
+- **Stufe D, Teil 2 (Entscheidungen der Lehrkraft 12.11.2026), gebaut am 12.11.2026 auf `claude/lucid-galileo-0dvocr`:**
+  Klassen-Aufgabe der Woche (alle sammeln neue Sterne, Ziel 3 je Kind, auf der Lehrerseite 1–20 einstellbar; geschafft:
+  eine Truhe für jedes Kind mit mindestens einem Stern in der Woche; Kinder sehen nur die Summe). Willkommen für neue
+  Kinder (Held bauen, Mini-Runde mit 3 Fragen der ersten Station als „Wiederholen“, Willkommens-Truhe; überspringbar,
+  dann ohne Truhe). Migration `20261125_lernquest_klassenaufgabe.sql` eingespielt am 12.11.2026 (Freigabe
+  der Lehrkraft), lokal und live geprüft (Live-Tests grün).

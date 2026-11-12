@@ -87,6 +87,15 @@ export const speichereWarteschlange = (m: Meldung[]) => write(K_WARTE, m.length 
 export const tonAn = () => read<boolean>(K_TON) !== false;
 export const setzeTon = (an: boolean) => write(K_TON, an);
 
+/** „Bewegung reduzieren“ in the app (Stufe E, Teil 6), for devices where the system setting is not on: the class
+ *  `lq-ruhig` on the page stops every animation like the system setting does (lernquest.css, figuren/Figur.tsx). */
+const K_RUHIG = 'lernquest:ruhig';
+export const ruhigAn = () => read<boolean>(K_RUHIG) === true;
+export function setzeRuhig(an: boolean) {
+  write(K_RUHIG, an || null);
+  if (typeof document !== 'undefined') document.documentElement.classList.toggle('lq-ruhig', an);
+}
+
 /**
  * Best percent per Meilenstein (region id). ponytail: only on this device, the server does not know Meilensteine yet;
  * they move to the server with the rest of Stufe C (stars from levels), if children play on several devices.

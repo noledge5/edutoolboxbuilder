@@ -33,6 +33,10 @@ import {
 } from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
+import { TruheZeichnung } from '../figuren';
+import { ruhig } from '../figuren/Figur';
+import { Fuchs } from './Fuchs';
+import { Jubel } from './Jubel';
 import { BilderNeuLaden, useAlleFrisuren, useAlleTeile } from './bilderKontext';
 import { GutscheinLeiste } from './Gutscheine';
 import type { Daten } from './speicher';
@@ -162,7 +166,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
       <div className="lq-held-links">
         <h1 className="lq-seitentitel">Dein Held</h1>
         <div className="lq-buehne">
-          <AvatarBild avatar={stand.avatar} className="lq-buehne-bild" />
+          <AvatarBild avatar={stand.avatar} className="lq-buehne-bild" lebendig />
           <div className="lq-buehne-name">
             <strong>{daten.name}</strong>
             <span>
@@ -501,7 +505,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
   useEffect(() => {
     if (phase === 'auf' && inhalt && (zeitUm || uebersprungen)) {
       setPhase('da');
-      ton(inhalt.teil && inhalt.seltenheit >= 2 ? 'fertig' : 'richtig');
+      ton(inhalt.teil && inhalt.seltenheit >= 2 ? 'truhe' : 'richtig');
     }
   }, [phase, inhalt, zeitUm, uebersprungen]);
 
@@ -509,7 +513,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
     setMsg('');
     setInhalt(null);
     setZeitUm(false);
-    setUebersprungen(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+    setUebersprungen(ruhig());
     setPhase('auf');
     const timer = window.setTimeout(() => setZeitUm(true), ZEIT_TRUHE);
     try {
@@ -567,6 +571,12 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
           <MuenzHaufen />
         ) : (
           <TruheGross offen={phase === 'auf'} />
+        )}
+        {phase === 'da' && t && inhalt && inhalt.seltenheit >= 2 && <Jubel stark={inhalt.seltenheit >= 3} />}
+        {phase === 'da' && (
+          <span className="lq-truhe-fuchs" aria-hidden>
+            <Fuchs pose="jubeln" groesse={84} />
+          </span>
         )}
       </div>
       <div aria-live="polite" className="lq-truhe-text">
@@ -641,7 +651,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
 
 // — The class —
 
-export function KlasseSeite({ aktion }: { aktion: Aktion }) {
+export function KlasseSeite({ aktion, aufgabe }: { aktion: Aktion; aufgabe?: React.ReactNode }) {
   const [ansicht, setAnsicht] = useState<KlasseAnsicht | null>(null);
   const [msg, setMsg] = useState('');
   const [laedt, setLaedt] = useState(true);
@@ -673,6 +683,7 @@ export function KlasseSeite({ aktion }: { aktion: Aktion }) {
             <strong>{ansicht.tage}</strong>
             <span>{ansicht.tage === 1 ? 'Lerntag' : 'Lerntage'} habt ihr diese Woche zusammen geschafft.</span>
           </div>
+          {aufgabe}
           {ansicht.kinder.length ? (
             <ul className="lq-helden">
               {ansicht.kinder.map((k, i) => (
@@ -706,11 +717,8 @@ export const HerzIcon = () => (
   </svg>
 );
 export const TruheIcon = () => (
-  <svg width="48" height="42" viewBox="0 0 52 46" aria-hidden className="lq-truhe-icon">
-    <rect x="3" y="18" width="46" height="25" rx="4" fill="#8A4B1F" />
-    <path d="M3 18c0-9 6-15 23-15s23 6 23 15Z" fill="#A65E2A" />
-    <rect x="3" y="16" width="46" height="6" fill="#FFC531" />
-    <rect x="22" y="16" width="8" height="14" rx="2" fill="#FFC531" />
+  <svg width="48" height="42" viewBox="8 12 144 124" aria-hidden className="lq-truhe-icon">
+    <TruheZeichnung />
   </svg>
 );
 /** The coins of a chest that held only coins. */
@@ -737,14 +745,7 @@ function MuenzHaufen() {
 function TruheGross({ offen }: { offen: boolean }) {
   return (
     <svg viewBox="0 0 160 140" className={`lq-truhe-gross ${offen ? 'offen' : ''}`} role="img" aria-label={offen ? 'Die Truhe geht auf' : 'Geschlossene Truhe'}>
-      <rect x="12" y="62" width="136" height="70" rx="10" fill="#8A4B1F" />
-      <rect x="12" y="96" width="136" height="10" fill="#6E3A16" />
-      <g className="lq-truhe-deckel">
-        <path d="M12 62c0-30 18-48 68-48s68 18 68 48Z" fill="#A65E2A" />
-        <rect x="12" y="54" width="136" height="14" fill="#FFC531" />
-      </g>
-      <rect x="68" y="54" width="24" height="40" rx="5" fill="#FFC531" />
-      <circle cx="80" cy="76" r="5" fill="#5A3E00" />
+      <TruheZeichnung offen={offen} />
     </svg>
   );
 }

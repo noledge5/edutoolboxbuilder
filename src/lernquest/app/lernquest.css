@@ -3,33 +3,34 @@
 :root {
   /* Design rules: docs/design/lernquest/README.md („Designregeln“). Outside :root only these tokens, no raw colours or
      font sizes (checked by src/lernquest/app/lernquest.css.test.ts). */
-  /* Colours, named by their job */
-  --lq-grund: #f3f0ff;
-  --lq-karte: #ffffff;
-  --lq-schrift: #1f1a3d;
-  --lq-gedaempft: #57527a;
-  --lq-linie: #dcd6f5;
+  /* Colours, named by their job. Stufe E (12.11.2026): green and cream after the teacher's mockup
+     (docs/design/lernquest/mockup-stufe-e.png); the art of fox and landscape keeps its own colours in the TSX. */
+  --lq-grund: #fbf6e9;
+  --lq-karte: #fffdf7;
+  --lq-schrift: #263322;
+  --lq-gedaempft: #556149;
+  --lq-linie: #e6ddc4;
   --lq-auf-farbe: #ffffff;
-  --lq-primary: #5b3fd9;
-  --lq-primary-tief: #3f28a8;
-  --lq-primary-flaeche: #ebe6ff;
-  --lq-primary-nacht: #a99bff;
+  --lq-primary: #2e7d18;
+  --lq-primary-tief: #1f5c0f;
+  --lq-primary-flaeche: #e6f4d7;
+  --lq-primary-nacht: #a8e07a;
   --lq-gold: #ffc531;
   --lq-gold-tief: #c98f00;
   --lq-gold-flaeche: #fff4d1;
   --lq-gold-schrift: #7a5600;
   --lq-auf-gold: #4a3300;
   --lq-stern: #a87400;
-  --lq-stern-aus: #cfc9e6;
+  --lq-stern-aus: #d9cfb2;
   --lq-ok: #0f7543;
   --lq-ok-flaeche: #ddf5e7;
   --lq-fehler: #c4321f;
   --lq-fehler-flaeche: #fde6e1;
-  --lq-nacht: #1f1a3d;
-  --lq-nacht-ink: #f3f0ff;
+  --lq-nacht: #173a1c;
+  --lq-nacht-ink: #f6f1df;
   --lq-herz: #e0344b;
   /* Boss fight: muted ink on the dark ground, and the four answers (each also has a shape) */
-  --lq-nacht-gedaempft: #c9c2f2;
+  --lq-nacht-gedaempft: #c5d9b8;
   --lq-antwort-1: #2459b8;
   --lq-antwort-1-tief: #173c80;
   --lq-antwort-2: #b5541c;
@@ -918,26 +919,77 @@ mark {
   letter-spacing: 1px;
 }
 
-/* — Start — */
+/* — Start (Stufe E): landscape with the fox on top, the sign-in below on cream — */
 .lq-start {
-  padding-top: max(calc(var(--lq-a-6) + var(--lq-a-2)), env(safe-area-inset-top));
+  padding: 0;
+  gap: 0;
 }
-.lq-start-kopf {
+.lq-start-bild {
+  position: relative;
+  height: max(340px, 54dvh);
+  overflow: hidden;
+  flex: none;
+}
+.lq-start-landschaft {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.lq-start-titel {
+  position: relative;
+  text-align: center;
+  padding: max(var(--lq-a-6), env(safe-area-inset-top)) var(--lq-a-4) 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--lq-a-3);
-  text-align: center;
-  margin: var(--lq-a-5) 0 auto;
+  gap: var(--lq-a-1);
 }
 .lq-start .lq-logo {
   font-size: var(--lq-t-h1);
-  font-weight: 700;
-  color: var(--lq-schrift);
+  font-weight: 600;
+  color: var(--lq-primary);
+  letter-spacing: 0.5px;
+  /* A cream outline, so the name stands on the sky and the mountains. */
+  text-shadow:
+    0 2px 0 var(--lq-karte),
+    0 -2px 0 var(--lq-karte),
+    2px 0 0 var(--lq-karte),
+    -2px 0 0 var(--lq-karte),
+    0 5px 0 var(--lq-primary-tief);
 }
 .lq-start .lq-tagline {
   margin: 0;
   font-size: var(--lq-t-gross);
+  color: var(--lq-schrift);
+}
+.lq-start-fuchs {
+  position: absolute;
+  left: 50%;
+  bottom: var(--lq-a-4);
+  transform: translateX(-50%);
+}
+.lq-start-unten {
+  position: relative;
+  margin-top: calc(-1 * var(--lq-a-5));
+  background: var(--lq-grund);
+  border-radius: var(--lq-r) var(--lq-r) 0 0;
+  padding: var(--lq-a-5) var(--lq-a-4) max(var(--lq-a-5), env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-3);
+  flex: 1;
+}
+.lq-start-unten h2 {
+  font-size: var(--lq-t-h3);
+  text-align: center;
+}
+.lq-start-unten p {
+  margin: 0;
+  text-align: center;
+  color: var(--lq-gedaempft);
+}
+.lq-start .lq-meldung {
+  text-align: center;
 }
 .lq-oder {
   display: flex;
@@ -975,6 +1027,50 @@ mark {
   background: var(--lq-schrift);
   aspect-ratio: 1;
   object-fit: cover;
+}
+
+/* — The fox and its speech bubble (Stufe E; the fox itself: src/lernquest/figuren/) — */
+.lq-fuchs {
+  flex: none;
+  overflow: visible;
+}
+.lq-fuchs-sagt {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--lq-a-2);
+}
+.lq-sprech {
+  position: relative;
+  flex: 1;
+  background: var(--lq-karte);
+  border-radius: var(--lq-r);
+  padding: var(--lq-a-3) var(--lq-a-4);
+  margin-bottom: var(--lq-a-6);
+  box-shadow:
+    inset 0 0 0 2px var(--lq-linie),
+    0 4px 0 var(--lq-linie);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+}
+/* The tail of the bubble points at the fox. */
+.lq-sprech::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  bottom: 18px;
+  width: 16px;
+  height: 16px;
+  background: var(--lq-karte);
+  box-shadow: -2px 2px 0 var(--lq-linie);
+  transform: rotate(45deg);
+}
+.lq-sprech h2 {
+  font-size: var(--lq-t-h3);
+}
+.lq-sprech p {
+  margin: 0;
+  color: var(--lq-gedaempft);
 }
 
 /* — Names and PIN — */
@@ -1040,20 +1136,6 @@ mark {
 }
 .lq-pin-seite {
   gap: var(--lq-a-5);
-}
-.lq-hallo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--lq-a-3);
-  text-align: center;
-}
-.lq-hallo h2 {
-  font-size: var(--lq-t-h2);
-}
-.lq-hallo p {
-  margin: 0;
-  color: var(--lq-gedaempft);
 }
 .lq-pin span {
   width: 18px;
@@ -3597,13 +3679,521 @@ button.lq-teil:active {
   height: 14px;
 }
 
-/* While the app is rebuilt (UMBAU in LernquestApp.tsx): a calm notice instead of the sign-in. */
-.lq-umbau {
+/* ── Stufe E, Teil 2: the map as a landscape (app/Landkarte.tsx, layout src/lernquest/weg.ts) ─────────────── */
+.lq-landkarte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.lq-landkarte-kopf {
+  position: relative;
+  z-index: 2;
+  margin-bottom: calc(-1 * var(--lq-a-4));
+  max-width: 340px;
+  width: 100%;
+}
+.lq-landkarte .lq-region-band {
+  background: var(--lq-karte);
+  border-radius: var(--lq-r);
+  box-shadow: var(--lq-shadow);
+  padding: var(--lq-a-3) var(--lq-a-6);
+  text-align: center;
+  color: var(--lq-schrift);
+  align-items: center;
+}
+.lq-landkarte .lq-region-band span {
+  color: var(--lq-primary-tief);
+}
+.lq-landkarte .lq-region-band .lq-klein {
+  margin: var(--lq-a-1) 0 0;
+  color: var(--lq-gedaempft);
+}
+.lq-landkarte-flaeche {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+}
+.lq-landkarte-flaeche > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: var(--lq-r);
+  box-shadow: var(--lq-shadow);
+}
+.lq-wegpunkte {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  inset: 0;
+}
+/* A waypoint: its button centred on the point of the path, name and hint below, stars above. */
+.lq-wegpunkt {
+  position: absolute;
+  width: 152px;
+  margin-left: -76px;
+  margin-top: -32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--lq-a-1);
+  text-align: center;
+}
+.lq-landkarte .lq-knoten {
+  position: relative;
+  width: 64px;
+  height: 60px;
+  border-radius: var(--lq-r-pille);
+  border: 3px solid var(--lq-auf-farbe);
+}
+.lq-landkarte .lq-knoten svg {
+  width: 30px;
+  height: 30px;
+}
+.lq-landkarte .lq-knoten.aktuell {
+  background: var(--lq-gold);
+  color: var(--lq-auf-gold);
+  box-shadow: 0 6px 0 var(--lq-gold-tief);
+}
+.lq-landkarte .lq-knoten.aktuell::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: var(--lq-r-pille);
+  border: 4px solid var(--lq-auf-farbe);
+  opacity: 0.8;
+  animation: lq-ring 1.8s ease-out infinite;
+}
+@keyframes lq-ring {
+  from {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+.lq-landkarte .lq-knoten.meilenstein:not(:disabled) {
+  background: var(--lq-antwort-4);
+  color: var(--lq-auf-farbe);
+  box-shadow: 0 6px 0 var(--lq-antwort-4-tief);
+}
+.lq-landkarte .lq-knoten-titel,
+.lq-landkarte .lq-wegpunkt .lq-klein {
+  background: var(--lq-karte);
+  border-radius: var(--lq-r-klein);
+  padding: 0 var(--lq-a-2);
+  max-width: 100%;
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--lq-schrift) 18%, transparent);
+}
+.lq-landkarte .lq-knoten-titel {
+  margin-top: var(--lq-a-1);
+  font:
+    700 var(--lq-t-klein) Nunito,
+    sans-serif;
+  line-height: 1.35;
+  color: var(--lq-schrift);
+}
+.lq-landkarte .lq-wegpunkt .lq-klein {
+  font-size: var(--lq-t-klein);
+  color: var(--lq-gedaempft);
+}
+.lq-wegpunkt.ist-gesperrt .lq-knoten-titel {
+  color: var(--lq-gedaempft);
+}
+/* The three stages (Kennenlernen, Anwenden, Meistern) as stars in an arc over the station. */
+.lq-stufen {
+  position: absolute;
+  top: -22px;
+  display: flex;
+  gap: var(--lq-a-1);
+  pointer-events: none;
+}
+.lq-stufen span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-karte);
+  color: var(--lq-stern-aus);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--lq-schrift) 18%, transparent);
+}
+.lq-stufen span:nth-child(2) {
+  transform: translateY(-6px);
+}
+.lq-stufen span.an {
+  color: var(--lq-stern);
+  background: var(--lq-gold-flaeche);
+}
+.lq-stufen svg {
+  width: 14px;
+  height: 14px;
+}
+/* The hero stands beside the current station, on the side away from the edge. */
+.lq-landkarte .lq-pfad-held {
+  position: absolute;
+  top: 4px;
+  bottom: auto;
+  width: 64px;
+  height: 64px;
+  left: calc(50% + 40px);
+}
+.lq-wegpunkt.rechts .lq-pfad-held {
+  left: auto;
+  right: calc(50% + 40px);
+}
+.lq-karte-haupt > .lq-fuchs-sagt {
+  max-width: 480px;
+  margin-inline: auto;
+  width: 100%;
+}
+.lq-karte-haupt .lq-region + .lq-region {
+  margin-top: var(--lq-a-5);
+}
+
+/* The bar at the bottom as in the mockup: a floating white card, the current tab as a green pill. */
+.lq-leiste {
+  margin: 0 var(--lq-a-3) var(--lq-a-3);
+  border: 0;
+  border-radius: var(--lq-r);
+  box-shadow: var(--lq-shadow);
+  padding: var(--lq-a-1) var(--lq-a-1) calc(var(--lq-a-1) + env(safe-area-inset-bottom));
+}
+.lq-leiste button {
+  border-radius: var(--lq-r-klein);
+}
+.lq-leiste button.an {
+  background: var(--lq-primary-flaeche);
+  color: var(--lq-primary-tief);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lq-landkarte .lq-knoten.aktuell::after {
+    animation: none;
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+/* — Stufe E, Teil 3: the round in the mockup look — */
+/* A green bar with a light stripe, like the mockup's level bar. */
+.lq-fortschritt .lq-balken {
+  height: 18px;
+  background: var(--lq-primary-flaeche);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+}
+.lq-fortschritt .lq-balken > span {
+  background: var(--lq-primary);
+  box-shadow:
+    inset 0 -4px 0 var(--lq-primary-tief),
+    inset 0 4px 0 color-mix(in srgb, var(--lq-auf-farbe) 30%, transparent);
+}
+/* Chosen answer: a green card with a round tick in the corner. */
+.lq-option {
+  position: relative;
+}
+.lq-option.an:not(.ok):not(.nein)::after,
+.lq-option.ok::after,
+.lq-option.nein::after {
+  position: absolute;
+  top: var(--lq-a-2);
+  right: var(--lq-a-2);
+  float: none;
+  margin: 0;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--lq-r-pille);
+  font-size: var(--lq-t-text);
+  color: var(--lq-auf-farbe);
+}
+.lq-option.an:not(.ok):not(.nein)::after {
+  background: var(--lq-primary);
+  color: var(--lq-auf-farbe);
+}
+.lq-option.ok::after {
+  background: var(--lq-ok);
+  color: var(--lq-auf-farbe);
+}
+.lq-option.nein::after {
+  background: var(--lq-fehler);
+  color: var(--lq-auf-farbe);
+}
+/* Text answers keep room for the tick. */
+.lq-optionen .lq-option {
+  padding-right: var(--lq-a-6);
+}
+/* Feedback: a card that rises from the bottom, with the hero or the fox beside the words. */
+.lq-fuss.ok,
+.lq-fuss.nein {
+  border-top: 0;
+  border-radius: var(--lq-r) var(--lq-r) 0 0;
+  box-shadow: 0 -6px 18px color-mix(in srgb, var(--lq-schrift) 12%, transparent);
+}
+.lq-rueck-figur {
+  width: 76px;
+  height: 76px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  margin-top: calc(-1 * var(--lq-a-6));
+}
+.lq-rueck-figur svg {
+  width: 100%;
+  height: 100%;
+}
+.lq-rueck-figur.freut {
+  animation: lq-huepfen var(--lq-dauer-lang) var(--lq-feder);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-rueck-figur.freut {
+    animation: none;
+  }
+}
+.lq-rueckmeldung {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--lq-a-3);
+}
+.lq-rueck-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+  min-width: 0;
+  flex: 1;
+}
+
+/* Stufe D, Teil 2: the class task of the week (one bar, the sum only) and the welcome for new children. */
+.lq-klassenaufgabe {
+  display: grid;
+  gap: var(--lq-a-2);
+}
+.lq-klassenaufgabe .lq-balken {
+  height: 14px;
+  background: var(--lq-linie);
+}
+.lq-klassenaufgabe .lq-balken > span {
+  background: var(--lq-gold);
+}
+.lq-willkommen {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
   gap: var(--lq-a-4);
 }
-.lq-umbau > svg {
+.lq-willkommen h1 {
+  font-size: var(--lq-t-h1);
+  color: var(--lq-primary-tief);
+}
+.lq-willkommen .lq-truhe-icon {
+  width: 120px;
+  height: auto;
+}
+.lq-willkommen-held {
+  width: min(220px, 60vw);
+  height: auto;
+}
+.lq-willkommen-schritte {
+  margin: 0;
+  padding-left: 1.4em;
+  text-align: left;
+  display: grid;
+  gap: var(--lq-a-2);
+  font-weight: 700;
+}
+.lq-willkommen .lq-knopf {
+  width: 100%;
+  max-width: 420px;
+}
+.lq-willkommen-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lq-a-3);
+  padding: var(--lq-a-3) var(--lq-a-4);
+  border-radius: var(--lq-r);
+  background: var(--lq-nacht);
+  color: var(--lq-nacht-ink);
+}
+.lq-willkommen-band .lq-knopf {
+  width: auto;
+}
+
+/* — Stufe E, Teil 5: tasks (Heute / Woche) as quest cards — */
+.lq-aufgaben-seite {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-4);
+  width: 100%;
+  max-width: 720px;
   align-self: center;
 }
-.lq-umbau p {
-  margin: 0;
+.lq-umschalter {
+  display: flex;
+  gap: var(--lq-a-1);
+  padding: var(--lq-a-1);
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-karte);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+  align-self: flex-start;
+}
+.lq-umschalter button {
+  border: 0;
+  min-height: var(--lq-tippen);
+  padding: var(--lq-a-2) var(--lq-a-5);
+  border-radius: var(--lq-r-pille);
+  background: none;
+  font:
+    600 var(--lq-t-text) Fredoka,
+    sans-serif;
+  color: var(--lq-gedaempft);
+}
+.lq-umschalter button.an {
+  background: var(--lq-primary);
+  color: var(--lq-auf-farbe);
+  box-shadow: 0 3px 0 var(--lq-primary-tief);
+}
+.lq-zahl-gruen {
+  background: var(--lq-primary);
+  color: var(--lq-auf-farbe);
+}
+.lq-tagesaufgaben li {
+  grid-template-columns: 48px 1fr auto;
+  gap: var(--lq-a-3);
+  padding: var(--lq-a-3);
+  border-radius: var(--lq-r);
+  background: var(--lq-grund);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+}
+.lq-tagesaufgaben li.ok {
+  background: var(--lq-primary-flaeche);
+  box-shadow: inset 0 0 0 2px var(--lq-primary);
+}
+.lq-tagesaufgaben li.ok > span:nth-child(2) {
+  color: var(--lq-schrift);
+}
+.lq-aufgabe-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--lq-r-pille);
+  display: grid;
+  place-items: center;
+  background: var(--lq-gold-flaeche);
+  color: var(--lq-gold-schrift);
+  box-shadow: inset 0 0 0 2px var(--lq-gold);
+}
+.lq-tagesaufgaben li.ok .lq-aufgabe-icon {
+  background: var(--lq-primary);
+  color: var(--lq-auf-farbe);
+  box-shadow: none;
+}
+.lq-aufgabe-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+  font-weight: 600;
+  min-width: 0;
+}
+.lq-aufgabe-text small {
+  color: var(--lq-gedaempft);
+  font-weight: 400;
+}
+.lq-aufgabe-balken {
+  display: block;
+  height: 10px;
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-linie);
+  overflow: hidden;
+}
+.lq-aufgabe-balken > span {
+  display: block;
+  height: 100%;
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-primary);
+}
+
+/* The fox cheers beside what the chest held (Stufe E, Teil 5). */
+.lq-truhe-fuchs {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 84px;
+  pointer-events: none;
+}
+.lq-truhe-fuchs svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* — Stufe E, Teil 6: confetti (Jubel.tsx), still with „Bewegung reduzieren“ — */
+.lq-jubel {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 30;
+}
+.lq-jubel span {
+  position: absolute;
+  top: -16px;
+  left: var(--x);
+  width: 10px;
+  height: 14px;
+  border-radius: var(--lq-r-klein);
+  background: var(--lq-primary);
+  opacity: 0;
+  transform: rotate(var(--r));
+  animation: lq-konfetti var(--d) ease-in var(--v) forwards;
+}
+.lq-jubel span:nth-child(5n + 1) {
+  background: var(--lq-gold);
+}
+.lq-jubel span:nth-child(5n + 2) {
+  background: var(--lq-antwort-1);
+}
+.lq-jubel span:nth-child(5n + 3) {
+  background: var(--lq-antwort-2);
+  border-radius: var(--lq-r-pille);
+}
+.lq-jubel span:nth-child(5n + 4) {
+  background: var(--lq-antwort-3);
+}
+@keyframes lq-konfetti {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--r));
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(110vh) rotate(calc(var(--r) + 540deg));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-jubel {
+    display: none;
+  }
+}
+/* The hero above the result of a round. */
+.lq-ergebnis-held {
+  width: 132px;
+  height: 132px;
+  align-self: center;
+}
+
+/* The app's own „Bewegung reduzieren“ (menu), the same as the system setting above. */
+.lq-ruhig *,
+.lq-ruhig *::before,
+.lq-ruhig *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.lq-ruhig .lq-jubel {
+  display: none;
 }

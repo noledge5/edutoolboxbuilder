@@ -10,3 +10,6 @@ coverage
 
 # Screenshots from checks belong in the scratchpad, not here
 /*.png
+
+# Figure workshop build (npm run werkstatt)
+/dist-werkstatt/

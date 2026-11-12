@@ -106,3 +106,19 @@ export function beamerAusHash(hash: string): { id: string; klasse: string } | nu
 /** The link in the QR code at the projector: Lernquest of this page with the class code, where the children sign in
  *  (the same link as on their cards). `seite` is this page's address; query and hash are dropped. */
 export const beitrittsLink = (seite: string, code: string): string => `${seite.replace(/[?#].*$/, '').replace(/[^/]*$/, '')}#${code}`;
+
+/** What the fox on the map says is next (Stufe E: the fox guides). `dran`: exercises due in this subject;
+ *  `bestanden`: ids of regions whose Meilenstein is passed. */
+export function fuchsHinweis(regionen: Region[], dran: number, bestanden: ReadonlySet<string> = new Set()): { text: string; pose: 'winken' | 'jubeln' | 'denken' | 'stehen' } {
+  const stationen = regionen.flatMap((r) => r.stationen);
+  const aktuell = stationen.find((s) => s.zustand === 'aktuell');
+  const auffrischen = dran > 0 ? ` Vorher ${dran === 1 ? 'wartet 1 Aufgabe' : `warten ${dran} Aufgaben`} aufs Wiederholen.` : '';
+  if (!stationen.length) return { text: 'Hier entsteht deine Karte. Bald geht’s los!', pose: 'winken' };
+  if (aktuell) return { text: `Weiter geht’s mit „${aktuell.titel}“!${auffrischen}`, pose: 'winken' };
+  if (dran > 0) return { text: `${dran === 1 ? '1 Aufgabe wartet' : `${dran} Aufgaben warten`} aufs Wiederholen. So bleibt es im Kopf!`, pose: 'denken' };
+  const offen = stationen.find((s) => s.zustand === 'offen');
+  if (offen) return { text: `„${offen.titel}“ hat noch Sterne für dich.`, pose: 'stehen' };
+  if (regionen.some((r) => r.meilenstein && !bestanden.has(r.id))) return { text: 'Alle Stationen geschafft! Am dunklen Schloss wartet der Meilenstein.', pose: 'jubeln' };
+  if (stationen.some((s) => s.zustand === 'gesperrt')) return { text: 'Super, alles geschafft! Neue Stationen öffnen sich, sobald ihr sie im Unterricht hattet.', pose: 'jubeln' };
+  return { text: 'Alles geschafft! Hol dir in den Stationen die fehlenden Sterne.', pose: 'jubeln' };
+}

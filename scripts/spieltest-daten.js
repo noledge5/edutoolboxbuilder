@@ -54,9 +54,12 @@
     ], { lang: 'en', bilder: { 'img:x': bild('#e8b04a') } }),
   };
   const heute = Math.floor(Date.now() / 86400000);
+  const montag = new Date((heute - ((new Date(heute * 86400000).getUTCDay() + 6) % 7)) * 86400000).toISOString().slice(0, 10);
   const stand = {
     xp: 230, xpHeute: 0, bestwerte: { s2: [100] }, tage: [], leitner: { 's2/b1': [2, heute - 1], 's2/b2': [1, heute], 's2/b3': [3, heute + 5] },
     muenzen: 85, muenzenHeute: 0, truhen: 1, pech: 0, inventar: [], avatar: {}, klassenpunkte: 2, sterneRest: 0, sterneStationen: { s2: 3 },
+    // Stufe D, Teil 2: the class task of this week (Monday of today), two of the stars from this child.
+    sterneWoche: 2, klassenAufgabe: { woche: montag, sterne: 7, ziel: 12, geschafft: false },
   };
   localStorage.setItem('lernquest:sitzung', JSON.stringify({ code: 'TESTTEST', kind: 'k1', name: 'Mia K.', token: 'a'.repeat(64) }));
   localStorage.setItem('lernquest:daten', JSON.stringify({ name: 'Mia K.', klasse: '5b', stand, pakete, seit: null }));

@@ -1,17 +1,11 @@
 // Every part of the catalogue is drawn (Avatar-Stil, docs/design/lernquest/README.md).
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { TEILE } from '../teile';
 import { hatZeichnung, TeilBild } from './avatar';
 
 // Draw the vectors, not the painted pictures.
-vi.mock('./teilBilder', () => ({
-  teilBild: () => undefined,
-  koerperBild: () => undefined,
-  haareBild: () => undefined,
-  mundBild: () => undefined,
-}));
 
 describe('avatar drawings', () => {
   it('draws all 56 parts', () => {

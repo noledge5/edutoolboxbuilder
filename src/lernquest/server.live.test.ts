@@ -3,7 +3,7 @@
 // two test classes with fresh teacher keys and deletes them for good at the end.
 import { afterAll, describe, expect, it } from 'vitest';
 import { newKey } from './lehrkraft';
-import { bossLp, bossSchaden, muenzenFuerRunde } from './rules';
+import { bossLp, bossSchaden, muenzenFuerRunde, rundenZahl } from './rules';
 import type { BossFrage } from './boss';
 import { MUENZ_TRUHE, PREISE, TEILE, teil } from './teile';
 import {
@@ -55,6 +55,8 @@ import {
   frisurAendern,
   frisurenEigen,
   wiederholenSetzen,
+  willkommen,
+  wochenzielSetzen,
 } from './server';
 import { readWerte } from './teile';
 
@@ -482,6 +484,46 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect(await code(teilAnlegen(keyA, { name: 'Test', slot: 'kopf', seltenheit: 0, nurTruhe: false }, 'image/png', png))).toBe('zugang');
     expect(await code(teilAendern(keyA, 'krone', 'Test', false))).toBe('zugang');
     expect(Array.isArray(await teileEigen())).toBe(true);
+  });
+
+  it('Stufe D, Teil 2: Klassen-Aufgabe der Woche und Willkommen', async () => {
+    const a = await klasseAnlegen(keyA, 'Test Klassen-Aufgabe');
+    made.push({ keys: keyA, id: a.id });
+    const ada = await kindAnlegen(keyA, a.id, 'Ada T.', '2222');
+    const ben = await kindAnlegen(keyA, a.id, 'Ben T.', '3333');
+    const uebungen = Array.from({ length: 6 }, (_, i) => ({ id: `u${i}` }));
+    await freischalten(keyA, a.id, 'sK', { format: 'lernquest-paket', stunde: 'sK', uebungen });
+    const la = await anmelden(a.code, ada, '2222');
+    const lb = await anmelden(a.code, ben, '3333');
+    if (!la.ok || !lb.ok) throw new Error('Anmeldung');
+    // Willkommen: ohne Erfahrung keine Truhe, nur das Merkzeichen; danach nie wieder.
+    const s0 = await meinStand(lb.token, null);
+    expect(s0.stand).toMatchObject({ willkommen: false, klassenAufgabe: { sterne: 0, ziel: 6, geschafft: false } });
+    expect(await willkommen(lb.token)).toMatchObject({ truhen: 0, willkommen: true });
+    // Ada holt alle Sterne der Station: 3 von 6.
+    const runden = rundenZahl(uebungen.length);
+    let ra = await rundeMelden(la.token, 'sK', 0, 5, 5, {});
+    for (let r = 1; r < runden; r++) ra = await rundeMelden(la.token, 'sK', r, 5, 5, {});
+    expect(ra.stand).toMatchObject({ sterneWoche: 3, klassenTruhe: false, klassenAufgabe: { sterne: 3, ziel: 6, geschafft: false } });
+    const adaTruhen = ra.stand.truhen;
+    // Willkommen nach der Mini-Runde: eine Truhe, einmal.
+    expect((await willkommen(la.token)).truhen).toBe(adaTruhen + 1);
+    expect((await willkommen(la.token)).truhen).toBe(adaTruhen + 1);
+    // Ben macht das Ziel voll: beide bekommen genau eine Klassen-Truhe.
+    let rb = await rundeMelden(lb.token, 'sK', 0, 5, 5, {});
+    for (let r = 1; r < runden; r++) rb = await rundeMelden(lb.token, 'sK', r, 5, 5, {});
+    expect(rb.stand).toMatchObject({ klassenTruhe: true, klassenAufgabe: { sterne: 6, ziel: 6, geschafft: true } });
+    const sa = (await meinStand(la.token, null)).stand;
+    expect(sa).toMatchObject({ truhen: adaTruhen + 2, klassenTruhe: true });
+    expect((await rundeMelden(la.token, 'sK', 0, 5, 5, {})).truhenPlus).toBe(0);
+    // Ziel je Kind: nur die eigene Lehrkraft, 1–20.
+    expect(await code(wochenzielSetzen(keyB, a.id, 5))).toBe('zugang');
+    expect(await code(wochenzielSetzen(keyA, a.id, 21))).toBe('ungueltig');
+    await wochenzielSetzen(keyA, a.id, 5);
+    const k = (await klassen(keyA)).find((x) => x.id === a.id);
+    expect(k).toMatchObject({ wochenZiel: 5, aufgabe: { sterne: 6, ziel: 10, geschafft: true } });
+    // Die interne Rechnung ist von außen gesperrt.
+    expect(await code(lq('lq_klassen_aufgabe', { p_klasse: a.id }))).not.toBe('ok');
   });
 
   it('Wiederholen sofort: nur die eigene Klasse, nur freigeschaltete Stunden, das Kind sieht es', async () => {

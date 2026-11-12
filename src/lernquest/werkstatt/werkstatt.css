@@ -1,0 +1,820 @@
+/* Figure workshop: a work bench in the Lernquest cream and green. Stage and player left, tool tabs right, probes
+   below. One light look on purpose (the figures are drawn for the light app); every colour is set here. */
+:root {
+  --ws-grund: #fbf6e9;
+  --ws-karte: #fffdf7;
+  --ws-schrift: #263322;
+  --ws-gedaempft: #556149;
+  --ws-linie: #e6ddc4;
+  --ws-gruen: #2e7d18;
+  --ws-gruen-tief: #1f5c0f;
+  --ws-gruen-flaeche: #e6f4d7;
+  --ws-gold-flaeche: #fff4d1;
+  --ws-gold-schrift: #7a5600;
+  --ws-rot: #c4321f;
+  --ws-rot-flaeche: #fde6e1;
+  --ws-blau: #4f8fe0;
+  --ws-himmel: #d9eef3;
+  --ws-wiese: #cfe7b0;
+  --ws-nacht: #173a1c;
+  --ws-raster: #e9e1c9;
+  --ws-s1: #6e6990;
+  --ws-s2: #13804a;
+  --ws-s3: #2459b8;
+  --ws-s4: #6a2fc4;
+  --ws-s5: #8a6100;
+  --ws-titel: Fredoka, Nunito, system-ui, sans-serif;
+  --ws-text: Nunito, system-ui, sans-serif;
+  --ws-r: 14px;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--ws-grund);
+  color: var(--ws-schrift);
+  font: 700 15px/1.45 var(--ws-text);
+}
+h1,
+h2,
+h3 {
+  font-family: var(--ws-titel);
+  font-weight: 600;
+  margin: 0;
+  text-wrap: balance;
+}
+h1 {
+  font-size: clamp(28px, 5vw, 40px);
+  color: var(--ws-gruen);
+  line-height: 1.1;
+}
+h2 {
+  font-size: 24px;
+}
+h3 {
+  font-size: 15px;
+  color: var(--ws-gedaempft);
+  letter-spacing: 0.02em;
+}
+a {
+  color: var(--ws-gruen-tief);
+}
+small {
+  font-size: 12px;
+  color: var(--ws-gedaempft);
+}
+:focus-visible {
+  outline: 3px solid var(--ws-gruen);
+  outline-offset: 3px;
+}
+
+.ws {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* — Header and navigation — */
+.ws-kopf {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ws-titel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+.ws-marke {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ws-gedaempft);
+}
+.ws-stand {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ws-gedaempft);
+}
+.ws-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+}
+.ws-nav a {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 6px 14px 6px 10px;
+  border-radius: var(--ws-r);
+  background: var(--ws-karte);
+  color: var(--ws-schrift);
+  text-decoration: none;
+  box-shadow:
+    inset 0 0 0 2px var(--ws-linie),
+    0 3px 0 var(--ws-linie);
+}
+.ws-nav a span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.ws-nav .ws-status {
+  align-self: flex-start;
+}
+.ws-nav a.an {
+  background: var(--ws-gruen-flaeche);
+  box-shadow:
+    inset 0 0 0 2px var(--ws-gruen),
+    0 3px 0 var(--ws-gruen-tief);
+}
+
+/* — Buttons and chips — */
+.ws button,
+.ws select {
+  font: inherit;
+  color: inherit;
+}
+.ws-chip,
+.ws-reiter button,
+.ws-haupt,
+.ws-rund,
+.ws-karte {
+  cursor: pointer;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ws-karte);
+  box-shadow:
+    inset 0 0 0 2px var(--ws-linie),
+    0 3px 0 var(--ws-linie);
+  transition:
+    transform 120ms ease-out,
+    box-shadow 120ms ease-out;
+}
+.ws-chip {
+  min-height: 44px;
+  padding: 8px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ws-chip.klein {
+  min-height: 38px;
+  padding: 6px 11px;
+  font-size: 14px;
+}
+.ws-chip:active:not(:disabled),
+.ws-karte:active,
+.ws-rund:active,
+.ws-haupt:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+}
+.ws-chip.an {
+  background: var(--ws-gruen);
+  color: var(--ws-karte);
+  box-shadow: 0 3px 0 var(--ws-gruen-tief);
+}
+.ws-chip:disabled {
+  color: var(--ws-gedaempft);
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+  cursor: default;
+}
+.ws-chip.an.urteil-aendern {
+  background: var(--ws-rot);
+  box-shadow: 0 3px 0 var(--ws-schrift);
+}
+.ws-haupt {
+  min-height: 48px;
+  padding: 10px 20px;
+  background: var(--ws-gruen);
+  color: var(--ws-karte);
+  font-family: var(--ws-titel);
+  font-size: 17px;
+  box-shadow: 0 4px 0 var(--ws-gruen-tief);
+}
+.ws-haupt:disabled {
+  background: var(--ws-linie);
+  color: var(--ws-gedaempft);
+  box-shadow: none;
+  cursor: default;
+}
+.ws-rund {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--ws-gruen-tief);
+}
+.ws-karte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 10px 8px;
+  margin: 0;
+  text-align: center;
+}
+.ws-karte.an {
+  background: var(--ws-gruen-flaeche);
+  box-shadow:
+    inset 0 0 0 2px var(--ws-gruen),
+    0 3px 0 var(--ws-gruen-tief);
+}
+figure.ws-karte {
+  cursor: default;
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+}
+
+/* — Groups — */
+.ws-gruppe {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.ws-gruppe-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ws-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ws-hinweis {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ws-gedaempft);
+}
+.ws-fehler {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ws-rot);
+}
+.ws-unsichtbar {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* — Workbench layout — */
+.ws-werkbank {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px 24px;
+  align-items: start;
+}
+.ws-links,
+.ws-rechts {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.ws-links {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+}
+.ws-unten {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* — Stage — */
+.ws-buehne {
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+  display: grid;
+  place-items: center;
+  padding: 28px 16px;
+  min-height: 400px;
+  overflow: hidden;
+}
+.ws-buehne svg {
+  max-width: 100%;
+  height: auto;
+}
+.hg-wiese {
+  background: linear-gradient(var(--ws-himmel) 0 64%, var(--ws-wiese) 64%);
+}
+.hg-creme {
+  background: var(--ws-karte);
+}
+.hg-nacht {
+  background: var(--ws-nacht);
+}
+.hg-raster {
+  background-color: var(--ws-karte);
+  background-image:
+    linear-gradient(var(--ws-raster) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ws-raster) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* — Player — */
+.ws-spieler {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--ws-r);
+  background: var(--ws-karte);
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+}
+.ws-zeitleiste {
+  position: relative;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.ws-zeitleiste input {
+  width: 100%;
+  accent-color: var(--ws-gruen);
+}
+.ws-marken {
+  position: relative;
+  height: 8px;
+  margin: 0 8px;
+}
+.ws-marken span {
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--ws-gold-schrift);
+}
+.ws-zeit,
+.ws-zahl {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--ws-gedaempft);
+  min-width: 48px;
+  text-align: right;
+}
+.ws-wahl select {
+  min-height: 40px;
+  border-radius: 10px;
+  border: 2px solid var(--ws-linie);
+  background: var(--ws-karte);
+  padding: 4px 8px;
+}
+.ws-schalter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.ws-schalter input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--ws-gruen);
+}
+.ws-buehnen-regler {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ws-punkt {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.ws-punkt.blau {
+  background: var(--ws-blau);
+}
+.ws-punkt.rot {
+  background: var(--ws-rot);
+}
+.ws-regler-zeile {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.ws-regler-zeile span:first-child {
+  overflow-wrap: anywhere;
+}
+.ws-regler-zeile input {
+  width: 100%;
+  accent-color: var(--ws-gruen);
+}
+.ws-schieber {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* — Tool tabs — */
+.ws-reiter {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.ws-reiter button {
+  flex: none;
+  min-height: 44px;
+  padding: 8px 14px;
+  font-family: var(--ws-titel);
+  font-size: 16px;
+}
+.ws-reiter button.an {
+  background: var(--ws-schrift);
+  color: var(--ws-karte);
+  box-shadow: 0 3px 0 var(--ws-gruen-tief);
+}
+.ws-tafel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--ws-karte);
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+}
+.ws-tafel .ws-chip:not(.an),
+.ws-tafel .ws-karte:not(.an) {
+  background: var(--ws-grund);
+}
+
+/* — Code and text fields — */
+.ws textarea {
+  width: 100%;
+  font: 500 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--ws-schrift);
+  background: var(--ws-grund);
+  border: 2px solid var(--ws-linie);
+  border-radius: 10px;
+  padding: 10px;
+  resize: vertical;
+}
+.ws textarea.fehler {
+  border-color: var(--ws-rot);
+}
+.ws-pruefen textarea {
+  font: 700 15px/1.45 var(--ws-text);
+}
+.ws-code {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* — Tracks — */
+.ws-spuren {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ws-spuren li {
+  display: grid;
+  grid-template-columns: minmax(0, 150px) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.ws-spuren svg {
+  width: 100%;
+  height: 32px;
+  overflow: visible;
+}
+.ws-null {
+  stroke: var(--ws-linie);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.ws-kurve {
+  fill: none;
+  stroke: var(--ws-gruen);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.ws-key {
+  fill: var(--ws-gold-schrift);
+}
+.ws-jetzt {
+  stroke: var(--ws-rot);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+/* — Review — */
+.ws-pruefen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--ws-r);
+  background: var(--ws-gold-flaeche);
+}
+.ws-pruefen label {
+  font-size: 13px;
+  color: var(--ws-gedaempft);
+}
+.ws-pruefen .ws-haupt {
+  align-self: flex-start;
+}
+.ws-status {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: var(--ws-linie);
+  color: var(--ws-gedaempft);
+}
+.ws-status.passt {
+  background: var(--ws-gruen-flaeche);
+  color: var(--ws-gruen-tief);
+}
+.ws-status.aendern {
+  background: var(--ws-rot-flaeche);
+  color: var(--ws-rot);
+}
+.ws-steckbrief {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.ws-steckbrief div {
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--ws-grund);
+}
+.ws-steckbrief dt {
+  font-size: 12px;
+  color: var(--ws-gedaempft);
+}
+.ws-steckbrief dd {
+  margin: 0;
+  font-family: var(--ws-titel);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.ws-farben {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 12px;
+}
+.ws-farben li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.ws-farben i {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1.5px var(--ws-schrift);
+}
+.ws-fremd {
+  color: var(--ws-rot);
+}
+
+/* — Probes — */
+.ws-groessen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 18px;
+}
+figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+figcaption {
+  font-size: 13px;
+  color: var(--ws-gedaempft);
+  font-variant-numeric: tabular-nums;
+}
+.ws-nacht-probe {
+  padding: 10px 14px 6px;
+  border-radius: var(--ws-r);
+  background: var(--ws-nacht);
+}
+.ws-nacht-probe figcaption {
+  color: var(--ws-wiese);
+}
+.ws-reihe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* — Items — */
+.ws-teile {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.ws-teile-liste,
+.ws-teil-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.ws-teil-detail {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--ws-karte);
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+}
+.ws-teil-gross {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+.ws-teil-gross > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ws-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ws-item-gitter {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+.ws-item-gitter .ws-karte {
+  width: 100%;
+  height: 100%;
+}
+.ws-item-name {
+  font-family: var(--ws-titel);
+  font-weight: 600;
+  font-size: 17px;
+}
+.ws-item-info {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ws-gedaempft);
+}
+.ws-selten {
+  letter-spacing: 1px;
+}
+.ws-selten.s1 {
+  color: var(--ws-s1);
+}
+.ws-selten.s2 {
+  color: var(--ws-s2);
+}
+.ws-selten.s3 {
+  color: var(--ws-s3);
+}
+.ws-selten.s4 {
+  color: var(--ws-s4);
+}
+.ws-selten.s5 {
+  color: var(--ws-s5);
+}
+.ws-chip.an .ws-selten {
+  color: inherit;
+}
+
+/* — Overview and mockup — */
+.ws-bogen {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.ws-tabelle {
+  overflow-x: auto;
+}
+.ws-tabelle table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.ws-tabelle th,
+.ws-tabelle td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--ws-linie);
+  vertical-align: top;
+}
+.ws-tabelle th {
+  font-size: 12px;
+  color: var(--ws-gedaempft);
+}
+.ws-vorlage {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ws-vorlage p {
+  margin: 0;
+  max-width: 65ch;
+  color: var(--ws-gedaempft);
+}
+.ws-vorlage img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+}
+
+@media (max-width: 900px) {
+  .ws-werkbank,
+  .ws-teile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ws-links,
+  .ws-teil-detail {
+    position: static;
+  }
+  .ws-buehne {
+    min-height: 300px;
+  }
+  .ws-steckbrief {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ws-chip,
+  .ws-karte,
+  .ws-rund,
+  .ws-haupt {
+    transition: none;
+  }
+}
+
+/* — Hero builder (#avatar) — */
+.ws-held-karte {
+  position: relative;
+  width: min(100%, 300px);
+  aspect-ratio: 1;
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--ws-himmel);
+  box-shadow: inset 0 0 0 2px var(--ws-linie);
+}
+.ws-held-karte > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ws-held-klein {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+}
+.ws-selten {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}

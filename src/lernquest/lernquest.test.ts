@@ -4,10 +4,10 @@ import { angelegt, bonusText, bonusVon, ladenWare, SCHADEN_MAX, CHANCEN, MUENZ_C
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import { aufgabenNach, aufgabenVon, AUFGABE_MUENZEN, AUFGABEN_BONUS, ladenAb, TAGESAUFGABEN, tagPlus, niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
+import { klassenNach, klassenZiel, KLASSEN_ZIEL_JE_KIND, aufgabenNach, aufgabenVon, AUFGABE_MUENZEN, AUFGABEN_BONUS, ladenAb, TAGESAUFGABEN, tagPlus, niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
-import { beamerAusHash, beitrittsLink, codeAus, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
+import { beamerAusHash, beitrittsLink, codeAus, fuchsHinweis, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
 import { gemischterTest } from './probe';
 import { LEERER_STAND, type Paket, type TagesStand, type Uebung } from './types';
 
@@ -421,6 +421,20 @@ describe('Weltkarte', () => {
     expect(r.stationen[3].titel).toBe('Titel 4');
   });
 
+  it('lässt den Fuchs sagen, was dran ist (Stufe E)', () => {
+    const m = { id: 'm1', nummer: 1, stunden: [1, 2].map((n) => ({ nummer: n, titel: `Titel ${n}` })) };
+    const halb = regionenVon([pk('a', 1, m), pk('b', 2, m)], 'Erdkunde', { ...LEERER_STAND, bestwerte: { a: [100] } });
+    expect(fuchsHinweis(halb, 0)).toEqual({ text: 'Weiter geht’s mit „Stunde 2“!', pose: 'winken' });
+    expect(fuchsHinweis(halb, 3).text).toBe('Weiter geht’s mit „Stunde 2“! Vorher warten 3 Aufgaben aufs Wiederholen.');
+    const fertig = regionenVon([pk('a', 1, m), pk('b', 2, m)], 'Erdkunde', { ...LEERER_STAND, bestwerte: { a: [100], b: [100] } });
+    expect(fuchsHinweis(fertig, 1)).toEqual({ text: '1 Aufgabe wartet aufs Wiederholen. So bleibt es im Kopf!', pose: 'denken' });
+    expect(fuchsHinweis(fertig, 0).text).toContain('Meilenstein');
+    expect(fuchsHinweis(fertig, 0, new Set(['m1'])).text).toContain('fehlenden Sterne');
+    const gesperrt = regionenVon([pk('a', 1, m1)], 'Erdkunde', { ...LEERER_STAND, bestwerte: { a: [100] } });
+    expect(fuchsHinweis(gesperrt, 0).text).toContain('Unterricht');
+    expect(fuchsHinweis([], 0).pose).toBe('winken');
+  });
+
   it('kommt mit älteren Paketen ohne Stundenliste aus und ordnet Regionen nach Modul', () => {
     const rs = regionenVon([pk('x', 2, { id: 'm2', nummer: 2 }), pk('a', 1, m1)], 'Erdkunde', LEERER_STAND);
     expect(rs.map((r) => r.nummer)).toEqual([1, 2]);
@@ -622,5 +636,55 @@ describe('Tagesaufgaben und Laden nach Heldenstufe (Stufe D)', () => {
   it('Laden öffnet Seltenheiten mit den Titeln', () => {
     expect([0, 1, 2, 3, 4].map(ladenAb)).toEqual([1, 3, 5, 12, 16]);
     expect([3, 5, 12, 16].map(titel)).toEqual(['Lehrling', 'Entdecker', 'Held', 'Meister']);
+  });
+});
+
+describe('Klassen-Aufgabe der Woche (Stufe D, Teil 2)', () => {
+  const tag = '2026-11-12';
+  const woche = wochenStart(tag);
+  const mit = (sterne: number, ziel: number, extra: Partial<typeof LEERER_STAND> = {}) => ({ ...LEERER_STAND, klassenAufgabe: { woche, sterne, ziel, geschafft: false }, ...extra });
+
+  it('Ziel: 3 Sterne je Kind, von der Lehrkraft änderbar, mindestens 1', () => {
+    expect(KLASSEN_ZIEL_JE_KIND).toBe(3);
+    expect(klassenZiel(24)).toBe(72);
+    expect(klassenZiel(24, 2)).toBe(48);
+    expect(klassenZiel(0)).toBe(1);
+  });
+
+  it('neue Sterne zählen für die Klasse, die Truhe kommt beim Erreichen einmal', () => {
+    const r = klassenNach(mit(4, 6, { sterneWoche: 1 }), tag, 2);
+    expect(r).toEqual({ sterneWoche: 3, aufgabe: { woche, sterne: 6, ziel: 6, geschafft: true }, truhe: true });
+    expect(klassenNach(mit(6, 6, { sterneWoche: 3, klassenTruhe: true }), tag, 1).truhe).toBe(false);
+    expect(klassenNach(mit(2, 6), tag, 1).truhe).toBe(false);
+  });
+
+  it('wer erst nach dem Erreichen einen Stern holt, bekommt die Truhe auch; ohne Stern nicht', () => {
+    const geschafft = { ...mit(9, 6), klassenAufgabe: { woche, sterne: 9, ziel: 6, geschafft: true } };
+    expect(klassenNach(geschafft, tag, 1).truhe).toBe(true);
+    expect(klassenNach(geschafft, tag, 0).truhe).toBe(false);
+  });
+
+  it('eine neue Woche fängt bei null an; ohne Angabe vom Server gibt es nichts', () => {
+    const alt = { ...LEERER_STAND, sterneWoche: 5, klassenTruhe: true, klassenAufgabe: { woche: '2026-11-02', sterne: 50, ziel: 6, geschafft: true } };
+    expect(klassenNach(alt, tag, 2)).toEqual({ sterneWoche: 2, truhe: false });
+    expect(klassenNach(LEERER_STAND, tag, 2)).toEqual({ sterneWoche: 2, truhe: false });
+  });
+
+  it('rundeAnwenden zählt die Klassen-Truhe mit', () => {
+    const u = Array.from({ length: 6 }, (_, i) => ({ id: `u${i}` }) as Uebung);
+    const stufen = rundenStufen(u);
+    let st: typeof LEERER_STAND = mit(5, 6);
+    let truhen = 0;
+    let geschafft = false;
+    for (let r = 0; r < stufen.length; r++) {
+      const x = rundeAnwenden(st, { stunde: 's1', runde: r, richtig: 5, gesamt: 5, leitner: {} }, tag, { herzen: 3, bonusProzent: 0, stufen });
+      truhen += x.truhenPlus;
+      geschafft ||= x.klassenGeschafft;
+      st = x.stand;
+    }
+    expect(geschafft).toBe(true);
+    expect(st.klassenTruhe).toBe(true);
+    expect(st.klassenAufgabe?.geschafft).toBe(true);
+    expect(st.truhen).toBe(truhen);
   });
 });

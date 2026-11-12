@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Kinder-App abgeschaltet, Umbau „Stufe E“ steht an)
+# Handoff – 12.11.2026 (Stufe E fertig: Teile 1 bis 6; App wieder an, wartet aufs Mergen)
 
 ## Stand
 - **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
@@ -14,16 +14,39 @@
   - Eine zweite Fassung (Runden statt Sterne, Truhe für alle) wurde in dieser Sitzung gebaut und per Revert wieder
     herausgenommen (Commit `f9a57f2`, nie eingespielt). Ideen daraus bei Bedarf dort nachlesen.
 
-## Nächste Schritte: Umbau der Kinder-App („Stufe E“, neue Sitzung)
-Wunsch der Lehrkraft (12.11.2026): die App ganz umbauen, statt Stück für Stück weiter. Ziele:
-- **Lernkurve:** wie Kinder lernen und vorankommen (Pfad, Stufen, Wiederholen) neu durchdenken; Grundlage
-  `docs/kritik-und-plan.md` (Stufe A–D gebaut) und `docs/lernquest.md`.
-- **Aussehen nach dem Mockup der Lehrkraft:** Grafikdesign, Grün und Creme, Karte als Landschaft mit Burgen,
-  Tagesaufgaben, Truhen-Bild. Das Mockup liegt nicht im Repo: zu Beginn bei der Lehrkraft anfragen.
-- **Fuchs als Charakter, der durch die App führt** (der eigene Held bleibt, `docs/roadmap.md`).
-- **Held und Teile neu als Vektorgrafik aus dem Code**, detailreich, Duolingo-Stil (die gemalten ComfyUI-Bilder fallen weg).
-- Zuerst planen und mit der Lehrkraft entscheiden (Skill `aufgabe`, Schritt 1), dann bauen. Klären: Was wird aus
-  Stufe D Teil 2 (live in der DB)? Werden alte Spielstände übernommen?
+## Nächste Schritte: Stufe E bauen (Plan steht, entschieden am 12.11.2026)
+Plan und Entscheidungen: „Stufe E“ in `docs/kritik-und-plan.md`; Mockup: `docs/design/lernquest/mockup-stufe-e.png`.
+Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände bleiben, keine Rangliste/Tagesserie.
+1. **Fertig auf Branch `claude/amazing-newton-h940fp`** (nicht in `main`, von der Lehrkraft am 12.11. für gut befunden):
+   - Teil 1: Farb-Tokens Grün/Creme in `lernquest.css` (wirkt auf alle Bildschirme), Start, Namen, PIN und Umbau-Seite
+     neu, `Landschaft.tsx` (Landschaft mit Burg). `npm run spieltest` zeigt die App trotz `UMBAU` (nur dieser Modus).
+   - Figuren-Baukasten `src/lernquest/figuren/`: Gerüst aus Teilen, Posen, Animationsmotor `bewegung.ts`
+     (requestAnimationFrame, Blinzeln, Strecken, Kurven), Anker für Teile. Fuchs (7 Posen), Tintenkrake (Boss, 4 Posen),
+     12 Teile. In der App: `app/Fuchs.tsx` (`Fuchs`, `FuchsSagt`).
+   - Figuren-Werkstatt `lernquest/werkstatt.html` (nicht im Produktions-Build), Artefakt
+     https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG (`npm run werkstatt`, mit Speicher für die Prüfungen der
+     Lehrkraft). Fotos: `node scripts/werkstatt-fotos.mjs <ordner>`. **Jede Zeichnung über den Skill `figur`**; zu
+     Beginn die Prüfungen lesen (Schritt 1; am 12.11. noch keine gespeichert).
+2. **Fertig auf Branch `claude/clever-hamilton-ztdfgt`** (baut auf Teil 1 auf, nicht in `main`): Teil 2, Karte als
+   Landschaft (`app/Landkarte.tsx`, Lage in `weg.ts`, Bauteile in `figuren/gelaende.tsx`, Werkstatt `#karte`), Fuchs
+   über der Karte (`fuchsHinweis`), Leiste im Mockup-Look. Die Lehrkraft prüft Teile erst an den Spieler-Avataren (Teil 4,
+   Entscheidung in `docs/roadmap.md`).
+3. **Teil 4 fertig auf demselben Branch:** der Held als Vektorfigur (`figuren/held.tsx`), alle 80 Teile, 9 Frisuren,
+   6 Münder, 6 Hautfarben gezeichnet; die App zeigt ihn überall (`app/heldVektor.tsx`), Werkstatt `#avatar` zum
+   Zusammenstellen und Prüfen. Die Lehrkraft prüft jetzt die Teile am Helden; ihre Prüfungen zuerst lesen (Skill
+   `figur`). Gemalte Bilder gelöscht; die 3 eigenen Teile und die eigene Frisur der Lehrkraft sind als
+   Vektor nachgezeichnet (`EIGENE_ZEICHNUNGEN`). Neue eigene Teile: in der DB nachsehen (`lq_teil` mit `eigen`,
+   `lq_frisur`) und ebenso nachzeichnen. Lehrkraft-Seite „Teile und Wünsche“: kein Hochladen mehr; neue Teile/Frisuren als
+   Wunsch (Migration `20261126_lernquest_wuensche.sql`, live eingespielt 12.11.); Wünsche lesen und zeichnen: Skill `figur`.
+4. **Teil 3 fertig auf demselben Branch:** Runde im Mockup-Look (`app/Runde.tsx`, CSS-Block „Stufe E, Teil 3“ am Ende
+   von `lernquest.css`); Logik unverändert. **Teil 5 fertig auf demselben Branch** (Stufe D Teil 2 von `claude/lucid-galileo-0dvocr` hineingemergt, Migration
+   `20261125_lernquest_klassenaufgabe.sql` ist jetzt im Repo): Reiter „Aufgaben“ (Heute/Woche), Truhe als Vektor, Fuchs
+   beim Fund. **Teil 6 fertig:** Glockentöne (`app/ton.ts`), Konfetti (`app/Jubel.tsx`) bei Stern, perfekter Runde,
+   Meilenstein und seltenem Fund, Held jubelt über dem Ergebnis, Schalter „Bewegung reduzieren“ im Menü (Klasse
+   `lq-ruhig`), **`UMBAU = false`**: Mit dem Mergen von `claude/clever-hamilton-ztdfgt` nach `main` ist die
+   Kinder-App wieder live. Vorher: Live-Tests gegen den Server laufen lassen, Lehrkraft-Seite „Teile und Wünsche“
+   einmal angemeldet ansehen (nur ohne Anmeldung nicht prüfbar). Früher zu Teil 5: Dateien von
+   `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
 ## Wichtig zu wissen
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und

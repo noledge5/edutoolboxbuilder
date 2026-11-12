@@ -5,7 +5,7 @@
 // see Boss.tsx); the class code lets it show a QR code to sign in.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QrScanner } from '../../sync/QrScanner';
-import { beamerAusHash, codeAus, faecherVon, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage, type Region, type Station } from '../karte';
+import { beamerAusHash, codeAus, faecherVon, fuchsHinweis, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage, type Region, type Station } from '../karte';
 import {
   heldenstufe,
   heute,
@@ -31,33 +31,43 @@ import {
   STERNE_JE_TRUHE,
   titel,
   woche,
+  wochenStart,
   WOCHENZIEL,
 } from '../rules';
-import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, type BossOffen, type KlasseOffen } from '../server';
+import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
 import { BOSSE } from '../boss';
 import { BossBeamer, BossBild, BossKind, useLangsam } from './Boss';
 import { readPaket } from '../paket';
 import { bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
-import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
-import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
+import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
+import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
+import { Jubel } from './Jubel';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
 import { useZurueck } from './zurueck';
 import { GutscheineSeite, TicketIcon } from './Gutscheine';
 import { ProbeApp } from './Probe';
 import { gemischterTest, probeAusUrl } from '../probe';
 import { AUSSCHNITT_KOPF, AvatarBild } from './avatar';
+import { Fuchs, FuchsSagt } from './Fuchs';
+import { Landschaft } from './Landschaft';
+import { Landkarte } from './Landkarte';
+import type { Wegpunkt } from './Landkarte';
 
 export type Screen =
   | { kind: 'karte' }
   | { kind: 'station'; stunde: string }
   | { kind: 'wiederholen' }
-  | { kind: 'held' }
+  | { kind: 'held'; willkommen?: boolean }
+  /** Stufe D, Teil 2: the welcome of a new child (hero, mini round, first chest). */
+  | { kind: 'willkommen'; schritt: 'start' | 'truhe' }
   | { kind: 'laden' }
   | { kind: 'gutscheine' }
   | { kind: 'truhe'; zurueck: 'held' | 'karte' }
   | { kind: 'klasse' }
+  /** Stufe E, Teil 5: today's tasks and the week (week goal, class task). */
+  | { kind: 'aufgaben'; ansicht: 'heute' | 'woche' }
   | { kind: 'boss'; id: string }
   | {
       kind: 'runde';
@@ -68,6 +78,8 @@ export type Screen =
       nr: number;
       /** The mixed test at the end of a region (sent as „Wiederholen“). */
       meilenstein?: Meilenstein;
+      /** The mini round of the welcome (sent as „Wiederholen“, so no station gets a best from three questions). */
+      willkommen?: boolean;
     }
   | {
       kind: 'ergebnis';
@@ -92,6 +104,8 @@ export type Screen =
       /** New stars counted toward chests, and the stars toward the next chest after this round. */
       sternePlus: number;
       sterneRest: number;
+      /** Stufe D, Teil 2: this round reached the class task of the week (a chest for everyone who took part). */
+      klassenGeschafft?: boolean;
       meilenstein?: Meilenstein;
     };
 
@@ -112,8 +126,9 @@ const beamerFromUrl = () => beamerAusHash(location.hash);
 
 /** The children's app (sign-in, game, boss fight) is switched off while it is rebuilt (decision of the teacher,
  *  12.11.2026). Open exercises from a public link keep working. Nothing on the device is deleted: Spielstand and rounds
- *  not yet sent stay and go out once the app is back. Set to false to switch it on again. */
-export const UMBAU = true;
+ *  not yet sent stay and go out once the app is back. Switched on again with the end of Stufe E (Teil 6, 12.11.2026);
+ *  set to true to show the „Umbau“ page again. */
+export const UMBAU: boolean = false;
 
 export function LernquestApp() {
   // Open exercises from a public link: no sign-in, no server (`probe.ts`).
@@ -127,11 +142,18 @@ export function LernquestApp() {
 
 function Umbau() {
   return (
-    <main className="lq-app lq-login lq-umbau">
-      <Wappen />
-      <h1 className="lq-logo">Lernquest wird umgebaut</h1>
-      <p>Wir bauen gerade eine neue Lernquest für dich. Bald geht es weiter!</p>
-      <p className="lq-klein">Dein Held, deine Sterne und deine Münzen bleiben gespeichert.</p>
+    <main className="lq-app lq-start lq-umbau">
+      <div className="lq-start-bild">
+        <Landschaft className="lq-start-landschaft" />
+        <div className="lq-start-titel">
+          <h1 className="lq-logo">Lernquest</h1>
+        </div>
+        <Fuchs pose="denken" groesse={150} className="lq-start-fuchs" />
+      </div>
+      <div className="lq-start-unten">
+        <h2>Wir bauen gerade um</h2>
+        <p>Eine neue Lernquest ist bald fertig. Dein Held, deine Sterne und deine Münzen bleiben gespeichert.</p>
+      </div>
     </main>
   );
 }
@@ -243,75 +265,77 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
   if (!klasse) {
     return (
       <main className="lq-app lq-start">
-        <div className="lq-start-kopf">
-          <Wappen />
-          <h1 className="lq-logo">Lernquest</h1>
-          <p className="lq-tagline">
-            Üben, was ihr im Unterricht hattet –<br />
-            und dabei stärker werden.
-          </p>
-        </div>
-        {scan ? (
-          <div className="lq-scan">
-            <QrScanner
-              onText={(t) => {
-                const c = codeAus(t);
-                if (!c) return;
-                setScan(false);
-                setCode(c);
-                void open(c);
-              }}
-              onError={(m) => {
-                setScan(false);
-                setMsg(m);
-              }}
-            />
-            <button type="button" className="lq-knopf lq-hell" onClick={() => setScan(false)}>
-              Abbrechen
-            </button>
+        <div className="lq-start-bild">
+          <Landschaft className="lq-start-landschaft" />
+          <div className="lq-start-titel">
+            <h1 className="lq-logo">Lernquest</h1>
+            <p className="lq-tagline">Üben. Spielen. Stärker werden.</p>
           </div>
-        ) : (
-          <button type="button" className="lq-knopf" onClick={() => setScan(true)}>
-            <ScanIcon />
-            Klassen-QR scannen
-          </button>
-        )}
-        <div className="lq-oder">
-          <span />
-          oder Klassencode
-          <span />
+          <Fuchs pose={msg ? 'troesten' : 'winken'} groesse={150} className="lq-start-fuchs" />
         </div>
-        <form
-          className="lq-code-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void open(code);
-          }}
-        >
-          <label htmlFor="lq-code">Klassencode von deiner Lehrkraft</label>
-          <input
-            id="lq-code"
-            className="lq-code"
-            value={code}
-            maxLength={9}
-            autoCapitalize="characters"
-            autoComplete="off"
-            spellCheck={false}
-            onChange={(e) =>
-              setCode(
-                e.target.value
-                  .toUpperCase()
-                  .replace(/[^0-9A-Z]/g, '')
-                  .slice(0, 8),
-              )
-            }
-            placeholder="z. B. K7QF9MXA"
-          />
-          <button className="lq-knopf lq-hell" disabled={code.length !== 8 || busy} aria-busy={busy}>
-            {busy ? 'Einen Moment …' : 'Weiter'}
-          </button>
-        </form>
-        {fehler}
+        <div className="lq-start-unten">
+          {scan ? (
+            <div className="lq-scan">
+              <QrScanner
+                onText={(t) => {
+                  const c = codeAus(t);
+                  if (!c) return;
+                  setScan(false);
+                  setCode(c);
+                  void open(c);
+                }}
+                onError={(m) => {
+                  setScan(false);
+                  setMsg(m);
+                }}
+              />
+              <button type="button" className="lq-knopf lq-hell" onClick={() => setScan(false)}>
+                Abbrechen
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="lq-knopf" onClick={() => setScan(true)}>
+              <ScanIcon />
+              Klassen-QR scannen
+            </button>
+          )}
+          <div className="lq-oder">
+            <span />
+            oder Klassencode
+            <span />
+          </div>
+          <form
+            className="lq-code-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void open(code);
+            }}
+          >
+            <label htmlFor="lq-code">Klassencode von deiner Lehrkraft</label>
+            <input
+              id="lq-code"
+              className="lq-code"
+              value={code}
+              maxLength={9}
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(e) =>
+                setCode(
+                  e.target.value
+                    .toUpperCase()
+                    .replace(/[^0-9A-Z]/g, '')
+                    .slice(0, 8),
+                )
+              }
+              placeholder="z. B. K7QF9MXA"
+            />
+            <button className="lq-knopf lq-hell" disabled={code.length !== 8 || busy} aria-busy={busy}>
+              {busy ? 'Einen Moment …' : 'Weiter'}
+            </button>
+          </form>
+          {fehler}
+        </div>
       </main>
     );
   }
@@ -321,11 +345,12 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
       <main className="lq-app lq-namen-seite">
         <div className="lq-titelzeile">
           {back}
-          <div>
-            <span className="lq-kicker">{klasse.name}</span>
-            <h2>Wer bist du?</h2>
-          </div>
+          <span className="lq-kicker">{klasse.name}</span>
         </div>
+        <FuchsSagt pose="winken">
+          <h2>Wer bist du?</h2>
+          <p>Tippe auf deinen Namen.</p>
+        </FuchsSagt>
         <div className="lq-namen">
           {klasse.kinder.map((k) => (
             <button
@@ -351,11 +376,10 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
   return (
     <main className="lq-app lq-pin-seite">
       {back}
-      <div className="lq-hallo">
-        <Initiale name={kind.name} gross />
+      <FuchsSagt pose={msg ? 'troesten' : 'stehen'}>
         <h2>Hallo {vorname(kind.name)}!</h2>
         <p>Gib deine 4-stellige PIN ein.</p>
-      </div>
+      </FuchsSagt>
       <div className="lq-pin" aria-live="polite" aria-label={`${pin.length} von 4 Ziffern`}>
         {[0, 1, 2, 3].map((i) => (
           <span key={i} className={i < pin.length ? 'voll' : ''} />
@@ -553,6 +577,18 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     // Also once the first data is there (the map appears only then).
   }, [screen, !daten]);
 
+  // Stufe D, Teil 2: a new child (no experience, welcome not done, a station unlocked) starts with the welcome, once
+  // per opening of the app. Servers before 20261125 send no `willkommen`: then never.
+  const willkommenGezeigt = useRef(false);
+  const neuesKind = !!stand && stand.willkommen === false && stand.xp === 0 && pakete.length > 0;
+  useEffect(() => {
+    if (neuesKind && !willkommenGezeigt.current && screen.kind === 'karte') {
+      willkommenGezeigt.current = true;
+      setScreen({ kind: 'willkommen', schritt: 'start' });
+    }
+  }, [neuesKind, screen.kind]);
+  const [willkommenMsg, setWillkommenMsg] = useState('');
+
   const langsam = useLangsam(!daten && !offline);
   if (!daten || !stand) {
     return (
@@ -588,6 +624,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     speichereWarteschlange([...ladeWarteschlange(), m]);
     void flush();
     ton('fertig');
+    // A new star rings once more after the fanfare.
+    if (paket && sterneVon(r.stand, paket) > vorher) window.setTimeout(() => ton('stern'), 800);
     setScreen({
       kind: 'ergebnis',
       stunde,
@@ -606,6 +644,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       sterneJetzt: paket ? sterneVon(r.stand, paket) : 0,
       sternePlus: r.sternePlus,
       sterneRest: r.stand.sterneRest,
+      klassenGeschafft: r.klassenGeschafft,
       meilenstein,
     });
   };
@@ -640,9 +679,12 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         zurueck={zurueckTaste}
         stand={stand}
         herzen={HERZEN + bonusVon(stand.avatar).herz}
-        titel={screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Meilenstein · ${screen.meilenstein.titel}` : 'Wiederholen'}
+        titel={screen.willkommen ? 'Deine erste Runde' : screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Meilenstein · ${screen.meilenstein.titel}` : 'Wiederholen'}
         onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
-        onFertig={(st, r, e, l) => fertig(st, r, e, l, screen.meilenstein)}
+        onFertig={(st, r, e, l) => {
+          fertig(st, r, e, l, screen.meilenstein);
+          if (screen.willkommen) setScreen({ kind: 'willkommen', schritt: 'truhe' });
+        }}
         paketVon={(st) => daten.pakete[st]}
       />
     );
@@ -665,6 +707,63 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           void laden().then(() => setScreen({ kind: 'truhe', zurueck: 'karte' }));
         }}
       />
+    );
+  }
+
+  /** The welcome's mini round: the first three questions of the first station of the first subject, as „Wiederholen“. */
+  const miniRunde = () => {
+    const erste = faecherVon(pakete)
+      .flatMap((f) => regionenVon(pakete, f, stand))
+      .flatMap((r) => r.stationen)
+      .map((s) => (s.stunde ? daten.pakete[s.stunde] : undefined))
+      .find((p): p is Paket => !!p);
+    if (erste) setScreen({ kind: 'runde', nr: Date.now(), stunde: '', runde: 0, uebungen: rundeVon(erste.uebungen, 0).slice(0, 3).map((u) => ({ u, stunde: erste.stunde })), willkommen: true });
+    else setScreen({ kind: 'karte' });
+  };
+
+  if (screen.kind === 'willkommen') {
+    const fertigMachen = async (truhe: boolean) => {
+      setWillkommenMsg('');
+      try {
+        setStand(await aktion(willkommen));
+        setScreen(truhe ? { kind: 'truhe', zurueck: 'karte' } : { kind: 'karte' });
+      } catch (e) {
+        setWillkommenMsg(lqText(e));
+      }
+    };
+    if (screen.schritt === 'truhe') {
+      return (
+        <main className="lq-app lq-willkommen">
+          <TruheIcon />
+          <h1>Erste Runde geschafft!</h1>
+          <p className="lq-untertitel">Als Willkommen bekommst du deine erste Truhe. Darin steckt ein Teil für deinen Helden oder Münzen.</p>
+          <MeldungText text={willkommenMsg} nochmal={() => void fertigMachen(true)} />
+          <div className="lq-platz" />
+          <button type="button" className="lq-knopf lq-gold" onClick={() => void fertigMachen(true)}>
+            Truhe öffnen
+          </button>
+        </main>
+      );
+    }
+    return (
+      <main className="lq-app lq-willkommen">
+        <AvatarBild avatar={stand.avatar} className="lq-willkommen-held" />
+        <h1>Hallo {vorname(daten.name)}!</h1>
+        <p className="lq-untertitel">Willkommen bei Lernquest. In zwei Minuten bist du startklar:</p>
+        <ol className="lq-willkommen-schritte">
+          <li>Bau deinen Helden.</li>
+          <li>Spiel eine Mini-Runde mit drei Fragen.</li>
+          <li>Öffne deine erste Truhe.</li>
+        </ol>
+        <MeldungText text={willkommenMsg} />
+        <div className="lq-platz" />
+        <button type="button" className="lq-knopf" onClick={() => setScreen({ kind: 'held', willkommen: true })}>
+          Los geht’s!
+        </button>
+        <button type="button" className="lq-knopf lq-hell" onClick={() => void fertigMachen(false)}>
+          Überspringen
+        </button>
+      </main>
     );
   }
 
@@ -713,6 +812,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             : null;
     return (
       <main className="lq-app lq-ergebnis">
+        {!schwach && !(ms && !msGut) && (screen.sterneJetzt > screen.sterneVorher || fazit === 'perfekt' || msGut) && <Jubel stark={fazit === 'perfekt' || msGut} />}
+        <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} pose={schwach || (ms && !msGut) ? 'denken' : 'jubeln'} className="lq-ergebnis-held" lebendig />
         {screen.stunde && <Sterne n={screen.sterneJetzt} neu={screen.sterneJetzt > screen.sterneVorher} gross />}
         <h1>{titelText}</h1>
         <p className="lq-untertitel">
@@ -756,6 +857,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           <p className="lq-punkte-plus" role="status">
             <HakenIcon /> {screen.aufgabenNeu.length > 1 ? 'Tagesaufgaben' : 'Tagesaufgabe'} geschafft:{' '}
             {screen.aufgabenNeu.map((id) => TAGESAUFGABEN.find((t) => t.id === id)?.text).join(', ')} · +{screen.aufgabenPlus} Münzen
+          </p>
+        )}
+        {screen.klassenGeschafft && (
+          <p className="lq-punkte-plus" role="status">
+            <KlasseIcon /> Klassen-Aufgabe geschafft! Alle, die diese Woche Sterne geholt haben, bekommen eine Truhe.
           </p>
         )}
         {screen.punktePlus > 0 && (
@@ -802,7 +908,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     );
   }
 
-  const tab = screen.kind === 'wiederholen' ? 'wiederholen' : screen.kind === 'held' || screen.kind === 'laden' || screen.kind === 'gutscheine' ? 'held' : screen.kind === 'klasse' ? 'klasse' : 'karte';
+  const tab = screen.kind === 'wiederholen' ? 'wiederholen' : screen.kind === 'held' || screen.kind === 'laden' || screen.kind === 'gutscheine' ? 'held' : screen.kind === 'klasse' ? 'klasse' : screen.kind === 'aufgaben' ? 'aufgaben' : 'karte';
   /** Sign out after asking; rounds not sent yet would be lost, so that is said. */
   const abmeldenFragen = () => {
     const offen = ladeWarteschlange().length;
@@ -811,6 +917,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       : 'Abmelden? Zum Weiterspielen brauchst du wieder Klassencode, Namen und PIN.';
     if (window.confirm(frage)) onSignOut();
   };
+  const heuteStand = tagesStand(stand.aufgaben, heute());
+  const offeneAufgaben = aufgabenVon(heute()).filter((t) => !heuteStand.erledigt.includes(t.id)).length;
   const rahmen = (seite: React.ReactNode) => (
     <main className="lq-app lq-mit-leiste">
       <Kopf daten={daten} offline={offline} onSignOut={abmeldenFragen} />
@@ -833,6 +941,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         <button type="button" className={tab === 'karte' ? 'an' : ''} aria-current={tab === 'karte' ? 'page' : undefined} onClick={() => setScreen({ kind: 'karte' })}>
           <KarteIcon />
           Karte
+        </button>
+        <button type="button" className={tab === 'aufgaben' ? 'an' : ''} aria-current={tab === 'aufgaben' ? 'page' : undefined} onClick={() => setScreen({ kind: 'aufgaben', ansicht: 'heute' })}>
+          <AufgabenIcon />
+          Aufgaben
+          {offeneAufgaben > 0 && <span className="lq-zahl lq-zahl-gruen" aria-label={`${offeneAufgaben} Tagesaufgaben offen`}>{offeneAufgaben}</span>}
         </button>
         <button type="button" className={tab === 'wiederholen' ? 'an' : ''} aria-current={tab === 'wiederholen' ? 'page' : undefined} onClick={() => setScreen({ kind: 'wiederholen' })}>
           <WiederholenIcon />
@@ -857,6 +970,23 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   );
 
   if (screen.kind === 'held') {
+    if (screen.willkommen) {
+      return (
+        <main className="lq-app lq-mit-leiste">
+          <div className="lq-willkommen-band" role="status">
+            <span>
+              <strong>Schritt 1 von 3:</strong> Bau deinen Helden – Haut, Frisur, Augen und mehr.
+            </span>
+            <button type="button" className="lq-knopf" onClick={miniRunde}>
+              Fertig, weiter
+            </button>
+          </div>
+          <div className="lq-inhalt" ref={inhalt}>
+            <HeldSeite daten={daten} aktion={aktion} setStand={setStand} onTruhe={() => setScreen({ kind: 'truhe', zurueck: 'held' })} onLaden={() => setScreen({ kind: 'laden' })} onGutscheine={() => setScreen({ kind: 'gutscheine' })} onAbmelden={abmeldenFragen} />
+          </div>
+        </main>
+      );
+    }
     return rahmen(<HeldSeite daten={daten} aktion={aktion} setStand={setStand} onTruhe={() => setScreen({ kind: 'truhe', zurueck: 'held' })} onLaden={() => setScreen({ kind: 'laden' })} onGutscheine={() => setScreen({ kind: 'gutscheine' })} onAbmelden={abmeldenFragen} />);
   }
   if (screen.kind === 'gutscheine') {
@@ -865,8 +995,35 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   if (screen.kind === 'laden') {
     return rahmen(<LadenSeite daten={daten} aktion={aktion} setStand={setStand} onZurueck={() => setScreen({ kind: 'held' })} />);
   }
+  if (screen.kind === 'aufgaben') {
+    const ansicht = screen.ansicht;
+    return rahmen(
+      <div className="lq-aufgaben-seite">
+        <h1 className="lq-seitentitel">Aufgaben</h1>
+        <div className="lq-umschalter" role="group" aria-label="Ansicht">
+          {(['heute', 'woche'] as const).map((a) => (
+            <button key={a} type="button" className={ansicht === a ? 'an' : ''} aria-pressed={ansicht === a} onClick={() => setScreen({ kind: 'aufgaben', ansicht: a })}>
+              {a === 'heute' ? 'Heute' : 'Woche'}
+            </button>
+          ))}
+        </div>
+        {ansicht === 'heute' ? (
+          <>
+            <Tagesaufgaben stand={stand} />
+            <TruhenFortschritt rest={stand.sterneRest} truhen={stand.truhen} onOeffnen={() => setScreen({ kind: 'truhe', zurueck: 'karte' })} />
+          </>
+        ) : (
+          <>
+            <Wochenziel tage={stand.tage} />
+            <KlassenAufgabeBox stand={stand} />
+          </>
+        )}
+      </div>,
+    );
+  }
+
   if (screen.kind === 'klasse') {
-    return rahmen(<KlasseSeite aktion={aktion} />);
+    return rahmen(<KlasseSeite aktion={aktion} aufgabe={<KlassenAufgabeBox stand={stand} />} />);
   }
 
   if (screen.kind === 'wiederholen') {
@@ -949,6 +1106,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const wdhBei = regionen.findIndex((r) => r.stationen.some((s) => s.zustand === 'aktuell'));
   const wdhRegion = wdhBei >= 0 ? wdhBei : regionen.length - 1;
   const meilensteine = ladeMeilensteine();
+  const hinweis = fuchsHinweis(regionen, fachDran.length, new Set(Object.keys(meilensteine).filter((id) => meilensteine[id] >= MEILENSTEIN_GUT)));
   const wdhKnoten = (
     <>
       <button type="button" className="lq-knoten wdh" aria-label={`Wiederholen: ${fachDran.length} Aufgaben aus früheren Stationen`} onClick={() => wiederholen(fachDran)}>
@@ -956,7 +1114,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       </button>
       <span className="lq-knoten-titel">Wiederholen</span>
       <span className="lq-klein">
-        {fachDran.length} {fachDran.length === 1 ? 'Aufgabe' : 'Aufgaben'} von früher
+        {fachDran.length} {fachDran.length === 1 ? 'Aufgabe' : 'Aufgaben'}
       </span>
     </>
   );
@@ -965,8 +1123,6 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   return rahmen(
     <div className="lq-karte-raster">
       <aside className="lq-karte-seite">
-        <Wochenziel tage={stand.tage} />
-        <Tagesaufgaben stand={stand} />
         <TruhenFortschritt rest={stand.sterneRest} truhen={stand.truhen} onOeffnen={() => setScreen({ kind: 'truhe', zurueck: 'karte' })} />
       </aside>
       <div className="lq-karte-haupt">
@@ -980,71 +1136,87 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </nav>
         )}
         {!pakete.length && <p className="lq-leer">Deine Lehrkraft hat noch keine Station freigeschaltet. Schau bald wieder vorbei!</p>}
-        {regionen.map((r, ri) => (
-          <section key={r.id} className="lq-region">
-            <div className="lq-region-band">
-              <span>
-                {aktiv} · Region {r.nummer}
-              </span>
-              <h2>{r.titel}</h2>
-              <small className="lq-region-sterne" aria-label={`${r.stationen.reduce((n, st) => n + st.sterne, 0)} von ${3 * r.stationen.length} Sternen`}>
-                <SternIcon />
-                {r.stationen.reduce((n, st) => n + st.sterne, 0)} / {3 * r.stationen.length}
-              </small>
-            </div>
-            <ol className="lq-pfad">
-              {pfadVon(r, ri === wdhRegion && fachDran.length > 0).map((x, i) => {
-                const cls = `lq-versatz-${['0', 'l', '0', 'r'][i % 4]} lq-weg-${['r', 'r', 'l', 'l'][i % 4]}`;
-                if (x === 'wdh') return <li key="wdh" className={cls}>{wdhKnoten}</li>;
-                if (x === 'meilenstein') {
-                  const best = meilensteine[r.id];
-                  return (
-                    <li key="meilenstein" className={cls}>
-                      <button type="button" className="lq-knoten meilenstein" disabled={!r.meilenstein} aria-label={`Meilenstein: ${r.titel}`} onClick={() => meilensteinStarten(r)}>
-                        {best !== undefined && best >= MEILENSTEIN_GUT ? <HakenIcon /> : <FahneIcon />}
-                      </button>
-                      <span className="lq-knoten-titel">Meilenstein</span>
-                      <span className="lq-klein">
-                        {!r.meilenstein ? 'Öffnet sich, wenn alle Stationen geschafft sind.' : best !== undefined ? `Bestes Ergebnis ${best} %` : 'Gemischter Test über die ganze Region'}
-                      </span>
-                    </li>
-                  );
-                }
-                const st = x;
-                const blass = st.zustand === 'erledigt' && st.faellig.length > 0;
-                return (
-                  <li key={st.nummer} className={`${cls}${st.zustand === 'aktuell' ? ' mit-blase' : ''}`}>
-                    {st.zustand === 'aktuell' && <span className="lq-blase">Los geht’s!</span>}
-                    {st.zustand === 'aktuell' && <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} className="lq-pfad-held" />}
-                    <button
-                      type="button"
-                      className={`lq-knoten ${st.zustand}${blass ? ' faellig' : ''}`}
-                      disabled={st.zustand === 'gesperrt'}
-                      aria-label={`${st.zustand === 'gesperrt' ? 'Gesperrt' : st.zustand === 'aktuell' ? 'Station starten' : blass ? 'Auffrischen' : 'Station'}: ${st.titel}`}
-                      onClick={() => tippen(st)}
-                    >
-                      {blass ? (
-                        <WiederholenIcon />
-                      ) : st.zustand === 'erledigt' ? (
-                        <HakenIcon />
-                      ) : st.zustand === 'gesperrt' ? (
-                        <SchlossIcon />
-                      ) : st.zustand === 'aktuell' ? (
-                        <SternIcon />
-                      ) : (
-                        <span className="lq-knoten-nr">{st.nummer}</span>
-                      )}
+        {pakete.length > 0 && (
+          <FuchsSagt pose={hinweis.pose}>
+            <p>{hinweis.text}</p>
+          </FuchsSagt>
+        )}
+        {regionen.map((r, ri) => {
+          const sterne = r.stationen.reduce((n, st) => n + st.sterne, 0);
+          const pfad = pfadVon(r, ri === wdhRegion && fachDran.length > 0);
+          const punkte: Wegpunkt[] = pfad.map((x) => {
+            if (x === 'wdh') return { key: 'wdh', klasse: 'ist-wdh', inhalt: wdhKnoten };
+            if (x === 'meilenstein') {
+              const best = meilensteine[r.id];
+              return {
+                key: 'meilenstein',
+                klasse: 'ist-meilenstein',
+                inhalt: (
+                  <>
+                    <button type="button" className="lq-knoten meilenstein" disabled={!r.meilenstein} aria-label={`Meilenstein: ${r.titel}`} onClick={() => meilensteinStarten(r)}>
+                      {best !== undefined && best >= MEILENSTEIN_GUT ? <HakenIcon /> : r.meilenstein ? <FahneIcon /> : <SchlossIcon />}
                     </button>
-                    <span className="lq-knoten-titel">{st.titel}</span>
-                    {st.zustand === 'erledigt' && <Sterne n={st.sterne} />}
-                    {blass && <span className="lq-klein">{st.faellig.length} zum Auffrischen</span>}
-                    {st.zustand === 'gesperrt' && <span className="lq-klein">Öffnet sich, sobald ihr es im Unterricht hattet.</span>}
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
-        ))}
+                    <span className="lq-knoten-titel">Meilenstein</span>
+                    <span className="lq-klein">{!r.meilenstein ? 'Öffnet sich, wenn alle Stationen geschafft sind.' : best !== undefined ? `Bestes Ergebnis ${best} %` : 'Gemischter Test über die ganze Region'}</span>
+                  </>
+                ),
+              };
+            }
+            const st = x;
+            const blass = st.zustand === 'erledigt' && st.faellig.length > 0;
+            return {
+              key: `s${st.nummer}`,
+              klasse: `ist-${st.zustand}`,
+              inhalt: (
+                <>
+                  {st.zustand === 'aktuell' && <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} className="lq-pfad-held" lebendig />}
+                  {st.zustand !== 'gesperrt' && (
+                    <span className="lq-stufen" aria-hidden>
+                      {[0, 1, 2].map((i) => (
+                        <span key={i} className={i < st.sterne ? 'an' : ''}>
+                          <SternIcon />
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className={`lq-knoten ${st.zustand}${blass ? ' faellig' : ''}`}
+                    disabled={st.zustand === 'gesperrt'}
+                    aria-label={`${st.zustand === 'gesperrt' ? 'Gesperrt' : st.zustand === 'aktuell' ? 'Station starten' : blass ? 'Auffrischen' : 'Station'}: ${st.titel}${st.zustand === 'gesperrt' ? '' : `, ${st.sterne} von 3 Sternen`}`}
+                    onClick={() => tippen(st)}
+                  >
+                    {blass ? <WiederholenIcon /> : st.zustand === 'erledigt' ? <HakenIcon /> : st.zustand === 'gesperrt' ? <SchlossIcon /> : st.zustand === 'aktuell' ? <SternIcon /> : <span className="lq-knoten-nr">{st.nummer}</span>}
+                  </button>
+                  <span className="lq-knoten-titel">{st.titel}</span>
+                  {blass && <span className="lq-klein">{st.faellig.length} zum Auffrischen</span>}
+                </>
+              ),
+            };
+          });
+          return (
+            <section key={r.id} className="lq-region" aria-label={`Region ${r.nummer}: ${r.titel}`}>
+              <Landkarte
+                id={r.id}
+                mitBoss={pfad.at(-1) === 'meilenstein'}
+                punkte={punkte}
+                kopf={
+                  <div className="lq-region-band">
+                    <span>
+                      {aktiv} · Region {r.nummer}
+                    </span>
+                    <h2>{r.titel}</h2>
+                    <small className="lq-region-sterne" aria-label={`${sterne} von ${3 * r.stationen.length} Sternen`}>
+                      <SternIcon />
+                      {sterne} / {3 * r.stationen.length}
+                    </small>
+                    {r.stationen.some((st) => st.zustand === 'gesperrt') && <p className="lq-klein">Graue Stationen öffnen sich, sobald ihr sie im Unterricht hattet.</p>}
+                  </div>
+                }
+              />
+            </section>
+          );
+        })}
       </div>
     </div>,
   );
@@ -1169,11 +1341,18 @@ function Tagesaufgaben({ stand }: { stand: Stand }) {
           const n = Math.min(t.ziel, a.zaehler[t.zaehler] ?? 0);
           return (
             <li key={t.id} className={ok ? 'ok' : ''}>
-              <span className="lq-aufgabe-haken" aria-hidden="true">{ok && <HakenIcon />}</span>
-              <span>
+              <span className="lq-aufgabe-icon" aria-hidden="true">
+                {ok ? <HakenIcon /> : <AufgabeIcon art={t.zaehler} />}
+              </span>
+              <span className="lq-aufgabe-text">
                 {t.text}
-                {t.ziel > 1 && !ok && <small> · {n} / {t.ziel}</small>}
                 {ok && <span className="lq-unsichtbar"> (geschafft)</span>}
+                <span className="lq-aufgabe-balken" aria-hidden="true">
+                  <span style={{ width: `${(100 * (ok ? t.ziel : n)) / t.ziel}%` }} />
+                </span>
+                <small>
+                  {ok ? t.ziel : n} / {t.ziel}
+                </small>
               </span>
               <small className="lq-gold-zahl">+{AUFGABE_MUENZEN}</small>
             </li>
@@ -1181,6 +1360,35 @@ function Tagesaufgaben({ stand }: { stand: Stand }) {
         })}
       </ul>
       <span className="lq-klein">Alle drei: +{AUFGABEN_BONUS} Münzen extra. Morgen gibt es neue.</span>
+    </section>
+  );
+}
+
+/** Stufe D, Teil 2: the class collects new stars together this week; only the sum, no ranking. */
+function KlassenAufgabeBox({ stand }: { stand: Stand }) {
+  const a = stand.klassenAufgabe;
+  if (!a) return null;
+  // A new week since the last answer of the server: nothing collected yet.
+  const neu = a.woche !== wochenStart(heute());
+  const sterne = neu ? 0 : a.sterne;
+  const geschafft = !neu && (a.geschafft || sterne >= a.ziel);
+  const eigene = neu ? 0 : (stand.sterneWoche ?? 0);
+  return (
+    <section className="lq-box lq-klassenaufgabe">
+      <div className="lq-zeile-zwischen">
+        <h2>Klassen-Aufgabe</h2>
+        <strong>{geschafft ? 'Geschafft!' : `${sterne} von ${a.ziel} Sternen`}</strong>
+      </div>
+      <div className="lq-balken" role="progressbar" aria-label="Sterne der Klasse diese Woche" aria-valuemin={0} aria-valuemax={a.ziel} aria-valuenow={Math.min(sterne, a.ziel)}>
+        <span style={{ width: `${Math.min(100, (100 * sterne) / a.ziel)}%` }} />
+      </div>
+      <span className="lq-klein">
+        {geschafft
+          ? eigene > 0
+            ? 'Ihr habt es zusammen geschafft – deine Truhe wartet beim Helden.'
+            : 'Ihr habt es geschafft! Hol dir einen Stern, dann bekommst du auch eine Truhe.'
+          : `Sammelt diese Woche zusammen Sterne. Geschafft gibt es eine Truhe für alle, die mitgemacht haben.${eigene > 0 ? ` Von dir: ${eigene}.` : ''}`}
+      </span>
     </section>
   );
 }
@@ -1221,6 +1429,7 @@ function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; o
     };
   }, [menu]);
   const [tonOn, setTonOn] = useState(tonAn);
+  const [ruhigOn, setRuhigOn] = useState(ruhigAn);
   const h = heldenstufe(daten.stand.xp);
   const w = woche(daten.stand.tage);
   return (
@@ -1259,6 +1468,17 @@ function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; o
               }}
             />{' '}
             Töne
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={ruhigOn}
+              onChange={(e) => {
+                setzeRuhig(e.target.checked);
+                setRuhigOn(e.target.checked);
+              }}
+            />{' '}
+            Bewegung reduzieren
           </label>
           <button type="button" className="lq-link" onClick={onSignOut}>
             Abmelden
@@ -1315,15 +1535,35 @@ const WiederholenIcon = () => (
     <path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5" />
   </svg>
 );
-function Wappen() {
+
+/** The tab of today's tasks: a list with a tick. */
+const AufgabenIcon = () => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="4" y="3.5" width="16" height="17" rx="3" />
+    <path d="m8 9 1.5 1.5L12 8M8 15.5h8M14 9.5h2" />
+  </svg>
+);
+
+/** A small picture per kind of daily task (what it counts). */
+function AufgabeIcon({ art }: { art: string }) {
+  const p: Record<string, React.ReactNode> = {
+    geschafft: <path d="M6 21V4m0 1h11l-2.5 4L17 13H6" />,
+    fehlerfrei: (
+      <>
+        <circle cx="12" cy="12" r="8" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="12" cy="12" r="0.8" />
+      </>
+    ),
+    wdh: <path d="M4 12a8 8 0 0 1 14-5.3M20 4v4h-4M20 12a8 8 0 0 1-14 5.3M4 20v-4h4" />,
+    runden: <path d="M8 5v14l11-7Z" />,
+    richtig: <path d="m4.5 12.5 5 5L20 7" />,
+    sterne: <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9Z" />,
+    neu: <path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6Zm0 0v14m6-12v14" />,
+  };
   return (
-    <svg width="104" height="104" viewBox="0 0 104 104" aria-hidden>
-      <path d="M52 6 90 20v30c0 24-16 40-38 48C30 90 14 74 14 50V20Z" fill="#5B3FD9" />
-      <path d="M52 6 90 20v30c0 24-16 40-38 48Z" fill="#4A31C2" />
-      <circle cx="52" cy="50" r="22" fill="#fff" />
-      <path d="m52 32 7 18-7 18-7-18Z" fill="#FFC531" />
-      <path d="m52 50 7 0-7 18Z" fill="#C98F00" />
-      <circle cx="52" cy="50" r="3" fill="#1F1A3D" />
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      {p[art] ?? p.richtig}
     </svg>
   );
 }

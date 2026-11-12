@@ -4,8 +4,8 @@
 // Part colours are fixed values here, not UI tokens. Higher rarity = more detail, gold from Episch, sparkle for Legendär.
 import { useContext, type ReactNode } from 'react';
 import { angelegt, frisurVon, HAARFARBEN, haarfarbeVon, HAUT, mundVon, type Avatar, type Slot, type Teil } from '../teile';
-import { haareBild, koerperBild, mundBild, teilBild } from './teilBilder';
 import { FrisurVorschau, HochgeladeneBilder } from './bilderKontext';
+import { hatVektor, HELD_AUSSCHNITT, HeldBild, HeldKopfBild, HeldTeilBild, nurAlsBild } from './heldVektor';
 
 /** Shadow tone per skin tone (`HAUT`). */
 const HAUT_SCHATTEN = ['#DDAE80', '#D29A6E', '#AE744A', '#8E5833', '#5F3A20', '#E8C3A2'];
@@ -1108,7 +1108,7 @@ const ebene = (href: string) => <image href={href} width="240" height="240" />;
 function Zeichnung({ teil }: { teil: Teil | undefined }) {
   const hochgeladen = useContext(HochgeladeneBilder);
   if (!teil) return null;
-  const bild = hochgeladen[teil.id] ?? teilBild(teil.id);
+  const bild = hochgeladen[teil.id];
   if (!bild) return <>{ZEICHNUNG[teil.id] ?? null}</>;
   return (
     <>
@@ -1121,8 +1121,6 @@ function Zeichnung({ teil }: { teil: Teil | undefined }) {
 /** The base figure: painted (in the chosen skin tone) when there is one, else drawn with the hair behind it. */
 function Grundfigur({ avatar }: { avatar: Avatar }) {
   const haut = avatar.haut ?? 0;
-  const bild = koerperBild(haut);
-  if (bild) return ebene(bild);
   return <Koerper haut={haut} hinten={HAAR_ZEICHNUNG[frisurVon(avatar)]?.hinten?.(HAARFARBEN[haarfarbeVon(avatar)].farbe)} />;
 }
 
@@ -1132,20 +1130,19 @@ function Haare({ avatar }: { avatar: Avatar }) {
   const hochgeladen = useContext(HochgeladeneBilder);
   const frisur = useContext(FrisurVorschau) ?? frisurVon(avatar);
   const farbe = haarfarbeVon(avatar);
-  const eigen = koerperBild(0) ? (hochgeladen[`haare-${frisur}-${farbe}`] ?? hochgeladen[`haare-${frisur}-0`]) : undefined;
-  const bild = eigen ?? haareBild(frisur, farbe);
+  // Only an own hair (teacher page) is a picture; every built-in hair is drawn.
+  const bild = HAAR_ZEICHNUNG[frisur] ? undefined : (hochgeladen[`haare-${frisur}-${farbe}`] ?? hochgeladen[`haare-${frisur}-0`]);
   return bild ? ebene(bild) : <>{HAAR_ZEICHNUNG[frisur]?.vorn?.(HAARFARBEN[farbe].farbe) ?? null}</>;
 }
 
 /** The mouth over the blank face: painted when there is a picture, else drawn. */
 function Mund({ avatar }: { avatar: Avatar }) {
   const mund = mundVon(avatar);
-  const bild = mundBild(mund);
-  return bild ? ebene(bild) : <>{MUND_ZEICHNUNG[mund] ?? null}</>;
+  return <>{MUND_ZEICHNUNG[mund] ?? null}</>;
 }
 
 /** The head of the hero with some hair, colour and mouth, for choosing them (`nah`: only the lower face, for mouths). */
-export function KopfBild({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
+export function KopfBildGemalt({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
   return (
     <svg viewBox={nah ? '88 84 64 52' : '58 30 124 104'} aria-hidden focusable="false">
       <Grundfigur avatar={avatar} />
@@ -1159,7 +1156,7 @@ export function KopfBild({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
 export const AUSSCHNITT_KOPF = '45 8 150 150';
 
 /** The whole hero as worn (or the part `ausschnitt` of it). Decorative (the page names the hero in text), so hidden from screen readers. */
-export function AvatarBild({
+export function AvatarBildGemalt({
   avatar,
   className,
   ausschnitt = '0 0 240 240',
@@ -1205,7 +1202,7 @@ const AUSSCHNITT: Record<Slot, string> = {
 };
 
 /** One part alone, cut out for the grid, the shop and the chest; eyes sit on the hero's head so they read as eyes. */
-export function TeilBild({ teil, avatar = {}, className }: { teil: Teil; avatar?: Avatar; className?: string }) {
+export function TeilBildGemalt({ teil, avatar = {}, className }: { teil: Teil; avatar?: Avatar; className?: string }) {
   return (
     <svg className={className} viewBox={AUSSCHNITT[teil.slot]} aria-hidden focusable="false">
       {teil.slot === 'augen' && (
@@ -1223,3 +1220,26 @@ export function TeilBild({ teil, avatar = {}, className }: { teil: Teil; avatar?
 export const hatZeichnung = (id: string) => id in ZEICHNUNG;
 export const hatHaarZeichnung = (id: string) => id in HAAR_ZEICHNUNG;
 export const hatMundZeichnung = (id: string) => id in MUND_ZEICHNUNG;
+
+// — Stufe E, Teil 4: the hero is the vector figure (heldVektor.tsx). The older drawing above (with the painted and
+// uploaded pictures) stays only for heroes wearing a part or hair that exists only as an uploaded picture, and for
+// the teacher page's preview of a new upload. —
+
+/** The whole hero as worn (or the part `ausschnitt` of it). Decorative (the page names the hero in text). */
+export function AvatarBild({ avatar, className, ausschnitt, vorschau, lebendig, pose }: { avatar: Avatar; className?: string; ausschnitt?: string; vorschau?: Teil; lebendig?: boolean; pose?: string }) {
+  if (vorschau || nurAlsBild(avatar)) return <AvatarBildGemalt avatar={avatar} className={className} ausschnitt={ausschnitt} vorschau={vorschau} />;
+  return <HeldBild avatar={avatar} className={className} ausschnitt={ausschnitt === AUSSCHNITT_KOPF ? HELD_AUSSCHNITT.kopf : ausschnitt} lebendig={lebendig} pose={pose} />;
+}
+
+/** The head with some hair, colour and mouth, for choosing them (`nah`: only the lower face, for mouths). */
+export function KopfBild({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
+  const frisur = useContext(FrisurVorschau);
+  if (frisur || nurAlsBild(avatar)) return <KopfBildGemalt avatar={avatar} nah={nah} />;
+  return <HeldKopfBild avatar={avatar} nah={nah} />;
+}
+
+/** One part alone, cut out for the grid, the shop and the chest. */
+export function TeilBild({ teil, avatar = {}, className }: { teil: Teil; avatar?: Avatar; className?: string }) {
+  if (teil.eigen && !hatVektor(teil)) return <TeilBildGemalt teil={teil} avatar={avatar} className={className} />;
+  return <HeldTeilBild teil={teil} avatar={nurAlsBild(avatar) ? {} : avatar} className={className} />;
+}
