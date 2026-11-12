@@ -1,65 +1,39 @@
-# Handoff – 12.11.2026 (Stufe E fertig und live: PR #61 gemergt, App wieder an)
+# Handoff – 12.11.2026 (Figuren bewegen sich, PR #65 live; Stunden-Filter auf Branch)
+
+## Ziel
+Lernquest weiter ausbauen. Nächste Aufgabe: Grammatik- und Wortfeld-Pakete, die Claude erzeugt und die die Lehrkraft
+unabhängig von Stunden freischaltet.
 
 ## Stand
-- **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
-  Boss-Beamer zeigen „Lernquest wird umgebaut“. Offene Übungen per Link laufen weiter. Auf den Geräten wird nichts
-  gelöscht (Spielstand, ungesendete Runden bleiben). Live erst, wenn die Lehrkraft den Branch
-  `claude/intelligent-knuth-ddy0o4` nach `main` mergt (Mergen = veröffentlichen). Wieder an: `UMBAU = false`.
-- `main` hat Lernquest bis Stufe D, Teil 1 (PR #58). Branch `lernquest` = main (+ alter Handoff).
-- **Stufe D, Teil 2 gibt es zweimal, beide nicht in `main`:**
-  - `claude/lucid-galileo-0dvocr`: Klassen-Aufgabe (neue Sterne, Ziel 3 je Kind, einstellbar), Willkommen.
-    **Ihre Migration `20261125_lernquest_klassenaufgabe.sql` ist LIVE eingespielt** (Supabase „baukasten“), die Datei
-    liegt aber nur auf diesem Branch. Neue Migrationen müssen darauf aufbauen (Funktionen `lq_runde_melden`,
-    `lq_stand_json` u. a. sind dort ersetzt, Tabelle `lq_klasse_woche`) – vorher die Datei ansehen.
-  - Eine zweite Fassung (Runden statt Sterne, Truhe für alle) wurde in dieser Sitzung gebaut und per Revert wieder
-    herausgenommen (Commit `f9a57f2`, nie eingespielt). Ideen daraus bei Bedarf dort nachlesen.
+- PR #65 gemergt und live: Held/Fuchs/Bosse bewegen sich (`FigurBild` mit `danach`), Golem und Rätseldrache als Figuren
+  (`figuren/golem.tsx`, `figuren/raetseldrache.tsx`), Drache-Begleiter neu, Lehrkraft-Seite „Neu wünschen“ springt ins Bild.
+- Branch `claude/admiring-brahmagupta-j275g8` (nicht in `main`): nur ausgearbeitete Stunden (`isWorkedOut`) auf der
+  Lehrkraft-Seite und als Station auf der Karte (`paket.ts` `buildPaket`). Schon gesendete Pakete ändern sich erst nach
+  „neu senden“ (Knopf mit Titel „Nach Änderungen an freigeschalteten Stunden“). Lehrkraft muss mergen (= veröffentlichen).
+- Tests: grün (542), Typprüfung und Lint grün.
+- Letzter Commit: 09386f9 Lernquest Lehrkraft: nur ausgearbeitete Stunden zeigen …
 
-## Nächste Schritte: Stufe E bauen (Plan steht, entschieden am 12.11.2026)
-Plan und Entscheidungen: „Stufe E“ in `docs/kritik-und-plan.md`; Mockup: `docs/design/lernquest/mockup-stufe-e.png`.
-Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände bleiben, keine Rangliste/Tagesserie.
-1. **Fertig auf Branch `claude/amazing-newton-h940fp`** (nicht in `main`, von der Lehrkraft am 12.11. für gut befunden):
-   - Teil 1: Farb-Tokens Grün/Creme in `lernquest.css` (wirkt auf alle Bildschirme), Start, Namen, PIN und Umbau-Seite
-     neu, `Landschaft.tsx` (Landschaft mit Burg). `npm run spieltest` zeigt die App trotz `UMBAU` (nur dieser Modus).
-   - Figuren-Baukasten `src/lernquest/figuren/`: Gerüst aus Teilen, Posen, Animationsmotor `bewegung.ts`
-     (requestAnimationFrame, Blinzeln, Strecken, Kurven), Anker für Teile. Fuchs (7 Posen), Tintenkrake (Boss, 4 Posen),
-     12 Teile. In der App: `app/Fuchs.tsx` (`Fuchs`, `FuchsSagt`).
-   - Figuren-Werkstatt `lernquest/werkstatt.html` (nicht im Produktions-Build), Artefakt
-     https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG (`npm run werkstatt`, mit Speicher für die Prüfungen der
-     Lehrkraft). Fotos: `node scripts/werkstatt-fotos.mjs <ordner>`. **Jede Zeichnung über den Skill `figur`**; zu
-     Beginn die Prüfungen lesen (Schritt 1; am 12.11. noch keine gespeichert).
-2. **Fertig auf Branch `claude/clever-hamilton-ztdfgt`** (baut auf Teil 1 auf, nicht in `main`): Teil 2, Karte als
-   Landschaft (`app/Landkarte.tsx`, Lage in `weg.ts`, Bauteile in `figuren/gelaende.tsx`, Werkstatt `#karte`), Fuchs
-   über der Karte (`fuchsHinweis`), Leiste im Mockup-Look. Die Lehrkraft prüft Teile erst an den Spieler-Avataren (Teil 4,
-   Entscheidung in `docs/roadmap.md`).
-3. **Teil 4 fertig auf demselben Branch:** der Held als Vektorfigur (`figuren/held.tsx`), alle 80 Teile, 9 Frisuren,
-   6 Münder, 6 Hautfarben gezeichnet; die App zeigt ihn überall (`app/heldVektor.tsx`), Werkstatt `#avatar` zum
-   Zusammenstellen und Prüfen. Die Lehrkraft prüft jetzt die Teile am Helden; ihre Prüfungen zuerst lesen (Skill
-   `figur`). Gemalte Bilder gelöscht; die 3 eigenen Teile und die eigene Frisur der Lehrkraft sind als
-   Vektor nachgezeichnet (`EIGENE_ZEICHNUNGEN`). Neue eigene Teile: in der DB nachsehen (`lq_teil` mit `eigen`,
-   `lq_frisur`) und ebenso nachzeichnen. Lehrkraft-Seite „Teile und Wünsche“: kein Hochladen mehr; neue Teile/Frisuren als
-   Wunsch (Migration `20261126_lernquest_wuensche.sql`, live eingespielt 12.11.); Wünsche lesen und zeichnen: Skill `figur`.
-4. **Teil 3 fertig auf demselben Branch:** Runde im Mockup-Look (`app/Runde.tsx`, CSS-Block „Stufe E, Teil 3“ am Ende
-   von `lernquest.css`); Logik unverändert. **Teil 5 fertig auf demselben Branch** (Stufe D Teil 2 von `claude/lucid-galileo-0dvocr` hineingemergt, Migration
-   `20261125_lernquest_klassenaufgabe.sql` ist jetzt im Repo): Reiter „Aufgaben“ (Heute/Woche), Truhe als Vektor, Fuchs
-   beim Fund. **Teil 6 fertig:** Glockentöne (`app/ton.ts`), Konfetti (`app/Jubel.tsx`) bei Stern, perfekter Runde,
-   Meilenstein und seltenem Fund, Held jubelt über dem Ergebnis, Schalter „Bewegung reduzieren“ im Menü (Klasse
-   `lq-ruhig`), **`UMBAU = false`**. Gemergt (PR #61) und veröffentlicht am 12.11.; die Kinder-App ist live. Live-Tests gegen den Server: grün am 12.11.2026 auf `main` nach PR #63 (12 von 12). Noch offen: Lehrkraft-Seite
-   „Teile und Wünsche“ einmal angemeldet ansehen (ohne Anmeldung nicht prüfbar). Früher zu Teil 5: Dateien von
-   `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
-
-## Stand nach Stufe E (12.11.2026, gemergt als PR #62, Teststationen live)
-- Lernschleife zuerst (Entscheidung in `docs/roadmap.md`): Hilfe-Karten „So geht’s“, Tipp je Aufgabe (`app/Hilfe.tsx`),
-  KI-Fragenpool plant Tipps, Hilfe-Karten, Aufbau und eingestreute Wiederholung (`fragenpool.ts`).
-- Teststationen in `src/lernquest/testpakete.ts`; Migration `20261127_lernquest_testphase.sql` archiviert die alten
-  Stationen und schaltet die Teststationen frei (live eingespielt; alte Stationen in `lq_paket_archiv`).
-- Fuchs: flache Augen nach Prüfung der Lehrkraft; Avatar-Teile noch ungeprüft.
-- Prüfungen der Lehrkraft vom 12.11. abgearbeitet (Branch `claude/held-flache-augen-einhorn`, nicht in `main`): Held
-  mit flachen Augen ohne Weißglanz, kein Ring mehr am Ellenbogen (Unterarm endet oben gerade), Einhorn mit Pferdekopf
-  und Horn auf der Stirn. Werkstatt-Artefakt aktualisiert; die Lehrkraft prüft Held und Einhorn neu. Übrige Hüte,
-  Werkzeuge, Begleiter am Foto durchgesehen, nichts Auffälliges. Fotos ohne Playwright: Chrome `--headless --screenshot`.
+## Nächste Schritte
+1. Grammatik-/Wortfeld-Pakete bauen (neuer Branch von `main`). Entschieden am 12.11.:
+   - Ort: **eigene Region je Fach** auf der Weltkarte (z. B. „Grammatik-Turm“, „Wortschatz-Wald“), jedes Paket eine Station.
+   - Eingabe: **Thema eintippen** (Fach, Klassenstufe, z. B. „simple past“, „Wortfeld Wetter“) **und aus Vokabellisten**
+     der Stunden (`src/ai/vocab.ts`, `VocabAiDialog.tsx`).
+   - Freigabe **wie der Fragenpool** (`fragenpool.ts`, `teacher/Fragenpool.tsx`): Claude schreibt ~30 Übungen + Hilfe-Karten,
+     Lehrkraft prüft jede, schaltet das Paket je Klasse frei.
+   - Idee zum Wiederverwenden: Paket mit eigener Kennung statt Stunde (`stunde: 'extra-…'`, `modul.id: 'extra-<fach>-…'`)
+     durch `buildPaket`/`paketSenden`/`lq_freischalten`; vorher prüfen, ob Server-Funktionen Stunden-Ids prüfen und wie
+     Regionen/Boss (`karte.ts` `regionenVon`, `boss.ts` `bossVon`) mit so einem Modul umgehen. Speicherort der Pakete in
+     der Bibliothek klären (`src/library/types.ts`).
+   - Erst planen (Skill `aufgabe`), Plan kurz der Lehrkraft zeigen.
+2. Verschoben: Lehrkraft sagt, die Animationen sind auf dem iPhone (Safari) „noch nicht wirklich da“, obwohl die Werkstatt
+   sich dort bewegt. Mögliche Gründe: Service Worker (`public/sw.js`) zeigt alte Fassung; Schalter „Bewegung reduzieren“
+   im App-Menü (`lernquest:ruhig`). Safari ist hier nicht testbar (nur Chromium).
 
 ## Wichtig zu wissen
+- Prüfungen der Lehrkraft: Werkstatt https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG, Sammlung `pruefung`
+  (Skill `figur`). Offen zum Prüfen: Golem, Rätseldrache, Drache-Begleiter, Einhorn (Notiz dort ist alt, schon umgesetzt).
+- Wünsche für eigene Teile: `lq_teil where wunsch is not null` (Supabase „baukasten“); am 12.11. keine offen.
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
-  `cron.schedule` anlegen, Rollen `anon`, `authenticated`, `service_role` (mit Standardrechten wie bei Supabase).
-- Supabase-Migrationen über die Verbindung brauchen eine Bestätigung der Lehrkraft in ihrer App; ohne Antwort bricht es
-  nach knapp 4 Minuten ab (dann prüfen, ob etwas angekommen ist, und neu versuchen).
+  `cron.schedule` anlegen, Rollen `anon`, `authenticated`, `service_role`.
+- Supabase-Migrationen brauchen eine Bestätigung der Lehrkraft in ihrer App (sonst Abbruch nach ~4 Minuten).
+- App im Browser prüfen: `npm run spieltest`, Daten aus `scripts/spieltest-daten.js` in die Konsole, Helfer `scripts/spieltest-helfer.js`.
