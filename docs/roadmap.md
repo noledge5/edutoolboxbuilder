@@ -267,3 +267,10 @@ Herkunft ein. Hochladen und Bild-Bearbeiten auf der Lehrkraft-Seite sind entfern
   Kinder (Held bauen, Mini-Runde mit 3 Fragen der ersten Station als „Wiederholen“, Willkommens-Truhe; überspringbar,
   dann ohne Truhe). Migration `20261125_lernquest_klassenaufgabe.sql` eingespielt am 12.11.2026 (Freigabe
   der Lehrkraft), lokal und live geprüft (Live-Tests grün).
+
+**Lernschleife zuerst (Entscheidung der Lehrkraft 12.11.2026):** Klassenzimmer (Stufe F) wird verschoben. Zuerst muss
+der Lern- und Spielablauf funktionieren. Dafür: alle bisherigen Stationen deaktiviert (im Archiv `lq_paket_archiv`),
+zwei Teststationen („to be“, „Singular and plural“, `src/lernquest/testpakete.ts`). Jede Station bekommt Hilfe für
+schwächere Kinder: Lernkarten „So geht’s“ vor der ersten Runde (aus Merksatz, Grammatik- und Hinweis-Box oder von der
+KI), einen Tipp je Aufgabe (in der ersten Runde offen, sonst hinter „Tipp“), die Erklärung nach Fehlern. Die KI plant
+das mit: Tipps, Lernkarten, aufbauend von Einführung zu „selbst erzeugen“ und eingestreute Wiederholung früherer Stunden.

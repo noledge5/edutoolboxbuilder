@@ -5,7 +5,7 @@ import { jumble, seeded, shuffle, statements } from '../model/language';
 import { choices, lines, matchNumbers, rows, segments, str } from '../model/text';
 import type { Block, Page } from '../model/types';
 import type { Lesson, Module } from '../library/types';
-import { PAKET_FORMAT, UEBUNGS_ARTEN, type Paket, type Uebung } from './types';
+import { PAKET_FORMAT, UEBUNGS_ARTEN, type Lernkarte, type Paket, type Uebung } from './types';
 
 /** A picture of the teacher's own (not an emoji) in a „Bild wählen“ exercise: its key in `Paket.bilder`. */
 export const BILD_KEY = 'img:';
@@ -271,6 +271,7 @@ export function buildPaket(m: Module, l: Lesson, lessons: Lesson[] = [l], verste
     lang: m.lang,
     // The released exercises of the KI-Fragenpool come after the lesson's own ones.
     // Easy ones first, so the rounds of a station get harder (the sort is stable; no level counts as the middle).
+    hilfe: [...hilfeAusStunde(l.doc.pages), ...(l.poolHilfe ?? [])].slice(0, 4),
     uebungen: [
       ...exercisesOf(l.doc.pages),
       ...(l.pool ?? [])
@@ -279,6 +280,39 @@ export function buildPaket(m: Module, l: Lesson, lessons: Lesson[] = [l], verste
         .sort((a, b) => (a.niveau ?? 2) - (b.niveau ?? 2)),
     ],
   };
+}
+
+/** One help card, checked (null when it does not hold up): short title, rule text, up to six examples. */
+export function readLernkarte(x: unknown): Lernkarte | null {
+  if (!x || typeof x !== 'object') return null;
+  const k = x as Record<string, unknown>;
+  const t = (v: unknown, max: number) => (typeof v === 'string' && v.trim() && v.length <= max ? v.trim() : null);
+  const titel = t(k.titel, 60);
+  const text = t(k.text, 400);
+  if (!titel || !text) return null;
+  const beispiele = Array.isArray(k.beispiele) ? k.beispiele.map((b) => t(b, 160)).filter((b): b is string => !!b).slice(0, 6) : [];
+  return { titel, text, ...(beispiele.length ? { beispiele } : {}) };
+}
+
+/** Help cards from the lesson's sheets: Merksatz, Grammatik-Box and Hinweis-Box, in page order (at most four). */
+export function hilfeAusStunde(pages: Page[]): Lernkarte[] {
+  const out: Lernkarte[] = [];
+  for (const page of pages.filter((p) => p.type !== 'lehrkraft'))
+    for (const b of page.blocks) {
+      const p = b.props;
+      // A Merksatz gap shows its solution ([[Wort]]); an empty one (___) stays a gap.
+      const loes = (s: string) => s.replace(/\[\[([^\]]+)\]\]/g, '$1');
+      const k =
+        b.type === 'grammar'
+          ? readLernkarte({ titel: str(p.title) || 'So geht\u2019s', text: loes(str(p.rule)), beispiele: str(p.examples).split('\n') })
+          : b.type === 'merksatz'
+            ? readLernkarte({ titel: 'Merke', text: loes(str(p.text)) })
+            : b.type === 'hint'
+              ? readLernkarte({ titel: str(p.title) || 'Tipp', text: str(p.text) })
+              : null;
+      if (k) out.push(k);
+    }
+  return out.slice(0, 4);
 }
 
 /** A Lernpaket from the server, or null when it is not one (an older or broken one is skipped, not shown). */
@@ -294,7 +328,8 @@ export function readPaket(x: unknown): Paket | null {
     if (u.art === 'punkt') return typeof u.bild === 'string' && u.bild in bilder && Array.isArray(u.punkte) && u.punkte.length > 0;
     return true;
   });
-  return { ...(p as Paket), uebungen, bilder };
+  const hilfe = Array.isArray(p.hilfe) ? p.hilfe.map(readLernkarte).filter((k): k is Lernkarte => !!k).slice(0, 6) : [];
+  return { ...(p as Paket), uebungen, bilder, hilfe };
 }
 
 /**

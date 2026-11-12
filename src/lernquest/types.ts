@@ -8,7 +8,18 @@ export const PAKET_FORMAT = 'lernquest-paket';
  * a child reads after a mistake (why the answer is what it is); most exercises have none. `niveau` is how hard it is
  * (1 know it, 2 use it, 3 make it yourself); the KI-Fragenpool sets it, the lesson's own exercises have none.
  */
-export type Uebung = UebungArt & { erklaerung?: string; niveau?: Niveau };
+export type Uebung = UebungArt & { erklaerung?: string; niveau?: Niveau; tipp?: string };
+/* `tipp` (Stufe E, 12.11.2026): a short help a child can open before answering (it never gives the answer away); in
+ * the first round of a station it is open from the start, so weaker children are led through the introduction. */
+
+/** A help card of a station („So geht's“): the rule with examples, shown before the first round and on demand. Made
+ *  from the lesson's Merksatz, Grammatik- and Hinweis-Box, or written by the KI-Fragenpool. */
+export interface Lernkarte {
+  titel: string;
+  text: string;
+  /** Example sentences; {{…}} marks the part that matters. */
+  beispiele?: string[];
+}
 export type Niveau = 1 | 2 | 3;
 
 type UebungArt =
@@ -92,6 +103,8 @@ export interface Paket {
   /** English module: read aloud in English, English labels where the sheet has them. */
   lang: 'de' | 'en';
   uebungen: Uebung[];
+  /** Help cards of the station (absent in older packages). */
+  hilfe?: Lernkarte[];
   /** Pictures as JPEG data URLs: small ones for „Bild wählen“ ("img:<id>"), larger ones for places ("karte:<id>"). */
   bilder?: Record<string, string>;
 }

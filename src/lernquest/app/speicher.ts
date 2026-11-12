@@ -89,6 +89,11 @@ export const setzeTon = (an: boolean) => write(K_TON, an);
 
 /** „Bewegung reduzieren“ in the app (Stufe E, Teil 6), for devices where the system setting is not on: the class
  *  `lq-ruhig` on the page stops every animation like the system setting does (lernquest.css, figuren/Figur.tsx). */
+/** Stations whose help cards („So geht's“) this device has shown before the first round (shown once by itself). */
+const K_HILFE = 'lernquest:hilfe-gesehen';
+export const hilfeGesehen = (stunde: string) => (read<string[]>(K_HILFE) ?? []).includes(stunde);
+export const merkeHilfe = (stunde: string) => write(K_HILFE, [...new Set([...(read<string[]>(K_HILFE) ?? []), stunde])].slice(-200));
+
 const K_RUHIG = 'lernquest:ruhig';
 export const ruhigAn = () => read<boolean>(K_RUHIG) === true;
 export function setzeRuhig(an: boolean) {
