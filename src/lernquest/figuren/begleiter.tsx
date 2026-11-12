@@ -376,30 +376,32 @@ function Einhorn() {
       {/* body */}
       <ellipse cx={-4} cy={-21} rx={23} ry={13} fill={P.schnee} {...UMRISS} />
       <Schatten cx={-4} cy={-21} rx={23} ry={13} farbe={P.eisTief} />
-      <path d={stern(-6, -21, 6.5)} fill={P.gold} {...UMRISS_FEIN} />
+      <path d={stern(-12, -21, 6.5)} fill={P.gold} {...UMRISS_FEIN} />
       <rect x={-22} y={-12} width={10} height={12} rx={4.5} fill={P.schnee} {...UMRISS} />
       <rect x={10} y={-12} width={10} height={12} rx={4.5} fill={P.schnee} {...UMRISS} />
       <rect x={-22} y={-4} width={10} height={4} rx={2} fill={P.lilaHell} />
       <rect x={10} y={-4} width={10} height={4} rx={2} fill={P.lilaHell} />
-      {/* mane behind head */}
-      <path d="M-6 -50 C-24 -50 -26 -28 -20 -22 C-14 -30 -8 -34 -2 -34 Z" fill={P.rosa} {...UMRISS} />
-      <path d="M-12 -44 C-22 -40 -22 -30 -19 -26" fill="none" stroke={P.tuerkisHell} strokeWidth={3} strokeLinecap="round" />
+      {/* mane down the back of the neck */}
+      <path d="M12 -64 C-8 -66 -14 -46 -8 -28 C-4 -34 0 -37 6 -39 C2 -46 4 -54 12 -56 Z" fill={P.rosa} {...UMRISS} />
+      <path d="M2 -58 C-6 -52 -6 -42 -4 -36" fill="none" stroke={P.tuerkisHell} strokeWidth={3} strokeLinecap="round" />
+      {/* neck */}
+      <path d="M0 -28 C2 -40 6 -48 10 -52 L26 -46 C22 -40 20 -32 19 -22 Z" fill={P.schnee} {...UMRISS} />
+      {/* no line where the neck meets the body */}
+      <ellipse cx={10} cy={-25} rx={8.5} ry={5} fill={P.schnee} />
       {/* ear */}
-      <path d="M4 -52 L2 -60 L12 -54 Z" fill={P.schnee} {...UMRISS} />
-      {/* horn */}
-      <path d="M12 -52 L18 -64 L21 -51 Z" fill={P.gold} {...UMRISS} />
-      <path d="M13.5 -56 L19.5 -57.5 M13 -52.5 L20.5 -53.5" stroke={P.goldTief} strokeWidth={1.8} strokeLinecap="round" />
-      {/* head */}
-      <path d="M-9 -38 C-9 -52 4 -54 14 -53 C26 -52 30 -44 30 -38 C30 -28 20 -24 10 -24 C-2 -24 -9 -28 -9 -38 Z" fill={P.schnee} {...UMRISS} />
-      <Schatten cx={10} cy={-39} rx={20} ry={15} farbe={P.eisTief} />
-      <path d="M-4 -50 C-6 -44 -4 -40 0 -38 C2 -44 4 -48 8 -51 Z" fill={P.lilaHell} {...UMRISS_FEIN} />
-      <Licht x={-1} y={-45} rx={4} ry={2.4} farbe={P.weiss} />
-      <Auge x={6} y={-37} r={4.8} />
-      <Auge x={22} y={-37} r={4.2} />
-      <Backe x={0} y={-30} rx={4} ry={2.6} />
-      <Backe x={26} y={-30} rx={3} ry={2.4} />
-      <ellipse cx={26} cy={-33} rx={1.2} ry={1.6} fill={P.eisTief} />
-      <Mund x={15} y={-29} w={3.4} />
+      <path d="M8 -60 L7 -72 L17 -63 Z" fill={P.schnee} {...UMRISS} />
+      {/* head: a horse's head from the side, long muzzle to the right */}
+      <path d="M4 -53 C4 -63 14 -66 22 -62 C29 -58 37 -49 39 -42 C41 -35 35 -31 29 -33 C23 -35 19 -40 13 -42 C7 -44 4 -47 4 -53 Z" fill={P.schnee} {...UMRISS} />
+      <path d="M31 -50 C36 -46 40 -40 38 -36 C36 -32 31 -32 28 -34 C32 -38 33 -44 31 -50 Z" fill={P.lilaHell} opacity={0.7} />
+      <Licht x={12} y={-58} rx={4} ry={2.4} farbe={P.weiss} />
+      <Auge x={17} y={-51} r={4.4} />
+      <Backe x={22} y={-43} rx={3.4} ry={2.4} />
+      <ellipse cx={35} cy={-40} rx={1.3} ry={1.7} fill={P.eisTief} />
+      <path d="M29 -35.5 q3 1.5 6 0" fill="none" stroke={P.linie} strokeWidth={2} strokeLinecap="round" />
+      {/* forelock, then the horn on the forehead */}
+      <path d="M9 -63 C14 -69 24 -66 23 -57 C19 -60 14 -60 9 -63 Z" fill={P.rosa} {...UMRISS_FEIN} />
+      <path d="M17 -62 L35 -85 L30 -57 Z" fill={P.gold} {...UMRISS} />
+      <path d="M23 -65 L30 -62.5 M27 -71 L32 -69" stroke={P.goldTief} strokeWidth={2} strokeLinecap="round" />
     </g>
   );
 }
@@ -531,7 +533,7 @@ export const BEGLEITER_ITEMS: Item[] = [
   tier('fuchs', 'Fuchs', 3, rahmen(-44, -69, 86, 73), () => <FuchsHaustier />),
   tier('axolotl', 'Axolotl', 3, rahmen(-41, -67, 82, 71), () => <Axolotl />),
   tier('roboter', 'Roboter', 4, rahmen(-38, -69, 80, 73), () => <Roboter />),
-  tier('einhorn', 'Einhorn', 4, rahmen(-41, -69, 78, 73), () => <Einhorn />),
+  tier('einhorn', 'Einhorn', 4, rahmen(-41, -90, 84, 94), () => <Einhorn />),
   tier('drache', 'Drache', 5, rahmen(-43, -69, 84, 73), (zeit) => <Drache zeit={zeit} />, true),
   tier('phoenix', 'Phönix', 5, rahmen(-43, -69, 80, 75), (zeit) => <Phoenix zeit={zeit} />, true),
 ];

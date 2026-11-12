@@ -28,7 +28,7 @@ Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werk
   (`Glied` in `fuchs.tsx`): dark 19 under colour 13, round caps; cover the joint seam with a dot of the colour.
 - Light from top left: one light stroke or spot (`hell`) top left, one shadow shape (`tief`, about 60 % opacity)
   bottom right. No gradients, no blur, no thin lines under 2 units (they vanish at 48 px).
-- Chibi proportions for characters: head about half the height, big eyes with two white highlights, short limbs.
+- Chibi proportions for characters: head about half the height, flat dark eyes without white shine (teacher, 12.11.2026), short limbs.
 - Faces carry the emotion; a pose changes arms and face, never redraws the body.
 - Rarity shows on the item itself too: 1–2 plain materials (wood, leather), 3 metal or glass, 4 colour plus a star or
   gem, 5 gold with gems. The icon frame takes `SELTEN_FARBE`.

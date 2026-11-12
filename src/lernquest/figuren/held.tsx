@@ -426,14 +426,13 @@ const AUGE_R = 120;
 const AUGE_Y = 93;
 const linie = { fill: 'none', stroke: P.auge, strokeWidth: 4.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
 
-function Punktauge({ x, rx = 9, ry = 11, iris = P.ohrInnen, funkeln = false }: { x: number; rx?: number; ry?: number; iris?: string; funkeln?: boolean }) {
+// Flat eyes (teacher's review 12.11.2026): one dark shape, no white shine; only the special eyes carry a colour or a star.
+function Punktauge({ x, rx = 7.5, ry = 9.5, iris, funkeln = false }: { x: number; rx?: number; ry?: number; iris?: string; funkeln?: boolean }) {
   return (
     <g>
       <ellipse cx={x} cy={AUGE_Y} rx={rx} ry={ry} fill={P.auge} />
-      <path d={`M${x - rx + 2} 96 Q${x} ${AUGE_Y + ry + 1} ${x + rx - 2} 96`} fill="none" stroke={iris} strokeWidth={2.8} opacity={0.9} />
-      <circle cx={x + 3} cy={88} r={3.6} fill={P.weiss} />
-      <circle cx={x - 3} cy={97} r={1.7} fill={P.weiss} />
-      {funkeln && <path d={stern(x - 3, 86, 3.2, 4)} fill={P.weiss} />}
+      {iris && <path d={`M${x - rx + 2} 96 Q${x} ${AUGE_Y + ry + 1} ${x + rx - 2} 96`} fill="none" stroke={iris} strokeWidth={2.8} opacity={0.9} />}
+      {funkeln && <path d={stern(x - 2, 89, 3.4, 4)} fill={P.weiss} />}
     </g>
   );
 }
@@ -442,7 +441,7 @@ const froh = (x: number) => <path key={x} d={`M${x - 9} 95 Q${x} 84 ${x + 9} 95`
 
 /** The eye styles of the `augen` place (src/lernquest/teile.ts). Glasses are drawn over plain eyes. */
 const AUGEN_FORM: Record<string, (x: number, s: Stand) => ReactNode> = {
-  punktaugen: (x, s) => <Punktauge x={x} ry={s.gesicht === 'staunen' ? 12.5 : s.gesicht === 'sanft' ? 9 : 11} rx={s.gesicht === 'staunen' ? 10 : 9} />,
+  punktaugen: (x, s) => <Punktauge x={x} ry={s.gesicht === 'staunen' ? 11 : s.gesicht === 'sanft' ? 8 : 9.5} rx={s.gesicht === 'staunen' ? 8.5 : 7.5} />,
   froehlich: (x) => froh(x),
   sternaugen: (x) => (
     <g>
@@ -450,7 +449,7 @@ const AUGEN_FORM: Record<string, (x: number, s: Stand) => ReactNode> = {
       <circle cx={x - 2} cy={AUGE_Y - 3} r={2} fill={P.weiss} />
     </g>
   ),
-  funkelaugen: (x) => <Punktauge x={x} rx={10} ry={12.5} iris={P.lilaHell} funkeln />,
+  funkelaugen: (x) => <Punktauge x={x} rx={8.5} ry={10.5} iris={P.lilaHell} funkeln />,
   herzaugen: (x) => (
     <g>
       <path d={`M${x} ${AUGE_Y + 10} C${x - 14} ${AUGE_Y} ${x - 12} ${AUGE_Y - 11} ${x - 5} ${AUGE_Y - 9} C${x - 2} ${AUGE_Y - 8} ${x} ${AUGE_Y - 5} ${x} ${AUGE_Y - 4} C${x} ${AUGE_Y - 5} ${x + 2} ${AUGE_Y - 8} ${x + 5} ${AUGE_Y - 9} C${x + 12} ${AUGE_Y - 11} ${x + 14} ${AUGE_Y} ${x} ${AUGE_Y + 10} Z`} fill={P.herz} stroke={P.rotTief} strokeWidth={2} />
@@ -714,8 +713,15 @@ function arm(seite: 'l' | 'r', k: Kleid, haut: Ton): Teil {
         drehpunkt: ellbogen,
         zeichnung: () => (
           <g>
-            <Glied von={ellbogen} bis={[x, 180]} farbe={unten.farbe} schatten={unten.tief} gelenk />
-            {k.aermel !== 'haut' && k.unterarm === 'haut' && <path d={`M${x - 9} 165 h18`} stroke={oben.farbe} strokeWidth={6} strokeLinecap="round" />}
+            {/* Straight end at the elbow (no round cap): the cap's outline lay over the upper arm as a ring, which
+                read as a stripe at the elbow (teacher's review 12.11.2026). The upper arm's own cap rounds the bend,
+                the hand covers the lower end. */}
+            <path d={`M${x} 166 V184`} fill="none" stroke={P.linie} strokeWidth={19} />
+            <path d={`M${x} 166 V184`} fill="none" stroke={unten.farbe} strokeWidth={13} />
+            {/* The joint dot takes the sleeve's colour, so a short sleeve ends round; the shadow runs on across it. */}
+            <circle cx={x} cy={166} r={6.5} fill={oben.farbe} />
+            <path d={`M${x + 3} 160.5 V171.5`} fill="none" stroke={oben.tief} strokeWidth={4} opacity={0.6} />
+            <path d={`M${x + 3} 171.5 V184`} fill="none" stroke={unten.tief} strokeWidth={4} opacity={0.6} />
             <circle cx={hand[0]} cy={hand[1]} r={9} fill={h.farbe} {...UMRISS} />
             <path d={`M${x - 5} ${hand[1] - 4} q3 -3 6 -2`} fill="none" stroke={h.hell} strokeWidth={2.5} strokeLinecap="round" />
           </g>
