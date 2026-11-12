@@ -2517,26 +2517,6 @@ button.lq-teil:active {
   transform: rotate(-12deg) translateY(12%) scale(0.9);
   opacity: 0.45;
 }
-.lq-boss-huelle,
-.lq-boss-huelle > span {
-  display: inline-block;
-  max-width: 100%;
-}
-.lq-boss-treffer {
-  animation: lq-wackeln var(--lq-dauer) 2;
-}
-.lq-schweben {
-  animation: lq-schweben 2.4s ease-in-out infinite;
-}
-@keyframes lq-schweben {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
 
 /* The band on the map: a fight is on. */
 .lq-boss-band {
