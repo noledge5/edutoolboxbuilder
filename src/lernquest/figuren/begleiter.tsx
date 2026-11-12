@@ -408,46 +408,68 @@ function Einhorn() {
 
 // ---------------------------------------------------------------- 5 Legendaer
 
+/** Bigger than the other pets and fierce (teacher, 12.11.2026): bat wings, spikes, fangs, slit eyes, smoke. */
 function Drache({ zeit }: { zeit: number }) {
-  const schlag = Math.sin(zeit * 5) * 14;
-  const fluegel = (spiegel: number, tint: string) => (
-    <g transform={`translate(-6 -30) rotate(${schlag * spiegel}) scale(1.3) translate(6 30)`}>
-      <path d="M-6 -30 C-18 -50 -34 -52 -36 -40 Q-30 -40 -28 -34 Q-24 -36 -22 -30 Q-18 -32 -14 -28 Z" fill={tint} {...UMRISS} />
-      <path d="M-28 -34 L-12 -30 M-22 -30 L-12 -29" stroke={P.lilaTief} strokeWidth={0} />
+  const schlag = Math.sin(zeit * 4) * 12;
+  const rauch = (zeit * 0.8) % 1;
+  const fluegel = (spiegel: number, haut: string, tief: string) => (
+    <g transform={`rotate(${schlag * spiegel} -10 -50)`}>
+      <path
+        d="M-10 -50 L-30 -88 L-36 -74 L-50 -82 L-50 -64 L-62 -66 L-54 -46 Q-40 -54 -32 -44 Q-24 -52 -16 -42 Z"
+        fill={haut}
+        {...UMRISS}
+      />
+      <path d="M-10 -50 L-36 -74 M-10 -50 L-50 -64 M-12 -48 L-54 -46" stroke={tief} strokeWidth={2.5} strokeLinecap="round" />
     </g>
   );
   return (
-    <g>
+    <g transform="translate(-10 0)">
       {/* wing behind (flaps) */}
-      {fluegel(1, P.lila)}
-      {/* tail */}
-      <path d="M-14 -6 Q-34 -6 -30 -22 Q-26 -14 -16 -14 Z" fill={P.gruen} {...UMRISS} />
-      <path d="M-30 -22 L-35 -27 L-27 -26 Z" fill={P.gold} {...UMRISS_FEIN} />
+      {fluegel(1, P.lilaTief, P.tinteTief)}
+      {/* tail with a spade tip */}
+      <path d="M-16 -10 Q-40 -4 -44 -22 Q-42 -14 -30 -16 Q-22 -18 -18 -22 Z" fill={P.gruen} {...UMRISS} />
+      <path d="M-44 -22 L-54 -30 L-46 -34 L-40 -26 Z" fill={P.rot} {...UMRISS_FEIN} />
       {/* back spikes */}
-      <path d="M-16 -32 L-12 -40 L-8 -33 Z M-9 -26 L-3 -32 L0 -25 Z" fill={P.gold} {...UMRISS_FEIN} />
+      <path d="M-22 -48 L-24 -60 L-14 -52 Z M-24 -36 L-32 -44 L-22 -42 Z M-24 -24 L-34 -28 L-24 -30 Z" fill={P.rot} {...UMRISS_FEIN} />
+      {/* back leg */}
+      <path d="M-14 -8 Q-16 -2 -10 0 L-2 0 Q0 -6 -4 -10 Z" fill={P.gruenTief} {...UMRISS} />
       {/* body */}
-      <ellipse cx={0} cy={-17} rx={19} ry={17} fill={P.gruen} {...UMRISS} />
-      <Schatten cx={0} cy={-17} rx={19} ry={17} farbe={P.gruenTief} />
-      <ellipse cx={7} cy={-14} rx={10} ry={12} fill={P.goldHell} {...UMRISS_FEIN} />
-      <path d="M2 -20 L12 -20 M2 -14 L12 -14 M3 -8 L11 -8" stroke={P.gold} strokeWidth={2} strokeLinecap="round" />
-      <ellipse cx={-8} cy={-2.5} rx={8} ry={4} fill={P.gruenHell} {...UMRISS} />
-      <ellipse cx={12} cy={-2.5} rx={8} ry={4} fill={P.gruenHell} {...UMRISS} />
+      <ellipse cx={0} cy={-28} rx={24} ry={25} fill={P.gruen} {...UMRISS} />
+      <Schatten cx={0} cy={-28} rx={24} ry={25} farbe={P.gruenTief} />
+      <Licht x={-12} y={-42} rx={6} ry={3} farbe={P.gruenHell} />
+      {/* belly plates */}
+      <path d="M6 -48 Q22 -40 20 -22 Q18 -8 6 -6 Q-2 -24 6 -48 Z" fill={P.goldHell} {...UMRISS_FEIN} />
+      <path d="M8 -40 L19 -38 M6 -31 L20 -29 M6 -22 L19 -21 M7 -13 L16 -13" stroke={P.goldTief} strokeWidth={2} strokeLinecap="round" />
+      {/* front leg with claws */}
+      <path d="M6 -14 Q4 -2 10 0 L22 0 Q22 -8 16 -14 Z" fill={P.gruen} {...UMRISS} />
+      <path d="M14 0 L16 4 L18 0 M19 0 L21 4 L23 0" fill={P.creme} {...UMRISS_FEIN} />
+      {/* arm with claws */}
+      <path d="M14 -40 Q28 -36 30 -26" fill="none" stroke={P.linie} strokeWidth={11} strokeLinecap="round" />
+      <path d="M14 -40 Q28 -36 30 -26" fill="none" stroke={P.gruen} strokeWidth={7} strokeLinecap="round" />
+      <path d="M28 -24 L30 -18 L32 -24 M32 -25 L36 -20 L36 -27" fill={P.creme} {...UMRISS_FEIN} />
       {/* wing in front */}
-      {fluegel(-1, P.lilaHell)}
-      {/* horns */}
-      <path d="M-8 -50 L-14 -62 L-1 -53 Z" fill={P.gold} {...UMRISS} />
-      <path d="M10 -53 L18 -63 L19 -49 Z" fill={P.gold} {...UMRISS} />
-      {/* head */}
-      <path d="M-22 -37 C-22 -53 -8 -55 4 -55 C18 -55 28 -52 30 -42 C34 -40 36 -36 33 -32 C28 -26 16 -24 4 -24 C-12 -24 -22 -28 -22 -37 Z" fill={P.gruen} {...UMRISS} />
-      <Schatten cx={4} cy={-39} rx={26} ry={15} farbe={P.gruenTief} />
-      <Licht x={-10} y={-49} rx={7} ry={3} farbe={P.gruenHell} />
-      <circle cx={27} cy={-38} r={1.4} fill={P.gruenTief} />
-      <circle cx={32} cy={-36} r={1.2} fill={P.gruenTief} />
-      <Auge x={-2} y={-39} r={5.2} />
-      <Auge x={15} y={-39} r={5.2} />
-      <Backe x={-10} y={-31} rx={4.2} ry={2.7} />
-      <Backe x={24} y={-30} rx={3.4} ry={2.6} />
-      <Mund x={13} y={-29} w={4} />
+      {fluegel(-1, P.lila, P.lilaTief)}
+      {/* horns, swept back */}
+      <path d="M-4 -82 Q-16 -94 -26 -92 Q-16 -86 -10 -76 Z" fill={P.metallHell} {...UMRISS} />
+      <path d="M10 -84 Q4 -98 -6 -100 Q2 -90 2 -80 Z" fill={P.metallHell} {...UMRISS} />
+      {/* head with a long snout */}
+      <path
+        d="M-14 -68 C-14 -84 -2 -88 10 -86 C20 -85 28 -80 32 -74 L44 -70 C48 -68 48 -60 44 -58 C36 -54 22 -52 10 -52 C-6 -52 -14 -58 -14 -68 Z"
+        fill={P.gruen}
+        {...UMRISS}
+      />
+      <Schatten cx={12} cy={-68} rx={28} ry={16} farbe={P.gruenTief} />
+      <Licht x={-4} y={-80} rx={6} ry={2.6} farbe={P.gruenHell} />
+      {/* fangs */}
+      <path d="M30 -56 L32 -49 L35 -56 Z M38 -57 L40 -51 L42 -58 Z" fill={P.weiss} {...UMRISS_FEIN} />
+      <path d="M22 -58 Q34 -56 44 -60" fill="none" stroke={P.linie} strokeWidth={2.2} strokeLinecap="round" />
+      {/* nostril and smoke */}
+      <circle cx={42} cy={-66} r={1.6} fill={P.gruenTief} />
+      <circle cx={48 + rauch * 8} cy={-72 - rauch * 14} r={2.5 + rauch * 3} fill={P.metallHell} opacity={0.75 * (1 - rauch)} />
+      {/* fierce slit eye under a heavy brow */}
+      <path d="M8 -74 Q16 -78 24 -72 Q18 -66 10 -68 Z" fill={P.gold} {...UMRISS_FEIN} />
+      <path d="M17 -76 L16 -67" stroke={P.auge} strokeWidth={2.4} strokeLinecap="round" />
+      <path d="M4 -80 L26 -74" stroke={P.linie} strokeWidth={3.5} strokeLinecap="round" />
     </g>
   );
 }
@@ -534,6 +556,6 @@ export const BEGLEITER_ITEMS: Item[] = [
   tier('axolotl', 'Axolotl', 3, rahmen(-41, -67, 82, 71), () => <Axolotl />),
   tier('roboter', 'Roboter', 4, rahmen(-38, -69, 80, 73), () => <Roboter />),
   tier('einhorn', 'Einhorn', 4, rahmen(-41, -90, 84, 94), () => <Einhorn />),
-  tier('drache', 'Drache', 5, rahmen(-43, -69, 84, 73), (zeit) => <Drache zeit={zeit} />, true),
+  tier('drache', 'Drache', 5, rahmen(-74, -102, 120, 108), (zeit) => <Drache zeit={zeit} />, true),
   tier('phoenix', 'Phönix', 5, rahmen(-43, -69, 80, 75), (zeit) => <Phoenix zeit={zeit} />, true),
 ];

@@ -4,7 +4,7 @@
 // rarity and how it should look (supabase/migrations/20261126_lernquest_wuensche.sql). A wish is not in the game until
 // Claude has drawn it under its id; then the teacher sets where it comes from. Old own parts with an uploaded picture
 // show that picture until they are drawn.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Pencil, Plus, Save, Send, X } from 'lucide-react';
 import { Icon } from '../../icons';
 import { KopfBild, TeilBild } from '../app/avatar';
@@ -160,6 +160,18 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
 
 const PLATZ_NAME: Record<Platz, string> = { ...(Object.fromEntries(SLOTS.map((s) => [s.slot, s.label])) as Record<Slot, string>), frisur: 'Frisur' };
 
+/** Brings a form that opens at the top of the page into view (the tiles that open it sit further down). */
+function useInsBild<T extends HTMLElement>(fokus = false) {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    if (fokus) el.querySelector<HTMLElement>('input, textarea, select')?.focus({ preventScroll: true });
+  }, [fokus]);
+  return ref;
+}
+
 /** A wish for a new part or hair: name, rarity and how it should look. */
 function WunschFormular({ platz, keys, onClose, onAngelegt }: { platz: Platz; keys: string[]; onClose(): void; onAngelegt(name: string): void }) {
   const [name, setName] = useState('');
@@ -167,6 +179,7 @@ function WunschFormular({ platz, keys, onClose, onAngelegt }: { platz: Platz; ke
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
+  const ref = useInsBild<HTMLElement>(true);
   const ok = name.trim().length > 0 && name.trim().length <= 30 && text.trim().length > 0 && text.length <= 500;
   const senden = async () => {
     setBusy(true);
@@ -181,7 +194,7 @@ function WunschFormular({ platz, keys, onClose, onAngelegt }: { platz: Platz; ke
     }
   };
   return (
-    <section className="lqt-card lqt-bild-edit" aria-label={`Neu wünschen: ${PLATZ_NAME[platz]}`}>
+    <section ref={ref} className="lqt-card lqt-bild-edit" aria-label={`Neu wünschen: ${PLATZ_NAME[platz]}`}>
       <div className="lqt-head">
         <h2>Neu wünschen: {PLATZ_NAME[platz]}</h2>
         <button type="button" className="iconbtn" onClick={onClose} aria-label="Schließen" title="Schließen">
@@ -236,6 +249,7 @@ function Detail({ teil, frisur, wunsch, keys, onFertig, onClose }: { teil: Teil 
   const z = zustand(teil, frisur);
   const [neuName, setNeuName] = useState(name);
   const [msg, setMsg] = useState('');
+  const ref = useInsBild<HTMLElement>();
   const umbenennen = async () => {
     setMsg('');
     try {
@@ -248,7 +262,7 @@ function Detail({ teil, frisur, wunsch, keys, onFertig, onClose }: { teil: Teil 
     }
   };
   return (
-    <section className="lqt-card lqt-bild-edit" aria-label={name}>
+    <section ref={ref} className="lqt-card lqt-bild-edit" aria-label={name}>
       <div className="lqt-head">
         <h2>{name}</h2>
         <button type="button" className="iconbtn" onClick={onClose} aria-label="Schließen" title="Schließen">

@@ -42,6 +42,9 @@ import { GutscheinLeiste } from './Gutscheine';
 import type { Daten } from './speicher';
 import { ton } from './ton';
 
+/** What the hero does when tapped on the stage, in turn. */
+const TIPP_BEWEGUNG = ['winken', 'huepfen', 'jubeln', 'nicken'];
+
 /** Runs a server call for the child (sends waiting rounds first); throws on refusal or when offline. */
 export type Aktion = <T>(f: (token: string) => Promise<T>) => Promise<T>;
 
@@ -120,6 +123,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
   const { stand } = daten;
   const [slot, setSlot] = useState<Slot>('kopf');
   const [msg, setMsg] = useState('');
+  const [tipp, setTipp] = useState(0);
   const letzte = useRef(0);
   const kette = useRef<Promise<unknown>>(Promise.resolve());
   const h = heldenstufe(stand.xp);
@@ -166,7 +170,9 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
       <div className="lq-held-links">
         <h1 className="lq-seitentitel">Dein Held</h1>
         <div className="lq-buehne">
-          <AvatarBild avatar={stand.avatar} className="lq-buehne-bild" lebendig />
+          <button type="button" className="lq-buehne-knopf" onClick={() => setTipp((n) => n + 1)} aria-label="Held antippen">
+            <AvatarBild key={tipp} avatar={stand.avatar} className="lq-buehne-bild" lebendig animation={tipp ? TIPP_BEWEGUNG[(tipp - 1) % TIPP_BEWEGUNG.length] : undefined} />
+          </button>
           <div className="lq-buehne-name">
             <strong>{daten.name}</strong>
             <span>

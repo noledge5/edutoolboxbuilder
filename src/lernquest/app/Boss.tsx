@@ -4,6 +4,8 @@
 // answers and gives the chests. No ranking: the projector shows counts, never names.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BOSSE, FORMEN } from '../boss';
+import { TINTENKRAKE, type Figur } from '../figuren';
+import { FigurBild } from '../figuren/Figur';
 import { beitrittsLink } from '../karte';
 import { loadLehrkraft } from '../lehrkraft';
 import { BOSS_HERZEN, BOSS_ZEIT_MS, PUNKTE_BOSS } from '../rules';
@@ -126,8 +128,52 @@ function KlassenHerzen({ n }: { n: number }) {
   );
 }
 
-/** The three bosses, flat like the avatar (fixed colours in the drawing, as the avatar parts). */
-export function BossBild({ boss, size = 320, gefallen = false }: { boss: number; size?: number; gefallen?: boolean }) {
+/** Counts the hits: goes up each time the boss's life points drop. */
+function useTreffer(lp: number | undefined): number {
+  const vorher = useRef(lp);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (lp !== undefined && vorher.current !== undefined && lp < vorher.current) setN((x) => x + 1);
+    vorher.current = lp;
+  }, [lp]);
+  return n;
+}
+
+/** Bosses drawn as moving vector figures (figuren/); the others are still the flat pictures below. */
+const BOSS_FIGUR: Partial<Record<number, Figur>> = { 1: TINTENKRAKE };
+
+/** A boss. From 100 px on it moves: it floats, flinches when `lp` drops (a hit) and falls when beaten. */
+export function BossBild({ boss, size = 320, gefallen = false, lp }: { boss: number; size?: number; gefallen?: boolean; lp?: number }) {
+  const treffer = useTreffer(lp);
+  const bewegt = size >= 100;
+  const figur = BOSS_FIGUR[boss];
+  const name = BOSSE[boss]?.name ?? 'Boss';
+  if (figur)
+    return (
+      <FigurBild
+        key={treffer}
+        figur={figur}
+        titel={name}
+        className={`lq-boss-bild ${gefallen ? 'gefallen' : ''}`}
+        breite={size}
+        lebendig={bewegt}
+        pose={gefallen ? 'besiegt' : 'lauern'}
+        animation={!bewegt ? undefined : treffer || gefallen ? 'treffer' : 'schweben'}
+        danach={bewegt && !gefallen ? 'schweben' : undefined}
+      />
+    );
+  if (!bewegt) return <BossBildFlach boss={boss} size={size} gefallen={gefallen} />;
+  return (
+    <span className={`lq-boss-huelle ${gefallen ? '' : 'lq-schweben'}`}>
+      <span key={treffer} className={treffer ? 'lq-boss-treffer' : undefined}>
+        <BossBildFlach boss={boss} size={size} gefallen={gefallen} />
+      </span>
+    </span>
+  );
+}
+
+/** The flat pictures of the bosses not drawn as figures yet (fixed colours in the drawing, as the old avatar parts). */
+function BossBildFlach({ boss, size, gefallen }: { boss: number; size: number; gefallen: boolean }) {
   const name = BOSSE[boss]?.name ?? 'Boss';
   return (
     <svg width={size} height={size} viewBox="0 0 320 320" role="img" aria-label={name} className={`lq-boss-bild ${gefallen ? 'gefallen' : ''}`}>
@@ -315,9 +361,7 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
 
         <div className="lq-beamer-mitte">
           <div className="lq-beamer-boss">
-            <div className="lq-schweben">
-              <BossBild boss={s.boss} size={250} gefallen={s.phase === 'ende' && !!s.sieg} />
-            </div>
+            <BossBild boss={s.boss} size={250} gefallen={s.phase === 'ende' && !!s.sieg} lp={s.lp} />
             <Lebensbalken s={s} gross />
           </div>
 
@@ -534,14 +578,14 @@ export function BossKind({ token, id, klasse, onFertig, onTruhe, fail }: KindPro
 
       {s.phase === 'warten' && (
         <div className="lq-boss-mitte">
-          <BossBild boss={s.boss} size={200} />
+          <BossBild boss={s.boss} size={200} lp={s.lp} />
           <p className="lq-meldung">Du bist dabei. Schau zum Beamer: Dort stehen die Fragen, hier tippst du die Antwort.</p>
         </div>
       )}
 
       {s.phase === 'ende' && (
         <div className="lq-boss-mitte">
-          <BossBild boss={s.boss} size={200} gefallen={!!s.sieg} />
+          <BossBild boss={s.boss} size={200} gefallen={!!s.sieg} lp={s.lp} />
           <p className="lq-meldung">
             {s.sieg ? (s.truhe ? `Ihr habt ihn besiegt! Eine Truhe und ${PUNKTE_BOSS} Klassenpunkte warten beim Helden.` : 'Ihr habt ihn besiegt!') : 'Übt die Stationen der Region – dann klappt es beim nächsten Mal.'}
           </p>

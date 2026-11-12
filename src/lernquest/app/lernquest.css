@@ -1853,6 +1853,15 @@ mark {
   overflow: hidden;
   box-shadow: inset 0 0 0 2px var(--lq-linie);
 }
+.lq-buehne-knopf {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: inherit;
+}
 .lq-buehne-bild {
   display: block;
   width: 100%;
@@ -2507,6 +2516,14 @@ button.lq-teil:active {
 .lq-boss-bild.gefallen {
   transform: rotate(-12deg) translateY(12%) scale(0.9);
   opacity: 0.45;
+}
+.lq-boss-huelle,
+.lq-boss-huelle > span {
+  display: inline-block;
+  max-width: 100%;
+}
+.lq-boss-treffer {
+  animation: lq-wackeln var(--lq-dauer) 2;
 }
 .lq-schweben {
   animation: lq-schweben 2.4s ease-in-out infinite;

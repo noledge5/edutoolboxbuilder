@@ -751,7 +751,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     }
     return (
       <main className="lq-app lq-willkommen">
-        <AvatarBild avatar={stand.avatar} className="lq-willkommen-held" />
+        <AvatarBild avatar={stand.avatar} className="lq-willkommen-held" lebendig animation="winken" />
         <h1>Hallo {vorname(daten.name)}!</h1>
         <p className="lq-untertitel">Willkommen bei Lernquest. In zwei Minuten bist du startklar:</p>
         <ol className="lq-willkommen-schritte">
@@ -825,7 +825,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     return (
       <main className="lq-app lq-ergebnis">
         {!schwach && !(ms && !msGut) && (screen.sterneJetzt > screen.sterneVorher || fazit === 'perfekt' || msGut) && <Jubel stark={fazit === 'perfekt' || msGut} />}
-        <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} pose={schwach || (ms && !msGut) ? 'denken' : 'jubeln'} className="lq-ergebnis-held" lebendig />
+        <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} pose={schwach || (ms && !msGut) ? 'denken' : 'jubeln'} animation={schwach || (ms && !msGut) ? 'seufzen' : 'jubeln'} className="lq-ergebnis-held" lebendig />
         {screen.stunde && <Sterne n={screen.sterneJetzt} neu={screen.sterneJetzt > screen.sterneVorher} gross />}
         <h1>{titelText}</h1>
         <p className="lq-untertitel">
