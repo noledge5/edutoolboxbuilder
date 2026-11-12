@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 export type Status = 'offen' | 'passt' | 'aendern';
 
 export interface Pruefung {
-  art: 'figur' | 'item' | 'bewegung';
+  art: 'figur' | 'item' | 'bewegung' | 'gelaende';
   ziel: string;
   name: string;
   status: Status;

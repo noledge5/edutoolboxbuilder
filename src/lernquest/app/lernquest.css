@@ -3678,3 +3678,203 @@ button.lq-teil:active {
   width: 14px;
   height: 14px;
 }
+
+/* ── Stufe E, Teil 2: the map as a landscape (app/Landkarte.tsx, layout src/lernquest/weg.ts) ─────────────── */
+.lq-landkarte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.lq-landkarte-kopf {
+  position: relative;
+  z-index: 2;
+  margin-bottom: calc(-1 * var(--lq-a-4));
+  max-width: 340px;
+  width: 100%;
+}
+.lq-landkarte .lq-region-band {
+  background: var(--lq-karte);
+  border-radius: var(--lq-r);
+  box-shadow: var(--lq-shadow);
+  padding: var(--lq-a-3) var(--lq-a-6);
+  text-align: center;
+  color: var(--lq-schrift);
+  align-items: center;
+}
+.lq-landkarte .lq-region-band span {
+  color: var(--lq-primary-tief);
+}
+.lq-landkarte .lq-region-band .lq-klein {
+  margin: var(--lq-a-1) 0 0;
+  color: var(--lq-gedaempft);
+}
+.lq-landkarte-flaeche {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+}
+.lq-landkarte-flaeche > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: var(--lq-r);
+  box-shadow: var(--lq-shadow);
+}
+.lq-wegpunkte {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  inset: 0;
+}
+/* A waypoint: its button centred on the point of the path, name and hint below, stars above. */
+.lq-wegpunkt {
+  position: absolute;
+  width: 152px;
+  margin-left: -76px;
+  margin-top: -32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--lq-a-1);
+  text-align: center;
+}
+.lq-landkarte .lq-knoten {
+  position: relative;
+  width: 64px;
+  height: 60px;
+  border-radius: var(--lq-r-pille);
+  border: 3px solid var(--lq-auf-farbe);
+}
+.lq-landkarte .lq-knoten svg {
+  width: 30px;
+  height: 30px;
+}
+.lq-landkarte .lq-knoten.aktuell {
+  background: var(--lq-gold);
+  color: var(--lq-auf-gold);
+  box-shadow: 0 6px 0 var(--lq-gold-tief);
+}
+.lq-landkarte .lq-knoten.aktuell::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: var(--lq-r-pille);
+  border: 4px solid var(--lq-auf-farbe);
+  opacity: 0.8;
+  animation: lq-ring 1.8s ease-out infinite;
+}
+@keyframes lq-ring {
+  from {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+.lq-landkarte .lq-knoten.meilenstein:not(:disabled) {
+  background: var(--lq-antwort-4);
+  color: var(--lq-auf-farbe);
+  box-shadow: 0 6px 0 var(--lq-antwort-4-tief);
+}
+.lq-landkarte .lq-knoten-titel,
+.lq-landkarte .lq-wegpunkt .lq-klein {
+  background: var(--lq-karte);
+  border-radius: var(--lq-r-klein);
+  padding: 0 var(--lq-a-2);
+  max-width: 100%;
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--lq-schrift) 18%, transparent);
+}
+.lq-landkarte .lq-knoten-titel {
+  margin-top: var(--lq-a-1);
+  font:
+    700 var(--lq-t-klein) Nunito,
+    sans-serif;
+  line-height: 1.35;
+  color: var(--lq-schrift);
+}
+.lq-landkarte .lq-wegpunkt .lq-klein {
+  font-size: var(--lq-t-klein);
+  color: var(--lq-gedaempft);
+}
+.lq-wegpunkt.ist-gesperrt .lq-knoten-titel {
+  color: var(--lq-gedaempft);
+}
+/* The three stages (Kennenlernen, Anwenden, Meistern) as stars in an arc over the station. */
+.lq-stufen {
+  position: absolute;
+  top: -22px;
+  display: flex;
+  gap: var(--lq-a-1);
+  pointer-events: none;
+}
+.lq-stufen span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-karte);
+  color: var(--lq-stern-aus);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--lq-schrift) 18%, transparent);
+}
+.lq-stufen span:nth-child(2) {
+  transform: translateY(-6px);
+}
+.lq-stufen span.an {
+  color: var(--lq-stern);
+  background: var(--lq-gold-flaeche);
+}
+.lq-stufen svg {
+  width: 14px;
+  height: 14px;
+}
+/* The hero stands beside the current station, on the side away from the edge. */
+.lq-landkarte .lq-pfad-held {
+  position: absolute;
+  top: 4px;
+  bottom: auto;
+  width: 64px;
+  height: 64px;
+  left: calc(50% + 40px);
+}
+.lq-wegpunkt.rechts .lq-pfad-held {
+  left: auto;
+  right: calc(50% + 40px);
+}
+.lq-karte-haupt > .lq-fuchs-sagt {
+  max-width: 480px;
+  margin-inline: auto;
+  width: 100%;
+}
+.lq-karte-haupt .lq-region + .lq-region {
+  margin-top: var(--lq-a-5);
+}
+
+/* The bar at the bottom as in the mockup: a floating white card, the current tab as a green pill. */
+.lq-leiste {
+  margin: 0 var(--lq-a-3) var(--lq-a-3);
+  border: 0;
+  border-radius: var(--lq-r);
+  box-shadow: var(--lq-shadow);
+  padding: var(--lq-a-1) var(--lq-a-1) calc(var(--lq-a-1) + env(safe-area-inset-bottom));
+}
+.lq-leiste button {
+  border-radius: var(--lq-r-klein);
+}
+.lq-leiste button.an {
+  background: var(--lq-primary-flaeche);
+  color: var(--lq-primary-tief);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lq-landkarte .lq-knoten.aktuell::after {
+    animation: none;
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}

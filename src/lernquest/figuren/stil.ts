@@ -48,6 +48,27 @@ export const P = {
   tinteTief: '#2A2A66',
   tinteHell: '#6E70C9',
   saugnapf: '#F6C6E0',
+
+  // The landscape of the map (gelaende.tsx): meadow, leaves, castle stone, roofs, path, water, sky.
+  wiese: '#7CC04F',
+  wieseHell: '#A3D86A',
+  wieseTief: '#5DA83A',
+  blatt: '#3F9A35',
+  blattHell: '#6CC24A',
+  blattTief: '#2B7A2A',
+  stein: '#EDE3CB',
+  steinHell: '#FFF9EA',
+  steinTief: '#C2B393',
+  sand: '#F6E7BC',
+  sandHell: '#FFF6D8',
+  sandTief: '#D9C28A',
+  wasser: '#6FC3E8',
+  wasserHell: '#C4ECFA',
+  wasserTief: '#3E97C4',
+  himmel: '#CDEBF3',
+  nacht: '#4B2D6E',
+  nachtHell: '#7A55A8',
+  nachtTief: '#2E1A47',
   schatten: '#4A2414',
 } as const;
 

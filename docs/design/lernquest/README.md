@@ -26,7 +26,11 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 - Figuren, Teile und Bosse: Vektor aus dem Code im Figuren-Baukasten `src/lernquest/figuren/` (Gerüst aus Teilen
   mit Drehpunkten, Posen, Bewegungen, Anker für Teile; Regeln im Skill `.claude/skills/figur`). Der Fuchs hat die
   Posen `stehen`, `winken`, `jubeln`, `denken`, `troesten`; in der App `Fuchs`/`FuchsSagt` (`app/Fuchs.tsx`).
-  Landschaft mit Burg: `app/Landschaft.tsx`.
+  Landschaft mit Burg: `app/Landschaft.tsx` (Start, Anmeldung). Karte (Teil 2): je Region eine Landschaft
+  (`app/Landkarte.tsx`), Lage von Burg, Wegpunkten, Boss-Burg und Bäumen aus `src/lernquest/weg.ts` (rein, getestet),
+  Bauteile (Burg, Boss-Burg, Laubbaum, Tanne, Busch, Blume, Stein) in `figuren/gelaende.tsx`, in der Werkstatt unter `#karte`.
+  Die Wegpunkte sind echte Knöpfe über dem Bild; Sterne der drei Stufen als Bogen über der Station; der Fuchs sagt
+  über der Karte, was dran ist (`fuchsHinweis` in `karte.ts`).
 - **Figuren-Werkstatt** (alle Figuren, Posen, Bewegungen, Teile zum Durchklicken): lokal
   `npm run spieltest` → `/lernquest/werkstatt.html`; für die Lehrkraft als privates Artefakt
   https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG (neu bauen: `npm run werkstatt`, dieselbe Adresse aktualisieren).

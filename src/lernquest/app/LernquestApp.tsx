@@ -5,7 +5,7 @@
 // see Boss.tsx); the class code lets it show a QR code to sign in.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QrScanner } from '../../sync/QrScanner';
-import { beamerAusHash, codeAus, faecherVon, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage, type Region, type Station } from '../karte';
+import { beamerAusHash, codeAus, faecherVon, fuchsHinweis, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage, type Region, type Station } from '../karte';
 import {
   heldenstufe,
   heute,
@@ -50,6 +50,8 @@ import { gemischterTest, probeAusUrl } from '../probe';
 import { AUSSCHNITT_KOPF, AvatarBild } from './avatar';
 import { Fuchs, FuchsSagt } from './Fuchs';
 import { Landschaft } from './Landschaft';
+import { Landkarte } from './Landkarte';
+import type { Wegpunkt } from './Landkarte';
 
 export type Screen =
   | { kind: 'karte' }
@@ -961,6 +963,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const wdhBei = regionen.findIndex((r) => r.stationen.some((s) => s.zustand === 'aktuell'));
   const wdhRegion = wdhBei >= 0 ? wdhBei : regionen.length - 1;
   const meilensteine = ladeMeilensteine();
+  const hinweis = fuchsHinweis(regionen, fachDran.length, new Set(Object.keys(meilensteine).filter((id) => meilensteine[id] >= MEILENSTEIN_GUT)));
   const wdhKnoten = (
     <>
       <button type="button" className="lq-knoten wdh" aria-label={`Wiederholen: ${fachDran.length} Aufgaben aus früheren Stationen`} onClick={() => wiederholen(fachDran)}>
@@ -968,7 +971,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       </button>
       <span className="lq-knoten-titel">Wiederholen</span>
       <span className="lq-klein">
-        {fachDran.length} {fachDran.length === 1 ? 'Aufgabe' : 'Aufgaben'} von früher
+        {fachDran.length} {fachDran.length === 1 ? 'Aufgabe' : 'Aufgaben'}
       </span>
     </>
   );
@@ -992,71 +995,87 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </nav>
         )}
         {!pakete.length && <p className="lq-leer">Deine Lehrkraft hat noch keine Station freigeschaltet. Schau bald wieder vorbei!</p>}
-        {regionen.map((r, ri) => (
-          <section key={r.id} className="lq-region">
-            <div className="lq-region-band">
-              <span>
-                {aktiv} · Region {r.nummer}
-              </span>
-              <h2>{r.titel}</h2>
-              <small className="lq-region-sterne" aria-label={`${r.stationen.reduce((n, st) => n + st.sterne, 0)} von ${3 * r.stationen.length} Sternen`}>
-                <SternIcon />
-                {r.stationen.reduce((n, st) => n + st.sterne, 0)} / {3 * r.stationen.length}
-              </small>
-            </div>
-            <ol className="lq-pfad">
-              {pfadVon(r, ri === wdhRegion && fachDran.length > 0).map((x, i) => {
-                const cls = `lq-versatz-${['0', 'l', '0', 'r'][i % 4]} lq-weg-${['r', 'r', 'l', 'l'][i % 4]}`;
-                if (x === 'wdh') return <li key="wdh" className={cls}>{wdhKnoten}</li>;
-                if (x === 'meilenstein') {
-                  const best = meilensteine[r.id];
-                  return (
-                    <li key="meilenstein" className={cls}>
-                      <button type="button" className="lq-knoten meilenstein" disabled={!r.meilenstein} aria-label={`Meilenstein: ${r.titel}`} onClick={() => meilensteinStarten(r)}>
-                        {best !== undefined && best >= MEILENSTEIN_GUT ? <HakenIcon /> : <FahneIcon />}
-                      </button>
-                      <span className="lq-knoten-titel">Meilenstein</span>
-                      <span className="lq-klein">
-                        {!r.meilenstein ? 'Öffnet sich, wenn alle Stationen geschafft sind.' : best !== undefined ? `Bestes Ergebnis ${best} %` : 'Gemischter Test über die ganze Region'}
-                      </span>
-                    </li>
-                  );
-                }
-                const st = x;
-                const blass = st.zustand === 'erledigt' && st.faellig.length > 0;
-                return (
-                  <li key={st.nummer} className={`${cls}${st.zustand === 'aktuell' ? ' mit-blase' : ''}`}>
-                    {st.zustand === 'aktuell' && <span className="lq-blase">Los geht’s!</span>}
-                    {st.zustand === 'aktuell' && <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} className="lq-pfad-held" />}
-                    <button
-                      type="button"
-                      className={`lq-knoten ${st.zustand}${blass ? ' faellig' : ''}`}
-                      disabled={st.zustand === 'gesperrt'}
-                      aria-label={`${st.zustand === 'gesperrt' ? 'Gesperrt' : st.zustand === 'aktuell' ? 'Station starten' : blass ? 'Auffrischen' : 'Station'}: ${st.titel}`}
-                      onClick={() => tippen(st)}
-                    >
-                      {blass ? (
-                        <WiederholenIcon />
-                      ) : st.zustand === 'erledigt' ? (
-                        <HakenIcon />
-                      ) : st.zustand === 'gesperrt' ? (
-                        <SchlossIcon />
-                      ) : st.zustand === 'aktuell' ? (
-                        <SternIcon />
-                      ) : (
-                        <span className="lq-knoten-nr">{st.nummer}</span>
-                      )}
+        {pakete.length > 0 && (
+          <FuchsSagt pose={hinweis.pose}>
+            <p>{hinweis.text}</p>
+          </FuchsSagt>
+        )}
+        {regionen.map((r, ri) => {
+          const sterne = r.stationen.reduce((n, st) => n + st.sterne, 0);
+          const pfad = pfadVon(r, ri === wdhRegion && fachDran.length > 0);
+          const punkte: Wegpunkt[] = pfad.map((x) => {
+            if (x === 'wdh') return { key: 'wdh', klasse: 'ist-wdh', inhalt: wdhKnoten };
+            if (x === 'meilenstein') {
+              const best = meilensteine[r.id];
+              return {
+                key: 'meilenstein',
+                klasse: 'ist-meilenstein',
+                inhalt: (
+                  <>
+                    <button type="button" className="lq-knoten meilenstein" disabled={!r.meilenstein} aria-label={`Meilenstein: ${r.titel}`} onClick={() => meilensteinStarten(r)}>
+                      {best !== undefined && best >= MEILENSTEIN_GUT ? <HakenIcon /> : r.meilenstein ? <FahneIcon /> : <SchlossIcon />}
                     </button>
-                    <span className="lq-knoten-titel">{st.titel}</span>
-                    {st.zustand === 'erledigt' && <Sterne n={st.sterne} />}
-                    {blass && <span className="lq-klein">{st.faellig.length} zum Auffrischen</span>}
-                    {st.zustand === 'gesperrt' && <span className="lq-klein">Öffnet sich, sobald ihr es im Unterricht hattet.</span>}
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
-        ))}
+                    <span className="lq-knoten-titel">Meilenstein</span>
+                    <span className="lq-klein">{!r.meilenstein ? 'Öffnet sich, wenn alle Stationen geschafft sind.' : best !== undefined ? `Bestes Ergebnis ${best} %` : 'Gemischter Test über die ganze Region'}</span>
+                  </>
+                ),
+              };
+            }
+            const st = x;
+            const blass = st.zustand === 'erledigt' && st.faellig.length > 0;
+            return {
+              key: `s${st.nummer}`,
+              klasse: `ist-${st.zustand}`,
+              inhalt: (
+                <>
+                  {st.zustand === 'aktuell' && <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} className="lq-pfad-held" />}
+                  {st.zustand !== 'gesperrt' && (
+                    <span className="lq-stufen" aria-hidden>
+                      {[0, 1, 2].map((i) => (
+                        <span key={i} className={i < st.sterne ? 'an' : ''}>
+                          <SternIcon />
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className={`lq-knoten ${st.zustand}${blass ? ' faellig' : ''}`}
+                    disabled={st.zustand === 'gesperrt'}
+                    aria-label={`${st.zustand === 'gesperrt' ? 'Gesperrt' : st.zustand === 'aktuell' ? 'Station starten' : blass ? 'Auffrischen' : 'Station'}: ${st.titel}${st.zustand === 'gesperrt' ? '' : `, ${st.sterne} von 3 Sternen`}`}
+                    onClick={() => tippen(st)}
+                  >
+                    {blass ? <WiederholenIcon /> : st.zustand === 'erledigt' ? <HakenIcon /> : st.zustand === 'gesperrt' ? <SchlossIcon /> : st.zustand === 'aktuell' ? <SternIcon /> : <span className="lq-knoten-nr">{st.nummer}</span>}
+                  </button>
+                  <span className="lq-knoten-titel">{st.titel}</span>
+                  {blass && <span className="lq-klein">{st.faellig.length} zum Auffrischen</span>}
+                </>
+              ),
+            };
+          });
+          return (
+            <section key={r.id} className="lq-region" aria-label={`Region ${r.nummer}: ${r.titel}`}>
+              <Landkarte
+                id={r.id}
+                mitBoss={pfad.at(-1) === 'meilenstein'}
+                punkte={punkte}
+                kopf={
+                  <div className="lq-region-band">
+                    <span>
+                      {aktiv} · Region {r.nummer}
+                    </span>
+                    <h2>{r.titel}</h2>
+                    <small className="lq-region-sterne" aria-label={`${sterne} von ${3 * r.stationen.length} Sternen`}>
+                      <SternIcon />
+                      {sterne} / {3 * r.stationen.length}
+                    </small>
+                    {r.stationen.some((st) => st.zustand === 'gesperrt') && <p className="lq-klein">Graue Stationen öffnen sich, sobald ihr sie im Unterricht hattet.</p>}
+                  </div>
+                }
+              />
+            </section>
+          );
+        })}
       </div>
     </div>,
   );

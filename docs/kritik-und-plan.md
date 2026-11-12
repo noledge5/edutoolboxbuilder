@@ -161,6 +161,11 @@ Plan, entschieden mit der Lehrkraft am 12.11.2026 (Mockup: `docs/design/lernques
   Anmeldung; (2) Karte als Landschaft mit Burgen, Held auf dem Weg, Leiste unten; (3) Runde im neuen Look;
   (4) Held und alle Teile als Vektor; (5) Aufgaben, Wochenziel, Truhe, Laden, Klasse; (6) Töne, Jubel, „Bewegung
   reduzieren“, dann `UMBAU = false`. Lehrkraft-Seite, Boss-Regeln und Fragenpool bleiben draußen.
+- Stand: Teil 1 gebaut (12.11.2026, `claude/amazing-newton-h940fp`, mit Figuren-Werkstatt); Teil 2 gebaut
+  (12.11.2026, `claude/clever-hamilton-ztdfgt`): Karte als Landschaft je Region mit Burg, Weg, Bäumen, Boss-Burg mit
+  dem Meilenstein, drei Sterne je Station als Bogen, Held neben der aktuellen Station, Fuchs sagt, was dran ist,
+  Leiste unten im Mockup-Look. Die Reiter der Leiste bleiben vorerst (Karte, Wiederholen, Held, Klasse); „Aufgaben“
+  und „Inventar“ kommen mit Teil 5, wenn es die Bildschirme gibt.
 - Erfolg: Bildschirmfotos am Handy-Format je Teil an die Lehrkraft; Tests, Typprüfung, Build grün; Spieltest ohne
   Server über jeden Bildschirm; Kontrast WCAG AA; alte Spielstände zeigen alles richtig.
 

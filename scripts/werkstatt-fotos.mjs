@@ -1,5 +1,5 @@
 // Screenshots of the figure workshop for a quick look: `npm run werkstatt && node scripts/werkstatt-fotos.mjs <ordner>`.
-// Takes #bogen (everything), #teile, one picture per figure and the fox at phone width. Uses the preinstalled Playwright (Chromium).
+// Takes #bogen (everything), #teile, #karte, one picture per figure and the fox at phone width. Uses the preinstalled Playwright (Chromium).
 import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -15,7 +15,7 @@ const figuren = [...readFileSync('src/lernquest/figuren/index.ts', 'utf8').match
 
 const b = await chromium.launch();
 const fehler = [];
-for (const [name, breite] of [['bogen', 1280], ['teile', 1280], ...figuren.map((f) => [f, 1280]), ['fuchs', 390]]) {
+for (const [name, breite] of [['bogen', 1280], ['teile', 1280], ['karte', 1280], ...figuren.map((f) => [f, 1280]), ['fuchs', 390]]) {
   const p = await b.newPage({ viewport: { width: breite, height: 1000 }, reducedMotion: 'reduce' });
   p.on('pageerror', (e) => fehler.push(`${name}: ${e.message}`));
   await p.goto(`file://${seite}#${name}`);

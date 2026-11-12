@@ -7,7 +7,7 @@ import { exercisesOf, readPaket } from './paket';
 import { aufgabenNach, aufgabenVon, AUFGABE_MUENZEN, AUFGABEN_BONUS, ladenAb, TAGESAUFGABEN, tagPlus, niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
-import { beamerAusHash, beitrittsLink, codeAus, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
+import { beamerAusHash, beitrittsLink, codeAus, fuchsHinweis, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
 import { gemischterTest } from './probe';
 import { LEERER_STAND, type Paket, type TagesStand, type Uebung } from './types';
 
@@ -419,6 +419,20 @@ describe('Weltkarte', () => {
       [4, 'gesperrt', 0],
     ]);
     expect(r.stationen[3].titel).toBe('Titel 4');
+  });
+
+  it('lässt den Fuchs sagen, was dran ist (Stufe E)', () => {
+    const m = { id: 'm1', nummer: 1, stunden: [1, 2].map((n) => ({ nummer: n, titel: `Titel ${n}` })) };
+    const halb = regionenVon([pk('a', 1, m), pk('b', 2, m)], 'Erdkunde', { ...LEERER_STAND, bestwerte: { a: [100] } });
+    expect(fuchsHinweis(halb, 0)).toEqual({ text: 'Weiter geht’s mit „Stunde 2“!', pose: 'winken' });
+    expect(fuchsHinweis(halb, 3).text).toBe('Weiter geht’s mit „Stunde 2“! Vorher warten 3 Aufgaben aufs Wiederholen.');
+    const fertig = regionenVon([pk('a', 1, m), pk('b', 2, m)], 'Erdkunde', { ...LEERER_STAND, bestwerte: { a: [100], b: [100] } });
+    expect(fuchsHinweis(fertig, 1)).toEqual({ text: '1 Aufgabe wartet aufs Wiederholen. So bleibt es im Kopf!', pose: 'denken' });
+    expect(fuchsHinweis(fertig, 0).text).toContain('Meilenstein');
+    expect(fuchsHinweis(fertig, 0, new Set(['m1'])).text).toContain('fehlenden Sterne');
+    const gesperrt = regionenVon([pk('a', 1, m1)], 'Erdkunde', { ...LEERER_STAND, bestwerte: { a: [100] } });
+    expect(fuchsHinweis(gesperrt, 0).text).toContain('Unterricht');
+    expect(fuchsHinweis([], 0).pose).toBe('winken');
   });
 
   it('kommt mit älteren Paketen ohne Stundenliste aus und ordnet Regionen nach Modul', () => {

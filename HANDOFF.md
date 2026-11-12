@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Stufe E: Teil 1 und Figuren-Werkstatt fertig, als Nächstes Teil 2)
+# Handoff – 12.11.2026 (Stufe E: Teil 1, Werkstatt und Teil 2 fertig, als Nächstes Teil 3)
 
 ## Stand
 - **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
@@ -27,11 +27,10 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
      https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG (`npm run werkstatt`, mit Speicher für die Prüfungen der
      Lehrkraft). Fotos: `node scripts/werkstatt-fotos.mjs <ordner>`. **Jede Zeichnung über den Skill `figur`**; zu
      Beginn die Prüfungen lesen (Schritt 1; am 12.11. noch keine gespeichert).
-2. **Als Nächstes Teil 2: Karte als Landschaft mit Burgen** (Mockup, drittes Bild oben): Stationen als Wegpunkte mit
-   den drei Stufen je Station, Burgen für Module, Boss-Burg am Ende, Held/Fuchs auf dem Weg, Leiste unten (Karte,
-   Aufgaben, Inventar, Held). Baut auf `Landschaft.tsx`; neue Bauteile (Burg, Baum, Wegpunkt) im Stil von
-   `figuren/stil.ts`, ansehen in der Werkstatt. Bisherige Karte: `Spiel`/Pfad in `app/LernquestApp.tsx` (`lq-pfad`).
-3. Danach Teile 3–6 je eigene Sitzung. Teil 4: Held als Figur mit denselben Ankern (`hut`, `hand-links`,
+2. **Fertig auf Branch `claude/clever-hamilton-ztdfgt`** (baut auf Teil 1 auf, nicht in `main`): Teil 2, Karte als
+   Landschaft (`app/Landkarte.tsx`, Lage in `weg.ts`, Bauteile in `figuren/gelaende.tsx`, Werkstatt `#karte`), Fuchs
+   über der Karte (`fuchsHinweis`), Leiste im Mockup-Look. Prüfung der Lehrkraft für die Bauteile steht noch aus.
+3. **Als Nächstes Teil 3: Runde im neuen Look**; danach Teile 4–6 je eigene Sitzung. Teil 4: Held als Figur mit denselben Ankern (`hut`, `hand-links`,
    `hand-rechts`, dazu `ruecken`), jedes Teil aus `teile.ts` als Item. Teil 5: Dateien von
    `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
