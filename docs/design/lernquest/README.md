@@ -30,6 +30,9 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 - **Figuren-Werkstatt** (alle Figuren, Posen, Bewegungen, Teile zum Durchklicken): lokal
   `npm run spieltest` → `/lernquest/werkstatt.html`; für die Lehrkraft als privates Artefakt
   https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG (neu bauen: `npm run werkstatt`, dieselbe Adresse aktualisieren).
+  Dort: Zeitleiste zum Abspielen und Spulen, Pose-Editor mit Schiebern, Bewegungen live bearbeiten, Übergänge,
+  Ausrüstung, Größenprobe, Farbliste, Vorlage (Mockup). Die Lehrkraft speichert je Figur und Teil „Passt“ / „Bitte
+  ändern“ mit Notiz (Artefakt-Datenbank, Sammlung `pruefung`); Claude liest sie mit ArtifactData (Skill `figur`).
 - Seltenheiten: Gewöhnlich, Ungewöhnlich, Selten, Episch, Legendär – Farbe **und** 1–5 Punkte.
 - Rückmeldung nie nur über Farbe: Haken/Kreuz und Text; Antworten im Bosskampf mit Form (Dreieck, Raute, Kreis,
   Quadrat).

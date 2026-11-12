@@ -10,11 +10,14 @@ Read `typen.ts` (the model, 80 lines) first; it explains part, pose, move and it
 
 ## The model in one paragraph
 A figure is a tree of **parts** (`Teil`), each with a pivot (`drehpunkt`) and a drawing in figure coordinates of the
-rest pose. A **pose** lists angles per part (clockwise degrees, children add up), a face name, parts drawn in front
-(`vorne`) and extras. A **move** (`animationen.ts`) lists keyframes per part or `ganz`; it runs as SMIL on top of the
-pose and must start and end at rest. An **item** is drawn around (0, 0) and sits on an anchor (`hut`, `hand-rechts`,
-`hand-links`); it follows that part in every pose. New figures go into `index.ts` (`FIGUREN`), new items into
-`items.tsx` (`ITEMS`): the workshop and the tests pick them up.
+rest pose. A **pose** lists angles per part (clockwise degrees, children add up), a face, parts drawn in front
+(`vorne`) and extras. A **move** (`animationen.ts`) lists keyframes per part or `ganz`: `drehen`, `schieben`,
+`strecken` (squash), optional `zeiten`, `kurve` (`weich`, `linear`, `feder`) and `gesichter`. The engine
+`bewegung.ts` (pure, tested) turns pose + move + time into a `Stellung`; `Figur.tsx` draws it with a
+requestAnimationFrame clock (no SMIL: it did not run in every viewer). Figures blink by themselves (`augenZu`).
+An **item** is drawn around (0, 0) on an anchor (`hut`, `hand-rechts`, `hand-links`) and follows that part;
+`bewegt: true` items get the time (flame, sparkle; `Funkeln` in `items.tsx`). New figures go into `index.ts`
+(`FIGUREN`), new items into `items.tsx` (`ITEMS`): the workshop and the tests pick them up.
 
 ## Style rules (the look of the teacher's mockup, docs/design/lernquest/mockup-stufe-e.png)
 - Colours only from `stil.ts` (`P.*`); a test fails on any other hex. Need a new colour: add base, `hell` and `tief`.
@@ -31,17 +34,25 @@ pose and must start and end at rest. An **item** is drawn around (0, 0) and sits
 - Readable at 48 px: check the size row in the workshop.
 
 ## Steps
-1. Draw or change the code. For a new pose: compute angles from the rest pose (an arm hangs down; rotate(θ) turns the
-   down vector to (−sin θ, cos θ)). Turn on „Drehpunkte und Anker zeigen“ in the workshop to see pivots and anchors.
-2. `npm run spieltest` and open `http://localhost:4174/lernquest/werkstatt.html#<figur-id>` to play with it, or for
-   a picture: `npm run werkstatt && node scripts/werkstatt-fotos.mjs <scratchpad>/fotos` and look at the PNGs
-   (`bogen.png` = everything). Look at every pose and the 48 px size.
-3. `npx vitest run src/lernquest/figuren` (parts, anchors, moves, colours), then `npm run typecheck`.
-4. For the teacher: `npm run werkstatt`, publish `dist-werkstatt/figuren-werkstatt.html` with the Artifact tool to the
-   same URL as before (link in docs/design/lernquest/README.md, „Figuren-Werkstatt“).
+1. **Read the teacher's review first**: `ArtifactData` `list` on the workshop artifact (URL in
+   docs/design/lernquest/README.md), collection `pruefung`: one doc per figure / item (`figur--fuchs`,
+   `item--krone`) with `status` (`passt`, `aendern`, `offen`) and `notiz`. Work the `aendern` ones.
+2. Draw or change the code. For a pose or a move, use the workshop instead of guessing numbers:
+   `npm run spieltest` → `http://localhost:4174/lernquest/werkstatt.html#<figur-id>`. Tab „Pose“: sliders per part,
+   face, extras, then „Pose als Code“. Tab „Bewegung“: edit the JSON live, scrub the time line, then „Bewegung als
+   Code“. Tab „Übergang“ blends two poses. „Drehpunkte“ / „Anker“ show pivots and anchors; Prüfen lists the colours
+   used (a red one is not from the palette). An arm hangs down in rest; rotate(θ) turns it to (−sin θ, cos θ).
+3. Look at it: `npm run werkstatt && node scripts/werkstatt-fotos.mjs <scratchpad>/fotos` (bogen, teile, each figure,
+   fox at phone width). Check every pose, the 32/48 px sizes and the night background.
+4. `npx vitest run src/lernquest/figuren` (parts, faces, anchors, moves at rest, engine, colours), `npm run typecheck`.
+5. For the teacher: `npm run werkstatt`, publish `dist-werkstatt/figuren-werkstatt.html` with the Artifact tool to the
+   same URL (keeps the `db` capability and her reviews). Tell her what changed and what to check.
 
 ## Pitfalls
-- A move's track names a part id that the figure lacks → the test fails; list moves per figure in `animationen`.
+- Tracks for parts a figure lacks are skipped (one move can serve fox and boss), but a move listed in a figure's
+  `animationen` must move at least one of its parts, and its faces must be in the figure's `gesichter` (tests).
 - `vorne` works only for top-level parts (an arm, not a forearm).
 - Raised arms behind the big head disappear: put the arm in `vorne` or keep the paw outside the head outline.
-- „Bewegung reduzieren“ turns all moves off; every pose must read on its own.
+- „Bewegung reduzieren“ turns moves off in the app (not in the workshop); every pose must read on its own.
+- A move that runs a fixed number of times must start and end at rest; an endless one must loop seamlessly (tests).
+- Ids inside a drawing (clipPath, gradient) must be unique per drawing: use `useId()` (see `tintenkrake.tsx`).

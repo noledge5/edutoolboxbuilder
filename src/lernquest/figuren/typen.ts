@@ -1,12 +1,16 @@
 // The model of a drawn figure: a tree of named parts that turn around their pivot. A pose only lists angles and a
 // face, an animation only lists keyframes per part, a worn item only names an anchor. No pose is a new drawing.
+// bewegung.ts turns pose + animation + time into a Stellung; Figur.tsx draws it.
 import type { ReactNode } from 'react';
 
 export type Punkt = readonly [number, number];
 
-/** What a part's drawing may depend on: the face of the pose (eyes, mouth, brows). */
+/** What a part's drawing may depend on: the face of the pose (eyes, mouth, brows), closed eyes (blinking) and the
+ *  time in seconds (for small loops inside a drawing, like a flame). */
 export interface Stand {
   gesicht: string;
+  augenZu: boolean;
+  zeit: number;
 }
 
 export interface Teil {
@@ -35,9 +39,16 @@ export interface Pose {
 
 /** One track: values at equally spaced keyframes, from start to end. */
 export interface Spur {
+  /** Degrees, clockwise, around the part's pivot (added to the pose). */
   drehen?: number[];
+  /** Offset in figure units. */
   schieben?: Punkt[];
+  /** Scale x / y around the pivot (1 = as drawn), for squash and stretch. */
+  strecken?: Punkt[];
 }
+
+/** How the values move between two keyframes. */
+export type Kurve = 'weich' | 'linear' | 'feder';
 
 export interface Animation {
   id: string;
@@ -45,8 +56,13 @@ export interface Animation {
   /** Seconds per run. */
   dauer: number;
   wiederholen: number | 'immer';
-  /** Per part id, or `ganz` for the whole figure (turns around its `boden`). */
+  /** Keyframe times from 0 to 1 (the same for every track); missing = equally spaced. */
+  zeiten?: number[];
+  kurve?: Kurve;
+  /** Per part id, or `ganz` for the whole figure (turns and stretches around its `boden`). */
   spuren: Record<string, Spur>;
+  /** Faces during the move: [from time 0…1, face]; before the first entry the pose's face. */
+  gesichter?: [number, string][];
 }
 
 export interface Figur {
@@ -62,7 +78,9 @@ export interface Figur {
   posen: Record<string, Pose>;
   /** Ids of the animations (animationen.ts) that fit this figure. */
   animationen: string[];
-  extras?: Record<string, () => ReactNode>;
+  /** Every face the drawings know (for the workshop's pose editor). */
+  gesichter: string[];
+  extras?: Record<string, (s: Stand) => ReactNode>;
 }
 
 /** Something a figure can wear or hold: drawn around (0, 0), which sits on the anchor `platz`. */
@@ -76,5 +94,8 @@ export interface Item {
   hinten?: boolean;
   /** View box of the item alone (for the icon): x, y, width, height around the anchor. */
   rahmen: readonly [number, number, number, number];
-  zeichnung: () => ReactNode;
+  /** Draws differently over time (a flame, a sparkle): icons of it run a clock. */
+  bewegt?: boolean;
+  /** `zeit` in seconds, for an item that moves by itself; 0 when still. */
+  zeichnung: (zeit: number) => ReactNode;
 }

@@ -25,6 +25,10 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
    Bewegungen (SMIL), Ankern für Teile; Fuchs, Tintenkrake (Boss-Probe), 6 Probe-Teile. Werkstatt
    `lernquest/werkstatt.html` (nicht im Produktions-Build), Artefakt https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG
    (`npm run werkstatt`), Fotos `node scripts/werkstatt-fotos.mjs <ordner>`. Skill `figur` für jede Zeichnung.
+   **Werkstatt 2** (nach Rückmeldung „keine Bewegung zu sehen“): eigener Animationsmotor `figuren/bewegung.ts`
+   (requestAnimationFrame statt SMIL), Blinzeln, Strecken/Stauchen, Kurven; Fuchs und Krake detaillierter, 7 bzw. 4
+   Posen, 12 Teile (manche bewegt). Werkstatt mit Zeitleiste, Pose-Editor → Code, Bewegung als JSON live → Code,
+   Übergang, Prüfen mit Speicher. **Zu Beginn der nächsten Sitzung die Prüfungen lesen** (Skill `figur`, Schritt 1).
 2. **Als Nächstes Teil 2** (Karte als Landschaft mit Burgen, baut auf `Landschaft.tsx`). Für Teil 4 den Held als Figur mit denselben
    Ankern (`hut`, `hand-links`, `hand-rechts`, dazu `ruecken`) bauen, jedes Teil aus `teile.ts` als Item. Teile 2–6 je eigene Sitzung. Für Teil 5 die Dateien von `claude/lucid-galileo-0dvocr` holen (Migration
    `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
