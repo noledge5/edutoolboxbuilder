@@ -5,7 +5,16 @@ import { FigurBild, FUCHS } from '../figuren';
 
 export type FuchsPose = 'stehen' | 'winken' | 'jubeln' | 'denken' | 'troesten';
 
-/** The fox in a pose. Waving waves twice by itself; other moves: src/lernquest/figuren/animationen.ts. */
+/** What the fox does first in each pose, and then for ever (moves: src/lernquest/figuren/animationen.ts). */
+const BEWEGUNG: Record<FuchsPose, { zuerst?: string; danach: string }> = {
+  stehen: { danach: 'atmen' },
+  winken: { zuerst: 'winken', danach: 'wedeln' },
+  jubeln: { zuerst: 'jubeln', danach: 'wedeln' },
+  denken: { danach: 'atmen' },
+  troesten: { zuerst: 'seufzen', danach: 'atmen' },
+};
+
+/** The fox in a pose, moving by itself; a new pose starts its move again. */
 export function Fuchs({
   pose = 'stehen',
   groesse = 160,
@@ -23,7 +32,9 @@ export function Fuchs({
     <FigurBild
       figur={FUCHS}
       pose={pose}
-      animation={animation ?? (pose === 'winken' ? 'winken' : undefined)}
+      key={pose}
+      animation={animation ?? BEWEGUNG[pose].zuerst ?? BEWEGUNG[pose].danach}
+      danach={BEWEGUNG[pose].danach}
       breite={groesse}
       className={`lq-fuchs${className ? ` ${className}` : ''}`}
       titel={titel}

@@ -50,13 +50,14 @@ export const HELD_AUSSCHNITT = {
   kleidung: '70 126 100 104',
 } as const;
 
-/** The whole hero on its background. `lebendig`: blinks (one clock per picture, so only where it is the main thing). */
-export function HeldBild({ avatar, ausschnitt = HELD_AUSSCHNITT.ganz, className, lebendig = false, ohneHintergrund = false, pose }: { avatar: Avatar; ausschnitt?: string; className?: string; lebendig?: boolean; ohneHintergrund?: boolean; pose?: string }) {
+/** The whole hero on its background. `lebendig`: blinks and breathes (one clock per picture, so only where it is the
+ *  main thing). `animation`: a move (figuren/animationen.ts); a living hero goes back to breathing after it. */
+export function HeldBild({ avatar, ausschnitt = HELD_AUSSCHNITT.ganz, className, lebendig = false, ohneHintergrund = false, pose, animation }: { avatar: Avatar; ausschnitt?: string; className?: string; lebendig?: boolean; ohneHintergrund?: boolean; pose?: string; animation?: string }) {
   const bg = ohneHintergrund ? undefined : HINTERGRUENDE.find((h) => h.id === angelegt(avatar, 'hintergrund')?.id);
   return (
     <svg className={className} viewBox={ausschnitt} aria-hidden focusable="false" data-held="vektor">
       {bg?.zeichnung(0)}
-      <FigurBild figur={held(aussehenVon(avatar))} items={itemsVon(avatar)} breite={240} lebendig={lebendig} pose={pose} />
+      <FigurBild figur={held(aussehenVon(avatar))} items={itemsVon(avatar)} breite={240} lebendig={lebendig} pose={pose} animation={animation ?? (lebendig ? 'atmen' : undefined)} danach={lebendig ? 'atmen' : undefined} />
     </svg>
   );
 }

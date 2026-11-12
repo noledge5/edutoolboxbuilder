@@ -166,7 +166,7 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
             {/* Right: the child's hero cheers (or the fox, without a hero); wrong: the fox comforts. */}
             <span className={`lq-rueck-figur ${ok ? 'freut' : 'troestet'}`} aria-hidden>
               {ok && held && !nurAlsBild(held) ? (
-                <HeldBild avatar={held} pose="jubeln" ohneHintergrund ausschnitt="20 0 200 200" />
+                <HeldBild avatar={held} pose="jubeln" animation="jubeln" ohneHintergrund ausschnitt="20 0 200 200" />
               ) : ok && held ? (
                 <KopfBild avatar={{ ...held, mund: 'lachen' }} />
               ) : (

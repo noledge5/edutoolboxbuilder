@@ -77,6 +77,8 @@ export interface FigurBildProps {
   pose?: string | Pose;
   /** Animation id, or an animation object (edited live in the workshop). */
   animation?: string | Animation;
+  /** Animation id that follows a move that runs a fixed number of times (e.g. `jubeln`, then `atmen` for ever). */
+  danach?: string;
   /** Seconds; given = controlled by the caller (workshop), else the figure runs its own clock. */
   zeit?: number;
   /** Blinks by itself (default on). */
@@ -91,13 +93,17 @@ export interface FigurBildProps {
   className?: string;
 }
 
-export function FigurBild({ figur, pose, animation, zeit, lebendig = true, items = [], breite = 160, hilfen = {}, spiegeln = false, titel, className }: FigurBildProps) {
+export function FigurBild({ figur, pose, animation, danach, zeit, lebendig = true, items = [], breite = 160, hilfen = {}, spiegeln = false, titel, className }: FigurBildProps) {
   const po: Pose = typeof pose === 'object' ? pose : (figur.posen[pose ?? ''] ?? Object.values(figur.posen)[0]);
   const anim = typeof animation === 'object' ? animation : animation ? ANIMATIONEN[animation] : undefined;
-  const eigeneUhr = zeit === undefined && !ruhig() && (lebendig || !!anim);
+  const nach = danach ? ANIMATIONEN[danach] : undefined;
+  const eigeneUhr = zeit === undefined && !ruhig() && (lebendig || !!anim || !!nach);
   const uhr = useZeit(eigeneUhr, 1, anim?.id);
   const jetzt = zeit ?? uhr;
-  const st = stellung(po, { animation: anim, zeit: jetzt, lebendig: lebendig && (zeit !== undefined || eigeneUhr) });
+  // A move with an end hands over to `danach` (its clock starts where the first one ended).
+  const ende = anim ? (anim.wiederholen === 'immer' ? Infinity : anim.dauer * anim.wiederholen) : 0;
+  const [aktiv, t] = nach && jetzt >= ende ? [nach, jetzt - ende] : [anim, jetzt];
+  const st = stellung(po, { animation: aktiv, zeit: t, lebendig: lebendig && (zeit !== undefined || eigeneUhr) });
   const k: Kontext = { st, items, hilfen };
   const vorne = new Set(st.vorne);
   const teile = [...figur.teile.filter((t) => !vorne.has(t.id)), ...figur.teile.filter((t) => vorne.has(t.id))];

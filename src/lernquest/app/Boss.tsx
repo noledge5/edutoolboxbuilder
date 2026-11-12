@@ -4,6 +4,8 @@
 // answers and gives the chests. No ranking: the projector shows counts, never names.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BOSSE, FORMEN } from '../boss';
+import { GOLEM, RAETSELDRACHE, TINTENKRAKE, type Figur } from '../figuren';
+import { FigurBild } from '../figuren/Figur';
 import { beitrittsLink } from '../karte';
 import { loadLehrkraft } from '../lehrkraft';
 import { BOSS_HERZEN, BOSS_ZEIT_MS, PUNKTE_BOSS } from '../rules';
@@ -126,61 +128,41 @@ function KlassenHerzen({ n }: { n: number }) {
   );
 }
 
-/** The three bosses, flat like the avatar (fixed colours in the drawing, as the avatar parts). */
-export function BossBild({ boss, size = 320, gefallen = false }: { boss: number; size?: number; gefallen?: boolean }) {
-  const name = BOSSE[boss]?.name ?? 'Boss';
+/** Counts the hits: goes up each time the boss's life points drop. */
+function useTreffer(lp: number | undefined): number {
+  const vorher = useRef(lp);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (lp !== undefined && vorher.current !== undefined && lp < vorher.current) setN((x) => x + 1);
+    vorher.current = lp;
+  }, [lp]);
+  return n;
+}
+
+/** The bosses as moving figures (figuren/), in the order of BOSSE, and what each does while it waits. */
+const BOSS_FIGUR: { figur: Figur; ruhe: string }[] = [
+  { figur: GOLEM, ruhe: 'stampfen' },
+  { figur: TINTENKRAKE, ruhe: 'schweben' },
+  { figur: RAETSELDRACHE, ruhe: 'flattern' },
+];
+
+/** A boss. From 100 px on it moves: it idles, flinches when `lp` drops (a hit) and falls when beaten. */
+export function BossBild({ boss, size = 320, gefallen = false, lp }: { boss: number; size?: number; gefallen?: boolean; lp?: number }) {
+  const treffer = useTreffer(lp);
+  const bewegt = size >= 100;
+  const { figur, ruhe } = BOSS_FIGUR[boss] ?? BOSS_FIGUR[0];
   return (
-    <svg width={size} height={size} viewBox="0 0 320 320" role="img" aria-label={name} className={`lq-boss-bild ${gefallen ? 'gefallen' : ''}`}>
-      <ellipse cx="160" cy="300" rx="110" ry="14" fill="#000" opacity=".35" />
-      {boss === 0 && (
-        <g>
-          <path d="M70 120 40 200l40 10 20-60Z" fill="#6B7487" />
-          <path d="M250 120l30 80-40 10-20-60Z" fill="#6B7487" />
-          <path d="M80 70c10-30 50-48 80-48s70 18 80 48l14 140c2 40-40 76-94 76s-96-36-94-76Z" fill="#8C95A8" />
-          <path d="M120 50 104 30M200 50l16-20" stroke="#6B7487" strokeWidth="12" strokeLinecap="round" />
-          <path d="M110 240h40v50h-40ZM170 240h40v50h-40Z" fill="#6B7487" />
-          <circle cx="160" cy="150" r="62" fill="#ECE7FF" />
-          <circle cx="160" cy="150" r="62" fill="none" stroke="#C98F00" strokeWidth="10" />
-          <path d="m160 98 16 52-16 52-16-52Z" fill="#E0344B" />
-          <path d="m160 150 16 0-16 52Z" fill="#9B1F30" />
-          <circle cx="160" cy="150" r="7" fill="#1F1A3D" />
-          <circle cx="124" cy="78" r="9" fill="#FFC531" />
-          <circle cx="196" cy="78" r="9" fill="#FFC531" />
-          <path d="M100 110l20 8M220 110l-20 8M118 210l20-6M200 214l-14-10" stroke="#6B7487" strokeWidth="5" strokeLinecap="round" />
-        </g>
-      )}
-      {boss === 1 && (
-        <g>
-          {[60, 100, 140, 180, 220, 260].map((x, i) => (
-            <path key={x} d={`M${x} 200c${i % 2 ? 14 : -14} 30 ${i % 2 ? -20 : 20} 50 ${i % 2 ? 6 : -6} 86`} stroke={i % 2 ? '#5A2E9E' : '#6A35B5'} strokeWidth="26" strokeLinecap="round" fill="none" />
-          ))}
-          <path d="M60 150c0-70 45-120 100-120s100 50 100 120c0 40-30 64-100 64S60 190 60 150Z" fill="#7B45C9" />
-          <path d="M60 150c0 40 30 64 100 64s100-24 100-64c-20 30-55 40-100 40s-80-10-100-40Z" fill="#5A2E9E" />
-          <circle cx="122" cy="120" r="26" fill="#fff" />
-          <circle cx="198" cy="120" r="26" fill="#fff" />
-          <circle cx="128" cy="124" r="12" fill="#1F1A3D" />
-          <circle cx="192" cy="124" r="12" fill="#1F1A3D" />
-          <path d="M136 168c16 10 32 10 48 0" stroke="#1F1A3D" strokeWidth="7" strokeLinecap="round" fill="none" />
-          <path d="M250 40c10 18 18 28 18 40a18 18 0 0 1-36 0c0-12 8-22 18-40Z" fill="#2A2357" />
-          <circle cx="104" cy="66" r="8" fill="#FFC531" />
-        </g>
-      )}
-      {boss === 2 && (
-        <g>
-          <path d="M70 140 20 90l30 70Z" fill="#0B7A4B" />
-          <path d="M250 140l50-50-30 70Z" fill="#0B7A4B" />
-          <path d="M90 290c-20-40-20-90 0-130h140c20 40 20 90 0 130Z" fill="#13804A" />
-          <path d="M120 290c-10-30-10-70 0-110h80c10 40 10 80 0 110Z" fill="#B5E6C8" />
-          <path d="M80 110c0-50 36-80 80-80s80 30 80 80c0 36-36 60-80 60s-80-24-80-60Z" fill="#1E9A5C" />
-          <path d="M110 40 96 10l30 20M210 40l14-30-30 20" fill="#C98F00" />
-          <circle cx="128" cy="100" r="16" fill="#FFC531" />
-          <circle cx="192" cy="100" r="16" fill="#FFC531" />
-          <path d="M128 90v20M192 90v20" stroke="#1F1A3D" strokeWidth="7" strokeLinecap="round" />
-          <path d="M126 140h68" stroke="#0B5E35" strokeWidth="7" strokeLinecap="round" />
-          <path d="M146 214c0-12 28-12 28 2 0 10-14 12-14 24M160 256v2" stroke="#0B5E35" strokeWidth="9" strokeLinecap="round" fill="none" />
-        </g>
-      )}
-    </svg>
+    <FigurBild
+      key={treffer}
+      figur={figur}
+      titel={BOSSE[boss]?.name ?? 'Boss'}
+      className={`lq-boss-bild ${gefallen ? 'gefallen' : ''}`}
+      breite={size}
+      lebendig={bewegt}
+      pose={gefallen ? 'besiegt' : 'lauern'}
+      animation={!bewegt ? undefined : treffer || gefallen ? 'treffer' : ruhe}
+      danach={bewegt && !gefallen ? ruhe : undefined}
+    />
   );
 }
 
@@ -315,9 +297,7 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
 
         <div className="lq-beamer-mitte">
           <div className="lq-beamer-boss">
-            <div className="lq-schweben">
-              <BossBild boss={s.boss} size={250} gefallen={s.phase === 'ende' && !!s.sieg} />
-            </div>
+            <BossBild boss={s.boss} size={250} gefallen={s.phase === 'ende' && !!s.sieg} lp={s.lp} />
             <Lebensbalken s={s} gross />
           </div>
 
@@ -534,14 +514,14 @@ export function BossKind({ token, id, klasse, onFertig, onTruhe, fail }: KindPro
 
       {s.phase === 'warten' && (
         <div className="lq-boss-mitte">
-          <BossBild boss={s.boss} size={200} />
+          <BossBild boss={s.boss} size={200} lp={s.lp} />
           <p className="lq-meldung">Du bist dabei. Schau zum Beamer: Dort stehen die Fragen, hier tippst du die Antwort.</p>
         </div>
       )}
 
       {s.phase === 'ende' && (
         <div className="lq-boss-mitte">
-          <BossBild boss={s.boss} size={200} gefallen={!!s.sieg} />
+          <BossBild boss={s.boss} size={200} gefallen={!!s.sieg} lp={s.lp} />
           <p className="lq-meldung">
             {s.sieg ? (s.truhe ? `Ihr habt ihn besiegt! Eine Truhe und ${PUNKTE_BOSS} Klassenpunkte warten beim Helden.` : 'Ihr habt ihn besiegt!') : 'Übt die Stationen der Region – dann klappt es beim nächsten Mal.'}
           </p>
