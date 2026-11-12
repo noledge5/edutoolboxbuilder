@@ -284,4 +284,40 @@ export const KOPF_ITEMS: Item[] = [
       </g>
     ),
   },
+  {
+    id: 'e48100506fe',
+    name: 'Militärhelm',
+    platz: 'hut',
+    seltenheit: 3,
+    rahmen: [-62, -56, 124, 126],
+    zeichnung: () => (
+      <g>
+        {/* Headset band and ear cups, behind the helmet rim */}
+        <path d="M-52 40 Q-60 0 -46 -20 M52 40 Q60 0 46 -20" fill="none" stroke={P.linie} strokeWidth={7} strokeLinecap="round" />
+        <path d="M-52 40 Q-60 0 -46 -20 M52 40 Q60 0 46 -20" fill="none" stroke={P.grau} strokeWidth={3} strokeLinecap="round" />
+        {/* Olive steel dome with a flared rim */}
+        <path d="M-50 10 Q-46 -50 0 -52 Q46 -50 50 10 Q0 0 -50 10 Z" fill={P.oliv} />
+        <path d="M20 -48 Q48 -36 50 10 Q40 7 32 6 Q36 -22 20 -48 Z" fill={P.olivTief} opacity={0.6} />
+        <path d="M-34 -14 Q-30 -36 -12 -44" fill="none" stroke={P.gruenHell} strokeWidth={5} strokeLinecap="round" opacity={0.8} />
+        <path d="M-50 10 Q-46 -50 0 -52 Q46 -50 50 10 Q0 0 -50 10 Z" fill="none" {...UMRISS} />
+        {/* Steel rim and side rails */}
+        <path d="M-52 10 Q0 -2 52 10" fill="none" stroke={P.metallTief} strokeWidth={5} strokeLinecap="round" />
+        <path d="M-40 -8 L-30 -10 M30 -10 L40 -8" stroke={P.metallTief} strokeWidth={4} strokeLinecap="round" />
+        {/* Night vision mount on the front */}
+        <rect x={-8} y={-30} width={16} height={12} rx={3} fill={P.metall} {...UMRISS_FEIN} />
+        <circle cx={0} cy={-24} r={2.5} fill={P.metallTief} />
+        {/* Ear cups */}
+        {[-54, 54].map((x) => (
+          <g key={x}>
+            <ellipse cx={x} cy={44} rx={11} ry={14} fill={P.grau} {...UMRISS} />
+            <ellipse cx={x} cy={44} rx={5} ry={7} fill={P.grauTief} />
+          </g>
+        ))}
+        {/* Boom microphone from the left cup to the mouth */}
+        <path d="M-50 56 Q-44 70 -24 70" fill="none" stroke={P.linie} strokeWidth={6} strokeLinecap="round" />
+        <path d="M-50 56 Q-44 70 -24 70" fill="none" stroke={P.grau} strokeWidth={2.5} strokeLinecap="round" />
+        <ellipse cx={-20} cy={70} rx={6} ry={5} fill={P.grauTief} {...UMRISS_FEIN} />
+      </g>
+    ),
+  },
 ];

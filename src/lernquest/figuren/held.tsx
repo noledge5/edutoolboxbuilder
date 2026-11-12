@@ -843,5 +843,6 @@ export const EIGENE_ZEICHNUNGEN: { id: string; slot: 'kopf' | 'kleidung' | 'hint
   { id: 'e97c799d057', slot: 'kopf', name: 'Crowns Guard Helmet', seltenheit: 3 },
   { id: 'e0a70ed2238', slot: 'kleidung', name: 'Guilie Suit', seltenheit: 4 },
   { id: 'e57ef47f771', slot: 'hintergrund', name: 'Höllenfeuer', seltenheit: 4 },
+  { id: 'e48100506fe', slot: 'kopf', name: 'Militärhelm', seltenheit: 2 },
   { id: 'f25e0e76346', slot: 'frisur', name: 'Curlyshort', seltenheit: 0 },
 ];

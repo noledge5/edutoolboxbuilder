@@ -1,5 +1,5 @@
 // A quick look at drawings without the workshop: writes a page and a screenshot (Playwright) of one group.
-// Runs only when asked:  VORSCHAU=<ordner> VORSCHAU_TEIL=<kopf|werkzeug|begleiter|hintergrund|held|fuchs|eigen|alles> npx vitest run src/lernquest/figuren/vorschau
+// Runs only when asked:  VORSCHAU=<ordner> VORSCHAU_TEIL=<kopf|werkzeug|begleiter|hintergrund|held|fuchs|eigen|alles> [VORSCHAU_ITEM=<hut-id>] npx vitest run src/lernquest/figuren/vorschau
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
@@ -39,10 +39,11 @@ it.skipIf(!ziel)('writes a preview page and screenshot', async () => {
       for (const p of Object.keys(f.posen))
         teile.push(`<figure>${renderToStaticMarkup(<FigurBild figur={f} pose={p} zeit={0} lebendig={false} breite={200} />)}<figcaption>${f.id} · ${p}</figcaption></figure>`);
   if (teil === 'eigen') {
+    const HELM = process.env.VORSCHAU_ITEM ?? 'e97c799d057';
     const bg = HINTERGRUENDE.find((h) => h.id === 'e57ef47f771')!;
-    teile.push(`<figure><svg width="300" height="300" viewBox="0 0 240 240">${renderToStaticMarkup(<>{bg.zeichnung(0.4)}<FigurBild figur={held({ kleidung: 'e0a70ed2238', frisur: 'f25e0e76346', haut: 2 })} items={ITEMS.filter((i) => i.id === 'e97c799d057')} zeit={0} lebendig={false} breite={240} /></>)}</svg><figcaption>alle vier</figcaption></figure>`);
+    teile.push(`<figure><svg width="300" height="300" viewBox="0 0 240 240">${renderToStaticMarkup(<>{bg.zeichnung(0.4)}<FigurBild figur={held({ kleidung: 'e0a70ed2238', frisur: 'f25e0e76346', haut: 2 })} items={ITEMS.filter((i) => i.id === HELM)} zeit={0} lebendig={false} breite={240} /></>)}</svg><figcaption>alle vier</figcaption></figure>`);
     teile.push(`<figure>${renderToStaticMarkup(<FigurBild figur={held({ kleidung: 'e0a70ed2238', frisur: 'f25e0e76346', haarfarbe: 3 })} zeit={0} lebendig={false} breite={200} />)}<figcaption>ohne Helm</figcaption></figure>`);
-    teile.push(`<figure>${renderToStaticMarkup(<ItemBild item={ITEMS.find((i) => i.id === 'e97c799d057')!} groesse={120} zeit={0} />)}${renderToStaticMarkup(<ItemBild item={ITEMS.find((i) => i.id === 'e97c799d057')!} groesse={48} zeit={0} />)}<figcaption>Helm</figcaption></figure>`);
+    teile.push(`<figure>${renderToStaticMarkup(<ItemBild item={ITEMS.find((i) => i.id === HELM)!} groesse={120} zeit={0} />)}${renderToStaticMarkup(<ItemBild item={ITEMS.find((i) => i.id === HELM)!} groesse={48} zeit={0} />)}<figcaption>Helm</figcaption></figure>`);
   }
   if (teil === 'held') {
     const zeige = (name: string, a: Parameters<typeof held>[0]) =>
