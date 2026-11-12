@@ -101,7 +101,20 @@ Jedes antippbare Teil hat dieselben Zustände, nie nur über Farbe unterschieden
 - Stationen bleiben einspaltig und mittig (max. 720 px), damit die Aufgabe allein im Blick ist.
 - Handy quer: Kopfzeile schrumpft auf eine Zeile, nichts wird abgeschnitten.
 
-### Avatar-Stil (40 Teile)
+### Held als Vektorfigur (Stufe E, Teil 4, ersetzt den Avatar-Stil darunter)
+- Der Held ist eine Figur im Figuren-Baukasten (`src/lernquest/figuren/held.tsx`, `held(aussehen)`), im Stil des
+  Fuchses: dicke Umrisse, Licht oben links, Chibi. Hautfarbe, Frisur, Haarfarbe, Mund, Augen und Kleidung sind in die
+  Figur gezeichnet; Kopf-Teile (`items-kopf.tsx`, Anker `hut`), Werkzeuge (`items-werkzeug.tsx`, `hand-rechts`) und
+  Begleiter (`begleiter.tsx`, Anker `begleiter` neben den Füßen) sind Items; Hintergründe sind Szenen
+  (`hintergruende.tsx`, 240 × 240, Held steht bei 120/230).
+- In der App: `app/heldVektor.tsx` (`HeldBild`, `HeldKopfBild`, `HeldTeilBild`); `AvatarBild`, `KopfBild` und `TeilBild`
+  in `app/avatar.tsx` nehmen sie. Die alte Zeichnung mit den gemalten Bildern bleibt nur für Teile und Frisuren, die es
+  nur als hochgeladenes Bild gibt (Lehrkraft-Seite), und für die Vorschau beim Hochladen.
+- Werkstatt `#avatar`: Held aus allen Teilen zusammenstellen und jedes Teil am Helden prüfen.
+- Schnell ansehen ohne Werkstatt: `VORSCHAU=<ordner> VORSCHAU_TEIL=held npx vitest run src/lernquest/figuren/vorschau`
+  (auch `kopf`, `werkzeug`, `begleiter`, `hintergrund`).
+
+### Avatar-Stil (40 Teile, bis Stufe D)
 - Flache Vektorgrafik ohne Umrisslinien, je Fläche zwei Töne (Grundton und Schatten), Formen rund und kindlich, Stil
   wie der Held in `Held.dc.html`.
 - Eine gemeinsame Zeichenfläche (`viewBox` 0 0 240 240) für alle Teile; feste Ebenen von hinten nach vorn:

@@ -6,7 +6,8 @@ import { useCallback, useEffect, useState } from 'react';
 export type Status = 'offen' | 'passt' | 'aendern';
 
 export interface Pruefung {
-  art: 'figur' | 'item' | 'bewegung' | 'gelaende';
+  /** `held`: the hero's own drawings (skin, hair, mouth, eyes, clothes, background), ziel `<platz>-<id>`. */
+  art: 'figur' | 'item' | 'bewegung' | 'gelaende' | 'held';
   ziel: string;
   name: string;
   status: Status;

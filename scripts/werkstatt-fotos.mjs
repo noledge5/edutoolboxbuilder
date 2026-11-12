@@ -15,7 +15,7 @@ const figuren = [...readFileSync('src/lernquest/figuren/index.ts', 'utf8').match
 
 const b = await chromium.launch();
 const fehler = [];
-for (const [name, breite] of [['bogen', 1280], ['teile', 1280], ['karte', 1280], ...figuren.map((f) => [f, 1280]), ['fuchs', 390]]) {
+for (const [name, breite] of [['bogen', 1280], ['teile', 1280], ['karte', 1280], ['avatar', 1280], ['avatar', 390], ...figuren.map((f) => [f, 1280]), ['fuchs', 390]]) {
   const p = await b.newPage({ viewport: { width: breite, height: 1000 }, reducedMotion: 'reduce' });
   p.on('pageerror', (e) => fehler.push(`${name}: ${e.message}`));
   await p.goto(`file://${seite}#${name}`);

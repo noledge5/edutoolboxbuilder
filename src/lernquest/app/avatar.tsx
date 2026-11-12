@@ -6,6 +6,7 @@ import { useContext, type ReactNode } from 'react';
 import { angelegt, frisurVon, HAARFARBEN, haarfarbeVon, HAUT, mundVon, type Avatar, type Slot, type Teil } from '../teile';
 import { haareBild, koerperBild, mundBild, teilBild } from './teilBilder';
 import { FrisurVorschau, HochgeladeneBilder } from './bilderKontext';
+import { HELD_AUSSCHNITT, HeldBild, HeldKopfBild, HeldTeilBild, nurAlsBild } from './heldVektor';
 
 /** Shadow tone per skin tone (`HAUT`). */
 const HAUT_SCHATTEN = ['#DDAE80', '#D29A6E', '#AE744A', '#8E5833', '#5F3A20', '#E8C3A2'];
@@ -1145,7 +1146,7 @@ function Mund({ avatar }: { avatar: Avatar }) {
 }
 
 /** The head of the hero with some hair, colour and mouth, for choosing them (`nah`: only the lower face, for mouths). */
-export function KopfBild({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
+export function KopfBildGemalt({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
   return (
     <svg viewBox={nah ? '88 84 64 52' : '58 30 124 104'} aria-hidden focusable="false">
       <Grundfigur avatar={avatar} />
@@ -1159,7 +1160,7 @@ export function KopfBild({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
 export const AUSSCHNITT_KOPF = '45 8 150 150';
 
 /** The whole hero as worn (or the part `ausschnitt` of it). Decorative (the page names the hero in text), so hidden from screen readers. */
-export function AvatarBild({
+export function AvatarBildGemalt({
   avatar,
   className,
   ausschnitt = '0 0 240 240',
@@ -1205,7 +1206,7 @@ const AUSSCHNITT: Record<Slot, string> = {
 };
 
 /** One part alone, cut out for the grid, the shop and the chest; eyes sit on the hero's head so they read as eyes. */
-export function TeilBild({ teil, avatar = {}, className }: { teil: Teil; avatar?: Avatar; className?: string }) {
+export function TeilBildGemalt({ teil, avatar = {}, className }: { teil: Teil; avatar?: Avatar; className?: string }) {
   return (
     <svg className={className} viewBox={AUSSCHNITT[teil.slot]} aria-hidden focusable="false">
       {teil.slot === 'augen' && (
@@ -1223,3 +1224,26 @@ export function TeilBild({ teil, avatar = {}, className }: { teil: Teil; avatar?
 export const hatZeichnung = (id: string) => id in ZEICHNUNG;
 export const hatHaarZeichnung = (id: string) => id in HAAR_ZEICHNUNG;
 export const hatMundZeichnung = (id: string) => id in MUND_ZEICHNUNG;
+
+// — Stufe E, Teil 4: the hero is the vector figure (heldVektor.tsx). The older drawing above (with the painted and
+// uploaded pictures) stays only for heroes wearing a part or hair that exists only as an uploaded picture, and for
+// the teacher page's preview of a new upload. —
+
+/** The whole hero as worn (or the part `ausschnitt` of it). Decorative (the page names the hero in text). */
+export function AvatarBild({ avatar, className, ausschnitt, vorschau, lebendig }: { avatar: Avatar; className?: string; ausschnitt?: string; vorschau?: Teil; lebendig?: boolean }) {
+  if (vorschau || nurAlsBild(avatar)) return <AvatarBildGemalt avatar={avatar} className={className} ausschnitt={ausschnitt} vorschau={vorschau} />;
+  return <HeldBild avatar={avatar} className={className} ausschnitt={ausschnitt === AUSSCHNITT_KOPF ? HELD_AUSSCHNITT.kopf : ausschnitt} lebendig={lebendig} />;
+}
+
+/** The head with some hair, colour and mouth, for choosing them (`nah`: only the lower face, for mouths). */
+export function KopfBild({ avatar, nah }: { avatar: Avatar; nah?: boolean }) {
+  const frisur = useContext(FrisurVorschau);
+  if (frisur || nurAlsBild(avatar)) return <KopfBildGemalt avatar={avatar} nah={nah} />;
+  return <HeldKopfBild avatar={avatar} nah={nah} />;
+}
+
+/** One part alone, cut out for the grid, the shop and the chest. */
+export function TeilBild({ teil, avatar = {}, className }: { teil: Teil; avatar?: Avatar; className?: string }) {
+  if (teil.eigen) return <TeilBildGemalt teil={teil} avatar={avatar} className={className} />;
+  return <HeldTeilBild teil={teil} avatar={nurAlsBild(avatar) ? {} : avatar} className={className} />;
+}

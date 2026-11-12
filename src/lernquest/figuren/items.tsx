@@ -1,33 +1,16 @@
 // Items to wear or hold, drawn around their anchor (0, 0). Hats sit with the brim on the anchor, held things with
 // the grip on it. The hero's parts (Stufe E, Teil 4) come here too, one entry per part of src/lernquest/teile.ts.
 // Rarity shows in the material: wood and leather, then metal and glass, then colour with a gem, then gold.
-import type { ReactNode } from 'react';
 import { P, UMRISS, UMRISS_FEIN } from './stil';
 import type { Item } from './typen';
+import { Funkeln, maserung, stern } from './zeichnen';
+import { KOPF_ITEMS } from './items-kopf';
+import { WERKZEUG_ITEMS } from './items-werkzeug';
+import { BEGLEITER_ITEMS } from './begleiter';
 
-export const stern = (x: number, y: number, r: number, zacken = 5) => {
-  const pts = Array.from({ length: zacken * 2 }, (_, i) => {
-    const a = (Math.PI / zacken) * i - Math.PI / 2;
-    const rr = i % 2 ? r * 0.45 : r;
-    return `${(x + Math.cos(a) * rr).toFixed(1)} ${(y + Math.sin(a) * rr).toFixed(1)}`;
-  });
-  return `M${pts.join(' L')} Z`;
-};
+export { Funkeln, stern };
 
-/** A four-point sparkle that grows and fades in a loop (for rare items). */
-export function Funkeln({ x, y, r, zeit, versatz = 0 }: { x: number; y: number; r: number; zeit: number; versatz?: number }): ReactNode {
-  const k = (Math.sin(zeit * 3 + versatz) + 1) / 2;
-  if (k < 0.15) return null;
-  const s = r * k;
-  return <path d={`M${x} ${y - s} Q${x} ${y} ${x + s} ${y} Q${x} ${y} ${x} ${y + s} Q${x} ${y} ${x - s} ${y} Q${x} ${y} ${x} ${y - s} Z`} fill={P.weiss} opacity={0.4 + k * 0.6} />;
-}
-
-/** Wood grain: a few soft lines along a length. */
-const maserung = (x: number, y1: number, y2: number) => (
-  <path d={`M${x - 2} ${y1} q2 ${(y2 - y1) / 2} 0 ${y2 - y1} M${x + 2} ${y1 + 4} q-2 ${(y2 - y1) / 3} 0 ${y2 - y1 - 8}`} fill="none" stroke={P.holzTief} strokeWidth={1.5} strokeLinecap="round" opacity={0.6} />
-);
-
-export const ITEMS: Item[] = [
+const GRUND: Item[] = [
   {
     id: 'waldhut',
     name: 'Waldhut',
@@ -287,7 +270,7 @@ export const ITEMS: Item[] = [
     id: 'laterne',
     name: 'Laterne',
     platz: 'hand-links',
-    seltenheit: 3,
+    seltenheit: 2,
     bewegt: true,
     rahmen: [-17, -8, 34, 50],
     zeichnung: (zeit) => (
@@ -302,3 +285,6 @@ export const ITEMS: Item[] = [
     ),
   },
 ];
+
+/** Every item: the first ones drawn for the fox, then the hero's parts (one per part of src/lernquest/teile.ts). */
+export const ITEMS: Item[] = [...GRUND, ...KOPF_ITEMS, ...WERKZEUG_ITEMS, ...BEGLEITER_ITEMS];

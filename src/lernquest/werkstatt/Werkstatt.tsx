@@ -1,9 +1,9 @@
 // The figure workshop: Claude's workbench for drawing, posing and animating figures, items and bosses, and the
 // teacher's place to review them. Not part of the children's app: it runs in `npm run spieltest`
 // (…/lernquest/werkstatt.html) and as an artifact (`npm run werkstatt`). Views by hash: #<figur-id>, #teile,
-// #karte (the pieces of the map landscape), #bogen (everything at once, also for screenshots), #vorlage (the teacher's mockup).
+// #avatar (build a hero from every part), #karte (the pieces of the map landscape), #bogen (everything at once, also for screenshots), #vorlage (the teacher's mockup).
 import { useEffect, useState } from 'react';
-import { FIGUREN, FigurBild, GELAENDE, ITEMS, ItemBild } from '../figuren';
+import { FIGUREN, FigurBild, GELAENDE, HELD, ITEMS, ItemBild } from '../figuren';
 import type { GelaendeTeil } from '../figuren';
 import type { Item } from '../figuren';
 import { SELTENHEITEN } from '../teile';
@@ -11,6 +11,7 @@ import { Chip, Gruppe, PruefFormular, StatusMarke } from './Bausteine';
 import { pruefId, usePruefungen } from './pruefung';
 import type { Pruefung, Speicher } from './pruefung';
 import { PLATZ, Werkbank, ankerVon } from './Werkbank';
+import { HeldAnsicht } from './HeldAnsicht';
 import vorlage from './vorlage.jpg';
 
 const ART = { begleiter: 'Begleiter', held: 'Held', boss: 'Boss' } as const;
@@ -29,7 +30,7 @@ export function Werkstatt() {
   const hash = useHash();
   const pruef = usePruefungen();
   const figur = FIGUREN.find((f) => f.id === hash);
-  const ansicht = figur ? 'figur' : hash === 'teile' || hash === 'karte' || hash === 'bogen' || hash === 'vorlage' ? hash : 'figur';
+  const ansicht = figur ? 'figur' : hash === 'avatar' || hash === 'teile' || hash === 'karte' || hash === 'bogen' || hash === 'vorlage' ? hash : 'figur';
   const aktiv = figur ?? (ansicht === 'figur' ? FIGUREN[0] : undefined);
   const werte = Object.values(pruef.eintraege);
   const zahl = (s: Pruefung['status']) => werte.filter((p) => p.status === s).length;
@@ -39,7 +40,7 @@ export function Werkstatt() {
       <header className="ws-kopf">
         <div className="ws-titel">
           <p className="ws-marke">Lernquest · Figuren-Werkstatt</p>
-          <h1>{aktiv ? aktiv.name : ansicht === 'teile' ? 'Teile' : ansicht === 'karte' ? 'Karte' : ansicht === 'bogen' ? 'Alles auf einen Blick' : 'Vorlage'}</h1>
+          <h1>{aktiv ? aktiv.name : ansicht === 'avatar' ? 'Held zusammenstellen' : ansicht === 'teile' ? 'Teile' : ansicht === 'karte' ? 'Karte' : ansicht === 'bogen' ? 'Alles auf einen Blick' : 'Vorlage'}</h1>
           {pruef.speicher.zustand === 'bereit' && werte.length > 0 && (
             <p className="ws-stand">
               Geprüft: {zahl('passt')} passt · {zahl('aendern')} ändern
@@ -58,6 +59,13 @@ export function Werkstatt() {
               </span>
             </a>
           ))}
+          <a href="#avatar" className={ansicht === 'avatar' ? 'an' : ''} aria-current={ansicht === 'avatar' ? 'page' : undefined}>
+            <FigurBild figur={HELD} breite={34} lebendig={false} />
+            <span>
+              Avatar bauen
+              <small>Held mit allen Teilen</small>
+            </span>
+          </a>
           <a href="#teile" className={ansicht === 'teile' ? 'an' : ''} aria-current={ansicht === 'teile' ? 'page' : undefined}>
             <ItemBild item={ITEMS.find((i) => i.id === 'krone')!} groesse={34} rahmen={false} zeit={0} />
             <span>
@@ -87,6 +95,7 @@ export function Werkstatt() {
         </nav>
       </header>
       {aktiv && <Werkbank key={aktiv.id} figur={aktiv} {...pruef} />}
+      {ansicht === 'avatar' && <HeldAnsicht {...pruef} />}
       {ansicht === 'teile' && <TeileAnsicht {...pruef} />}
       {ansicht === 'karte' && <KartenAnsicht {...pruef} />}
       {ansicht === 'bogen' && <Bogen eintraege={pruef.eintraege} />}
@@ -302,7 +311,7 @@ function Bogen({ eintraege }: { eintraege: Record<string, Pruefung> }) {
                 {liste.map((p) => (
                   <tr key={pruefId(p.art, p.ziel)}>
                     <td>
-                      {p.name} <small>({p.art === 'figur' ? 'Figur' : p.art === 'item' ? 'Teil' : p.art === 'gelaende' ? 'Karte' : 'Bewegung'})</small>
+                      {p.name} <small>({p.art === 'figur' ? 'Figur' : p.art === 'item' ? 'Teil' : p.art === 'gelaende' ? 'Karte' : p.art === 'held' ? 'Held' : 'Bewegung'})</small>
                     </td>
                     <td>
                       <StatusMarke p={p} />

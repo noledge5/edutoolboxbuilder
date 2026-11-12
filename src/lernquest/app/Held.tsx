@@ -162,7 +162,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
       <div className="lq-held-links">
         <h1 className="lq-seitentitel">Dein Held</h1>
         <div className="lq-buehne">
-          <AvatarBild avatar={stand.avatar} className="lq-buehne-bild" />
+          <AvatarBild avatar={stand.avatar} className="lq-buehne-bild" lebendig />
           <div className="lq-buehne-name">
             <strong>{daten.name}</strong>
             <span>

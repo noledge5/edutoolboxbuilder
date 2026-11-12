@@ -1028,7 +1028,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
               klasse: `ist-${st.zustand}`,
               inhalt: (
                 <>
-                  {st.zustand === 'aktuell' && <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} className="lq-pfad-held" />}
+                  {st.zustand === 'aktuell' && <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} className="lq-pfad-held" lebendig />}
                   {st.zustand !== 'gesperrt' && (
                     <span className="lq-stufen" aria-hidden>
                       {[0, 1, 2].map((i) => (

@@ -17,7 +17,10 @@ rest pose. A **pose** lists angles per part (clockwise degrees, children add up)
 requestAnimationFrame clock (no SMIL: it did not run in every viewer). Figures blink by themselves (`augenZu`).
 An **item** is drawn around (0, 0) on an anchor (`hut`, `hand-rechts`, `hand-links`) and follows that part;
 `bewegt: true` items get the time (flame, sparkle; `Funkeln` in `items.tsx`). New figures go into `index.ts`
-(`FIGUREN`), new items into `items.tsx` (`ITEMS`): the workshop and the tests pick them up.
+(`FIGUREN`), new items into `items.tsx` (`ITEMS`) or, for the hero's parts, `items-kopf.tsx`, `items-werkzeug.tsx`,
+`begleiter.tsx` (anchor `begleiter`); backgrounds into `hintergruende.tsx`; skin, hair, mouth, eyes and clothes are drawn
+inside `held.tsx`. The workshop and the tests pick them up (`held.test.tsx`: every part of `teile.ts` has a drawing).
+Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werkzeug|begleiter|hintergrund npx vitest run src/lernquest/figuren/vorschau`.
 
 ## Style rules (the look of the teacher's mockup, docs/design/lernquest/mockup-stufe-e.png)
 - Colours only from `stil.ts` (`P.*`); a test fails on any other hex. Need a new colour: add base, `hell` and `tief`.

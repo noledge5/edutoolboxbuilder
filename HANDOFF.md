@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Stufe E: Teil 1, Werkstatt und Teil 2 fertig, als Nächstes Teil 3)
+# Handoff – 12.11.2026 (Stufe E: Teile 1, 2 und 4 fertig, als Nächstes Teil 3)
 
 ## Stand
 - **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
@@ -31,8 +31,12 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
    Landschaft (`app/Landkarte.tsx`, Lage in `weg.ts`, Bauteile in `figuren/gelaende.tsx`, Werkstatt `#karte`), Fuchs
    über der Karte (`fuchsHinweis`), Leiste im Mockup-Look. Die Lehrkraft prüft Teile erst an den Spieler-Avataren (Teil 4,
    Entscheidung in `docs/roadmap.md`).
-3. **Reihenfolge (Lehrkraft 12.11.): erst Teil 4 (Spieler-Avatare), dann Teil 3 (Runde)**, danach 5 und 6. Teil 4: Held als Figur mit denselben Ankern (`hut`, `hand-links`,
-   `hand-rechts`, dazu `ruecken`), jedes Teil aus `teile.ts` als Item. Teil 5: Dateien von
+3. **Teil 4 fertig auf demselben Branch:** der Held als Vektorfigur (`figuren/held.tsx`), alle 80 Teile, 9 Frisuren,
+   6 Münder, 6 Hautfarben gezeichnet; die App zeigt ihn überall (`app/heldVektor.tsx`), Werkstatt `#avatar` zum
+   Zusammenstellen und Prüfen. Die Lehrkraft prüft jetzt die Teile am Helden; ihre Prüfungen zuerst lesen (Skill
+   `figur`). Offen: die gemalten ComfyUI-Bilder (`src/lernquest/bilder/`, `app/teile/`) werden nicht mehr gezeigt;
+   Löschen nur nach Rückfrage.
+4. **Als Nächstes Teil 3 (Runde im neuen Look)**, danach 5 und 6. Teil 5: Dateien von
    `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
 ## Wichtig zu wissen
