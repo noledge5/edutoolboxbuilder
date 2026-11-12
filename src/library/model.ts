@@ -397,11 +397,12 @@ export function syncLibrary(here: Library, file: Library): SyncResult {
   const moduleIds = new Set(modules.map((m) => m.id));
   const lessons = pick(here.lessons, file.lessons).filter((l) => moduleIds.has(l.moduleId));
   const handouts = pick(here.handouts ?? [], file.handouts ?? []);
+  const extras = pick(here.extras ?? [], file.extras ?? []);
   const newer = file.settings.updatedAt > here.settings.updatedAt ? file.settings : here.settings;
   const subjects = [...here.settings.subjects];
   for (const s of file.settings.subjects) if (!subjects.includes(s)) subjects.push(s);
   return {
-    library: { settings: { ...newer, subjects }, modules, lessons, handouts, deleted },
+    library: { settings: { ...newer, subjects }, modules, lessons, handouts, extras, deleted },
     fromFile,
     keptHere,
     removed,
@@ -410,12 +411,12 @@ export function syncLibrary(here: Library, file: Library): SyncResult {
 
 /** Latest change of anything in the library (for "changed since the last backup"). */
 export function lastChange(lib: Library): number {
-  return Math.max(lib.settings.updatedAt, ...[...lib.modules, ...lib.lessons, ...(lib.handouts ?? [])].map((x) => x.updatedAt), ...Object.values(lib.deleted), 0);
+  return Math.max(lib.settings.updatedAt, ...[...lib.modules, ...lib.lessons, ...(lib.handouts ?? []), ...(lib.extras ?? [])].map((x) => x.updatedAt), ...Object.values(lib.deleted), 0);
 }
 
 /** Number of modules and lessons changed (or deleted) after time `t`. */
 export const changedSince = (lib: Library, t: number) =>
-  [...lib.modules, ...lib.lessons, ...(lib.handouts ?? [])].filter((x) => x.updatedAt > t).length + Object.values(lib.deleted).filter((d) => d > t).length;
+  [...lib.modules, ...lib.lessons, ...(lib.handouts ?? []), ...(lib.extras ?? [])].filter((x) => x.updatedAt > t).length + Object.values(lib.deleted).filter((d) => d > t).length;
 
 /** A copy of a lesson as the next lesson of its module. */
 export function duplicateLesson(lib: Library, m: Module, l: Lesson): Lesson {

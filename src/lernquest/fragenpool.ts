@@ -264,6 +264,8 @@ export interface PoolAuftrag {
   wuensche: string;
   /** Earlier lessons of the module, for repetition mixed in (Stufe E); none = no repetition. */
   frueher?: Lesson[];
+  /** What Claude writes from instead of the lesson's sheets (an Extra-Paket: topic and words). */
+  inhalt?: string;
 }
 
 /** The earlier lessons of the module (number below this one), at most the last five. */
@@ -311,6 +313,7 @@ export function poolSystem(): string {
   return [
     'Du schreibst Übungen für „Lernquest“, eine Lern-App im Stil von Anton und Duolingo für eine Realschule in Baden-Württemberg (Klasse 5–10). Die Kinder üben damit zu Hause und in der Schule, was in einer Stunde behandelt wurde.',
     'Grundlage ist nur der Inhalt der Stunde (die Arbeitsblätter der Kinder). Frag nichts ab, was dort nicht steht oder für die Klassenstufe nicht zu erwarten ist. Die Lehrkraft prüft jede Übung, bevor die Klasse sie sieht.',
+    'Bei einem Extra-Paket (Grammatik oder Wortschatz, ohne Stunde) sind das Thema und die Wortliste der Lehrkraft die Grundlage; dann ist „das Neue der Stunde“ das Thema.',
     '',
     '## Regeln',
     '- Kurz und eindeutig: genau eine richtige Lösung (bei „waehlen“ höchstens zwei richtige Antworten), keine Fangfragen, keine doppelte Verneinung.',
@@ -351,7 +354,7 @@ export function poolPrompt(a: PoolAuftrag): string {
   const en = m.lang === 'en';
   const kopf = [
     `# Übungen für Lernquest: ${m.subject}, Klasse ${m.grade}`,
-    `Modul ${m.number}: ${m.title} · Stunde ${l.number}: ${l.title}`,
+    a.inhalt ? `${m.title} · Station ${l.number}: ${l.title}` : `Modul ${m.number}: ${m.title} · Stunde ${l.number}: ${l.title}`,
     en ? 'Englisch-Stunde: Aussagen, Sätze und Antworten auf Englisch; „hoeren“ nutzen.' : 'Deutschsprachige Stunde: kein Format „hoeren“.',
   ];
   if (a.klasse.trim()) kopf.push(`Die Klasse (ohne Namen): ${a.klasse.trim()}`);
@@ -360,8 +363,8 @@ export function poolPrompt(a: PoolAuftrag): string {
   return [
     ...kopf,
     '',
-    '## Inhalt der Stunde',
-    stundenText(l) || '(Auf den Arbeitsblättern steht noch nichts.)',
+    a.inhalt ? '## Thema des Extra-Pakets' : '## Inhalt der Stunde',
+    a.inhalt?.trim() || stundenText(l) || '(Auf den Arbeitsblättern steht noch nichts.)',
     '',
     '## Frühere Stunden (für eingestreute Wiederholung)',
     frueher || '(keine – keine Wiederholung)',

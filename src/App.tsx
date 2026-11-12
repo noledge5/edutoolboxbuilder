@@ -40,7 +40,7 @@ import { Overview } from './library/Overview';
 import { SyncDialog } from './library/SyncDialog';
 import { go, useRoute } from './library/router';
 import { addPackage, type ImportResult, type ParsedPackage } from './library/package';
-import type { Lesson, LessonVersion, Library, Module, Settings, TrashEntry } from './library/types';
+import type { ExtraPaket, Lesson, LessonVersion, Library, Module, Settings, TrashEntry } from './library/types';
 import type { Doc } from './model/types';
 import { createPackageFile, createPlanFile, downloadBlob, packageFileName, readAnyFile, safeFileName, type OpenedFile } from './storage/backup';
 import { YearPlanView } from './library/YearPlanView';
@@ -247,6 +247,27 @@ export function App() {
     store.saveHandout(h).catch(failed);
   }, []);
 
+  /** Lernquest Extra-Pakete: stored at once; deleting one remembers it, so a sync does not bring it back. */
+  const putExtra = useCallback((e: ExtraPaket) => {
+    const put = (l: Library): Library => {
+      const extras = l.extras ?? [];
+      return { ...l, extras: extras.some((x) => x.id === e.id) ? extras.map((x) => (x.id === e.id ? e : x)) : [...extras, e] };
+    };
+    if (libRef.current) libRef.current = put(libRef.current);
+    setLib((l) => l && put(l));
+    store.saveExtra(e).catch(failed);
+  }, []);
+  const removeExtra = useCallback((id: string) => {
+    const l = libRef.current;
+    if (!l) return;
+    const deleted = { ...l.deleted, [id]: Date.now() };
+    const next = { ...l, deleted, extras: (l.extras ?? []).filter((x) => x.id !== id) };
+    libRef.current = next;
+    setLib(next);
+    store.deleteExtra(id).catch(failed);
+    store.saveDeleted(deleted).catch(failed);
+  }, []);
+
   const putSettings = useCallback((s: Settings) => {
     const next = { ...s, updatedAt: Date.now() };
     setLib((l) => l && { ...l, settings: next });
@@ -299,6 +320,8 @@ export function App() {
       ...r.modules.map((m) => store.saveModule(m)),
       ...r.lessons.map((l) => store.saveLesson(l)),
       ...r.handouts.map((h) => store.saveHandout(h)),
+      ...r.extras.map((e) => store.saveExtra(e)),
+      ...r.removedExtras.map((id) => store.deleteExtra(id)),
     ];
     if (r.settings) writes.push(store.saveSettings(r.library.settings));
     if (r.deleted) writes.push(store.saveDeleted(r.library.deleted));
@@ -654,7 +677,7 @@ export function App() {
       here = { subject, grade: m.grade };
     }
   } else if (route.view === 'lernquest') {
-    view = <LernquestView lib={lib} onBack={() => go({ view: 'overview' })} onDeviceChange={() => autoSync.current?.poke(1000)} onLessonChange={(l) => putLesson({ ...l, updatedAt: Date.now() }).catch(failed)} />;
+    view = <LernquestView lib={lib} onBack={() => go({ view: 'overview' })} onDeviceChange={() => autoSync.current?.poke(1000)} onLessonChange={(l) => putLesson({ ...l, updatedAt: Date.now() }).catch(failed)} onExtraChange={(e) => putExtra({ ...e, updatedAt: Date.now() })} onExtraDelete={removeExtra} />;
   } else if (route.view === 'slides') {
     const lesson = lib.lessons.find((l) => l.id === route.id);
     const m = lesson && lib.modules.find((x) => x.id === lesson.moduleId);

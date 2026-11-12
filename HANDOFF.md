@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Figuren bewegen sich, PR #65 live; Stunden-Filter auf Branch)
+# Handoff – 12.11.2026 (Extra-Pakete auf Branch, Stunden-Filter auf Branch)
 
 ## Ziel
 Lernquest weiter ausbauen. Nächste Aufgabe: Grammatik- und Wortfeld-Pakete, die Claude erzeugt und die die Lehrkraft
@@ -14,25 +14,23 @@ unabhängig von Stunden freischaltet.
 - Letzter Commit: 09386f9 Lernquest Lehrkraft: nur ausgearbeitete Stunden zeigen …
 
 ## Nächste Schritte
-1. Grammatik-/Wortfeld-Pakete bauen (neuer Branch von `main`). Entschieden am 12.11.:
-   - Ort: **eigene Region je Fach** auf der Weltkarte (z. B. „Grammatik-Turm“, „Wortschatz-Wald“), jedes Paket eine Station.
-   - Eingabe: **Thema eintippen** (Fach, Klassenstufe, z. B. „simple past“, „Wortfeld Wetter“) **und aus Vokabellisten**
-     der Stunden (`src/ai/vocab.ts`, `VocabAiDialog.tsx`).
-   - Freigabe **wie der Fragenpool** (`fragenpool.ts`, `teacher/Fragenpool.tsx`): Claude schreibt ~30 Übungen + Hilfe-Karten,
-     Lehrkraft prüft jede, schaltet das Paket je Klasse frei.
-   - Idee zum Wiederverwenden: Paket mit eigener Kennung statt Stunde (`stunde: 'extra-…'`, `modul.id: 'extra-<fach>-…'`)
-     durch `buildPaket`/`paketSenden`/`lq_freischalten`; vorher prüfen, ob Server-Funktionen Stunden-Ids prüfen und wie
-     Regionen/Boss (`karte.ts` `regionenVon`, `boss.ts` `bossVon`) mit so einem Modul umgehen. Speicherort der Pakete in
-     der Bibliothek klären (`src/library/types.ts`).
-   - Erst planen (Skill `aufgabe`), Plan kurz der Lehrkraft zeigen.
+1. **Extra-Pakete gebaut** auf Branch `claude/extra-pakete` (baut auf `claude/admiring-brahmagupta-j275g8` auf, beide
+   nicht in `main`; Mergen = veröffentlichen, erst den Stunden-Filter, dann diesen Branch). Lehrkraft-Seite: Bereich
+   „Extra-Pakete“ unter „Stunden freischalten“ (Fach/Klasse aus dessen Filter): Art, Thema oder Vokabelliste →
+   Fragenpool-Dialog → Haken zum Freischalten. Kinder-Karte: „Grammatik-Turm“/„Wortschatz-Wald“ hinter den Modulen, nie
+   „aktuell“ (Foto im Spieltest geprüft). Tests 550 grün. **Nicht geprüft:** die Lehrkraft-Seite angemeldet (geht nur mit
+   Server) und echtes Erzeugen mit Claude. Die Lehrkraft soll einmal ein Paket anlegen, erzeugen, freischalten.
+   Grenzen: Auswertung, „Wiederholen sofort“ und Bosskampf am Beamer kennen Extra-Pakete nicht (nur Stunden).
 2. Verschoben: Lehrkraft sagt, die Animationen sind auf dem iPhone (Safari) „noch nicht wirklich da“, obwohl die Werkstatt
    sich dort bewegt. Mögliche Gründe: Service Worker (`public/sw.js`) zeigt alte Fassung; Schalter „Bewegung reduzieren“
    im App-Menü (`lernquest:ruhig`). Safari ist hier nicht testbar (nur Chromium).
+3. Militärhelm (Wunsch der Lehrkraft) gezeichnet auf Branch `claude/handoff-documentation-sy0llp`, nicht in `main`; die
+   Lehrkraft prüft ihn in der Werkstatt und stellt auf ihrer Seite die Herkunft ein.
 
 ## Wichtig zu wissen
 - Prüfungen der Lehrkraft: Werkstatt https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG, Sammlung `pruefung`
   (Skill `figur`). Offen zum Prüfen: Golem, Rätseldrache, Drache-Begleiter, Einhorn (Notiz dort ist alt, schon umgesetzt).
-- Wünsche für eigene Teile: `lq_teil where wunsch is not null` (Supabase „baukasten“); am 12.11. keine offen.
+- Wünsche für eigene Teile: `lq_teil where wunsch is not null` (Supabase „baukasten“); am 12.11. abends keine offen (Militärhelm gezeichnet).
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
   `cron.schedule` anlegen, Rollen `anon`, `authenticated`, `service_role`.
 - Supabase-Migrationen brauchen eine Bestätigung der Lehrkraft in ihrer App (sonst Abbruch nach ~4 Minuten).

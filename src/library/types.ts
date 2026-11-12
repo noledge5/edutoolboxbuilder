@@ -88,6 +88,26 @@ export interface Lesson {
   updatedAt: number;
 }
 
+/** Lernquest: a package of exercises on one topic (Grammatik or Wortschatz) that belongs to no lesson. Claude writes
+ *  the exercises from the topic (and words from a vocabulary list); the teacher checks them like the KI-Fragenpool. */
+export interface ExtraPaket {
+  id: string;
+  subject: string;
+  grade: number;
+  art: ExtraArt;
+  /** The topic, e.g. „simple past“ or „Wortfeld Wetter“; it is also the station's name. */
+  title: string;
+  /** Words from a vocabulary list (one per line, „englisch = deutsch“), '' when the topic is enough. */
+  words: string;
+  lang: Lang;
+  pool?: PoolEintrag[];
+  poolHilfe?: Lernkarte[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type ExtraArt = 'grammatik' | 'wortschatz';
+
 export interface Settings {
   /** Subjects shown on the overview, also those without modules yet. */
   subjects: string[];
@@ -147,6 +167,8 @@ export interface Library {
   lessons: Lesson[];
   /** Tasks handed out digitally (with their private keys, so both devices can read the results). */
   handouts: Handout[];
+  /** Lernquest Extra-Pakete (Grammatik, Wortschatz) without a lesson; older libraries have none. */
+  extras?: ExtraPaket[];
   /** Deleted modules and lessons (id → time of deletion), so a sync does not bring them back. */
   deleted: Record<string, number>;
 }

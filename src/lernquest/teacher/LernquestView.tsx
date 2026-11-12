@@ -7,7 +7,8 @@ import { ArrowLeft, IdCard, Images, Lock, MessageCircleQuestion, Plus, Printer, 
 import { Icon } from '../../icons';
 import { isWorkedOut } from '../../library/model';
 import { SearchButton } from '../../library/SearchDialog';
-import type { Lesson, Library, Module } from '../../library/types';
+import type { ExtraPaket, Lesson, Library, Module } from '../../library/types';
+import { ExtraPakete, extraSenden } from './ExtraPakete';
 import { classProfileOf } from '../../ai/classNotes';
 import { jsonOf } from '../../ai/client';
 import { runAi, useAiSettings } from '../../ai/useAi';
@@ -60,6 +61,8 @@ interface Props {
   onDeviceChange(): void;
   /** A lesson changed (its KI-Fragenpool); the caller sets `updatedAt` and saves it. */
   onLessonChange(l: Lesson): void;
+  onExtraChange(e: ExtraPaket): void;
+  onExtraDelete(id: string): void;
 }
 
 /** The address of Lernquest for a class: next to the Baukasten, `lernquest/#<code>`. */
@@ -77,7 +80,7 @@ const when = (iso: string | null) =>
       })
     : '–';
 
-export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: Props) {
+export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange, onExtraChange, onExtraDelete }: Props) {
   const [me, setMe] = useState<Lehrkraft | null>(null);
   const [list, setList] = useState<KlasseInfo[] | null>(null);
   const [sel, setSel] = useState('');
@@ -261,7 +264,7 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
               </form>
             </nav>
             {klasse ? (
-              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} versteckt={me?.versteckt[klasse.id] ?? []} busy={busy} act={act} savePins={savePins} saveVersteckt={(ids) => saveVersteckt(klasse.id, ids)} onPrint={() => setPrinting(true)} onKarten={(runde) => openKarten(klasse, runde)} onKampf={(id) => openKampf(klasse, id)} />
+              <KlasseView key={klasse.id} lib={lib} onLessonChange={onLessonChange} onExtraChange={onExtraChange} onExtraDelete={onExtraDelete} klasse={klasse} keys={me?.keys ?? []} pins={me?.pins ?? {}} versteckt={me?.versteckt[klasse.id] ?? []} busy={busy} act={act} savePins={savePins} saveVersteckt={(ids) => saveVersteckt(klasse.id, ids)} onPrint={() => setPrinting(true)} onKarten={(runde) => openKarten(klasse, runde)} onKampf={(id) => openKampf(klasse, id)} />
             ) : (
               <p className="lib-empty">Lege zuerst eine Klasse an.</p>
             )}
@@ -300,6 +303,8 @@ export function LernquestView({ lib, onBack, onDeviceChange, onLessonChange }: P
 interface KlasseProps {
   lib: Library;
   onLessonChange(l: Lesson): void;
+  onExtraChange(e: ExtraPaket): void;
+  onExtraDelete(id: string): void;
   klasse: KlasseInfo;
   keys: string[];
   pins: Record<string, string>;
@@ -316,7 +321,7 @@ interface KlasseProps {
   onKampf(id: string): void;
 }
 
-function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, act, savePins, saveVersteckt, onPrint, onKarten, onKampf }: KlasseProps) {
+function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse, keys, pins, versteckt, busy, act, savePins, saveVersteckt, onPrint, onKarten, onKampf }: KlasseProps) {
   /** Lesson whose KI-Fragenpool is open, and what was released when it opened (to send the class what changed). */
   const [poolOf, setPoolOf] = useState<string | null>(null);
   const freiVorher = useRef('');
@@ -637,6 +642,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
                     const m = l && lib.modules.find((x) => x.id === l.moduleId);
                     if (l && m) await paketSenden(keys, klasse.id, m, l, lib.lessons, versteckt);
                   }
+                  await extraSenden(keys, klasse.id, lib.extras ?? [], klasse.stunden);
                 })
               }
             >
@@ -714,6 +720,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
           </div>
         ))}
       </section>
+      <ExtraPakete lib={lib} klasse={klasse} subject={subject} grade={g} busy={busy} act={act} onChange={onExtraChange} onDelete={onExtraDelete} />
       {punkteFuer && <PunkteDialog name={punkteFuer.name} rest={punkteHandRest(punkteFuer.punkteHand ?? 0)} onGive={onGivePoints} onClose={closePoints} />}
       {poolOf && <PoolFuer lib={lib} id={poolOf} onLessonChange={onLessonChange} onClose={closePool} />}
     </>

@@ -5,7 +5,7 @@
 // see Boss.tsx); the class code lets it show a QR code to sign in.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QrScanner } from '../../sync/QrScanner';
-import { beamerAusHash, codeAus, faecherVon, fuchsHinweis, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage, type Region, type Station } from '../karte';
+import { beamerAusHash, codeAus, faecherVon, fuchsHinweis, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, regionName, vorname, wochenTage, type Region, type Station } from '../karte';
 import {
   heldenstufe,
   heute,
@@ -1091,7 +1091,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           ← Zur Karte
         </button>
         <span className="lq-kicker">
-          {paket.fach} · Region {paket.modul.nummer} · Station {paket.nummer}
+          {paket.fach} · {regionName(paket.modul.id, paket.modul.nummer)} · Station {paket.nummer}
         </span>
         <h1>{paket.titel}</h1>
         {!!paket.hilfe?.length && (
@@ -1226,7 +1226,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             };
           });
           return (
-            <section key={r.id} className="lq-region" aria-label={`Region ${r.nummer}: ${r.titel}`}>
+            <section key={r.id} className="lq-region" aria-label={`${regionName(r.id, r.nummer)}: ${r.titel}`}>
               <Landkarte
                 id={r.id}
                 mitBoss={pfad.at(-1) === 'meilenstein'}
@@ -1234,7 +1234,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
                 kopf={
                   <div className="lq-region-band">
                     <span>
-                      {aktiv} · Region {r.nummer}
+                      {aktiv} · {regionName(r.id, r.nummer)}
                     </span>
                     <h2>{r.titel}</h2>
                     <small className="lq-region-sterne" aria-label={`${sterne} von ${3 * r.stationen.length} Sternen`}>
