@@ -4,6 +4,8 @@
 -- Quelle: src/lernquest/testpakete.ts).
 -- Deaktivieren heißt: Die Pakete wandern in lq_paket_archiv (nichts geht verloren; zurückholen mit
 -- insert into lq_paket select klasse, stunde, daten, stand from lq_paket_archiv …). Spielstände bleiben.
+-- Live eingespielt am 12.11.2026 in vier Schritten (lernquest_testphase_1_archiv … _4_alte_aus), weil die
+-- Bestätigung für die große Anfrage nicht ankam; Inhalt und Ergebnis wie hier.
 
 create table if not exists public.lq_paket_archiv (
   klasse uuid not null,
