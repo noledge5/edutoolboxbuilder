@@ -247,3 +247,6 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
   von 200), Laden nach Heldenstufe (Seltenheit 1 ab Stufe 3, 2 ab 5, 3 ab 12, 4 ab 16; Truhen geben alles), eigener
   Held neben der aktuellen Station. Migration `20261124_lernquest_tagesaufgaben.sql` eingespielt am 12.11.2026
   (Freigabe der Lehrkraft), Live-Tests grün; App und Server rechnen in 1925 Zufallsrunden gleich (PGlite). Teil 2: Willkommen und Klassen-Aufgabe der Woche.
+- **Stufe E, Entscheidungen der Lehrkraft (12.11.2026):** Lernweg bleibt und wird auf der Karte sichtbarer; Stufe D,
+  Teil 2 wird übernommen; Spielstände bleiben; weiter keine Rangliste und keine Tagesserie. Plan in sechs Teilen unter
+  „Stufe E“ in `docs/kritik-und-plan.md`, Mockup in `docs/design/lernquest/mockup-stufe-e.png`.

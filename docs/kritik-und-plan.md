@@ -149,6 +149,21 @@ Nachtrag 11.11.2026 (Wünsche der Lehrkraft während Stufe A):
 - Zielbild ist ein Mockup der Lehrkraft: Fuchs-Maskottchen, Grün und Creme, Karte als Landschaft mit Burgen,
   Tagesaufgaben, Truhen-Bild. Richtung, nicht Vorgabe.
 
+Plan, entschieden mit der Lehrkraft am 12.11.2026 (Mockup: `docs/design/lernquest/mockup-stufe-e.png`):
+- **Lernweg bleibt** (Stufe A–C), wird aber sichtbarer: Die Karte zeigt die drei Stufen je Station als Wegpunkte,
+  der Fuchs sagt, was dran ist.
+- **Stufe D, Teil 2 wird übernommen** (Klassen-Aufgabe und Willkommen von `claude/lucid-galileo-0dvocr`, Migration
+  ist live) als Reiter „Woche“ im Aufgaben-Bildschirm.
+- **Spielstände bleiben** (Sterne, Münzen, Teile); jedes alte Teil bekommt seine Vektor-Zeichnung.
+- **Keine Rangliste, keine Tagesserie:** statt Rangliste das Klassen-Ziel, statt „7 Tage“ das Wochenziel im
+  Mockup-Look. Edelsteine im Mockup = unsere Münzen; keine Booster.
+- Bau in sechs Teilen, je eigener Branch: (1) Farben, Schrift, Knöpfe, Fuchs als Vektor mit 4–5 Posen, Start und
+  Anmeldung; (2) Karte als Landschaft mit Burgen, Held auf dem Weg, Leiste unten; (3) Runde im neuen Look;
+  (4) Held und alle Teile als Vektor; (5) Aufgaben, Wochenziel, Truhe, Laden, Klasse; (6) Töne, Jubel, „Bewegung
+  reduzieren“, dann `UMBAU = false`. Lehrkraft-Seite, Boss-Regeln und Fragenpool bleiben draußen.
+- Erfolg: Bildschirmfotos am Handy-Format je Teil an die Lehrkraft; Tests, Typprüfung, Build grün; Spieltest ohne
+  Server über jeden Bildschirm; Kontrast WCAG AA; alte Spielstände zeigen alles richtig.
+
 ### Stufe F: Klassenzimmer
 
 - ✅ Bosskampf mit Karten (gebaut am 08.11.2026): Schaden und Truhe. Offen: Klassenpunkte für richtige Antworten

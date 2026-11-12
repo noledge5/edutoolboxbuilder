@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Kinder-App abgeschaltet, Umbau „Stufe E“ steht an)
+# Handoff – 12.11.2026 (Plan für Stufe E entschieden, Bau beginnt)
 
 ## Stand
 - **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
@@ -14,16 +14,14 @@
   - Eine zweite Fassung (Runden statt Sterne, Truhe für alle) wurde in dieser Sitzung gebaut und per Revert wieder
     herausgenommen (Commit `f9a57f2`, nie eingespielt). Ideen daraus bei Bedarf dort nachlesen.
 
-## Nächste Schritte: Umbau der Kinder-App („Stufe E“, neue Sitzung)
-Wunsch der Lehrkraft (12.11.2026): die App ganz umbauen, statt Stück für Stück weiter. Ziele:
-- **Lernkurve:** wie Kinder lernen und vorankommen (Pfad, Stufen, Wiederholen) neu durchdenken; Grundlage
-  `docs/kritik-und-plan.md` (Stufe A–D gebaut) und `docs/lernquest.md`.
-- **Aussehen nach dem Mockup der Lehrkraft:** Grafikdesign, Grün und Creme, Karte als Landschaft mit Burgen,
-  Tagesaufgaben, Truhen-Bild. Das Mockup liegt nicht im Repo: zu Beginn bei der Lehrkraft anfragen.
-- **Fuchs als Charakter, der durch die App führt** (der eigene Held bleibt, `docs/roadmap.md`).
-- **Held und Teile neu als Vektorgrafik aus dem Code**, detailreich, Duolingo-Stil (die gemalten ComfyUI-Bilder fallen weg).
-- Zuerst planen und mit der Lehrkraft entscheiden (Skill `aufgabe`, Schritt 1), dann bauen. Klären: Was wird aus
-  Stufe D Teil 2 (live in der DB)? Werden alte Spielstände übernommen?
+## Nächste Schritte: Stufe E bauen (Plan steht, entschieden am 12.11.2026)
+Plan und Entscheidungen: „Stufe E“ in `docs/kritik-und-plan.md`; Mockup: `docs/design/lernquest/mockup-stufe-e.png`.
+Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände bleiben, keine Rangliste/Tagesserie.
+1. **Teil 1 als Nächstes** (eigener Branch, Skill `aufgabe` ab Schritt 2): Farben Grün/Creme, Schrift, Knöpfe als
+   Tokens in `lernquest.css`; Fuchs als Vektor-Komponente mit Posen (winken, jubeln, denken, trösten); Start- und
+   Anmeldeseite im neuen Look. Screenshots am Handy-Format an die Lehrkraft. `UMBAU` bleibt `true`.
+2. Danach Teile 2–6 je eigene Sitzung. Für Teil 5 die Dateien von `claude/lucid-galileo-0dvocr` holen (Migration
+   `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
 ## Wichtig zu wissen
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
