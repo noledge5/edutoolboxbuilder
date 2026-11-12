@@ -129,6 +129,21 @@ export interface Stand {
   sterneStationen: Record<string, number>;
   /** Stufe D: today's task counters and the ids of tasks done (`aufgabenNach`); missing before 20261124 or on a new day. */
   aufgaben?: TagesStand;
+  /** Stufe D, Teil 2: own new stars this week, the class task of the week, its chest got this week, welcome done.
+   *  Missing before 20261125. */
+  sterneWoche?: number;
+  klassenAufgabe?: KlassenAufgabe;
+  klassenTruhe?: boolean;
+  willkommen?: boolean;
+}
+
+/** Class task of the week (`lq_klassen_aufgabe`): new stars of all children together toward a shared goal. */
+export interface KlassenAufgabe {
+  /** Monday of the week ("2026-11-09"). */
+  woche: string;
+  sterne: number;
+  ziel: number;
+  geschafft: boolean;
 }
 
 /** Counters of one day for the daily tasks (`TAGESAUFGABEN` in rules.ts). */

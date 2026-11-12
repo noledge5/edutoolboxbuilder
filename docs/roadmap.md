@@ -259,3 +259,9 @@ Frisuren der Lehrkraft bekommen ebenfalls eine Vektorzeichnung (Claude zeichnet 
 **Prüfen der Teile (Entscheidung der Lehrkraft 12.11.2026):** Die Lehrkraft prüft Teile und Gegenstände erst, wenn die
   Spieler-Avatare gebaut sind (Teil 4), an den Avataren und nicht nur an Fuchs und Boss. Dafür braucht Teil 4: Vorlagen
   mit verschiedenen Hautfarben, dazu Münder, Augen, Frisuren, Helme, Ausrüstung, Begleiter und Gegenstände.
+- **Stufe D, Teil 2 (Entscheidungen der Lehrkraft 12.11.2026), gebaut am 12.11.2026 auf `claude/lucid-galileo-0dvocr`:**
+  Klassen-Aufgabe der Woche (alle sammeln neue Sterne, Ziel 3 je Kind, auf der Lehrerseite 1–20 einstellbar; geschafft:
+  eine Truhe für jedes Kind mit mindestens einem Stern in der Woche; Kinder sehen nur die Summe). Willkommen für neue
+  Kinder (Held bauen, Mini-Runde mit 3 Fragen der ersten Station als „Wiederholen“, Willkommens-Truhe; überspringbar,
+  dann ohne Truhe). Migration `20261125_lernquest_klassenaufgabe.sql` eingespielt am 12.11.2026 (Freigabe
+  der Lehrkraft), lokal und live geprüft (Live-Tests grün).

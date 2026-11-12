@@ -31,15 +31,16 @@ import {
   STERNE_JE_TRUHE,
   titel,
   woche,
+  wochenStart,
   WOCHENZIEL,
 } from '../rules';
-import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, type BossOffen, type KlasseOffen } from '../server';
+import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
 import { BOSSE } from '../boss';
 import { BossBeamer, BossBild, BossKind, useLangsam } from './Boss';
 import { readPaket } from '../paket';
 import { bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
-import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
+import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
 import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
@@ -57,7 +58,9 @@ export type Screen =
   | { kind: 'karte' }
   | { kind: 'station'; stunde: string }
   | { kind: 'wiederholen' }
-  | { kind: 'held' }
+  | { kind: 'held'; willkommen?: boolean }
+  /** Stufe D, Teil 2: the welcome of a new child (hero, mini round, first chest). */
+  | { kind: 'willkommen'; schritt: 'start' | 'truhe' }
   | { kind: 'laden' }
   | { kind: 'gutscheine' }
   | { kind: 'truhe'; zurueck: 'held' | 'karte' }
@@ -72,6 +75,8 @@ export type Screen =
       nr: number;
       /** The mixed test at the end of a region (sent as „Wiederholen“). */
       meilenstein?: Meilenstein;
+      /** The mini round of the welcome (sent as „Wiederholen“, so no station gets a best from three questions). */
+      willkommen?: boolean;
     }
   | {
       kind: 'ergebnis';
@@ -96,6 +101,8 @@ export type Screen =
       /** New stars counted toward chests, and the stars toward the next chest after this round. */
       sternePlus: number;
       sterneRest: number;
+      /** Stufe D, Teil 2: this round reached the class task of the week (a chest for everyone who took part). */
+      klassenGeschafft?: boolean;
       meilenstein?: Meilenstein;
     };
 
@@ -567,6 +574,18 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     // Also once the first data is there (the map appears only then).
   }, [screen, !daten]);
 
+  // Stufe D, Teil 2: a new child (no experience, welcome not done, a station unlocked) starts with the welcome, once
+  // per opening of the app. Servers before 20261125 send no `willkommen`: then never.
+  const willkommenGezeigt = useRef(false);
+  const neuesKind = !!stand && stand.willkommen === false && stand.xp === 0 && pakete.length > 0;
+  useEffect(() => {
+    if (neuesKind && !willkommenGezeigt.current && screen.kind === 'karte') {
+      willkommenGezeigt.current = true;
+      setScreen({ kind: 'willkommen', schritt: 'start' });
+    }
+  }, [neuesKind, screen.kind]);
+  const [willkommenMsg, setWillkommenMsg] = useState('');
+
   const langsam = useLangsam(!daten && !offline);
   if (!daten || !stand) {
     return (
@@ -620,6 +639,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       sterneJetzt: paket ? sterneVon(r.stand, paket) : 0,
       sternePlus: r.sternePlus,
       sterneRest: r.stand.sterneRest,
+      klassenGeschafft: r.klassenGeschafft,
       meilenstein,
     });
   };
@@ -654,9 +674,12 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         zurueck={zurueckTaste}
         stand={stand}
         herzen={HERZEN + bonusVon(stand.avatar).herz}
-        titel={screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Meilenstein · ${screen.meilenstein.titel}` : 'Wiederholen'}
+        titel={screen.willkommen ? 'Deine erste Runde' : screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Meilenstein · ${screen.meilenstein.titel}` : 'Wiederholen'}
         onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
-        onFertig={(st, r, e, l) => fertig(st, r, e, l, screen.meilenstein)}
+        onFertig={(st, r, e, l) => {
+          fertig(st, r, e, l, screen.meilenstein);
+          if (screen.willkommen) setScreen({ kind: 'willkommen', schritt: 'truhe' });
+        }}
         paketVon={(st) => daten.pakete[st]}
       />
     );
@@ -679,6 +702,63 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           void laden().then(() => setScreen({ kind: 'truhe', zurueck: 'karte' }));
         }}
       />
+    );
+  }
+
+  /** The welcome's mini round: the first three questions of the first station of the first subject, as „Wiederholen“. */
+  const miniRunde = () => {
+    const erste = faecherVon(pakete)
+      .flatMap((f) => regionenVon(pakete, f, stand))
+      .flatMap((r) => r.stationen)
+      .map((s) => (s.stunde ? daten.pakete[s.stunde] : undefined))
+      .find((p): p is Paket => !!p);
+    if (erste) setScreen({ kind: 'runde', nr: Date.now(), stunde: '', runde: 0, uebungen: rundeVon(erste.uebungen, 0).slice(0, 3).map((u) => ({ u, stunde: erste.stunde })), willkommen: true });
+    else setScreen({ kind: 'karte' });
+  };
+
+  if (screen.kind === 'willkommen') {
+    const fertigMachen = async (truhe: boolean) => {
+      setWillkommenMsg('');
+      try {
+        setStand(await aktion(willkommen));
+        setScreen(truhe ? { kind: 'truhe', zurueck: 'karte' } : { kind: 'karte' });
+      } catch (e) {
+        setWillkommenMsg(lqText(e));
+      }
+    };
+    if (screen.schritt === 'truhe') {
+      return (
+        <main className="lq-app lq-willkommen">
+          <TruheIcon />
+          <h1>Erste Runde geschafft!</h1>
+          <p className="lq-untertitel">Als Willkommen bekommst du deine erste Truhe. Darin steckt ein Teil für deinen Helden oder Münzen.</p>
+          <MeldungText text={willkommenMsg} nochmal={() => void fertigMachen(true)} />
+          <div className="lq-platz" />
+          <button type="button" className="lq-knopf lq-gold" onClick={() => void fertigMachen(true)}>
+            Truhe öffnen
+          </button>
+        </main>
+      );
+    }
+    return (
+      <main className="lq-app lq-willkommen">
+        <AvatarBild avatar={stand.avatar} className="lq-willkommen-held" />
+        <h1>Hallo {vorname(daten.name)}!</h1>
+        <p className="lq-untertitel">Willkommen bei Lernquest. In zwei Minuten bist du startklar:</p>
+        <ol className="lq-willkommen-schritte">
+          <li>Bau deinen Helden.</li>
+          <li>Spiel eine Mini-Runde mit drei Fragen.</li>
+          <li>Öffne deine erste Truhe.</li>
+        </ol>
+        <MeldungText text={willkommenMsg} />
+        <div className="lq-platz" />
+        <button type="button" className="lq-knopf" onClick={() => setScreen({ kind: 'held', willkommen: true })}>
+          Los geht’s!
+        </button>
+        <button type="button" className="lq-knopf lq-hell" onClick={() => void fertigMachen(false)}>
+          Überspringen
+        </button>
+      </main>
     );
   }
 
@@ -770,6 +850,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           <p className="lq-punkte-plus" role="status">
             <HakenIcon /> {screen.aufgabenNeu.length > 1 ? 'Tagesaufgaben' : 'Tagesaufgabe'} geschafft:{' '}
             {screen.aufgabenNeu.map((id) => TAGESAUFGABEN.find((t) => t.id === id)?.text).join(', ')} · +{screen.aufgabenPlus} Münzen
+          </p>
+        )}
+        {screen.klassenGeschafft && (
+          <p className="lq-punkte-plus" role="status">
+            <KlasseIcon /> Klassen-Aufgabe geschafft! Alle, die diese Woche Sterne geholt haben, bekommen eine Truhe.
           </p>
         )}
         {screen.punktePlus > 0 && (
@@ -871,6 +956,23 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   );
 
   if (screen.kind === 'held') {
+    if (screen.willkommen) {
+      return (
+        <main className="lq-app lq-mit-leiste">
+          <div className="lq-willkommen-band" role="status">
+            <span>
+              <strong>Schritt 1 von 3:</strong> Bau deinen Helden – Haut, Frisur, Augen und mehr.
+            </span>
+            <button type="button" className="lq-knopf" onClick={miniRunde}>
+              Fertig, weiter
+            </button>
+          </div>
+          <div className="lq-inhalt" ref={inhalt}>
+            <HeldSeite daten={daten} aktion={aktion} setStand={setStand} onTruhe={() => setScreen({ kind: 'truhe', zurueck: 'held' })} onLaden={() => setScreen({ kind: 'laden' })} onGutscheine={() => setScreen({ kind: 'gutscheine' })} onAbmelden={abmeldenFragen} />
+          </div>
+        </main>
+      );
+    }
     return rahmen(<HeldSeite daten={daten} aktion={aktion} setStand={setStand} onTruhe={() => setScreen({ kind: 'truhe', zurueck: 'held' })} onLaden={() => setScreen({ kind: 'laden' })} onGutscheine={() => setScreen({ kind: 'gutscheine' })} onAbmelden={abmeldenFragen} />);
   }
   if (screen.kind === 'gutscheine') {
@@ -880,7 +982,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     return rahmen(<LadenSeite daten={daten} aktion={aktion} setStand={setStand} onZurueck={() => setScreen({ kind: 'held' })} />);
   }
   if (screen.kind === 'klasse') {
-    return rahmen(<KlasseSeite aktion={aktion} />);
+    return rahmen(<KlasseSeite aktion={aktion} aufgabe={<KlassenAufgabeBox stand={stand} />} />);
   }
 
   if (screen.kind === 'wiederholen') {
@@ -982,6 +1084,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       <aside className="lq-karte-seite">
         <Wochenziel tage={stand.tage} />
         <Tagesaufgaben stand={stand} />
+        <KlassenAufgabeBox stand={stand} />
         <TruhenFortschritt rest={stand.sterneRest} truhen={stand.truhen} onOeffnen={() => setScreen({ kind: 'truhe', zurueck: 'karte' })} />
       </aside>
       <div className="lq-karte-haupt">
@@ -1212,6 +1315,35 @@ function Tagesaufgaben({ stand }: { stand: Stand }) {
         })}
       </ul>
       <span className="lq-klein">Alle drei: +{AUFGABEN_BONUS} Münzen extra. Morgen gibt es neue.</span>
+    </section>
+  );
+}
+
+/** Stufe D, Teil 2: the class collects new stars together this week; only the sum, no ranking. */
+function KlassenAufgabeBox({ stand }: { stand: Stand }) {
+  const a = stand.klassenAufgabe;
+  if (!a) return null;
+  // A new week since the last answer of the server: nothing collected yet.
+  const neu = a.woche !== wochenStart(heute());
+  const sterne = neu ? 0 : a.sterne;
+  const geschafft = !neu && (a.geschafft || sterne >= a.ziel);
+  const eigene = neu ? 0 : (stand.sterneWoche ?? 0);
+  return (
+    <section className="lq-box lq-klassenaufgabe">
+      <div className="lq-zeile-zwischen">
+        <h2>Klassen-Aufgabe</h2>
+        <strong>{geschafft ? 'Geschafft!' : `${sterne} von ${a.ziel} Sternen`}</strong>
+      </div>
+      <div className="lq-balken" role="progressbar" aria-label="Sterne der Klasse diese Woche" aria-valuemin={0} aria-valuemax={a.ziel} aria-valuenow={Math.min(sterne, a.ziel)}>
+        <span style={{ width: `${Math.min(100, (100 * sterne) / a.ziel)}%` }} />
+      </div>
+      <span className="lq-klein">
+        {geschafft
+          ? eigene > 0
+            ? 'Ihr habt es zusammen geschafft – deine Truhe wartet beim Helden.'
+            : 'Ihr habt es geschafft! Hol dir einen Stern, dann bekommst du auch eine Truhe.'
+          : `Sammelt diese Woche zusammen Sterne. Geschafft gibt es eine Truhe für alle, die mitgemacht haben.${eigene > 0 ? ` Von dir: ${eigene}.` : ''}`}
+      </span>
     </section>
   );
 }
