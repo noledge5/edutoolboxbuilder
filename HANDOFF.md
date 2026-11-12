@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Plan für Stufe E entschieden, Bau beginnt)
+# Handoff – 12.11.2026 (Stufe E, Teil 1 gebaut)
 
 ## Stand
 - **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
@@ -17,10 +17,11 @@
 ## Nächste Schritte: Stufe E bauen (Plan steht, entschieden am 12.11.2026)
 Plan und Entscheidungen: „Stufe E“ in `docs/kritik-und-plan.md`; Mockup: `docs/design/lernquest/mockup-stufe-e.png`.
 Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände bleiben, keine Rangliste/Tagesserie.
-1. **Teil 1 als Nächstes** (eigener Branch, Skill `aufgabe` ab Schritt 2): Farben Grün/Creme, Schrift, Knöpfe als
-   Tokens in `lernquest.css`; Fuchs als Vektor-Komponente mit Posen (winken, jubeln, denken, trösten); Start- und
-   Anmeldeseite im neuen Look. Screenshots am Handy-Format an die Lehrkraft. `UMBAU` bleibt `true`.
-2. Danach Teile 2–6 je eigene Sitzung. Für Teil 5 die Dateien von `claude/lucid-galileo-0dvocr` holen (Migration
+1. **Teil 1 fertig** (Branch `claude/amazing-newton-h940fp`, nicht in `main`): Farb-Tokens Grün/Creme in
+   `lernquest.css` (wirkt auf alle Bildschirme), Fuchs als Vektor `src/lernquest/app/Fuchs.tsx` (5 Posen, `FuchsSagt`),
+   Landschaft mit Burg `Landschaft.tsx`, Start, Namen, PIN und Umbau-Seite neu. `npm run spieltest` zeigt die App
+   trotz `UMBAU` (nur dieser Modus). Wartet auf Rückmeldung der Lehrkraft zu den Bildschirmfotos.
+2. **Als Nächstes Teil 2** (Karte als Landschaft mit Burgen, baut auf `Landschaft.tsx`). Teile 2–6 je eigene Sitzung. Für Teil 5 die Dateien von `claude/lucid-galileo-0dvocr` holen (Migration
    `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
 ## Wichtig zu wissen

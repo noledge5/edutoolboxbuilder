@@ -19,9 +19,12 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 - Eigener Spiel-Look, nicht `src/sheet/`. Handy zuerst (390 × 844), große Knöpfe (mind. 44 px), Knöpfe mit
   „Stufe“ darunter (`box-shadow: 0 4px 0 …`).
 - Schriften: Überschriften **Fredoka** 600, Text **Nunito** 700/800 (in der App selbst hosten).
-- Farben: Grund `#F3F0FF`, Schrift `#1F1A3D`, gedämpft `#57527A`, Linie `#DCD6F5`, Violett `#5B3FD9`/`#3F28A8`,
-  Gold `#FFC531`/`#C98F00`, richtig `#13804A` auf `#DDF5E7`, falsch `#C4321F` auf `#FDE6E1`; Bosskampf und Truhe
-  auf dunklem Grund `#1F1A3D`.
+- Farben seit Stufe E (Mockup `mockup-stufe-e.png`): Grund Creme `#FBF6E9`, Karte `#FFFDF7`, Schrift `#263322`,
+  gedämpft `#556149`, Linie `#E6DDC4`, Grün `#2E7D18`/`#1F5C0F` (Weiß darauf 5,2 : 1), Gold `#FFC531`/`#C98F00`,
+  richtig `#0F7543` auf `#DDF5E7`, falsch `#C4321F` auf `#FDE6E1`; Bosskampf und Truhe auf dunklem Waldgrün `#173A1C`.
+  Die Werte des Prototyps unten (Violett) sind überholt; es gelten die Tokens in `lernquest.css`.
+- Fuchs (`src/lernquest/app/Fuchs.tsx`): Vektor aus dem Code, Posen `stehen`, `winken`, `jubeln`, `denken`,
+  `troesten`; `FuchsSagt` = Fuchs mit Sprechblase. Landschaft mit Burg: `Landschaft.tsx`. Ihre Farben stehen im TSX.
 - Seltenheiten: Gewöhnlich, Ungewöhnlich, Selten, Episch, Legendär – Farbe **und** 1–5 Punkte.
 - Rückmeldung nie nur über Farbe: Haken/Kreuz und Text; Antworten im Bosskampf mit Form (Dreieck, Raute, Kreis,
   Quadrat).
@@ -31,7 +34,7 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
 Gelten für den Nachbau in `src/lernquest/app/lernquest.css`; der Prototyp bleibt Bildvorlage, diese Regeln gehen vor.
 
 ### Farben
-- Tokens heißen nach ihrer Aufgabe, nicht nach dem Farbton: `--lq-primary` `#5B3FD9`, `--lq-primary-tief` `#3F28A8`,
+- Tokens heißen nach ihrer Aufgabe, nicht nach dem Farbton: `--lq-primary` (seit Stufe E Grün), `--lq-primary-tief`,
   `--lq-gold` `#FFC531`, `--lq-gold-tief` `#C98F00`, `--lq-ok` `#0F7543` (siehe Barrierefreiheit) / `--lq-ok-flaeche` `#DDF5E7`,
   `--lq-fehler` `#C4321F` / `--lq-fehler-flaeche` `#FDE6E1`, dazu Grund, Karte, Schrift, gedämpft, Linie.
 - Seltenheiten `--lq-selten-1` … `--lq-selten-5` (Werte wie `SELTENHEIT` in `src/lernquest/teile.ts`); dunkles Set
@@ -74,7 +77,7 @@ Jedes antippbare Teil hat dieselben Zustände, nie nur über Farbe unterschieden
 - Kontrast nach WCAG AA (Kontrastnorm fürs Web): Text 4,5 : 1, große Schrift und Symbole 3 : 1. Daraus:
   - Gold nur als Fläche, nie als Schrift; goldene Zahlen in `--lq-gold-schrift` `#7A5600` (6,7 : 1).
   - `--lq-ok` wird `#0F7543` (5,0 : 1 auf der grünen Fläche; `#13804A` hatte nur 4,3 : 1).
-  - Auf dunklem Grund ist Violett `--lq-primary-nacht` `#A99BFF` (6,9 : 1), nicht `#5B3FD9` (2,5 : 1).
+  - Auf dunklem Grund ist die Hauptfarbe `--lq-primary-nacht` `#A8E07A` (8,2 : 1), nicht `--lq-primary`.
 - Symbol-Knöpfe haben ein `aria-label`; Rückmeldungen stehen zusätzlich in einem `aria-live`-Bereich.
 - Bis 200 % Zoom kein seitliches Scrollen; Stationen ohne Zeitdruck (Zeitlimit nur im Bosskampf, Stufe 3).
 - Alles geht auch mit Tastatur (Ziehen hat immer eine Antipp-Alternative).

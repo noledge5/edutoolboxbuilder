@@ -48,6 +48,8 @@ import { GutscheineSeite, TicketIcon } from './Gutscheine';
 import { ProbeApp } from './Probe';
 import { gemischterTest, probeAusUrl } from '../probe';
 import { AUSSCHNITT_KOPF, AvatarBild } from './avatar';
+import { Fuchs, FuchsSagt } from './Fuchs';
+import { Landschaft } from './Landschaft';
 
 export type Screen =
   | { kind: 'karte' }
@@ -112,8 +114,9 @@ const beamerFromUrl = () => beamerAusHash(location.hash);
 
 /** The children's app (sign-in, game, boss fight) is switched off while it is rebuilt (decision of the teacher,
  *  12.11.2026). Open exercises from a public link keep working. Nothing on the device is deleted: Spielstand and rounds
- *  not yet sent stay and go out once the app is back. Set to false to switch it on again. */
-export const UMBAU = true;
+ *  not yet sent stay and go out once the app is back. `npm run spieltest` shows the app anyway, to build it. Set to
+ *  false to switch it on again. */
+export const UMBAU = import.meta.env.MODE !== 'spieltest';
 
 export function LernquestApp() {
   // Open exercises from a public link: no sign-in, no server (`probe.ts`).
@@ -127,11 +130,18 @@ export function LernquestApp() {
 
 function Umbau() {
   return (
-    <main className="lq-app lq-login lq-umbau">
-      <Wappen />
-      <h1 className="lq-logo">Lernquest wird umgebaut</h1>
-      <p>Wir bauen gerade eine neue Lernquest für dich. Bald geht es weiter!</p>
-      <p className="lq-klein">Dein Held, deine Sterne und deine Münzen bleiben gespeichert.</p>
+    <main className="lq-app lq-start lq-umbau">
+      <div className="lq-start-bild">
+        <Landschaft className="lq-start-landschaft" />
+        <div className="lq-start-titel">
+          <h1 className="lq-logo">Lernquest</h1>
+        </div>
+        <Fuchs pose="denken" groesse={150} className="lq-start-fuchs" />
+      </div>
+      <div className="lq-start-unten">
+        <h2>Wir bauen gerade um</h2>
+        <p>Eine neue Lernquest ist bald fertig. Dein Held, deine Sterne und deine Münzen bleiben gespeichert.</p>
+      </div>
     </main>
   );
 }
@@ -243,75 +253,77 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
   if (!klasse) {
     return (
       <main className="lq-app lq-start">
-        <div className="lq-start-kopf">
-          <Wappen />
-          <h1 className="lq-logo">Lernquest</h1>
-          <p className="lq-tagline">
-            Üben, was ihr im Unterricht hattet –<br />
-            und dabei stärker werden.
-          </p>
-        </div>
-        {scan ? (
-          <div className="lq-scan">
-            <QrScanner
-              onText={(t) => {
-                const c = codeAus(t);
-                if (!c) return;
-                setScan(false);
-                setCode(c);
-                void open(c);
-              }}
-              onError={(m) => {
-                setScan(false);
-                setMsg(m);
-              }}
-            />
-            <button type="button" className="lq-knopf lq-hell" onClick={() => setScan(false)}>
-              Abbrechen
-            </button>
+        <div className="lq-start-bild">
+          <Landschaft className="lq-start-landschaft" />
+          <div className="lq-start-titel">
+            <h1 className="lq-logo">Lernquest</h1>
+            <p className="lq-tagline">Üben. Spielen. Stärker werden.</p>
           </div>
-        ) : (
-          <button type="button" className="lq-knopf" onClick={() => setScan(true)}>
-            <ScanIcon />
-            Klassen-QR scannen
-          </button>
-        )}
-        <div className="lq-oder">
-          <span />
-          oder Klassencode
-          <span />
+          <Fuchs pose={msg ? 'troesten' : 'winken'} groesse={150} className="lq-start-fuchs" />
         </div>
-        <form
-          className="lq-code-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void open(code);
-          }}
-        >
-          <label htmlFor="lq-code">Klassencode von deiner Lehrkraft</label>
-          <input
-            id="lq-code"
-            className="lq-code"
-            value={code}
-            maxLength={9}
-            autoCapitalize="characters"
-            autoComplete="off"
-            spellCheck={false}
-            onChange={(e) =>
-              setCode(
-                e.target.value
-                  .toUpperCase()
-                  .replace(/[^0-9A-Z]/g, '')
-                  .slice(0, 8),
-              )
-            }
-            placeholder="z. B. K7QF9MXA"
-          />
-          <button className="lq-knopf lq-hell" disabled={code.length !== 8 || busy} aria-busy={busy}>
-            {busy ? 'Einen Moment …' : 'Weiter'}
-          </button>
-        </form>
-        {fehler}
+        <div className="lq-start-unten">
+          {scan ? (
+            <div className="lq-scan">
+              <QrScanner
+                onText={(t) => {
+                  const c = codeAus(t);
+                  if (!c) return;
+                  setScan(false);
+                  setCode(c);
+                  void open(c);
+                }}
+                onError={(m) => {
+                  setScan(false);
+                  setMsg(m);
+                }}
+              />
+              <button type="button" className="lq-knopf lq-hell" onClick={() => setScan(false)}>
+                Abbrechen
+              </button>
+            </div>
+          ) : (
+            <button type="button" className="lq-knopf" onClick={() => setScan(true)}>
+              <ScanIcon />
+              Klassen-QR scannen
+            </button>
+          )}
+          <div className="lq-oder">
+            <span />
+            oder Klassencode
+            <span />
+          </div>
+          <form
+            className="lq-code-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void open(code);
+            }}
+          >
+            <label htmlFor="lq-code">Klassencode von deiner Lehrkraft</label>
+            <input
+              id="lq-code"
+              className="lq-code"
+              value={code}
+              maxLength={9}
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(e) =>
+                setCode(
+                  e.target.value
+                    .toUpperCase()
+                    .replace(/[^0-9A-Z]/g, '')
+                    .slice(0, 8),
+                )
+              }
+              placeholder="z. B. K7QF9MXA"
+            />
+            <button className="lq-knopf lq-hell" disabled={code.length !== 8 || busy} aria-busy={busy}>
+              {busy ? 'Einen Moment …' : 'Weiter'}
+            </button>
+          </form>
+          {fehler}
+        </div>
       </main>
     );
   }
@@ -321,11 +333,12 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
       <main className="lq-app lq-namen-seite">
         <div className="lq-titelzeile">
           {back}
-          <div>
-            <span className="lq-kicker">{klasse.name}</span>
-            <h2>Wer bist du?</h2>
-          </div>
+          <span className="lq-kicker">{klasse.name}</span>
         </div>
+        <FuchsSagt pose="winken">
+          <h2>Wer bist du?</h2>
+          <p>Tippe auf deinen Namen.</p>
+        </FuchsSagt>
         <div className="lq-namen">
           {klasse.kinder.map((k) => (
             <button
@@ -351,11 +364,10 @@ function Anmeldung({ hinweis, onDone }: { hinweis: string; onDone: (s: Sitzung) 
   return (
     <main className="lq-app lq-pin-seite">
       {back}
-      <div className="lq-hallo">
-        <Initiale name={kind.name} gross />
+      <FuchsSagt pose={msg ? 'troesten' : 'stehen'}>
         <h2>Hallo {vorname(kind.name)}!</h2>
         <p>Gib deine 4-stellige PIN ein.</p>
-      </div>
+      </FuchsSagt>
       <div className="lq-pin" aria-live="polite" aria-label={`${pin.length} von 4 Ziffern`}>
         {[0, 1, 2, 3].map((i) => (
           <span key={i} className={i < pin.length ? 'voll' : ''} />
@@ -1315,15 +1327,3 @@ const WiederholenIcon = () => (
     <path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5" />
   </svg>
 );
-function Wappen() {
-  return (
-    <svg width="104" height="104" viewBox="0 0 104 104" aria-hidden>
-      <path d="M52 6 90 20v30c0 24-16 40-38 48C30 90 14 74 14 50V20Z" fill="#5B3FD9" />
-      <path d="M52 6 90 20v30c0 24-16 40-38 48Z" fill="#4A31C2" />
-      <circle cx="52" cy="50" r="22" fill="#fff" />
-      <path d="m52 32 7 18-7 18-7-18Z" fill="#FFC531" />
-      <path d="m52 50 7 0-7 18Z" fill="#C98F00" />
-      <circle cx="52" cy="50" r="3" fill="#1F1A3D" />
-    </svg>
-  );
-}
