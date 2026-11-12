@@ -10,6 +10,8 @@ import { readSubjectColors } from './subjectColor';
 import type { Competence, Holiday, Lesson, LessonVersion, Module, SchoolYear, Settings, TrashEntry } from './types';
 import { isObj } from '../model/text';
 import { readPool } from '../lernquest/fragenpool';
+import { readLernkarte } from '../lernquest/paket';
+import type { Lernkarte } from '../lernquest/types';
 
 const str = (x: unknown): string => (typeof x === 'string' ? x : typeof x === 'number' ? String(x) : '');
 const int = (x: unknown, fallback = 0): number => {
@@ -92,11 +94,18 @@ export function readLesson(raw: unknown): Lesson | null {
       boards: normalizeBoards(raw.boards),
       ...(canvaLink(raw.canvaUrl) ? { canvaUrl: canvaLink(raw.canvaUrl) } : {}),
       ...poolOf(raw.pool),
+      ...poolHilfeOf(raw.poolHilfe),
       updatedAt: Number(raw.updatedAt) || 0,
     };
   } catch {
     return null;
   }
+}
+
+/** The help cards the KI-Fragenpool wrote, only when there are some. */
+function poolHilfeOf(raw: unknown): { poolHilfe?: Lernkarte[] } {
+  const k = Array.isArray(raw) ? raw.map(readLernkarte).filter((x): x is Lernkarte => !!x).slice(0, 4) : [];
+  return k.length ? { poolHilfe: k } : {};
 }
 
 /** The lesson's Lernquest pool, only when it has one (older lessons stay as they were). */

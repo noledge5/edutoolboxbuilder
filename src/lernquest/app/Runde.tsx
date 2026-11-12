@@ -7,6 +7,7 @@ import type { Avatar } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { KopfBild } from './avatar';
 import { Fuchs } from './Fuchs';
+import { GluehbirneIcon, HilfeKarten, Tipp } from './Hilfe';
 import { HeldBild, nurAlsBild } from './heldVektor';
 import { Herzen } from './Held';
 import { tonAn } from './speicher';
@@ -47,6 +48,8 @@ export interface RundeProps {
   onFertig: (stunde: string, runde: number, ergebnisse: boolean[], leitner: Stand['leitner']) => void;
   /** The package of an exercise (its language and pictures). */
   paketVon?: (stunde: string) => Paket | undefined;
+  /** The introduction (a station's first round): every tip is open from the start, the child is led through. */
+  gefuehrt?: boolean;
 }
 
 /** In English: the sentence a child hears after checking a gap or word order. */
@@ -61,7 +64,7 @@ const prueftSelbst = (u: Uebung) => u.art === 'paare' || u.art === 'punkt';
 /** Formats that show the solution on the exercise itself once it is checked; the others get „Richtig wäre: …“. */
 const loesungSichtbar = (u: Uebung) => prueftSelbst(u) || u.art === 'bild';
 
-export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, held, wieder = true, zurueck = 0, onAbbruch, onFertig, paketVon }: RundeProps) {
+export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, held, wieder = true, zurueck = 0, onAbbruch, onFertig, paketVon, gefuehrt = false }: RundeProps) {
   /** Exercise indexes in the order played; a missed one is appended. */
   const [reihe, setReihe] = useState(() => uebungen.map((_, i) => i));
   const [pos, setPos] = useState(0);
@@ -71,6 +74,7 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
   const [leitner, setLeitner] = useState<Stand['leitner']>({});
   const [serie, setSerie] = useState(0);
   const [frage, setFrage] = useState(false);
+  const [hilfeAuf, setHilfeAuf] = useState(false);
   const [versuch] = useState(() => Date.now().toString(36));
   const n = uebungen.length;
   const item = uebungen[reihe[pos]];
@@ -133,6 +137,12 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
         <span className="lq-balken" role="progressbar" aria-valuemin={0} aria-valuemax={n} aria-valuenow={n - offen} aria-label="Fortschritt in der Runde">
           <span style={{ width: `${(100 * (n - offen)) / n}%` }} />
         </span>
+        {!!paket?.hilfe?.length && (
+          <button type="button" className="lq-hilfe-knopf" onClick={() => setHilfeAuf(true)} aria-label="Hilfe: So geht’s">
+            <GluehbirneIcon />
+            <span>Hilfe</span>
+          </button>
+        )}
         <Herzen voll={Math.max(0, herzen - fehler)} von={herzen} />
       </div>
       <span className="lq-kicker">{nochmal ? 'Nochmal: das war vorhin falsch' : kicker}</span>
@@ -149,6 +159,7 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
           if (a && prueftSelbst(item.u)) pruefen(a);
         }}
       />
+      {item.u.tipp && ok === null && <Tipp key={`tipp-${pos}`} text={item.u.tipp} offen={gefuehrt && !nochmal} />}
       <footer className={`lq-fuss ${ok === true ? 'ok' : ok === false ? 'nein' : prueftSelbst(item.u) ? 'leer' : ''}`} aria-live="polite">
         {ok !== null && (
           <div className="lq-rueckmeldung">
@@ -192,6 +203,17 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
           </button>
         )}
       </footer>
+      {hilfeAuf && paket?.hilfe && (
+        <div className="lq-dialog-grund" role="dialog" aria-modal="true" aria-label="So geht’s">
+          <div className="lq-dialog lq-hilfe-dialog">
+            <h2>So geht’s</h2>
+            <HilfeKarten karten={paket.hilfe} />
+            <button type="button" className="lq-knopf" autoFocus onClick={() => setHilfeAuf(false)}>
+              Weiter üben
+            </button>
+          </div>
+        </div>
+      )}
       {frage && (
         <div className="lq-dialog-grund" role="dialog" aria-modal="true" aria-labelledby="lq-ende-titel">
           <div className="lq-dialog">

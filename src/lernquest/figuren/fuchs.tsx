@@ -85,11 +85,9 @@ function Augen({ gesicht, augenZu }: Stand) {
     <g>
       {[80, 120].map((x) => (
         <g key={x}>
-          <ellipse cx={x} cy={93} rx={rx} ry={ry} fill={P.auge} />
-          {/* A warm brown ring low in the eye, then two highlights */}
-          <path d={`M${x - rx + 2} ${96} Q${x} ${93 + ry + 1} ${x + rx - 2} ${96}`} fill="none" stroke={P.ohrInnen} strokeWidth={2.5} opacity={0.8} />
-          <circle cx={x + 3 + dx} cy={88 + dy} r={3.6} fill={P.weiss} />
-          <circle cx={x - 3 + dx} cy={97 + dy} r={1.7} fill={P.weiss} />
+          {/* Flat eyes like the mockup's fox: one dark oval, no shine (teacher's review 12.11.2026); the look of a
+              face (thinking: up and aside) moves the whole eye. */}
+          <ellipse cx={x + dx} cy={93 + dy} rx={rx} ry={ry} fill={P.auge} />
           {gesicht === 'traurig' && <path d={`M${x - 10} 84 Q${x} 80 ${x + 10} 84 L${x + 10} 82 L${x - 10} 82 Z`} fill={P.fell} />}
         </g>
       ))}
@@ -246,23 +244,11 @@ const kopf: Teil = {
       {/* Cream mask and cheek fluff */}
       <path d="M100 84 C114 84 132 92 152 101 C142 122 124 132 100 132 C76 132 58 122 48 101 C68 92 86 84 100 84 Z" fill={P.creme} />
       <path d="M38 98 l8 1 M162 98 l-8 1 M42 104 l7 -1 M158 104 l-7 -1" stroke={P.fellTief} strokeWidth={2} strokeLinecap="round" opacity={0.7} />
-      <path d="M100 58 L94 70 L100 66 L106 70 Z" fill={P.fellTief} opacity={0.55} />
       <ellipse cx="66" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.6} />
       <ellipse cx="134" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.6} />
-      {[
-        [80, 111],
-        [76, 116],
-        [82, 117],
-        [120, 111],
-        [124, 116],
-        [118, 117],
-      ].map(([x, y]) => (
-        <circle key={`${x}-${y}`} cx={x} cy={y} r={1.3} fill={P.fellTief} opacity={0.6} />
-      ))}
       <Brauen {...s} />
       <Augen {...s} />
       <path d="M92 104 Q100 99 108 104 Q105 112 100 113 Q95 112 92 104 Z" fill={P.auge} />
-      <ellipse cx="97.5" cy="104" rx="2.5" ry="1.4" fill={P.weiss} opacity={0.75} />
       <Mund {...s} />
       {s.gesicht === 'traurig' && <path d="M131 101 q4 6 0 9 q-4 -3 0 -9 Z" fill={P.blauHell} stroke={P.blauTief} strokeWidth={1.5} />}
     </g>

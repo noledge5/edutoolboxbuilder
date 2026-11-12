@@ -1,5 +1,5 @@
 // A quick look at drawings without the workshop: writes a page and a screenshot (Playwright) of one group.
-// Runs only when asked:  VORSCHAU=<ordner> VORSCHAU_TEIL=<kopf|werkzeug|begleiter|hintergrund|held|alles> npx vitest run src/lernquest/figuren/vorschau
+// Runs only when asked:  VORSCHAU=<ordner> VORSCHAU_TEIL=<kopf|werkzeug|begleiter|hintergrund|held|fuchs|eigen|alles> npx vitest run src/lernquest/figuren/vorschau
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
@@ -34,8 +34,8 @@ it.skipIf(!ziel)('writes a preview page and screenshot', async () => {
       teile.push(
         `<figure><div class="reihe"><svg width="240" height="240" viewBox="0 0 240 240">${renderToStaticMarkup(<>{h.zeichnung(0.4)}</>)}</svg><svg width="64" height="64" viewBox="0 0 240 240">${renderToStaticMarkup(<>{h.zeichnung(0)}</>)}</svg></div><figcaption>${h.id} · ${h.seltenheit}</figcaption></figure>`,
       );
-  if (teil === 'held' || teil === 'alles')
-    for (const f of FIGUREN.filter((x) => x.art === 'held'))
+  if (teil === 'held' || teil === 'fuchs' || teil === 'alles')
+    for (const f of FIGUREN.filter((x) => (teil === 'fuchs' ? x.id === 'fuchs' : x.art === 'held')))
       for (const p of Object.keys(f.posen))
         teile.push(`<figure>${renderToStaticMarkup(<FigurBild figur={f} pose={p} zeit={0} lebendig={false} breite={200} />)}<figcaption>${f.id} · ${p}</figcaption></figure>`);
   if (teil === 'eigen') {

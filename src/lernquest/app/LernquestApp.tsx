@@ -41,9 +41,10 @@ import { readPaket } from '../paket';
 import { bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
-import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
+import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, hilfeGesehen, merkeHilfe, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
 import { Jubel } from './Jubel';
+import { GluehbirneIcon, HilfeSeite } from './Hilfe';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
 import { useZurueck } from './zurueck';
 import { GutscheineSeite, TicketIcon } from './Gutscheine';
@@ -58,6 +59,8 @@ import type { Wegpunkt } from './Landkarte';
 export type Screen =
   | { kind: 'karte' }
   | { kind: 'station'; stunde: string }
+  /** Stufe E: the station's help cards („So geht's“); `dann`: the round to start after them. */
+  | { kind: 'hilfe'; stunde: string; dann?: number }
   | { kind: 'wiederholen' }
   | { kind: 'held'; willkommen?: boolean }
   /** Stufe D, Teil 2: the welcome of a new child (hero, mini round, first chest). */
@@ -686,6 +689,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           if (screen.willkommen) setScreen({ kind: 'willkommen', schritt: 'truhe' });
         }}
         paketVon={(st) => daten.pakete[st]}
+        gefuehrt={!!screen.stunde && screen.runde === 0 && !screen.meilenstein && !screen.willkommen}
       />
     );
   }
@@ -779,7 +783,15 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   }
 
   const naechste = (p: Paket) => naechsteRunde(stand.bestwerte[p.stunde] ?? [], rundenZahl(p.uebungen.length));
-  const starte = (p: Paket, r: number) => setScreen({ kind: 'runde', nr: Date.now(), stunde: p.stunde, runde: r, uebungen: rundeVon(p.uebungen, r).map((u) => ({ u, stunde: p.stunde })) });
+  /** Starts a round; before a station's first round its help cards come once (and the round is the guided one). */
+  const starte = (p: Paket, r: number, ohneHilfe = false) => {
+    if (r === 0 && !ohneHilfe && p.hilfe?.length && !hilfeGesehen(p.stunde)) {
+      merkeHilfe(p.stunde);
+      return setScreen({ kind: 'hilfe', stunde: p.stunde, dann: 0 });
+    }
+    rundeStarten(p, r);
+  };
+  const rundeStarten = (p: Paket, r: number) => setScreen({ kind: 'runde', nr: Date.now(), stunde: p.stunde, runde: r, uebungen: rundeVon(p.uebungen, r).map((u) => ({ u, stunde: p.stunde })) });
 
   const karten = pakete.flatMap((p) => p.uebungen.map((u) => karteKey(p.stunde, u.id)));
   const dran = heuteDran(stand.leitner, karten, daten.extra, heute());
@@ -1054,6 +1066,20 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     );
   }
 
+  if (screen.kind === 'hilfe' && daten.pakete[screen.stunde]?.hilfe?.length) {
+    const p = daten.pakete[screen.stunde];
+    const dann = screen.dann;
+    return (
+      <HilfeSeite
+        titel={p.titel}
+        karten={p.hilfe!}
+        knopf={dann !== undefined ? 'Verstanden – los geht’s!' : 'Verstanden'}
+        onWeiter={() => (dann !== undefined ? starte(p, dann, true) : setScreen({ kind: 'station', stunde: p.stunde }))}
+        onZurueck={() => setScreen({ kind: 'station', stunde: p.stunde })}
+      />
+    );
+  }
+
   const paket = screen.kind === 'station' ? daten.pakete[screen.stunde] : undefined;
   if (paket) {
     const runden = rundenZahl(paket.uebungen.length);
@@ -1068,6 +1094,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           {paket.fach} · Region {paket.modul.nummer} · Station {paket.nummer}
         </span>
         <h1>{paket.titel}</h1>
+        {!!paket.hilfe?.length && (
+          <button type="button" className="lq-knopf lq-hell lq-so-gehts" onClick={() => setScreen({ kind: 'hilfe', stunde: paket.stunde })}>
+            <GluehbirneIcon /> So geht’s
+          </button>
+        )}
         <SterneRegeln best={best} stufen={rundenStufen(paket.uebungen)} n={sterneVon(stand, paket)} />
         <ol className="lq-runden">
           {Array.from({ length: runden }, (_, r) => (

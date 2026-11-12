@@ -1048,3 +1048,21 @@
 .lqt-wunsch textarea {
   resize: vertical;
 }
+.lqt-hilfe {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-divider);
+}
+.lqt-hilfe-karte {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 14px;
+}
+.lqt-hilfe-karte .iconbtn {
+  margin-left: auto;
+}

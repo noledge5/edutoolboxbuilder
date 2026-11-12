@@ -17,9 +17,9 @@ import type { Lesson, Module, Settings } from '../../library/types';
 import { useImageUrl } from '../../storage/images';
 import { exercisesOf } from '../paket';
 import { RUNDE_MAX, RUNDEN_MAX } from '../rules';
-import { ablenkerVon, bilderDerStunde, kurzText, lueckeAus, lueckeText, mitZusatz, neueId, NIVEAUS, POOL_MAX, poolAnfrage, poolAusAntwort, poolPrompt, poolSystem, POOL_ZIEL, PUNKTE, punktAufgabe, readUebung, reihenfolgeAus } from '../fragenpool';
+import { ablenkerVon, bilderDerStunde, frueherVon, kurzText, lueckeAus, lueckeText, mitZusatz, neueId, NIVEAUS, POOL_MAX, poolAnfrage, poolAusAntwort, poolPrompt, poolSystem, POOL_ZIEL, PUNKTE, punktAufgabe, readUebung, reihenfolgeAus } from '../fragenpool';
 import { KARTE_KEY } from '../paket';
-import type { Niveau, PoolEintrag, Uebung, UebungsArt } from '../types';
+import type { Lernkarte, Niveau, PoolEintrag, Uebung, UebungsArt } from '../types';
 
 const ARTEN: Record<UebungsArt, string> = {
   waehlen: 'Antippen',
@@ -40,11 +40,14 @@ interface Props {
   modul: Module;
   stunde: Lesson;
   settings: Settings;
-  onChange(pool: PoolEintrag[]): void;
+  /** `hilfe`: new help cards for the lesson (absent = keep them). */
+  onChange(pool: PoolEintrag[], hilfe?: Lernkarte[]): void;
+  /** All lessons, for the earlier ones of the module (repetition mixed in). */
+  stunden?: Lesson[];
   onClose(): void;
 }
 
-export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }: Props) {
+export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, stunden = [] }: Props) {
   const job = useAiJob();
   const ai = useAiSettings();
   const { busy, error, answer } = job;
@@ -68,12 +71,14 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
     klasse: classProfileOf(settings, modul.subject, modul.grade),
     vorhanden: [...eigene, ...pool.map((e) => e.u)],
     wuensche,
+    frueher: frueherVon(stunden, stunde),
   });
   const read = (raw: unknown) => {
-    const { neu, verworfen } = poolAusAntwort(raw, pool.map((e) => e.u.id), modul.lang === 'en');
+    const { neu, verworfen, hilfe } = poolAusAntwort(raw, pool.map((e) => e.u.id), modul.lang === 'en');
     const platz = Math.max(0, POOL_MAX - pool.length);
     const dazu = neu.slice(0, platz).map((u) => ({ u, frei: false }));
-    onChange([...pool, ...dazu]);
+    // New help cards replace the old ones only when Claude wrote some.
+    onChange([...pool, ...dazu], hilfe.length ? hilfe : undefined);
     setChatOpen(false);
     setPasted('');
     const weg = verworfen + (neu.length - dazu.length);
@@ -128,6 +133,20 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose }:
           {busy && <AiBusy busy={busy} hint="Das dauert meist ein bis zwei Minuten." onStop={job.stop} />}
           {error && <p className="json-err">{error}</p>}
           {meldung && !busy && <p className="lqt-hint">{meldung}</p>}
+          {!!stunde.poolHilfe?.length && (
+            <section className="lqt-hilfe" aria-label="Hilfe-Karten für die Kinder">
+              <strong>Hilfe-Karten („So geht’s“, vor der ersten Runde)</strong>
+              {stunde.poolHilfe.map((k, i) => (
+                <div key={i} className="lqt-hilfe-karte">
+                  <b>{k.titel}</b> {k.text}
+                  {k.beispiele && <small> · {k.beispiele.join(' · ')}</small>}
+                  <button type="button" className="iconbtn" aria-label={`Hilfe-Karte „${k.titel}“ entfernen`} title="Entfernen" onClick={() => onChange(pool, stunde.poolHilfe!.filter((_, j) => j !== i))}>
+                    <Icon icon={Trash2} size={16} />
+                  </button>
+                </div>
+              ))}
+            </section>
+          )}
           {answer && !busy && (
             <p className="ai-cost">
               Kosten etwa {dollars(answer.usd)} · {modelLabel(answer.model)}

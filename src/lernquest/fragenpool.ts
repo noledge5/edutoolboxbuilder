@@ -7,8 +7,8 @@ import { blockText } from '../library/search';
 import type { Lesson, Module } from '../library/types';
 import { seeded, shuffle } from '../model/language';
 import { isObj, str } from '../model/text';
-import { KARTE_KEY, sentenceTiles, shuffledTiles } from './paket';
-import type { Niveau, PoolEintrag, Uebung } from './types';
+import { KARTE_KEY, readLernkarte, sentenceTiles, shuffledTiles } from './paket';
+import type { Lernkarte, Niveau, PoolEintrag, Uebung } from './types';
 
 export const POOL_FORMAT = 'lernquest-fragenpool';
 /** Exercises one request asks for. */
@@ -28,6 +28,8 @@ export const PUNKTE = [1, 6] as const;
 const NAME_MAX = 60;
 /** The sentence after a mistake: short, a child reads it on a phone. */
 const ERKLAERUNG_MAX = 240;
+/** A tip before answering: short, never the answer. */
+const TIPP_MAX = 200;
 /** Image ids a task with places can name (the key travels in the package and is checked strictly). */
 const BILD_ID = /^[\w-]{1,64}$/;
 const ABLENKER_MAX = 3;
@@ -51,8 +53,9 @@ export function readUebung(x: unknown): Uebung | null {
   const u = liesUebung(x);
   if (!u || !isObj(x)) return u;
   const erklaerung = text(x.erklaerung, ERKLAERUNG_MAX)?.trim();
+  const tipp = text(x.tipp, TIPP_MAX)?.trim();
   const niveau = x.niveau === 1 || x.niveau === 2 || x.niveau === 3 ? x.niveau : null;
-  return { ...u, ...(erklaerung ? { erklaerung } : {}), ...(niveau ? { niveau } : {}) };
+  return { ...u, ...(erklaerung ? { erklaerung } : {}), ...(tipp ? { tipp } : {}), ...(niveau ? { niveau } : {}) };
 }
 
 /** An exercise with the explanation and level the teacher (or Claude) gave it; an empty explanation is none. */
@@ -248,7 +251,13 @@ export interface PoolAuftrag {
   /** Exercises already there (from the lesson and the pool), so Claude writes other ones. */
   vorhanden: Uebung[];
   wuensche: string;
+  /** Earlier lessons of the module, for repetition mixed in (Stufe E); none = no repetition. */
+  frueher?: Lesson[];
 }
+
+/** The earlier lessons of the module (number below this one), at most the last five. */
+export const frueherVon = (lessons: Lesson[], l: Lesson): Lesson[] =>
+  lessons.filter((x) => x.moduleId === l.moduleId && x.number < l.number).sort((a, b) => a.number - b.number).slice(-5);
 
 /** What the children see of the lesson: the student pages as text (teacher pages stay out). */
 export function stundenText(l: Lesson): string {
@@ -296,6 +305,12 @@ export function poolSystem(): string {
     '- Kurz und eindeutig: genau eine richtige Lösung (bei „waehlen“ höchstens zwei richtige Antworten), keine Fangfragen, keine doppelte Verneinung.',
     '- Falsche Antworten sind typische Denkfehler der Klassenstufe (was Kinder wirklich verwechseln), aber eindeutig falsch.',
     '- Jede Übung bekommt "niveau" (1 leicht: wiedererkennen; 2 mittel: anwenden; 3 schwer: selbst erzeugen oder übertragen) und "erklaerung": ein kurzer Satz in Kindersprache, warum die Lösung stimmt (höchstens 200 Zeichen, auf Deutsch, verrät nichts über andere Übungen).',
+    '- Jede Übung bekommt auch "tipp": eine Hilfe, bevor das Kind antwortet (höchstens 160 Zeichen, auf Deutsch, Kindersprache). Der Tipp nennt die Regel oder wie man anfängt („Schau, wer gemeint ist: bei I immer am.“), verrät aber nie die Lösung. Schwächere Kinder sollen damit allein weiterkommen.',
+    '',
+    '## Aufbau: an die Hand nehmen, dann steigern, Wiederholung einstreuen',
+    '- "hilfe": 1 bis 3 Lernkarten, die das Neue der Stunde so erklären, dass ein schwächeres Kind allein klarkommt: {"titel":"…","text":"…","beispiele":["…","…"]} – Titel höchstens 50 Zeichen, Text 1 bis 3 kurze Sätze (höchstens 300 Zeichen), 2 bis 4 Beispiele (höchstens 120 Zeichen); {{…}} markiert in den Beispielen das, worauf es ankommt (z. B. „I {{am}} Tom.“). Die Kinder sehen die Karten vor der ersten Runde.',
+    '- Ordne die Übungen aufbauend: zuerst Einführung (niveau 1, sehr klein, ein Schritt nach dem anderen, ganz nah an den Lernkarten), dann anwenden (2), dann selbst erzeugen (3). In der ersten Runde ist der Tipp schon offen.',
+    '- Wiederholung einstreuen: Gibt es „Frühere Stunden“, wiederholt etwa jede vierte Übung deren Inhalt (meist niveau 1 oder 2) und bekommt "wiederholung":true. Verteile sie über die Liste, nicht alle am Ende.',
     '- Sprache der Klassenstufe; Anweisungen („frage“) auf Deutsch, kurz („Tippe die richtige Antwort an.“). In Englisch-Stunden stehen Aussagen, Sätze und Antworten auf Englisch.',
     '- Abwechslung: alle Formate nutzen, nicht zweimal dieselbe Frage, keine Übung, die schon in der Liste „Schon vorhanden“ steht.',
     '- Höchstens 240 Zeichen je Text, Antworten und Karten höchstens 120.',
@@ -312,7 +327,7 @@ export function poolSystem(): string {
     '- schreiben: {"art":"schreiben","frage":"Schreib das Wort auf Englisch.","aussage":"die Schwester","loesungen":["sister","the sister"]} – das Kind tippt ein Wort oder einen ganz kurzen Satz. Nur wenn die Lösung eindeutig ist (Vokabeln, Fachbegriffe, Zahlen); alle richtigen Schreibweisen angeben (höchstens 4). Groß- und Kleinschreibung und der Punkt am Ende zählen nicht.',
     '',
     '## Antwort',
-    `Nur ein JSON-Block: {"format":"${POOL_FORMAT}","uebungen":[{"art":"…","niveau":1,"erklaerung":"…",…}]}. Etwa ${POOL_ZIEL} Übungen, je ein Drittel leicht, mittel und schwer, jedes Format mindestens einmal (hoeren nur in Englisch-Stunden).`,
+    `Nur ein JSON-Block: {"format":"${POOL_FORMAT}","hilfe":[{"titel":"…","text":"…","beispiele":["…"]}],"uebungen":[{"art":"…","niveau":1,"tipp":"…","erklaerung":"…",…}]}. Etwa ${POOL_ZIEL} Übungen, je ein Drittel leicht, mittel und schwer, jedes Format mindestens einmal (hoeren nur in Englisch-Stunden).`,
     'Leicht sind vor allem waehlen, richtigfalsch und paare; mittel vor allem luecke, reihenfolge, gruppen und hoeren; schwer vor allem schreiben, Lücken mit mehreren Wörtern und Fragen, die das Gelernte auf einen neuen Fall übertragen.',
   ].join('\n');
 }
@@ -329,11 +344,15 @@ export function poolPrompt(a: PoolAuftrag): string {
   ];
   if (a.klasse.trim()) kopf.push(`Die Klasse (ohne Namen): ${a.klasse.trim()}`);
   if (a.wuensche.trim()) kopf.push(`Wünsche der Lehrkraft: ${a.wuensche.trim()}`);
+  const frueher = (a.frueher ?? []).map((x) => `### Stunde ${x.number}: ${x.title}\n${stundenText(x).slice(0, 1200)}`).join('\n\n').slice(0, 5000);
   return [
     ...kopf,
     '',
     '## Inhalt der Stunde',
     stundenText(l) || '(Auf den Arbeitsblättern steht noch nichts.)',
+    '',
+    '## Frühere Stunden (für eingestreute Wiederholung)',
+    frueher || '(keine – keine Wiederholung)',
     '',
     '## Schon vorhanden',
     a.vorhanden.length ? a.vorhanden.map((u) => `- ${kurzText(u)}`).join('\n') : '(nichts)',
@@ -350,7 +369,7 @@ const strs = (x: unknown) => (Array.isArray(x) ? x.map(s).filter(Boolean) : []);
 function ausEntwurf(x: unknown, id: string, en: boolean): Uebung | null {
   const u = ohneZusatz(x, id, en);
   // A too long explanation or an unknown level is dropped, the exercise stays.
-  return u && isObj(x) ? readUebung({ ...u, erklaerung: s(x.erklaerung), niveau: Number(x.niveau) }) : u;
+  return u && isObj(x) ? readUebung({ ...u, erklaerung: s(x.erklaerung), tipp: s(x.tipp), niveau: Number(x.niveau) }) : u;
 }
 
 function ohneZusatz(x: unknown, id: string, en: boolean): Uebung | null {
@@ -397,7 +416,7 @@ function ohneZusatz(x: unknown, id: string, en: boolean): Uebung | null {
  * The exercises of Claude's answer, each with a new id (not one of `ids`); what does not hold up is left out and
  * counted. Throws a German message when the answer is no pool at all.
  */
-export function poolAusAntwort(raw: unknown, ids: Iterable<string>, en: boolean): { neu: Uebung[]; verworfen: number } {
+export function poolAusAntwort(raw: unknown, ids: Iterable<string>, en: boolean): { neu: Uebung[]; verworfen: number; hilfe: Lernkarte[] } {
   const list = isObj(raw) && Array.isArray(raw.uebungen) ? raw.uebungen : Array.isArray(raw) ? raw : null;
   if (!list) throw new Error('Das ist kein Fragenpool: In der Antwort fehlt die Liste „uebungen“.');
   const taken = new Set(ids);
@@ -414,5 +433,6 @@ export function poolAusAntwort(raw: unknown, ids: Iterable<string>, en: boolean)
     neu.push(u);
   }
   if (!neu.length) throw new Error('In der Antwort war keine brauchbare Übung.');
-  return { neu, verworfen };
+  const hilfe = isObj(raw) && Array.isArray(raw.hilfe) ? raw.hilfe.map(readLernkarte).filter((k): k is Lernkarte => !!k).slice(0, 3) : [];
+  return { neu, verworfen, hilfe };
 }

@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Stufe E fertig: Teile 1 bis 6; App wieder an, wartet aufs Mergen)
+# Handoff – 12.11.2026 (Stufe E fertig und live: PR #61 gemergt, App wieder an)
 
 ## Stand
 - **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
@@ -43,10 +43,17 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
    `20261125_lernquest_klassenaufgabe.sql` ist jetzt im Repo): Reiter „Aufgaben“ (Heute/Woche), Truhe als Vektor, Fuchs
    beim Fund. **Teil 6 fertig:** Glockentöne (`app/ton.ts`), Konfetti (`app/Jubel.tsx`) bei Stern, perfekter Runde,
    Meilenstein und seltenem Fund, Held jubelt über dem Ergebnis, Schalter „Bewegung reduzieren“ im Menü (Klasse
-   `lq-ruhig`), **`UMBAU = false`**: Mit dem Mergen von `claude/clever-hamilton-ztdfgt` nach `main` ist die
-   Kinder-App wieder live. Vorher: Live-Tests gegen den Server laufen lassen, Lehrkraft-Seite „Teile und Wünsche“
+   `lq-ruhig`), **`UMBAU = false`**. Gemergt (PR #61) und veröffentlicht am 12.11.; die Kinder-App ist live. Noch offen: Live-Tests gegen den Server laufen lassen, Lehrkraft-Seite „Teile und Wünsche“
    einmal angemeldet ansehen (nur ohne Anmeldung nicht prüfbar). Früher zu Teil 5: Dateien von
    `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
+
+## Stand nach Stufe E (12.11.2026, Branch `claude/clever-hamilton-ztdfgt`, noch nicht gemergt)
+- Lernschleife zuerst (Entscheidung in `docs/roadmap.md`): Hilfe-Karten „So geht’s“, Tipp je Aufgabe (`app/Hilfe.tsx`),
+  KI-Fragenpool plant Tipps, Hilfe-Karten, Aufbau und eingestreute Wiederholung (`fragenpool.ts`).
+- Teststationen in `src/lernquest/testpakete.ts`; Migration `20261127_lernquest_testphase.sql` archiviert die alten
+  Stationen und schaltet die Teststationen frei (Einspielen: siehe Antwort an die Lehrkraft; prüfen mit
+  `select stunde from lq_paket`).
+- Fuchs: flache Augen nach Prüfung der Lehrkraft; Avatar-Teile noch ungeprüft.
 
 ## Wichtig zu wissen
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
