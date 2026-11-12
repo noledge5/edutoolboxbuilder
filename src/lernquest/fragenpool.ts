@@ -48,6 +48,17 @@ const texts = (x: unknown, [lo, hi]: readonly [number, number], max = OPTION_MAX
 };
 const index = (x: unknown, n: number): number | null => (Number.isInteger(x) && (x as number) >= 0 && (x as number) < n ? (x as number) : null);
 
+/** Tips for exercises that are already there (the sheet's own ones), by exercise id; broken entries are left out. */
+export function readTipps(x: unknown): Record<string, string> {
+  if (!isObj(x)) return {};
+  return Object.fromEntries(
+    Object.entries(x)
+      .filter(([id, t]) => id.length > 0 && id.length <= 80 && typeof t === 'string' && t.trim() && t.length <= TIPP_MAX)
+      .slice(0, 200)
+      .map(([id, t]) => [id, (t as string).trim()]),
+  );
+}
+
 /** One exercise, checked strictly (a broken one is null): what the teacher keeps must also play. */
 export function readUebung(x: unknown): Uebung | null {
   const u = liesUebung(x);
@@ -59,7 +70,7 @@ export function readUebung(x: unknown): Uebung | null {
 }
 
 /** An exercise with the explanation and level the teacher (or Claude) gave it; an empty explanation is none. */
-export const mitZusatz = (u: Uebung, erklaerung: string, niveau: Niveau | undefined): Uebung | null => readUebung({ ...u, erklaerung: erklaerung.trim(), niveau });
+export const mitZusatz = (u: Uebung, erklaerung: string, niveau: Niveau | undefined, tipp = ''): Uebung | null => readUebung({ ...u, erklaerung: erklaerung.trim(), tipp: tipp.trim(), niveau });
 
 function liesUebung(x: unknown): Uebung | null {
   if (!isObj(x) || typeof x.id !== 'string' || !x.id || x.id.length > 80) return null;
@@ -310,6 +321,7 @@ export function poolSystem(): string {
     '## Aufbau: an die Hand nehmen, dann steigern, Wiederholung einstreuen',
     '- "hilfe": 1 bis 3 Lernkarten, die das Neue der Stunde so erklären, dass ein schwächeres Kind allein klarkommt: {"titel":"…","text":"…","beispiele":["…","…"]} – Titel höchstens 50 Zeichen, Text 1 bis 3 kurze Sätze (höchstens 300 Zeichen), 2 bis 4 Beispiele (höchstens 120 Zeichen); {{…}} markiert in den Beispielen das, worauf es ankommt (z. B. „I {{am}} Tom.“). Die Kinder sehen die Karten vor der ersten Runde.',
     '- Ordne die Übungen aufbauend: zuerst Einführung (niveau 1, sehr klein, ein Schritt nach dem anderen, ganz nah an den Lernkarten), dann anwenden (2), dann selbst erzeugen (3). In der ersten Runde ist der Tipp schon offen.',
+    '- Tipps auch für „Schon vorhanden“: Für jede Übung dort ohne „(hat Tipp)“ schreib einen Tipp in "tipps", mit ihrer Kennung aus den eckigen Klammern: {"<kennung>":"Tipp"}. So hat jede Übung der Station einen Tipp.',
     '- Wiederholung einstreuen: Gibt es „Frühere Stunden“, wiederholt etwa jede vierte Übung deren Inhalt (meist niveau 1 oder 2) und bekommt "wiederholung":true. Verteile sie über die Liste, nicht alle am Ende.',
     '- Sprache der Klassenstufe; Anweisungen („frage“) auf Deutsch, kurz („Tippe die richtige Antwort an.“). In Englisch-Stunden stehen Aussagen, Sätze und Antworten auf Englisch.',
     '- Abwechslung: alle Formate nutzen, nicht zweimal dieselbe Frage, keine Übung, die schon in der Liste „Schon vorhanden“ steht.',
@@ -327,7 +339,7 @@ export function poolSystem(): string {
     '- schreiben: {"art":"schreiben","frage":"Schreib das Wort auf Englisch.","aussage":"die Schwester","loesungen":["sister","the sister"]} – das Kind tippt ein Wort oder einen ganz kurzen Satz. Nur wenn die Lösung eindeutig ist (Vokabeln, Fachbegriffe, Zahlen); alle richtigen Schreibweisen angeben (höchstens 4). Groß- und Kleinschreibung und der Punkt am Ende zählen nicht.',
     '',
     '## Antwort',
-    `Nur ein JSON-Block: {"format":"${POOL_FORMAT}","hilfe":[{"titel":"…","text":"…","beispiele":["…"]}],"uebungen":[{"art":"…","niveau":1,"tipp":"…","erklaerung":"…",…}]}. Etwa ${POOL_ZIEL} Übungen, je ein Drittel leicht, mittel und schwer, jedes Format mindestens einmal (hoeren nur in Englisch-Stunden).`,
+    `Nur ein JSON-Block: {"format":"${POOL_FORMAT}","tipps":{"<kennung>":"…"},"hilfe":[{"titel":"…","text":"…","beispiele":["…"]}],"uebungen":[{"art":"…","niveau":1,"tipp":"…","erklaerung":"…",…}]}. Etwa ${POOL_ZIEL} Übungen, je ein Drittel leicht, mittel und schwer, jedes Format mindestens einmal (hoeren nur in Englisch-Stunden).`,
     'Leicht sind vor allem waehlen, richtigfalsch und paare; mittel vor allem luecke, reihenfolge, gruppen und hoeren; schwer vor allem schreiben, Lücken mit mehreren Wörtern und Fragen, die das Gelernte auf einen neuen Fall übertragen.',
   ].join('\n');
 }
@@ -355,7 +367,7 @@ export function poolPrompt(a: PoolAuftrag): string {
     frueher || '(keine – keine Wiederholung)',
     '',
     '## Schon vorhanden',
-    a.vorhanden.length ? a.vorhanden.map((u) => `- ${kurzText(u)}`).join('\n') : '(nichts)',
+    a.vorhanden.length ? a.vorhanden.map((u) => `- [${u.id}]${u.tipp ? ' (hat Tipp)' : ''} ${kurzText(u)}`).join('\n') : '(nichts)',
   ].join('\n');
 }
 
@@ -416,7 +428,7 @@ function ohneZusatz(x: unknown, id: string, en: boolean): Uebung | null {
  * The exercises of Claude's answer, each with a new id (not one of `ids`); what does not hold up is left out and
  * counted. Throws a German message when the answer is no pool at all.
  */
-export function poolAusAntwort(raw: unknown, ids: Iterable<string>, en: boolean): { neu: Uebung[]; verworfen: number; hilfe: Lernkarte[] } {
+export function poolAusAntwort(raw: unknown, ids: Iterable<string>, en: boolean): { neu: Uebung[]; verworfen: number; hilfe: Lernkarte[]; tipps: Record<string, string> } {
   const list = isObj(raw) && Array.isArray(raw.uebungen) ? raw.uebungen : Array.isArray(raw) ? raw : null;
   if (!list) throw new Error('Das ist kein Fragenpool: In der Antwort fehlt die Liste „uebungen“.');
   const taken = new Set(ids);
@@ -434,5 +446,5 @@ export function poolAusAntwort(raw: unknown, ids: Iterable<string>, en: boolean)
   }
   if (!neu.length) throw new Error('In der Antwort war keine brauchbare Übung.');
   const hilfe = isObj(raw) && Array.isArray(raw.hilfe) ? raw.hilfe.map(readLernkarte).filter((k): k is Lernkarte => !!k).slice(0, 3) : [];
-  return { neu, verworfen, hilfe };
+  return { neu, verworfen, hilfe, tipps: isObj(raw) ? readTipps(raw.tipps) : {} };
 }

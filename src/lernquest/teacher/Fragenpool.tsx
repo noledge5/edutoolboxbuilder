@@ -41,7 +41,7 @@ interface Props {
   stunde: Lesson;
   settings: Settings;
   /** `hilfe`: new help cards for the lesson (absent = keep them). */
-  onChange(pool: PoolEintrag[], hilfe?: Lernkarte[]): void;
+  onChange(pool: PoolEintrag[], hilfe?: Lernkarte[], tipps?: Record<string, string>): void;
   /** All lessons, for the earlier ones of the module (repetition mixed in). */
   stunden?: Lesson[];
   onClose(): void;
@@ -74,11 +74,14 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
     frueher: frueherVon(stunden, stunde),
   });
   const read = (raw: unknown) => {
-    const { neu, verworfen, hilfe } = poolAusAntwort(raw, pool.map((e) => e.u.id), modul.lang === 'en');
+    const { neu, verworfen, hilfe, tipps } = poolAusAntwort(raw, pool.map((e) => e.u.id), modul.lang === 'en');
+    // Tips only for the sheet's own exercises, added to what is there.
+    const ids = new Set(eigene.map((u) => u.id));
+    const neueTipps = Object.fromEntries(Object.entries(tipps).filter(([id]) => ids.has(id)));
     const platz = Math.max(0, POOL_MAX - pool.length);
     const dazu = neu.slice(0, platz).map((u) => ({ u, frei: false }));
     // New help cards replace the old ones only when Claude wrote some.
-    onChange([...pool, ...dazu], hilfe.length ? hilfe : undefined);
+    onChange([...pool, ...dazu], hilfe.length ? hilfe : undefined, Object.keys(neueTipps).length ? { ...stunde.poolTipps, ...neueTipps } : undefined);
     setChatOpen(false);
     setPasted('');
     const weg = verworfen + (neu.length - dazu.length);
@@ -332,6 +335,7 @@ function Vorschau({ u }: { u: Uebung }) {
           {u.loesungen.length > 1 && <span className="lqt-pool-neben"> · auch richtig: {u.loesungen.slice(1).join(', ')}</span>}
         </p>
       )}
+      {u.tipp && <p className="lqt-pool-neben">Tipp: {u.tipp}</p>}
       {u.erklaerung && <p className="lqt-pool-neben">Erklärung: {u.erklaerung}</p>}
     </div>
   );
@@ -345,6 +349,7 @@ function PoolEditor({ u, onSave, onCancel }: { u: Uebung; onSave(u: Uebung): voi
   const [loesungen, setLoesungen] = useState(u.art === 'schreiben' ? u.loesungen.join(' / ') : '');
   // Kept apart from the exercise: gap and word order are built anew on saving and would lose them.
   const [erklaerung, setErklaerung] = useState(u.erklaerung ?? '');
+  const [tipp, setTipp] = useState(u.tipp ?? '');
   const [niveau, setNiveau] = useState<Niveau | undefined>(u.niveau);
   const [fehler, setFehler] = useState('');
   const set = (patch: Partial<Uebung>) => setD((x) => ({ ...x, ...patch }) as Uebung);
@@ -354,10 +359,12 @@ function PoolEditor({ u, onSave, onCancel }: { u: Uebung; onSave(u: Uebung): voi
     if (d.art === 'luecke') next = lueckeAus(d.id, d.frage, satz, ablenker.split(','));
     if (d.art === 'reihenfolge') next = reihenfolgeAus(d.id, d.frage, d.loesung, d.hinweis.trim());
     if (d.art === 'schreiben') next = { ...d, loesungen: loesungen.split(/\s+\/\s+/).map((l) => l.trim()).filter(Boolean) };
-    const ok = next && mitZusatz(next, erklaerung, niveau);
+    const ok = next && tipp.length <= 200 && mitZusatz(next, erklaerung, niveau, tipp);
     if (!ok) {
       setFehler(
-        erklaerung.length > 240
+        tipp.length > 200
+          ? 'Der Tipp darf höchstens 200 Zeichen haben.'
+          : erklaerung.length > 240
           ? 'Die Erklärung darf höchstens 240 Zeichen haben.'
           : d.art === 'schreiben'
             ? 'Schreib 1 bis 4 richtige Schreibweisen, mit Leerzeichen und Schrägstrich getrennt, z. B. „sister / the sister“.'
@@ -454,6 +461,7 @@ function PoolEditor({ u, onSave, onCancel }: { u: Uebung; onSave(u: Uebung): voi
           {feld('Richtige Schreibweisen, mit „ / “ getrennt (die erste wird gezeigt)', loesungen, setLoesungen)}
         </>
       )}
+      {feld('Tipp vor dem Antworten (verrät nicht die Lösung)', tipp, setTipp)}
       {feld('Erklärung nach einem Fehler (freiwillig)', erklaerung, setErklaerung)}
       <label className="lqt-pool-feld">
         <span>Schwierigkeit</span>

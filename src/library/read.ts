@@ -9,7 +9,7 @@ import { isLessonRole } from './planning';
 import { readSubjectColors } from './subjectColor';
 import type { Competence, Holiday, Lesson, LessonVersion, Module, SchoolYear, Settings, TrashEntry } from './types';
 import { isObj } from '../model/text';
-import { readPool } from '../lernquest/fragenpool';
+import { readPool, readTipps } from '../lernquest/fragenpool';
 import { readLernkarte } from '../lernquest/paket';
 import type { Lernkarte } from '../lernquest/types';
 
@@ -95,6 +95,7 @@ export function readLesson(raw: unknown): Lesson | null {
       ...(canvaLink(raw.canvaUrl) ? { canvaUrl: canvaLink(raw.canvaUrl) } : {}),
       ...poolOf(raw.pool),
       ...poolHilfeOf(raw.poolHilfe),
+      ...(Object.keys(readTipps(raw.poolTipps)).length ? { poolTipps: readTipps(raw.poolTipps) } : {}),
       updatedAt: Number(raw.updatedAt) || 0,
     };
   } catch {

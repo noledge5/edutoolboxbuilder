@@ -47,12 +47,11 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
    einmal angemeldet ansehen (nur ohne Anmeldung nicht prüfbar). Früher zu Teil 5: Dateien von
    `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
-## Stand nach Stufe E (12.11.2026, Branch `claude/clever-hamilton-ztdfgt`, noch nicht gemergt)
+## Stand nach Stufe E (12.11.2026, gemergt als PR #62, Teststationen live)
 - Lernschleife zuerst (Entscheidung in `docs/roadmap.md`): Hilfe-Karten „So geht’s“, Tipp je Aufgabe (`app/Hilfe.tsx`),
   KI-Fragenpool plant Tipps, Hilfe-Karten, Aufbau und eingestreute Wiederholung (`fragenpool.ts`).
 - Teststationen in `src/lernquest/testpakete.ts`; Migration `20261127_lernquest_testphase.sql` archiviert die alten
-  Stationen und schaltet die Teststationen frei (Einspielen: siehe Antwort an die Lehrkraft; prüfen mit
-  `select stunde from lq_paket`).
+  Stationen und schaltet die Teststationen frei (live eingespielt; alte Stationen in `lq_paket_archiv`).
 - Fuchs: flache Augen nach Prüfung der Lehrkraft; Avatar-Teile noch ungeprüft.
 
 ## Wichtig zu wissen
