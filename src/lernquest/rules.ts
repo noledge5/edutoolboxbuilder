@@ -3,7 +3,7 @@
 // rules in `lq_runde_melden` (supabase/migrations/20261106_lernquest.sql); change both together.
 import { normalize } from '../share/grade';
 import { seeded, shuffle } from '../model/language';
-import type { Stand, Uebung } from './types';
+import type { Niveau, Stand, TagesStand, Uebung, Zaehler } from './types';
 
 // — Rounds —
 
@@ -15,15 +15,19 @@ export const RUNDEN_MAX = 5;
 /** Most exercises in one round. */
 export const RUNDE_MAX = 8;
 
-/** How many rounds a station with `n` exercises has. */
-/** The round a station starts with: the first one not played yet, else the weakest (where stars are still to win). */
+/** A round counts as done from this percent right (Stufe C; `lq_runde_melden` uses the same). */
+export const GESCHAFFT_AB = 60;
+export const geschafft = (best: number | undefined) => (best ?? 0) >= GESCHAFFT_AB;
+
+/** The round a station starts with: the first one not done yet, else the weakest (where stars are still to win). */
 export function naechsteRunde(best: number[], runden: number): number {
   const werte = Array.from({ length: runden }, (_, i) => best[i] ?? 0);
-  const offen = werte.findIndex((b) => !(b > 0));
+  const offen = werte.findIndex((b) => !geschafft(b));
   if (offen >= 0) return offen;
   return werte.reduce((m, b, i) => (b < werte[m] ? i : m), 0);
 }
 
+/** How many rounds a station with `n` exercises has. */
 export function rundenZahl(n: number): number {
   if (n <= 0) return 0;
   if (n <= RUNDE_GROESSE) return 1;
@@ -44,6 +48,26 @@ export function rundeVon(uebungen: Uebung[], r: number): Uebung[] {
   return Array.from({ length: take }, (_, k) => uebungen[(start + k) % n]);
 }
 
+/** How often one exercise comes up in a round at most: once, then again after each mistake. A broken exercise (wrong
+ *  solution) must not hold a child in the round for ever. */
+export const WIEDER_MAX = 3;
+
+/**
+ * The order of a round after the answer at `pos`: `reihe` holds exercise indexes; a missed exercise is put at the
+ * end again, so the child meets it once more before the round is over.
+ */
+export function nachAntwort(reihe: number[], pos: number, richtig: boolean): number[] {
+  const i = reihe[pos];
+  if (richtig || i === undefined || reihe.filter((x) => x === i).length >= WIEDER_MAX) return reihe;
+  return [...reihe, i];
+}
+
+/** How a round went, by the first tries: below 60 % it is not called done („Fast!“), all right is „Perfekt!“. */
+export function rundenFazit(richtig: number, gesamt: number): 'schwach' | 'gut' | 'perfekt' {
+  if (gesamt > 0 && richtig === gesamt) return 'perfekt';
+  return gesamt > 0 && richtig * 5 >= gesamt * 3 ? 'gut' : 'schwach';
+}
+
 // — Checking —
 
 /** What a child gave: chosen option indexes, true/false, pairs matched (left index → right index), tiles laid. */
@@ -57,7 +81,8 @@ export type Antwort =
   | { art: 'gruppen'; zuordnung: number[] }
   | { art: 'bild'; gewaehlt: number }
   /** One tap per point: which point was asked for and where the child tapped (percent of the picture). */
-  | { art: 'punkt'; getippt: { ziel: number; x: number; y: number }[] };
+  | { art: 'punkt'; getippt: { ziel: number; x: number; y: number }[] }
+  | { art: 'schreiben'; text: string };
 
 /** How far from a point a tap may land, in percent of the picture. */
 export const PUNKT_RADIUS = 12;
@@ -69,13 +94,19 @@ export function punktTrifft(punkte: [number, number, string][], ziel: number, x:
   return p !== undefined && p <= PUNKT_RADIUS && d.every((o, i) => i === ziel || o > p);
 }
 
+/**
+ * Slips that still count as right when finding pairs or tapping places: one from three items on. Trying is part of
+ * these formats; with two items a slip gives the rest away.
+ */
+export const fehlgriffeFrei = (n: number) => (n >= 3 ? 1 : 0);
+
 /** A sentence from tiles: spaces before end marks and commas go. */
 /** Two answers in words are the same, as `istRichtig` compares them (case, spaces, punctuation). */
 export const gleich = (a: string, b: string) => normalize(a) === normalize(b);
 
 export const satz = (tiles: string[]) => tiles.join(' ').replace(/\s+([.,!?;:])/g, '$1');
 
-/** Whether an answer is right. Pairs count as right when no wrong pair was tried. */
+/** Whether an answer is right. Pairs and places allow `fehlgriffeFrei` slips. */
 export function istRichtig(u: Uebung, a: Antwort): boolean {
   switch (u.art) {
     case 'waehlen':
@@ -83,7 +114,7 @@ export function istRichtig(u: Uebung, a: Antwort): boolean {
     case 'richtigfalsch':
       return a.art === 'richtigfalsch' && a.wert === u.richtig;
     case 'paare':
-      return a.art === 'paare' && a.fehler === 0;
+      return a.art === 'paare' && a.fehler <= fehlgriffeFrei(u.paare.length);
     case 'luecke': {
       if (a.art !== 'luecke') return false;
       const want = u.teile.filter((_, i) => i % 2 === 1);
@@ -98,8 +129,11 @@ export function istRichtig(u: Uebung, a: Antwort): boolean {
     case 'punkt': {
       if (a.art !== 'punkt' || a.getippt.length !== u.punkte.length) return false;
       const asked = new Set(a.getippt.map((t) => t.ziel));
-      return asked.size === u.punkte.length && a.getippt.every((t) => punktTrifft(u.punkte, t.ziel, t.x, t.y));
+      const daneben = a.getippt.filter((t) => !punktTrifft(u.punkte, t.ziel, t.x, t.y)).length;
+      return asked.size === u.punkte.length && daneben <= fehlgriffeFrei(u.punkte.length);
     }
+    case 'schreiben':
+      return a.art === 'schreiben' && u.loesungen.some((l) => gleich(l, a.text));
   }
 }
 
@@ -122,6 +156,8 @@ export function richtigeAntwort(u: Uebung): Antwort {
       return { art: 'bild', gewaehlt: u.richtig };
     case 'punkt':
       return { art: 'punkt', getippt: u.punkte.map(([x, y], ziel) => ({ ziel, x, y })) };
+    case 'schreiben':
+      return { art: 'schreiben', text: u.loesungen[0] };
   }
 }
 
@@ -152,6 +188,8 @@ export function loesungText(u: Uebung): string {
       return u.wort;
     case 'punkt':
       return 'die grünen Punkte im Bild';
+    case 'schreiben':
+      return u.loesungen[0];
   }
 }
 
@@ -165,13 +203,13 @@ export const XP_TAG = 300;
 
 /**
  * A repetition gives a third of experience and coins (rounded down): the „Wiederholen“ round (`stunde` empty) and a
- * station round done before (best above 0). As `lq_runde_melden`.
+ * station round done before (`geschafft`). As `lq_runde_melden`.
  */
 export const WIEDERHOLUNG_TEILER = 3;
 
 /** Whether this round is a repetition (see `WIEDERHOLUNG_TEILER`); asked before the round is counted. */
 export const istWiederholung = (bestwerte: Stand['bestwerte'], stunde: string, runde: number) =>
-  !stunde || (bestwerte[stunde]?.[runde] ?? 0) > 0;
+  !stunde || geschafft(bestwerte[stunde]?.[runde]);
 
 /** Experience for a round: 10, 2 per right answer, 5 more without mistakes, a third for a repetition; capped by what is left today. */
 export function xpFuerRunde(richtig: number, gesamt: number, heuteSchon = 0, wiederholung = false): number {
@@ -216,21 +254,49 @@ export function titel(stufe: number): string {
 
 // — Stars —
 
-/**
- * Stars of a station from the best percent per round: none until every round is done once; 1 for all done, 2 when
- * the rounds average at least 80 %, 3 when every round was once without mistakes.
- */
-export function sterne(bestwerte: number[] | undefined, runden: number): number {
-  if (!runden || !bestwerte) return 0;
-  const b = Array.from({ length: runden }, (_, i) => bestwerte[i]);
-  if (b.some((x) => x === undefined || x <= 0)) return 0;
-  if (b.every((x) => x! >= 100)) return 3;
-  const avg = b.reduce((s, x) => s + x!, 0) / runden;
-  return avg >= 80 ? 2 : 1;
+/** Difficulty of an exercise: its `niveau` (KI pool), else by format: tapping easy, filling in and sorting medium, writing hard. */
+export function niveauVon(u: Uebung): Niveau {
+  if (u.niveau === 1 || u.niveau === 2 || u.niveau === 3) return u.niveau;
+  return u.art === 'schreiben' ? 3 : u.art === 'paare' || u.art === 'luecke' || u.art === 'reihenfolge' || u.art === 'gruppen' ? 2 : 1;
 }
 
-/** Rounds of a station that are done (best above 0). */
-export const rundenGeschafft = (bestwerte: number[] | undefined, runden: number) => Array.from({ length: runden }, (_, i) => (bestwerte?.[i] ?? 0) > 0).filter(Boolean).length;
+/** The level of each round of a station: its hardest exercise (`lq_stufen` on the server). */
+export const rundenStufen = (uebungen: Uebung[]): Niveau[] =>
+  Array.from({ length: rundenZahl(uebungen.length) }, (_, r) => Math.max(...rundeVon(uebungen, r).map(niveauVon)) as Niveau);
+
+/**
+ * What each of the three stars needs (Stufe C): Kennenlernen, Anwenden, Meistern. Each level the station has gives one
+ * star, from easy to hard: its rounds and all easier ones done (`geschafft`). Stars left over (a station without some
+ * level) ask for at least 80 % on average over all rounds, then for every round once without mistakes.
+ */
+export type SternZiel = { art: 'runden'; runden: number[] } | { art: 'schnitt' } | { art: 'fehlerfrei' };
+export function sternZiele(stufen: readonly number[]): SternZiel[] {
+  const ziele: SternZiel[] = [...new Set(stufen)].sort((a, b) => a - b).map((n) => ({ art: 'runden', runden: stufen.flatMap((s, i) => (s <= n ? [i] : [])) }));
+  return [...ziele, { art: 'schnitt' } as const, { art: 'fehlerfrei' } as const].slice(0, 3);
+}
+
+/** Whether a star's goal is met (`sternZiele`). */
+export function sternErreicht(z: SternZiel, bestwerte: number[], runden: number): boolean {
+  const b = Array.from({ length: runden }, (_, i) => bestwerte[i] ?? 0);
+  if (z.art === 'runden') return z.runden.every((i) => geschafft(b[i]));
+  if (z.art === 'fehlerfrei') return b.every((x) => x >= 100);
+  return b.every(geschafft) && b.reduce((s, x) => s + x, 0) >= 80 * runden;
+}
+
+/** Stars of a station from the best percent per round and the rounds' levels (`rundenStufen`); as `lq_sterne`. */
+export function sterne(bestwerte: number[] | undefined, stufen: readonly number[]): number {
+  if (!stufen.length || !bestwerte) return 0;
+  const ziele = sternZiele(stufen);
+  const n = ziele.findIndex((z) => !sternErreicht(z, bestwerte, stufen.length));
+  return n < 0 ? 3 : n;
+}
+
+/** Stars a station shows: by the rules now, but never fewer than once counted (`sterneStationen`, earned stays earned). */
+export const sterneVon = (s: Stand, p: { stunde: string; uebungen: Uebung[] }) =>
+  Math.max(sterne(s.bestwerte[p.stunde], rundenStufen(p.uebungen)), s.sterneStationen?.[p.stunde] ?? 0);
+
+/** Rounds of a station that are done (`geschafft`). */
+export const rundenGeschafft = (bestwerte: number[] | undefined, runden: number) => Array.from({ length: runden }, (_, i) => geschafft(bestwerte?.[i])).filter(Boolean).length;
 
 // — Weekly goal —
 
@@ -258,6 +324,71 @@ export function woche(tage: string[], tag = heute()): { diese: number; geschafft
     geschafft: [...proWoche.values()].filter((n) => n >= WOCHENZIEL).length,
   };
 }
+
+// — Daily tasks (Stufe D), as lq_runde_melden —
+
+export interface Tagesaufgabe {
+  id: string;
+  text: string;
+  zaehler: Zaehler;
+  ziel: number;
+}
+
+/** The list the day's three tasks come from. Ids, order and goals are the server's too (`lq_aufgaben`); change both. */
+export const TAGESAUFGABEN: Tagesaufgabe[] = [
+  { id: 'schaffen', text: 'Schaffe eine Runde', zaehler: 'geschafft', ziel: 1 },
+  { id: 'fehlerfrei', text: 'Spiele eine Runde ohne Fehler', zaehler: 'fehlerfrei', ziel: 1 },
+  { id: 'wiederholen', text: 'Spiele eine Wiederholung', zaehler: 'wdh', ziel: 1 },
+  { id: 'drei', text: 'Spiele 3 Runden', zaehler: 'runden', ziel: 3 },
+  { id: 'richtig', text: 'Beantworte 15 Aufgaben richtig', zaehler: 'richtig', ziel: 15 },
+  { id: 'stern', text: 'Hol dir einen Stern', zaehler: 'sterne', ziel: 1 },
+  { id: 'zwei', text: 'Schaffe 2 Runden', zaehler: 'geschafft', ziel: 2 },
+  { id: 'neu', text: 'Spiele eine neue Runde', zaehler: 'neu', ziel: 1 },
+];
+
+/** Coins per task done and for all three of a day; on top of `MUENZEN_TAG`. */
+export const AUFGABE_MUENZEN = 15;
+export const AUFGABEN_BONUS = 30;
+
+/** The three tasks of a day, the same for everyone: day number + 0, 3 and 5 in the list (never twice the same). */
+export const aufgabenVon = (tag: string): Tagesaufgabe[] =>
+  [0, 3, 5].map((o) => TAGESAUFGABEN[(tagNummer(tag) + o) % TAGESAUFGABEN.length]);
+
+/** Today's counters; a Stand from another day counts as empty. */
+export const tagesStand = (a: TagesStand | undefined, tag: string): TagesStand =>
+  a?.tag === tag ? a : { tag, zaehler: {}, erledigt: [] };
+
+/**
+ * Counts one round into the day's tasks: tasks reaching their goal now give `AUFGABE_MUENZEN`, the third one
+ * `AUFGABEN_BONUS` on top. `sterne` are the stars the station gained this round.
+ */
+export function aufgabenNach(
+  a: TagesStand | undefined,
+  tag: string,
+  r: { richtig: number; gesamt: number; wiederholung: boolean; sterne: number },
+): { aufgaben: TagesStand; muenzen: number; neu: string[] } {
+  const alt = tagesStand(a, tag);
+  const z = { ...alt.zaehler };
+  const add = (k: Zaehler, n: number) => (z[k] = (z[k] ?? 0) + n);
+  add('runden', 1);
+  add('geschafft', geschafft(Math.round((100 * r.richtig) / r.gesamt)) ? 1 : 0);
+  add('fehlerfrei', r.richtig === r.gesamt ? 1 : 0);
+  add(r.wiederholung ? 'wdh' : 'neu', 1);
+  add('richtig', r.richtig);
+  add('sterne', Math.max(0, r.sterne));
+  const neu = aufgabenVon(tag)
+    .filter((t) => !alt.erledigt.includes(t.id) && (z[t.zaehler] ?? 0) >= t.ziel)
+    .map((t) => t.id);
+  const erledigt = [...alt.erledigt, ...neu];
+  const alle = neu.length > 0 && erledigt.length === 3;
+  return { aufgaben: { tag, zaehler: z, erledigt }, muenzen: neu.length * AUFGABE_MUENZEN + (alle ? AUFGABEN_BONUS : 0), neu };
+}
+
+// — Shop by hero level (Stufe D), as lq_kaufen —
+
+/** Hero level from which the shop sells a rarity (0 common … 4 legendary). Chests give everything. */
+export const LADEN_AB = [1, 3, 5, 12, 16];
+export const ladenAb = (seltenheit: number) => LADEN_AB[seltenheit] ?? 1;
 
 // — Repetition (Leitner boxes) —
 
@@ -354,8 +485,8 @@ export interface RundenKontext {
   /** Hearts and coin bonus of what the child wears. */
   herzen: number;
   bonusProzent: number;
-  /** Rounds of the station (0 for „Wiederholen“). */
-  runden: number;
+  /** Levels of the station's rounds (`rundenStufen`; none for „Wiederholen“). */
+  stufen: readonly number[];
 }
 
 /** Stars that fill one chest. Every star of a station counts once, so better rounds later fill the next chest. */
@@ -378,8 +509,8 @@ export function rundeAnwenden(
   s: Stand,
   m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] },
   tag = heute(),
-  k: RundenKontext = { herzen: 3, bonusProzent: 0, runden: 0 },
-): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; wiederholung: boolean; stand: Stand } {
+  k: RundenKontext = { herzen: 3, bonusProzent: 0, stufen: [] },
+): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; aufgabenPlus: number; aufgabenNeu: string[]; wiederholung: boolean; stand: Stand } {
   const neuerTag = !s.tage.includes(tag);
   const wiederholung = istWiederholung(s.bestwerte, m.stunde, m.runde);
   const schon = neuerTag ? 0 : s.xpHeute;
@@ -391,13 +522,15 @@ export function rundeAnwenden(
   let sternePlus = 0;
   let sterneRest = s.sterneRest ?? 0;
   let sterneStationen = s.sterneStationen ?? {};
+  let sterneGewonnen = 0;
   if (m.stunde) {
-    const vorher = sterne(bestwerte[m.stunde], k.runden);
+    const vorher = sterne(bestwerte[m.stunde], k.stufen);
     const best = [...(bestwerte[m.stunde] ?? [])];
     while (best.length <= m.runde) best.push(0);
     best[m.runde] = Math.max(best[m.runde], Math.round((100 * m.richtig) / m.gesamt));
     bestwerte[m.stunde] = best;
-    const jetzt = sterne(best, k.runden);
+    const jetzt = sterne(best, k.stufen);
+    sterneGewonnen = jetzt - vorher;
     sternePlus = neueSterne(sterneStationen[m.stunde], vorher, jetzt);
     if (sternePlus > 0) {
       sterneStationen = { ...sterneStationen, [m.stunde]: jetzt };
@@ -410,18 +543,21 @@ export function rundeAnwenden(
   const ziel = neuerTag && woche(s.tage, tag).diese === WOCHENZIEL - 1;
   if (ziel) truhenPlus++;
   const punktePlus = ziel ? PUNKTE_WOCHENZIEL : 0;
+  const auf = aufgabenNach(s.aufgaben, tag, { richtig: m.richtig, gesamt: m.gesamt, wiederholung, sterne: sterneGewonnen });
   return {
     plus,
     muenzenPlus,
     truhenPlus,
     punktePlus,
     sternePlus,
+    aufgabenPlus: auf.muenzen,
+    aufgabenNeu: auf.neu,
     wiederholung,
     stand: {
       ...s,
       xp: s.xp + plus,
       xpHeute: schon + plus,
-      muenzen: s.muenzen + muenzenPlus,
+      muenzen: s.muenzen + muenzenPlus + auf.muenzen,
       muenzenHeute: mSchon + muenzenPlus,
       truhen: s.truhen + truhenPlus,
       klassenpunkte: (s.klassenpunkte ?? 0) + punktePlus,
@@ -430,6 +566,7 @@ export function rundeAnwenden(
       bestwerte,
       tage,
       leitner: { ...s.leitner, ...m.leitner },
+      aufgaben: auf.aufgaben,
     },
   };
 }

@@ -75,6 +75,7 @@ export function fragenAus(u: Uebung, seed = u.id): BossFrage[] {
     case 'reihenfolge':
     case 'bild':
     case 'punkt':
+    case 'schreiben':
       return [];
   }
 }

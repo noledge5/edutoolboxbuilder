@@ -19,3 +19,7 @@ createRoot(document.getElementById('root')!).render(
     </BilderRahmen>
   </StrictMode>,
 );
+
+// A new link in the same tab (another class code, `#probe=…`) only changes the hash: start over with it, or the page
+// would stay on what it showed before.
+window.addEventListener('hashchange', () => location.reload());

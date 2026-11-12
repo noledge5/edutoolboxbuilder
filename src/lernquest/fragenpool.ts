@@ -1,4 +1,4 @@
-// The KI-Fragenpool of a lesson (Stufe 5): about 15 extra exercises Claude writes from the lesson's student pages,
+// The KI-Fragenpool of a lesson (Stufe 5, Stufe B): about 30 extra exercises in three levels Claude writes from the lesson's student pages,
 // which the teacher checks, corrects and releases. Released ones travel in the Lernpaket after the lesson's own
 // exercises. Only the lesson content goes to Claude, never names or answers of children. Tasks with places on a
 // picture („Punkt auf Karte/Bild“) the teacher makes by hand from a picture of the worksheet. Pure, so it is tested
@@ -8,11 +8,11 @@ import type { Lesson, Module } from '../library/types';
 import { seeded, shuffle } from '../model/language';
 import { isObj, str } from '../model/text';
 import { KARTE_KEY, sentenceTiles, shuffledTiles } from './paket';
-import type { PoolEintrag, Uebung } from './types';
+import type { Niveau, PoolEintrag, Uebung } from './types';
 
 export const POOL_FORMAT = 'lernquest-fragenpool';
 /** Exercises one request asks for. */
-export const POOL_ZIEL = 15;
+export const POOL_ZIEL = 30;
 /** Most exercises a lesson's pool keeps (released or not), so the package stays small and every one comes up. */
 export const POOL_MAX = 40;
 
@@ -26,9 +26,14 @@ const KACHELN_MAX = 14;
 /** Places on one picture: enough for a map, few enough to tap on a phone. */
 export const PUNKTE = [1, 6] as const;
 const NAME_MAX = 60;
+/** The sentence after a mistake: short, a child reads it on a phone. */
+const ERKLAERUNG_MAX = 240;
 /** Image ids a task with places can name (the key travels in the package and is checked strictly). */
 const BILD_ID = /^[\w-]{1,64}$/;
 const ABLENKER_MAX = 3;
+/** Spellings that count for a typed answer. */
+const LOESUNGEN = [1, 4] as const;
+export const NIVEAUS: Record<Niveau, string> = { 1: 'leicht', 2: 'mittel', 3: 'schwer' };
 const SOURCE_MAX = 16000;
 
 // — Reading (an exercise as stored, synced or from a package) —
@@ -43,6 +48,17 @@ const index = (x: unknown, n: number): number | null => (Number.isInteger(x) && 
 
 /** One exercise, checked strictly (a broken one is null): what the teacher keeps must also play. */
 export function readUebung(x: unknown): Uebung | null {
+  const u = liesUebung(x);
+  if (!u || !isObj(x)) return u;
+  const erklaerung = text(x.erklaerung, ERKLAERUNG_MAX)?.trim();
+  const niveau = x.niveau === 1 || x.niveau === 2 || x.niveau === 3 ? x.niveau : null;
+  return { ...u, ...(erklaerung ? { erklaerung } : {}), ...(niveau ? { niveau } : {}) };
+}
+
+/** An exercise with the explanation and level the teacher (or Claude) gave it; an empty explanation is none. */
+export const mitZusatz = (u: Uebung, erklaerung: string, niveau: Niveau | undefined): Uebung | null => readUebung({ ...u, erklaerung: erklaerung.trim(), niveau });
+
+function liesUebung(x: unknown): Uebung | null {
   if (!isObj(x) || typeof x.id !== 'string' || !x.id || x.id.length > 80) return null;
   const id = x.id;
   const frage = text(x.frage);
@@ -121,6 +137,11 @@ export function readUebung(x: unknown): Uebung | null {
       if (!punkte.every((p): p is [number, number, string] => p !== null)) return null;
       if (new Set(punkte.map(([, , n]) => n.toLowerCase())).size !== punkte.length) return null;
       return { art: 'punkt', id, frage, bild: x.bild, punkte };
+    }
+    case 'schreiben': {
+      const loesungen = texts(x.loesungen, LOESUNGEN)?.map((l) => l.trim());
+      const aussage = x.aussage === undefined || x.aussage === '' ? '' : text(x.aussage);
+      return loesungen && aussage !== null ? { art: 'schreiben', id, frage, ...(aussage ? { aussage } : {}), loesungen } : null;
     }
     default:
       return null;
@@ -260,6 +281,8 @@ export function kurzText(u: Uebung): string {
       return u.wort;
     case 'punkt':
       return `Stellen im Bild: ${u.punkte.map(([, , n]) => n).join(', ')}`;
+    case 'schreiben':
+      return [u.aussage, u.loesungen[0]].filter(Boolean).join(' – ');
   }
 }
 
@@ -271,7 +294,8 @@ export function poolSystem(): string {
     '',
     '## Regeln',
     '- Kurz und eindeutig: genau eine richtige Lösung (bei „waehlen“ höchstens zwei richtige Antworten), keine Fangfragen, keine doppelte Verneinung.',
-    '- Falsche Antworten sind plausibel (typische Fehler), aber eindeutig falsch.',
+    '- Falsche Antworten sind typische Denkfehler der Klassenstufe (was Kinder wirklich verwechseln), aber eindeutig falsch.',
+    '- Jede Übung bekommt "niveau" (1 leicht: wiedererkennen; 2 mittel: anwenden; 3 schwer: selbst erzeugen oder übertragen) und "erklaerung": ein kurzer Satz in Kindersprache, warum die Lösung stimmt (höchstens 200 Zeichen, auf Deutsch, verrät nichts über andere Übungen).',
     '- Sprache der Klassenstufe; Anweisungen („frage“) auf Deutsch, kurz („Tippe die richtige Antwort an.“). In Englisch-Stunden stehen Aussagen, Sätze und Antworten auf Englisch.',
     '- Abwechslung: alle Formate nutzen, nicht zweimal dieselbe Frage, keine Übung, die schon in der Liste „Schon vorhanden“ steht.',
     '- Höchstens 240 Zeichen je Text, Antworten und Karten höchstens 120.',
@@ -285,9 +309,11 @@ export function poolSystem(): string {
     '- luecke: {"art":"luecke","frage":"Ergänze die Lücke.","satz":"Die Sonne ist ein [Stern].","ablenker":["Planet","Mond"]} – 1 bis 3 Lücken in eckigen Klammern, 2 bis 3 Ablenker.',
     '- reihenfolge: {"art":"reihenfolge","frage":"Bring die Wörter in die richtige Reihenfolge.","hinweis":"(freiwillig)","loesung":"I like my new school."} – 3 bis 10 Wörter, die App mischt sie.',
     '- gruppen: {"art":"gruppen","frage":"Sortiere.","gruppen":["…","…"],"karten":[["…",0],["…",1]]} – 2 bis 3 Gruppen, 4 bis 8 Karten, jede Gruppe mindestens eine Karte.',
+    '- schreiben: {"art":"schreiben","frage":"Schreib das Wort auf Englisch.","aussage":"die Schwester","loesungen":["sister","the sister"]} – das Kind tippt ein Wort oder einen ganz kurzen Satz. Nur wenn die Lösung eindeutig ist (Vokabeln, Fachbegriffe, Zahlen); alle richtigen Schreibweisen angeben (höchstens 4). Groß- und Kleinschreibung und der Punkt am Ende zählen nicht.',
     '',
     '## Antwort',
-    `Nur ein JSON-Block: {"format":"${POOL_FORMAT}","uebungen":[…]}. Etwa ${POOL_ZIEL} Übungen, jedes Format mindestens einmal (hoeren nur in Englisch-Stunden).`,
+    `Nur ein JSON-Block: {"format":"${POOL_FORMAT}","uebungen":[{"art":"…","niveau":1,"erklaerung":"…",…}]}. Etwa ${POOL_ZIEL} Übungen, je ein Drittel leicht, mittel und schwer, jedes Format mindestens einmal (hoeren nur in Englisch-Stunden).`,
+    'Leicht sind vor allem waehlen, richtigfalsch und paare; mittel vor allem luecke, reihenfolge, gruppen und hoeren; schwer vor allem schreiben, Lücken mit mehreren Wörtern und Fragen, die das Gelernte auf einen neuen Fall übertragen.',
   ].join('\n');
 }
 
@@ -314,11 +340,20 @@ export function poolPrompt(a: PoolAuftrag): string {
   ].join('\n');
 }
 
+/** The whole request, for „Fragen erzeugen“ and for the automatic one after unlocking a lesson. */
+export const poolAnfrage = (a: PoolAuftrag) => ({ job: 'small' as const, what: 'Lernquest-Fragenpool', system: poolSystem(), user: poolPrompt(a), maxTokens: 16000, effort: 'low' as const });
+
 const s = (x: unknown) => (typeof x === 'string' ? x.trim() : '');
 const strs = (x: unknown) => (Array.isArray(x) ? x.map(s).filter(Boolean) : []);
 
 /** One exercise as Claude writes it, turned into the app's form (null when it does not hold up). */
 function ausEntwurf(x: unknown, id: string, en: boolean): Uebung | null {
+  const u = ohneZusatz(x, id, en);
+  // A too long explanation or an unknown level is dropped, the exercise stays.
+  return u && isObj(x) ? readUebung({ ...u, erklaerung: s(x.erklaerung), niveau: Number(x.niveau) }) : u;
+}
+
+function ohneZusatz(x: unknown, id: string, en: boolean): Uebung | null {
   if (!isObj(x)) return null;
   const frage = s(x.frage);
   switch (x.art) {
@@ -351,6 +386,8 @@ function ausEntwurf(x: unknown, id: string, en: boolean): Uebung | null {
         gruppen: strs(x.gruppen),
         karten: Array.isArray(x.karten) ? x.karten.map((k) => (Array.isArray(k) ? [s(k[0]), Number(k[1])] : null)) : [],
       });
+    case 'schreiben':
+      return readUebung({ art: 'schreiben', id, frage: frage || 'Schreib die Antwort.', aussage: s(x.aussage), loesungen: strs(x.loesungen) });
     default:
       return null;
   }

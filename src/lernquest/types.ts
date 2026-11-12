@@ -3,8 +3,15 @@
 
 export const PAKET_FORMAT = 'lernquest-paket';
 
-/** One exercise in the style of Anton/Duolingo, made from a task block of a lesson. */
-export type Uebung =
+/**
+ * One exercise in the style of Anton/Duolingo, made from a task block of a lesson. `erklaerung` is one short sentence
+ * a child reads after a mistake (why the answer is what it is); most exercises have none. `niveau` is how hard it is
+ * (1 know it, 2 use it, 3 make it yourself); the KI-Fragenpool sets it, the lesson's own exercises have none.
+ */
+export type Uebung = UebungArt & { erklaerung?: string; niveau?: Niveau };
+export type Niveau = 1 | 2 | 3;
+
+type UebungArt =
   /** Tap the right answer (or all right ones, when `richtig` has more than one). */
   | {
       art: 'waehlen';
@@ -51,12 +58,14 @@ export type Uebung =
    * Tap the named places on a picture or map from the worksheet, one after the other. `bild` is a key into the
    * package's `bilder` ("karte:<id>"); each point is [x, y, name] in percent of the picture.
    */
-  | { art: 'punkt'; id: string; frage: string; bild: string; punkte: [number, number, string][] };
+  | { art: 'punkt'; id: string; frage: string; bild: string; punkte: [number, number, string][] }
+  /** Type the answer (a word or a short sentence); every spelling in `loesungen` counts, the first one is shown. */
+  | { art: 'schreiben'; id: string; frage: string; aussage?: string; loesungen: string[] };
 
 export type UebungsArt = Uebung['art'];
 
 /** The kinds this version can show; a package from a newer Baukasten may hold others, which are left out. */
-export const UEBUNGS_ARTEN: readonly UebungsArt[] = ['waehlen', 'richtigfalsch', 'paare', 'luecke', 'reihenfolge', 'gruppen', 'bild', 'punkt'];
+export const UEBUNGS_ARTEN: readonly UebungsArt[] = ['waehlen', 'richtigfalsch', 'paare', 'luecke', 'reihenfolge', 'gruppen', 'bild', 'punkt', 'schreiben'];
 
 /** One exercise of a lesson's KI-Fragenpool: shown to the class only once the teacher released it (`frei`). */
 export interface PoolEintrag {
@@ -118,6 +127,16 @@ export interface Stand {
   /** Stars toward the next chest (0 … STERNE_JE_TRUHE − 1) and, per lesson, the stars counted for chests so far. */
   sterneRest: number;
   sterneStationen: Record<string, number>;
+  /** Stufe D: today's task counters and the ids of tasks done (`aufgabenNach`); missing before 20261124 or on a new day. */
+  aufgaben?: TagesStand;
+}
+
+/** Counters of one day for the daily tasks (`TAGESAUFGABEN` in rules.ts). */
+export type Zaehler = 'runden' | 'geschafft' | 'fehlerfrei' | 'wdh' | 'neu' | 'richtig' | 'sterne';
+export interface TagesStand {
+  tag: string;
+  zaehler: Partial<Record<Zaehler, number>>;
+  erledigt: string[];
 }
 
 export const LEERER_STAND: Stand = { xp: 0, xpHeute: 0, bestwerte: {}, tage: [], leitner: {}, muenzen: 0, muenzenHeute: 0, truhen: 0, pech: 0, inventar: [], avatar: {}, klassenpunkte: 0, sterneRest: 0, sterneStationen: {} };

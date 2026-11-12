@@ -422,6 +422,106 @@ Migration `supabase/migrations/20261122_lernquest_eigene_frisuren.sql` (lokal mi
 - **Abmelden:** Knopf unten auf der Held-Seite und im Menü oben, beide fragen nach (mit Warnung, wenn ungesendete Runden
   verloren gingen).
 
+## Die Runde, die lehrt (11.11.2026, „Stufe A“ aus `docs/kritik-und-plan.md`)
+
+Entscheidung der Lehrkraft: Lernquest bleibt ein Duolingo-Pfad und wird dort Spitzenniveau, kein Umbau zum
+Kampf-Rollenspiel. Erster Schritt ist die Übungsrunde, neu gebaut in `app/Runde.tsx`. **Keine Server-Änderung:** Der
+Server bekommt wie bisher „richtig von gesamt“, gezählt werden die ersten Versuche.
+- **Fehler kommen wieder:** Eine falsch beantwortete Aufgabe wird hinten angehängt („Nochmal: das war vorhin falsch“),
+  bis sie richtig ist, höchstens dreimal je Aufgabe (`nachAntwort`, `WIEDER_MAX`; eine kaputte Frage darf niemanden
+  festhalten). Für Ergebnis, Herzen, Sterne und die Wiederhol-Kästen zählt nur der erste Versuch. Im Probetest der
+  offenen Übung kommt nichts wieder (er bietet „Fehler nochmal üben“ am Ende).
+- **Ehrliches Ergebnis:** Unter 60 % heißt es „Fast!“ mit dem Hauptknopf „Runde nochmal spielen“ (`rundenFazit`).
+  Sonst ist der Hauptknopf „Nächste Runde“, solange die Station offene Runden hat. Offen: Für den Server gilt auch
+  eine schwache Runde als gespielt (erster Stern); das zu ändern wäre eine Server-Änderung.
+- **Faire Wertung:** Bei Paaren und Punkten im Bild geht ab drei Teilen ein Fehlgriff durch (`fehlgriffeFrei`). Paare
+  mit gleichem Wort („big – groß“, „large – groß“) passen in beiden Richtungen. Die Lösung steht nicht doppelt da,
+  wenn sie in der Aufgabe schon zu sehen ist; „Prüfen“ fehlt, wo die Aufgabe sich selbst prüft.
+- **Erklärung:** Jede Aufgabe kann einen kurzen Satz `erklaerung` tragen, der nach einem Fehler erscheint. Noch
+  schreibt ihn niemand automatisch; das kommt mit dem KI-Pool (Stufe B).
+- **Gefühl:** Der eigene Held lacht oder staunt in der Rückmeldung, ab drei richtigen in Folge steht „3 in Folge!“.
+- **Verlassen:** Die Zurück-Taste des Handys geht einen Schritt zurück statt aus der App (`app/zurueck.ts`), auch in
+  der Anmeldung. Eine Runde mit Antworten fragt vorher „Runde beenden?“. Ein neuer Link im selben Tab lädt neu.
+- **Hören ohne Stimme:** „Ich höre nichts – Text zeigen“ unter dem Lautsprecher.
+- **Spieltest ohne Server:** `npm run spieltest` startet Lernquest gegen einen toten Server (offline); die Daten einer
+  erfundenen Schülerin mit allen acht Formaten legt `scripts/spieltest-daten.js` in den Browser,
+  `scripts/spieltest-helfer.js` spielt Aufgaben richtig oder falsch. So gespielt am 11.11.2026: alle Formate, Wiederholen,
+  Held, Laden, Truhe, Gutscheine und Klasse ohne Netz, offene Übung mit Probetest, Zurück-Taste überall.
+
+## Inhalte, die reichen (11.11.2026, „Stufe B“ aus `docs/kritik-und-plan.md`)
+
+Entscheidung der Lehrkraft: Die KI füllt jede Stunde automatisch auf, die Lehrkraft prüft grob. **Keine
+Server-Änderung:** Der Pool reist wie bisher im Lernpaket, der Server zählt nur die Übungen.
+- **Automatisch:** Wird eine Stunde für eine Klasse freigeschaltet und ihr Pool ist leer, schreibt Claude von selbst
+  etwa 30 Fragen (`fragenErzeugen` in `teacher/LernquestView.tsx`, eine Stunde nach der anderen). Nur mit einem
+  KI-Schlüssel auf dem Gerät; ohne bleibt der Knopf „Fragen erzeugen“. Am Knopf steht „Claude schreibt …“, danach
+  „30 zu prüfen“. Die Monatsgrenze fragt wie bei jeder KI-Anfrage vorher. Wechselt die Lehrkraft die Seite, läuft
+  die Anfrage zu Ende.
+- **Drei Schwierigkeiten:** Jede Pool-Frage trägt `niveau` (1 leicht: wiedererkennen, 2 mittel: anwenden, 3 schwer:
+  selbst erzeugen oder übertragen), je etwa ein Drittel, und eine `erklaerung`; falsche Antworten sollen typische
+  Denkfehler sein (`poolSystem`). Im Paket stehen die freigegebenen Fragen von leicht nach schwer hinter den
+  Übungen der Stunde (`buildPaket`), also werden die Runden einer Station schwerer. Die drei Stufen je Station
+  kommen mit Stufe C; bis dahin gilt weiter: höchstens 40 Übungen je Station kommen dran, höchstens 40 im Pool.
+- **Alle freigeben:** ein Knopf im Dialog, daneben wie bisher einzeln freigeben, ändern, löschen. Ist die Stunde für
+  die geöffnete Klasse freigeschaltet, geht das Paket beim Schließen des Dialogs von selbst neu an diese Klasse,
+  wenn sich das Freigegebene geändert hat; andere Klassen bekommen es mit „Freigeschaltete neu senden“.
+- **Ändern:** Erklärung und Schwierigkeit lassen sich bearbeiten und bleiben erhalten (vorher gingen sie bei Lücke
+  und Reihenfolge verloren, `mitZusatz`).
+- **Selbst schreiben** (`schreiben`): Das Kind tippt ein Wort oder einen kurzen Satz. Bis zu vier Schreibweisen
+  zählen (`loesungen`, die erste wird gezeigt); Groß- und Kleinschreibung, Leerzeichen und der Punkt am Ende zählen
+  nicht (`gleich`), Tippfehler schon. Die Tastatur hilft nicht mit (keine Autokorrektur, keine Großschreibung).
+  Entsteht vorerst nur im KI-Pool, nicht aus den Bausteinen der Arbeitsblätter (sonst änderten sich die Runden
+  schon freigeschalteter Stunden). Im Bosskampf wird daraus keine Frage. Ältere geöffnete Lernquest-Seiten kennen
+  das Format erst nach dem Neuladen.
+- **Nicht gebaut:** „Frage melden“ durch Kinder (braucht eine Server-Änderung).
+- Geprüft: Tests (`fragenpool.test.ts`, `teacher/Fragenpool.test.tsx`), Typprüfung, Build; im Spieltest ohne Server
+  „Selbst schreiben“ falsch und richtig gespielt (Erklärung, kommt wieder, „  BOOK. “ zählt als „book“). **Nicht
+  geprüft:** eine echte KI-Anfrage mit 30 Fragen und der Lehrkraft-Dialog im Browser (beides braucht Server und
+  Schlüssel der Lehrkraft), die Tastatur am echten Handy.
+
+## Die Lernspirale im Pfad (11.11.2026, „Stufe C“ ohne Server)
+
+Entscheidungen der Lehrkraft siehe `docs/roadmap.md` (Stufe C). Dieser Teil braucht **keine Server-Änderung**: Alles
+läuft als Runde „Wiederholen“ (ein Drittel der Erfahrung und Münzen, Wiederhol-Kästen wie bisher).
+- **Verblassen:** Eine fertige Station mit heute fälligen Aufgaben wird blass (Auffrisch-Zeichen statt Haken, „2 zum
+  Auffrischen“). Antippen startet gleich eine Runde mit genau diesen Aufgaben; danach glänzt sie wieder. Ihre Runden
+  bleiben über die Station erreichbar (`faellig` in `regionenVon`, `karte.ts`).
+- **Wiederholen im Pfad:** Ist im Fach etwas fällig, steht vor der aktuellen Station ein Knoten „Wiederholen“ mit dem
+  gemischten Stoff früherer Stationen (höchstens 8 je Runde); ohne aktuelle Station am Ende des Pfads. Der Reiter
+  „Wiederholen“ bleibt für alle Fächer zusammen.
+- **Meilenstein:** Am Ende jeder Region mit mindestens zwei Stationen. Er öffnet sich, wenn alle Stationen der Region
+  freigeschaltet und geschafft sind, und mischt 10 Aufgaben gleichmäßig aus allen Stationen (`gemischterTest` in
+  `probe.ts`, auch für den Probetest der offenen Übung). Fehler kommen wieder wie in jeder Runde; ab 80 % beim
+  ersten Versuch heißt es „Meilenstein geschafft!“, sonst „Fast!“ mit „Meilenstein nochmal“. Das beste Ergebnis
+  steht am Knoten. **Nur auf dem Gerät** gespeichert (`lernquest:meilensteine`, beim Abmelden gelöscht): Der Server
+  kennt Meilensteine nicht; der Server-Teil von Stufe C brachte nur Stufen und 60 %. Der Bosskampf hängt nicht
+  am Meilenstein (ihn startet die Lehrkraft).
+- Geprüft: Tests (`lernquest.test.ts`, „Weltkarte“), Typprüfung, Build; im Spieltest ohne Server am Handy-Format:
+  verblasste Station aufgefrischt (glänzt danach, Wiederholen-Knoten weg), Meilenstein mit 7 von 10 („Fast!“) und
+  10 von 10 („geschafft“, Haken und Bestwert am Knoten). Nicht mit echtem Server gespielt.
+
+## Sterne aus drei Stufen, Runden ab 60 % (11.11.2026, Server-Teil von „Stufe C“)
+
+Entscheidungen der Lehrkraft siehe `docs/roadmap.md` (Stufe C). Migration `20261123_lernquest_stufen.sql`; die Regeln
+stehen gleich in `rules.ts` (`GESCHAFFT_AB`, `niveauVon`, `rundenStufen`, `sternZiele`, `sterne`, `sterneVon`).
+- **Geschafft ab 60 %:** Eine Runde zählt erst ab 60 % beim ersten Versuch als geschafft (vorher: eine richtige
+  Antwort). Das gilt für die Sterne, für „nächste Runde“ und dafür, ob eine Runde als Wiederholung zählt.
+- **Stufe einer Runde:** ihre schwerste Übung. Pool-Fragen bringen `niveau` mit; sonst nach Format: Antippen,
+  Richtig/Falsch, Bild wählen, Punkt auf der Karte leicht; Lücke, Paare, Reihenfolge, Gruppen mittel; Selbst
+  schreiben schwer. Die Runden selbst bleiben, wie sie waren (`rundeVon`).
+- **Sterne:** Jede Stufe, die die Station hat, gibt einen Stern, von leicht nach schwer: ihre Runden und alle
+  leichteren geschafft. Fehlen Stufen, verlangen die übrigen Sterne im Schnitt 80 %, danach jede Runde einmal ohne
+  Fehler. Eine Station nur mit leichten Aufgaben hat also die alte Regel, nur mit 60 % statt einer richtigen Antwort.
+  Die Station zeigt bei jedem Stern, was fehlt (Kennenlernen, Anwenden, Meistern).
+- **Verdient bleibt verdient:** Die Migration schreibt für jedes Kind die Sterne nach der alten Regel in
+  `sterneStationen` (nur nach oben). Die App zeigt nie weniger Sterne als dort stehen (`sterneVon`); Truhen gibt es
+  nur für Sterne darüber hinaus. Die Lehrkraft-Tabelle rechnet die Sterne neu (ohne diesen Stand) und nimmt die
+  Runden aus dem Paket mit dem freigegebenen Pool (vorher nur aus dem Arbeitsblatt).
+- Geprüft: Tests (`lernquest.test.ts`), Typprüfung, Build; Migration lokal in Postgres 16 auf alle früheren
+  Migrationen mit alten Spielständen (Sterne übernommen, Runde mit 40 % keine Wiederholung, 60 % ein Stern, keine
+  Truhe doppelt); App und Server rechnen Stufen und Sterne in 1500 Zufallsfällen gleich; im Spieltest am
+  Handy-Format zwei Stationen angesehen und eine Runde gespielt.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.
@@ -450,8 +550,8 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   Lückentext → je Zeile eine Lücke mit Kacheln (+2 Ablenker aus der Stunde), Satzbau und Umformen → Wortkacheln,
   Knickvokabeln → antippen mit 3 falschen Antworten. Nur mit Lösung; Lehrkraft-Seiten nie.
 - **Regeln** (`src/lernquest/rules.ts`, gleich im Server): Runde 10 + 2 je richtige + 5 ohne Fehler Erfahrung
-  (Wiederholung ein Drittel, seit 09.11.2026), höchstens 300 am Tag; Stufe n → n+1 braucht 50 + 50·n; Sterne: 1 = alle Runden gespielt, 2 = Schnitt ≥ 80 %, 3 = jede Runde
-  einmal fehlerfrei; Wochenziel 3 Lerntage, gezählt werden geschaffte Wochen (keine Serie, die reißt); Wiederholen mit
+  (Wiederholung ein Drittel, seit 09.11.2026), höchstens 300 am Tag; Stufe n → n+1 braucht 50 + 50·n; Sterne aus drei Stufen, eine Runde
+  geschafft ab 60 % (seit Stufe C, siehe oben); Wochenziel 3 Lerntage, gezählt werden geschaffte Wochen (keine Serie, die reißt); Wiederholen mit
   5 Kästen (1, 3, 7, 14, 30 Tage), falsch → Kasten 1.
 - **Aussehen nach dem Prototyp** (`docs/design/lernquest/Main.dc.html`): Start mit Wappen und „Klassen-QR scannen“,
   Namen mit farbigen Anfangsbuchstaben, Karte mit Kopfleiste, Wochenziel-Karte (Mo–So), Regions-Band, Stationen
@@ -554,4 +654,8 @@ Lehrkraft- und Testkonto, Stufe 2 nur als Server und Regeln ohne Oberfläche).
   Spätere Stufen, die den Server ändern, wieder kurz ankündigen.
 - Testlauf (`npm run lq:testlauf`, `src/lernquest/testlauf.live.test.ts`): spielt Lernquest wie ein Kind gegen den echten
   Server, mit Wegwerf-Schlüssel und Testklasse, die am Ende gelöscht wird (Wunsch der Lehrkraft, 06.11.2026).
+  Unter Windows geht das npm-Skript nicht (Umgebungsvariable auf Unix-Art): `vite build`, dann in Git Bash
+  `LQ_TESTLAUF=1 NODE_PATH=<Ordner mit playwright>/node_modules npx vitest run src/lernquest/testlauf.live.test.ts`.
+  Seit Stufe A spielt das Skript die absichtlich falsche Aufgabe am Ende der Runde nochmal richtig. Zuletzt grün am
+  11.11.2026 nach Stufe B (Anmelden, Runde, Truhe, Held, Klasse, Bosskampf, Gutschein, neue Formate).
 - Lernquest ist seit 06.11.2026 live unter `…/lernquest/`; Kinder erreichen es erst mit einem Klassencode der Lehrkraft.

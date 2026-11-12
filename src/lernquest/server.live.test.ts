@@ -188,11 +188,16 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     // Nothing to open or buy at the start.
     expect(await code(truheOeffnen(token))).toBe('ungueltig');
     expect(await code(kaufen(token, 'lupe'))).toBe('muenzen');
+    // Stufe D: the shop sells an uncommon part only from hero level 3 (checked before the coins).
+    expect(await code(kaufen(token, TEILE.find((x) => x.seltenheit === 1 && !x.start && !x.nurTruhe)!.id))).toBe('stufe');
 
     // The first complete station gives a chest, the second time not; coins as in rules.ts.
+    // Stufe C: under 60 % a round is not done (no star, no chest), so playing it again is no repetition.
+    const r0 = await rundeMelden(token, 'sH', 0, 2, 5, {});
+    expect(r0).toMatchObject({ truhenPlus: 0, wiederholung: false });
     const r1 = await rundeMelden(token, 'sH', 0, 5, 5, {});
-    expect(r1).toMatchObject({ muenzenPlus: muenzenFuerRunde(5, 5, 3, 0, 0), truhenPlus: 1 });
-    expect(r1.stand).toMatchObject({ truhen: 1, muenzen: r1.muenzenPlus, inventar: [] });
+    expect(r1).toMatchObject({ muenzenPlus: muenzenFuerRunde(5, 5, 3, 0, 0), truhenPlus: 1, wiederholung: false });
+    expect(r1.stand).toMatchObject({ truhen: 1, muenzen: r0.muenzenPlus + r1.muenzenPlus + r0.aufgabenPlus + r1.aufgabenPlus, inventar: [] });
     const r2 = await rundeMelden(token, 'sH', 0, 5, 5, {});
     expect(r2.truhenPlus).toBe(0);
 

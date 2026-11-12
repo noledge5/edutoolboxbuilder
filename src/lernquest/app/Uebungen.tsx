@@ -38,6 +38,8 @@ interface Props {
   lang?: 'de' | 'en';
   /** The package's own pictures for „Bild wählen“ (key → data URL). */
   bilder?: Record<string, string>;
+  /** Enter in a typed answer: the round checks it. */
+  onEnter?: () => void;
 }
 
 /** A speaker that reads `text` in English (nothing on devices without a voice). */
@@ -89,6 +91,7 @@ export function UebungView(props: Props) {
       {u.art === 'gruppen' && <Gruppen {...props} u={u} />}
       {u.art === 'bild' && <Bild {...props} u={u} />}
       {u.art === 'punkt' && <Punkt {...props} u={u} />}
+      {u.art === 'schreiben' && <Schreiben {...props} u={u} />}
     </div>
   );
 }
@@ -107,6 +110,8 @@ function Waehlen({ u, seed, locked, onChange, lang }: P<'waehlen'>) {
     [u, seed],
   );
   const [chosen, setChosen] = useState<number[]>([]);
+  // A device may have the speech interface but no voice (or the sound is off in class): the text can be shown instead.
+  const [lesen, setLesen] = useState(false);
   const multi = u.richtig.length > 1;
   const tap = (i: number) => {
     if (locked) return;
@@ -117,7 +122,17 @@ function Waehlen({ u, seed, locked, onChange, lang }: P<'waehlen'>) {
   };
   return (
     <>
-      {u.hoeren && (kannVorlesen() && !locked ? <Vorlesen text={u.hoeren} gross /> : <Aussage text={u.hoeren} lang="en" />)}
+      {u.hoeren &&
+        (kannVorlesen() && !locked && !lesen ? (
+          <>
+            <Vorlesen text={u.hoeren} gross />
+            <button type="button" className="lq-link" onClick={() => setLesen(true)}>
+              Ich höre nichts – Text zeigen
+            </button>
+          </>
+        ) : (
+          <Aussage text={u.hoeren} lang="en" />
+        ))}
       {u.aussage && <Aussage text={u.aussage} lang={lang} />}
       {multi && <p className="lq-hinweis">Mehrere Antworten sind richtig.</p>}
       <div className="lq-optionen">
@@ -177,11 +192,12 @@ function Paare({ u, seed, locked, onChange }: P<'paare'>) {
     [u, seed],
   );
   const [sel, setSel] = useState<{ side: 'l' | 'r'; i: number } | null>(null);
-  const [done, setDone] = useState<number[]>([]);
+  // Done per side: two pairs may share a text („big – groß“, „large – groß“), then either of them is a match.
+  const [done, setDone] = useState<{ l: number[]; r: number[] }>({ l: [], r: [] });
   const [wrong, setWrong] = useState<{ l: number; r: number } | null>(null);
   const [fehler, setFehler] = useState(0);
   const tap = (side: 'l' | 'r', i: number) => {
-    if (locked || done.includes(i)) return;
+    if (locked || done[side].includes(i)) return;
     if (!sel || sel.side === side) {
       ton('tipp');
       setSel({ side, i });
@@ -190,11 +206,11 @@ function Paare({ u, seed, locked, onChange }: P<'paare'>) {
     const l = side === 'l' ? i : sel.i;
     const r = side === 'r' ? i : sel.i;
     setSel(null);
-    if (l === r) {
+    if (l === r || (u.paare[l][0] === u.paare[r][0] || u.paare[l][1] === u.paare[r][1])) {
       ton('richtig');
-      const next = [...done, l];
+      const next = { l: [...done.l, l], r: [...done.r, r] };
       setDone(next);
-      if (next.length === u.paare.length) onChange({ art: 'paare', fehler });
+      if (next.l.length === u.paare.length) onChange({ art: 'paare', fehler });
     } else {
       ton('falsch');
       setFehler(fehler + 1);
@@ -202,21 +218,21 @@ function Paare({ u, seed, locked, onChange }: P<'paare'>) {
       window.setTimeout(() => setWrong(null), 600);
     }
   };
-  const cls = (side: 'l' | 'r', i: number) => (done.includes(i) ? 'ok fertig' : wrong && wrong[side] === i ? 'nein wackeln' : sel?.side === side && sel.i === i ? 'an' : '');
+  const cls = (side: 'l' | 'r', i: number) => (done[side].includes(i) ? 'ok fertig' : wrong && wrong[side] === i ? 'nein wackeln' : sel?.side === side && sel.i === i ? 'an' : '');
   return (
     <>
       <p className="lq-hinweis">Tippe links, dann das passende Wort rechts.</p>
       <div className="lq-paare">
         <div>
           {left.map((i) => (
-            <button key={i} type="button" className={`lq-option ${cls('l', i)}`} disabled={done.includes(i)} onClick={() => tap('l', i)}>
+            <button key={i} type="button" className={`lq-option ${cls('l', i)}`} disabled={done.l.includes(i)} onClick={() => tap('l', i)}>
               <Rich text={u.paare[i][0]} />
             </button>
           ))}
         </div>
         <div>
           {right.map((i) => (
-            <button key={i} type="button" className={`lq-option ${cls('r', i)}`} disabled={done.includes(i)} onClick={() => tap('r', i)}>
+            <button key={i} type="button" className={`lq-option ${cls('r', i)}`} disabled={done.r.includes(i)} onClick={() => tap('r', i)}>
               <Rich text={u.paare[i][1]} />
             </button>
           ))}
@@ -400,6 +416,36 @@ function Bild({ u, seed, locked, onChange, lang, bilder = {} }: P<'bild'>) {
           );
         })}
       </div>
+    </>
+  );
+}
+
+function Schreiben({ u, locked, onChange, lang, onEnter }: P<'schreiben'>) {
+  const [text, setText] = useState('');
+  return (
+    <>
+      {u.aussage && <Aussage text={u.aussage} />}
+      {/* No help from the keyboard: it would write the answer, or „correct“ a right one. */}
+      <input
+        className={`lq-eingabe ${locked ? (u.loesungen.some((l) => gleich(l, text)) ? 'ok' : 'nein') : ''}`}
+        value={text}
+        readOnly={locked}
+        autoFocus
+        aria-label="Deine Antwort"
+        placeholder="Tippe deine Antwort"
+        lang={lang}
+        autoCapitalize="off"
+        autoCorrect="off"
+        autoComplete="off"
+        spellCheck={false}
+        enterKeyHint="done"
+        maxLength={120}
+        onChange={(e) => {
+          setText(e.target.value);
+          onChange(e.target.value.trim() ? { art: 'schreiben', text: e.target.value } : null);
+        }}
+        onKeyDown={(e) => e.key === 'Enter' && !locked && onEnter?.()}
+      />
     </>
   );
 }
