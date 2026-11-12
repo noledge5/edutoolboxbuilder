@@ -1,8 +1,7 @@
-// Painted hero pictures (docs/design/lernquest/bilder.md): prompts for every part, the pixel work of
-// `npm run lq:bilder`, and the finished files in src/lernquest/app/teile/.
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+// Pictures of the teacher page's uploads (docs/design/lernquest/bilder.md): prompts for every part and the pixel work. The finished painted files were removed in Stufe E (every part is a vector drawing).
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { FRISUREN, HAARFARBEN, HAUT, MUENDER, TEILE } from '../teile';
+import { TEILE } from '../teile';
 import {
   aenderung,
   einpassen,
@@ -14,7 +13,7 @@ import {
   verschiebung,
   type Rgb,
 } from './pixel';
-import { BESCHREIBUNG, EBENE_GROESSE, editListe, editPrompt, PLAETZE, prompt, promptListe } from './vorlagen';
+import { BESCHREIBUNG, editListe, editPrompt, PLAETZE, prompt, promptListe } from './vorlagen';
 
 /** A w × h picture in one colour, with a square of another colour. */
 function bild(w: number, h: number, grund: Rgb, flecken: { x: number; y: number; s: number; farbe: Rgb }[]) {
@@ -24,14 +23,6 @@ function bild(w: number, h: number, grund: Rgb, flecken: { x: number; y: number;
     for (let y = f.y; y < f.y + f.s; y++)
       for (let x = f.x; x < f.x + f.s; x++) px.set([...f.farbe, 255], (y * w + x) * 4);
   return px;
-}
-/** Width and height from a WebP header: VP8X (with alpha), VP8 (lossy, opaque like a background) or VP8L. */
-function webpGroesse(b: Buffer): [number, number] {
-  const art = b.toString('latin1', 12, 16);
-  if (art === 'VP8X') return [b.readUIntLE(24, 3) + 1, b.readUIntLE(27, 3) + 1];
-  if (art === 'VP8 ') return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff];
-  const bits = b.readUInt32LE(21);
-  return [(bits & 0x3fff) + 1, ((bits >> 14) & 0x3fff) + 1];
 }
 const alpha = (px: Uint8Array, w: number, x: number, y: number) => px[(y * w + x) * 4 + 3];
 
@@ -155,32 +146,5 @@ describe('Edit pictures', () => {
     expect(alpha(ebene, W, 10, 10)).toBe(0); // the background
     expect(alpha(ebene, W, 100, 100)).toBe(0); // a speck
     expect(alpha(ebene, W, 95, 60)).toBe(0); // a one-pixel line
-  });
-});
-
-describe('Finished pictures (src/lernquest/app/teile/)', () => {
-  const ordner = new URL('../app/teile/', import.meta.url);
-  const dateien = readdirSync(ordner).filter((f) => f.endsWith('.webp'));
-  it('are named after a part, the base figure, a hair or a mouth', () => {
-    const erlaubt = new Set([
-      ...TEILE.map((t) => t.id),
-      ...HAUT.map((_, i) => `koerper-${i}`),
-      ...FRISUREN.flatMap((f) => HAARFARBEN.map((_, i) => `haare-${f.id}-${i}`)),
-      ...MUENDER.map((m) => `mund-${m.id}`),
-    ]);
-    expect(dateien.filter((f) => !erlaubt.has(f.slice(0, -5)))).toEqual([]);
-  });
-  it('have the base figure in every skin tone and each hair in every colour, or not at all', () => {
-    expect([0, HAUT.length]).toContain(dateien.filter((f) => f.startsWith('koerper-')).length);
-    for (const f of FRISUREN)
-      expect([0, HAARFARBEN.length], f.id).toContain(dateien.filter((d) => d.startsWith(`haare-${f.id}-`)).length);
-  });
-  it('are whole layers of 480 × 480 and small enough for phones', () => {
-    for (const f of dateien) {
-      const b = readFileSync(new URL(f, ordner));
-      expect(b.toString('latin1', 0, 4) + b.toString('latin1', 8, 12), f).toBe('RIFFWEBP');
-      expect(webpGroesse(b), f).toEqual([EBENE_GROESSE, EBENE_GROESSE]);
-      expect(statSync(new URL(f, ordner)).size, f).toBeLessThan(150_000);
-    }
   });
 });

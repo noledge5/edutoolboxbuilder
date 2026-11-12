@@ -432,6 +432,43 @@ function burg(): ReactNode {
   );
 }
 
+/** Höllenfeuer, an own part of the teacher (lq_teil e57ef47f771): dark red sky, a lava floor, flames at the sides. */
+function hoellenfeuer(zeit: number): ReactNode {
+  const flamme = (x: number, s: number, v: number) => {
+    const w = Math.sin(zeit * 6 + v) * 3;
+    return (
+      <g key={x} transform={`translate(${x} 206) scale(${s})`}>
+        <path d={`M-16 0 Q-22 -26 -6 -44 Q${-2 + w} -58 ${2 + w} -70 Q14 -50 16 -34 Q22 -18 16 0 Z`} fill={P.lava} {...UMRISS_FEIN} />
+        <path d={`M-8 0 Q-12 -18 -2 -30 Q${2 + w} -40 ${4 + w} -46 Q10 -30 10 -18 Q12 -8 8 0 Z`} fill={P.lavaHell} />
+        <path d={`M-3 0 Q-4 -10 1 -18 Q5 -10 4 0 Z`} fill={P.gelbHell} />
+      </g>
+    );
+  };
+  return (
+    <g>
+      <rect width={240} height={240} fill={P.rotTief} />
+      <rect y={90} width={240} height={80} fill={P.rot} opacity={0.55} />
+      <circle cx={190} cy={52} r={22} fill={P.lavaHell} opacity={0.85} {...UMRISS_FEIN} />
+      <path d="M0 150 L30 112 L52 138 L84 100 L112 150 Z M128 150 L160 108 L186 132 L214 96 L240 128 L240 150 Z" fill={P.dunkel} {...UMRISS} />
+      <path d="M84 100 L112 150 L96 150 Z M214 96 L240 128 L240 150 L228 150 Z" fill={P.dunkelTief} opacity={0.6} />
+      <rect y={148} width={240} height={92} fill={P.dunkelTief} />
+      <path d="M0 176 Q60 160 120 174 Q180 188 240 170 L240 240 L0 240 Z" fill={P.lavaTief} {...UMRISS} />
+      <path d="M0 190 Q60 176 120 188 Q180 200 240 184" fill="none" stroke={P.lava} strokeWidth={5} strokeLinecap="round" opacity={0.6 + ((Math.sin(zeit * 2) + 1) / 2) * 0.4} />
+      <path d="M30 214 q14 -6 28 0 M170 220 q14 -6 28 0" fill="none" stroke={P.lavaHell} strokeWidth={3} strokeLinecap="round" />
+      {flamme(22, 1, 0)}
+      {flamme(218, 1.1, 2)}
+      {flamme(52, 0.6, 4)}
+      {flamme(190, 0.65, 1)}
+      {[30, 210, 100].map((x, i) => {
+        const k = (zeit * 0.3 + i / 3) % 1;
+        return <circle key={x} cx={x + Math.sin(k * 8) * 6} cy={150 - k * 120} r={2.2} fill={P.lavaHell} opacity={1 - k} />;
+      })}
+      <path d={stern(120, 30, 6)} fill={P.gold} stroke={P.goldTief} strokeWidth={1.5} strokeLinejoin="round" />
+      <Funkeln x={60} y={50} r={7} zeit={zeit} />
+    </g>
+  );
+}
+
 function vulkan(zeit: number): ReactNode {
   const gl = (Math.sin(zeit * 2.5) + 1) / 2;
   return (
@@ -562,4 +599,6 @@ export const HINTERGRUENDE: Hintergrund[] = [
   { id: 'vulkan', name: 'Vulkaninsel', seltenheit: 4, bewegt: true, zeichnung: vulkan },
   { id: 'regenbogen', name: 'Regenbogen', seltenheit: 5, bewegt: true, zeichnung: regenbogen },
   { id: 'wolkenschloss', name: 'Wolkenschloss', seltenheit: 5, bewegt: true, zeichnung: wolkenschloss },
+  // Own parts of the teacher (lq_teil, eigen), by their id.
+  { id: 'e57ef47f771', name: 'Höllenfeuer', seltenheit: 5, bewegt: true, zeichnung: hoellenfeuer },
 ];

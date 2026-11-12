@@ -253,6 +253,9 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
 - **Figuren-Baukasten vor Teil 2 (Lehrkraft, 12.11.2026):** Fuchs, Held, Teile und Bosse entstehen in einem
   gemeinsamen System mit Gerüst, Posen und Bewegungen (`src/lernquest/figuren/`, Skill `figur`); die Lehrkraft sieht
   alles in der Figuren-Werkstatt als Artefakt.
-- **Prüfen der Teile (Entscheidung der Lehrkraft 12.11.2026):** Die Lehrkraft prüft Teile und Gegenstände erst, wenn die
+- **Gemalte Bilder (Entscheidung der Lehrkraft 12.11.2026):** Die gemalten Bilder werden gelöscht. Eigene Teile und
+Frisuren der Lehrkraft bekommen ebenfalls eine Vektorzeichnung (Claude zeichnet sie nach), die das hochgeladene Bild ersetzt.
+
+**Prüfen der Teile (Entscheidung der Lehrkraft 12.11.2026):** Die Lehrkraft prüft Teile und Gegenstände erst, wenn die
   Spieler-Avatare gebaut sind (Teil 4), an den Avataren und nicht nur an Fuchs und Boss. Dafür braucht Teil 4: Vorlagen
   mit verschiedenen Hautfarben, dazu Münder, Augen, Frisuren, Helme, Ausrüstung, Begleiter und Gegenstände.

@@ -9,7 +9,6 @@ import { Icon } from '../../icons';
 import { AvatarBild, KopfBild, TeilBild } from '../app/avatar';
 import { FrisurVorschau, HochgeladeneBilder } from '../app/bilderKontext';
 import { useHochgeladen } from '../app/hochgeladen';
-import { TEIL_BILDER } from '../app/teilBilder';
 import ANPASSEN from '../bilder/anpassen.json';
 import type { Einstellung } from '../bilder/ebene';
 import { editFrisur, editPrompt, prompt } from '../bilder/vorlagen';
@@ -64,7 +63,7 @@ const kiPrompt = (t: Teil, weg: Weg) => (weg === 'edit' ? (editPrompt(t) ?? prom
 
 /** Where the picture of a part comes from now (own parts: whether they are in the game). */
 const herkunft = (t: Teil, hoch: Record<string, string>) =>
-  t.eigen ? (t.aus ? 'Aus dem Spiel' : 'Eigenes Teil') : hoch[t.id] ? 'Hochgeladen' : TEIL_BILDER[t.id] ? 'Eingebaut' : 'Zeichnung';
+  t.eigen ? (t.aus ? 'Aus dem Spiel' : 'Eigenes Teil') : hoch[t.id] ? 'Hochgeladen' : 'Zeichnung';
 const herkunftKlasse = (h: string) => (h === 'Hochgeladen' || h === 'Eigenes Teil' ? 'is-hochgeladen' : '');
 
 /** A part still to be made: the editor shows name, rarity and „only from chests“ and makes it with its picture. */
@@ -188,9 +187,7 @@ export default function TeilBilder({ keys, onClose }: { keys: string[]; onClose(
                     ? 'Ohne Bild'
                     : hoch[`haare-${f.id}-0`]
                       ? 'Hochgeladen'
-                      : TEIL_BILDER[`haare-${f.id}-0`]
-                        ? 'Eingebaut'
-                        : 'Zeichnung';
+                      : 'Zeichnung';
                 return (
                   <button key={f.id} type="button" className={`lqt-bild ${frisur?.id === f.id ? 'is-on' : ''}`} onClick={() => waehlen(null, f)}>
                     <span className="lqt-bild-kachel">
@@ -249,7 +246,7 @@ function Bearbeiten({
   // A hair: its brown layer stands for it; the work is an edit in the hair area.
   const ziel: Slot | 'haare' = frisur ? 'haare' : teil.slot;
   const startWege = frisur ? WEGE_HAARE : WEGE[teil.slot];
-  const eingebaut = TEIL_BILDER[frisur ? `haare-${frisur}-0` : teil.id];
+  const eingebaut: string | undefined = undefined;
   /** The files to save: one per part, five per hair (one per colour). */
   const ids = frisur ? HAARFARBEN.map((_, i) => `haare-${frisur}-${i}`) : [teil.id];
   const [striche, setStriche] = useState<Strich[]>([]);
@@ -458,9 +455,7 @@ function Bearbeiten({
                 ? 'eigenes Teil'
                 : hochgeladen
                   ? 'hat ein hochgeladenes Bild'
-                  : TEIL_BILDER[teil.id]
-                    ? 'eingebautes Bild'
-                    : 'noch als Zeichnung'}
+                  : 'als Zeichnung'}
           </p>
         </div>
         <button type="button" className="iconbtn" onClick={onClose} title="Schließen" aria-label="Schließen">

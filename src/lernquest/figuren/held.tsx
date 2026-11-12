@@ -385,6 +385,37 @@ export const KLEIDUNG: Record<string, Kleid> = {
       />
     ),
   },
+  // Own parts of the teacher (lq_teil, eigen), by their id.
+  e0a70ed2238: {
+    aermel: T.oliv,
+    unterarm: T.oliv,
+    hand: T.leder,
+    hose: T.oliv,
+    schuhe: T.leder,
+    rumpf: ({ zeit }) => (
+      <Rumpf
+        t={T.oliv}
+        kinder={
+          <>
+            {/* Camouflage patches and leafy tufts */}
+            <path d="M94 150 q8 -6 16 0 q-4 8 -16 0 Z M124 164 q10 -6 18 2 q-8 8 -18 -2 Z M100 182 q8 -4 14 2 q-6 6 -14 -2 Z" fill={P.olivTief} />
+            <path d="M118 146 q6 -4 12 0 q-4 6 -12 0 Z M134 186 q6 -4 12 0 q-4 6 -12 0 Z" fill={P.leder} opacity={0.8} />
+            {[
+              [90, 142],
+              [150, 142],
+              [96, 196],
+              [146, 196],
+              [120, 138],
+            ].map(([x, y]) => (
+              <path key={`${x},${y}`} d={`M${x} ${y} l-6 -8 M${x} ${y} l0 -10 M${x} ${y} l6 -8`} stroke={P.gruenTief} strokeWidth={3.5} strokeLinecap="round" />
+            ))}
+            <path d="M118 158 q4 -8 10 -6 q-2 8 -10 6 Z" fill={P.gold} stroke={P.goldTief} strokeWidth={1.5} />
+            <Funkeln x={140} y={154} r={6} zeit={zeit} />
+          </>
+        }
+      />
+    ),
+  },
 };
 
 // — Face: eyes (the `augen` part), brows, mouth (the chosen one), cheeks. Drawn in the fox's face coordinates and
@@ -655,6 +686,11 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
     vorn: (t) => <Haarform d={BOB_VORN} t={t} />,
   },
   glatze: {},
+  // Own hair of the teacher (lq_frisur): short curls close to the head.
+  f25e0e76346: {
+    hinten: (t) => <Locken t={t} r={11} punkte={[[66, 98], [174, 98], [64, 116], [176, 116]]} />,
+    vorn: (t) => <Locken t={t} r={11} punkte={[[96, 52], [120, 46], [144, 52], [78, 64], [162, 64], [108, 62], [132, 62], [70, 82], [170, 82], [90, 74], [150, 74]]} />,
+  },
 };
 export const FRISUR_ARTEN = Object.keys(FRISUR_FORM);
 
@@ -794,3 +830,12 @@ export function held(a: Aussehen = {}): Figur {
 }
 
 export const HELD = held();
+
+/** The teacher's own parts and hair (lq_teil / lq_frisur on the server, made on the teacher page) that are drawn here
+ *  by their id; the workshop lists them to review. `seltenheit` 0–4 as in src/lernquest/teile.ts. */
+export const EIGENE_ZEICHNUNGEN: { id: string; slot: 'kopf' | 'kleidung' | 'hintergrund' | 'frisur'; name: string; seltenheit: number }[] = [
+  { id: 'e97c799d057', slot: 'kopf', name: 'Crowns Guard Helmet', seltenheit: 3 },
+  { id: 'e0a70ed2238', slot: 'kleidung', name: 'Guilie Suit', seltenheit: 4 },
+  { id: 'e57ef47f771', slot: 'hintergrund', name: 'Höllenfeuer', seltenheit: 4 },
+  { id: 'f25e0e76346', slot: 'frisur', name: 'Curlyshort', seltenheit: 0 },
+];

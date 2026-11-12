@@ -110,6 +110,9 @@ Jedes antippbare Teil hat dieselben Zustände, nie nur über Farbe unterschieden
 - In der App: `app/heldVektor.tsx` (`HeldBild`, `HeldKopfBild`, `HeldTeilBild`); `AvatarBild`, `KopfBild` und `TeilBild`
   in `app/avatar.tsx` nehmen sie. Die alte Zeichnung mit den gemalten Bildern bleibt nur für Teile und Frisuren, die es
   nur als hochgeladenes Bild gibt (Lehrkraft-Seite), und für die Vorschau beim Hochladen.
+- Die gemalten Bilder (ComfyUI) sind gelöscht (Entscheidung der Lehrkraft 12.11.2026). Eigene Teile und Frisuren der
+  Lehrkraft zeichnet Claude als Vektor unter ihrer id nach (`EIGENE_ZEICHNUNGEN` in `figuren/held.tsx`); bis dahin
+  zeigt die App das hochgeladene Bild im alten Stil.
 - Werkstatt `#avatar`: Held aus allen Teilen zusammenstellen und jedes Teil am Helden prüfen.
 - Schnell ansehen ohne Werkstatt: `VORSCHAU=<ordner> VORSCHAU_TEIL=held npx vitest run src/lernquest/figuren/vorschau`
   (auch `kopf`, `werkzeug`, `begleiter`, `hintergrund`).

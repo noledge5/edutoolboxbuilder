@@ -1,18 +1,10 @@
 // Stufe E: the hero is the vector figure; the older drawing (below) stays for parts that exist only as uploaded pictures.
-// There, painted pictures replace a vector drawing only where a picture exists (teilBilder.ts); hair and mouth are layers of their own.
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { FRISUREN, frisurVon, haarfarbeVon, MUENDER, mundVon, TEILE } from '../teile';
 import { AvatarBild, AvatarBildGemalt as AvatarBildAlt, hatHaarZeichnung, hatMundZeichnung, KopfBild, TeilBild, TeilBildGemalt } from './avatar';
 import { setzeEigene } from '../teile';
 import { HochgeladeneBilder } from './bilderKontext';
-
-vi.mock('./teilBilder', () => ({
-  teilBild: (id?: string) => (id === 'krone' ? 'assets/krone.webp' : undefined),
-  koerperBild: (haut: number) => `assets/koerper-${haut}.webp`,
-  haareBild: (frisur: string, farbe: number) => (frisur === 'zopf' ? `assets/haare-zopf-${farbe}.webp` : undefined),
-  mundBild: (mund: string) => (mund === 'lachen' ? 'assets/mund-lachen.webp' : undefined),
-}));
 
 describe('vector hero', () => {
   it('draws the saved avatar as the vector figure, with its items and background', () => {
@@ -36,36 +28,20 @@ describe('vector hero', () => {
   });
 });
 
-describe('avatar with pictures', () => {
-  it('stacks body, clothes, hair and parts, and keeps vectors where there is no picture', () => {
-    const svg = renderToStaticMarkup(
-      <AvatarBildAlt avatar={{ kopf: 'krone', kleidung: 'tshirt', haut: 3, frisur: 'zopf', haarfarbe: 3 }} />,
-    );
-    expect(svg).toContain('href="assets/koerper-3.webp"');
-    expect(svg).toContain('href="assets/haare-zopf-3.webp"');
-    expect(svg).toContain('href="assets/krone.webp"');
-    expect(svg).toContain('lq-funkeln'); // Legendär keeps its sparkle
-    expect(svg).toContain('fill="#2F6FDB"'); // the T-shirt is still drawn
-    const reihe = ['koerper-3', '#2F6FDB', 'haare-zopf', 'krone.webp'].map((s) => svg.indexOf(s));
-    expect(reihe).toEqual([...reihe].sort((a, b) => a - b));
-  });
-  it('takes uploaded pictures (teacher page) before built-in ones, hair in its colour or else the brown one', () => {
-    const mit = (bilder: Record<string, string>, avatar: object) =>
-      renderToStaticMarkup(
-        <HochgeladeneBilder.Provider value={bilder}>
-          <AvatarBildAlt avatar={avatar} />
+describe('own parts as uploaded pictures (teacher page)', () => {
+  it('shows the uploaded picture of an own part that has no drawing yet', () => {
+    setzeEigene([{ id: 'e0123456789', slot: 'kopf', name: 'Eigener Hut', seltenheit: 1, eigen: true }]);
+    try {
+      const svg = renderToStaticMarkup(
+        <HochgeladeneBilder.Provider value={{ e0123456789: 'blob:hut' }}>
+          <AvatarBild avatar={{ kopf: 'e0123456789' }} />
         </HochgeladeneBilder.Provider>,
       );
-    const svg = mit({ krone: 'blob:krone', 'haare-zopf-2': 'blob:zopf2', 'haare-locken-0': 'blob:locken0' }, { kopf: 'krone', frisur: 'zopf', haarfarbe: 2 });
-    expect(svg).toContain('href="blob:krone"');
-    expect(svg).toContain('href="blob:zopf2"');
-    expect(svg).not.toContain('assets/haare-zopf');
-    expect(mit({ 'haare-locken-0': 'blob:locken0' }, { frisur: 'locken', haarfarbe: 3 })).toContain('href="blob:locken0"');
-  });
-  it('shows a painted part alone in its cut-out', () => {
-    const svg = renderToStaticMarkup(<TeilBildGemalt teil={TEILE.find((t) => t.id === 'krone')!} />);
-    expect(svg).toContain('viewBox="56 0 128 104"');
-    expect(svg).toContain('href="assets/krone.webp"');
+      expect(svg).toContain('href="blob:hut"');
+      expect(renderToStaticMarkup(<TeilBildGemalt teil={{ id: 'e0123456789', slot: 'kopf', name: 'Eigener Hut', seltenheit: 1, eigen: true }} />)).toContain('viewBox="56 0 128 104"');
+    } finally {
+      setzeEigene([]);
+    }
   });
 });
 
@@ -92,13 +68,9 @@ describe('mouth', () => {
     expect(mundVon({ mund: 'staunen' })).toBe('staunen');
     expect(mundVon({ mund: 'gibtsnicht' })).toBe('laecheln');
   });
-  it('sits over the eyes and under the head part, painted where there is a picture, else drawn', () => {
-    const gemalt = renderToStaticMarkup(<AvatarBildAlt avatar={{ kopf: 'krone', augen: 'punktaugen', mund: 'lachen' }} />);
-    const reihe = ['cx="104"', 'mund-lachen.webp', 'krone.webp'].map((s) => gemalt.indexOf(s));
-    expect(reihe.every((i) => i >= 0)).toBe(true);
-    expect(reihe).toEqual([...reihe].sort((a, b) => a - b));
-    const gezeichnet = renderToStaticMarkup(<AvatarBildAlt avatar={{ mund: 'staunen' }} />);
-    expect(gezeichnet).toContain('rx="5.5" ry="7"'); // the round mouth
+  it('is drawn in the older drawing too', () => {
+    expect(renderToStaticMarkup(<AvatarBildAlt avatar={{ mund: 'staunen' }} />)).toContain('rx="5.5" ry="7"'); // the round mouth
     expect(renderToStaticMarkup(<AvatarBildAlt avatar={{}} />)).toContain('M108 116q12 9 24 0'); // the smile
   });
+
 });

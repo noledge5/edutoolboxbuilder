@@ -1,7 +1,7 @@
 // The hero in the app as the vector figure of the workshop (Stufe E, Teil 4): the saved `Avatar` (src/lernquest/teile.ts)
 // becomes the hero's look (figuren/held.tsx), its hat, tool and companion become items, the background a scene behind.
 // avatar.tsx uses these unless something worn exists only as an uploaded picture (a part made on the teacher page).
-import { FigurBild, held, HINTERGRUENDE, ITEMS } from '../figuren';
+import { AUGEN_ARTEN, FigurBild, FRISUR_ARTEN, held, HINTERGRUENDE, ITEMS, KLEIDUNG } from '../figuren';
 import type { Aussehen, Item } from '../figuren';
 import { alleFrisuren, angelegt, frisurVon, haarfarbeVon, mundVon, SLOTS } from '../teile';
 import type { Avatar, Teil } from '../teile';
@@ -20,10 +20,21 @@ export function itemsVon(a: Avatar): Item[] {
   });
 }
 
-/** Something worn that only exists as an uploaded picture (teacher page): then the hero is drawn the older way. */
+/** A part has a vector drawing (built-in, or an own part of the teacher that Claude has drawn by its id). */
+export function hatVektor(t: Teil): boolean {
+  return ITEM.has(t.id) || t.id in KLEIDUNG || AUGEN_ARTEN.includes(t.id) || HINTERGRUENDE.some((h) => h.id === t.id);
+}
+
+/** Something worn that only exists as an uploaded picture (an own part not drawn yet): then the hero is drawn the
+ *  older way, with that picture. */
 export function nurAlsBild(a: Avatar): boolean {
-  if (SLOTS.some(({ slot }) => angelegt(a, slot)?.eigen)) return true;
-  return !!alleFrisuren().find((f) => f.id === frisurVon(a))?.eigen;
+  if (SLOTS.some(({ slot }) => {
+    const t = angelegt(a, slot);
+    return t?.eigen && !hatVektor(t);
+  }))
+    return true;
+  const f = alleFrisuren().find((x) => x.id === frisurVon(a));
+  return !!f?.eigen && !FRISUR_ARTEN.includes(f.id);
 }
 
 /** Crops of the 240 × 240 hero picture. */

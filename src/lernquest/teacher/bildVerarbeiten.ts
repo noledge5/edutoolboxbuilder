@@ -4,7 +4,6 @@
 import { ebeneAnpassen, editEbene, einzelEbene, flaecheEbene, type Einstellung, type Roh, type Skalieren } from '../bilder/ebene';
 import { haareUmfaerben, hexRgb, mittelFarbe, radieren, randFarbe, type Strich } from '../bilder/pixel';
 import { EBENE_GROESSE as G, HINTERGRUND_FARBE } from '../bilder/vorlagen';
-import { TEIL_BILDER } from '../app/teilBilder';
 import { HAARFARBEN, type Slot } from '../teile';
 
 /** How a raw picture becomes a layer: made on its own on grey (`einzeln`), an edit of the base figure (`edit`), a
@@ -93,7 +92,8 @@ function aufGrund(bild: CanvasImageSource, farbe: string): Uint8Array {
 let grundfigur: Promise<HTMLImageElement> | undefined;
 /** The painted base figure (koerper-0.webp) the edits were made on. */
 function grundfigurLaden(): Promise<HTMLImageElement> {
-  const url = TEIL_BILDER['koerper-0'];
+  // The painted pictures are gone (Stufe E: every part is a vector drawing), so there is no base to edit on.
+  const url: string | undefined = undefined;
   if (!url) return Promise.reject(new Error('Für ein Edit fehlt die gemalte Grundfigur in der App.'));
   return (grundfigur ??= new Promise((ok, fehler) => {
     const img = new Image();

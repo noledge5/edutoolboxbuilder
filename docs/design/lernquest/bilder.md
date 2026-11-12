@@ -1,3 +1,6 @@
+> **Abgelöst (12.11.2026):** Die gemalten Bilder und `npm run lq:bilder` sind gelöscht; jedes Teil ist eine
+> Vektorzeichnung (`src/lernquest/figuren/`). Diese Seite beschreibt nur noch, wie es vorher war.
+
 # Lernquest: gemalte Bilder für Held und Teile
 
 Anleitung, um Grundfigur, Hauttöne, Frisuren und die 80 Teile lokal in ComfyUI zu malen und in die App zu bringen:

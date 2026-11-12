@@ -34,8 +34,10 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
 3. **Teil 4 fertig auf demselben Branch:** der Held als Vektorfigur (`figuren/held.tsx`), alle 80 Teile, 9 Frisuren,
    6 Münder, 6 Hautfarben gezeichnet; die App zeigt ihn überall (`app/heldVektor.tsx`), Werkstatt `#avatar` zum
    Zusammenstellen und Prüfen. Die Lehrkraft prüft jetzt die Teile am Helden; ihre Prüfungen zuerst lesen (Skill
-   `figur`). Offen: die gemalten ComfyUI-Bilder (`src/lernquest/bilder/`, `app/teile/`) werden nicht mehr gezeigt;
-   Löschen nur nach Rückfrage.
+   `figur`). Gemalte Bilder gelöscht; die 3 eigenen Teile und die eigene Frisur der Lehrkraft sind als
+   Vektor nachgezeichnet (`EIGENE_ZEICHNUNGEN`). Neue eigene Teile: in der DB nachsehen (`lq_teil` mit `eigen`,
+   `lq_frisur`) und ebenso nachzeichnen. Die Hochlade-/Edit-Funktion der Lehrkraft-Seite braucht die gemalte Grundfigur
+   und geht nicht mehr (meldet das); Umbau der Lehrkraft-Seite ist noch nicht entschieden.
 4. **Teil 3 fertig auf demselben Branch:** Runde im Mockup-Look (`app/Runde.tsx`, CSS-Block „Stufe E, Teil 3“ am Ende
    von `lernquest.css`); Logik unverändert. **Als Nächstes Teil 5**, dann 6. Teil 5: Dateien von
    `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).

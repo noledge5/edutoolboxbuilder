@@ -255,4 +255,33 @@ export const KOPF_ITEMS: Item[] = [
       </g>
     ),
   },
+  // Own parts the teacher made on the teacher page (lq_teil, eigen): drawn here by their id, so they show as vectors.
+  {
+    id: 'e97c799d057',
+    name: 'Crowns Guard Helmet',
+    platz: 'hut',
+    seltenheit: 4,
+    rahmen: [-50, -76, 100, 92],
+    zeichnung: () => (
+      <g>
+        {/* Red plume behind */}
+        <path d="M-2 -46 Q-8 -70 10 -74 Q30 -74 38 -58 Q24 -64 16 -58 Q30 -54 34 -40 Q20 -50 8 -44 Z" fill={P.rot} {...UMRISS_FEIN} />
+        <path d="M6 -66 Q18 -70 28 -62" fill="none" stroke={P.backe} strokeWidth={2.5} strokeLinecap="round" />
+        {/* Steel dome with cheek guards */}
+        <path d="M-44 14 L-44 -10 Q-44 -50 0 -52 Q44 -50 44 -10 L44 14 Q36 18 32 10 L32 -2 L-32 -2 L-32 10 Q-36 18 -44 14 Z" fill={P.metall} />
+        <path d="M18 -48 Q44 -40 44 -10 L44 14 Q38 16 34 12 Q36 -24 18 -48 Z" fill={P.metallTief} opacity={0.6} />
+        <path d="M-32 -18 Q-28 -38 -10 -44" fill="none" stroke={P.metallHell} strokeWidth={5} strokeLinecap="round" />
+        <path d="M-44 14 L-44 -10 Q-44 -50 0 -52 Q44 -50 44 -10 L44 14 Q36 18 32 10 L32 -2 L-32 -2 L-32 10 Q-36 18 -44 14 Z" fill="none" {...UMRISS} />
+        {/* Gold crown band with three points and a sapphire */}
+        <path d="M-40 -2 L-40 -18 L-30 -12 L-20 -26 L-8 -14 L0 -30 L8 -14 L20 -26 L30 -12 L40 -18 L40 -2 Z" fill={P.gold} {...UMRISS_FEIN} />
+        <path d="M-36 -6 H36" stroke={P.goldTief} strokeWidth={2} />
+        <path d={stern(0, -12, 7)} fill={P.blau} stroke={P.blauTief} strokeWidth={1.5} strokeLinejoin="round" />
+        <circle cx={-22} cy={-9} r={2.5} fill={P.rot} stroke={P.rotTief} strokeWidth={1} />
+        <circle cx={22} cy={-9} r={2.5} fill={P.rot} stroke={P.rotTief} strokeWidth={1} />
+        {[-38, 38].map((x) => (
+          <circle key={x} cx={x} cy={8} r={2} fill={P.metallHell} stroke={P.linie} strokeWidth={1} />
+        ))}
+      </g>
+    ),
+  },
 ];

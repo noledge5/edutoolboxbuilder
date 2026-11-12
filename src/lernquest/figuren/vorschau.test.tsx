@@ -38,6 +38,12 @@ it.skipIf(!ziel)('writes a preview page and screenshot', async () => {
     for (const f of FIGUREN.filter((x) => x.art === 'held'))
       for (const p of Object.keys(f.posen))
         teile.push(`<figure>${renderToStaticMarkup(<FigurBild figur={f} pose={p} zeit={0} lebendig={false} breite={200} />)}<figcaption>${f.id} · ${p}</figcaption></figure>`);
+  if (teil === 'eigen') {
+    const bg = HINTERGRUENDE.find((h) => h.id === 'e57ef47f771')!;
+    teile.push(`<figure><svg width="300" height="300" viewBox="0 0 240 240">${renderToStaticMarkup(<>{bg.zeichnung(0.4)}<FigurBild figur={held({ kleidung: 'e0a70ed2238', frisur: 'f25e0e76346', haut: 2 })} items={ITEMS.filter((i) => i.id === 'e97c799d057')} zeit={0} lebendig={false} breite={240} /></>)}</svg><figcaption>alle vier</figcaption></figure>`);
+    teile.push(`<figure>${renderToStaticMarkup(<FigurBild figur={held({ kleidung: 'e0a70ed2238', frisur: 'f25e0e76346', haarfarbe: 3 })} zeit={0} lebendig={false} breite={200} />)}<figcaption>ohne Helm</figcaption></figure>`);
+    teile.push(`<figure>${renderToStaticMarkup(<ItemBild item={ITEMS.find((i) => i.id === 'e97c799d057')!} groesse={120} zeit={0} />)}${renderToStaticMarkup(<ItemBild item={ITEMS.find((i) => i.id === 'e97c799d057')!} groesse={48} zeit={0} />)}<figcaption>Helm</figcaption></figure>`);
+  }
   if (teil === 'held') {
     const zeige = (name: string, a: Parameters<typeof held>[0]) =>
       teile.push(`<figure>${renderToStaticMarkup(<FigurBild figur={held(a)} zeit={0} lebendig={false} breite={140} />)}<figcaption>${name}</figcaption></figure>`);
