@@ -36,8 +36,8 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
    Zusammenstellen und Prüfen. Die Lehrkraft prüft jetzt die Teile am Helden; ihre Prüfungen zuerst lesen (Skill
    `figur`). Gemalte Bilder gelöscht; die 3 eigenen Teile und die eigene Frisur der Lehrkraft sind als
    Vektor nachgezeichnet (`EIGENE_ZEICHNUNGEN`). Neue eigene Teile: in der DB nachsehen (`lq_teil` mit `eigen`,
-   `lq_frisur`) und ebenso nachzeichnen. Die Hochlade-/Edit-Funktion der Lehrkraft-Seite braucht die gemalte Grundfigur
-   und geht nicht mehr (meldet das); Umbau der Lehrkraft-Seite ist noch nicht entschieden.
+   `lq_frisur`) und ebenso nachzeichnen. Lehrkraft-Seite „Teile und Wünsche“: kein Hochladen mehr; neue Teile/Frisuren als
+   Wunsch (Migration `20261126_lernquest_wuensche.sql`, live eingespielt 12.11.); Wünsche lesen und zeichnen: Skill `figur`.
 4. **Teil 3 fertig auf demselben Branch:** Runde im Mockup-Look (`app/Runde.tsx`, CSS-Block „Stufe E, Teil 3“ am Ende
    von `lernquest.css`); Logik unverändert. **Teil 5 fertig auf demselben Branch** (Stufe D Teil 2 von `claude/lucid-galileo-0dvocr` hineingemergt, Migration
    `20261125_lernquest_klassenaufgabe.sql` ist jetzt im Repo): Reiter „Aufgaben“ (Heute/Woche), Truhe als Vektor, Fuchs

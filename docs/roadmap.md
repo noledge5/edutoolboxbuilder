@@ -255,6 +255,8 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
   alles in der Figuren-Werkstatt als Artefakt.
 - **Gemalte Bilder (Entscheidung der Lehrkraft 12.11.2026):** Die gemalten Bilder werden gelöscht. Eigene Teile und
 Frisuren der Lehrkraft bekommen ebenfalls eine Vektorzeichnung (Claude zeichnet sie nach), die das hochgeladene Bild ersetzt.
+Neue eigene Teile legt sie als Wunsch an (Name, Platz, Seltenheit, Beschreibung); Claude zeichnet, sie stellt dann die
+Herkunft ein. Hochladen und Bild-Bearbeiten auf der Lehrkraft-Seite sind entfernt.
 
 **Prüfen der Teile (Entscheidung der Lehrkraft 12.11.2026):** Die Lehrkraft prüft Teile und Gegenstände erst, wenn die
   Spieler-Avatare gebaut sind (Teil 4), an den Avataren und nicht nur an Fuchs und Boss. Dafür braucht Teil 4: Vorlagen

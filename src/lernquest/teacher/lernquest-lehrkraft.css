@@ -1003,47 +1003,6 @@
   align-items: center;
 }
 
-/* Eraser (Radierer.tsx) and the hair colours of a hair. */
-.lqt-radierer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-start;
-}
-.lqt-radierer-flaeche {
-  position: relative;
-  max-width: 100%;
-  aspect-ratio: 1;
-  border-radius: 12px;
-  overflow: hidden;
-  cursor: crosshair;
-  touch-action: none;
-  background: repeating-conic-gradient(var(--color-neutral-200) 0 25%, var(--color-surface) 0 50%) 0 0 / 20px 20px;
-}
-.lqt-radierer-flaeche img,
-.lqt-radierer-flaeche svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  user-select: none;
-}
-.lqt-radierer-leiste {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1 1 200px;
-}
-.lqt-radierer-leiste label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 13px;
-}
-.lqt-radierer-leiste .btn {
-  align-self: flex-start;
-}
 .lqt-bild-farben {
   display: grid;
   grid-template-columns: repeat(3, 72px);
@@ -1059,8 +1018,33 @@
   height: 100%;
   display: block;
 }
-.lqt-radierer-leiste label > span {
+/* Stufe E: parts as drawings, wishes for new ones (TeilBilder.tsx). */
+.lqt-bild-herkunft.is-wartet {
+  color: var(--color-neutral-700);
+  font-style: italic;
+}
+.lqt-detail {
   display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+.lqt-detail > div {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lqt-bild-kachel > svg {
+  width: 100%;
+  height: 100%;
+}
+.lqt-wunsch {
+  display: flex;
+  flex-direction: column;
   gap: 4px;
-  align-items: center;
+}
+.lqt-wunsch textarea {
+  resize: vertical;
 }

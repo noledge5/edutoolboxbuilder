@@ -40,6 +40,10 @@ Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werk
 1. **Read the teacher's review first**: `ArtifactData` `list` on the workshop artifact (URL in
    docs/design/lernquest/README.md), collection `pruefung`: one doc per figure / item (`figur--fuchs`,
    `item--krone`) with `status` (`passt`, `aendern`, `offen`) and `notiz`. Work the `aendern` ones.
+   Then the teacher's **wishes** for own parts and hair (teacher page „Teile und Wünsche“, Supabase project
+   „baukasten“, read-only): `select id, slot, name, seltenheit, wunsch from lq_teil where wunsch is not null`. Draw each
+   one not yet in `EIGENE_ZEICHNUNGEN` (figuren/held.tsx) under its id (hair: the id without `frisur-`), add it there, and
+   tell the teacher to set where it comes from (it stays out of the game until she does).
 2. Draw or change the code. For a pose or a move, use the workshop instead of guessing numbers:
    `npm run spieltest` → `http://localhost:4174/lernquest/werkstatt.html#<figur-id>`. Tab „Pose“: sliders per part,
    face, extras, then „Pose als Code“. Tab „Bewegung“: edit the JSON live, scrub the time line, then „Bewegung als

@@ -452,6 +452,12 @@ export const teilAnlegen = (keys: string[], t: { name: string; slot: string; sel
     p_typ: typ,
     p_daten: daten,
   });
+/** Stufe E: a wish for an own part or hair (`slot` 'frisur'): name, place, rarity and how it should look; not in the
+ *  game until Claude has drawn it and the teacher sets where it comes from. Returns its id. */
+export const wunschAnlegen = (keys: string[], w: { name: string; slot: string; seltenheit: number; wunsch: string }) =>
+  lq<string>('lq_wunsch_anlegen', { p_schluessel: keys, p_name: w.name, p_slot: w.slot, p_seltenheit: w.seltenheit, p_wunsch: w.wunsch });
+/** The wishes so far: [{id, slot, name, wunsch}] (hair with its id f…). Only the admin teacher. */
+export const wuensche = (keys: string[]) => lq<unknown>('lq_wuensche', { p_schluessel: keys });
 /** Renames an own part and takes it out of the game or back in. */
 export const teilAendern = (keys: string[], teil: string, name: string, aktiv: boolean) =>
   lq<null>('lq_teil_aendern', { p_schluessel: keys, p_teil: teil, p_name: name, p_aktiv: aktiv });
