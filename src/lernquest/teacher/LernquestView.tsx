@@ -5,6 +5,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, IdCard, Images, Lock, MessageCircleQuestion, Plus, Printer, RefreshCw, RotateCcw, ScanLine, Sparkles, Swords, Trash2, Unlock } from 'lucide-react';
 import { Icon } from '../../icons';
+import { isWorkedOut } from '../../library/model';
 import { SearchButton } from '../../library/SearchDialog';
 import type { Lesson, Library, Module } from '../../library/types';
 import { classProfileOf } from '../../ai/classNotes';
@@ -377,7 +378,11 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
   const grades = [...new Set(lib.modules.filter((m) => m.subject === subject).map((m) => m.grade))].sort((a, b) => a - b);
   const [grade, setGrade] = useState(unlockedModules[0]?.grade ?? grades[0] ?? 0);
   const g = grades.includes(grade) ? grade : (grades[0] ?? 0);
-  const modules = lib.modules.filter((m) => m.subject === subject && m.grade === g).sort((a, b) => a.number - b.number);
+  // Only worked-out lessons are shown (planned ones have nothing to practise yet); an unlocked one always stays.
+  const zeigen = (l: Lesson) => isWorkedOut(l) || klasse.stunden.includes(l.id);
+  const modules = lib.modules
+    .filter((m) => m.subject === subject && m.grade === g && lib.lessons.some((l) => l.moduleId === m.id && zeigen(l)))
+    .sort((a, b) => a.number - b.number);
 
   /** Round levels per unlocked lesson, from the package as sent (with the released pool), for the stars in the progress table. */
   const rounds = useMemo(() => {
@@ -654,7 +659,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
             ))}
           </select>
         </div>
-        {!modules.length && <p className="lib-empty">Keine Module in diesem Fach und dieser Klassenstufe.</p>}
+        {!modules.length && <p className="lib-empty">Keine ausgearbeiteten Stunden in diesem Fach und dieser Klassenstufe.</p>}
         {modules.map((m) => (
           <div key={m.id} className="lqt-module">
             <h3>
@@ -662,7 +667,7 @@ function KlasseView({ lib, onLessonChange, klasse, keys, pins, versteckt, busy, 
             </h3>
             <ul>
               {lib.lessons
-                .filter((l) => l.moduleId === m.id)
+                .filter((l) => l.moduleId === m.id && zeigen(l))
                 .sort((a, b) => a.number - b.number)
                 .map((l) => {
                   const n = exercisesOf(l.doc.pages).length + freigegeben(l.pool).length;

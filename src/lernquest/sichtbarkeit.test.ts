@@ -7,8 +7,9 @@ import { stufenPlan, stufeVon } from './sichtbarkeit';
 import { LEERER_STAND } from './types';
 
 const modul = { id: 'm1', number: 1, title: 'Wetter', icon: 'cloud', subject: 'Erdkunde', grade: 5, lang: 'de' } as unknown as Module;
-const stunde = (id: string, number: number): Lesson =>
-  ({ id, moduleId: 'm1', number, title: `Stunde ${number}`, doc: { pages: [] }, updatedAt: 1 }) as unknown as Lesson;
+/** A worked-out lesson (one block on its page), or with `geplant` only planned (no blocks yet). */
+const stunde = (id: string, number: number, geplant = false): Lesson =>
+  ({ id, moduleId: 'm1', number, title: `Stunde ${number}`, doc: { pages: [{ blocks: geplant ? [] : [{ id: 'x' }] }] }, updatedAt: 1 }) as unknown as Lesson;
 const stunden = [stunde('a', 1), stunde('b', 2), stunde('c', 3)];
 const key = 'a'.repeat(64);
 
@@ -24,6 +25,13 @@ describe('Sichtbarkeit der Stunden je Klasse', () => {
     expect(buildPaket(modul, stunden[0], stunden, ['b']).modul.stunden?.map((s) => s.nummer)).toEqual([1, 3]);
     expect(buildPaket(modul, stunden[0], stunden, ['a', 'b']).modul.stunden?.map((s) => s.nummer)).toEqual([1, 3]);
     expect(buildPaket(modul, stunden[0], stunden).modul.stunden?.map((s) => s.nummer)).toEqual([1, 2, 3]);
+  });
+
+  it('lässt nur geplante, nicht ausgearbeitete Stunden von der Karte weg', () => {
+    const mitPlan = [...stunden, stunde('d', 4, true)];
+    expect(buildPaket(modul, stunden[0], mitPlan).modul.stunden?.map((s) => s.nummer)).toEqual([1, 2, 3]);
+    // The lesson itself always stays, even if it has nothing yet.
+    expect(buildPaket(modul, mitPlan[3], mitPlan).modul.stunden?.map((s) => s.nummer)).toEqual([1, 2, 3, 4]);
   });
 
   it('zeigt eine ausgeblendete Stunde nicht als gesperrte Station', () => {

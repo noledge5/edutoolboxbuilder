@@ -4,6 +4,7 @@
 import { jumble, seeded, shuffle, statements } from '../model/language';
 import { choices, lines, matchNumbers, rows, segments, str } from '../model/text';
 import type { Block, Page } from '../model/types';
+import { isWorkedOut } from '../library/model';
 import type { Lesson, Module } from '../library/types';
 import { PAKET_FORMAT, UEBUNGS_ARTEN, type Lernkarte, type Paket, type Uebung } from './types';
 
@@ -253,11 +254,11 @@ export function exercisesOf(pages: Page[]): Uebung[] {
 
 /**
  * The Lernpaket of a lesson; `lessons` are the module's lessons, for the locked stations on the map, without those
- * hidden from the class (`versteckt`, never the lesson itself).
+ * hidden from the class (`versteckt`) and those only planned, not worked out yet (never the lesson itself).
  */
 export function buildPaket(m: Module, l: Lesson, lessons: Lesson[] = [l], versteckt: readonly string[] = []): Paket {
   const stunden = lessons
-    .filter((x) => x.moduleId === m.id && (x.id === l.id || !versteckt.includes(x.id)))
+    .filter((x) => x.moduleId === m.id && (x.id === l.id || (!versteckt.includes(x.id) && isWorkedOut(x))))
     .sort((a, b) => a.number - b.number)
     .map((x) => ({ nummer: x.number, titel: x.title }));
   return {
