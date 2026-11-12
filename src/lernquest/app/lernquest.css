@@ -3596,3 +3596,14 @@ button.lq-teil:active {
   width: 14px;
   height: 14px;
 }
+
+/* While the app is rebuilt (UMBAU in LernquestApp.tsx): a calm notice instead of the sign-in. */
+.lq-umbau {
+  gap: var(--lq-a-4);
+}
+.lq-umbau > svg {
+  align-self: center;
+}
+.lq-umbau p {
+  margin: 0;
+}
