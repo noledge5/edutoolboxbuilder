@@ -3,7 +3,7 @@
 // rules in `lq_runde_melden` (supabase/migrations/20261106_lernquest.sql); change both together.
 import { normalize } from '../share/grade';
 import { seeded, shuffle } from '../model/language';
-import type { Niveau, Stand, TagesStand, Uebung, Zaehler } from './types';
+import type { KlassenAufgabe, Niveau, Stand, TagesStand, Uebung, Zaehler } from './types';
 
 // — Rounds —
 
@@ -510,7 +510,7 @@ export function rundeAnwenden(
   m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] },
   tag = heute(),
   k: RundenKontext = { herzen: 3, bonusProzent: 0, stufen: [] },
-): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; aufgabenPlus: number; aufgabenNeu: string[]; wiederholung: boolean; stand: Stand } {
+): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; aufgabenPlus: number; aufgabenNeu: string[]; wiederholung: boolean; stand: Stand; klassenGeschafft: boolean } {
   const neuerTag = !s.tage.includes(tag);
   const wiederholung = istWiederholung(s.bestwerte, m.stunde, m.runde);
   const schon = neuerTag ? 0 : s.xpHeute;
@@ -544,6 +544,8 @@ export function rundeAnwenden(
   if (ziel) truhenPlus++;
   const punktePlus = ziel ? PUNKTE_WOCHENZIEL : 0;
   const auf = aufgabenNach(s.aufgaben, tag, { richtig: m.richtig, gesamt: m.gesamt, wiederholung, sterne: sterneGewonnen });
+  const ka = klassenNach(s, tag, sternePlus);
+  if (ka.truhe) truhenPlus++;
   return {
     plus,
     muenzenPlus,
@@ -567,8 +569,32 @@ export function rundeAnwenden(
       tage,
       leitner: { ...s.leitner, ...m.leitner },
       aufgaben: auf.aufgaben,
+      sterneWoche: ka.sterneWoche,
+      klassenAufgabe: ka.aufgabe,
+      klassenTruhe: ka.truhe || (ka.aufgabe ? !!s.klassenTruhe : false),
     },
+    klassenGeschafft: ka.truhe,
   };
+}
+
+// — Class task of the week (Stufe D, Teil 2), as lq_klassen_aufgabe and lq_runde_melden —
+
+/** Stars per child for the class task, unless the teacher set another number (1–20). */
+export const KLASSEN_ZIEL_JE_KIND = 3;
+export const klassenZiel = (kinder: number, jeKind?: number | null) => Math.max(1, kinder * (jeKind ?? KLASSEN_ZIEL_JE_KIND));
+
+/**
+ * After a round with `sternePlus` new stars: own stars this week, the class task as far as this device knows (the
+ * other children's stars come with the next answer of the server) and whether its chest comes now (once a week, to
+ * every child with a star this week once the class reaches the goal).
+ */
+export function klassenNach(s: Stand, tag: string, sternePlus: number): { sterneWoche: number; aufgabe?: KlassenAufgabe; truhe: boolean } {
+  const alt = s.klassenAufgabe?.woche === wochenStart(tag) ? s.klassenAufgabe : undefined;
+  const sterneWoche = (alt ? (s.sterneWoche ?? 0) : 0) + sternePlus;
+  if (!alt) return { sterneWoche, truhe: false };
+  const aufgabe = { ...alt, sterne: alt.sterne + sternePlus };
+  const truhe = sterneWoche > 0 && !s.klassenTruhe && (alt.geschafft || aufgabe.sterne >= aufgabe.ziel);
+  return { sterneWoche, aufgabe: truhe ? { ...aufgabe, geschafft: true } : aufgabe, truhe };
 }
 
 // — Bosskampf (Stufe 3), as the lq_boss_* functions on the server —

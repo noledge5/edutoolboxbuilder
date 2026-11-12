@@ -522,6 +522,19 @@ stehen gleich in `rules.ts` (`GESCHAFFT_AB`, `niveauVon`, `rundenStufen`, `stern
   Truhe doppelt); App und Server rechnen Stufen und Sterne in 1500 Zufallsfällen gleich; im Spieltest am
   Handy-Format zwei Stationen angesehen und eine Runde gespielt.
 
+## Klassen-Aufgabe und Willkommen (12.11.2026, „Stufe D“, Teil 2)
+
+- **Klassen-Aufgabe der Woche:** Je Kind zählt der Server die neuen Sterne der Woche (`daten.sterneWoche`, dieselben,
+  die für Truhen zählen). Summe aller Kinder der Klasse gegen das Ziel `Kinder × wochen_ziel` (Standard 3,
+  `lq_wochenziel_setzen`, 1–20). Beim Erreichen: Zeile in `lq_klasse_woche`, jedes Kind mit Stern in der Woche
+  bekommt eine Truhe (`daten.klassenTruhe` = Woche, einmal). Kinder, die gerade selbst eine Runde melden, werden
+  übersprungen (`skip locked`) und bekommen sie bei ihrer nächsten Runde. App-Spiegel: `klassenNach` in rules.ts.
+- **Willkommen:** Kind mit 0 Erfahrung, `willkommen` = false und mindestens einer Station sieht beim Öffnen:
+  Begrüßung → Held-Seite mit Band „Schritt 1 von 3“ → Mini-Runde (3 Fragen der ersten Station, als „Wiederholen“
+  gemeldet, damit keine Station einen Bestwert aus 3 Fragen bekommt) → `lq_willkommen` (Truhe nur bei Erfahrung > 0)
+  → Truhe öffnen. „Überspringen“ setzt nur das Merkzeichen.
+- Server vor 20261125 schicken `willkommen` und `klassenAufgabe` nicht: dann zeigt die App beides nicht.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

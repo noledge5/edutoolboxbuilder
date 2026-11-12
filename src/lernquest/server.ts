@@ -5,7 +5,7 @@
 import { SERVER } from '../share/server';
 import type { BossFrage } from './boss';
 import type { Avatar } from './teile';
-import { LEERER_STAND, type Stand } from './types';
+import { LEERER_STAND, type KlassenAufgabe, type Stand } from './types';
 
 /**
  * A refusal of the server: 'code' (class or child unknown), 'pin', 'gesperrt', 'sitzung', 'zugang', 'voll',
@@ -153,6 +153,9 @@ export async function truheOeffnen(token: string): Promise<TruheInhalt> {
   const r = await lq<TruheInhalt>('lq_truhe_oeffnen', { p_token: token });
   return { ...r, stand: voll(r.stand) };
 }
+
+/** Welcome done (once): a chest when the mini round is sent (experience > 0), else only marked as skipped. */
+export const willkommen = async (token: string) => voll(await lq<Stand>('lq_willkommen', { p_token: token }));
 
 /** Buys a part in the shop. 'muenzen' when the coins do not reach, 'stufe' below `ladenAb`, 'ungueltig' for owned or start parts. */
 export const kaufen = async (token: string, teil: string) => voll(await lq<Stand>('lq_kaufen', { p_token: token, p_teil: teil }));
@@ -345,6 +348,9 @@ export interface KlasseInfo {
   anfragen?: number;
   /** „Wiederholen sofort“ ({ab, bis, stunden}), if set (20261119_lernquest_wiederholen_sofort.sql). */
   extra?: unknown;
+  /** Stufe D, Teil 2: stars per child for the class task (null = 3) and its state this week; missing before 20261125. */
+  wochenZiel?: number | null;
+  aufgabe?: KlassenAufgabe;
 }
 
 export const klassen = (keys: string[]) => lq<KlasseInfo[]>('lq_klassen', { p_schluessel: keys });
@@ -451,6 +457,9 @@ export const teilAendern = (keys: string[], teil: string, name: string, aktiv: b
   lq<null>('lq_teil_aendern', { p_schluessel: keys, p_teil: teil, p_name: name, p_aktiv: aktiv });
 
 /** Sets „Wiederholen sofort“ for a class ({ab, bis, stunden}) or ends it (null). */
+/** Stars per child for the class task of the week (1–20), null for the default. */
+export const wochenzielSetzen = (keys: string[], klasse: string, ziel: number | null) =>
+  lq<null>('lq_wochenziel_setzen', { p_schluessel: keys, p_klasse: klasse, p_ziel: ziel });
 export const wiederholenSetzen = (keys: string[], klasse: string, extra: { ab: string; bis: string; stunden: string[] } | null) =>
   lq<null>('lq_wiederholen_setzen', { p_schluessel: keys, p_klasse: klasse, p_extra: extra });
 

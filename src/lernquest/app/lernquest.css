@@ -3596,3 +3596,60 @@ button.lq-teil:active {
   width: 14px;
   height: 14px;
 }
+
+/* Stufe D, Teil 2: the class task of the week (one bar, the sum only) and the welcome for new children. */
+.lq-klassenaufgabe {
+  display: grid;
+  gap: var(--lq-a-2);
+}
+.lq-klassenaufgabe .lq-balken {
+  height: 14px;
+  background: var(--lq-linie);
+}
+.lq-klassenaufgabe .lq-balken > span {
+  background: var(--lq-gold);
+}
+.lq-willkommen {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: var(--lq-a-4);
+}
+.lq-willkommen h1 {
+  font-size: var(--lq-t-h1);
+  color: var(--lq-primary-tief);
+}
+.lq-willkommen .lq-truhe-icon {
+  width: 120px;
+  height: auto;
+}
+.lq-willkommen-held {
+  width: min(220px, 60vw);
+  height: auto;
+}
+.lq-willkommen-schritte {
+  margin: 0;
+  padding-left: 1.4em;
+  text-align: left;
+  display: grid;
+  gap: var(--lq-a-2);
+  font-weight: 700;
+}
+.lq-willkommen .lq-knopf {
+  width: 100%;
+  max-width: 420px;
+}
+.lq-willkommen-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lq-a-3);
+  padding: var(--lq-a-3) var(--lq-a-4);
+  border-radius: var(--lq-r);
+  background: var(--lq-nacht);
+  color: var(--lq-nacht-ink);
+}
+.lq-willkommen-band .lq-knopf {
+  width: auto;
+}
