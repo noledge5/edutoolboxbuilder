@@ -1226,9 +1226,9 @@ export const hatMundZeichnung = (id: string) => id in MUND_ZEICHNUNG;
 // the teacher page's preview of a new upload. —
 
 /** The whole hero as worn (or the part `ausschnitt` of it). Decorative (the page names the hero in text). */
-export function AvatarBild({ avatar, className, ausschnitt, vorschau, lebendig }: { avatar: Avatar; className?: string; ausschnitt?: string; vorschau?: Teil; lebendig?: boolean }) {
+export function AvatarBild({ avatar, className, ausschnitt, vorschau, lebendig, pose }: { avatar: Avatar; className?: string; ausschnitt?: string; vorschau?: Teil; lebendig?: boolean; pose?: string }) {
   if (vorschau || nurAlsBild(avatar)) return <AvatarBildGemalt avatar={avatar} className={className} ausschnitt={ausschnitt} vorschau={vorschau} />;
-  return <HeldBild avatar={avatar} className={className} ausschnitt={ausschnitt === AUSSCHNITT_KOPF ? HELD_AUSSCHNITT.kopf : ausschnitt} lebendig={lebendig} />;
+  return <HeldBild avatar={avatar} className={className} ausschnitt={ausschnitt === AUSSCHNITT_KOPF ? HELD_AUSSCHNITT.kopf : ausschnitt} lebendig={lebendig} pose={pose} />;
 }
 
 /** The head with some hair, colour and mouth, for choosing them (`nah`: only the lower face, for mouths). */

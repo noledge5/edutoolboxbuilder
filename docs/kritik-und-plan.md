@@ -169,7 +169,8 @@ Plan, entschieden mit der Lehrkraft am 12.11.2026 (Mockup: `docs/design/lernques
   Balken, Antwortkarten mit rundem Haken, Rückmeldekarte mit jubelndem Held oder tröstendem Fuchs. Teil 5 gebaut (gleicher Branch, mit Stufe D Teil 2
   gemergt): neuer Reiter „Aufgaben“ (Heute: Tagesaufgaben als Karten mit Balken und nächste Truhe; Woche: Wochenziel
   und Klassen-Aufgabe), die Karte zeigt nur noch die nächste Truhe darüber; Truhe als Vektor (`figuren/truhe.tsx`),
-  beim Fund jubelt der Fuchs. Leiste: Karte, Aufgaben, Wiederholen, Held, Klasse. Laden und Klasse hatten den Look schon.
+  beim Fund jubelt der Fuchs. Leiste: Karte, Aufgaben, Wiederholen, Held, Klasse. Laden und Klasse hatten den Look schon. Teil 6 gebaut: Glockentöne, Konfetti, Held jubelt über dem
+  Ergebnis, eigener Schalter „Bewegung reduzieren“, `UMBAU = false`.
 - Erfolg: Bildschirmfotos am Handy-Format je Teil an die Lehrkraft; Tests, Typprüfung, Build grün; Spieltest ohne
   Server über jeden Bildschirm; Kontrast WCAG AA; alte Spielstände zeigen alles richtig.
 

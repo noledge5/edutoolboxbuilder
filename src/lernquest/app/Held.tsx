@@ -34,7 +34,9 @@ import {
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
 import { TruheZeichnung } from '../figuren';
+import { ruhig } from '../figuren/Figur';
 import { Fuchs } from './Fuchs';
+import { Jubel } from './Jubel';
 import { BilderNeuLaden, useAlleFrisuren, useAlleTeile } from './bilderKontext';
 import { GutscheinLeiste } from './Gutscheine';
 import type { Daten } from './speicher';
@@ -503,7 +505,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
   useEffect(() => {
     if (phase === 'auf' && inhalt && (zeitUm || uebersprungen)) {
       setPhase('da');
-      ton(inhalt.teil && inhalt.seltenheit >= 2 ? 'fertig' : 'richtig');
+      ton(inhalt.teil && inhalt.seltenheit >= 2 ? 'truhe' : 'richtig');
     }
   }, [phase, inhalt, zeitUm, uebersprungen]);
 
@@ -511,7 +513,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
     setMsg('');
     setInhalt(null);
     setZeitUm(false);
-    setUebersprungen(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+    setUebersprungen(ruhig());
     setPhase('auf');
     const timer = window.setTimeout(() => setZeitUm(true), ZEIT_TRUHE);
     try {
@@ -570,6 +572,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
         ) : (
           <TruheGross offen={phase === 'auf'} />
         )}
+        {phase === 'da' && t && inhalt && inhalt.seltenheit >= 2 && <Jubel stark={inhalt.seltenheit >= 3} />}
         {phase === 'da' && (
           <span className="lq-truhe-fuchs" aria-hidden>
             <Fuchs pose="jubeln" groesse={84} />

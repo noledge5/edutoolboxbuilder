@@ -9,7 +9,9 @@ import type { Stellung } from './bewegung';
 import { P, SELTEN_FARBE } from './stil';
 import type { Animation, Figur, Item, Pose, Punkt, Teil } from './typen';
 
-export const ruhig = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+/** Motion off: the system's „Bewegung reduzieren“, or the app's own switch (class `lq-ruhig` on the page). */
+export const ruhig = () =>
+  typeof window !== 'undefined' && (!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('lq-ruhig'));
 
 /** Seconds since `aktiv` became true (or `neustart` changed), counted with requestAnimationFrame. */
 export function useZeit(aktiv: boolean, tempo = 1, neustart?: unknown): number {

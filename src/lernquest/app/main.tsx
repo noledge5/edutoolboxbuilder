@@ -11,6 +11,9 @@ import '@fontsource/nunito/latin-ext-800.css';
 import './lernquest.css';
 import { LernquestApp } from './LernquestApp';
 import { BilderRahmen } from './hochgeladen';
+import { ruhigAn, setzeRuhig } from './speicher';
+
+setzeRuhig(ruhigAn());
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

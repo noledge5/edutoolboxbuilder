@@ -41,8 +41,9 @@ import { readPaket } from '../paket';
 import { bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
-import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
+import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
+import { Jubel } from './Jubel';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
 import { useZurueck } from './zurueck';
 import { GutscheineSeite, TicketIcon } from './Gutscheine';
@@ -125,9 +126,9 @@ const beamerFromUrl = () => beamerAusHash(location.hash);
 
 /** The children's app (sign-in, game, boss fight) is switched off while it is rebuilt (decision of the teacher,
  *  12.11.2026). Open exercises from a public link keep working. Nothing on the device is deleted: Spielstand and rounds
- *  not yet sent stay and go out once the app is back. `npm run spieltest` shows the app anyway, to build it. Set to
- *  false to switch it on again. */
-export const UMBAU = import.meta.env.MODE !== 'spieltest';
+ *  not yet sent stay and go out once the app is back. Switched on again with the end of Stufe E (Teil 6, 12.11.2026);
+ *  set to true to show the „Umbau“ page again. */
+export const UMBAU: boolean = false;
 
 export function LernquestApp() {
   // Open exercises from a public link: no sign-in, no server (`probe.ts`).
@@ -623,6 +624,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     speichereWarteschlange([...ladeWarteschlange(), m]);
     void flush();
     ton('fertig');
+    // A new star rings once more after the fanfare.
+    if (paket && sterneVon(r.stand, paket) > vorher) window.setTimeout(() => ton('stern'), 800);
     setScreen({
       kind: 'ergebnis',
       stunde,
@@ -809,6 +812,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             : null;
     return (
       <main className="lq-app lq-ergebnis">
+        {!schwach && !(ms && !msGut) && (screen.sterneJetzt > screen.sterneVorher || fazit === 'perfekt' || msGut) && <Jubel stark={fazit === 'perfekt' || msGut} />}
+        <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} pose={schwach || (ms && !msGut) ? 'denken' : 'jubeln'} className="lq-ergebnis-held" lebendig />
         {screen.stunde && <Sterne n={screen.sterneJetzt} neu={screen.sterneJetzt > screen.sterneVorher} gross />}
         <h1>{titelText}</h1>
         <p className="lq-untertitel">
@@ -1424,6 +1429,7 @@ function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; o
     };
   }, [menu]);
   const [tonOn, setTonOn] = useState(tonAn);
+  const [ruhigOn, setRuhigOn] = useState(ruhigAn);
   const h = heldenstufe(daten.stand.xp);
   const w = woche(daten.stand.tage);
   return (
@@ -1462,6 +1468,17 @@ function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; o
               }}
             />{' '}
             Töne
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={ruhigOn}
+              onChange={(e) => {
+                setzeRuhig(e.target.checked);
+                setRuhigOn(e.target.checked);
+              }}
+            />{' '}
+            Bewegung reduzieren
           </label>
           <button type="button" className="lq-link" onClick={onSignOut}>
             Abmelden

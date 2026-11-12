@@ -4030,6 +4030,9 @@ button.lq-teil:active {
   display: flex;
   flex-direction: column;
   gap: var(--lq-a-4);
+  width: 100%;
+  max-width: 720px;
+  align-self: center;
 }
 .lq-umschalter {
   display: flex;
@@ -4127,4 +4130,70 @@ button.lq-teil:active {
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* — Stufe E, Teil 6: confetti (Jubel.tsx), still with „Bewegung reduzieren“ — */
+.lq-jubel {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 30;
+}
+.lq-jubel span {
+  position: absolute;
+  top: -16px;
+  left: var(--x);
+  width: 10px;
+  height: 14px;
+  border-radius: var(--lq-r-klein);
+  background: var(--lq-primary);
+  opacity: 0;
+  transform: rotate(var(--r));
+  animation: lq-konfetti var(--d) ease-in var(--v) forwards;
+}
+.lq-jubel span:nth-child(5n + 1) {
+  background: var(--lq-gold);
+}
+.lq-jubel span:nth-child(5n + 2) {
+  background: var(--lq-antwort-1);
+}
+.lq-jubel span:nth-child(5n + 3) {
+  background: var(--lq-antwort-2);
+  border-radius: var(--lq-r-pille);
+}
+.lq-jubel span:nth-child(5n + 4) {
+  background: var(--lq-antwort-3);
+}
+@keyframes lq-konfetti {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--r));
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(110vh) rotate(calc(var(--r) + 540deg));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-jubel {
+    display: none;
+  }
+}
+/* The hero above the result of a round. */
+.lq-ergebnis-held {
+  width: 132px;
+  height: 132px;
+  align-self: center;
+}
+
+/* The app's own „Bewegung reduzieren“ (menu), the same as the system setting above. */
+.lq-ruhig *,
+.lq-ruhig *::before,
+.lq-ruhig *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.lq-ruhig .lq-jubel {
+  display: none;
 }
