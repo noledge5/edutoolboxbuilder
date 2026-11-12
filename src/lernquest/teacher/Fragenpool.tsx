@@ -44,10 +44,12 @@ interface Props {
   onChange(pool: PoolEintrag[], hilfe?: Lernkarte[], tipps?: Record<string, string>): void;
   /** All lessons, for the earlier ones of the module (repetition mixed in). */
   stunden?: Lesson[];
+  /** An Extra-Paket: what Claude writes from (topic and words) instead of the lesson's sheets. */
+  inhalt?: string;
   onClose(): void;
 }
 
-export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, stunden = [] }: Props) {
+export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, stunden = [], inhalt }: Props) {
   const job = useAiJob();
   const ai = useAiSettings();
   const { busy, error, answer } = job;
@@ -71,7 +73,8 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
     klasse: classProfileOf(settings, modul.subject, modul.grade),
     vorhanden: [...eigene, ...pool.map((e) => e.u)],
     wuensche,
-    frueher: frueherVon(stunden, stunde),
+    frueher: inhalt ? [] : frueherVon(stunden, stunde),
+    inhalt,
   });
   const read = (raw: unknown) => {
     const { neu, verworfen, hilfe, tipps } = poolAusAntwort(raw, pool.map((e) => e.u.id), modul.lang === 'en');
@@ -110,13 +113,20 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
       <div className="dialog-backdrop" onClick={() => !busy && !edit && !neuesBild && close()}>
         <div className="dialog ai-dialog lqt-pool-dialog" role="dialog" aria-modal="true" aria-label="Fragen erzeugen" onClick={(e) => e.stopPropagation()}>
           <div className="dialog-title">
-            <Icon icon={Sparkles} /> Fragen erzeugen · Stunde {stunde.number}: {stunde.title}
+            <Icon icon={Sparkles} /> Fragen erzeugen · {inhalt ? `${modul.title}: ${stunde.title}` : `Stunde ${stunde.number}: ${stunde.title}`}
           </div>
+          {inhalt ? (
+            <p className="dialog-body">
+              Claude schreibt zum Thema{stunde.title ? ` „${stunde.title}“` : ''} etwa {POOL_ZIEL} Fragen in drei Stufen (leicht, mittel, schwer), jede mit einer kurzen Erklärung, dazu Lernkarten „So geht’s“. Lies sie
+              durch, nimm Schlechtes heraus und gib den Rest frei. Nur Freigegebenes kommt ins Paket. Ist das Paket für eine Klasse freigeschaltet, bekommt sie die Änderungen mit „Freigeschaltete neu senden“.
+            </p>
+          ) : (
           <p className="dialog-body">
             Claude schreibt nur aus den Arbeitsblättern der Kinder etwa {POOL_ZIEL} weitere Fragen in drei Stufen (leicht, mittel, schwer), jede mit einer kurzen Erklärung (ohne Lehrkraft-Seiten, ohne Kinderdaten). Lies sie durch, nimm
             Schlechtes heraus und gib den Rest mit „Alle freigeben“ frei. Nur Freigegebenes kommt ins Lernpaket, hinter die Übungen der Stunde, von leicht nach schwer. Ist die Stunde für diese Klasse freigeschaltet, bekommt die Klasse
             die Änderungen beim Schließen; andere Klassen mit „Freigeschaltete neu senden“. Mit „Punkte im Bild“ setzt du selbst Stellen auf ein Bild vom Arbeitsblatt.
           </p>
+          )}
           <p className="lqt-pool-stand">
             {pool.length ? `${pool.length} im Pool, ${frei} freigegeben` : 'Der Pool ist noch leer.'}
             {voll && ` · voll (höchstens ${POOL_MAX})`}

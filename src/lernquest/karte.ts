@@ -29,6 +29,9 @@ export interface Region {
   meilenstein: boolean;
 }
 
+/** How a region is named over its band: „Region 2“, or „Extra“ for the regions of the Extra-Pakete. */
+export const regionName = (id: string, nummer: number) => (id.startsWith('extra-') ? 'Extra' : `Region ${nummer}`);
+
 /** Exercises in the Meilenstein of a region (the server takes at most 20 per round). */
 export const MEILENSTEIN_GROESSE = 10;
 
@@ -59,7 +62,8 @@ export function regionenVon(pakete: Paket[], fach: string, stand: Stand, dran: R
       return { id: m.id, nummer: m.nummer, titel: m.titel, icon: m.icon, stationen, meilenstein };
     })
     .sort((a, b) => a.nummer - b.nummer);
-  const next = regionen.flatMap((r) => r.stationen).find((s) => s.zustand === 'offen');
+  // Extra-Pakete (regions „extra-…“, src/lernquest/extra.ts) are never the current station: the lessons' path leads.
+  const next = regionen.filter((r) => !r.id.startsWith('extra-')).flatMap((r) => r.stationen).find((s) => s.zustand === 'offen');
   if (next) next.zustand = 'aktuell';
   return regionen;
 }

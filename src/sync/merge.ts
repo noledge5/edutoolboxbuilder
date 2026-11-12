@@ -2,8 +2,8 @@
 // handout is one entry ("m:<id>", "l:<id>", "h:<id>"), plus the settings ("s") and the deletions ("d"). `base` remembers
 // per entry the `updatedAt` both sides last agreed on: newer here means "send", newer there means "take", both newer
 // is a conflict. The newest wins; for a lesson the other side is kept as an earlier version.
-import { readHandout, readLesson, readModule, readSettings } from '../library/read';
-import type { Lesson, Library, Module, Settings } from '../library/types';
+import { readExtra, readHandout, readLesson, readModule, readSettings } from '../library/read';
+import type { ExtraPaket, Lesson, Library, Module, Settings } from '../library/types';
 import type { Handout } from '../share/assignment';
 import { isObj } from '../model/text';
 
@@ -23,6 +23,7 @@ export function entriesOf(lib: Library): Entry[] {
     ...lib.modules.map((m) => ({ key: `m:${m.id}`, updatedAt: m.updatedAt, value: m })),
     ...lib.lessons.map((l) => ({ key: `l:${l.id}`, updatedAt: l.updatedAt, value: l })),
     ...(lib.handouts ?? []).map((h) => ({ key: `h:${h.id}`, updatedAt: h.updatedAt, value: h })),
+    ...(lib.extras ?? []).map((e) => ({ key: `x:${e.id}`, updatedAt: e.updatedAt, value: e })),
     { key: 's', updatedAt: lib.settings.updatedAt, value: lib.settings },
     { key: 'd', updatedAt: maxOf(lib.deleted), value: lib.deleted },
   ];
@@ -44,10 +45,13 @@ export interface MergeResult {
   modules: Module[];
   lessons: Lesson[];
   handouts: Handout[];
+  extras: ExtraPaket[];
   settings: boolean;
   deleted: boolean;
   removedModules: string[];
   removedLessons: string[];
+  /** Extra-Pakete deleted on the other device. */
+  removedExtras: string[];
   /** The side of a conflict that lost, to keep as an earlier version of its lesson. */
   keep: { lesson: Lesson; reason: string }[];
   /** Titles of lessons changed on both devices. */
@@ -79,6 +83,8 @@ export function mergeRemote(lib: Library, remote: Map<string, unknown>, base: Ba
   const changedM = new Map<string, Module>();
   const changedL = new Map<string, Lesson>();
   const changedH = new Map<string, Handout>();
+  const extras = new Map((lib.extras ?? []).map((e) => [e.id, e]));
+  const changedX = new Map<string, ExtraPaket>();
   const keep: MergeResult['keep'] = [];
   const conflicts: string[] = [];
   let settings = lib.settings;
@@ -120,6 +126,18 @@ export function mergeRemote(lib: Library, remote: Map<string, unknown>, base: Ba
       continue;
     }
     const kind = key[0];
+    if (kind === 'x') {
+      const e = readExtra(value);
+      if (!e) continue;
+      nextBase[key] = Math.max(base[key] ?? 0, e.updatedAt);
+      if ((deleted[e.id] ?? -1) >= e.updatedAt) continue;
+      if (e.updatedAt > (extras.get(e.id)?.updatedAt ?? -1)) {
+        changedX.set(e.id, e);
+        extras.set(e.id, e);
+        taken++;
+      }
+      continue;
+    }
     const item = kind === 'm' ? readModule(value) : kind === 'l' ? readLesson(value) : kind === 'h' ? readHandout(value) : null;
     if (!item) continue;
     remoteHasContent ||= kind === 'm' || kind === 'l';
@@ -162,13 +180,22 @@ export function mergeRemote(lib: Library, remote: Map<string, unknown>, base: Ba
       if (lib.lessons.some((x) => x.id === l.id)) removedLessons.push(l.id);
     }
   for (const h of [...handouts.values()]) if ((deleted[h.id] ?? -1) >= h.updatedAt) handouts.delete(h.id);
+  const removedExtras: string[] = [];
+  for (const e of [...extras.values()])
+    if ((deleted[e.id] ?? -1) >= e.updatedAt) {
+      extras.delete(e.id);
+      changedX.delete(e.id);
+      if ((lib.extras ?? []).some((x) => x.id === e.id)) removedExtras.push(e.id);
+    }
 
   return {
-    library: { ...lib, settings, modules: [...modules.values()], lessons: [...lessons.values()], handouts: [...handouts.values()], deleted },
+    library: { ...lib, settings, modules: [...modules.values()], lessons: [...lessons.values()], handouts: [...handouts.values()], extras: [...extras.values()], deleted },
     base: nextBase,
     modules: [...changedM.values()],
     lessons: [...changedL.values()],
     handouts: [...changedH.values()],
+    extras: [...changedX.values()],
+    removedExtras,
     settings: settingsChanged,
     deleted: deletedChanged,
     removedModules,

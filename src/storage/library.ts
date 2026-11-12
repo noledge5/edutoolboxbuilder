@@ -1,8 +1,8 @@
 // The library in IndexedDB: one entry per module and per lesson, so saving a worksheet writes only that lesson.
 import { del, delMany, get, getMany, keys, set, setMany } from 'idb-keyval';
 import { addVersion, libraryFromOldDoc, purgeTrash, seedLibrary } from '../library/model';
-import { readDeleted, readHandout, readLesson, readModule, readSettings, readTrash, readVersions } from '../library/read';
-import type { Lesson, LessonVersion, Library, Module, Settings, TrashEntry } from '../library/types';
+import { readDeleted, readExtra, readHandout, readLesson, readModule, readSettings, readTrash, readVersions } from '../library/read';
+import type { ExtraPaket, Lesson, LessonVersion, Library, Module, Settings, TrashEntry } from '../library/types';
 import type { Handout } from '../share/assignment';
 import { clipImages, readClips, type Clip } from '../model/clips';
 import { slideImages } from '../model/slides';
@@ -17,6 +17,7 @@ const CLIPS = 'lib:ablage';
 const MOD = 'modul:';
 const LES = 'stunde:';
 const HANDOUT = 'austeilung:';
+const EXTRA = 'extrapaket:';
 const GITHUB = 'geraet:github';
 const RESULTS = 'ergebnisse:';
 
@@ -25,7 +26,7 @@ export { readDeleted, readSettings } from '../library/read';
 
 export async function loadLibrary(): Promise<Library> {
   // Read only the library's own entries: images stay in the store until a page shows them.
-  const wanted = (await keys<string>(kv())).filter((k) => typeof k === 'string' && (k === SETTINGS || k === DELETED || k.startsWith(MOD) || k.startsWith(LES) || k.startsWith(HANDOUT)));
+  const wanted = (await keys<string>(kv())).filter((k) => typeof k === 'string' && (k === SETTINGS || k === DELETED || k.startsWith(MOD) || k.startsWith(LES) || k.startsWith(HANDOUT) || k.startsWith(EXTRA)));
   const values = await getMany<unknown>(wanted, kv());
   const all = wanted.map((k, i) => [k, values[i]] as const);
   const settings = all.find(([k]) => k === SETTINGS)?.[1];
@@ -41,7 +42,11 @@ export async function loadLibrary(): Promise<Library> {
     .filter(([k]) => k.startsWith(HANDOUT))
     .map(([, v]) => readHandout(v))
     .filter((h): h is Handout => h !== null);
-  if (settings) return { settings: readSettings(settings), modules, lessons, handouts, deleted: readDeleted(all.find(([k]) => k === DELETED)?.[1]) };
+  const extras = all
+    .filter(([k]) => k.startsWith(EXTRA))
+    .map(([, v]) => readExtra(v))
+    .filter((e): e is ExtraPaket => e !== null);
+  if (settings) return { settings: readSettings(settings), modules, lessons, handouts, extras, deleted: readDeleted(all.find(([k]) => k === DELETED)?.[1]) };
 
   // First start with the library: take over the single worksheet of the first version, or start with the sample.
   const old = await loadDoc().catch(() => null);
@@ -53,8 +58,8 @@ export async function loadLibrary(): Promise<Library> {
 
 /** Makes the stored library exactly `lib` (first start, after a sync): writes everything, removes what is gone. */
 export async function replaceWhole(lib: Library): Promise<void> {
-  const keep = new Set([...lib.modules.map((m) => MOD + m.id), ...lib.lessons.map((l) => LES + l.id), ...lib.handouts.map((h) => HANDOUT + h.id)]);
-  const stale = (await keys<string>(kv())).filter((k) => typeof k === 'string' && (k.startsWith(MOD) || k.startsWith(LES) || k.startsWith(HANDOUT)) && !keep.has(k));
+  const keep = new Set([...lib.modules.map((m) => MOD + m.id), ...lib.lessons.map((l) => LES + l.id), ...lib.handouts.map((h) => HANDOUT + h.id), ...(lib.extras ?? []).map((e) => EXTRA + e.id)]);
+  const stale = (await keys<string>(kv())).filter((k) => typeof k === 'string' && (k.startsWith(MOD) || k.startsWith(LES) || k.startsWith(HANDOUT) || k.startsWith(EXTRA)) && !keep.has(k));
   await setMany(
     [
       [SETTINGS, lib.settings] as [string, unknown],
@@ -62,6 +67,7 @@ export async function replaceWhole(lib: Library): Promise<void> {
       ...lib.modules.map((m) => [MOD + m.id, m] as [string, unknown]),
       ...lib.lessons.map((l) => [LES + l.id, l] as [string, unknown]),
       ...lib.handouts.map((h) => [HANDOUT + h.id, h] as [string, unknown]),
+      ...(lib.extras ?? []).map((e) => [EXTRA + e.id, e] as [string, unknown]),
     ],
     kv(),
   );
@@ -73,6 +79,8 @@ export const saveModule = (m: Module) => set(MOD + m.id, m, kv());
 export const saveLesson = (l: Lesson) => set(LES + l.id, l, kv());
 export const saveDeleted = (d: Record<string, number>) => set(DELETED, d, kv());
 export const saveHandout = (h: Handout) => set(HANDOUT + h.id, h, kv());
+export const saveExtra = (e: ExtraPaket) => set(EXTRA + e.id, e, kv());
+export const deleteExtra = (id: string) => del(EXTRA + id, kv());
 
 // — Digital handouts: the GitHub token of this device, and the results read so far (both on this device only) —
 

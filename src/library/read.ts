@@ -7,7 +7,7 @@ import type { Lang } from '../model/types';
 import type { AssignmentPage, Handout } from '../share/assignment';
 import { isLessonRole } from './planning';
 import { readSubjectColors } from './subjectColor';
-import type { Competence, Holiday, Lesson, LessonVersion, Module, SchoolYear, Settings, TrashEntry } from './types';
+import type { Competence, ExtraPaket, Holiday, Lesson, LessonVersion, Module, SchoolYear, Settings, TrashEntry } from './types';
 import { isObj } from '../model/text';
 import { readPool, readTipps } from '../lernquest/fragenpool';
 import { readLernkarte } from '../lernquest/paket';
@@ -196,3 +196,26 @@ export function readDeleted(raw: unknown): Record<string, number> {
   if (isObj(raw)) for (const [k, v] of Object.entries(raw)) if (typeof v === 'number') out[k] = v;
   return out;
 }
+
+/** A Lernquest Extra-Paket as stored or synced (null when it does not hold up). */
+export function readExtra(raw: unknown): ExtraPaket | null {
+  if (!isObj(raw) || typeof raw.id !== 'string' || !raw.id) return null;
+  const grade = Number(raw.grade);
+  const subject = str(raw.subject).trim();
+  if (!subject || !Number.isInteger(grade)) return null;
+  return {
+    id: raw.id,
+    subject,
+    grade,
+    art: raw.art === 'wortschatz' ? 'wortschatz' : 'grammatik',
+    title: str(raw.title).slice(0, 120),
+    words: str(raw.words).slice(0, 4000),
+    lang: raw.lang === 'en' ? 'en' : 'de',
+    ...poolOf(raw.pool),
+    ...poolHilfeOf(raw.poolHilfe),
+    createdAt: Number(raw.createdAt) || 0,
+    updatedAt: Number(raw.updatedAt) || 0,
+  };
+}
+
+export const readExtras = (raw: unknown): ExtraPaket[] => (Array.isArray(raw) ? raw.map(readExtra).filter((e): e is ExtraPaket => e !== null) : []);
