@@ -110,11 +110,9 @@ interface HeldProps {
   onGutscheine: () => void;
   /** Sign out on this device (also in the menu behind the picture in the head bar). */
   onAbmelden: () => void;
-  /** Welcome of a new child (Stufe D, Teil 2): only the look, with this button to go on; no chests, shop or sign-out. */
-  willkommen?: { knopf: string; weiter: () => void };
 }
 
-export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutscheine, onAbmelden, willkommen }: HeldProps) {
+export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutscheine, onAbmelden }: HeldProps) {
   const { stand } = daten;
   const [slot, setSlot] = useState<Slot>('kopf');
   const [msg, setMsg] = useState('');
@@ -162,8 +160,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
   return (
     <div className="lq-held-raster">
       <div className="lq-held-links">
-        <h1 className="lq-seitentitel">{willkommen ? 'Bau deinen Helden' : 'Dein Held'}</h1>
-        {willkommen && <p className="lq-klein">Such dir Hautfarbe, Frisur, Haarfarbe und Mund aus. Mehr findest du später in Truhen und im Laden.</p>}
+        <h1 className="lq-seitentitel">Dein Held</h1>
         <div className="lq-buehne">
           <AvatarBild avatar={stand.avatar} className="lq-buehne-bild" />
           <div className="lq-buehne-name">
@@ -175,72 +172,66 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
           {bonus && <span className="lq-buehne-bonus">Bonus im Spiel: {bonus}</span>}
         </div>
         <Meldung text={msg} />
-        {!willkommen && (
-          <section className="lq-truhen-leiste">
-            <TruheIcon />
-            <div>
-              <strong>{stand.truhen ? `${stand.truhen} ${stand.truhen === 1 ? 'Truhe' : 'Truhen'} bereit` : 'Keine Truhe bereit'}</strong>
-              <span className="lq-klein">Je 3 Sterne, fürs Wochenziel, fürs Klassenziel und den Bosssieg</span>
-            </div>
-            <button type="button" className="lq-knopf lq-gold" disabled={!stand.truhen} onClick={onTruhe}>
-              Öffnen
-            </button>
-            <button type="button" className="lq-knopf lq-hell" onClick={onLaden}>
-              Laden
-            </button>
-          </section>
-        )}
-        {!willkommen && <GutscheinLeiste punkte={stand.klassenpunkte ?? 0} onOeffnen={onGutscheine} />}
+        <section className="lq-truhen-leiste">
+          <TruheIcon />
+          <div>
+            <strong>{stand.truhen ? `${stand.truhen} ${stand.truhen === 1 ? 'Truhe' : 'Truhen'} bereit` : 'Keine Truhe bereit'}</strong>
+            <span className="lq-klein">Je 3 Sterne, fürs Wochenziel und den Bosssieg</span>
+          </div>
+          <button type="button" className="lq-knopf lq-gold" disabled={!stand.truhen} onClick={onTruhe}>
+            Öffnen
+          </button>
+          <button type="button" className="lq-knopf lq-hell" onClick={onLaden}>
+            Laden
+          </button>
+        </section>
+        <GutscheinLeiste punkte={stand.klassenpunkte ?? 0} onOeffnen={onGutscheine} />
       </div>
       <div className="lq-held-rechts">
-        {!willkommen && (
-          <>
-            <SlotTabs slot={slot} setSlot={setSlot} label="Teile" />
-            <div className="lq-teile" role="tabpanel" aria-label={slotName(slot)}>
-              {teile.map((t) => {
-                const meins = hat(stand.inventar, t);
-                const an = meins && (stand.avatar[t.slot] ?? standardTeil(t.slot)?.id ?? '') === t.id;
-                if (!meins) {
-                  return (
-                    <div
-                      key={t.id}
-                      className="lq-teil zu"
-                      aria-label={`${t.nurTruhe ? 'Truhen-Schatz, nur in Truhen zu finden' : t.nurLaden ? 'Nur im Laden' : 'Noch nicht gefunden'}, ${SELTENHEITEN[t.seltenheit].name}`}
-                      role="img"
-                    >
-                      <span className="lq-teil-bild lq-fragezeichen" aria-hidden>
-                        ?
-                      </span>
-                      <span className="lq-teil-name" aria-hidden>
-                        {t.nurTruhe ? 'Nur in Truhen' : t.nurLaden ? 'Nur im Laden' : 'Noch nicht gefunden'}
-                      </span>
-                      <span aria-hidden>
-                        <Seltenheit s={t.seltenheit} kurz />
-                      </span>
-                    </div>
-                  );
-                }
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={`lq-teil ${an ? 'an' : ''}`}
-                    aria-pressed={an}
-                    aria-label={`${t.name}, ${SELTENHEITEN[t.seltenheit].name}${an ? ', angelegt' : ''}`}
-                    onClick={() => tippen(t)}
-                  >
-                    {an && <span className="lq-angelegt">Angelegt</span>}
-                    <TeilBild teil={t} avatar={stand.avatar} className="lq-teil-bild" />
-                    <span className="lq-teil-name">{t.name}</span>
+        <SlotTabs slot={slot} setSlot={setSlot} label="Teile" />
+        <div className="lq-teile" role="tabpanel" aria-label={slotName(slot)}>
+          {teile.map((t) => {
+            const meins = hat(stand.inventar, t);
+            const an = meins && (stand.avatar[t.slot] ?? standardTeil(t.slot)?.id ?? '') === t.id;
+            if (!meins) {
+              return (
+                <div
+                  key={t.id}
+                  className="lq-teil zu"
+                  aria-label={`${t.nurTruhe ? 'Truhen-Schatz, nur in Truhen zu finden' : t.nurLaden ? 'Nur im Laden' : 'Noch nicht gefunden'}, ${SELTENHEITEN[t.seltenheit].name}`}
+                  role="img"
+                >
+                  <span className="lq-teil-bild lq-fragezeichen" aria-hidden>
+                    ?
+                  </span>
+                  <span className="lq-teil-name" aria-hidden>
+                    {t.nurTruhe ? 'Nur in Truhen' : t.nurLaden ? 'Nur im Laden' : 'Noch nicht gefunden'}
+                  </span>
+                  <span aria-hidden>
                     <Seltenheit s={t.seltenheit} kurz />
-                    {bonusText(t) && <span className="lq-teil-bonus">{bonusText(t)}</span>}
-                  </button>
-                );
-              })}
-            </div>
-            {!eigene && <p className="lq-leer">Hier hast du noch nichts gefunden. Öffne Truhen oder schau in den Laden.</p>}
-          </>
-        )}
+                  </span>
+                </div>
+              );
+            }
+            return (
+              <button
+                key={t.id}
+                type="button"
+                className={`lq-teil ${an ? 'an' : ''}`}
+                aria-pressed={an}
+                aria-label={`${t.name}, ${SELTENHEITEN[t.seltenheit].name}${an ? ', angelegt' : ''}`}
+                onClick={() => tippen(t)}
+              >
+                {an && <span className="lq-angelegt">Angelegt</span>}
+                <TeilBild teil={t} avatar={stand.avatar} className="lq-teil-bild" />
+                <span className="lq-teil-name">{t.name}</span>
+                <Seltenheit s={t.seltenheit} kurz />
+                {bonusText(t) && <span className="lq-teil-bonus">{bonusText(t)}</span>}
+              </button>
+            );
+          })}
+        </div>
+        {!eigene && <p className="lq-leer">Hier hast du noch nichts gefunden. Öffne Truhen oder schau in den Laden.</p>}
         <div className="lq-haut" role="radiogroup" aria-label="Hautfarbe">
           <span className="lq-klein">Hautfarbe</span>
           {HAUT.map((c, i) => (
@@ -329,15 +320,9 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
             );
           })}
         </div>
-        {willkommen ? (
-          <button type="button" className="lq-knopf" onClick={willkommen.weiter}>
-            {willkommen.knopf}
-          </button>
-        ) : (
-          <button type="button" className="lq-knopf lq-hell lq-abmelden" onClick={onAbmelden}>
-            Abmelden
-          </button>
-        )}
+        <button type="button" className="lq-knopf lq-hell lq-abmelden" onClick={onAbmelden}>
+          Abmelden
+        </button>
       </div>
     </div>
   );
@@ -605,7 +590,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
             <p>Diesmal nur Münzen – damit kannst du im Laden einkaufen.</p>
           </>
         )}
-        {phase === 'zu' && !stand.truhen && <p>Gerade wartet keine Truhe. Truhen gibt es für je 3 Sterne, fürs Wochenziel, fürs Klassenziel und den Bosssieg.</p>}
+        {phase === 'zu' && !stand.truhen && <p>Gerade wartet keine Truhe. Truhen gibt es für je 3 Sterne, fürs Wochenziel und den Bosssieg.</p>}
       </div>
       <Meldung text={msg} />
       {phase !== 'auf' && (
@@ -656,7 +641,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
 
 // — The class —
 
-export function KlasseSeite({ aktion, setStand, truhen, onTruhe }: { aktion: Aktion; setStand: (s: Stand) => void; truhen: number; onTruhe: () => void }) {
+export function KlasseSeite({ aktion }: { aktion: Aktion }) {
   const [ansicht, setAnsicht] = useState<KlasseAnsicht | null>(null);
   const [msg, setMsg] = useState('');
   const [laedt, setLaedt] = useState(true);
@@ -665,10 +650,7 @@ export function KlasseSeite({ aktion, setStand, truhen, onTruhe }: { aktion: Akt
     setLaedt(true);
     setMsg('');
     try {
-      const a = await aktion(klasseAnsicht);
-      setAnsicht(a);
-      if (a.stand) setStand(a.stand);
-      if (a.truheNeu) ton('fertig');
+      setAnsicht(await aktion(klasseAnsicht));
     } catch (e) {
       setMsg(lqText(e));
     } finally {
@@ -687,7 +669,6 @@ export function KlasseSeite({ aktion, setStand, truhen, onTruhe }: { aktion: Akt
       {laedt && !ansicht && <p className="lq-klein lq-mitte">Einen Moment …</p>}
       {ansicht && (
         <>
-          {ansicht.ziel ? <KlassenZiel runden={ansicht.runden ?? 0} ziel={ansicht.ziel} erreicht={!!ansicht.erreicht} truhe={!!ansicht.truhe} truhen={truhen} onTruhe={onTruhe} /> : null}
           <div className="lq-box lq-klasse-tage">
             <strong>{ansicht.tage}</strong>
             <span>{ansicht.tage === 1 ? 'Lerntag' : 'Lerntage'} habt ihr diese Woche zusammen geschafft.</span>
@@ -706,28 +687,6 @@ export function KlasseSeite({ aktion, setStand, truhen, onTruhe }: { aktion: Akt
             <p className="lq-leer">In deiner Klasse ist noch niemand.</p>
           )}
         </>
-      )}
-    </section>
-  );
-}
-
-/** Klassen-Aufgabe der Woche: all rounds passed count together; when the goal is reached, everyone gets a chest. */
-function KlassenZiel({ runden, ziel, erreicht, truhe, truhen, onTruhe }: { runden: number; ziel: number; erreicht: boolean; truhe: boolean; truhen: number; onTruhe: () => void }) {
-  const fehlen = Math.max(0, ziel - runden);
-  return (
-    <section className={`lq-box lq-klassen-ziel ${erreicht ? 'geschafft' : ''}`}>
-      <h2>Klassen-Aufgabe der Woche</h2>
-      <p>{erreicht ? 'Geschafft! Alle bekommen eine Truhe.' : `Schafft zusammen ${ziel} Runden – dann bekommen alle eine Truhe.`}</p>
-      <span className="lq-balken" role="progressbar" aria-valuemin={0} aria-valuemax={ziel} aria-valuenow={Math.min(runden, ziel)} aria-label="Runden der Klasse diese Woche">
-        <span style={{ width: `${Math.min(100, (100 * runden) / ziel)}%` }} />
-      </span>
-      <span className="lq-klein">
-        {runden} von {ziel} Runden{!erreicht && ` · noch ${fehlen}`}. Jede Runde ab 60 % zählt, auch Wiederholen.
-      </span>
-      {erreicht && truhe && truhen > 0 && (
-        <button type="button" className="lq-knopf lq-gold" onClick={onTruhe}>
-          <TruheIcon /> Truhe öffnen
-        </button>
       )}
     </section>
   );

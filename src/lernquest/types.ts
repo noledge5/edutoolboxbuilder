@@ -129,8 +129,6 @@ export interface Stand {
   sterneStationen: Record<string, number>;
   /** Stufe D: today's task counters and the ids of tasks done (`aufgabenNach`); missing before 20261124 or on a new day. */
   aufgaben?: TagesStand;
-  /** Stufe D, Teil 2: false for a new child who has not had the welcome yet; missing before 20261125 (then no welcome). */
-  willkommen?: boolean;
 }
 
 /** Counters of one day for the daily tasks (`TAGESAUFGABEN` in rules.ts). */

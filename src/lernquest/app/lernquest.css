@@ -3596,35 +3596,3 @@ button.lq-teil:active {
   width: 14px;
   height: 14px;
 }
-
-/* Klassen-Aufgabe der Woche (Klasse page): progress of the whole class; green when reached. */
-.lq-klassen-ziel {
-  gap: var(--lq-a-3);
-}
-.lq-klassen-ziel h2,
-.lq-klassen-ziel p {
-  margin: 0;
-}
-.lq-klassen-ziel.geschafft .lq-balken > span {
-  background: var(--lq-ok);
-}
-
-/* Welcome of a new child: hello and the first chest, centred like the sign-in. */
-.lq-willkommen {
-  gap: var(--lq-a-4);
-}
-.lq-willkommen p {
-  margin: 0;
-}
-.lq-willkommen-schritte {
-  margin: 0 auto;
-  padding-left: 1.4em;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: var(--lq-a-2);
-  font-size: var(--lq-t-knopf);
-}
-.lq-willkommen > svg {
-  align-self: center;
-}

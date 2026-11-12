@@ -244,7 +244,3 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
   von 200), Laden nach Heldenstufe (Seltenheit 1 ab Stufe 3, 2 ab 5, 3 ab 12, 4 ab 16; Truhen geben alles), eigener
   Held neben der aktuellen Station. Migration `20261124_lernquest_tagesaufgaben.sql` eingespielt am 12.11.2026
   (Freigabe der Lehrkraft), Live-Tests grün; App und Server rechnen in 1925 Zufallsrunden gleich (PGlite). Teil 2: Willkommen und Klassen-Aufgabe der Woche.
-- **Stufe D, Teil 2 (Entscheidungen der Lehrkraft 12.11.2026):** Für die Klassen-Aufgabe der Woche zählen geschaffte
-  Runden (ab 60 %, auch Wiederholen), 5 je Kind; erreicht die Klasse das Ziel, bekommt jedes Kind eine Truhe. Neue
-  Kinder bekommen nach Held bauen und Proberunde eine Willkommens-Truhe (einmal). Einzelheiten unter „Willkommen und
-  Klassen-Aufgabe der Woche“ in `docs/lernquest.md`.
