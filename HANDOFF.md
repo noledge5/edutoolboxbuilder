@@ -29,7 +29,8 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
      Beginn die Prüfungen lesen (Schritt 1; am 12.11. noch keine gespeichert).
 2. **Fertig auf Branch `claude/clever-hamilton-ztdfgt`** (baut auf Teil 1 auf, nicht in `main`): Teil 2, Karte als
    Landschaft (`app/Landkarte.tsx`, Lage in `weg.ts`, Bauteile in `figuren/gelaende.tsx`, Werkstatt `#karte`), Fuchs
-   über der Karte (`fuchsHinweis`), Leiste im Mockup-Look. Prüfung der Lehrkraft für die Bauteile steht noch aus.
+   über der Karte (`fuchsHinweis`), Leiste im Mockup-Look. Die Lehrkraft prüft Teile erst an den Spieler-Avataren (Teil 4,
+   Entscheidung in `docs/roadmap.md`).
 3. **Als Nächstes Teil 3: Runde im neuen Look**; danach Teile 4–6 je eigene Sitzung. Teil 4: Held als Figur mit denselben Ankern (`hut`, `hand-links`,
    `hand-rechts`, dazu `ruecken`), jedes Teil aus `teile.ts` als Item. Teil 5: Dateien von
    `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
