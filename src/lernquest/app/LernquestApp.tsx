@@ -65,6 +65,8 @@ export type Screen =
   | { kind: 'gutscheine' }
   | { kind: 'truhe'; zurueck: 'held' | 'karte' }
   | { kind: 'klasse' }
+  /** Stufe E, Teil 5: today's tasks and the week (week goal, class task). */
+  | { kind: 'aufgaben'; ansicht: 'heute' | 'woche' }
   | { kind: 'boss'; id: string }
   | {
       kind: 'runde';
@@ -901,7 +903,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     );
   }
 
-  const tab = screen.kind === 'wiederholen' ? 'wiederholen' : screen.kind === 'held' || screen.kind === 'laden' || screen.kind === 'gutscheine' ? 'held' : screen.kind === 'klasse' ? 'klasse' : 'karte';
+  const tab = screen.kind === 'wiederholen' ? 'wiederholen' : screen.kind === 'held' || screen.kind === 'laden' || screen.kind === 'gutscheine' ? 'held' : screen.kind === 'klasse' ? 'klasse' : screen.kind === 'aufgaben' ? 'aufgaben' : 'karte';
   /** Sign out after asking; rounds not sent yet would be lost, so that is said. */
   const abmeldenFragen = () => {
     const offen = ladeWarteschlange().length;
@@ -910,6 +912,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       : 'Abmelden? Zum Weiterspielen brauchst du wieder Klassencode, Namen und PIN.';
     if (window.confirm(frage)) onSignOut();
   };
+  const heuteStand = tagesStand(stand.aufgaben, heute());
+  const offeneAufgaben = aufgabenVon(heute()).filter((t) => !heuteStand.erledigt.includes(t.id)).length;
   const rahmen = (seite: React.ReactNode) => (
     <main className="lq-app lq-mit-leiste">
       <Kopf daten={daten} offline={offline} onSignOut={abmeldenFragen} />
@@ -932,6 +936,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         <button type="button" className={tab === 'karte' ? 'an' : ''} aria-current={tab === 'karte' ? 'page' : undefined} onClick={() => setScreen({ kind: 'karte' })}>
           <KarteIcon />
           Karte
+        </button>
+        <button type="button" className={tab === 'aufgaben' ? 'an' : ''} aria-current={tab === 'aufgaben' ? 'page' : undefined} onClick={() => setScreen({ kind: 'aufgaben', ansicht: 'heute' })}>
+          <AufgabenIcon />
+          Aufgaben
+          {offeneAufgaben > 0 && <span className="lq-zahl lq-zahl-gruen" aria-label={`${offeneAufgaben} Tagesaufgaben offen`}>{offeneAufgaben}</span>}
         </button>
         <button type="button" className={tab === 'wiederholen' ? 'an' : ''} aria-current={tab === 'wiederholen' ? 'page' : undefined} onClick={() => setScreen({ kind: 'wiederholen' })}>
           <WiederholenIcon />
@@ -981,6 +990,33 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   if (screen.kind === 'laden') {
     return rahmen(<LadenSeite daten={daten} aktion={aktion} setStand={setStand} onZurueck={() => setScreen({ kind: 'held' })} />);
   }
+  if (screen.kind === 'aufgaben') {
+    const ansicht = screen.ansicht;
+    return rahmen(
+      <div className="lq-aufgaben-seite">
+        <h1 className="lq-seitentitel">Aufgaben</h1>
+        <div className="lq-umschalter" role="group" aria-label="Ansicht">
+          {(['heute', 'woche'] as const).map((a) => (
+            <button key={a} type="button" className={ansicht === a ? 'an' : ''} aria-pressed={ansicht === a} onClick={() => setScreen({ kind: 'aufgaben', ansicht: a })}>
+              {a === 'heute' ? 'Heute' : 'Woche'}
+            </button>
+          ))}
+        </div>
+        {ansicht === 'heute' ? (
+          <>
+            <Tagesaufgaben stand={stand} />
+            <TruhenFortschritt rest={stand.sterneRest} truhen={stand.truhen} onOeffnen={() => setScreen({ kind: 'truhe', zurueck: 'karte' })} />
+          </>
+        ) : (
+          <>
+            <Wochenziel tage={stand.tage} />
+            <KlassenAufgabeBox stand={stand} />
+          </>
+        )}
+      </div>,
+    );
+  }
+
   if (screen.kind === 'klasse') {
     return rahmen(<KlasseSeite aktion={aktion} aufgabe={<KlassenAufgabeBox stand={stand} />} />);
   }
@@ -1082,9 +1118,6 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   return rahmen(
     <div className="lq-karte-raster">
       <aside className="lq-karte-seite">
-        <Wochenziel tage={stand.tage} />
-        <Tagesaufgaben stand={stand} />
-        <KlassenAufgabeBox stand={stand} />
         <TruhenFortschritt rest={stand.sterneRest} truhen={stand.truhen} onOeffnen={() => setScreen({ kind: 'truhe', zurueck: 'karte' })} />
       </aside>
       <div className="lq-karte-haupt">
@@ -1303,11 +1336,18 @@ function Tagesaufgaben({ stand }: { stand: Stand }) {
           const n = Math.min(t.ziel, a.zaehler[t.zaehler] ?? 0);
           return (
             <li key={t.id} className={ok ? 'ok' : ''}>
-              <span className="lq-aufgabe-haken" aria-hidden="true">{ok && <HakenIcon />}</span>
-              <span>
+              <span className="lq-aufgabe-icon" aria-hidden="true">
+                {ok ? <HakenIcon /> : <AufgabeIcon art={t.zaehler} />}
+              </span>
+              <span className="lq-aufgabe-text">
                 {t.text}
-                {t.ziel > 1 && !ok && <small> · {n} / {t.ziel}</small>}
                 {ok && <span className="lq-unsichtbar"> (geschafft)</span>}
+                <span className="lq-aufgabe-balken" aria-hidden="true">
+                  <span style={{ width: `${(100 * (ok ? t.ziel : n)) / t.ziel}%` }} />
+                </span>
+                <small>
+                  {ok ? t.ziel : n} / {t.ziel}
+                </small>
               </span>
               <small className="lq-gold-zahl">+{AUFGABE_MUENZEN}</small>
             </li>
@@ -1478,3 +1518,35 @@ const WiederholenIcon = () => (
     <path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5" />
   </svg>
 );
+
+/** The tab of today's tasks: a list with a tick. */
+const AufgabenIcon = () => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="4" y="3.5" width="16" height="17" rx="3" />
+    <path d="m8 9 1.5 1.5L12 8M8 15.5h8M14 9.5h2" />
+  </svg>
+);
+
+/** A small picture per kind of daily task (what it counts). */
+function AufgabeIcon({ art }: { art: string }) {
+  const p: Record<string, React.ReactNode> = {
+    geschafft: <path d="M6 21V4m0 1h11l-2.5 4L17 13H6" />,
+    fehlerfrei: (
+      <>
+        <circle cx="12" cy="12" r="8" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="12" cy="12" r="0.8" />
+      </>
+    ),
+    wdh: <path d="M4 12a8 8 0 0 1 14-5.3M20 4v4h-4M20 12a8 8 0 0 1-14 5.3M4 20v-4h4" />,
+    runden: <path d="M8 5v14l11-7Z" />,
+    richtig: <path d="m4.5 12.5 5 5L20 7" />,
+    sterne: <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9Z" />,
+    neu: <path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6Zm0 0v14m6-12v14" />,
+  };
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      {p[art] ?? p.richtig}
+    </svg>
+  );
+}

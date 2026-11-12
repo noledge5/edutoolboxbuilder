@@ -3966,6 +3966,8 @@ button.lq-teil:active {
   gap: var(--lq-a-1);
   min-width: 0;
   flex: 1;
+}
+
 /* Stufe D, Teil 2: the class task of the week (one bar, the sum only) and the welcome for new children. */
 .lq-klassenaufgabe {
   display: grid;
@@ -4021,4 +4023,108 @@ button.lq-teil:active {
 }
 .lq-willkommen-band .lq-knopf {
   width: auto;
+}
+
+/* — Stufe E, Teil 5: tasks (Heute / Woche) as quest cards — */
+.lq-aufgaben-seite {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-4);
+}
+.lq-umschalter {
+  display: flex;
+  gap: var(--lq-a-1);
+  padding: var(--lq-a-1);
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-karte);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+  align-self: flex-start;
+}
+.lq-umschalter button {
+  border: 0;
+  min-height: var(--lq-tippen);
+  padding: var(--lq-a-2) var(--lq-a-5);
+  border-radius: var(--lq-r-pille);
+  background: none;
+  font:
+    600 var(--lq-t-text) Fredoka,
+    sans-serif;
+  color: var(--lq-gedaempft);
+}
+.lq-umschalter button.an {
+  background: var(--lq-primary);
+  color: var(--lq-auf-farbe);
+  box-shadow: 0 3px 0 var(--lq-primary-tief);
+}
+.lq-zahl-gruen {
+  background: var(--lq-primary);
+  color: var(--lq-auf-farbe);
+}
+.lq-tagesaufgaben li {
+  grid-template-columns: 48px 1fr auto;
+  gap: var(--lq-a-3);
+  padding: var(--lq-a-3);
+  border-radius: var(--lq-r);
+  background: var(--lq-grund);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+}
+.lq-tagesaufgaben li.ok {
+  background: var(--lq-primary-flaeche);
+  box-shadow: inset 0 0 0 2px var(--lq-primary);
+}
+.lq-tagesaufgaben li.ok > span:nth-child(2) {
+  color: var(--lq-schrift);
+}
+.lq-aufgabe-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--lq-r-pille);
+  display: grid;
+  place-items: center;
+  background: var(--lq-gold-flaeche);
+  color: var(--lq-gold-schrift);
+  box-shadow: inset 0 0 0 2px var(--lq-gold);
+}
+.lq-tagesaufgaben li.ok .lq-aufgabe-icon {
+  background: var(--lq-primary);
+  color: var(--lq-auf-farbe);
+  box-shadow: none;
+}
+.lq-aufgabe-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+  font-weight: 600;
+  min-width: 0;
+}
+.lq-aufgabe-text small {
+  color: var(--lq-gedaempft);
+  font-weight: 400;
+}
+.lq-aufgabe-balken {
+  display: block;
+  height: 10px;
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-linie);
+  overflow: hidden;
+}
+.lq-aufgabe-balken > span {
+  display: block;
+  height: 100%;
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-primary);
+}
+
+/* The fox cheers beside what the chest held (Stufe E, Teil 5). */
+.lq-truhe-fuchs {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 84px;
+  pointer-events: none;
+}
+.lq-truhe-fuchs svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }

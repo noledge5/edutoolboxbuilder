@@ -166,8 +166,10 @@ Plan, entschieden mit der Lehrkraft am 12.11.2026 (Mockup: `docs/design/lernques
   dem Meilenstein, drei Sterne je Station als Bogen, Held neben der aktuellen Station, Fuchs sagt, was dran ist,
   Leiste unten im Mockup-Look. Teil 4 gebaut (gleicher Branch): Held als Vektorfigur mit allen 80 Teilen, Frisuren,
   Mündern und Hautfarben, überall in der App; Werkstatt `#avatar`. Teil 3 gebaut (gleicher Branch): Runde mit grünem
-  Balken, Antwortkarten mit rundem Haken, Rückmeldekarte mit jubelndem Held oder tröstendem Fuchs. Die Reiter der Leiste bleiben vorerst (Karte, Wiederholen, Held, Klasse); „Aufgaben“
-  und „Inventar“ kommen mit Teil 5, wenn es die Bildschirme gibt.
+  Balken, Antwortkarten mit rundem Haken, Rückmeldekarte mit jubelndem Held oder tröstendem Fuchs. Teil 5 gebaut (gleicher Branch, mit Stufe D Teil 2
+  gemergt): neuer Reiter „Aufgaben“ (Heute: Tagesaufgaben als Karten mit Balken und nächste Truhe; Woche: Wochenziel
+  und Klassen-Aufgabe), die Karte zeigt nur noch die nächste Truhe darüber; Truhe als Vektor (`figuren/truhe.tsx`),
+  beim Fund jubelt der Fuchs. Leiste: Karte, Aufgaben, Wiederholen, Held, Klasse. Laden und Klasse hatten den Look schon.
 - Erfolg: Bildschirmfotos am Handy-Format je Teil an die Lehrkraft; Tests, Typprüfung, Build grün; Spieltest ohne
   Server über jeden Bildschirm; Kontrast WCAG AA; alte Spielstände zeigen alles richtig.
 

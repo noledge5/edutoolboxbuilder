@@ -1,4 +1,4 @@
-# Handoff – 12.11.2026 (Stufe E: Teile 1 bis 4 fertig, als Nächstes Teil 5)
+# Handoff – 12.11.2026 (Stufe E: Teile 1 bis 5 fertig, als Nächstes Teil 6)
 
 ## Stand
 - **Kinder-App ist im Code abgeschaltet** (`UMBAU = true` in `src/lernquest/app/LernquestApp.tsx`): Anmeldung, Spiel und
@@ -39,7 +39,9 @@ Kurz: Lernweg bleibt (sichtbarer), Stufe D Teil 2 übernehmen, Spielstände blei
    `lq_frisur`) und ebenso nachzeichnen. Die Hochlade-/Edit-Funktion der Lehrkraft-Seite braucht die gemalte Grundfigur
    und geht nicht mehr (meldet das); Umbau der Lehrkraft-Seite ist noch nicht entschieden.
 4. **Teil 3 fertig auf demselben Branch:** Runde im Mockup-Look (`app/Runde.tsx`, CSS-Block „Stufe E, Teil 3“ am Ende
-   von `lernquest.css`); Logik unverändert. **Als Nächstes Teil 5**, dann 6. Teil 5: Dateien von
+   von `lernquest.css`); Logik unverändert. **Teil 5 fertig auf demselben Branch** (Stufe D Teil 2 von `claude/lucid-galileo-0dvocr` hineingemergt, Migration
+   `20261125_lernquest_klassenaufgabe.sql` ist jetzt im Repo): Reiter „Aufgaben“ (Heute/Woche), Truhe als Vektor, Fuchs
+   beim Fund. **Als Nächstes Teil 6** (Töne, Jubel, Bewegung reduzieren, dann `UMBAU = false`). Früher zu Teil 5: Dateien von
    `claude/lucid-galileo-0dvocr` holen (Migration `20261125_lernquest_klassenaufgabe.sql` ist live, muss ins Repo).
 
 ## Wichtig zu wissen

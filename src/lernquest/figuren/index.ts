@@ -17,3 +17,4 @@ export { FigurBild, ItemBild } from './Figur';
 export type { Animation, Figur, Item, Pose, Teil } from './typen';
 export { GELAENDE, Burg, BossBurg, Baum, Tanne, Busch, Blume, Stein } from './gelaende';
 export type { GelaendeTeil } from './gelaende';
+export { TruheZeichnung } from './truhe';
