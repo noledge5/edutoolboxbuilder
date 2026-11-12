@@ -1,19 +1,16 @@
-# Handoff – 10.11.2026 (Teile einstellen, Frisuren sammeln)
+# Handoff – 12.11.2026 (Stand nach Stufe D, Teil 1)
 
 ## Stand
-- Branch `lernquest` = `main` + diese Arbeit (alle Lernquest-Arbeit liegt auf `main`; `lernquest` stand bis 10.11. auf dem
-  06.11. – die alte Designrunde ist auf `lernquest-designrunde-alt` gesichert, nicht mergen).
-- Neu: auf „Bilder der Teile“ bei jedem Teil und jeder Frisur „Einstellungen“ (Seltenheit, Herkunft, Boni); Frisuren als
-  Teile (`frisur-<id>`), in der Kinder-App gesperrt mit „Im Laden“/„Nur in Truhen“, Laden-Bereich „Frisur“.
-  Details: `docs/lernquest.md` → „Teile einstellen und Frisuren sammeln“.
-- Migration `20261121_lernquest_teile_einstellen.sql`: eingespielt am 10.11.2026, Live-Tests grün; lokal geprüft; Browser-Durchlauf
-  Lehrerseite + Kinder-App gegen die lokale Datenbank.
+- `main` hat alles: Teile einstellen, Frisuren, eigene Frisuren, Abmelden (PR #53, #54) und Stufe A–D Teil 1
+  (Runde, KI-Pool, Lernspirale, Sterne aus drei Stufen, Tagesaufgaben, Laden nach Heldenstufe; bis PR #58).
+- Branch `lernquest` am 12.11.2026 auf den Stand von `main` gebracht (main hineingemergt, Inhalt gleich).
+  `lernquest-designrunde-alt` ist nur eine Sicherung, nicht mergen.
+- Alle Migrationen bis `20261124_lernquest_tagesaufgaben.sql` sind live eingespielt.
 
-- Eigene Frisuren und Abmelden-Knopf (aus dem WIP von `claude/sweet-tesla-pcomqy`, mit dem Teile-Katalog verbunden):
-  Migration `20261122_lernquest_eigene_frisuren.sql` (eingespielt, Live-Tests grün). Details: `docs/lernquest.md` → „Eigene Frisuren und Abmelden“.
-
-## Nächste Schritte
-- Rückmeldung der Lehrkraft. `claude/sweet-tesla-pcomqy` ist damit erledigt.
+## Nächste Schritte (Plan: `docs/kritik-und-plan.md`, Teil 3)
+- Stufe D, Teil 2: Willkommen (Held bauen, erste Mini-Runde, erste Truhe in zwei Minuten) und Klassen-Aufgabe der Woche.
+- Danach Stufe E (Aussehen: Karte als Landschaft, Vektor-Held, Töne, Jubel), dann F (Klassenzimmer). G läuft nebenher.
+- Offene Entscheidungen der Lehrkraft: Erinnerungen aufs Handy (Stufe D); eingefrorene Folien entfernen (Stufe G).
 
 ## Wichtig zu wissen
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
