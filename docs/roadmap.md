@@ -248,5 +248,5 @@ Entschieden am 11.11.2026 (Analyse und Fragerunde, alles in `docs/kritik-und-pla
   Klassen-Aufgabe der Woche (alle sammeln neue Sterne, Ziel 3 je Kind, auf der Lehrerseite 1–20 einstellbar; geschafft:
   eine Truhe für jedes Kind mit mindestens einem Stern in der Woche; Kinder sehen nur die Summe). Willkommen für neue
   Kinder (Held bauen, Mini-Runde mit 3 Fragen der ersten Station als „Wiederholen“, Willkommens-Truhe; überspringbar,
-  dann ohne Truhe). Migration `20261125_lernquest_klassenaufgabe.sql` lokal geprüft, **noch nicht eingespielt** (erst
-  nach OK der Lehrkraft); bis dahin zeigt die App beides nicht.
+  dann ohne Truhe). Migration `20261125_lernquest_klassenaufgabe.sql` eingespielt am 12.11.2026 (Freigabe
+  der Lehrkraft), lokal und live geprüft (Live-Tests grün).

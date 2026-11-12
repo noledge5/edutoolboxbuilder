@@ -6,13 +6,12 @@
 - Stufe D Teil 2 auf `claude/lucid-galileo-0dvocr` (Entscheidungen der Lehrkraft 12.11.2026):
   Klassen-Aufgabe der Woche (3 Sterne je Kind, Lehrerseite 1–20, Truhe für alle mit Stern) und Willkommen für neue
   Kinder (Held → Mini-Runde → Willkommens-Truhe). Details: `docs/lernquest.md` → „Klassen-Aufgabe und Willkommen“.
-- Migration `20261125_lernquest_klassenaufgabe.sql`: lokal gegen Postgres 16 geprüft (Durchspiel mit 2 Kindern),
-  **noch nicht eingespielt**. Ohne sie zeigt die App beides nicht (alte Server schicken die Felder nicht).
+- Migration `20261125_lernquest_klassenaufgabe.sql`: eingespielt am 12.11.2026, Live-Tests grün (12/12, neuer Test
+  „Stufe D, Teil 2“). Vorher geprüft: die ersetzten Live-Funktionen glichen dem Repo (nur Kommentare fehlten).
 - Geprüft: Typprüfung, 427 Tests, Build; Browser-Durchlauf im Spieltest-Modus (offline).
 
 ## Nächste Schritte
-- OK der Lehrkraft → Migration einspielen → Live-Tests (`server.live.test.ts`) um Klassen-Aufgabe/Willkommen ergänzen.
-- Danach PR und Merge (= veröffentlichen). Offen aus Stufe D: Heldenstufen schalten mehr frei (Begleiter wachsen,
+- PR für Teil 2 ist offen; Merge (= veröffentlichen) macht die Lehrkraft. Offen aus Stufe D: Heldenstufen schalten mehr frei (Begleiter wachsen,
   Titel am Beamer), Erinnerungen aufs Handy (Entscheidung offen).
 
 ## Wichtig zu wissen
