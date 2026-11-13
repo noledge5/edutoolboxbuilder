@@ -1229,6 +1229,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             <section key={r.id} className="lq-region" aria-label={`${regionName(r.id, r.nummer)}: ${r.titel}`}>
               <Landkarte
                 id={r.id}
+                nummer={r.nummer}
                 mitBoss={pfad.at(-1) === 'meilenstein'}
                 punkte={punkte}
                 kopf={
