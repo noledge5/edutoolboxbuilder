@@ -90,7 +90,13 @@ describe('Frisuren als Teile', () => {
   it('stehen alle im Server-Katalog', () => {
     const sql = readFileSync(new URL('../../supabase/migrations/20261121_lernquest_teile_einstellen.sql', import.meta.url), 'utf8');
     const ids = [...sql.matchAll(/\('frisur-([a-z0-9]+)', 'frisur', 0, true, 0, 0, 0, false, '([^']+)', false\)/g)].map((m) => [m[1], m[2]]);
-    expect(ids).toEqual(FRISUREN.map((f) => [f.id, f.name]));
+    // Ten more on 13.11.2026, not there from the start (20261129_lernquest_neue_teile.sql).
+    const neu = readFileSync(new URL('../../supabase/migrations/20261129_lernquest_neue_teile.sql', import.meta.url), 'utf8');
+    const neue = [...neu.matchAll(/\('frisur-([a-z0-9]+)', 'frisur', \d, false, 0, 0, 0, (?:true|false), '([^']+)', false\)/g)].map((m) => [m[1], m[2]]);
+    expect(neue).toHaveLength(10);
+    const alle = [...ids, ...neue];
+    expect(alle.map(([id]) => id).sort()).toEqual(FRISUREN.map((f) => f.id).sort());
+    expect(Object.fromEntries(alle)).toEqual(Object.fromEntries(FRISUREN.map((f) => [f.id, f.name])));
   });
 });
 

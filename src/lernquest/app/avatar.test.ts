@@ -8,9 +8,10 @@ import { hatZeichnung, TeilBild } from './avatar';
 // Draw the vectors, not the painted pictures.
 
 describe('avatar drawings', () => {
-  it('draws all 56 parts', () => {
-    expect(TEILE).toHaveLength(80);
-    expect(TEILE.filter((t) => !hatZeichnung(t.id)).map((t) => t.id)).toEqual([]);
+  // The older drawing is only the fallback for heroes wearing an uploaded picture (Stufe E, Teil 4); parts added later
+  // (from 13.11.2026) exist only as vectors (src/lernquest/figuren/held.test.tsx checks those).
+  it('draws the first 80 parts the older way too', () => {
+    expect(TEILE.slice(0, 80).filter((t) => !hatZeichnung(t.id)).map((t) => t.id)).toEqual([]);
   });
 
   it('builds valid path data for every part (no "--" from negative values)', () => {

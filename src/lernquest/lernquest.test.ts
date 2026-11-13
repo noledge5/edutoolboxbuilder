@@ -346,10 +346,18 @@ describe('Held und Beute', () => {
     const schaetze = readFileSync(new URL('../../supabase/migrations/20261116_lernquest_truhenschaetze.sql', import.meta.url), 'utf8');
     const neu = [...schaetze.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+), (\d+), (true|false)\)/g)];
     rows.push(...neu.map((m) => [m[1], m[2], runter(m[3]), m[4] === 'true', +m[5], +m[6]]));
+    // 40 more on 13.11.2026 (20261129_lernquest_neue_teile.sql), entered after the move down, so as they are.
+    const neuer = readFileSync(new URL('../../supabase/migrations/20261129_lernquest_neue_teile.sql', import.meta.url), 'utf8');
+    const neue = [...neuer.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+), (\d+), (true|false)\)/g)];
+    rows.push(...neue.map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]));
     expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, !!t.start, t.muenzen ?? 0, t.herz ?? 0]));
-    expect(neu.map((m) => [m[1], +m[7], m[8] === 'true'])).toEqual(TEILE.slice(56).map((t) => [t.id, t.schaden ?? 0, !!t.nurTruhe]));
+    expect([...neu, ...neue].map((m) => [m[1], +m[7], m[8] === 'true'])).toEqual(TEILE.slice(56).map((t) => [t.id, t.schaden ?? 0, !!t.nurTruhe]));
     expect(TEILE.slice(0, 56).filter((t) => t.nurTruhe)).toEqual([]);
-    expect(TEILE).toHaveLength(80);
+    expect(TEILE).toHaveLength(120);
+    // Ten per rarity in the new batch (hairstyles included), so every rarity has parts.
+    const haare = [...neuer.matchAll(/\('frisur-([a-z0-9]+)', 'frisur', (\d), false, 0, 0, 0, (true|false), '([^']+)', false\)/g)];
+    const zahl = (s: number) => neue.filter((m) => +m[3] === s).length + haare.filter((m) => +m[2] === s).length;
+    expect([0, 1, 2, 3, 4].map(zahl)).toEqual([10, 10, 10, 10, 10]);
     expect(schaetze).toContain('and not x.nur_truhe');
     expect(schaetze).toContain(`(array[${PREISE.join(', ')}])`);
     // Damage bonus in the boss fight (20261111_lernquest_schaden.sql).

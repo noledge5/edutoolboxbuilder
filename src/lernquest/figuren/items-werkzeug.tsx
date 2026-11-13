@@ -266,4 +266,229 @@ export const WERKZEUG_ITEMS: Item[] = [
       );
     },
   },
+  // — 13.11.2026 (supabase/migrations/20261129_lernquest_neue_teile.sql): two per rarity. —
+  {
+    id: 'bleistift',
+    name: 'Riesenbleistift',
+    platz: 'hand-rechts',
+    seltenheit: 1,
+    rahmen: [-16, -78, 56, 100],
+    zeichnung: () => (
+      <g transform="rotate(25)">
+        <rect x="-8" y="6" width="16" height="12" rx="4" fill={P.rosa} {...UMRISS} />
+        <rect x="-9" y="0" width="18" height="8" fill={P.metall} {...UMRISS_FEIN} />
+        <path d="M-9 4 H9" stroke={P.metallTief} strokeWidth={1.5} />
+        <path d="M-8 0 V-52 H8 V0 Z" fill={P.gelb} />
+        <path d="M3 0 V-52 H8 V0 Z" fill={P.gelbTief} opacity={0.6} />
+        <path d="M-3 -2 V-50" stroke={P.gelbHell} strokeWidth={2.5} strokeLinecap="round" />
+        <path d="M-8 0 V-52 H8 V0 Z" fill="none" {...UMRISS} />
+        <path d="M-8 -52 L0 -74 L8 -52 Z" fill={P.holz} {...UMRISS} />
+        <path d="M-3 -66 L0 -74 L3 -66 Z" fill={P.dunkel} />
+      </g>
+    ),
+  },
+  {
+    id: 'regenschirm',
+    name: 'Regenschirm',
+    platz: 'hand-rechts',
+    seltenheit: 1,
+    rahmen: [-54, -98, 100, 112],
+    zeichnung: () => (
+      <g transform="rotate(12)">
+        <path d="M0 6 Q0 14 -7 14 Q-12 14 -12 8" fill="none" stroke={P.linie} strokeWidth={7} strokeLinecap="round" />
+        <path d="M0 6 Q0 14 -7 14 Q-12 14 -12 8" fill="none" stroke={P.leder} strokeWidth={3.5} strokeLinecap="round" />
+        <path d="M0 6 V-62" stroke={P.linie} strokeWidth={6} />
+        <path d="M0 6 V-62" stroke={P.metall} strokeWidth={3} />
+        <path d="M-46 -54 Q-44 -90 0 -92 Q44 -90 46 -54 Q38 -60 30 -54 Q22 -62 15 -55 Q8 -62 0 -55 Q-8 -62 -15 -55 Q-22 -62 -30 -54 Q-38 -60 -46 -54 Z" fill={P.rot} />
+        <path d="M0 -92 Q16 -76 15 -55 Q22 -62 30 -54 Q38 -60 46 -54 Q44 -90 0 -92 Z" fill={P.rotTief} opacity={0.4} />
+        <path d="M0 -92 Q-16 -76 -15 -55 M0 -92 V-55 M0 -92 Q16 -76 15 -55" fill="none" stroke={P.rotTief} strokeWidth={2} />
+        <path d="M-46 -54 Q-44 -90 0 -92 Q44 -90 46 -54 Q38 -60 30 -54 Q22 -62 15 -55 Q8 -62 0 -55 Q-8 -62 -15 -55 Q-22 -62 -30 -54 Q-38 -60 -46 -54 Z" fill="none" {...UMRISS} />
+        <path d="M-34 -66 Q-28 -82 -14 -86" fill="none" stroke={P.backe} strokeWidth={4} strokeLinecap="round" />
+        <circle cx={0} cy={-94} r={3} fill={P.metall} {...UMRISS_FEIN} />
+      </g>
+    ),
+  },
+  {
+    id: 'gitarre',
+    name: 'Gitarre',
+    platz: 'hand-rechts',
+    seltenheit: 2,
+    rahmen: [-30, -72, 66, 120],
+    zeichnung: () => (
+      <g transform="rotate(18)">
+        {/* Held by the neck, the body hangs below the hand */}
+        <path d="M-4 -60 L4 -60 L4 16 L-4 16 Z" fill={P.holzTief} {...UMRISS_FEIN} />
+        <path d="M-6 -72 L6 -72 L5 -58 L-5 -58 Z" fill={P.leder} {...UMRISS_FEIN} />
+        <circle cx={-8} cy={-68} r={2} fill={P.metall} stroke={P.linie} strokeWidth={1} />
+        <circle cx={8} cy={-64} r={2} fill={P.metall} stroke={P.linie} strokeWidth={1} />
+        <path d="M0 14 C-22 14 -24 28 -16 34 C-26 40 -26 58 0 60 C26 58 26 40 16 34 C24 28 22 14 0 14 Z" fill={P.orange} />
+        <path d="M14 18 C22 24 20 30 16 34 C24 40 24 54 6 58 C16 48 14 36 8 30 C12 26 12 20 14 18 Z" fill={P.orangeTief} opacity={0.55} />
+        <path d="M0 14 C-22 14 -24 28 -16 34 C-26 40 -26 58 0 60 C26 58 26 40 16 34 C24 28 22 14 0 14 Z" fill="none" {...UMRISS} />
+        <circle cx={0} cy={34} r={6} fill={P.dunkel} {...UMRISS_FEIN} />
+        <rect x={-8} y={46} width={16} height={4} rx={2} fill={P.lederTief} />
+        <path d="M-1.5 -58 V48 M1.5 -58 V48" stroke={P.metallHell} strokeWidth={0.9} />
+        <path d="M-14 22 Q-18 28 -14 30" fill="none" stroke={P.orangeHell} strokeWidth={2.5} strokeLinecap="round" />
+      </g>
+    ),
+  },
+  {
+    id: 'kescher',
+    name: 'Kescher',
+    platz: 'hand-rechts',
+    seltenheit: 2,
+    rahmen: [-22, -96, 64, 112],
+    zeichnung: () => (
+      <g transform="rotate(20)">
+        <rect x="-3.5" y="-56" width="7" height="68" rx="3" fill={P.holz} {...UMRISS} />
+        {maserung(0, -50, 6)}
+        <path d="M-16 -66 Q-20 -40 0 -36 Q20 -40 16 -66" fill={P.weiss} fillOpacity={0.35} stroke={P.grauHell} strokeWidth={1.5} />
+        <path d="M-12 -64 L4 -38 M-4 -66 L10 -44 M6 -66 L-8 -40 M14 -62 L-2 -38 M-17 -54 H17 M-15 -45 H15" stroke={P.grauHell} strokeWidth={1.3} />
+        <ellipse cx={0} cy={-70} rx={18} ry={8} fill="none" stroke={P.linie} strokeWidth={6} />
+        <ellipse cx={0} cy={-70} rx={18} ry={8} fill="none" stroke={P.metall} strokeWidth={3} />
+        <path d="M0 -62 V-56" stroke={P.metall} strokeWidth={4} />
+      </g>
+    ),
+  },
+  {
+    id: 'bogen',
+    name: 'Bogen',
+    platz: 'hand-rechts',
+    seltenheit: 3,
+    rahmen: [-26, -60, 50, 120],
+    zeichnung: () => (
+      <g>
+        <path d="M8 -54 L8 54" stroke={P.grauHell} strokeWidth={1.6} />
+        <path d="M8 -54 Q-30 0 8 54" fill="none" stroke={P.linie} strokeWidth={10} strokeLinecap="round" />
+        <path d="M8 -54 Q-30 0 8 54" fill="none" stroke={P.holz} strokeWidth={6} strokeLinecap="round" />
+        <path d="M2 -44 Q-10 -24 -11 -6" fill="none" stroke={P.goldHell} strokeWidth={1.8} strokeLinecap="round" opacity={0.7} />
+        <path d="M4 -56 l6 -4 l2 6 Z M4 56 l6 4 l2 -6 Z" fill={P.metall} {...UMRISS_FEIN} />
+        <rect x={-14} y={-8} width={8} height={16} rx={2} fill={P.leder} {...UMRISS_FEIN} />
+      </g>
+    ),
+  },
+  {
+    id: 'zauberbuch',
+    name: 'Zauberbuch',
+    platz: 'hand-rechts',
+    seltenheit: 3,
+    bewegt: true,
+    rahmen: [-30, -64, 66, 76],
+    zeichnung: (zeit) => {
+      const auf = Math.sin(zeit * 2) * 3;
+      return (
+        <g transform={`translate(4 ${(-10 + auf).toFixed(2)})`}>
+          {/* Open book floating above the hand, a rune glowing over it */}
+          <path d="M0 0 Q-14 -6 -28 -2 L-28 -30 Q-14 -34 0 -28 Q14 -34 28 -30 L28 -2 Q14 -6 0 0 Z" fill={P.lilaTief} {...UMRISS} />
+          <path d="M0 -3 Q-12 -9 -24 -6 L-24 -30 Q-12 -32 0 -28 Z" fill={P.creme} {...UMRISS_FEIN} />
+          <path d="M0 -3 Q12 -9 24 -6 L24 -30 Q12 -32 0 -28 Z" fill={P.sandHell} {...UMRISS_FEIN} />
+          <path d="M-20 -24 h12 M-20 -18 h14 M-20 -12 h10 M8 -24 h12 M8 -18 h10" stroke={P.steinTief} strokeWidth={1.5} strokeLinecap="round" />
+          <g opacity={0.6 + Math.sin(zeit * 3) * 0.3}>
+            <circle cx={0} cy={-44} r={9} fill="none" stroke={P.lilaHell} strokeWidth={2.5} />
+            <path d={stern(0, -44, 6)} fill={P.gold} />
+          </g>
+          <Funkeln x={-18} y={-40} r={5} zeit={zeit} />
+          <Funkeln x={18} y={-48} r={4} zeit={zeit} versatz={2} />
+        </g>
+      );
+    },
+  },
+  {
+    id: 'flammenschwert',
+    name: 'Flammenschwert',
+    platz: 'hand-rechts',
+    seltenheit: 4,
+    bewegt: true,
+    rahmen: [-24, -92, 66, 112],
+    zeichnung: (zeit) => {
+      const f = (k: number) => (1 + Math.sin(zeit * 10 + k) * 0.12).toFixed(3);
+      return (
+        <g transform="rotate(28)">
+          {[-60, -40, -22].map((y, i) => (
+            <path key={y} d={`M0 ${y + 12} Q-14 ${y} -6 ${y - 14} Q-2 ${y - 6} 0 ${y - 10} Q4 ${y - 20} 8 ${y - 14} Q14 ${y} 0 ${y + 12} Z`} fill={i % 2 ? P.orange : P.lava} transform={`translate(0 ${y}) scale(${f(i)}) translate(0 ${-y})`} />
+          ))}
+          <path d="M-6 -14 L-6 -66 L0 -80 L6 -66 L6 -14 Z" fill={P.metall} />
+          <path d="M0 -80 L6 -66 L6 -14 L0 -14 Z" fill={P.metallTief} opacity={0.5} />
+          <path d="M-2.5 -18 V-66" stroke={P.metallHell} strokeWidth={2} strokeLinecap="round" />
+          <path d="M-6 -14 L-6 -66 L0 -80 L6 -66 L6 -14 Z" fill="none" {...UMRISS} />
+          <path d="M-18 -16 Q0 -8 18 -16 L16 -8 Q0 -2 -16 -8 Z" fill={P.dunkel} {...UMRISS_FEIN} />
+          <path d="M-4 -12 l4 -5 4 5 -4 5 Z" fill={P.lava} stroke={P.lavaTief} strokeWidth={1.2} />
+          <rect x="-3.5" y="-8" width="7" height="18" rx="3" fill={P.leder} {...UMRISS_FEIN} />
+          <circle cx="0" cy="12" r="4.5" fill={P.gold} stroke={P.goldTief} strokeWidth={2} />
+        </g>
+      );
+    },
+  },
+  {
+    id: 'frostbogen',
+    name: 'Frostbogen',
+    platz: 'hand-rechts',
+    seltenheit: 4,
+    bewegt: true,
+    rahmen: [-32, -66, 60, 132],
+    zeichnung: (zeit) => (
+      <g>
+        <path d="M8 -58 L8 58" stroke={P.eisHell} strokeWidth={1.8} />
+        <path d="M8 -58 Q-32 0 8 58" fill="none" stroke={P.linie} strokeWidth={11} strokeLinecap="round" />
+        <path d="M8 -58 Q-32 0 8 58" fill="none" stroke={P.eis} strokeWidth={7} strokeLinecap="round" />
+        <path d="M2 -48 Q-10 -26 -12 -8" fill="none" stroke={P.weiss} strokeWidth={2.2} strokeLinecap="round" />
+        {/* Ice crystals at both tips and a gem at the grip */}
+        {[-58, 58].map((y) => (
+          <path key={y} d={`M8 ${y} l-6 ${y < 0 ? -10 : 10} l6 ${y < 0 ? -4 : 4} l6 ${y < 0 ? 4 : -4} Z`} fill={P.eisHell} stroke={P.eisTief} strokeWidth={1.8} strokeLinejoin="round" />
+        ))}
+        <rect x={-16} y={-9} width={9} height={18} rx={2} fill={P.blauTief} {...UMRISS_FEIN} />
+        <path d="M-12 -14 l4 5 -4 5 -4 -5 Z" fill={P.tuerkis} stroke={P.tuerkisTief} strokeWidth={1.2} />
+        <Funkeln x={-14} y={-30} r={5} zeit={zeit} />
+        <Funkeln x={-12} y={32} r={4} zeit={zeit} versatz={2} />
+      </g>
+    ),
+  },
+  {
+    id: 'sonnenzepter',
+    name: 'Sonnenzepter',
+    platz: 'hand-rechts',
+    seltenheit: 5,
+    bewegt: true,
+    rahmen: [-28, -100, 70, 116],
+    zeichnung: (zeit) => (
+      <g transform="rotate(18)">
+        <rect x="-3.5" y="-56" width="7" height="68" rx="3" fill={P.gold} {...UMRISS} />
+        <path d="M-1 -52 V8" stroke={P.goldHell} strokeWidth={2} />
+        <path d="M-6 -20 h12 M-6 -10 h12" stroke={P.goldTief} strokeWidth={3} />
+        <g transform={`rotate(${((zeit * 30) % 360).toFixed(1)} 0 -74)`}>
+          {Array.from({ length: 10 }, (_, i) => (
+            <path key={i} d="M0 -96 L4 -86 L-4 -86 Z" fill={P.orange} stroke={P.orangeTief} strokeWidth={1} transform={`rotate(${i * 36} 0 -74)`} />
+          ))}
+        </g>
+        <circle cx={0} cy={-74} r={13} fill={P.gelb} {...UMRISS} />
+        <circle cx={0} cy={-74} r={6} fill={P.rot} stroke={P.rotTief} strokeWidth={1.5} />
+        <path d="M-8 -80 q3 -4 8 -5" fill="none" stroke={P.gelbHell} strokeWidth={2.5} strokeLinecap="round" />
+        <Funkeln x={18} y={-90} r={6} zeit={zeit} />
+        <Funkeln x={-16} y={-60} r={5} zeit={zeit} versatz={2} />
+      </g>
+    ),
+  },
+  {
+    id: 'mondsichel',
+    name: 'Mondsichelstab',
+    platz: 'hand-rechts',
+    seltenheit: 5,
+    bewegt: true,
+    rahmen: [-34, -104, 80, 120],
+    zeichnung: (zeit) => (
+      <g transform="rotate(16)">
+        <rect x="-3.5" y="-60" width="7" height="72" rx="3" fill={P.nacht} {...UMRISS} />
+        <path d="M-1 -56 V8" stroke={P.nachtHell} strokeWidth={2} />
+        <path d="M-6 -12 h12" stroke={P.metallHell} strokeWidth={3} />
+        <path d="M-8 -64 Q8 -62 8 -76 Q-2 -70 -6 -80 Q-18 -64 -8 -64 Z" fill={P.metall} {...UMRISS_FEIN} />
+        {/* The crescent, with stars circling it */}
+        <path d="M6 -98 A22 22 0 1 0 22 -62 A17 17 0 1 1 6 -98 Z" fill={P.metallHell} {...UMRISS} />
+        <path d="M-4 -90 Q-10 -80 -6 -70" fill="none" stroke={P.weiss} strokeWidth={2.5} strokeLinecap="round" />
+        {[0, 1, 2].map((i) => {
+          const a = zeit * 1.6 + (i * Math.PI * 2) / 3;
+          return <path key={i} d={stern(Math.cos(a) * 26, -80 + Math.sin(a) * 12, 5)} fill={P.gold} stroke={P.goldTief} strokeWidth={1.2} />;
+        })}
+        <Funkeln x={-20} y={-100} r={6} zeit={zeit} />
+      </g>
+    ),
+  },
 ];
