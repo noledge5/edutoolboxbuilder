@@ -1,4 +1,4 @@
-# Handoff – 13.11.2026 (Sperre, Truhen und 50 neue Teile live; nächster Schritt Extra-Pakete vervollständigen)
+# Handoff – 13.11.2026 (Extra-Pakete in allen Lehrkraft-Ansichten; nächster Schritt „Frage melden“)
 
 ## Ziel
 Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von oben nach unten.
@@ -23,11 +23,11 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
   „Freigeschaltete neu senden“; beim Militärhelm die Herkunft einstellen; „Teile und Wünsche“ angemeldet ansehen.
 
 ## Nächste Schritte (je einer pro Session)
-1. **Prüfungen der Lehrkraft lesen**, sobald sie die neuen Teile durchgesehen hat (Skill `figur`, Schritt 1), und die
-   Teile mit „aendern“ überarbeiten.
-2. **Extra-Pakete vervollständigen:** Auswertung (`teacher/Auswertung.tsx`), „Wiederholen sofort“
-   (`teacher/WiederholenSofort.tsx`) und Bosskampf am Beamer (`useRegion`/`BossStart` in `LernquestView.tsx`) kennen nur
-   Stunden (`lib.lessons` mit `klasse.stunden`); Extra-Pakete über `freiFuer`/`buildExtraPaket` dazunehmen.
+1. **Prüfungen der Lehrkraft lesen** (Skill `figur`, Schritt 1): Am 13.11. hat Claude auf Wunsch alle 159 offenen Teile
+   als „passt“ eingetragen; die Lehrkraft sieht trotzdem durch und setzt, was nicht passt, auf „ändern“.
+2. **Branch `claude/happy-pascal-p3h9wu`:** Extra-Pakete in Auswertung (eine Zeile je Thema), „Wiederholen sofort“,
+   Kartenfrage und Bosskampf (`mitExtras`, `regionLabel` in `extra.ts`). Tests grün; im Browser nicht geprüft (braucht
+   eine Klasse auf dem Server). PR erst auf Wunsch.
 3. **„Frage melden“:** Kinder melden eine fehlerhafte Übung, die Lehrkraft sieht die Meldungen beim Fragenpool. Braucht
    eine Migration (Freigabe der Lehrkraft in ihrer App); erst planen (Skill `aufgabe`) und Plan zeigen.
 4. **Lehrkraft-Bereich in der Lernquest-App** für den Bosskampf mit Karten (heute scannt der Baukasten). Erst planen.
