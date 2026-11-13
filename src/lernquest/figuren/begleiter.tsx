@@ -533,6 +533,158 @@ function Phoenix({ zeit }: { zeit: number }) {
   );
 }
 
+// ---------------------------------------------------------------- 13.11.2026 (20261129_lernquest_neue_teile.sql)
+
+function Hase() {
+  return (
+    <g>
+      {/* ears: the back one darker */}
+      <path d="M6 -44 Q-4 -70 4 -76 Q14 -70 12 -44 Z" fill={P.grauHell} {...UMRISS} />
+      <path d="M16 -44 Q16 -74 26 -76 Q32 -66 22 -42 Z" fill={P.schnee} {...UMRISS} />
+      <path d="M20 -46 Q22 -66 26 -70" fill="none" stroke={P.rosaHell} strokeWidth={4} strokeLinecap="round" />
+      {/* body, tail, feet */}
+      <circle cx={-24} cy={-20} r={8} fill={P.schnee} {...UMRISS} />
+      <ellipse cx={-4} cy={-18} rx={24} ry={18} fill={P.schnee} {...UMRISS} />
+      <Schatten cx={-4} cy={-18} rx={24} ry={18} farbe={P.grauHell} />
+      <ellipse cx={14} cy={-3} rx={10} ry={4.5} fill={P.schnee} {...UMRISS} />
+      {/* head */}
+      <circle cx={16} cy={-38} r={15} fill={P.schnee} {...UMRISS} />
+      <Licht x={9} y={-47} rx={4.5} ry={2.4} farbe={P.weiss} />
+      <Auge x={14} y={-40} r={3.8} />
+      <Auge x={25} y={-40} r={3.4} />
+      <ellipse cx={28} cy={-33} rx={2.4} ry={1.8} fill={P.rosa} />
+      <Mund x={26} y={-30} w={2.6} katze />
+      <Backe x={10} y={-32} rx={3.4} ry={2.2} />
+    </g>
+  );
+}
+
+function Frosch() {
+  return (
+    <g>
+      {/* back legs and body */}
+      <ellipse cx={-18} cy={-8} rx={14} ry={8} fill={P.gruen} {...UMRISS} />
+      <ellipse cx={0} cy={-20} rx={26} ry={20} fill={P.gruenHell} {...UMRISS} />
+      <Schatten cx={0} cy={-20} rx={26} ry={20} farbe={P.gruen} />
+      <ellipse cx={4} cy={-14} rx={15} ry={10} fill={P.gelbHell} />
+      <circle cx={-12} cy={-26} r={3} fill={P.gruen} />
+      <circle cx={-6} cy={-34} r={2.2} fill={P.gruen} />
+      <path d="M8 -2 q4 -6 10 -2 M14 -2 l3 2 M10 -2 l-2 2" fill={P.gruenHell} {...UMRISS_FEIN} />
+      {/* eyes on top of the head */}
+      {[2, 22].map((x) => (
+        <g key={x}>
+          <circle cx={x} cy={-42} r={9} fill={P.gruenHell} {...UMRISS} />
+          <Auge x={x + 1} y={-42} r={4.4} />
+        </g>
+      ))}
+      <Licht x={-12} y={-34} rx={6} ry={3} farbe={P.gelbHell} />
+      <path d="M2 -28 Q14 -20 26 -28" fill="none" stroke={P.linie} strokeWidth={2.2} strokeLinecap="round" />
+      <Backe x={-2} y={-28} rx={3.6} ry={2.2} />
+      <Backe x={28} y={-28} rx={3} ry={2} />
+    </g>
+  );
+}
+
+function Panda() {
+  return (
+    <g>
+      {/* bamboo behind */}
+      <path d="M-28 0 V-60" stroke={P.linie} strokeWidth={9} strokeLinecap="round" />
+      <path d="M-28 0 V-60" stroke={P.gruenHell} strokeWidth={5} strokeLinecap="round" />
+      <path d="M-31 -22 h6 M-31 -42 h6" stroke={P.gruen} strokeWidth={2} />
+      <path d="M-28 -50 q-10 -6 -12 -14 q8 2 12 10 Z" fill={P.gruen} {...UMRISS_FEIN} />
+      {/* body */}
+      <ellipse cx={0} cy={-20} rx={24} ry={20} fill={P.schnee} {...UMRISS} />
+      <path d="M-20 -32 Q-26 -14 -18 -2 L-6 -2 Q-12 -18 -8 -32 Z" fill={P.dunkel} {...UMRISS_FEIN} />
+      <ellipse cx={14} cy={-3} rx={9} ry={5} fill={P.dunkel} {...UMRISS} />
+      <ellipse cx={-10} cy={-3} rx={9} ry={5} fill={P.dunkel} {...UMRISS} />
+      <path d="M14 -30 Q24 -24 22 -12" fill="none" stroke={P.linie} strokeWidth={10} strokeLinecap="round" />
+      <path d="M14 -30 Q24 -24 22 -12" fill="none" stroke={P.dunkel} strokeWidth={6} strokeLinecap="round" />
+      {/* head with dark ears and eye patches */}
+      <circle cx={-2} cy={-54} r={6.5} fill={P.dunkel} {...UMRISS} />
+      <circle cx={22} cy={-54} r={6.5} fill={P.dunkel} {...UMRISS} />
+      <circle cx={10} cy={-40} r={16} fill={P.schnee} {...UMRISS} />
+      <Licht x={3} y={-50} rx={5} ry={2.4} farbe={P.weiss} />
+      <ellipse cx={4} cy={-41} rx={5} ry={6.5} fill={P.dunkel} transform="rotate(20 4 -41)" />
+      <ellipse cx={17} cy={-41} rx={5} ry={6.5} fill={P.dunkel} transform="rotate(-20 17 -41)" />
+      <circle cx={4} cy={-42} r={2.2} fill={P.weiss} />
+      <circle cx={17} cy={-42} r={2.2} fill={P.weiss} />
+      <ellipse cx={11} cy={-33} rx={2.8} ry={2} fill={P.auge} />
+      <Mund x={11} y={-30} w={2.6} katze />
+      <Backe x={-1} y={-33} rx={3} ry={2} />
+    </g>
+  );
+}
+
+function Mondwolf({ zeit }: { zeit: number }) {
+  const glanz = 0.6 + Math.sin(zeit * 2) * 0.3;
+  return (
+    <g>
+      {/* bushy tail */}
+      <path d="M-18 -14 Q-40 -24 -36 -46 Q-28 -34 -16 -30 Z" fill={P.grau} {...UMRISS} />
+      <path d="M-36 -46 Q-34 -38 -28 -36" fill="none" stroke={P.schnee} strokeWidth={4} strokeLinecap="round" />
+      {/* sitting body */}
+      <path d="M-20 0 Q-26 -34 0 -40 Q20 -40 18 -18 Q18 -4 10 0 Z" fill={P.grau} {...UMRISS} />
+      <path d="M0 -36 Q12 -30 10 -2 L2 -2 Q4 -20 -4 -30 Z" fill={P.schnee} opacity={0.9} />
+      <path d="M8 0 V-20 M14 0 V-18" stroke={P.linie} strokeWidth={8} strokeLinecap="round" />
+      <path d="M8 0 V-20 M14 0 V-18" stroke={P.grauHell} strokeWidth={4.5} strokeLinecap="round" />
+      {/* head with pointed ears and snout to the right */}
+      <path d="M2 -54 L4 -72 L14 -58 Z M16 -56 L24 -72 L28 -54 Z" fill={P.grau} {...UMRISS} />
+      <path d="M6 -58 L6 -66 L11 -59 Z M20 -58 L24 -66 L25 -57 Z" fill={P.rosaHell} />
+      <path d="M-2 -46 Q0 -62 16 -62 Q32 -60 30 -48 L40 -42 Q40 -34 30 -34 Q20 -28 6 -32 Q-4 -36 -2 -46 Z" fill={P.grau} {...UMRISS} />
+      <path d="M20 -40 L40 -42 Q40 -34 30 -34 Q22 -32 18 -36 Z" fill={P.schnee} />
+      <ellipse cx={40} cy={-41} rx={3} ry={2.2} fill={P.auge} />
+      <Auge x={18} y={-48} r={3.6} />
+      <Licht x={4} y={-54} rx={4} ry={2} farbe={P.grauHell} />
+      {/* the moon on the forehead glows */}
+      <path d="M10 -58 A5 5 0 1 0 15 -52 A4 4 0 1 1 10 -58 Z" fill={P.gelbHell} opacity={glanz} stroke={P.goldTief} strokeWidth={1} />
+      <Funkeln x={-30} y={-58} r={5} zeit={zeit} />
+    </g>
+  );
+}
+
+function Sternenhirsch({ zeit }: { zeit: number }) {
+  const glanz = 0.65 + Math.sin(zeit * 2.5) * 0.3;
+  return (
+    <g>
+      {/* legs */}
+      {[-16, -8, 10, 18].map((x) => (
+        <g key={x}>
+          <path d={`M${x} -18 V-2`} stroke={P.linie} strokeWidth={7} strokeLinecap="round" />
+          <path d={`M${x} -18 V-2`} stroke={x < 0 ? P.holzTief : P.holz} strokeWidth={4} strokeLinecap="round" />
+        </g>
+      ))}
+      {/* body with light spots */}
+      <ellipse cx={0} cy={-24} rx={26} ry={13} fill={P.holz} {...UMRISS} />
+      <Schatten cx={0} cy={-24} rx={26} ry={13} farbe={P.holzTief} />
+      {[
+        [-12, -28],
+        [-4, -31],
+        [-16, -22],
+      ].map(([x, y]) => (
+        <circle key={x} cx={x} cy={y} r={2} fill={P.sandHell} />
+      ))}
+      <path d="M-26 -28 q-6 -2 -6 -8 q6 0 8 4 Z" fill={P.schnee} {...UMRISS_FEIN} />
+      {/* neck and head */}
+      <path d="M14 -30 L22 -50 L32 -48 L26 -28 Z" fill={P.holz} {...UMRISS} />
+      <ellipse cx={30} cy={-52} rx={11} ry={9} fill={P.holz} {...UMRISS} />
+      <ellipse cx={39} cy={-50} rx={2.4} ry={2} fill={P.auge} />
+      <Auge x={29} y={-54} r={3.2} />
+      <path d="M22 -58 q-6 -2 -8 -6 q6 0 9 3 Z" fill={P.holz} {...UMRISS_FEIN} />
+      {/* antlers of light with stars */}
+      <g opacity={glanz}>
+        <path d="M26 -60 Q20 -76 26 -86 M22 -72 L14 -78 M32 -60 Q38 -74 34 -88 M36 -72 L44 -78" fill="none" stroke={P.gelb} strokeWidth={3.5} strokeLinecap="round" />
+        <path d={stern(26, -88, 4.5)} fill={P.weiss} />
+        <path d={stern(34, -90, 4)} fill={P.weiss} />
+        <path d={stern(14, -79, 3.5)} fill={P.weiss} />
+        <path d={stern(44, -79, 3.5)} fill={P.weiss} />
+      </g>
+      <Funkeln x={-24} y={-48} r={6} zeit={zeit} />
+      <Funkeln x={8} y={-62} r={4} zeit={zeit} versatz={2} />
+    </g>
+  );
+}
+
 const rahmen = (x: number, y: number, w: number, h: number) => [x, y, w, h] as const;
 const tier = (id: string, name: string, seltenheit: Item['seltenheit'], r: readonly [number, number, number, number], zeichnung: (zeit: number) => ReactNode, bewegt = false): Item => ({
   id,
@@ -558,4 +710,10 @@ export const BEGLEITER_ITEMS: Item[] = [
   tier('einhorn', 'Einhorn', 3, rahmen(-41, -90, 84, 94), () => <Einhorn />),
   tier('drache', 'Drache', 4, rahmen(-74, -102, 120, 108), (zeit) => <Drache zeit={zeit} />, true),
   tier('phoenix', 'Phönix', 4, rahmen(-43, -69, 80, 75), (zeit) => <Phoenix zeit={zeit} />, true),
+  // 13.11.2026 (20261129_lernquest_neue_teile.sql)
+  tier('hase', 'Hase', 1, rahmen(-34, -80, 68, 84), () => <Hase />),
+  tier('frosch', 'Frosch', 2, rahmen(-34, -54, 68, 58), () => <Frosch />),
+  tier('panda', 'Panda', 3, rahmen(-42, -68, 74, 72), () => <Panda />),
+  tier('mondwolf', 'Mondwolf', 4, rahmen(-42, -76, 86, 80), (zeit) => <Mondwolf zeit={zeit} />, true),
+  tier('sternenhirsch', 'Sternenhirsch', 5, rahmen(-34, -96, 82, 100), (zeit) => <Sternenhirsch zeit={zeit} />, true),
 ];

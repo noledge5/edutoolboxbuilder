@@ -585,6 +585,219 @@ function wolkenschloss(zeit: number): ReactNode {
   );
 }
 
+// — 13.11.2026 (20261129_lernquest_neue_teile.sql): one per rarity. —
+
+/** Klassenzimmer: a green board at the top, a window on the right, a clock, wooden floor, a desk with books on the left. */
+function klassenzimmer(): ReactNode {
+  return (
+    <g>
+      <R y={0} h={240} f={P.sandHell} />
+      <R y={150} h={8} f={P.holzTief} />
+      <rect x={70} y={14} width={100} height={52} rx={4} fill={P.gruenTief} stroke={P.holz} strokeWidth={6} />
+      <rect x={70} y={14} width={100} height={52} rx={4} fill="none" {...UMRISS} />
+      <path d="M82 30 q8 -6 16 0 q8 6 16 0 M84 46 H120 M128 30 l10 14 M138 30 l-10 14" fill="none" stroke={P.weiss} strokeWidth={2.5} strokeLinecap="round" opacity={0.85} />
+      <path d="M150 52 h12" stroke={P.weiss} strokeWidth={4} strokeLinecap="round" />
+      <rect x={186} y={28} width={46} height={66} rx={3} fill={P.himmel} stroke={P.holz} strokeWidth={5} />
+      <path d="M209 28 V94 M186 61 H232" stroke={P.holz} strokeWidth={4} />
+      <rect x={186} y={28} width={46} height={66} rx={3} fill="none" {...UMRISS} />
+      <Wolke x={198} y={52} s={0.35} />
+      <circle cx={30} cy={36} r={16} fill={P.weiss} stroke={P.rot} strokeWidth={4} />
+      <circle cx={30} cy={36} r={16} fill="none" {...UMRISS_FEIN} />
+      <path d="M30 36 V26 M30 36 L37 40" stroke={P.linie} strokeWidth={2.5} strokeLinecap="round" />
+      <R y={158} h={82} f={P.holz} />
+      <path d="M0 180 H240 M0 204 H240 M0 228 H240 M40 158 V180 M120 158 V180 M200 158 V180 M80 180 V204 M160 180 V204 M30 204 V228 M110 204 V228 M190 204 V228" stroke={P.holzTief} strokeWidth={2} opacity={0.7} />
+      <path d="M0 158 H240" stroke={P.linie} strokeWidth={3} />
+      <g transform="translate(206 210)">
+        <rect x={-26} y={-30} width={52} height={8} rx={2} fill={P.holzTief} {...UMRISS_FEIN} />
+        <path d="M-20 -22 V20 M20 -22 V20" stroke={P.linie} strokeWidth={5} strokeLinecap="round" />
+        <path d="M-20 -22 V20 M20 -22 V20" stroke={P.metall} strokeWidth={2.5} strokeLinecap="round" />
+        <rect x={-18} y={-42} width={22} height={6} fill={P.rot} {...UMRISS_FEIN} />
+        <rect x={-16} y={-48} width={20} height={6} fill={P.blau} {...UMRISS_FEIN} />
+        <path d="M10 -32 l4 -16 l3 1 l-4 16 Z" fill={P.gelb} {...UMRISS_FEIN} />
+      </g>
+    </g>
+  );
+}
+
+/** Bibliothek: high shelves full of books at both sides, a round window, a red rug, a lamp. */
+function bibliothek(): ReactNode {
+  const farben = [P.rot, P.blau, P.gruen, P.gelb, P.lila, P.orange, P.tuerkis];
+  const regal = (x0: number) => (
+    <g key={x0}>
+      <rect x={x0} y={8} width={58} height={170} fill={P.holzTief} {...UMRISS} />
+      {[46, 88, 130, 172].map((y, r) => (
+        <g key={y}>
+          {Array.from({ length: 6 }, (_, i) => {
+            const h = 26 + ((i * 7 + r * 3 + x0) % 9);
+            return <rect key={i} x={x0 + 5 + i * 8.5} y={y - h} width={7} height={h} fill={farben[(i + r * 2 + x0) % farben.length]} stroke={P.linie} strokeWidth={1.5} />;
+          })}
+          <rect x={x0} y={y} width={58} height={5} fill={P.holz} stroke={P.linie} strokeWidth={1.5} />
+        </g>
+      ))}
+    </g>
+  );
+  return (
+    <g>
+      <R y={0} h={240} f={P.lederHell} />
+      <path d="M0 40 H240 M0 90 H240" stroke={P.leder} strokeWidth={2} opacity={0.4} />
+      <circle cx={120} cy={40} r={26} fill={P.himmel} stroke={P.holz} strokeWidth={6} />
+      <circle cx={120} cy={40} r={26} fill="none" {...UMRISS} />
+      <path d="M120 14 V66 M94 40 H146" stroke={P.holz} strokeWidth={4} />
+      {regal(0)}
+      {regal(182)}
+      <R y={178} h={62} f={P.holzTief} />
+      <path d="M0 178 H240" stroke={P.linie} strokeWidth={3} />
+      <ellipse cx={120} cy={222} rx={96} ry={16} fill={P.rot} {...UMRISS_FEIN} />
+      <ellipse cx={120} cy={222} rx={80} ry={11} fill="none" stroke={P.gold} strokeWidth={2.5} />
+      <g transform="translate(40 230)">
+        <path d="M0 0 V-34" stroke={P.linie} strokeWidth={5} />
+        <path d="M0 0 V-34" stroke={P.goldTief} strokeWidth={2.5} />
+        <path d="M-12 -34 L-8 -50 L8 -50 L12 -34 Z" fill={P.gelb} {...UMRISS_FEIN} />
+        <ellipse cx={0} cy={0} rx={10} ry={3} fill={P.goldTief} {...UMRISS_FEIN} />
+      </g>
+    </g>
+  );
+}
+
+/** Dschungel: big leaves at the sides, hanging vines, a waterfall far back, flowers. */
+function dschungel(zeit: number): ReactNode {
+  const blatt = (x: number, y: number, w: number, s = 1, f: string = P.blatt) => (
+    <g key={`${x},${y}`} transform={`translate(${x} ${y}) rotate(${w}) scale(${s})`}>
+      <path d="M0 0 Q20 -30 0 -70 Q-20 -30 0 0 Z" fill={f} {...UMRISS_FEIN} />
+      <path d="M0 -4 V-64 M0 -20 l8 -8 M0 -36 l8 -8 M0 -20 l-8 -8 M0 -36 l-8 -8" stroke={P.blattTief} strokeWidth={1.8} fill="none" />
+    </g>
+  );
+  const fall = (zeit * 30) % 24;
+  return (
+    <g>
+      <R y={0} h={240} f={P.blattHell} />
+      <path d="M100 0 V150 M140 0 V150" stroke={P.blatt} strokeWidth={60} opacity={0.35} />
+      <rect x={106} y={20} width={28} height={130} fill={P.wasserHell} {...UMRISS_FEIN} />
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <path key={i} d={`M112 ${20 + ((i * 24 + fall) % 130)} v12 M126 ${26 + ((i * 24 + fall) % 124)} v10`} stroke={P.wasser} strokeWidth={3} strokeLinecap="round" />
+      ))}
+      <ellipse cx={120} cy={152} rx={34} ry={7} fill={P.wasser} {...UMRISS_FEIN} />
+      <R y={160} h={80} f={P.wiese} />
+      <path d="M0 160 Q60 150 120 160 T240 160" fill="none" stroke={P.wieseTief} strokeWidth={3} />
+      {blatt(10, 240, 20, 1.6)}
+      {blatt(30, 230, -10, 1.3, P.blattHell)}
+      {blatt(-6, 200, 50, 1.4, P.blattTief)}
+      {blatt(230, 240, -20, 1.6)}
+      {blatt(212, 234, 12, 1.3, P.blattHell)}
+      {blatt(246, 200, -50, 1.4, P.blattTief)}
+      {[30, 64, 176, 212].map((x, i) => (
+        <path key={x} d={`M${x} 0 Q${x + (i % 2 ? 8 : -8)} 40 ${x} ${70 + i * 10}`} fill="none" stroke={P.blattTief} strokeWidth={4} strokeLinecap="round" />
+      ))}
+      {[
+        [30, 70],
+        [64, 80],
+        [176, 90],
+        [212, 100],
+      ].map(([x, y]) => (
+        <path key={x} d="M0 0 q-8 -4 -10 -12 q8 2 10 10 Z" transform={`translate(${x} ${y})`} fill={P.blatt} {...UMRISS_FEIN} />
+      ))}
+      {[
+        [56, 214, P.rosa],
+        [186, 208, P.orange],
+        [70, 196, P.gelb],
+      ].map(([x, y, f]) => (
+        <g key={x as number} transform={`translate(${x} ${y})`}>
+          {[0, 72, 144, 216, 288].map((w) => (
+            <ellipse key={w} cx={0} cy={-6} rx={4} ry={6} fill={f as string} stroke={P.linie} strokeWidth={1.3} transform={`rotate(${w})`} />
+          ))}
+          <circle r={3} fill={P.gelbHell} stroke={P.linie} strokeWidth={1.2} />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+/** Piratenschiff: on deck, the sea and sky behind the rail, a mast with sail and flag, a barrel and the wheel. */
+function piratenschiff(zeit: number): ReactNode {
+  const welle = Math.sin(zeit * 1.5) * 3;
+  return (
+    <g>
+      <R y={0} h={240} f={P.himmel} />
+      <Sonne x={200} y={36} r={13} />
+      <Wolke x={60} y={40} s={0.7} />
+      <path d={`M0 ${120 + welle} Q30 ${112 + welle} 60 ${120 + welle} T120 ${120 + welle} T180 ${120 + welle} T240 ${120 + welle} V150 H0 Z`} fill={P.wasser} {...UMRISS_FEIN} />
+      <path d={`M10 ${132 - welle} q10 -4 20 0 M120 ${134 - welle} q10 -4 20 0 M190 ${130 - welle} q10 -4 20 0`} fill="none" stroke={P.wasserHell} strokeWidth={2.5} strokeLinecap="round" />
+      {/* mast and sail at the left */}
+      <rect x={30} y={10} width={10} height={140} fill={P.holz} {...UMRISS_FEIN} />
+      <path d="M40 22 Q78 46 40 98 Z" fill={P.schnee} {...UMRISS} />
+      <path d="M48 50 l10 6 l-10 6 Z" fill={P.dunkel} />
+      <path d="M35 10 V-2 M35 -2 L54 2 L35 8 Z" fill={P.dunkel} stroke={P.linie} strokeWidth={2} />
+      <circle cx={44} cy={3} r={2} fill={P.weiss} />
+      {/* rail */}
+      <rect x={0} y={140} width={240} height={14} fill={P.holzTief} {...UMRISS_FEIN} />
+      {Array.from({ length: 12 }, (_, i) => (
+        <rect key={i} x={6 + i * 20} y={118} width={6} height={22} fill={P.holz} stroke={P.linie} strokeWidth={1.5} />
+      ))}
+      <rect x={0} y={112} width={240} height={8} fill={P.holz} {...UMRISS_FEIN} />
+      {/* deck planks */}
+      <R y={154} h={86} f={P.holz} />
+      <path d="M0 176 H240 M0 200 H240 M0 224 H240 M50 154 V176 M150 154 V176 M100 176 V200 M200 176 V200 M40 200 V224 M140 200 V224" stroke={P.holzTief} strokeWidth={2} opacity={0.7} />
+      {/* barrel and wheel */}
+      <g transform="translate(24 232)">
+        <path d="M-14 0 Q-17 -16 -14 -32 H14 Q17 -16 14 0 Z" fill={P.holz} {...UMRISS_FEIN} />
+        <path d="M-16 -22 H16 M-16 -10 H16" stroke={P.metallTief} strokeWidth={4} />
+      </g>
+      <g transform={`translate(212 196) rotate(${(Math.sin(zeit) * 10).toFixed(1)})`}>
+        <circle r={20} fill="none" stroke={P.linie} strokeWidth={9} />
+        <circle r={20} fill="none" stroke={P.holz} strokeWidth={5} />
+        {[0, 45, 90, 135].map((w) => (
+          <path key={w} d="M0 -28 V28" stroke={P.holzTief} strokeWidth={4} strokeLinecap="round" transform={`rotate(${w})`} />
+        ))}
+        <circle r={5} fill={P.gold} {...UMRISS_FEIN} />
+      </g>
+    </g>
+  );
+}
+
+/** Nordlicht: night sky with moving green and violet light bands, stars, snowy hills and dark firs. */
+function nordlicht(zeit: number): ReactNode {
+  const band = (y: number, f: string, k: number, dicke: number) => {
+    const w = (x: number) => (y + Math.sin(x / 34 + zeit * 0.9 + k) * 12).toFixed(1);
+    return <path d={`M-10 ${w(-10)} Q40 ${w(40)} 70 ${w(70)} T130 ${w(130)} T190 ${w(190)} T250 ${w(250)}`} fill="none" stroke={f} strokeWidth={dicke} strokeLinecap="round" opacity={0.55} />;
+  };
+  return (
+    <g>
+      <R y={0} h={240} f={P.nachtTief} />
+      {[
+        [20, 20],
+        [60, 12],
+        [96, 30],
+        [150, 18],
+        [200, 36],
+        [228, 14],
+        [180, 70],
+        [30, 80],
+      ].map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r={1.6 + ((i + Math.floor(zeit * 2)) % 3) * 0.4} fill={P.weiss} />
+      ))}
+      {band(54, P.gruenHell, 0, 22)}
+      {band(70, P.tuerkis, 1.5, 16)}
+      {band(44, P.lilaHell, 3, 10)}
+      <path d="M0 160 Q60 130 120 150 T240 140 V240 H0 Z" fill={P.eis} {...UMRISS} />
+      <path d="M0 190 Q80 170 160 186 T240 180 V240 H0 Z" fill={P.schnee} {...UMRISS_FEIN} />
+      {[
+        [22, 176, 1.1],
+        [50, 168, 0.8],
+        [204, 164, 1],
+        [228, 172, 0.8],
+      ].map(([x, y, s]) => (
+        <g key={x} transform={`translate(${x} ${y}) scale(${s})`}>
+          <path d="M0 -58 L16 -24 H8 L20 0 H-20 L-8 -24 H-16 Z" fill={P.blattTief} {...UMRISS_FEIN} />
+          <path d="M0 -58 L8 -40 L-6 -40 Z M-14 -10 H14" stroke={P.schnee} strokeWidth={3} fill={P.schnee} />
+          <rect x={-3} y={0} width={6} height={6} fill={P.holzTief} />
+        </g>
+      ))}
+      <Funkeln x={140} y={24} r={6} zeit={zeit} />
+      <Funkeln x={40} y={40} r={5} zeit={zeit} versatz={2} />
+    </g>
+  );
+}
+
 export const HINTERGRUENDE: Hintergrund[] = [
   { id: 'wiese', name: 'Wiese', seltenheit: 1, zeichnung: wiese },
   { id: 'strand', name: 'Strand', seltenheit: 1, zeichnung: strand },
@@ -599,6 +812,12 @@ export const HINTERGRUENDE: Hintergrund[] = [
   { id: 'vulkan', name: 'Vulkaninsel', seltenheit: 3, bewegt: true, zeichnung: vulkan },
   { id: 'regenbogen', name: 'Regenbogen', seltenheit: 4, bewegt: true, zeichnung: regenbogen },
   { id: 'wolkenschloss', name: 'Wolkenschloss', seltenheit: 4, bewegt: true, zeichnung: wolkenschloss },
+  // 13.11.2026 (20261129_lernquest_neue_teile.sql)
+  { id: 'klassenzimmer', name: 'Klassenzimmer', seltenheit: 1, zeichnung: klassenzimmer },
+  { id: 'bibliothek', name: 'Bibliothek', seltenheit: 2, zeichnung: bibliothek },
+  { id: 'dschungel', name: 'Dschungel', seltenheit: 3, bewegt: true, zeichnung: dschungel },
+  { id: 'piratenschiff', name: 'Piratenschiff', seltenheit: 4, bewegt: true, zeichnung: piratenschiff },
+  { id: 'nordlicht', name: 'Nordlicht', seltenheit: 5, bewegt: true, zeichnung: nordlicht },
   // Own parts of the teacher (lq_teil, eigen), by their id.
   { id: 'e57ef47f771', name: 'Höllenfeuer', seltenheit: 4, bewegt: true, zeichnung: hoellenfeuer },
 ];

@@ -46,8 +46,9 @@ describe('own parts as uploaded pictures (teacher page)', () => {
 });
 
 describe('hair', () => {
-  it('has a vector drawing for every hair', () => {
-    expect(FRISUREN.filter((f) => !hatHaarZeichnung(f.id)).map((f) => f.id)).toEqual([]);
+  it('has an older drawing for the first hairstyles (later ones are vector only, figuren/held.test.tsx)', () => {
+    const alt = ['kurz', 'zopf', 'locken', 'lang', 'zoepfe', 'dutt', 'stacheln', 'bob', 'glatze'];
+    expect(FRISUREN.filter((f) => alt.includes(f.id) && !hatHaarZeichnung(f.id)).map((f) => f.id)).toEqual([]);
   });
   it('reads the older figure as hair and keeps unknown values safe', () => {
     expect(frisurVon({})).toBe('kurz');

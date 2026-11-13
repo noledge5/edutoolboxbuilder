@@ -1,4 +1,4 @@
-// The hero's parts (Stufe 2, 16 more on 06.11.2026, 24 more on 09.11.2026): 80 parts on six places, five rarities, a few
+// The hero's parts (Stufe 2, 16 more on 06.11.2026, 24 more on 09.11.2026, 40 more on 13.11.2026): 120 parts on six places, five rarities, a few
 // with small bonuses that count only in the game (never for marks or real rewards). Some are chest treasures (`nurTruhe`):
 // not in the shop, and unknown (a question mark) until found. The server holds the same catalogue (`lq_teil` in
 // supabase/migrations/20261106b_lernquest_held.sql, 20261109_lernquest_beute.sql and
@@ -120,6 +120,48 @@ export const TEILE: Teil[] = [
   { id: 'winterwald', slot: 'hintergrund', name: 'Winterwald', seltenheit: 0 },
   { id: 'vulkan', slot: 'hintergrund', name: 'Vulkaninsel', seltenheit: 2, muenzen: 5, nurTruhe: true },
   { id: 'wolkenschloss', slot: 'hintergrund', name: 'Wolkenschloss', seltenheit: 3, muenzen: 10, nurTruhe: true },
+  // Added 13.11.2026 (supabase/migrations/20261129_lernquest_neue_teile.sql): ten per rarity with ten hairstyles, so
+  // every rarity has parts again after the chests changed (20261128).
+  { id: 'baskenmuetze', slot: 'kopf', name: 'Baskenmütze', seltenheit: 0 },
+  { id: 'kulleraugen', slot: 'augen', name: 'Kulleraugen', seltenheit: 0 },
+  { id: 'karohemd', slot: 'kleidung', name: 'Karohemd', seltenheit: 0 },
+  { id: 'trainingsanzug', slot: 'kleidung', name: 'Trainingsanzug', seltenheit: 0 },
+  { id: 'bleistift', slot: 'werkzeug', name: 'Riesenbleistift', seltenheit: 0 },
+  { id: 'regenschirm', slot: 'werkzeug', name: 'Regenschirm', seltenheit: 0 },
+  { id: 'hase', slot: 'begleiter', name: 'Hase', seltenheit: 0 },
+  { id: 'klassenzimmer', slot: 'hintergrund', name: 'Klassenzimmer', seltenheit: 0 },
+  { id: 'propellermuetze', slot: 'kopf', name: 'Propellermütze', seltenheit: 1, muenzen: 5 },
+  { id: 'katzenaugen', slot: 'augen', name: 'Katzenaugen', seltenheit: 1 },
+  { id: 'matrosenanzug', slot: 'kleidung', name: 'Matrosenanzug', seltenheit: 1 },
+  { id: 'feuerwehranzug', slot: 'kleidung', name: 'Feuerwehranzug', seltenheit: 1, herz: 1 },
+  { id: 'gitarre', slot: 'werkzeug', name: 'Gitarre', seltenheit: 1, muenzen: 5 },
+  { id: 'kescher', slot: 'werkzeug', name: 'Kescher', seltenheit: 1 },
+  { id: 'frosch', slot: 'begleiter', name: 'Frosch', seltenheit: 1 },
+  { id: 'bibliothek', slot: 'hintergrund', name: 'Bibliothek', seltenheit: 1, muenzen: 5 },
+  { id: 'detektivhut', slot: 'kopf', name: 'Detektivhut', seltenheit: 2, muenzen: 5 },
+  { id: 'roboteraugen', slot: 'augen', name: 'Roboteraugen', seltenheit: 2, schaden: 1 },
+  { id: 'detektivmantel', slot: 'kleidung', name: 'Detektivmantel', seltenheit: 2, muenzen: 5 },
+  { id: 'piratenjacke', slot: 'kleidung', name: 'Piratenjacke', seltenheit: 2, herz: 1 },
+  { id: 'bogen', slot: 'werkzeug', name: 'Bogen', seltenheit: 2, schaden: 1 },
+  { id: 'zauberbuch', slot: 'werkzeug', name: 'Zauberbuch', seltenheit: 2, muenzen: 5, schaden: 1 },
+  { id: 'panda', slot: 'begleiter', name: 'Panda', seltenheit: 2, herz: 1 },
+  { id: 'dschungel', slot: 'hintergrund', name: 'Dschungel', seltenheit: 2, muenzen: 5, nurTruhe: true },
+  { id: 'federkrone', slot: 'kopf', name: 'Federkrone', seltenheit: 3, muenzen: 10, herz: 1, nurTruhe: true },
+  { id: 'galaxieaugen', slot: 'augen', name: 'Galaxieaugen', seltenheit: 3, muenzen: 10, nurTruhe: true },
+  { id: 'samurairuestung', slot: 'kleidung', name: 'Samurai-Rüstung', seltenheit: 3, herz: 1, schaden: 1, nurTruhe: true },
+  { id: 'magiermantel', slot: 'kleidung', name: 'Magiermantel', seltenheit: 3, muenzen: 10 },
+  { id: 'flammenschwert', slot: 'werkzeug', name: 'Flammenschwert', seltenheit: 3, muenzen: 5, schaden: 2, nurTruhe: true },
+  { id: 'frostbogen', slot: 'werkzeug', name: 'Frostbogen', seltenheit: 3, herz: 1, schaden: 2 },
+  { id: 'mondwolf', slot: 'begleiter', name: 'Mondwolf', seltenheit: 3, herz: 1, schaden: 1, nurTruhe: true },
+  { id: 'piratenschiff', slot: 'hintergrund', name: 'Piratenschiff', seltenheit: 3, muenzen: 10 },
+  { id: 'phoenixkrone', slot: 'kopf', name: 'Phönixkrone', seltenheit: 4, muenzen: 15, herz: 2, nurTruhe: true },
+  { id: 'regenbogenaugen', slot: 'augen', name: 'Regenbogenaugen', seltenheit: 4, muenzen: 15, herz: 1, nurTruhe: true },
+  { id: 'sonnenruestung', slot: 'kleidung', name: 'Sonnenrüstung', seltenheit: 4, muenzen: 15, herz: 2, nurTruhe: true },
+  { id: 'schattenmantel', slot: 'kleidung', name: 'Schattenmantel', seltenheit: 4, muenzen: 10, herz: 1, schaden: 2, nurTruhe: true },
+  { id: 'sonnenzepter', slot: 'werkzeug', name: 'Sonnenzepter', seltenheit: 4, muenzen: 10, herz: 1, schaden: 3, nurTruhe: true },
+  { id: 'mondsichel', slot: 'werkzeug', name: 'Mondsichelstab', seltenheit: 4, muenzen: 15, schaden: 3, nurTruhe: true },
+  { id: 'sternenhirsch', slot: 'begleiter', name: 'Sternenhirsch', seltenheit: 4, muenzen: 10, herz: 1, schaden: 1, nurTruhe: true },
+  { id: 'nordlicht', slot: 'hintergrund', name: 'Nordlicht', seltenheit: 4, muenzen: 15, nurTruhe: true },
 ];
 
 // — Parts the admin teacher made on the teacher page (supabase/migrations/20261118_lernquest_eigene_teile.sql). The app
@@ -262,6 +304,16 @@ export const FRISUREN: { id: string; name: string }[] = [
   { id: 'dutt', name: 'Dutt' },
   { id: 'stacheln', name: 'Stachelhaare' },
   { id: 'bob', name: 'Bob' },
+  { id: 'pferdeschwanz', name: 'Pferdeschwanz' },
+  { id: 'buerste', name: 'Bürstenschnitt' },
+  { id: 'afro', name: 'Afro' },
+  { id: 'seitenzopf', name: 'Seitenzopf' },
+  { id: 'haarschnecken', name: 'Haarschnecken' },
+  { id: 'wuschelkopf', name: 'Wuschelkopf' },
+  { id: 'blitzfrisur', name: 'Blitzfrisur' },
+  { id: 'sternenzopf', name: 'Sternenzopf' },
+  { id: 'regenbogenhaar', name: 'Regenbogenhaar' },
+  { id: 'feuerhaar', name: 'Feuerhaar' },
   { id: 'glatze', name: 'Keine' },
 ];
 /** The older `figur` 0–2 as hair. */

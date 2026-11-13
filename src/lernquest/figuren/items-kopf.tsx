@@ -320,4 +320,143 @@ export const KOPF_ITEMS: Item[] = [
       </g>
     ),
   },
+  // — 13.11.2026 (supabase/migrations/20261129_lernquest_neue_teile.sql): one per rarity. —
+  {
+    id: 'baskenmuetze',
+    name: 'Baskenmütze',
+    platz: 'hut',
+    seltenheit: 1,
+    rahmen: [-48, -46, 96, 56],
+    zeichnung: () => (
+      <g transform="rotate(-8)">
+        <path d="M-44 -4 Q-48 -34 -4 -38 Q42 -40 46 -12 Q44 2 2 4 Q-40 6 -44 -4 Z" fill={P.blauTief} />
+        <path d="M20 -36 Q44 -30 46 -12 Q44 0 24 2 Q34 -16 20 -36 Z" fill={P.tinteTief} opacity={0.5} />
+        <path d="M-44 -4 Q-48 -34 -4 -38 Q42 -40 46 -12 Q44 2 2 4 Q-40 6 -44 -4 Z" fill="none" {...UMRISS} />
+        <path d="M-32 -20 Q-24 -32 -8 -34" fill="none" stroke={P.blau} strokeWidth={4} strokeLinecap="round" />
+        <path d="M-38 0 Q0 8 40 -4" fill="none" stroke={P.tinteTief} strokeWidth={5} strokeLinecap="round" />
+        <path d="M2 -38 L4 -46" stroke={P.linie} strokeWidth={5} strokeLinecap="round" />
+        <path d="M2 -38 L4 -46" stroke={P.blauTief} strokeWidth={2.5} strokeLinecap="round" />
+      </g>
+    ),
+  },
+  {
+    id: 'propellermuetze',
+    name: 'Propellermütze',
+    platz: 'hut',
+    seltenheit: 2,
+    bewegt: true,
+    rahmen: [-46, -70, 92, 80],
+    zeichnung: (zeit) => {
+      // The propeller turns: its blades get short and long (seen from the side).
+      const k = Math.cos(zeit * 14);
+      return (
+        <g>
+          <path d="M-38 -2 Q-40 -44 0 -46 Q40 -44 38 -2 Z" fill={P.rot} />
+          <path d="M0 -46 Q20 -44 30 -30 L38 -2 L0 -2 Z" fill={P.gelb} />
+          <path d="M0 -46 L0 -2 L-38 -2 Q-40 -24 -30 -34 Z" fill={P.blau} />
+          <path d="M-30 -34 Q-20 -44 0 -46 L0 -24 Z" fill={P.gruen} />
+          <path d="M-38 -2 Q-40 -44 0 -46 Q40 -44 38 -2 Z" fill="none" {...UMRISS} />
+          <path d="M0 -46 V-2 M-38 -20 Q0 -26 38 -20" fill="none" stroke={P.linie} strokeWidth={1.8} opacity={0.6} />
+          <path d="M-26 -30 Q-18 -40 -6 -42" fill="none" stroke={P.weiss} strokeWidth={3} strokeLinecap="round" opacity={0.6} />
+          <path d="M-6 -2 Q30 -6 48 4 Q30 10 -6 6 Z" fill={P.rot} {...UMRISS_FEIN} />
+          <rect x={-2} y={-58} width={4} height={13} fill={P.metall} {...UMRISS_FEIN} />
+          <ellipse cx={0} cy={-60} rx={26 * Math.abs(k) + 3} ry={4.5} fill={P.gelb} {...UMRISS_FEIN} />
+          <ellipse cx={(k > 0 ? 12 : -12) * Math.abs(k)} cy={-60} rx={6 * Math.abs(k) + 1} ry={3} fill={P.rot} />
+          <circle cx={0} cy={-60} r={4} fill={P.blau} {...UMRISS_FEIN} />
+        </g>
+      );
+    },
+  },
+  {
+    id: 'detektivhut',
+    name: 'Detektivhut',
+    platz: 'hut',
+    seltenheit: 3,
+    rahmen: [-56, -50, 112, 64],
+    zeichnung: () => (
+      <g>
+        {/* Deerstalker: a check cap with a peak front and back, flaps tied on top */}
+        <path d="M-52 2 Q-40 -6 -30 -4 L-30 4 Q-42 8 -52 2 Z M52 2 Q40 -6 30 -4 L30 4 Q42 8 52 2 Z" fill={P.sandTief} {...UMRISS_FEIN} />
+        <path d="M-36 0 Q-38 -42 0 -44 Q38 -42 36 0 Z" fill={P.sand} />
+        <path d="M-24 -38 V0 M-8 -44 V0 M8 -44 V0 M24 -38 V0 M-36 -12 H36 M-30 -28 H30" stroke={P.leder} strokeWidth={2.5} opacity={0.6} />
+        <path d="M18 -40 Q36 -32 36 0 L20 0 Q24 -22 18 -40 Z" fill={P.sandTief} opacity={0.5} />
+        <path d="M-36 0 Q-38 -42 0 -44 Q38 -42 36 0 Z" fill="none" {...UMRISS} />
+        <path d="M-26 -16 Q-24 -32 -10 -38" fill="none" stroke={P.sandHell} strokeWidth={4} strokeLinecap="round" />
+        <path d="M-30 -10 Q-40 2 -34 14 Q-28 8 -26 -6 Z M30 -10 Q40 2 34 14 Q28 8 26 -6 Z" fill={P.sand} {...UMRISS_FEIN} />
+        <path d="M-8 -46 Q0 -54 8 -46 Q0 -42 -8 -46 Z" fill={P.leder} {...UMRISS_FEIN} />
+        <circle cx={0} cy={-46} r={3} fill={P.lederTief} />
+      </g>
+    ),
+  },
+  {
+    id: 'federkrone',
+    name: 'Federkrone',
+    platz: 'hut',
+    seltenheit: 4,
+    bewegt: true,
+    rahmen: [-50, -92, 100, 100],
+    zeichnung: (zeit) => {
+      const federn: [number, string, string][] = [
+        [-48, P.rot, P.rotTief],
+        [-26, P.orange, P.orangeTief],
+        [-8, P.gelb, P.gelbTief],
+        [8, P.gruen, P.gruenTief],
+        [26, P.blau, P.blauTief],
+        [48, P.lila, P.lilaTief],
+      ];
+      return (
+        <g>
+          {federn.map(([w, f, t], i) => (
+            <g key={w} transform={`rotate(${(w + Math.sin(zeit * 2 + i) * 3).toFixed(1)} 0 -6)`}>
+              <path d="M0 -6 Q-12 -40 0 -78 Q12 -40 0 -6 Z" fill={f} {...UMRISS_FEIN} />
+              <path d="M0 -10 V-72" stroke={t} strokeWidth={2} />
+              <path d="M0 -30 l-6 -6 M0 -44 l-6 -6 M0 -30 l6 -6 M0 -44 l6 -6 M0 -58 l5 -5 M0 -58 l-5 -5" stroke={t} strokeWidth={1.5} opacity={0.7} />
+            </g>
+          ))}
+          <path d="M-40 6 Q0 -6 40 6 L40 -8 Q0 -20 -40 -8 Z" fill={P.gold} {...UMRISS} />
+          <path d="M-34 -4 Q0 -14 34 -4" fill="none" stroke={P.goldHell} strokeWidth={2.5} />
+          <path d="M-6 -6 L0 -14 L6 -6 L0 2 Z" fill={P.tuerkis} stroke={P.tuerkisTief} strokeWidth={1.5} />
+          <circle cx={-24} cy={-2} r={3} fill={P.rot} stroke={P.rotTief} strokeWidth={1.2} />
+          <circle cx={24} cy={-2} r={3} fill={P.rot} stroke={P.rotTief} strokeWidth={1.2} />
+          <Funkeln x={-14} y={-60} r={6} zeit={zeit} />
+        </g>
+      );
+    },
+  },
+  {
+    id: 'phoenixkrone',
+    name: 'Phönixkrone',
+    platz: 'hut',
+    seltenheit: 5,
+    bewegt: true,
+    rahmen: [-56, -76, 112, 86],
+    zeichnung: (zeit) => {
+      const f = (k: number) => 1 + Math.sin(zeit * 8 + k) * 0.08;
+      return (
+        <g>
+          {/* Flame wings on both sides, flickering */}
+          {[-1, 1].map((s) => (
+            <g key={s} transform={`translate(${s * 30} -10) scale(${s * f(s)} ${f(s + 1)})`}>
+              <path d="M0 0 Q18 -10 26 -40 Q14 -32 12 -44 Q4 -28 0 -36 Q-4 -18 0 0 Z" fill={P.lava} {...UMRISS_FEIN} />
+              <path d="M2 -4 Q14 -14 18 -30 Q10 -24 8 -32 Q4 -20 2 -4 Z" fill={P.lavaHell} />
+            </g>
+          ))}
+          <path d="M-32 6 L-34 -24 L-18 -10 L-8 -36 L0 -16 L8 -36 L18 -10 L34 -24 L32 6 Z" fill={P.gold} />
+          <path d="M18 -10 L34 -24 L32 6 L16 6 Z" fill={P.goldTief} opacity={0.45} />
+          <path d="M-32 6 L-34 -24 L-18 -10 L-8 -36 L0 -16 L8 -36 L18 -10 L34 -24 L32 6 Z" fill="none" {...UMRISS} />
+          <path d="M-28 -14 L-28 0 M-10 -26 L-6 -18" stroke={P.goldHell} strokeWidth={3} strokeLinecap="round" />
+          <g transform={`translate(0 -52) scale(${f(3).toFixed(3)})`}>
+            <path d="M0 10 Q-12 -2 -4 -16 Q-2 -8 2 -12 Q4 -22 0 -28 Q16 -16 10 2 Q8 8 0 10 Z" fill={P.lava} {...UMRISS_FEIN} />
+            <path d="M0 6 Q-6 -2 -1 -10 Q2 -4 5 -6 Q8 2 0 6 Z" fill={P.gelb} />
+          </g>
+          <path d="M-32 6 L32 6 L32 -4 L-32 -4 Z" fill={P.goldTief} {...UMRISS_FEIN} />
+          <path d="M0 -6 l5 5 -5 5 -5 -5 Z" fill={P.rot} stroke={P.rotTief} strokeWidth={1.2} />
+          <circle cx={-18} cy={1} r={2.6} fill={P.tuerkis} />
+          <circle cx={18} cy={1} r={2.6} fill={P.tuerkis} />
+          <Funkeln x={-22} y={-20} r={6} zeit={zeit} />
+          <Funkeln x={24} y={-26} r={5} zeit={zeit} versatz={2.4} />
+        </g>
+      );
+    },
+  },
 ];
