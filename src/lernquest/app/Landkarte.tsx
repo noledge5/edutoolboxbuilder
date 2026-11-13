@@ -4,12 +4,10 @@
 // the same spots, so they stay accessible and tappable.
 import type { ReactNode } from 'react';
 import { useId } from 'react';
-import { BossBurg, Burg, Baum, Blume, Busch, Stein, Tanne } from '../figuren';
-import { P } from '../figuren/stil';
+import { BossBurg } from '../figuren';
+import { weltVon } from '../figuren/welten';
 import { wegPlan } from '../weg';
-import type { DekoArt } from '../weg';
 
-const DEKO: Record<DekoArt, () => ReactNode> = { baum: Baum, tanne: Tanne, busch: Busch, blume: Blume, stein: Stein };
 const BURG_MASS = 0.8;
 
 export interface Wegpunkt {
@@ -19,20 +17,22 @@ export interface Wegpunkt {
   klasse?: string;
 }
 
-/** `kopf`: the region's title card above the castle; `mitBoss`: the last waypoint is the Meilenstein. */
-export function Landkarte({ id, kopf, punkte, mitBoss }: { id: string; kopf: ReactNode; punkte: Wegpunkt[]; mitBoss: boolean }) {
+/** `kopf`: the region's title card above the castle; `mitBoss`: the last waypoint is the Meilenstein; `nummer`: the
+ *  region's number, which picks its world (figuren/welten.tsx; the Extra-Pakete regions have fixed ones). */
+export function Landkarte({ id, nummer = 1, kopf, punkte, mitBoss }: { id: string; nummer?: number; kopf: ReactNode; punkte: Wegpunkt[]; mitBoss: boolean }) {
   const plan = wegPlan(punkte.length, mitBoss, id);
+  const welt = weltVon(id, nummer);
   const clip = useId();
   const { breite, hoehe } = plan;
   // Castle and boss castle join the trees in one list, so whatever stands lower covers what is behind it.
   const stehend = [
-    ...plan.deko.map((d) => ({ y: d.y, key: `${d.art}${d.x},${d.y}`, el: <g transform={`translate(${d.x} ${d.y}) scale(${d.spiegeln ? -d.s : d.s} ${d.s})`}>{DEKO[d.art]()}</g> })),
-    { y: plan.burg.y, key: 'burg', el: <g transform={`translate(${plan.burg.x} ${plan.burg.y}) scale(${BURG_MASS})`}>{Burg()}</g> },
+    ...plan.deko.map((d) => ({ y: d.y, key: `${d.art}${d.x},${d.y}`, el: <g transform={`translate(${d.x} ${d.y}) scale(${d.spiegeln ? -d.s : d.s} ${d.s})`}>{welt.deko[d.art]()}</g> })),
+    { y: plan.burg.y, key: 'burg', el: <g transform={`translate(${plan.burg.x} ${plan.burg.y}) scale(${BURG_MASS})`}>{welt.wahrzeichen()}</g> },
     ...(plan.boss ? [{ y: plan.boss.y, key: 'boss', el: <g transform={`translate(${plan.boss.x} ${plan.boss.y}) scale(${BURG_MASS})`}>{BossBurg()}</g> }] : []),
   ].sort((a, b) => a.y - b.y);
 
   return (
-    <div className="lq-landkarte">
+    <div className={`lq-landkarte welt-${welt.id}`}>
       <div className="lq-landkarte-kopf">{kopf}</div>
       <div className="lq-landkarte-flaeche" style={{ aspectRatio: `${breite} / ${hoehe}` }}>
         <svg viewBox={`0 0 ${breite} ${hoehe}`} aria-hidden focusable="false">
@@ -42,17 +42,21 @@ export function Landkarte({ id, kopf, punkte, mitBoss }: { id: string; kopf: Rea
             </clipPath>
           </defs>
           <g clipPath={`url(#${clip})`}>
-            <rect width={breite} height={hoehe} fill={P.wiese} />
-            {/* A hill behind the castle, soft light patches in the meadow. */}
-            <ellipse cx={breite / 2} cy={plan.burg.y + 10} rx={170} ry={70} fill={P.wieseHell} />
+            <rect width={breite} height={hoehe} fill={welt.boden} />
+            {/* A hill behind the landmark, soft patches in the ground (water at the beach). */}
+            <ellipse cx={breite / 2} cy={plan.burg.y + 10} rx={170} ry={70} fill={welt.flecken} />
             {Array.from({ length: Math.floor(hoehe / 160) }, (_, i) => (
-              <ellipse key={i} cx={i % 2 ? 70 : breite - 70} cy={260 + i * 160} rx={90} ry={34} fill={P.wieseHell} opacity={0.55} />
+              <ellipse key={i} cx={i % 2 ? 70 : breite - 70} cy={260 + i * 160} rx={90} ry={34} fill={welt.flecken} opacity={0.55} />
             ))}
-            {plan.boss && <ellipse cx={plan.boss.x} cy={plan.boss.y - 10} rx={150} ry={60} fill={P.wieseTief} opacity={0.6} />}
-            {/* The path: an edge, the sand, a dashed line down the middle. */}
-            <path d={plan.pfad} fill="none" stroke={P.sandTief} strokeWidth={30} strokeLinecap="round" />
-            <path d={plan.pfad} fill="none" stroke={P.sand} strokeWidth={22} strokeLinecap="round" />
-            <path d={plan.pfad} fill="none" stroke={P.sandHell} strokeWidth={4} strokeLinecap="round" strokeDasharray="2 12" />
+            {welt.punkte &&
+              Array.from({ length: Math.floor(hoehe / 40) }, (_, i) => (
+                <circle key={`p${i}`} cx={(i * 97 + 31) % breite} cy={(i * 53 + 17) % hoehe} r={i % 3 ? 1.6 : 2.6} fill={welt.punkte} opacity={0.8} />
+              ))}
+            {plan.boss && <ellipse cx={plan.boss.x} cy={plan.boss.y - 10} rx={150} ry={60} fill={welt.bodenTief} opacity={0.6} />}
+            {/* The path: an edge, the path, a dashed line down the middle. */}
+            <path d={plan.pfad} fill="none" stroke={welt.wegRand} strokeWidth={30} strokeLinecap="round" />
+            <path d={plan.pfad} fill="none" stroke={welt.weg} strokeWidth={22} strokeLinecap="round" />
+            <path d={plan.pfad} fill="none" stroke={welt.wegLinie} strokeWidth={4} strokeLinecap="round" strokeDasharray="2 12" />
             {stehend.map((s) => (
               <g key={s.key}>{s.el}</g>
             ))}

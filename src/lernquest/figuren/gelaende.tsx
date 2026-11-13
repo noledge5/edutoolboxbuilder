@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { P, UMRISS, UMRISS_FEIN } from './stil';
 
 /** A silhouette with an outline but no seams inside: the shapes once fat in the line colour, then in their fill. */
-function Klumpen({ kreise, farbe, hell, tief }: { kreise: [number, number, number][]; farbe: string; hell: string; tief: string }) {
+export function Klumpen({ kreise, farbe, hell, tief }: { kreise: [number, number, number][]; farbe: string; hell: string; tief: string }) {
   return (
     <g>
       {kreise.map(([x, y, r]) => (
@@ -118,7 +118,7 @@ const zinnen = (x1: number, x2: number, y: number) => {
   return d;
 };
 
-interface BurgFarben {
+export interface BurgFarben {
   mauer: string;
   mauerHell: string;
   mauerTief: string;
@@ -149,7 +149,7 @@ function Turm({ x, unten, oben, b, f, fenster = true }: { x: number; unten: numb
   );
 }
 
-function BurgBild({ f, boss }: { f: BurgFarben; boss: boolean }) {
+export function BurgBild({ f, boss }: { f: BurgFarben; boss: boolean }) {
   return (
     <g>
       <ellipse cx={6} cy={2} rx={104} ry={10} fill={P.schatten} opacity={0.18} />
