@@ -44,7 +44,7 @@ describe('Werte der Teile', () => {
   });
 
   it('gelten vor den eingebauten Werten', () => {
-    expect(teil('krone')?.seltenheit).toBe(4);
+    expect(teil('krone')?.seltenheit).toBe(3);
     setzeWerte(readWerte([w('krone', { seltenheit: 1, nurLaden: true, muenzen: 5 }), w('eiskrone', { aktiv: false })]));
     const k = teil('krone')!;
     expect([k.seltenheit, k.nurLaden, k.muenzen, k.herz]).toEqual([1, true, 5, undefined]);

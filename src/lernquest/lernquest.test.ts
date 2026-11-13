@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { angelegt, bonusText, bonusVon, ladenWare, SCHADEN_MAX, CHANCEN, MUENZ_CHANCEN, MUENZ_TRUHE, PREISE, TEILE, type Avatar } from './teile';
+import { angelegt, bonusText, bonusVon, ladenWare, SCHADEN_MAX, CHANCEN, DOPPELT, GARANTIE, MUENZ_CHANCEN, MUENZ_TRUHE, PREISE, TEILE, type Avatar } from './teile';
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
@@ -339,11 +339,13 @@ describe('Held und Beute', () => {
     const sql = ['20261106b_lernquest_held.sql', '20261109_lernquest_beute.sql']
       .map((f) => readFileSync(new URL(`../../supabase/migrations/${f}`, import.meta.url), 'utf8'))
       .join('\n');
-    const rows = [...sql.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+)\)/g)].map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]);
+    // Every part except the common ones moved one rarity down (20261128_lernquest_truhen_neu.sql).
+    const runter = (x: string) => Math.max(0, +x - 1);
+    const rows = [...sql.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+)\)/g)].map((m) => [m[1], m[2], runter(m[3]), m[4] === 'true', +m[5], +m[6]]);
     // Chest treasures (20261116_lernquest_truhenschaetze.sql) carry damage and nur_truhe in the row.
     const schaetze = readFileSync(new URL('../../supabase/migrations/20261116_lernquest_truhenschaetze.sql', import.meta.url), 'utf8');
     const neu = [...schaetze.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+), (\d+), (true|false)\)/g)];
-    rows.push(...neu.map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]));
+    rows.push(...neu.map((m) => [m[1], m[2], runter(m[3]), m[4] === 'true', +m[5], +m[6]]));
     expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, !!t.start, t.muenzen ?? 0, t.herz ?? 0]));
     expect(neu.map((m) => [m[1], +m[7], m[8] === 'true'])).toEqual(TEILE.slice(56).map((t) => [t.id, t.schaden ?? 0, !!t.nurTruhe]));
     expect(TEILE.slice(0, 56).filter((t) => t.nurTruhe)).toEqual([]);
@@ -356,14 +358,18 @@ describe('Held und Beute', () => {
     expect(mitSchaden).toEqual(TEILE.slice(0, 56).filter((t) => t.schaden).map((t) => [t.id, t.schaden]));
     expect(schaden).toContain(`least(${SCHADEN_MAX},`);
     expect([...MUENZ_CHANCEN, ...CHANCEN].reduce((a, b) => a + b, 0)).toBe(100);
-    // Chests and shop as in lq_truhe_oeffnen and lq_kaufen (20261109_lernquest_beute.sql).
+    // Shop prices as in lq_kaufen (20261109_lernquest_beute.sql), chests as in lq_truhe_oeffnen (20261128).
     const beute = readFileSync(new URL('../../supabase/migrations/20261109_lernquest_beute.sql', import.meta.url), 'utf8');
-    expect(beute).toContain(`(array[${MUENZ_TRUHE.join(', ')}])`);
     expect(beute).toContain(`(array[${PREISE.join(', ')}])`);
-    expect(beute).toContain(`r < ${MUENZ_CHANCEN[0] + MUENZ_CHANCEN[1]}`);
-    expect(beute).toContain(`when r < ${MUENZ_CHANCEN[0]} then 0`);
-    const g = MUENZ_CHANCEN[0] + MUENZ_CHANCEN[1];
-    expect(beute).toContain(`when r < ${g + CHANCEN[0]} then 0 when r < ${g + CHANCEN[0] + CHANCEN[1]} then 1`);
+    const truhe = readFileSync(new URL('../../supabase/migrations/20261128_lernquest_truhen_neu.sql', import.meta.url), 'utf8');
+    const summen = (xs: number[], ab = 0) => xs.map((_, i) => ab + xs.slice(0, i + 1).reduce((a, b) => a + b, 0));
+    const m = summen(MUENZ_CHANCEN);
+    expect(truhe).toContain(`nur_muenzen boolean := r < ${m[3]};`);
+    expect(truhe).toContain(`wert := case when r < ${m[0]} then ${MUENZ_TRUHE[0]} when r < ${m[1]} then ${MUENZ_TRUHE[1]} when r < ${m[2]} then ${MUENZ_TRUHE[2]} else ${MUENZ_TRUHE[3]} end;`);
+    const c = summen(CHANCEN, m[3]);
+    expect(truhe).toContain(`s := case when r < ${c[0]} then 0 when r < ${c[1]} then 1 when r < ${c[2]} then 2 when r < ${c[3]} then 3 else 4 end;`);
+    expect(truhe).toContain(`k.pech >= ${GARANTIE - 1}`);
+    expect(truhe).toContain(`(array[${DOPPELT.join(', ')}])`);
   });
 
   it('verkauft im Laden keine Truhen-Schätze und nichts, was das Kind schon hat', () => {

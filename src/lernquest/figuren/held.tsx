@@ -840,9 +840,9 @@ export const HELD = held();
 /** The teacher's own parts and hair (lq_teil / lq_frisur on the server, made on the teacher page) that are drawn here
  *  by their id; the workshop lists them to review. `seltenheit` 0–4 as in src/lernquest/teile.ts. */
 export const EIGENE_ZEICHNUNGEN: { id: string; slot: 'kopf' | 'kleidung' | 'hintergrund' | 'frisur'; name: string; seltenheit: number }[] = [
-  { id: 'e97c799d057', slot: 'kopf', name: 'Crowns Guard Helmet', seltenheit: 3 },
-  { id: 'e0a70ed2238', slot: 'kleidung', name: 'Guilie Suit', seltenheit: 4 },
-  { id: 'e57ef47f771', slot: 'hintergrund', name: 'Höllenfeuer', seltenheit: 4 },
-  { id: 'e48100506fe', slot: 'kopf', name: 'Militärhelm', seltenheit: 2 },
+  { id: 'e97c799d057', slot: 'kopf', name: 'Crowns Guard Helmet', seltenheit: 2 },
+  { id: 'e0a70ed2238', slot: 'kleidung', name: 'Guilie Suit', seltenheit: 3 },
+  { id: 'e57ef47f771', slot: 'hintergrund', name: 'Höllenfeuer', seltenheit: 3 },
+  { id: 'e48100506fe', slot: 'kopf', name: 'Militärhelm', seltenheit: 1 },
   { id: 'f25e0e76346', slot: 'frisur', name: 'Curlyshort', seltenheit: 0 },
 ];

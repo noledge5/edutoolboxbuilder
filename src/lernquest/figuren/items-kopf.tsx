@@ -32,7 +32,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'stirnband',
     name: 'Stirnband',
     platz: 'hut',
-    seltenheit: 2,
+    seltenheit: 1,
     rahmen: [-54, 0, 128, 40],
     zeichnung: () => (
       <g>
@@ -51,7 +51,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'ritterhelm',
     name: 'Ritterhelm',
     platz: 'hut',
-    seltenheit: 2,
+    seltenheit: 1,
     rahmen: [-60, -62, 120, 106],
     zeichnung: () => (
       <g>
@@ -75,7 +75,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'entdeckerhut',
     name: 'Entdeckerhut',
     platz: 'hut',
-    seltenheit: 3,
+    seltenheit: 2,
     rahmen: [-58, -50, 116, 64],
     zeichnung: () => (
       <g>
@@ -96,7 +96,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'piratenhut',
     name: 'Piratenhut',
     platz: 'hut',
-    seltenheit: 3,
+    seltenheit: 2,
     rahmen: [-60, -50, 120, 60],
     zeichnung: () => (
       <g>
@@ -140,7 +140,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'wikingerhelm',
     name: 'Wikingerhelm',
     platz: 'hut',
-    seltenheit: 3,
+    seltenheit: 2,
     rahmen: [-66, -60, 132, 76],
     zeichnung: () => (
       <g>
@@ -182,7 +182,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'cowboyhut',
     name: 'Cowboyhut',
     platz: 'hut',
-    seltenheit: 2,
+    seltenheit: 1,
     rahmen: [-62, -48, 124, 62],
     zeichnung: () => (
       <g>
@@ -203,7 +203,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'raumhelm',
     name: 'Raumhelm',
     platz: 'hut',
-    seltenheit: 4,
+    seltenheit: 3,
     rahmen: [-46, -74, 98, 88],
     zeichnung: () => (
       <g>
@@ -228,7 +228,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'eiskrone',
     name: 'Eiskrone',
     platz: 'hut',
-    seltenheit: 5,
+    seltenheit: 4,
     bewegt: true,
     rahmen: [-42, -66, 84, 80],
     zeichnung: (zeit) => (
@@ -260,7 +260,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'e97c799d057',
     name: 'Crowns Guard Helmet',
     platz: 'hut',
-    seltenheit: 4,
+    seltenheit: 3,
     rahmen: [-50, -76, 100, 92],
     zeichnung: () => (
       <g>
@@ -288,7 +288,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'e48100506fe',
     name: 'Militärhelm',
     platz: 'hut',
-    seltenheit: 3,
+    seltenheit: 2,
     rahmen: [-62, -56, 124, 126],
     zeichnung: () => (
       <g>
