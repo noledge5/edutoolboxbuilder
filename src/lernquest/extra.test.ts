@@ -3,7 +3,10 @@ import { newLesson, newModule, seedLibrary } from '../library/model';
 import { readExtra } from '../library/read';
 import type { ExtraPaket, Library } from '../library/types';
 import { entriesOf, mergeRemote, toSend } from '../sync/merge';
-import { buildExtraPaket, extraAlsStunde, extraInhalt, extraModulId, extraStunde, extraVerschieben, extraZiele, newExtra } from './extra';
+import { auswertenThemen } from './auswertung';
+import { bossFragen } from './boss';
+import { extraFaellig, karteKey } from './rules';
+import { buildExtraPaket, klassenRegionen, klassenRegionName, regionPakete, extraAlsStunde, extraInhalt, extraModulId, extraStunde, extraVerschieben, extraZiele, newExtra } from './extra';
 import { poolPrompt } from './fragenpool';
 import { regionenVon, regionName } from './karte';
 import { buildPaket } from './paket';
@@ -75,6 +78,53 @@ describe('Extra-Pakete: Karte', () => {
     expect(fertig[1].stationen[0].zustand).toBe('offen');
     expect(regionName(regionen[1].id, regionen[1].nummer)).toBe('Extra');
     expect(regionName(regionen[0].id, regionen[0].nummer)).toBe('Region 3');
+  });
+});
+
+describe('Extra-Pakete: Auswertung, Wiederholen sofort und Bosskampf', () => {
+  const lib = seedLibrary();
+  const m = { ...newModule(lib, 'Englisch', 6), number: 3 };
+  const l = { ...newLesson(lib, m), id: 'l1', pool: [{ u: rf('l-a'), frei: true }] };
+  const a = extra('xa', 'grammatik', 1, 'simple past');
+  const b = extra('xb', 'grammatik', 2, 'going to');
+  const c = extra('xc', 'wortschatz', 3, 'Wetter');
+  const d = { ...extra('xd', 'grammatik', 4), subject: 'Deutsch', grade: 5 };
+  const bib = { modules: [m], lessons: [l], extras: [c, b, a, d] };
+
+  it('nimmt freigeschaltete Extra-Pakete als Regionen hinter die Module, gesperrte und gelöschte nicht', () => {
+    const r = klassenRegionen(bib, ['l1', 'extra-xb', 'extra-xa', 'extra-xc', 'extra-weg']);
+    expect(r.map((x) => [x.modul.id, x.extra, x.stunden.map((s) => s.id)])).toEqual([
+      [m.id, false, ['l1']],
+      [extraModulId(a), true, ['extra-xa', 'extra-xb']],
+      [extraModulId(c), true, ['extra-xc']],
+    ]);
+    expect(klassenRegionName(r[1])).toBe('Englisch 6 · Grammatik-Turm');
+    expect(klassenRegionName(r[0])).toBe(`Englisch 6 · Modul 3: ${m.title}`);
+    expect(klassenRegionen(bib, ['extra-xd']).map((x) => x.modul.subject)).toEqual(['Deutsch']);
+    expect(klassenRegionen(bib, [])).toEqual([]);
+  });
+
+  it('gibt der Region die Pakete, wie die Kinder sie haben, und wertet je Thema aus', () => {
+    const frei = ['l1', 'extra-xa', 'extra-xb'];
+    const [stunde, turm] = klassenRegionen(bib, frei);
+    expect(regionPakete(bib, stunde, frei)).toEqual([buildPaket(m, l, [l])]);
+    const pakete = regionPakete(bib, turm, frei);
+    expect(pakete).toEqual([buildExtraPaket(a, bib.extras, ['xa', 'xb']), buildExtraPaket(b, bib.extras, ['xa', 'xb'])]);
+    expect(bossFragen(pakete, 'zaehlen', 1000).length).toBe(4);
+    const leitner = { [karteKey('extra-xa', 'xa-a')]: [3, 0] as [number, number], [karteKey('extra-xa', 'xa-b')]: [1, 0] as [number, number] };
+    const r = auswertenThemen(pakete, [{ id: 'k1', leitner }, { id: 'k2', leitner: {} }]);
+    expect(r.zeilen.map((z) => [z.id, z.name, z.aufgaben])).toEqual([
+      ['extra-xa', 'simple past', 2],
+      ['extra-xb', 'going to', 2],
+    ]);
+    expect(r.zeilen[0].kinder.k1).toMatchObject({ geuebt: 2, sitzt: 1, anteil: 0.5 });
+    expect(r.zeilen[0].anteil).toBe(0.5);
+    expect(r.zeilen[1].anteil).toBeNull();
+  });
+
+  it('„Wiederholen sofort“ mit einem Extra-Paket macht dessen Karten fällig', () => {
+    const karten = [karteKey('extra-xa', 'xa-a'), karteKey('l1', 'l-a')];
+    expect(extraFaellig({}, karten, { ab: '2026-11-13', bis: '2026-11-14', stunden: ['extra-xa'] }, '2026-11-13')).toEqual([karteKey('extra-xa', 'xa-a')]);
   });
 });
 

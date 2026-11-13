@@ -9,6 +9,7 @@ import { isWorkedOut } from '../../library/model';
 import { SearchButton } from '../../library/SearchDialog';
 import type { ExtraPaket, Lesson, Library, Module } from '../../library/types';
 import { ExtraPakete, extraSenden } from './ExtraPakete';
+import { istExtraModul, klassenRegionen, klassenRegionName, regionPakete } from '../extra';
 import { classProfileOf } from '../../ai/classNotes';
 import { jsonOf } from '../../ai/client';
 import { runAi, useAiSettings } from '../../ai/useAi';
@@ -737,21 +738,18 @@ function PoolFuer({ lib, id, onLessonChange, onClose }: { lib: Library; id: stri
 
 /** The regions of a class (modules with unlocked lessons), the chosen one and the questions it can give. */
 function useRegion(lib: Library, klasse: KlasseInfo) {
-  const regionen = lib.modules
-    .filter((m) => lib.lessons.some((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)))
-    .sort((a, b) => a.subject.localeCompare(b.subject, 'de') || a.grade - b.grade || a.number - b.number);
+  // Modules with unlocked lessons, then Grammatik-Turm and Wortschatz-Wald with the unlocked Extra-Pakete.
+  const regionen = useMemo(() => klassenRegionen(lib, klasse.stunden), [lib, klasse.stunden]);
   const [wahl, setWahl] = useState('');
-  const m = regionen.find((x) => x.id === wahl) ?? regionen[0];
-  const pakete = useMemo(
-    () => (m ? lib.lessons.filter((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)).map((l) => buildPaket(m, l, lib.lessons)) : []),
-    [m, lib.lessons, klasse.stunden],
-  );
+  const region = regionen.find((x) => x.modul.id === wahl) ?? regionen[0];
+  const m = region?.modul;
+  const pakete = useMemo(() => (region ? regionPakete(lib, region, klasse.stunden) : []), [region, lib, klasse.stunden]);
   const moeglich = useMemo(() => bossFragen(pakete, 'zaehlen', 1000).length, [pakete]);
   const auswahl = (
     <select className="input" value={m?.id ?? ''} onChange={(e) => setWahl(e.target.value)} aria-label="Region">
       {regionen.map((x) => (
-        <option key={x.id} value={x.id}>
-          {x.subject} {x.grade} · Modul {x.number}: {x.title}
+        <option key={x.modul.id} value={x.modul.id}>
+          {klassenRegionName(x)}
         </option>
       ))}
     </select>
@@ -820,8 +818,8 @@ function BossStart({ lib, klasse, busy, act, onKampf }: Pick<KlasseProps, 'lib' 
     const fenster = window.open('', '_blank');
     void act(async (keys) => {
       try {
-        const titel = `${m.subject} · Region ${m.number}`.slice(0, 120);
-        const id = await (mitKarten ? bossStartenKarten : bossStarten)(keys, klasse.id, m.id, titel, bossVon(m.number), fragen);
+        const titel = (istExtraModul(m.id) ? `${m.subject} · ${m.title}` : `${m.subject} · Region ${m.number}`).slice(0, 120);
+        const id = await (mitKarten ? bossStartenKarten : bossStarten)(keys, klasse.id, m.id.slice(0, 64), titel, bossVon(m.number), fragen);
         if (fenster) fenster.location.href = beamerLink(id, klasse.code);
         else setHinweis(`Neuer Tab war blockiert. Beamer-Ansicht: ${beamerLink(id, klasse.code)}`);
         // With cards, this device scans (the projector shows the fight in the new tab or on another screen).
@@ -851,12 +849,12 @@ function BossStart({ lib, klasse, busy, act, onKampf }: Pick<KlasseProps, 'lib' 
         <div>
           <h2>Bosskampf am Beamer</h2>
           <p className="lqt-hint">
-            Die Klasse kämpft gemeinsam: Die Frage steht am Beamer, die Kinder antworten am Gerät (Lernquest öffnen → „Bosskampf“) oder mit ihrer Antwortkarte, die du scannst. Fragen kommen aus den freigeschalteten Stunden der Region (Antippen, Richtig/Falsch, Paare, Lücken). Fällt der Boss, gibt es beim ersten Sieg eine Truhe für alle, die mitgemacht haben.
+            Die Klasse kämpft gemeinsam: Die Frage steht am Beamer, die Kinder antworten am Gerät (Lernquest öffnen → „Bosskampf“) oder mit ihrer Antwortkarte, die du scannst. Fragen kommen aus den freigeschalteten Stunden oder Extra-Paketen der Region (Antippen, Richtig/Falsch, Paare, Lücken). Fällt der Boss, gibt es beim ersten Sieg eine Truhe für alle, die mitgemacht haben.
           </p>
         </div>
       </div>
       {!regionen.length ? (
-        <p className="lib-empty">Schalte zuerst Stunden frei: Jedes Modul mit freigeschalteten Stunden wird eine Region mit Boss.</p>
+        <p className="lib-empty">Schalte zuerst Stunden oder Extra-Pakete frei: Jedes Modul mit freigeschalteten Stunden wird eine Region mit Boss, ebenso Grammatik-Turm und Wortschatz-Wald.</p>
       ) : (
         <div className="lqt-filter">
           {auswahl}

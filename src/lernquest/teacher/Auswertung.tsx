@@ -2,25 +2,26 @@
 // cards. Same look as the competence tab of the handout evaluation (`EvaluationView`).
 import { useMemo, useState } from 'react';
 import type { Library } from '../../library/types';
-import { auswerten, BOX_SITZT } from '../auswertung';
+import { auswerten, auswertenThemen, BOX_SITZT } from '../auswertung';
+import { klassenRegionen, klassenRegionName, regionPakete } from '../extra';
 import type { KlasseInfo } from '../server';
 
 const pct = (x: number | null) => (x === null ? '–' : `${Math.round(x * 100)} %`);
 const tone = (x: number | null) => (x === null ? '' : x >= 0.8 ? ' is-good' : x >= 0.5 ? ' is-mid' : ' is-low');
 
 export function Auswertung({ lib, klasse }: { lib: Library; klasse: KlasseInfo }) {
-  const regionen = lib.modules
-    .filter((m) => lib.lessons.some((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)))
-    .sort((a, b) => a.subject.localeCompare(b.subject, 'de') || a.grade - b.grade || a.number - b.number);
+  const regionen = useMemo(() => klassenRegionen(lib, klasse.stunden), [lib, klasse.stunden]);
   const [wahl, setWahl] = useState('');
-  const m = regionen.find((x) => x.id === wahl) ?? regionen[0];
+  const region = regionen.find((x) => x.modul.id === wahl) ?? regionen[0];
+  const m = region?.modul;
   const kinder = klasse.kinder.filter((k) => !k.geloescht);
-  const r = useMemo(
-    () => (m ? auswerten(m, lib.lessons.filter((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)), kinder.map((k) => ({ id: k.id, leitner: k.leitner ?? {} }))) : null),
+  const r = useMemo(() => {
+    if (!region) return null;
+    const leitner = kinder.map((k) => ({ id: k.id, leitner: k.leitner ?? {} }));
+    return region.extra ? auswertenThemen(regionPakete(lib, region, klasse.stunden), leitner) : auswerten(region.modul, region.stunden, leitner);
     // kinder is new on every render; the class object changes when the server answers.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [m, lib.lessons, klasse],
-  );
+  }, [region, lib, klasse]);
 
   return (
     <section className="lqt-card">
@@ -33,22 +34,24 @@ export function Auswertung({ lib, klasse }: { lib: Library; klasse: KlasseInfo }
           </p>
         </div>
       </div>
-      {!m || !r ? (
-        <p className="lib-empty">Schalte zuerst Stunden frei.</p>
+      {!region || !m || !r ? (
+        <p className="lib-empty">Schalte zuerst Stunden oder Extra-Pakete frei.</p>
       ) : (
         <>
           {regionen.length > 1 && (
             <div className="lqt-filter">
-              <select className="input" value={m.id} onChange={(e) => setWahl(e.target.value)} aria-label="Modul">
+              <select className="input" value={m.id} onChange={(e) => setWahl(e.target.value)} aria-label="Region">
                 {regionen.map((x) => (
-                  <option key={x.id} value={x.id}>
-                    {x.subject} {x.grade} · Modul {x.number}: {x.title}
+                  <option key={x.modul.id} value={x.modul.id}>
+                    {klassenRegionName(x)}
                   </option>
                 ))}
               </select>
             </div>
           )}
-          {!r.zeilen.length && <p className="ev-empty">Keine Übung der freigeschalteten Stunden ist mit einer Kompetenz verknüpft. Im Arbeitsblatt im Panel einer Aufgabe unter „Kompetenz“ verknüpfen.</p>}
+          {region.extra && <p className="lqt-hint">{m.title} hat keine Kompetenzen: eine Zeile je Extra-Paket.</p>}
+          {!r.zeilen.length && region.extra && <p className="ev-empty">Die freigeschalteten Extra-Pakete haben noch keine freigegebenen Übungen.</p>}
+          {!r.zeilen.length && !region.extra && <p className="ev-empty">Keine Übung der freigeschalteten Stunden ist mit einer Kompetenz verknüpft. Im Arbeitsblatt im Panel einer Aufgabe unter „Kompetenz“ verknüpfen.</p>}
           <div className="ev-cards">
             {r.zeilen.map((z) => {
               const hilfe = kinder.filter((k) => z.kinder[k.id]?.hilfe);

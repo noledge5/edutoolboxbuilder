@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Repeat } from 'lucide-react';
 import { Icon } from '../../icons';
 import type { Library } from '../../library/types';
+import { klassenRegionen } from '../extra';
 import { heute, readExtra, tagPlus } from '../rules';
 import { wiederholenSetzen, type KlasseInfo } from '../server';
 
@@ -31,15 +32,12 @@ export function WiederholenSofort({
   const jetzt = readExtra(klasse.extra);
   const tag = heute();
   const aktiv = !!jetzt && tag <= jetzt.bis;
-  // Unlocked lessons by module, in the order of the library.
-  const module = lib.modules
-    .map((m) => ({ m, stunden: lib.lessons.filter((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)).sort((a, b) => a.number - b.number) }))
-    .filter((x) => x.stunden.length)
-    .sort((a, b) => a.m.subject.localeCompare(b.m.subject, 'de') || a.m.grade - b.m.grade || a.m.number - b.m.number);
+  // Unlocked lessons by module, then the unlocked Extra-Pakete by region (Grammatik-Turm, Wortschatz-Wald).
+  const module = klassenRegionen(lib, klasse.stunden).map((r) => ({ m: r.modul, stunden: r.stunden }));
   const [offen, setOffen] = useState(false);
   const [wahl, setWahl] = useState<Set<string>>(() => new Set(aktiv ? jetzt.stunden : []));
   const [dauer, setDauer] = useState(1);
-  const titel = (id: string) => lib.lessons.find((l) => l.id === id)?.title ?? 'Stunde';
+  const titel = (id: string) => module.flatMap((x) => x.stunden).find((l) => l.id === id)?.title ?? lib.lessons.find((l) => l.id === id)?.title ?? 'Stunde';
   const umschalten = (ids: string[], an: boolean) =>
     setWahl((w) => {
       const n = new Set(w);
@@ -88,7 +86,7 @@ export function WiederholenSofort({
                 <legend>
                   <label>
                     <input type="checkbox" checked={alle} onChange={(e) => umschalten(ids, e.target.checked)} />
-                    {m.title}
+                    {m.subject} {m.grade} · {m.title}
                   </label>
                 </legend>
                 {stunden.map((l) => (
