@@ -1,36 +1,34 @@
-# Handoff – 12.11.2026 (Extra-Pakete auf Branch, Stunden-Filter auf Branch)
+# Handoff – 13.11.2026 (alles in main: PR #66 Stunden-Filter, #67 Extra-Pakete, #68 Militärhelm)
 
 ## Ziel
-Lernquest weiter ausbauen. Nächste Aufgabe: Grammatik- und Wortfeld-Pakete, die Claude erzeugt und die die Lehrkraft
-unabhängig von Stunden freischaltet.
+Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von oben nach unten.
 
 ## Stand
-- PR #65 gemergt und live: Held/Fuchs/Bosse bewegen sich (`FigurBild` mit `danach`), Golem und Rätseldrache als Figuren
-  (`figuren/golem.tsx`, `figuren/raetseldrache.tsx`), Drache-Begleiter neu, Lehrkraft-Seite „Neu wünschen“ springt ins Bild.
-- Branch `claude/admiring-brahmagupta-j275g8` (nicht in `main`): nur ausgearbeitete Stunden (`isWorkedOut`) auf der
-  Lehrkraft-Seite und als Station auf der Karte (`paket.ts` `buildPaket`). Schon gesendete Pakete ändern sich erst nach
-  „neu senden“ (Knopf mit Titel „Nach Änderungen an freigeschalteten Stunden“). Lehrkraft muss mergen (= veröffentlichen).
-- Tests: grün (542), Typprüfung und Lint grün.
-- Letzter Commit: 09386f9 Lernquest Lehrkraft: nur ausgearbeitete Stunden zeigen …
+- `main` = live. PR #66: nur ausgearbeitete Stunden auf der Lehrkraft-Seite und als Station. PR #67: Extra-Pakete
+  (Grammatik-Turm, Wortschatz-Wald; `src/lernquest/extra.ts`, `teacher/ExtraPakete.tsx`, Entscheidung in
+  `docs/roadmap.md`). PR #68: Militärhelm (eigenes Teil `e48100506fe`). Tests 550 grün, Build grün.
+- Die Lehrkraft muss noch: „Freigeschaltete neu senden“ drücken; ein Extra-Paket anlegen, erzeugen, freischalten (bisher
+  ungetestet, auch das Erzeugen mit Claude); in der Werkstatt Golem, Rätseldrache, Drache-Begleiter, Einhorn und
+  Militärhelm prüfen; beim Helm die Herkunft einstellen; „Teile und Wünsche“ angemeldet ansehen.
 
-## Nächste Schritte
-1. **Extra-Pakete gebaut** auf Branch `claude/extra-pakete` (baut auf `claude/admiring-brahmagupta-j275g8` auf, beide
-   nicht in `main`; Mergen = veröffentlichen, erst den Stunden-Filter, dann diesen Branch). Lehrkraft-Seite: Bereich
-   „Extra-Pakete“ unter „Stunden freischalten“ (Fach/Klasse aus dessen Filter): Art, Thema oder Vokabelliste →
-   Fragenpool-Dialog → Haken zum Freischalten. Kinder-Karte: „Grammatik-Turm“/„Wortschatz-Wald“ hinter den Modulen, nie
-   „aktuell“ (Foto im Spieltest geprüft). Tests 550 grün. **Nicht geprüft:** die Lehrkraft-Seite angemeldet (geht nur mit
-   Server) und echtes Erzeugen mit Claude. Die Lehrkraft soll einmal ein Paket anlegen, erzeugen, freischalten.
-   Grenzen: Auswertung, „Wiederholen sofort“ und Bosskampf am Beamer kennen Extra-Pakete nicht (nur Stunden).
-2. Verschoben: Lehrkraft sagt, die Animationen sind auf dem iPhone (Safari) „noch nicht wirklich da“, obwohl die Werkstatt
-   sich dort bewegt. Mögliche Gründe: Service Worker (`public/sw.js`) zeigt alte Fassung; Schalter „Bewegung reduzieren“
-   im App-Menü (`lernquest:ruhig`). Safari ist hier nicht testbar (nur Chromium).
-3. Militärhelm (Wunsch der Lehrkraft) gezeichnet auf Branch `claude/handoff-documentation-sy0llp`, nicht in `main`; die
-   Lehrkraft prüft ihn in der Werkstatt und stellt auf ihrer Seite die Herkunft ein.
+## Nächste Schritte (je einer pro Session)
+1. **Animationen auf dem iPhone** (Safari): laut Lehrkraft „noch nicht wirklich da“, die Werkstatt bewegt sich dort.
+   Verdacht: Service Worker (`public/sw.js`) liefert eine alte Fassung, oder „Bewegung reduzieren“ (`lernquest:ruhig`,
+   Klasse `lq-ruhig`) bzw. die Systemeinstellung „Bewegung reduzieren“ (`prefers-reduced-motion`) ist an. Erst die
+   Lehrkraft fragen, ob Neuladen/Schalter hilft; dann Code prüfen (Update-Weg des Service Workers, Medienabfrage).
+   Safari ist hier nicht testbar, nur Chromium mit WebKit-ähnlichen Einstellungen.
+2. **Extra-Pakete vervollständigen:** Auswertung (`teacher/Auswertung.tsx`), „Wiederholen sofort“
+   (`teacher/WiederholenSofort.tsx`) und Bosskampf am Beamer (`useRegion`/`BossStart` in `LernquestView.tsx`) kennen nur
+   Stunden (`lib.lessons` mit `klasse.stunden`); Extra-Pakete über `freiFuer`/`buildExtraPaket` dazunehmen.
+3. **„Frage melden“:** Kinder melden eine fehlerhafte Übung, die Lehrkraft sieht die Meldungen beim Fragenpool. Braucht
+   eine Migration (Freigabe der Lehrkraft in ihrer App); erst planen (Skill `aufgabe`) und Plan zeigen.
+4. **Lehrkraft-Bereich in der Lernquest-App** für den Bosskampf mit Karten (heute scannt der Baukasten). Erst planen.
+5. Kleinkram: `docs/kritik-und-plan.md` an den überholten Stellen nachziehen (Hinweis in `docs/roadmap.md`).
 
 ## Wichtig zu wissen
 - Prüfungen der Lehrkraft: Werkstatt https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG, Sammlung `pruefung`
-  (Skill `figur`). Offen zum Prüfen: Golem, Rätseldrache, Drache-Begleiter, Einhorn (Notiz dort ist alt, schon umgesetzt).
-- Wünsche für eigene Teile: `lq_teil where wunsch is not null` (Supabase „baukasten“); am 12.11. abends keine offen (Militärhelm gezeichnet).
+  (Skill `figur`). Offen zum Prüfen: Golem, Rätseldrache, Drache-Begleiter, Einhorn (Notiz dort ist alt, schon umgesetzt), Militärhelm.
+- Wünsche für eigene Teile: `lq_teil where wunsch is not null` (Supabase „baukasten“); am 13.11. keine offen (Militärhelm gezeichnet).
 - Lokale Datenbank zum Prüfen: Postgres 16; vor den Migrationen Ersatz für `auth`, `extensions` (pgcrypto) und
   `cron.schedule` anlegen, Rollen `anon`, `authenticated`, `service_role`.
 - Supabase-Migrationen brauchen eine Bestätigung der Lehrkraft in ihrer App (sonst Abbruch nach ~4 Minuten).
