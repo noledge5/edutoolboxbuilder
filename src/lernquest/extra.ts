@@ -3,7 +3,7 @@
 // package is a station there. The package reuses the lesson's path (buildPaket, Fragenpool, sending): an Extra-Paket
 // is shown to them as a lesson without pages in a module of its own.
 import { DEFAULT_TOPIC_ICON } from '../topicIcons';
-import type { ExtraArt, ExtraPaket, Lesson, Module } from '../library/types';
+import type { ExtraArt, ExtraPaket, Lesson, Library, Module } from '../library/types';
 import { buildPaket } from './paket';
 import type { Paket } from './types';
 
@@ -93,6 +93,24 @@ export function extraInhalt(e: ExtraPaket): string {
 }
 
 /** A new Extra-Paket (the topic is typed in, or a vocabulary list fills `words`). */
+/** Subjects and grades of the library an Extra-Paket can belong to (each once, by subject then grade). */
+export function extraZiele(lib: Pick<Library, 'modules'>): { subject: string; grade: number; lang: 'de' | 'en' }[] {
+  const out = new Map<string, { subject: string; grade: number; lang: 'de' | 'en' }>();
+  for (const m of lib.modules) {
+    if (!m.subject || !m.grade) continue;
+    const k = `${m.subject}|${m.grade}`;
+    const alt = out.get(k);
+    out.set(k, { subject: m.subject, grade: m.grade, lang: alt?.lang === 'en' || m.lang === 'en' ? 'en' : 'de' });
+  }
+  return [...out.values()].sort((a, b) => a.subject.localeCompare(b.subject, 'de') || a.grade - b.grade);
+}
+
+/** The package moved to another subject and grade (created there by mistake): its exercises come along, the language
+ *  follows the target (English if a module there is English). Unlock it there anew; lock it in the old class first. */
+export function extraVerschieben(e: ExtraPaket, ziel: { subject: string; grade: number; lang: 'de' | 'en' }, now = Date.now()): ExtraPaket {
+  return { ...e, subject: ziel.subject, grade: ziel.grade, lang: ziel.lang, updatedAt: now };
+}
+
 export function newExtra(subject: string, grade: number, art: ExtraArt, title: string, words = '', lang: 'de' | 'en' = 'de', now = Date.now()): ExtraPaket {
   return { id: 'x' + Math.random().toString(36).slice(2, 10), subject, grade, art, title: title.trim(), words, lang, createdAt: now, updatedAt: now };
 }
