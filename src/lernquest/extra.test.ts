@@ -3,7 +3,8 @@ import { newLesson, newModule, seedLibrary } from '../library/model';
 import { readExtra } from '../library/read';
 import type { ExtraPaket, Library } from '../library/types';
 import { entriesOf, mergeRemote, toSend } from '../sync/merge';
-import { buildExtraPaket, extraAlsStunde, extraInhalt, extraModulId, extraStunde, extraVerschieben, extraZiele, newExtra } from './extra';
+import { auswertenThemen } from './auswertung';
+import { buildExtraPaket, extraAlsStunde, extraInhalt, extraModulId, extraStunde, extraVerschieben, extraZiele, mitExtras, newExtra, regionLabel } from './extra';
 import { poolPrompt } from './fragenpool';
 import { regionenVon, regionName } from './karte';
 import { buildPaket } from './paket';
@@ -135,5 +136,43 @@ describe('moving an Extra-Paket to another subject and grade', () => {
     expect(m).toMatchObject({ id: e.id, subject: 'Englisch', grade: 5, lang: 'en', title: 'simple past', updatedAt: 5, createdAt: 1 });
     expect(m.pool).toBe(e.pool);
     expect(extraModulId(m)).toBe('extra-grammatik-5-Englisch');
+  });
+});
+
+describe('Extra-Pakete: Lehrkraft-Ansichten', () => {
+  const a = extra('xa', 'grammatik', 1, 'simple past');
+  const b = extra('xb', 'grammatik', 2, 'going to');
+  const c = extra('xc', 'wortschatz', 3, 'Wetter');
+
+  it('nimmt freigeschaltete Extra-Pakete als Module und Stunden dazu, eine Region je Art', () => {
+    const lib = { ...seedLibrary(), extras: [a, b, c] };
+    expect(mitExtras(lib, [])).toBe(lib);
+    const x = mitExtras(lib, ['extra-xa', 'extra-xb', 'l1']);
+    const neu = x.modules.slice(lib.modules.length);
+    expect(neu.map((m) => m.id)).toEqual([extraModulId(a)]);
+    expect(x.lessons.slice(lib.lessons.length).map((l) => [l.id, l.moduleId, l.number])).toEqual([
+      ['extra-xa', extraModulId(a), 1],
+      ['extra-xb', extraModulId(a), 2],
+    ]);
+    // Die Bibliothek selbst bleibt unverändert.
+    expect(lib.modules.some((m) => m.id === extraModulId(a))).toBe(false);
+  });
+
+  it('benennt Extra-Regionen ohne Modulnummer', () => {
+    const { modul } = extraAlsStunde(c, [c]);
+    expect(regionLabel(modul)).toBe('Englisch 6 · Wortschatz-Wald');
+    expect(regionLabel({ id: 'm1', subject: 'Deutsch', grade: 5, number: 3, title: 'Märchen' })).toBe('Deutsch 5 · Modul 3: Märchen');
+  });
+
+  it('wertet Extra-Pakete je Thema aus den Wiederholkarten der Kinder aus', () => {
+    const p = buildExtraPaket(a, [a], ['xa']);
+    const r = auswertenThemen([p], [
+      { id: 'k1', leitner: { 'extra-xa/xa-a': [3, 1], 'extra-xa/xa-b': [1, 1] } },
+      { id: 'k2', leitner: {} },
+    ]);
+    expect(r.zeilen).toHaveLength(1);
+    expect(r.zeilen[0]).toMatchObject({ id: 'extra-xa', name: 'simple past', aufgaben: 2, anteil: 0.5 });
+    expect(r.zeilen[0].kinder.k1).toMatchObject({ geuebt: 2, sitzt: 1, wackelt: 1, hilfe: true });
+    expect(r.zeilen[0].kinder.k2.anteil).toBeNull();
   });
 });

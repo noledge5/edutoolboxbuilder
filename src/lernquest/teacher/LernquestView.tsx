@@ -20,6 +20,7 @@ import { ensureLehrkraft, kartenNummern, updateLehrkraft, type Lehrkraft } from 
 import { STUFEN, stufenPlan, stufeVon, type Stufe } from '../sichtbarkeit';
 import { BOSS_FRAGEN_MIN, bossFragen, bossVon, type BossFrage } from '../boss';
 import { buildPaket, exercisesOf } from '../paket';
+import { istExtraModul, mitExtras, regionLabel } from '../extra';
 import { BOSS_FRAGEN, heldenstufe, punkteHandRest, PUNKTE_HAND_WOCHE, rundenStufen, rundenZahl, sterne, woche } from '../rules';
 import {
   bossLaufend,
@@ -736,7 +737,9 @@ function PoolFuer({ lib, id, onLessonChange, onClose }: { lib: Library; id: stri
 }
 
 /** The regions of a class (modules with unlocked lessons), the chosen one and the questions it can give. */
-function useRegion(lib: Library, klasse: KlasseInfo) {
+function useRegion(bib: Library, klasse: KlasseInfo) {
+  // Unlocked Extra-Pakete are regions too (Grammatik-Turm, Wortschatz-Wald), behind the modules.
+  const lib = useMemo(() => mitExtras(bib, klasse.stunden), [bib, klasse.stunden]);
   const regionen = lib.modules
     .filter((m) => lib.lessons.some((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)))
     .sort((a, b) => a.subject.localeCompare(b.subject, 'de') || a.grade - b.grade || a.number - b.number);
@@ -751,7 +754,7 @@ function useRegion(lib: Library, klasse: KlasseInfo) {
     <select className="input" value={m?.id ?? ''} onChange={(e) => setWahl(e.target.value)} aria-label="Region">
       {regionen.map((x) => (
         <option key={x.id} value={x.id}>
-          {x.subject} {x.grade} · Modul {x.number}: {x.title}
+          {regionLabel(x)}
         </option>
       ))}
     </select>
@@ -820,7 +823,7 @@ function BossStart({ lib, klasse, busy, act, onKampf }: Pick<KlasseProps, 'lib' 
     const fenster = window.open('', '_blank');
     void act(async (keys) => {
       try {
-        const titel = `${m.subject} · Region ${m.number}`.slice(0, 120);
+        const titel = (istExtraModul(m.id) ? `${m.subject} · ${m.title}` : `${m.subject} · Region ${m.number}`).slice(0, 120);
         const id = await (mitKarten ? bossStartenKarten : bossStarten)(keys, klasse.id, m.id, titel, bossVon(m.number), fragen);
         if (fenster) fenster.location.href = beamerLink(id, klasse.code);
         else setHinweis(`Neuer Tab war blockiert. Beamer-Ansicht: ${beamerLink(id, klasse.code)}`);
@@ -851,7 +854,7 @@ function BossStart({ lib, klasse, busy, act, onKampf }: Pick<KlasseProps, 'lib' 
         <div>
           <h2>Bosskampf am Beamer</h2>
           <p className="lqt-hint">
-            Die Klasse kämpft gemeinsam: Die Frage steht am Beamer, die Kinder antworten am Gerät (Lernquest öffnen → „Bosskampf“) oder mit ihrer Antwortkarte, die du scannst. Fragen kommen aus den freigeschalteten Stunden der Region (Antippen, Richtig/Falsch, Paare, Lücken). Fällt der Boss, gibt es beim ersten Sieg eine Truhe für alle, die mitgemacht haben.
+            Die Klasse kämpft gemeinsam: Die Frage steht am Beamer, die Kinder antworten am Gerät (Lernquest öffnen → „Bosskampf“) oder mit ihrer Antwortkarte, die du scannst. Fragen kommen aus den freigeschalteten Stunden der Region oder den Extra-Paketen (Antippen, Richtig/Falsch, Paare, Lücken). Fällt der Boss, gibt es beim ersten Sieg eine Truhe für alle, die mitgemacht haben.
           </p>
         </div>
       </div>

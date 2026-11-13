@@ -2,13 +2,17 @@
 // cards. Same look as the competence tab of the handout evaluation (`EvaluationView`).
 import { useMemo, useState } from 'react';
 import type { Library } from '../../library/types';
-import { auswerten, BOX_SITZT } from '../auswertung';
+import { auswerten, auswertenThemen, BOX_SITZT } from '../auswertung';
+import { istExtraModul, mitExtras, regionLabel } from '../extra';
+import { buildPaket } from '../paket';
 import type { KlasseInfo } from '../server';
 
 const pct = (x: number | null) => (x === null ? '–' : `${Math.round(x * 100)} %`);
 const tone = (x: number | null) => (x === null ? '' : x >= 0.8 ? ' is-good' : x >= 0.5 ? ' is-mid' : ' is-low');
 
-export function Auswertung({ lib, klasse }: { lib: Library; klasse: KlasseInfo }) {
+export function Auswertung({ lib: bib, klasse }: { lib: Library; klasse: KlasseInfo }) {
+  // Unlocked Extra-Pakete are regions too (one row per topic: they have no competences).
+  const lib = useMemo(() => mitExtras(bib, klasse.stunden), [bib, klasse.stunden]);
   const regionen = lib.modules
     .filter((m) => lib.lessons.some((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)))
     .sort((a, b) => a.subject.localeCompare(b.subject, 'de') || a.grade - b.grade || a.number - b.number);
@@ -16,7 +20,12 @@ export function Auswertung({ lib, klasse }: { lib: Library; klasse: KlasseInfo }
   const m = regionen.find((x) => x.id === wahl) ?? regionen[0];
   const kinder = klasse.kinder.filter((k) => !k.geloescht);
   const r = useMemo(
-    () => (m ? auswerten(m, lib.lessons.filter((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)), kinder.map((k) => ({ id: k.id, leitner: k.leitner ?? {} }))) : null),
+    () => {
+      if (!m) return null;
+      const stunden = lib.lessons.filter((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)).sort((a, b) => a.number - b.number);
+      const k = kinder.map((x) => ({ id: x.id, leitner: x.leitner ?? {} }));
+      return istExtraModul(m.id) ? auswertenThemen(stunden.map((l) => buildPaket(m, l, stunden)), k) : auswerten(m, stunden, k);
+    },
     // kinder is new on every render; the class object changes when the server answers.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [m, lib.lessons, klasse],
@@ -29,7 +38,7 @@ export function Auswertung({ lib, klasse }: { lib: Library; klasse: KlasseInfo }
           <h2>Fortschritt je Kompetenz</h2>
           <p className="lqt-hint">
             Aus dem Wiederholen jedes Kindes: Eine Übung „sitzt“, wenn sie mindestens zweimal hintereinander richtig war (Kasten {BOX_SITZT} von 5). Die Prozente sind der Anteil der Übungen einer Kompetenz, die sitzen; „–“ heißt noch nicht geübt. Die Zuordnung zur Kompetenz kommt aus den
-            Aufgaben der Stunden und bleibt auf diesem Gerät.
+            Aufgaben der Stunden und bleibt auf diesem Gerät. Extra-Pakete haben keine Kompetenzen: Dort steht eine Zeile je Thema.
           </p>
         </div>
       </div>
@@ -42,13 +51,14 @@ export function Auswertung({ lib, klasse }: { lib: Library; klasse: KlasseInfo }
               <select className="input" value={m.id} onChange={(e) => setWahl(e.target.value)} aria-label="Modul">
                 {regionen.map((x) => (
                   <option key={x.id} value={x.id}>
-                    {x.subject} {x.grade} · Modul {x.number}: {x.title}
+                    {regionLabel(x)}
                   </option>
                 ))}
               </select>
             </div>
           )}
-          {!r.zeilen.length && <p className="ev-empty">Keine Übung der freigeschalteten Stunden ist mit einer Kompetenz verknüpft. Im Arbeitsblatt im Panel einer Aufgabe unter „Kompetenz“ verknüpfen.</p>}
+          {!r.zeilen.length && istExtraModul(m.id) && <p className="ev-empty">Die Extra-Pakete dieser Region haben noch keine freigegebenen Übungen.</p>}
+          {!r.zeilen.length && !istExtraModul(m.id) && <p className="ev-empty">Keine Übung der freigeschalteten Stunden ist mit einer Kompetenz verknüpft. Im Arbeitsblatt im Panel einer Aufgabe unter „Kompetenz“ verknüpfen.</p>}
           <div className="ev-cards">
             {r.zeilen.map((z) => {
               const hilfe = kinder.filter((k) => z.kinder[k.id]?.hilfe);

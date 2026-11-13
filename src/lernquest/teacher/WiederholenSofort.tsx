@@ -1,10 +1,11 @@
 // „Wiederholen sofort“ on the teacher page (wish 09.11.2026, „z. B. wegen morgen Klassenarbeit“): choose unlocked
 // lessons and until when; in that time every exercise of them is due in the children's „Wiederholen“, once each, also
 // those never played (rules.ts `extraFaellig`, server 20261119_lernquest_wiederholen_sofort.sql).
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Repeat } from 'lucide-react';
 import { Icon } from '../../icons';
 import type { Library } from '../../library/types';
+import { istExtraModul, mitExtras, regionLabel } from '../extra';
 import { heute, readExtra, tagPlus } from '../rules';
 import { wiederholenSetzen, type KlasseInfo } from '../server';
 
@@ -18,7 +19,7 @@ const DAUER = [
 const datum = (tag: string) => new Date(`${tag}T12:00:00Z`).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' });
 
 export function WiederholenSofort({
-  lib,
+  lib: bib,
   klasse,
   busy,
   act,
@@ -28,6 +29,8 @@ export function WiederholenSofort({
   busy: boolean;
   act(f: (keys: string[]) => Promise<unknown>): Promise<void>;
 }) {
+  // Unlocked Extra-Pakete count as lessons here (stored under `extra-<id>`, like their packages on the server).
+  const lib = useMemo(() => mitExtras(bib, klasse.stunden), [bib, klasse.stunden]);
   const jetzt = readExtra(klasse.extra);
   const tag = heute();
   const aktiv = !!jetzt && tag <= jetzt.bis;
@@ -88,7 +91,7 @@ export function WiederholenSofort({
                 <legend>
                   <label>
                     <input type="checkbox" checked={alle} onChange={(e) => umschalten(ids, e.target.checked)} />
-                    {m.title}
+                    {istExtraModul(m.id) ? regionLabel(m) : m.title}
                   </label>
                 </legend>
                 {stunden.map((l) => (

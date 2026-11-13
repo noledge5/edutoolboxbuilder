@@ -4,7 +4,7 @@
 import type { Lesson, Module } from '../library/types';
 import { exercisesOf } from './paket';
 import { karteKey } from './rules';
-import type { Stand } from './types';
+import type { Paket, Stand } from './types';
 
 /** From this box on an exercise counts as mastered: right at least twice in a row. */
 export const BOX_SITZT = 3;
@@ -77,20 +77,27 @@ export function auswerten(m: Module, lessons: Lesson[], kinder: { id: string; le
   for (const c of m.competences) {
     const keys = je.get(c.id);
     if (!keys?.length) continue;
-    const proKind: Record<string, KindKompetenz> = {};
-    for (const k of kinder) proKind[k.id] = kindKompetenz(keys, k.leitner ?? {});
-    const werte = Object.values(proKind).flatMap((x) => (x.anteil === null ? [] : [x.anteil]));
-    zeilen.push({
-      id: c.id,
-      name: c.area.trim() || 'Kompetenz ohne Namen',
-      aufgaben: keys.length,
-      anteil: werte.length ? werte.reduce((a, b) => a + b, 0) / werte.length : null,
-      kinder: proKind,
-    });
+    zeilen.push(zeile(c.id, c.area.trim() || 'Kompetenz ohne Namen', keys, kinder));
   }
   // Links to competences no longer in the module count as without competence.
   const bekannt = new Set(m.competences.map((c) => c.id));
   let fremd = 0;
   for (const [id, keys] of je) if (!bekannt.has(id)) fremd += keys.length;
   return { zeilen, ohneKompetenz: ohne + fremd };
+}
+
+/** A row of progress over the given review keys (a competence, or the topic of an Extra-Paket). */
+function zeile(id: string, name: string, keys: string[], kinder: { id: string; leitner: Stand['leitner'] }[]): KompetenzZeile {
+  const proKind: Record<string, KindKompetenz> = {};
+  for (const k of kinder) proKind[k.id] = kindKompetenz(keys, k.leitner ?? {});
+  const werte = Object.values(proKind).flatMap((x) => (x.anteil === null ? [] : [x.anteil]));
+  return { id, name, aufgaben: keys.length, anteil: werte.length ? werte.reduce((a, b) => a + b, 0) / werte.length : null, kinder: proKind };
+}
+
+/** An Extra-Region has no competences: one row per Extra-Paket (its topic), over the exercises of its package. */
+export function auswertenThemen(pakete: Paket[], kinder: { id: string; leitner: Stand['leitner'] }[]): Auswertung {
+  const zeilen = pakete
+    .filter((p) => p.uebungen.length)
+    .map((p) => zeile(p.stunde, p.titel.trim() || 'Thema ohne Namen', p.uebungen.map((u) => karteKey(p.stunde, u.id)), kinder));
+  return { zeilen, ohneKompetenz: 0 };
 }
