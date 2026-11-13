@@ -1,6 +1,6 @@
 // Start page: choose subject and grade, then a module; recently edited lessons for quick access.
 import { useState, type DragEvent } from 'react';
-import { Blocks, CalendarRange, FolderSync, Map as MapIcon, Plus, Settings as SettingsIcon, Sparkles, Trash2, Users, X } from 'lucide-react';
+import { Blocks, CalendarRange, FolderSync, Lock, Map as MapIcon, Plus, Settings as SettingsIcon, Sparkles, Trash2, Users, X } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
 import { AiSettingsDialog } from '../ai/AiSettingsDialog';
@@ -17,6 +17,7 @@ import { readSchoolYear } from './read';
 import { SUBJECT_COLORS, subjectColor, subjectVars, swatch } from './subjectColor';
 import { BW_2026_27, holidaysText } from './yearplan';
 import { GRADES } from './types';
+import { SperreEinstellung, useSperre } from '../sperre/Sperre';
 
 interface OverviewProps {
   lib: Library;
@@ -82,6 +83,7 @@ export function Overview(p: OverviewProps) {
     .sort((a, b) => b.updatedAt - a.updatedAt)
     .slice(0, 4);
   const moduleOf = (l: Lesson) => lib.modules.find((m) => m.id === l.moduleId);
+  const sperre = useSperre();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [claudeOpen, setClaudeOpen] = useState(false);
   const [dropping, setDropping] = useState(false);
@@ -142,6 +144,12 @@ export function Overview(p: OverviewProps) {
           <Icon icon={Sparkles} />
           <span className="btn-label">Mit KI bauen</span>
         </button>
+        {sperre.aktiv && (
+          <button type="button" className="btn btn-secondary ui-btn" title="Baukasten sperren, bevor du das Gerät aus der Hand gibst" onClick={sperre.sperren}>
+            <Icon icon={Lock} />
+            <span className="btn-label">Sperren</span>
+          </button>
+        )}
         <button type="button" className="btn btn-secondary ui-btn lib-settings-btn" title="Einstellungen" onClick={() => setSettingsOpen(true)}>
           <Icon icon={SettingsIcon} />
           <span className="btn-label">Einstellungen</span>
@@ -406,6 +414,7 @@ export function SettingsDialog({ settings, subjects, onSave, onClose }: { settin
             <p className="sync-tip">Die Farbe gilt für Knöpfe und Symbole im Baukasten, damit du die Fächer auseinanderhältst. Die gedruckten Blätter bleiben, wie sie sind.</p>
           </div>
         )}
+        <SperreEinstellung />
         <div className="settings-year">
           <div className="panel-section-label">Schuljahr für den Jahresplan</div>
           <div className="settings-year-row">
