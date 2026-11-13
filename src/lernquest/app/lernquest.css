@@ -871,15 +871,6 @@ mark {
   color: var(--lq-gold-schrift);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
 @media (min-width: 700px) {
   .lq-app {
     padding-top: var(--lq-a-6);
@@ -3219,12 +3210,6 @@ button.lq-teil:active {
     transform: scale(0.3);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .lq-marke,
-  .lq-marke.ziel {
-    animation: none;
-  }
-}
 
 /* The waiting card at the projector: the text and the QR code for joining side by side. */
 .lq-beamer-warten {
@@ -3310,13 +3295,7 @@ button.lq-teil:active {
 .lq-dialog p {
   margin: 0;
 }
-@media (prefers-reduced-motion: reduce) {
-  .lq-held-kopf.freut,
-  .lq-held-kopf.schuettelt,
-  .lq-dialog {
-    animation: none;
-  }
-}
+
 /* Nothing to press yet (pairs, places): no empty bar at the bottom. */
 .lq-fuss.leer {
   /* Kept in the page (not display: none), so the feedback that appears in it is still read out. */
@@ -3868,12 +3847,9 @@ button.lq-teil:active {
   color: var(--lq-primary-tief);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .lq-landkarte .lq-knoten.aktuell::after {
-    animation: none;
-    opacity: 0.6;
-    transform: scale(1.1);
-  }
+.lq-ruhig .lq-landkarte .lq-knoten.aktuell::after {
+  opacity: 0.6;
+  transform: scale(1.1);
 }
 
 /* — Stufe E, Teil 3: the round in the mockup look — */
@@ -3947,11 +3923,7 @@ button.lq-teil:active {
 .lq-rueck-figur.freut {
   animation: lq-huepfen var(--lq-dauer-lang) var(--lq-feder);
 }
-@media (prefers-reduced-motion: reduce) {
-  .lq-rueck-figur.freut {
-    animation: none;
-  }
-}
+
 .lq-rueckmeldung {
   flex-direction: row;
   align-items: flex-start;
@@ -4172,11 +4144,7 @@ button.lq-teil:active {
     transform: translateY(110vh) rotate(calc(var(--r) + 540deg));
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .lq-jubel {
-    display: none;
-  }
-}
+
 /* The hero above the result of a round. */
 .lq-ergebnis-held {
   width: 132px;
@@ -4184,7 +4152,8 @@ button.lq-teil:active {
   align-self: center;
 }
 
-/* The app's own „Bewegung reduzieren“ (menu), the same as the system setting above. */
+/* „Bewegung reduzieren“ in the app's menu stops every animation. The system setting does not (decision of the teacher,
+   13.11.2026: the figures move on every device unless this switch is on). */
 .lq-ruhig *,
 .lq-ruhig *::before,
 .lq-ruhig *::after {

@@ -12,11 +12,10 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
   Militärhelm prüfen; beim Helm die Herkunft einstellen; „Teile und Wünsche“ angemeldet ansehen.
 
 ## Nächste Schritte (je einer pro Session)
-1. **Animationen auf dem iPhone** (Safari): laut Lehrkraft „noch nicht wirklich da“, die Werkstatt bewegt sich dort.
-   Verdacht: Service Worker (`public/sw.js`) liefert eine alte Fassung, oder „Bewegung reduzieren“ (`lernquest:ruhig`,
-   Klasse `lq-ruhig`) bzw. die Systemeinstellung „Bewegung reduzieren“ (`prefers-reduced-motion`) ist an. Erst die
-   Lehrkraft fragen, ob Neuladen/Schalter hilft; dann Code prüfen (Update-Weg des Service Workers, Medienabfrage).
-   Safari ist hier nicht testbar, nur Chromium mit WebKit-ähnlichen Einstellungen.
+1. ✅ (13.11.) **Animationen auf dem iPhone:** Ursache war sehr wahrscheinlich die iPhone-Einstellung „Bewegung
+   reduzieren“ (die App hielt sich daran, die Werkstatt nicht). Entscheidung der Lehrkraft: Figuren bewegen sich immer,
+   nur der Schalter im App-Menü hält alles an (`ruhig()` in `figuren/Figur.tsx`, `.lq-ruhig` in `lernquest.css`).
+   Auf Branch `claude/handoff-documentation-sy0llp`, Lehrkraft prüft am iPhone nach dem Mergen.
 2. **Extra-Pakete vervollständigen:** Auswertung (`teacher/Auswertung.tsx`), „Wiederholen sofort“
    (`teacher/WiederholenSofort.tsx`) und Bosskampf am Beamer (`useRegion`/`BossStart` in `LernquestView.tsx`) kennen nur
    Stunden (`lib.lessons` mit `klasse.stunden`); Extra-Pakete über `freiFuer`/`buildExtraPaket` dazunehmen.
