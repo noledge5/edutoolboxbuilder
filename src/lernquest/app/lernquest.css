@@ -3942,11 +3942,13 @@ button.lq-teil:active {
   display: grid;
   gap: var(--lq-a-2);
 }
-.lq-klassenaufgabe .lq-balken {
+.lq-klassenaufgabe .lq-balken,
+.lq-dorf .lq-balken {
   height: 14px;
   background: var(--lq-linie);
 }
-.lq-klassenaufgabe .lq-balken > span {
+.lq-klassenaufgabe .lq-balken > span,
+.lq-dorf .lq-balken > span {
   background: var(--lq-gold);
 }
 .lq-willkommen {

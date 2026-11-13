@@ -46,4 +46,10 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
   `/var/lib/postgresql/`, nicht im Scratchpad); vor den Migrationen Ersatz für `auth` (`uid()`, `role()`), `extensions`
   (pgcrypto), `cron.schedule`/`cron.unschedule` und Rollen `anon`, `authenticated`, `service_role` anlegen.
 - Supabase-Migrationen brauchen eine Bestätigung der Lehrkraft in ihrer App (sonst Abbruch nach ~4 Minuten).
+- Auf dem Windows-Rechner der Lehrkraft gibt es kein Postgres: Migrationen dort mit PGlite prüfen (`@electric-sql/pglite`
+  mit `pgcrypto` im Scratchpad installieren, dieselben Ersatz-Schemata, alle Dateien aus `supabase/migrations` der Reihe
+  nach laden). So wurde das Klassendorf am 13.11. geprüft (Regeln per SQL und im Browser gegen einen kleinen
+  RPC-Server; `.env.spieltest.local` mit `VITE_SERVER_URL` zeigt die App dorthin).
+- Windows unterscheidet keine Groß- und Kleinschreibung: nie zwei Dateien, die sich nur darin unterscheiden
+  (`Sperre.tsx` neben `sperre.ts` ließ die App dort nicht starten; heißt jetzt `SperreRahmen.tsx`).
 - App im Browser prüfen: `npm run spieltest`, Daten aus `scripts/spieltest-daten.js` in die Konsole, Helfer `scripts/spieltest-helfer.js`.

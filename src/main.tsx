@@ -51,7 +51,7 @@ import './styles/app.css';
 import './library/library.css';
 import './styles/print.css';
 import { App } from './App';
-import { SperreRahmen } from './sperre/Sperre';
+import { SperreRahmen } from './sperre/SperreRahmen';
 
 // Offline support and "Zum Home-Bildschirm" (only in the built app, not while developing).
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {

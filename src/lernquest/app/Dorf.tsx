@@ -86,7 +86,9 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
           </p>
         </div>
       ) : (
-        <p className="lq-klein">Gerade wird nichts gebaut. Deine Lehrkraft sucht das nächste Gebäude aus.</p>
+        <p className="lq-klein" role="status">
+          {danke ? `${danke} ` : ''}Gerade wird nichts gebaut. Deine Lehrkraft sucht das nächste Gebäude aus.
+        </p>
       )}
       {d.fertig.length > 0 && (
         <ul className="lq-dorf-fertig">
