@@ -1,6 +1,6 @@
 // Draws a figure (typen.ts) in a pose, with items and an animation. bewegung.ts computes where each part is at a
 // time; this file turns that into SVG transforms. The clock is requestAnimationFrame (works in every browser and
-// frame); with „Bewegung reduzieren“ the app shows the still pose. The workshop passes its own time instead.
+// frame); with the app's switch „Bewegung reduzieren“ it shows the still pose. The workshop passes its own time instead.
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ANIMATIONEN } from './animationen';
@@ -9,9 +9,9 @@ import type { Stellung } from './bewegung';
 import { P, SELTEN_FARBE } from './stil';
 import type { Animation, Figur, Item, Pose, Punkt, Teil } from './typen';
 
-/** Motion off: the system's „Bewegung reduzieren“, or the app's own switch (class `lq-ruhig` on the page). */
-export const ruhig = () =>
-  typeof window !== 'undefined' && (!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('lq-ruhig'));
+/** Motion off: only the app's own switch „Bewegung reduzieren“ (class `lq-ruhig` on the page). The system setting does
+ *  not stop the figures (decision of the teacher, 13.11.2026: they move on every device). */
+export const ruhig = () => typeof document !== 'undefined' && document.documentElement.classList.contains('lq-ruhig');
 
 /** Seconds since `aktiv` became true (or `neustart` changed), counted with requestAnimationFrame. */
 export function useZeit(aktiv: boolean, tempo = 1, neustart?: unknown): number {

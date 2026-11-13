@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ANIMATIONEN, FigurBild, ITEMS, ItemBild } from '../figuren';
 import type { Animation, Figur, Item, Pose, Teil } from '../figuren';
 import { mischePosen, zeitpunkte } from '../figuren/bewegung';
-import { ruhig } from '../figuren/Figur';
 import { P } from '../figuren/stil';
 import { Chip, CodeKopieren, Gruppe, PruefFormular } from './Bausteine';
 import type { Pruefung, Speicher } from './pruefung';
@@ -224,7 +223,6 @@ export function Werkbank({ figur, eintraege, speicher, speichern }: { figur: Fig
             Schleife
           </label>
         </div>
-        {ruhig() && <p className="ws-hinweis">Dein Gerät hat „Bewegung reduzieren“ an. In der App stehen die Figuren dann still; hier in der Werkstatt laufen sie trotzdem.</p>}
         <div className="ws-buehnen-regler">
           <Gruppe titel="Hintergrund">
             {HINTERGRUENDE.map((h) => (
