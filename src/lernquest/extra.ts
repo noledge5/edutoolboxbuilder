@@ -78,6 +78,53 @@ export function buildExtraPaket(e: ExtraPaket, alle: ExtraPaket[], freigeschalte
   return { ...p, modul: { ...p.modul, stunden } };
 }
 
+/** The Extra-Pakete unlocked for a class (from its unlocked „stunden“). */
+export const freiFuer = (stunden: readonly string[]) => stunden.filter(istExtraStunde).map((s) => s.slice('extra-'.length));
+
+/** A region of a class on the teacher's page: a module with its unlocked lessons, or Grammatik-Turm / Wortschatz-Wald
+ *  of a subject and grade with its unlocked Extra-Pakete (as lessons without pages, `extraAlsStunde`). */
+export interface KlassenRegion {
+  modul: Module;
+  stunden: Lesson[];
+  extra: boolean;
+}
+
+/** The regions of a class for evaluation, „Wiederholen sofort“ and the boss fight: modules with unlocked lessons, then
+ *  the regions of the unlocked Extra-Pakete (by subject, grade and number; lessons by number). */
+export function klassenRegionen(lib: Pick<Library, 'modules' | 'lessons' | 'extras'>, freigeschaltet: readonly string[]): KlassenRegion[] {
+  const frei = new Set(freigeschaltet);
+  const out: KlassenRegion[] = [];
+  for (const m of lib.modules) {
+    const stunden = lib.lessons.filter((l) => l.moduleId === m.id && frei.has(l.id)).sort((a, b) => a.number - b.number);
+    if (stunden.length) out.push({ modul: m, stunden, extra: false });
+  }
+  const alle = lib.extras ?? [];
+  const extras = new Map<string, KlassenRegion>();
+  for (const e of alle) {
+    if (!frei.has(extraStunde(e))) continue;
+    const { modul, stunde } = extraAlsStunde(e, alle);
+    const r = extras.get(modul.id) ?? { modul, stunden: [], extra: true };
+    r.stunden.push(stunde);
+    extras.set(modul.id, r);
+  }
+  for (const r of extras.values()) out.push({ ...r, stunden: r.stunden.sort((a, b) => a.number - b.number) });
+  return out.sort((a, b) => a.modul.subject.localeCompare(b.modul.subject, 'de') || a.modul.grade - b.modul.grade || a.modul.number - b.modul.number);
+}
+
+/** How a region is named in the teacher's selects. */
+export const klassenRegionName = (r: KlassenRegion) => `${r.modul.subject} ${r.modul.grade} · ${r.extra ? r.modul.title : `Modul ${r.modul.number}: ${r.modul.title}`}`;
+
+/** The packages of a region as the children have them (`freigeschaltet`: the class's unlocked „stunden“). */
+export function regionPakete(lib: Pick<Library, 'lessons' | 'extras'>, r: KlassenRegion, freigeschaltet: readonly string[]): Paket[] {
+  if (!r.extra) return r.stunden.map((l) => buildPaket(r.modul, l, lib.lessons));
+  const alle = lib.extras ?? [];
+  const frei = freiFuer(freigeschaltet);
+  return r.stunden.flatMap((s) => {
+    const e = alle.find((x) => extraStunde(x) === s.id);
+    return e ? [buildExtraPaket(e, alle, frei)] : [];
+  });
+}
+
 /** What Claude writes from instead of the lesson's sheets: the topic and the words. */
 export function extraInhalt(e: ExtraPaket): string {
   const a = EXTRA_ARTEN[e.art];

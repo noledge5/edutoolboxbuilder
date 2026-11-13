@@ -6,7 +6,7 @@ import { useMemo, useRef, useState } from 'react';
 import { ArrowRightLeft, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { Icon } from '../../icons';
 import type { ExtraArt, ExtraPaket, Library } from '../../library/types';
-import { buildExtraPaket, EXTRA_ARTEN, extraAlsStunde, extraInhalt, extraStunde, extraVerschieben, extraZiele, gleicheRegion, istExtraStunde, newExtra } from '../extra';
+import { buildExtraPaket, EXTRA_ARTEN, extraAlsStunde, extraInhalt, extraStunde, extraVerschieben, extraZiele, freiFuer, gleicheRegion, newExtra } from '../extra';
 import { freigegeben } from '../fragenpool';
 import { mitBildern } from '../paket';
 import { rundenZahl } from '../rules';
@@ -14,8 +14,7 @@ import { freischalten, LqError, sperren, type KlasseInfo } from '../server';
 import { FragenpoolDialog } from './Fragenpool';
 import { bildVorschau, PAKET_MAX } from './senden';
 
-/** The Extra-Pakete unlocked for a class (from its unlocked „stunden“). */
-export const freiFuer = (stunden: readonly string[]) => stunden.filter(istExtraStunde).map((s) => s.slice('extra-'.length));
+export { freiFuer };
 
 /** Sends one Extra-Paket to a class; `frei`: ids of the Extra-Pakete unlocked there (for the region's stations). */
 export async function extraEinzelnSenden(keys: string[], klasse: string, e: ExtraPaket, alle: ExtraPaket[], frei: readonly string[]): Promise<void> {
