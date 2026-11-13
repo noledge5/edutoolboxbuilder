@@ -46,18 +46,30 @@ function Punktmarke({ p, farbe, gross = false }: { p: Punkt; farbe: string; gros
   return <circle cx={p[0]} cy={p[1]} r={gross ? 5 : 3.5} fill={farbe} stroke={P.weiss} strokeWidth={1.5} />;
 }
 
-function TeilG({ teil, k }: { teil: Teil; k: Kontext }): ReactNode {
+/** Things held in a hand (sword, trident, wand) are drawn over the whole figure, so a long blade or shaft never
+ *  disappears behind the big head; they still follow the arm. Everything else sits with its part. */
+export const ganzVorne = (i: Item) => !i.hinten && i.platz.startsWith('hand');
+
+/** A part with its children. `oben`: the second pass, only the transforms and the items held in front. */
+function TeilG({ teil, k, oben = false }: { teil: Teil; k: Kontext; oben?: boolean }): ReactNode {
   const lage = k.st.teile[teil.id] ?? RUHE;
   const stand = { gesicht: k.st.gesicht, augenZu: k.st.augenZu, zeit: k.st.zeit };
   const amAnker = (hinten: boolean) =>
     Object.entries(teil.anker ?? {}).flatMap(([platz, [ax, ay]]) =>
       k.items
-        .filter((i) => i.platz === platz && !!i.hinten === hinten)
+        .filter((i) => i.platz === platz && !!i.hinten === hinten && ganzVorne(i) === oben)
         .map((i) => (
           <g key={i.id} transform={`translate(${ax} ${ay})`} data-item={i.id}>
             {i.zeichnung(k.st.zeit)}
           </g>
         )),
+    );
+  if (oben)
+    return (
+      <g transform={transform(lage, teil.drehpunkt)}>
+        {teil.kinder?.map((c) => <TeilG key={c.id} teil={c} k={k} oben />)}
+        {amAnker(false)}
+      </g>
     );
   return (
     <g data-teil={teil.id} transform={transform(lage, teil.drehpunkt)}>
@@ -131,6 +143,7 @@ export function FigurBild({ figur, pose, animation, danach, zeit, lebendig = tru
           {teile.map((t) => (
             <TeilG key={t.id} teil={t} k={k} />
           ))}
+          {items.some(ganzVorne) && teile.map((t) => <TeilG key={`oben-${t.id}`} teil={t} k={k} oben />)}
           {st.extras.map((e) => (
             <g key={e}>{figur.extras?.[e]?.({ gesicht: st.gesicht, augenZu: st.augenZu, zeit: st.zeit })}</g>
           ))}

@@ -94,7 +94,7 @@ export const WERKZEUG_ITEMS: Item[] = [
     id: 'fernrohr',
     name: 'Fernrohr',
     platz: 'hand-rechts',
-    seltenheit: 2,
+    seltenheit: 1,
     rahmen: [-20, -86, 80, 100],
     zeichnung: () => (
       <g transform="rotate(40)">
@@ -117,7 +117,7 @@ export const WERKZEUG_ITEMS: Item[] = [
     id: 'bumerang',
     name: 'Bumerang',
     platz: 'hand-rechts',
-    seltenheit: 2,
+    seltenheit: 1,
     rahmen: [-14, -64, 66, 82],
     zeichnung: () => {
       const d = 'M0 10 Q-6 -28 34 -48';
@@ -138,7 +138,7 @@ export const WERKZEUG_ITEMS: Item[] = [
     id: 'kompass',
     name: 'Kompass',
     platz: 'hand-rechts',
-    seltenheit: 3,
+    seltenheit: 2,
     rahmen: [-24, -50, 48, 66],
     zeichnung: () => (
       <g>
@@ -162,7 +162,7 @@ export const WERKZEUG_ITEMS: Item[] = [
     id: 'hammer',
     name: 'Zwergenhammer',
     platz: 'hand-rechts',
-    seltenheit: 3,
+    seltenheit: 2,
     rahmen: [-24, -76, 80, 96],
     zeichnung: () => (
       <g transform="rotate(25)">
@@ -184,7 +184,7 @@ export const WERKZEUG_ITEMS: Item[] = [
     id: 'dreizack',
     name: 'Dreizack',
     platz: 'hand-rechts',
-    seltenheit: 4,
+    seltenheit: 3,
     rahmen: [-24, -92, 76, 108],
     zeichnung: () => {
       const gabel = 'M-14 -70 V-60 Q-14 -50 0 -50 Q14 -50 14 -60 V-70 M0 -50 V-72';
@@ -211,7 +211,7 @@ export const WERKZEUG_ITEMS: Item[] = [
     id: 'sternenschwert',
     name: 'Sternenschwert',
     platz: 'hand-rechts',
-    seltenheit: 5,
+    seltenheit: 4,
     bewegt: true,
     rahmen: [-24, -92, 76, 120],
     zeichnung: (zeit) => (
@@ -238,7 +238,7 @@ export const WERKZEUG_ITEMS: Item[] = [
     id: 'blitzstab',
     name: 'Blitzstab',
     platz: 'hand-rechts',
-    seltenheit: 5,
+    seltenheit: 4,
     bewegt: true,
     rahmen: [-24, -112, 78, 128],
     zeichnung: (zeit) => {

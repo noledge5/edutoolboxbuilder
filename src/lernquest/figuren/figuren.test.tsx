@@ -138,6 +138,18 @@ describe('motion engine', () => {
 });
 
 describe('items', () => {
+  it('draws things held in a hand over the head, so blades and shafts stay visible', () => {
+    const held = FIGUREN.find((f) => f.id === 'held')!;
+    for (const id of ['dreizack', 'holzschwert']) {
+      const item = ITEMS.find((i) => i.id === id)!;
+      for (const pose of Object.keys(held.posen)) {
+        const svg = renderToStaticMarkup(<FigurBild figur={held} pose={pose} items={[item]} zeit={0} />);
+        expect(svg.indexOf(`data-item="${id}"`), `${id}/${pose}`).toBeGreaterThan(svg.indexOf('data-teil="kopf"'));
+      }
+    }
+  });
+
+
   it('sit on an anchor some figure has, and draw as icon and worn, still and moving', () => {
     const plaetze = new Set(FIGUREN.flatMap(anker));
     expect(new Set(ITEMS.map((i) => i.id)).size).toBe(ITEMS.length);

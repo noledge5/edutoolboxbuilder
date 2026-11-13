@@ -36,7 +36,7 @@ const GRUND: Item[] = [
     id: 'blumenkranz',
     name: 'Blumenkranz',
     platz: 'hut',
-    seltenheit: 2,
+    seltenheit: 1,
     rahmen: [-44, -22, 88, 32],
     zeichnung: () => (
       <g>
@@ -84,7 +84,7 @@ const GRUND: Item[] = [
     id: 'zauberhut',
     name: 'Zauberhut',
     platz: 'hut',
-    seltenheit: 4,
+    seltenheit: 3,
     bewegt: true,
     rahmen: [-48, -70, 96, 82],
     zeichnung: (zeit) => (
@@ -108,7 +108,7 @@ const GRUND: Item[] = [
     id: 'krone',
     name: 'Krone',
     platz: 'hut',
-    seltenheit: 5,
+    seltenheit: 4,
     bewegt: true,
     rahmen: [-38, -42, 76, 50],
     zeichnung: (zeit) => (
@@ -186,7 +186,7 @@ const GRUND: Item[] = [
     id: 'zauberstab',
     name: 'Zauberstab',
     platz: 'hand-rechts',
-    seltenheit: 4,
+    seltenheit: 3,
     bewegt: true,
     rahmen: [-16, -62, 48, 76],
     zeichnung: (zeit) => (
@@ -270,7 +270,7 @@ const GRUND: Item[] = [
     id: 'laterne',
     name: 'Laterne',
     platz: 'hand-links',
-    seltenheit: 2,
+    seltenheit: 1,
     bewegt: true,
     rahmen: [-17, -8, 34, 50],
     zeichnung: (zeit) => (

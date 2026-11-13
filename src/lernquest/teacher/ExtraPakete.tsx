@@ -3,10 +3,10 @@
 // the teacher checks them and unlocks the package for the class; it becomes a station in „Grammatik-Turm“ or
 // „Wortschatz-Wald“ behind the modules of the map.
 import { useMemo, useRef, useState } from 'react';
-import { Plus, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { Icon } from '../../icons';
 import type { ExtraArt, ExtraPaket, Library } from '../../library/types';
-import { buildExtraPaket, EXTRA_ARTEN, extraAlsStunde, extraInhalt, extraStunde, gleicheRegion, istExtraStunde, newExtra } from '../extra';
+import { buildExtraPaket, EXTRA_ARTEN, extraAlsStunde, extraInhalt, extraStunde, extraVerschieben, extraZiele, gleicheRegion, istExtraStunde, newExtra } from '../extra';
 import { freigegeben } from '../fragenpool';
 import { mitBildern } from '../paket';
 import { rundenZahl } from '../rules';
@@ -71,6 +71,10 @@ export function ExtraPakete({ lib, klasse, subject, grade, busy, act, onChange, 
   const [thema, setThema] = useState('');
   const [liste, setListe] = useState('');
   const [poolOf, setPoolOf] = useState<string | null>(null);
+  /** The package being moved to another subject and grade, and the chosen target („Fach|Klassenstufe“). */
+  const [ziehen, setZiehen] = useState<string | null>(null);
+  const [ziel, setZiel] = useState('');
+  const ziele = useMemo(() => extraZiele(lib).filter((z) => z.subject !== subject || z.grade !== grade), [lib, subject, grade]);
   const freiVorher = useRef('');
   const en = lib.modules.some((m) => m.subject === subject && m.grade === grade && m.lang === 'en');
 
@@ -181,6 +185,20 @@ export function ExtraPakete({ lib, klasse, subject, grade, busy, act, onChange, 
                 <button
                   type="button"
                   className="btn btn-secondary ui-btn"
+                  disabled={busy || an || !ziele.length}
+                  title={an ? 'Erst für die Klasse sperren' : 'In ein anderes Fach oder eine andere Klassenstufe verschieben'}
+                  aria-label={`${e.title} verschieben`}
+                  aria-expanded={ziehen === e.id}
+                  onClick={() => {
+                    setZiehen(ziehen === e.id ? null : e.id);
+                    setZiel('');
+                  }}
+                >
+                  <Icon icon={ArrowRightLeft} />
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary ui-btn"
                   disabled={busy || an}
                   title={an ? 'Erst für die Klasse sperren' : 'Paket löschen'}
                   aria-label={`${e.title} löschen`}
@@ -188,6 +206,33 @@ export function ExtraPakete({ lib, klasse, subject, grade, busy, act, onChange, 
                 >
                   <Icon icon={Trash2} />
                 </button>
+                {ziehen === e.id && (
+                  <div className="lqt-extra-verschieben">
+                    <label htmlFor={`lqt-ziel-${e.id}`}>Verschieben nach</label>
+                    <select id={`lqt-ziel-${e.id}`} className="input" value={ziel} onChange={(x) => setZiel(x.target.value)}>
+                      <option value="">– Fach und Klassenstufe wählen –</option>
+                      {ziele.map((z) => (
+                        <option key={`${z.subject}|${z.grade}`} value={`${z.subject}|${z.grade}`}>
+                          {z.subject} {z.grade}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn btn-primary ui-btn"
+                      disabled={!ziel}
+                      onClick={() => {
+                        const z = ziele.find((x) => `${x.subject}|${x.grade}` === ziel);
+                        if (!z) return;
+                        onChange(extraVerschieben(e, z));
+                        setZiehen(null);
+                      }}
+                    >
+                      Verschieben
+                    </button>
+                    <small>Alle Übungen kommen mit. Dort wieder freischalten; ist es in einer anderen Klasse freigeschaltet, dort vorher sperren.</small>
+                  </div>
+                )}
               </li>
             );
           })}

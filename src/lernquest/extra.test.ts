@@ -3,7 +3,7 @@ import { newLesson, newModule, seedLibrary } from '../library/model';
 import { readExtra } from '../library/read';
 import type { ExtraPaket, Library } from '../library/types';
 import { entriesOf, mergeRemote, toSend } from '../sync/merge';
-import { buildExtraPaket, extraAlsStunde, extraInhalt, extraModulId, extraStunde, newExtra } from './extra';
+import { buildExtraPaket, extraAlsStunde, extraInhalt, extraModulId, extraStunde, extraVerschieben, extraZiele, newExtra } from './extra';
 import { poolPrompt } from './fragenpool';
 import { regionenVon, regionName } from './karte';
 import { buildPaket } from './paket';
@@ -114,5 +114,26 @@ describe('Extra-Pakete: Bibliothek', () => {
     // Eine neuere Fassung gewinnt.
     const neuer = new Map<string, unknown>([['x:xa', { ...e, title: 'neu', updatedAt: 30 }]]);
     expect(mergeRemote(hier, neuer, { s: 1 }).library.extras?.[0].title).toBe('neu');
+  });
+});
+
+describe('moving an Extra-Paket to another subject and grade', () => {
+  const leer = seedLibrary();
+  const modul = (subject: string, grade: number, lang: 'de' | 'en') => ({ ...newModule(leer, subject, grade), lang });
+  const lib = { modules: [modul('Chemie', 10, 'de'), modul('Englisch', 5, 'en'), modul('Englisch', 5, 'de'), modul('', 0, 'de')] };
+
+  it('offers each subject and grade once, English when a module there is English', () => {
+    expect(extraZiele(lib)).toEqual([
+      { subject: 'Chemie', grade: 10, lang: 'de' },
+      { subject: 'Englisch', grade: 5, lang: 'en' },
+    ]);
+  });
+
+  it('keeps id and exercises, takes subject, grade and language of the target', () => {
+    const e = { ...newExtra('Chemie', 10, 'grammatik', 'simple past', '', 'de', 1), pool: [{ u: { art: 'waehlen', id: 'a', frage: 'f', optionen: ['x', 'y'], richtig: [0] }, frei: true }] } as ExtraPaket;
+    const m = extraVerschieben(e, { subject: 'Englisch', grade: 5, lang: 'en' }, 5);
+    expect(m).toMatchObject({ id: e.id, subject: 'Englisch', grade: 5, lang: 'en', title: 'simple past', updatedAt: 5, createdAt: 1 });
+    expect(m.pool).toBe(e.pool);
+    expect(extraModulId(m)).toBe('extra-grammatik-5-Englisch');
   });
 });

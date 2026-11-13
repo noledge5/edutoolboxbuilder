@@ -324,6 +324,30 @@
 .lqt-pool-knopf {
   flex: none;
 }
+.lqt-module li:has(.lqt-extra-verschieben) {
+  flex-wrap: wrap;
+}
+/* Moving an Extra-Paket: a row under it with the target subject and grade. */
+.lqt-extra-verschieben {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0 4px 28px;
+}
+.lqt-extra-verschieben label {
+  font-weight: 600;
+  font-size: 14px;
+}
+.lqt-extra-verschieben .input {
+  width: auto;
+  min-width: 200px;
+}
+.lqt-extra-verschieben small {
+  flex-basis: 100%;
+  color: var(--muted, inherit);
+}
 .lqt-pool-dialog {
   width: min(760px, 100%);
 }
