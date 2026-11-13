@@ -114,3 +114,26 @@ export function extraVerschieben(e: ExtraPaket, ziel: { subject: string; grade: 
 export function newExtra(subject: string, grade: number, art: ExtraArt, title: string, words = '', lang: 'de' | 'en' = 'de', now = Date.now()): ExtraPaket {
   return { id: 'x' + Math.random().toString(36).slice(2, 10), subject, grade, art, title: title.trim(), words, lang, createdAt: now, updatedAt: now };
 }
+
+/**
+ * The library with the Extra-Pakete unlocked in a class (`stunden`) as modules (one per region) and lessons without
+ * pages, behind the real ones. For the teacher's views that work on `lib.lessons` and `klasse.stunden` (Auswertung,
+ * „Wiederholen sofort“, Kartenfrage, Bosskampf).
+ */
+export function mitExtras(lib: Library, stunden: readonly string[]): Library {
+  const alle = lib.extras ?? [];
+  const frei = alle.filter((e) => stunden.includes(extraStunde(e)));
+  if (!frei.length) return lib;
+  const module = new Map<string, Module>();
+  const lessons: Lesson[] = [];
+  for (const e of frei) {
+    const { modul, stunde } = extraAlsStunde(e, alle);
+    if (!module.has(modul.id)) module.set(modul.id, modul);
+    lessons.push(stunde);
+  }
+  return { ...lib, modules: [...lib.modules, ...module.values()], lessons: [...lib.lessons, ...lessons] };
+}
+
+/** How a region is named in the teacher's lists: „Deutsch 5 · Modul 3: Brüche“, an Extra-Region „Deutsch 5 · Grammatik-Turm“. */
+export const regionLabel = (m: Pick<Module, 'id' | 'subject' | 'grade' | 'number' | 'title'>) =>
+  istExtraModul(m.id) ? `${m.subject} ${m.grade} · ${m.title}` : `${m.subject} ${m.grade} · Modul ${m.number}: ${m.title}`;
