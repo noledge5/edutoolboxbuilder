@@ -32,8 +32,9 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
    eine Migration (Freigabe der Lehrkraft in ihrer App); erst planen (Skill `aufgabe`) und Plan zeigen.
 4. **Lehrkraft-Bereich in der Lernquest-App** für den Bosskampf mit Karten (heute scannt der Baukasten). Erst planen.
 5. Kleinkram: `docs/kritik-und-plan.md` an den überholten Stellen nachziehen (Hinweis in `docs/roadmap.md`).
-6. **Klassendorf** (Idee der Lehrkraft, `docs/idee-klassendorf.md`): Lehrkraft wählt Teile und beantwortet die offenen
-   Fragen dort; dann Stufe 1 (Dorfkasse mit einem Projekt, Stifterplakette) planen (Skill `aufgabe`), braucht Migrationen.
+6. **Klassendorf Stufe 1 „Dorfkasse“** (Branch `claude/happy-pascal-p3h9wu`): Code fertig, Tests grün. Migration
+   `20261130_lernquest_dorf.sql` ist noch NICHT live (Freigabe der Lehrkraft in ihrer App). Erst Migration, dann mergen,
+   sonst zeigt die Lehrkraft-Seite einen Serverfehler beim Klassendorf. Danach Stufe 2 (eigenes Haus, Besuche) planen.
 7. Offen zur Entscheidung: Fremde können auf ihrem Gerät leere Klassen auf dem Server anlegen (bis 40 je Schlüssel,
    Schlüssel beliebig neu). Keine Daten in Gefahr, aber Datenmüll möglich; Abhilfe bräuchte eine Migration.
 

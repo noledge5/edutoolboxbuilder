@@ -1090,3 +1090,55 @@
 .lqt-hilfe-karte .iconbtn {
   margin-left: auto;
 }
+
+/* — Klassendorf (Stufe 1 „Dorfkasse“) — */
+.lqt-dorf-bild {
+  max-width: 420px;
+}
+.lqt-dorf-bild svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.lqt-dorf-projekt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.lqt-dorf-projekt p {
+  margin: 0;
+}
+.lqt-balken {
+  width: 100%;
+  max-width: 420px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-neutral-300);
+  overflow: hidden;
+}
+.lqt-balken > span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent-5-500);
+}
+.lqt-dorf-neu {
+  flex-wrap: wrap;
+  align-items: center;
+}
+.lqt-dorf-neu .input[type='number'] {
+  width: 7em;
+}
+.lqt-dorf-neu input:not([type]) {
+  flex: 1;
+  min-width: 14em;
+}
+.lqt-dorf-neu .lqt-hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+.lqt-dorf-fertig {
+  margin: 0;
+  padding-left: 1.2em;
+}

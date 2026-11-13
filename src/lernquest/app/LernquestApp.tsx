@@ -47,6 +47,7 @@ import { Jubel } from './Jubel';
 import { GluehbirneIcon, HilfeSeite } from './Hilfe';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
 import { useZurueck } from './zurueck';
+import { DorfBox } from './Dorf';
 import { GutscheineSeite, TicketIcon } from './Gutscheine';
 import { ProbeApp } from './Probe';
 import { gemischterTest, probeAusUrl } from '../probe';
@@ -1035,7 +1036,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   }
 
   if (screen.kind === 'klasse') {
-    return rahmen(<KlasseSeite aktion={aktion} aufgabe={<KlassenAufgabeBox stand={stand} />} />);
+    return rahmen(<KlasseSeite aktion={aktion} aufgabe={<KlassenAufgabeBox stand={stand} />} dorf={<DorfBox aktion={aktion} stand={stand} setStand={setStand} />} />);
   }
 
   if (screen.kind === 'wiederholen') {
