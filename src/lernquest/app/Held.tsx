@@ -619,7 +619,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
             </span>
             {CHANCEN.map((c, i) => (
               <span key={i} className={t && inhalt && phase === 'da' && inhalt.seltenheit === i ? 'an' : ''}>
-                <b>{c} %</b>
+                <b>{c.toLocaleString('de-DE')} %</b>
                 <small>{SELTENHEITEN[i].kurz}</small>
               </span>
             ))}
