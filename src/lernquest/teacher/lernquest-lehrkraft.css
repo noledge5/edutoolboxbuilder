@@ -607,8 +607,36 @@
   position: absolute;
   left: 8mm;
   bottom: 6mm;
-  font-size: 9pt;
+  font-size: 16pt;
+  font-weight: 700;
   color: var(--color-neutral-700);
+}
+/* Class list for the teacher: card number and name, two columns on one page. */
+.lqt-sheet.lqt-karten-liste {
+  display: block;
+}
+.lqt-karten-liste h1 {
+  font-size: 16pt;
+  margin: 0 0 8mm;
+}
+.lqt-karten-liste ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  column-gap: 12mm;
+  font-size: 13pt;
+}
+.lqt-karten-liste li {
+  display: flex;
+  gap: 4mm;
+  padding: 2mm 0;
+  border-bottom: 0.2mm solid var(--color-neutral-500);
+  break-inside: avoid;
+}
+.lqt-karten-liste li b {
+  width: 10mm;
+  text-align: right;
 }
 
 /* — Kartenfrage: question on the left (for the projector), camera and cards on the right — */
