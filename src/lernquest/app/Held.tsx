@@ -657,7 +657,7 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
 
 // — The class —
 
-export function KlasseSeite({ aktion, aufgabe }: { aktion: Aktion; aufgabe?: React.ReactNode }) {
+export function KlasseSeite({ aktion, aufgabe, dorf }: { aktion: Aktion; aufgabe?: React.ReactNode; dorf?: React.ReactNode }) {
   const [ansicht, setAnsicht] = useState<KlasseAnsicht | null>(null);
   const [msg, setMsg] = useState('');
   const [laedt, setLaedt] = useState(true);
@@ -690,6 +690,7 @@ export function KlasseSeite({ aktion, aufgabe }: { aktion: Aktion; aufgabe?: Rea
             <span>{ansicht.tage === 1 ? 'Lerntag' : 'Lerntage'} habt ihr diese Woche zusammen geschafft.</span>
           </div>
           {aufgabe}
+          {dorf}
           {ansicht.kinder.length ? (
             <ul className="lq-helden">
               {ansicht.kinder.map((k, i) => (

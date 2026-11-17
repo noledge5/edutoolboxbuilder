@@ -1,4 +1,4 @@
-# Idee: Klassendorf (Stand 13.11.2026, noch nicht entschieden)
+# Idee: Klassendorf (Stand 13.11.2026; Stufe 1 entschieden und gebaut, Rest offen)
 
 Idee der Lehrkraft: Jede Klasse hat ein Dorf. Jedes Kind hat dort ein eigenes Haus, die Kinder besuchen sich, und
 von ihren Münzen kaufen sie Dinge für das ganze Dorf. Ziel: Es soll sich lohnen und cool sein, für die Klasse
@@ -61,6 +61,10 @@ auszugeben, statt nur für den eigenen Helden. Unten Vorschläge zum Auswählen;
 - Häuser, Möbel und Gebäude als Vektor-Code wie die Figuren (Skill `figur`), Werkstatt zum Prüfen.
 - Erst planen (Skill `aufgabe`), in Stufen bauen: 1. Dorfkasse mit einem Projekt und Stifterplakette,
   2. eigenes Haus und Besuche, 3. Einrichten, Abstimmen, Ereignisse.
+
+## Entschieden (13.11.2026)
+- Zuerst Stufe 1 „Dorfkasse“ (gebaut, siehe docs/roadmap.md). Bürgermeister-Bonus 1,5-fach, kein Zuschuss der
+  Lehrkraft. Deckel 200 Münzen je Kind und Woche. Echte Belohnung: ja, frei als Text je Projekt.
 
 ## Offen zur Entscheidung (Lehrkraft)
 - Welche Teile davon? Reihenfolge? Bürgermeister-Bonus oder Zuschuss der Lehrkraft? Deckel je Woche wie hoch?

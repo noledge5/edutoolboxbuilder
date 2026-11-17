@@ -3942,11 +3942,13 @@ button.lq-teil:active {
   display: grid;
   gap: var(--lq-a-2);
 }
-.lq-klassenaufgabe .lq-balken {
+.lq-klassenaufgabe .lq-balken,
+.lq-dorf .lq-balken {
   height: 14px;
   background: var(--lq-linie);
 }
-.lq-klassenaufgabe .lq-balken > span {
+.lq-klassenaufgabe .lq-balken > span,
+.lq-dorf .lq-balken > span {
   background: var(--lq-gold);
 }
 .lq-willkommen {
@@ -4259,4 +4261,52 @@ button.lq-teil:active {
   display: inline-flex;
   align-items: center;
   gap: var(--lq-a-2);
+}
+
+/* Klassendorf (Stufe 1 „Dorfkasse“) on the class page. */
+.lq-dorf h3 {
+  margin: 0;
+  font: inherit;
+  font-size: var(--lq-t-gross);
+  font-weight: 800;
+}
+.lq-dorf-bild {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--lq-r-klein);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+}
+.lq-dorf-projekt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-2);
+}
+.lq-dorf-knoepfe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lq-a-2);
+}
+.lq-dorf-knoepfe .lq-knopf {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lq-a-1);
+}
+.lq-dorf-fertig {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-2);
+}
+.lq-dorf-fertig li {
+  display: flex;
+  flex-direction: column;
+  padding: var(--lq-a-2) var(--lq-a-3);
+  border-radius: var(--lq-r-klein);
+  background: var(--lq-grund);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
 }

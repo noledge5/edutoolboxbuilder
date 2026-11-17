@@ -202,20 +202,49 @@ export const gemischt = <T>(xs: T[], seed: string) => shuffle(xs, seeded(seed));
 export const XP_TAG = 300;
 
 /**
- * A repetition gives a third of experience and coins (rounded down): the „Wiederholen“ round (`stunde` empty) and a
- * station round done before (`geschafft`). As `lq_runde_melden`.
+ * The „Wiederholen“ round (`stunde` empty) gives a third of experience and coins (rounded down). As `lq_runde_melden`.
  */
 export const WIEDERHOLUNG_TEILER = 3;
 
-/** Whether this round is a repetition (see `WIEDERHOLUNG_TEILER`); asked before the round is counted. */
-export const istWiederholung = (bestwerte: Stand['bestwerte'], stunde: string, runde: number) =>
-  !stunde || geschafft(bestwerte[stunde]?.[runde]);
+/** A station round done before (`geschafft`) gives only this, however well (teacher 17.11.2026: no farming). */
+export const STATION_WDH_XP = 2;
+export const STATION_WDH_MUENZEN = 1;
 
-/** Experience for a round: 10, 2 per right answer, 5 more without mistakes, a third for a repetition; capped by what is left today. */
-export function xpFuerRunde(richtig: number, gesamt: number, heuteSchon = 0, wiederholung = false): number {
+/** What kind of repetition a round is: false (new), true („Wiederholen“, a third) or 'station' (fixed minimum). */
+export type Wiederholung = boolean | 'station';
+
+/** Whether this round is a repetition (see above); asked before the round is counted. */
+export const istWiederholung = (bestwerte: Stand['bestwerte'], stunde: string, runde: number): Wiederholung =>
+  !stunde ? true : geschafft(bestwerte[stunde]?.[runde]) ? 'station' : false;
+
+/** Experience for a round: 10, 2 per right answer, 5 more without mistakes, a third for „Wiederholen“, 2 for a station
+ *  done before; capped by what is left today. */
+export function xpFuerRunde(richtig: number, gesamt: number, heuteSchon = 0, wiederholung: Wiederholung = false): number {
   let roh = 10 + 2 * richtig + (richtig === gesamt ? 5 : 0);
-  if (wiederholung) roh = Math.floor(roh / WIEDERHOLUNG_TEILER);
+  if (wiederholung === 'station') roh = STATION_WDH_XP;
+  else if (wiederholung) roh = Math.floor(roh / WIEDERHOLUNG_TEILER);
   return Math.max(0, Math.min(roh, XP_TAG - heuteSchon));
+}
+
+// — Learning time per day (teacher 17.11.2026) —
+
+/** Minutes of rounds per day unless the teacher sets another limit for the class (or none). */
+export const ZEIT_LIMIT_STANDARD = 45;
+/** A round counts at most this long (a device left lying), and this long when an old app does not say. */
+export const RUNDE_SEKUNDEN_MAX = 900;
+export const RUNDE_SEKUNDEN_OHNE = 120;
+
+/** The seconds a round counts for the daily limit. As `lq_runde_melden`. */
+export const rundeSekunden = (s: number | null | undefined) =>
+  s == null || !Number.isFinite(s) ? RUNDE_SEKUNDEN_OHNE : Math.max(0, Math.min(RUNDE_SEKUNDEN_MAX, Math.round(s)));
+
+/** Seconds of rounds today. */
+export const zeitHeute = (s: Pick<Stand, 'zeit'>, tag: string) => (s.zeit?.tag === tag ? s.zeit.sekunden : 0);
+
+/** Seconds left today, or null without a limit. A round may start while some are left (it is finished in any case). */
+export function zeitUebrig(s: Pick<Stand, 'zeit'>, tag: string): number | null {
+  const limit = s.zeit ? s.zeit.limit : ZEIT_LIMIT_STANDARD;
+  return limit == null ? null : Math.max(0, limit * 60 - zeitHeute(s, tag));
 }
 
 /** Experience needed to go from level `n` to `n + 1`: 100, 150, 200 … */
@@ -469,13 +498,15 @@ export const MUENZEN_TAG = 200;
 
 /**
  * Coins for a round: 5, 1 per right answer, 2 per heart left (every mistake costs a heart; empty hearts end nothing),
- * then the bonus percent (rounded down), a third of it for a repetition; capped by what is left today. As `lq_runde_melden`.
+ * then the bonus percent (rounded down), a third of it for „Wiederholen“, 1 for a station done before; capped by what
+ * is left today. As `lq_runde_melden`.
  */
-export function muenzenFuerRunde(richtig: number, gesamt: number, herzen: number, bonusProzent: number, heuteSchon = 0, wiederholung = false): number {
+export function muenzenFuerRunde(richtig: number, gesamt: number, herzen: number, bonusProzent: number, heuteSchon = 0, wiederholung: Wiederholung = false): number {
   const uebrig = Math.max(0, herzen - (gesamt - richtig));
   let roh = 5 + richtig + 2 * uebrig;
   roh += Math.floor((roh * bonusProzent) / 100);
-  if (wiederholung) roh = Math.floor(roh / WIEDERHOLUNG_TEILER);
+  if (wiederholung === 'station') roh = STATION_WDH_MUENZEN;
+  else if (wiederholung) roh = Math.floor(roh / WIEDERHOLUNG_TEILER);
   return Math.max(0, Math.min(roh, MUENZEN_TAG - heuteSchon));
 }
 
@@ -507,16 +538,17 @@ export function neueSterne(gezaehlt: number | undefined, vorher: number, jetzt: 
  */
 export function rundeAnwenden(
   s: Stand,
-  m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner'] },
+  m: { stunde: string; runde: number; richtig: number; gesamt: number; leitner: Stand['leitner']; sekunden?: number },
   tag = heute(),
   k: RundenKontext = { herzen: 3, bonusProzent: 0, stufen: [] },
 ): { plus: number; muenzenPlus: number; truhenPlus: number; punktePlus: number; sternePlus: number; aufgabenPlus: number; aufgabenNeu: string[]; wiederholung: boolean; stand: Stand; klassenGeschafft: boolean } {
   const neuerTag = !s.tage.includes(tag);
-  const wiederholung = istWiederholung(s.bestwerte, m.stunde, m.runde);
+  const art = istWiederholung(s.bestwerte, m.stunde, m.runde);
+  const wiederholung = !!art;
   const schon = neuerTag ? 0 : s.xpHeute;
-  const plus = xpFuerRunde(m.richtig, m.gesamt, schon, wiederholung);
+  const plus = xpFuerRunde(m.richtig, m.gesamt, schon, art);
   const mSchon = neuerTag ? 0 : s.muenzenHeute;
-  const muenzenPlus = muenzenFuerRunde(m.richtig, m.gesamt, k.herzen, k.bonusProzent, mSchon, wiederholung);
+  const muenzenPlus = muenzenFuerRunde(m.richtig, m.gesamt, k.herzen, k.bonusProzent, mSchon, art);
   const bestwerte = { ...s.bestwerte };
   let truhenPlus = 0;
   let sternePlus = 0;
@@ -572,6 +604,7 @@ export function rundeAnwenden(
       sterneWoche: ka.sterneWoche,
       klassenAufgabe: ka.aufgabe,
       klassenTruhe: ka.truhe || (ka.aufgabe ? !!s.klassenTruhe : false),
+      zeit: { tag, sekunden: zeitHeute(s, tag) + rundeSekunden(m.sekunden), limit: s.zeit ? s.zeit.limit : ZEIT_LIMIT_STANDARD },
     },
     klassenGeschafft: ka.truhe,
   };

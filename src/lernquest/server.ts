@@ -4,6 +4,7 @@
 // 20261107_lernquest_boss.sql (Stufe 3) and 20261108_lernquest_belohnungen.sql (Stufe 4).
 import { SERVER } from '../share/server';
 import type { BossFrage } from './boss';
+import type { Dorf } from './dorf';
 import type { Avatar } from './teile';
 import { LEERER_STAND, type KlassenAufgabe, type Stand } from './types';
 
@@ -59,6 +60,7 @@ export function lqText(e: unknown): string {
     leer: 'Noch ist niemand beigetreten.',
     punkte: 'Dafür reichen deine Klassenpunkte noch nicht.',
     grenze: 'Für diese Woche ist die Grenze erreicht.',
+    zeit: 'Für heute ist deine Lernzeit um. Morgen geht es weiter!',
     gross: 'Das Lernpaket dieser Stunde ist zu groß für den Server. Nimm ein paar Bilder oder Pool-Aufgaben heraus.',
   };
   return texts[code] ?? `Der Server antwortet nicht wie erwartet (${code || String(e)}).`;
@@ -126,15 +128,16 @@ export interface RundeErgebnis {
   stand: Stand;
 }
 
-export async function rundeMelden(token: string, stunde: string, runde: number, richtig: number, gesamt: number, leitner: Stand['leitner']): Promise<RundeErgebnis> {
-  const r = await lq<Partial<RundeErgebnis>>('lq_runde_melden', {
-    p_token: token,
-    p_stunde: stunde,
-    p_runde: runde,
-    p_richtig: richtig,
-    p_gesamt: gesamt,
-    p_leitner: leitner,
-  });
+export async function rundeMelden(token: string, stunde: string, runde: number, richtig: number, gesamt: number, leitner: Stand['leitner'], sekunden?: number): Promise<RundeErgebnis> {
+  const args = { p_token: token, p_stunde: stunde, p_runde: runde, p_richtig: richtig, p_gesamt: gesamt, p_leitner: leitner };
+  let r: Partial<RundeErgebnis>;
+  try {
+    r = await lq<Partial<RundeErgebnis>>('lq_runde_melden', sekunden == null ? args : { ...args, p_sekunden: Math.round(sekunden) });
+  } catch (e) {
+    // A server before 20261201 does not know p_sekunden: the round is sent without its duration.
+    if (sekunden == null || !(e instanceof LqError) || !e.code.includes('lq_runde_melden')) throw e;
+    r = await lq<Partial<RundeErgebnis>>('lq_runde_melden', args);
+  }
   return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, aufgabenPlus: r.aufgabenPlus ?? 0, wiederholung: r.wiederholung, stand: voll(r.stand) };
 }
 
@@ -350,6 +353,8 @@ export interface KlasseInfo {
   extra?: unknown;
   /** Stufe D, Teil 2: stars per child for the class task (null = 3) and its state this week; missing before 20261125. */
   wochenZiel?: number | null;
+  /** Learning time per day in minutes; null: no limit; missing before 20261201 (then the standard). */
+  zeitLimit?: number | null;
   aufgabe?: KlassenAufgabe;
 }
 
@@ -466,6 +471,9 @@ export const teilAendern = (keys: string[], teil: string, name: string, aktiv: b
 /** Stars per child for the class task of the week (1–20), null for the default. */
 export const wochenzielSetzen = (keys: string[], klasse: string, ziel: number | null) =>
   lq<null>('lq_wochenziel_setzen', { p_schluessel: keys, p_klasse: klasse, p_ziel: ziel });
+/** Learning time per day in minutes (5–240), null for none. */
+export const zeitlimitSetzen = (keys: string[], klasse: string, minuten: number | null) =>
+  lq<null>('lq_zeitlimit_setzen', { p_schluessel: keys, p_klasse: klasse, p_minuten: minuten });
 export const wiederholenSetzen = (keys: string[], klasse: string, extra: { ab: string; bis: string; stunden: string[] } | null) =>
   lq<null>('lq_wiederholen_setzen', { p_schluessel: keys, p_klasse: klasse, p_extra: extra });
 
@@ -478,3 +486,22 @@ export const frisurAnlegen = (keys: string[], name: string, bilder: { typ: strin
   lq<string>('lq_frisur_anlegen', { p_schluessel: keys, p_name: name, p_bilder: bilder });
 /** Renames an own hairstyle (whether it is to be had: `teilEinstellen` on `frisur-<id>`). */
 export const frisurAendern = (keys: string[], frisur: string, name: string) => lq<null>('lq_frisur_aendern', { p_schluessel: keys, p_frisur: frisur, p_name: name });
+
+// — Klassendorf, Stufe 1 „Dorfkasse“ (20261130_lernquest_dorf.sql) —
+
+/** The village of the own class, with the own donations of this week. */
+export const dorf = (token: string) => lq<Dorf>('lq_dorf', { p_token: token });
+/** Donates coins to the running project; the server takes no more than the week, the project and the child allow.
+ *  Refusals 'ungueltig', 'muenzen', 'grenze'. */
+export const spenden = async (token: string, muenzen: number) => {
+  const r = await lq<{ dorf: Dorf; stand: Partial<Stand> }>('lq_spenden', { p_token: token, p_muenzen: muenzen });
+  return { dorf: r.dorf, stand: voll(r.stand) };
+};
+
+export const dorfLehrkraft = (keys: string[], klasse: string) => lq<Dorf>('lq_dorf_lehrkraft', { p_schluessel: keys, p_klasse: klasse });
+export const dorfSchalten = (keys: string[], klasse: string, an: boolean) => lq<Dorf>('lq_dorf_schalten', { p_schluessel: keys, p_klasse: klasse, p_an: an });
+/** Starts a project; 'ungueltig' while one runs or when the building already stands. */
+export const dorfProjektStarten = (keys: string[], klasse: string, gebaeude: string, ziel: number, belohnung: string) =>
+  lq<Dorf>('lq_dorf_projekt_starten', { p_schluessel: keys, p_klasse: klasse, p_gebaeude: gebaeude, p_ziel: ziel, p_belohnung: belohnung });
+/** Deletes the running project; every child gets the donated coins back. */
+export const dorfProjektLoeschen = (keys: string[], klasse: string) => lq<Dorf>('lq_dorf_projekt_loeschen', { p_schluessel: keys, p_klasse: klasse });

@@ -17,7 +17,7 @@ import { readSchoolYear } from './read';
 import { SUBJECT_COLORS, subjectColor, subjectVars, swatch } from './subjectColor';
 import { BW_2026_27, holidaysText } from './yearplan';
 import { GRADES } from './types';
-import { SperreEinstellung, useSperre } from '../sperre/Sperre';
+import { SperreEinstellung, useSperre } from '../sperre/SperreRahmen';
 
 interface OverviewProps {
   lib: Library;

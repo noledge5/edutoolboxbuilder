@@ -9,6 +9,7 @@ import { FigurBild } from '../figuren/Figur';
 import { beitrittsLink } from '../karte';
 import { loadLehrkraft } from '../lehrkraft';
 import { BOSS_HERZEN, BOSS_ZEIT_MS, PUNKTE_BOSS } from '../rules';
+import { musikAn, musikStarten, musikStoppen, setzeMusik, wecken } from './musik';
 import { bossAntworten, bossBeamer, bossBeenden, bossStand, bossWeiter, LqError, lqText, type BossBeamerStand, type BossKindStand, type BossStand } from '../server';
 import { QrBild } from './QrBild';
 import { ton } from './ton';
@@ -210,6 +211,25 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
   }, [keys, id]);
   useTakt(holen, TAKT_MS, !!keys && !msg && s?.phase !== 'ende');
 
+  // Battle music while the fight runs (teacher 17.11.2026); off at the end, on leaving, or by the button.
+  const [musik, setMusik] = useState(musikAn);
+  const phase = s?.phase;
+  useEffect(() => {
+    if (musik && phase && phase !== 'ende') musikStarten();
+    else musikStoppen();
+  }, [musik, phase]);
+  useEffect(() => {
+    // Browsers start audio only after an input on this page (it was opened from the teacher's page).
+    const w = () => wecken();
+    window.addEventListener('pointerdown', w);
+    window.addEventListener('keydown', w);
+    return () => {
+      window.removeEventListener('pointerdown', w);
+      window.removeEventListener('keydown', w);
+      musikStoppen();
+    };
+  }, []);
+
   const weiter = useCallback(async () => {
     if (!keys || busy) return;
     setBusy(true);
@@ -407,6 +427,19 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
           <div className="lq-platz" />
           {wackelt && <span className="lq-beamer-klein">Verbindung wackelt …</span>}
           {msg && <span className="lq-beamer-klein">{msg}</span>}
+          {s.phase !== 'ende' && (
+            <button
+              type="button"
+              className="lq-knopf lq-nacht-knopf"
+              aria-pressed={musik}
+              onClick={() => {
+                setzeMusik(!musik);
+                setMusik(!musik);
+              }}
+            >
+              {musik ? 'Musik aus' : 'Musik an'}
+            </button>
+          )}
           {s.phase !== 'ende' ? (
             <>
               <button type="button" className="lq-knopf lq-nacht-knopf" onClick={() => void beenden()}>

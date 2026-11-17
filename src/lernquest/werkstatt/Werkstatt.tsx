@@ -4,9 +4,10 @@
 // #avatar (build a hero from every part), #karte (the pieces of the map landscape), #bogen (everything at once, also for screenshots), #vorlage (the teacher's mockup).
 import { useEffect, useState } from 'react';
 import { FIGUREN, FigurBild, GELAENDE as GELAENDE_BASIS, HELD, ITEMS, ItemBild } from '../figuren';
+import { DORF_TEILE } from '../figuren/dorf';
 import { WELT_TEILE } from '../figuren/welten';
 
-const GELAENDE = [...GELAENDE_BASIS, ...WELT_TEILE];
+const GELAENDE = [...GELAENDE_BASIS, ...WELT_TEILE, ...DORF_TEILE];
 import type { GelaendeTeil } from '../figuren';
 import type { Item } from '../figuren';
 import { SELTENHEITEN } from '../teile';

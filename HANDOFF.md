@@ -1,4 +1,4 @@
-# Handoff – 13.11.2026 (Extra-Pakete in allen Lehrkraft-Ansichten; nächster Schritt „Frage melden“)
+# Handoff – 17.11.2026 (Klassendorf, Lernzeit, Kampfmusik gebaut; zwei Migrationen warten auf Freigabe)
 
 ## Ziel
 Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von oben nach unten.
@@ -32,8 +32,11 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
    eine Migration (Freigabe der Lehrkraft in ihrer App); erst planen (Skill `aufgabe`) und Plan zeigen.
 4. **Lehrkraft-Bereich in der Lernquest-App** für den Bosskampf mit Karten (heute scannt der Baukasten). Erst planen.
 5. Kleinkram: `docs/kritik-und-plan.md` an den überholten Stellen nachziehen (Hinweis in `docs/roadmap.md`).
-6. **Klassendorf** (Idee der Lehrkraft, `docs/idee-klassendorf.md`): Lehrkraft wählt Teile und beantwortet die offenen
-   Fragen dort; dann Stufe 1 (Dorfkasse mit einem Projekt, Stifterplakette) planen (Skill `aufgabe`), braucht Migrationen.
+6. **Branch `claude/happy-pascal-p3h9wu`, noch nicht gemergt:** Klassendorf Stufe 1, Lernzeit je Tag (45 Minuten),
+   minimale Belohnung für wiederholte Stationen, Kampfmusik am Beamer. Tests grün. Migrationen
+   `20261130_lernquest_dorf.sql` und `20261201_lernquest_lernzeit.sql` sind NICHT live (Freigabe der Lehrkraft in
+   ihrer App). Erst beide einspielen, dann mergen: Die neue App schickt `p_sekunden`, die alte Server-Funktion kennt es
+   nicht. Danach Klassendorf Stufe 2 (eigenes Haus, Besuche) planen.
 7. Offen zur Entscheidung: Fremde können auf ihrem Gerät leere Klassen auf dem Server anlegen (bis 40 je Schlüssel,
    Schlüssel beliebig neu). Keine Daten in Gefahr, aber Datenmüll möglich; Abhilfe bräuchte eine Migration.
 
@@ -45,4 +48,10 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
   `/var/lib/postgresql/`, nicht im Scratchpad); vor den Migrationen Ersatz für `auth` (`uid()`, `role()`), `extensions`
   (pgcrypto), `cron.schedule`/`cron.unschedule` und Rollen `anon`, `authenticated`, `service_role` anlegen.
 - Supabase-Migrationen brauchen eine Bestätigung der Lehrkraft in ihrer App (sonst Abbruch nach ~4 Minuten).
+- Auf dem Windows-Rechner der Lehrkraft gibt es kein Postgres: Migrationen dort mit PGlite prüfen (`@electric-sql/pglite`
+  mit `pgcrypto` im Scratchpad installieren, dieselben Ersatz-Schemata, alle Dateien aus `supabase/migrations` der Reihe
+  nach laden). So wurde das Klassendorf am 13.11. geprüft (Regeln per SQL und im Browser gegen einen kleinen
+  RPC-Server; `.env.spieltest.local` mit `VITE_SERVER_URL` zeigt die App dorthin).
+- Windows unterscheidet keine Groß- und Kleinschreibung: nie zwei Dateien, die sich nur darin unterscheiden
+  (`Sperre.tsx` neben `sperre.ts` ließ die App dort nicht starten; heißt jetzt `SperreRahmen.tsx`).
 - App im Browser prüfen: `npm run spieltest`, Daten aus `scripts/spieltest-daten.js` in die Konsole, Helfer `scripts/spieltest-helfer.js`.

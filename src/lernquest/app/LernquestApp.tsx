@@ -9,6 +9,8 @@ import { beamerAusHash, codeAus, faecherVon, fuchsHinweis, MEILENSTEIN_GROESSE, 
 import {
   heldenstufe,
   heute,
+  zeitUebrig,
+  ZEIT_LIMIT_STANDARD,
   karteKey,
   naechsteRunde,
   rundeAnwenden,
@@ -47,6 +49,7 @@ import { Jubel } from './Jubel';
 import { GluehbirneIcon, HilfeSeite } from './Hilfe';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
 import { useZurueck } from './zurueck';
+import { DorfBox } from './Dorf';
 import { GutscheineSeite, TicketIcon } from './Gutscheine';
 import { ProbeApp } from './Probe';
 import { gemischterTest, probeAusUrl } from '../probe';
@@ -69,6 +72,8 @@ export type Screen =
   | { kind: 'gutscheine' }
   | { kind: 'truhe'; zurueck: 'held' | 'karte' }
   | { kind: 'klasse' }
+  /** The day's learning time is over (teacher 17.11.2026). */
+  | { kind: 'zeitAus' }
   /** Stufe E, Teil 5: today's tasks and the week (week goal, class task). */
   | { kind: 'aufgaben'; ansicht: 'heute' | 'woche' }
   | { kind: 'boss'; id: string }
@@ -421,11 +426,16 @@ interface SpielProps {
 }
 
 function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
-  const [screen, setScreen] = useState<Screen>({ kind: 'karte' });
+  const [screen, setScreenRoh] = useState<Screen>({ kind: 'karte' });
   const [offline, setOffline] = useState(false);
   const [fach, setFach] = useState('');
   const datenRef = useRef(daten);
   datenRef.current = daten;
+  /** Every new round passes here: after the day's learning time none starts (the welcome round always does). */
+  const setScreen = useCallback((s: Screen) => {
+    const d = datenRef.current;
+    setScreenRoh(s.kind === 'runde' && !s.willkommen && d && zeitUebrig(d.stand, heute()) === 0 ? { kind: 'zeitAus' } : s);
+  }, []);
 
   const store = useCallback(
     (d: Daten) => {
@@ -464,14 +474,15 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     while (queue.length) {
       const m = queue[0];
       try {
-        const r = await rundeMelden(sitzung.token, m.stunde, m.runde, m.richtig, m.gesamt, m.leitner);
+        const r = await rundeMelden(sitzung.token, m.stunde, m.runde, m.richtig, m.gesamt, m.leitner, m.sekunden);
         queue = queue.slice(1);
         speichereWarteschlange(queue);
         const d = datenRef.current;
         if (!queue.length && d) store({ ...d, stand: r.stand });
       } catch (e) {
-        // A round of a lesson locked meanwhile: the server refuses it, it is dropped.
-        if (e instanceof LqError && e.code === 'ungueltig') {
+        // A round of a lesson locked meanwhile, or after the day's learning time (played on a second device): the
+        // server refuses it, it is dropped.
+        if (e instanceof LqError && (e.code === 'ungueltig' || e.code === 'zeit')) {
           queue = queue.slice(1);
           speichereWarteschlange(queue);
           continue;
@@ -617,6 +628,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       richtig: ergebnisse.filter(Boolean).length,
       gesamt: ergebnisse.length,
       leitner,
+      // The round started at `nr` (Date.now()); counted for the day's learning time.
+      ...(screen.kind === 'runde' ? { sekunden: (Date.now() - screen.nr) / 1000 } : {}),
     };
     const paket = daten.pakete[stunde];
     const vorher = paket ? sterneVon(stand, paket) : 0;
@@ -1034,8 +1047,21 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     );
   }
 
+  if (screen.kind === 'zeitAus') {
+    const limit = stand.zeit ? stand.zeit.limit : ZEIT_LIMIT_STANDARD;
+    return rahmen(
+      <section className="lq-box lq-zeit-aus" role="status">
+        <h1 className="lq-seitentitel">Für heute ist Schluss</h1>
+        <p>Du hast heute {limit} Minuten gelernt. Super! Morgen geht es weiter. Deinen Helden und deine Klasse kannst du dir weiter ansehen.</p>
+        <button type="button" className="lq-knopf" onClick={() => setScreen({ kind: 'karte' })}>
+          Zur Karte
+        </button>
+      </section>,
+    );
+  }
+
   if (screen.kind === 'klasse') {
-    return rahmen(<KlasseSeite aktion={aktion} aufgabe={<KlassenAufgabeBox stand={stand} />} />);
+    return rahmen(<KlasseSeite aktion={aktion} aufgabe={<KlassenAufgabeBox stand={stand} />} dorf={<DorfBox aktion={aktion} stand={stand} setStand={setStand} />} />);
   }
 
   if (screen.kind === 'wiederholen') {
