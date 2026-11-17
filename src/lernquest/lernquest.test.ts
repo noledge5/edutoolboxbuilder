@@ -4,7 +4,7 @@ import { angelegt, bonusText, bonusVon, ladenWare, SCHADEN_MAX, CHANCEN, DOPPELT
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import { klassenNach, klassenZiel, KLASSEN_ZIEL_JE_KIND, aufgabenNach, aufgabenVon, AUFGABE_MUENZEN, AUFGABEN_BONUS, ladenAb, TAGESAUFGABEN, tagPlus, niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
+import { klassenNach, klassenZiel, KLASSEN_ZIEL_JE_KIND, aufgabenNach, aufgabenVon, AUFGABE_MUENZEN, AUFGABEN_BONUS, ladenAb, TAGESAUFGABEN, tagPlus, niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, STATION_WDH_XP, STATION_WDH_MUENZEN, MUENZEN_TAG, rundeSekunden, zeitUebrig, ZEIT_LIMIT_STANDARD, RUNDE_SEKUNDEN_MAX, RUNDE_SEKUNDEN_OHNE, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
 import { beamerAusHash, beitrittsLink, codeAus, fuchsHinweis, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
@@ -241,8 +241,8 @@ describe('Runde auf dem Gerät', () => {
     expect(r.plus).toBe(10);
     expect(r.stand).toMatchObject({ xp: 50, xpHeute: 300, bestwerte: { s1: [60, 100] }, tage: ['2026-11-06'], leitner: { 'a/1': [1, 5], 'a/2': [2, 9] } });
     const next = rundeAnwenden(r.stand, { stunde: 's1', runde: 0, richtig: 1, gesamt: 5, leitner: {} }, '2026-11-07');
-    // Round 0 was done before (60 %): a repetition, a third of 12.
-    expect(next).toMatchObject({ plus: 4, wiederholung: true, stand: { xpHeute: 4, bestwerte: { s1: [60, 100] }, tage: ['2026-11-06', '2026-11-07'] } });
+    // Round 0 was done before (60 %): a station repeated, only the minimum.
+    expect(next).toMatchObject({ plus: STATION_WDH_XP, wiederholung: true, stand: { xpHeute: STATION_WDH_XP, bestwerte: { s1: [60, 100] }, tage: ['2026-11-06', '2026-11-07'] } });
   });
 
   it('gibt Münzen mit Herzen und Bonus, gedeckelt am Tag', () => {
@@ -265,7 +265,7 @@ describe('Runde auf dem Gerät', () => {
     // What counts: „Wiederholen“, or a station round done (from 60 %) before this round.
     expect(istWiederholung({}, '', 0)).toBe(true);
     expect(istWiederholung({ s1: [59] }, 's1', 0)).toBe(false);
-    expect(istWiederholung({ s1: [60, 0] }, 's1', 0)).toBe(true);
+    expect(istWiederholung({ s1: [60, 0] }, 's1', 0)).toBe('station');
     expect(istWiederholung({ s1: [60, 0] }, 's1', 1)).toBe(false);
     expect(istWiederholung({ s1: [60] }, 's1', 2)).toBe(false);
     expect(istWiederholung({}, 's1', 0)).toBe(false);
@@ -273,18 +273,47 @@ describe('Runde auf dem Gerät', () => {
     const s0 = { ...LEERER_STAND, tage: ['2026-11-09'] };
     const erst = rundeAnwenden(s0, { stunde: 's1', runde: 0, richtig: 4, gesamt: 5, leitner: {} }, '2026-11-09', k);
     expect(erst).toMatchObject({ plus: 18, muenzenPlus: 13, wiederholung: false });
-    // Played again: a third, but a better best still counts and brings its star.
+    // Played again: only the fixed minimum, but a better best still counts and brings its star.
     const noch = rundeAnwenden(erst.stand, { stunde: 's1', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-09', k);
-    expect(noch).toMatchObject({ plus: 8, muenzenPlus: 5, wiederholung: true, stand: { bestwerte: { s1: [100] } } });
+    expect(noch).toMatchObject({ plus: STATION_WDH_XP, muenzenPlus: STATION_WDH_MUENZEN, wiederholung: true, stand: { bestwerte: { s1: [100] } } });
     const wdh = rundeAnwenden(noch.stand, { stunde: '', runde: 0, richtig: 5, gesamt: 5, leitner: {} }, '2026-11-09', k);
     expect(wdh).toMatchObject({ plus: 8, muenzenPlus: 5, wiederholung: true });
   });
 
-  it('rechnet Wiederholungen wie der Server (lq_runde_melden)', () => {
-    const sql = readFileSync(new URL('../../supabase/migrations/20261123_lernquest_stufen.sql', import.meta.url), 'utf8');
+  it('gibt für eine schon geschaffte Station nur das Minimum, egal wie gut', () => {
+    expect(xpFuerRunde(5, 5, 0, 'station')).toBe(STATION_WDH_XP);
+    expect(xpFuerRunde(0, 5, 0, 'station')).toBe(STATION_WDH_XP);
+    expect(xpFuerRunde(5, 5, XP_TAG, 'station')).toBe(0);
+    expect(muenzenFuerRunde(5, 5, 5, 50, 0, 'station')).toBe(STATION_WDH_MUENZEN);
+    expect(muenzenFuerRunde(5, 5, 3, 0, MUENZEN_TAG, 'station')).toBe(0);
+  });
+
+  it('zählt die Lernzeit des Tages und hält Runden nach dem Limit an', () => {
+    expect(rundeSekunden(95.4)).toBe(95);
+    expect(rundeSekunden(5000)).toBe(RUNDE_SEKUNDEN_MAX);
+    expect(rundeSekunden(-3)).toBe(0);
+    expect(rundeSekunden(undefined)).toBe(RUNDE_SEKUNDEN_OHNE);
+    // Without a word from the server (older Spielstand): the standard limit.
+    expect(zeitUebrig(LEERER_STAND, '2026-11-17')).toBe(ZEIT_LIMIT_STANDARD * 60);
+    expect(zeitUebrig({ zeit: { tag: '2026-11-17', sekunden: 600, limit: 30 } }, '2026-11-17')).toBe(1200);
+    expect(zeitUebrig({ zeit: { tag: '2026-11-17', sekunden: 4000, limit: 30 } }, '2026-11-17')).toBe(0);
+    // A new day starts at zero; no limit: null.
+    expect(zeitUebrig({ zeit: { tag: '2026-11-16', sekunden: 4000, limit: 30 } }, '2026-11-17')).toBe(1800);
+    expect(zeitUebrig({ zeit: { tag: '2026-11-17', sekunden: 4000, limit: null } }, '2026-11-17')).toBeNull();
+    const k = { herzen: 3, bonusProzent: 0, stufen: [1] };
+    const a = rundeAnwenden({ ...LEERER_STAND, zeit: { tag: '2026-11-16', sekunden: 900, limit: 20 } }, { stunde: 's1', runde: 0, richtig: 3, gesamt: 5, leitner: {}, sekunden: 130 }, '2026-11-17', k);
+    expect(a.stand.zeit).toEqual({ tag: '2026-11-17', sekunden: 130, limit: 20 });
+    const b = rundeAnwenden(a.stand, { stunde: 's1', runde: 0, richtig: 3, gesamt: 5, leitner: {} }, '2026-11-17', k);
+    expect(b.stand.zeit?.sekunden).toBe(130 + RUNDE_SEKUNDEN_OHNE);
+  });
+
+  it('rechnet Wiederholungen und Lernzeit wie der Server (lq_runde_melden)', () => {
+    const sql = readFileSync(new URL('../../supabase/migrations/20261201_lernquest_lernzeit.sql', import.meta.url), 'utf8');
     expect(sql).toContain(`wdh := p_stunde = '' or coalesce((k.daten -> 'bestwerte' -> p_stunde ->> p_runde)::int, 0) >= ${GESCHAFFT_AB};`);
-    expect(sql).toContain(`if wdh then plus := plus / ${WIEDERHOLUNG_TEILER}; end if;`);
-    expect(sql).toContain(`if wdh then m_roh := m_roh / ${WIEDERHOLUNG_TEILER}; end if;`);
+    expect(sql).toContain(`if p_stunde = '' then plus := plus / ${WIEDERHOLUNG_TEILER}; elsif wdh then plus := ${STATION_WDH_XP}; end if;`);
+    expect(sql).toContain(`if p_stunde = '' then m_roh := m_roh / ${WIEDERHOLUNG_TEILER}; elsif wdh then m_roh := ${STATION_WDH_MUENZEN}; end if;`);
+    expect(sql).toContain(`default ${ZEIT_LIMIT_STANDARD}`);
+    expect(sql).toContain(`least(${RUNDE_SEKUNDEN_MAX}, greatest(0, coalesce(p_sekunden, ${RUNDE_SEKUNDEN_OHNE})))`);
     // Order as in rules.ts: experience third before the daily cap; coins bonus, then third, then the daily cap.
     expect(sql.indexOf('plus := plus / 3')).toBeLessThan(sql.indexOf('plus := least(plus, greatest(0, 300 - schon))'));
     expect(sql.indexOf('(m_roh * b.muenzen) / 100')).toBeLessThan(sql.indexOf('m_roh := m_roh / 3'));

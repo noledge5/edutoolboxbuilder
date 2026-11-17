@@ -10,6 +10,7 @@ import { SearchButton } from '../../library/SearchDialog';
 import type { ExtraPaket, Lesson, Library, Module } from '../../library/types';
 import { ExtraPakete, extraSenden } from './ExtraPakete';
 import { KlassenDorf } from './KlassenDorf';
+import { Lernzeit } from './Lernzeit';
 import { classProfileOf } from '../../ai/classNotes';
 import { jsonOf } from '../../ai/client';
 import { runAi, useAiSettings } from '../../ai/useAi';
@@ -615,6 +616,8 @@ function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse,
       <Auswertung lib={lib} klasse={klasse} />
 
       <KlassenAufgabe klasse={klasse} busy={busy} act={act} />
+
+      <Lernzeit klasse={klasse} busy={busy} act={act} />
 
       <KlassenDorf klasse={klasse} keys={keys} busy={busy} act={act} />
 

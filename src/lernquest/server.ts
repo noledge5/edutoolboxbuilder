@@ -60,6 +60,7 @@ export function lqText(e: unknown): string {
     leer: 'Noch ist niemand beigetreten.',
     punkte: 'Dafür reichen deine Klassenpunkte noch nicht.',
     grenze: 'Für diese Woche ist die Grenze erreicht.',
+    zeit: 'Für heute ist deine Lernzeit um. Morgen geht es weiter!',
     gross: 'Das Lernpaket dieser Stunde ist zu groß für den Server. Nimm ein paar Bilder oder Pool-Aufgaben heraus.',
   };
   return texts[code] ?? `Der Server antwortet nicht wie erwartet (${code || String(e)}).`;
@@ -127,7 +128,7 @@ export interface RundeErgebnis {
   stand: Stand;
 }
 
-export async function rundeMelden(token: string, stunde: string, runde: number, richtig: number, gesamt: number, leitner: Stand['leitner']): Promise<RundeErgebnis> {
+export async function rundeMelden(token: string, stunde: string, runde: number, richtig: number, gesamt: number, leitner: Stand['leitner'], sekunden?: number): Promise<RundeErgebnis> {
   const r = await lq<Partial<RundeErgebnis>>('lq_runde_melden', {
     p_token: token,
     p_stunde: stunde,
@@ -135,6 +136,7 @@ export async function rundeMelden(token: string, stunde: string, runde: number, 
     p_richtig: richtig,
     p_gesamt: gesamt,
     p_leitner: leitner,
+    ...(sekunden == null ? {} : { p_sekunden: Math.round(sekunden) }),
   });
   return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, aufgabenPlus: r.aufgabenPlus ?? 0, wiederholung: r.wiederholung, stand: voll(r.stand) };
 }
@@ -351,6 +353,8 @@ export interface KlasseInfo {
   extra?: unknown;
   /** Stufe D, Teil 2: stars per child for the class task (null = 3) and its state this week; missing before 20261125. */
   wochenZiel?: number | null;
+  /** Learning time per day in minutes; null: no limit; missing before 20261201 (then the standard). */
+  zeitLimit?: number | null;
   aufgabe?: KlassenAufgabe;
 }
 
@@ -467,6 +471,9 @@ export const teilAendern = (keys: string[], teil: string, name: string, aktiv: b
 /** Stars per child for the class task of the week (1–20), null for the default. */
 export const wochenzielSetzen = (keys: string[], klasse: string, ziel: number | null) =>
   lq<null>('lq_wochenziel_setzen', { p_schluessel: keys, p_klasse: klasse, p_ziel: ziel });
+/** Learning time per day in minutes (5–240), null for none. */
+export const zeitlimitSetzen = (keys: string[], klasse: string, minuten: number | null) =>
+  lq<null>('lq_zeitlimit_setzen', { p_schluessel: keys, p_klasse: klasse, p_minuten: minuten });
 export const wiederholenSetzen = (keys: string[], klasse: string, extra: { ab: string; bis: string; stunden: string[] } | null) =>
   lq<null>('lq_wiederholen_setzen', { p_schluessel: keys, p_klasse: klasse, p_extra: extra });
 

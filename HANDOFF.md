@@ -1,4 +1,4 @@
-# Handoff – 13.11.2026 (Extra-Pakete in allen Lehrkraft-Ansichten; nächster Schritt „Frage melden“)
+# Handoff – 17.11.2026 (Klassendorf, Lernzeit, Kampfmusik gebaut; zwei Migrationen warten auf Freigabe)
 
 ## Ziel
 Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von oben nach unten.
@@ -32,9 +32,11 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
    eine Migration (Freigabe der Lehrkraft in ihrer App); erst planen (Skill `aufgabe`) und Plan zeigen.
 4. **Lehrkraft-Bereich in der Lernquest-App** für den Bosskampf mit Karten (heute scannt der Baukasten). Erst planen.
 5. Kleinkram: `docs/kritik-und-plan.md` an den überholten Stellen nachziehen (Hinweis in `docs/roadmap.md`).
-6. **Klassendorf Stufe 1 „Dorfkasse“** (Branch `claude/happy-pascal-p3h9wu`): Code fertig, Tests grün. Migration
-   `20261130_lernquest_dorf.sql` ist noch NICHT live (Freigabe der Lehrkraft in ihrer App). Erst Migration, dann mergen,
-   sonst zeigt die Lehrkraft-Seite einen Serverfehler beim Klassendorf. Danach Stufe 2 (eigenes Haus, Besuche) planen.
+6. **Branch `claude/happy-pascal-p3h9wu`, noch nicht gemergt:** Klassendorf Stufe 1, Lernzeit je Tag (45 Minuten),
+   minimale Belohnung für wiederholte Stationen, Kampfmusik am Beamer. Tests grün. Migrationen
+   `20261130_lernquest_dorf.sql` und `20261201_lernquest_lernzeit.sql` sind NICHT live (Freigabe der Lehrkraft in
+   ihrer App). Erst beide einspielen, dann mergen: Die neue App schickt `p_sekunden`, die alte Server-Funktion kennt es
+   nicht. Danach Klassendorf Stufe 2 (eigenes Haus, Besuche) planen.
 7. Offen zur Entscheidung: Fremde können auf ihrem Gerät leere Klassen auf dem Server anlegen (bis 40 je Schlüssel,
    Schlüssel beliebig neu). Keine Daten in Gefahr, aber Datenmüll möglich; Abhilfe bräuchte eine Migration.
 

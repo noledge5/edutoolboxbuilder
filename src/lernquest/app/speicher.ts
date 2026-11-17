@@ -30,6 +30,8 @@ export interface Meldung {
   richtig: number;
   gesamt: number;
   leitner: Stand['leitner'];
+  /** How long the round took (for the daily learning time); missing in rounds stored by an older app. */
+  sekunden?: number;
 }
 
 const K_SITZUNG = 'lernquest:sitzung';

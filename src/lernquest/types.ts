@@ -148,6 +148,8 @@ export interface Stand {
   klassenAufgabe?: KlassenAufgabe;
   klassenTruhe?: boolean;
   willkommen?: boolean;
+  /** Learning time today (seconds of rounds) and the class's limit in minutes (null: none). Missing before 20261201. */
+  zeit?: { tag: string; sekunden: number; limit: number | null };
 }
 
 /** Class task of the week (`lq_klassen_aufgabe`): new stars of all children together toward a shared goal. */
