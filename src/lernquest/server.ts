@@ -129,15 +129,15 @@ export interface RundeErgebnis {
 }
 
 export async function rundeMelden(token: string, stunde: string, runde: number, richtig: number, gesamt: number, leitner: Stand['leitner'], sekunden?: number): Promise<RundeErgebnis> {
-  const r = await lq<Partial<RundeErgebnis>>('lq_runde_melden', {
-    p_token: token,
-    p_stunde: stunde,
-    p_runde: runde,
-    p_richtig: richtig,
-    p_gesamt: gesamt,
-    p_leitner: leitner,
-    ...(sekunden == null ? {} : { p_sekunden: Math.round(sekunden) }),
-  });
+  const args = { p_token: token, p_stunde: stunde, p_runde: runde, p_richtig: richtig, p_gesamt: gesamt, p_leitner: leitner };
+  let r: Partial<RundeErgebnis>;
+  try {
+    r = await lq<Partial<RundeErgebnis>>('lq_runde_melden', sekunden == null ? args : { ...args, p_sekunden: Math.round(sekunden) });
+  } catch (e) {
+    // A server before 20261201 does not know p_sekunden: the round is sent without its duration.
+    if (sekunden == null || !(e instanceof LqError) || !e.code.includes('lq_runde_melden')) throw e;
+    r = await lq<Partial<RundeErgebnis>>('lq_runde_melden', args);
+  }
   return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, aufgabenPlus: r.aufgabenPlus ?? 0, wiederholung: r.wiederholung, stand: voll(r.stand) };
 }
 
