@@ -1,5 +1,8 @@
 // Answer cards to print (Kartenfrage without devices): two per A4 page, to cut apart. Each child holds its card up
 // with the chosen letter on top; the letters are small, so neighbours cannot read them from their seats.
+// The cards carry only a number (no name), so one set serves every class; the class list (number and name) prints
+// separately and stays with the teacher.
+import { useState } from 'react';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { Icon } from '../../icons';
 import { ANTWORTEN, zellen } from '../karten/code';
@@ -23,6 +26,7 @@ export interface KartenKind {
 }
 
 export function Antwortkarten({ titel, kinder, onClose }: { titel: string; kinder: KartenKind[]; onClose(): void }) {
+  const [liste, setListe] = useState(false);
   const pages: KartenKind[][] = [];
   for (let i = 0; i < kinder.length; i += 2) pages.push(kinder.slice(i, i + 2));
   return (
@@ -33,15 +37,33 @@ export function Antwortkarten({ titel, kinder, onClose }: { titel: string; kinde
         </button>
         <div className="topbar-name">
           <div className="topbar-title">Antwortkarten: {titel}</div>
-          <div className="topbar-place">Auf festes Papier drucken, in der Mitte durchschneiden. Jedes Kind behält seine Karte.</div>
+          <div className="topbar-place">
+            {liste ? 'Klassenliste: Nummer und Name. Bleibt bei der Lehrkraft.' : 'Auf festes Papier drucken, in der Mitte durchschneiden. Auf den Karten steht nur die Nummer.'}
+          </div>
         </div>
+        <button type="button" className="btn ui-btn" onClick={() => setListe(!liste)}>
+          {liste ? 'Karten zeigen' : 'Klassenliste zeigen'}
+        </button>
         <button type="button" className="btn btn-primary ui-btn" onClick={() => window.print()}>
           <Icon icon={Printer} />
           Drucken / PDF
         </button>
       </header>
       <main className="lqt-print-pages">
-        {pages.map((page, p) => (
+        {liste && (
+          <div className="lqt-sheet lqt-karten-liste">
+            <h1>Antwortkarten: {titel}</h1>
+            <ol>
+              {kinder.map((k) => (
+                <li key={k.nummer}>
+                  <b>{k.nummer}</b>
+                  {k.name}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+        {!liste && pages.map((page, p) => (
           <div key={p} className="lqt-sheet lqt-karten-blatt">
             {page.map((k) => (
               <div key={k.nummer} className="lqt-antwortkarte">
@@ -51,9 +73,7 @@ export function Antwortkarten({ titel, kinder, onClose }: { titel: string; kinde
                     {a}
                   </span>
                 ))}
-                <span className="lqt-antwortkarte-name">
-                  {k.nummer} · {k.name}
-                </span>
+                <span className="lqt-antwortkarte-name">Nr. {k.nummer}</span>
               </div>
             ))}
           </div>
