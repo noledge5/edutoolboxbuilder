@@ -4270,12 +4270,18 @@ button.lq-teil:active {
   font-size: var(--lq-t-gross);
   font-weight: 800;
 }
-.lq-dorf-bild {
-  display: block;
-  width: 100%;
-  height: auto;
+.lq-dorf-rahmen {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
   border-radius: var(--lq-r-klein);
   box-shadow: inset 0 0 0 2px var(--lq-linie);
+}
+/* The map keeps its height and grows to the right; the frame scrolls sideways. */
+.lq-dorf-karte {
+  display: block;
+  height: 260px;
+  width: auto;
+  max-width: none;
 }
 .lq-dorf-projekt {
   display: flex;

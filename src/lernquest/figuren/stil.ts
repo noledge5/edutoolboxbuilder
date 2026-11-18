@@ -131,6 +131,31 @@ export const P = {
   gelbHell: '#FFF29A',
   gelbTief: '#D9B300',
   schnee: '#F4F8FC',
+
+  // The village in 2.5D (iso.tsx, dorf.tsx; Stilprobe 3, 18.11.2026): plaster, timber, roof tiles, field stone, glass.
+  putz: '#F6E3B4',
+  putzHell: '#FFF1CF',
+  putzTief: '#D9C08A',
+  balken: '#5A3519',
+  balkenHell: '#7A4B26',
+  balkenTief: '#47290F',
+  ziegel: '#C9553F',
+  ziegelHell: '#E98A6F',
+  ziegelTief: '#9E3D2E',
+  ziegelKante: '#7D2C22',
+  schiefer: '#5E7FA8',
+  schieferHell: '#8FAED3',
+  schieferTief: '#3F5C80',
+  schieferKante: '#2E4563',
+  bruch: '#AAB1BB',
+  bruchHell: '#C9CDD3',
+  bruchTief: '#858D99',
+  bruchFuge: '#6C7380',
+  glas: '#5D7D96',
+  licht: '#FFD27A',
+  rasenTief: '#4F8F30',
+  pflaster: '#D8C9A8',
+  pflasterTief: '#C4B48F',
 } as const;
 
 /** The outline every shape gets: 3 units, round joins. Small details (mouth, belt) use 2.5. */

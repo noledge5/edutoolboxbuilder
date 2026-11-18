@@ -11,7 +11,7 @@ set: add-ons that do not match the house were the teacher's complaint on 18.11.2
 | Weg | Wann | Ergebnis |
 |---|---|---|
 | **2D Vektor** | Figuren, Held, Gegenstände, Icons, Bosse | Code in `src/lernquest/figuren/` – Skill `figur` |
-| **2.5D Iso-Vektor** | Dorfkarte, Wege, Grundstücke, einfache Häuser, die animiert oder umgefärbt werden | Code mit Iso-Helfern aus `docs/design/lernquest/stilprobe/haus-v3.mjs` (`steine`, `fachL/R`, `satteldach`, `zeltdach`, `fenster`, `tuer`; Bausatz Grundhaus + Turm, Werkstatt, Brunnen, Zaun, Laterne, Garten) |
+| **2.5D Iso-Vektor** | Dorfkarte, Häuser, Anbauten, Gemeinschaftsgebäude | React in `src/lernquest/figuren/iso.tsx` (Bausatz: `box`, `steine`, `tiefe`, `band`, `schlag`, `fachL/R`, `satteldach`, `zeltdach`, `fenster`, `tuer`, `zaunX`), Gebäude und `DorfKarte` in `dorf.tsx`; Vorlage `docs/design/lernquest/stilprobe/haus-v3.mjs` |
 | **3D gerendert** | Häuser und Anbauten mit viel Detail, mittelalterlich, modular | PNG mit transparentem Grund aus einem CC0-3D-Paket |
 
 No Figma, no paid AI generators without asking the teacher (credits). Hugging Face image spaces are blocked in sessions.
