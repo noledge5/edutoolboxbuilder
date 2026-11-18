@@ -19,11 +19,11 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
 - Durchsicht der Teile in der Werkstatt; Extra-Paket mit Claude erzeugen (ungetestet).
 
 ## Nächste Schritte (je einer pro Session)
-1. **Klassendorf Stufe 2, Teil A ist gebaut** (Branch `claude/dorf-stil-karte`, Tests grün, NICHT gemergt = nicht live):
+1. **Klassendorf Stufe 2, Teil A ist gebaut** (Branch `claude/dorf-stil-karte`, PR #80, Tests und CI grün; Lehrkraft merged = live).
+   Werkstatt-Artefakt mit den neuen Gebäuden ist veröffentlicht (Version 12):
    Bausatz `figuren/iso.tsx` (Stilprobe 3), 6 Gebäude + Baustelle neu, `DorfKarte` mit Dorfplatz, Weg und Vierteln à 6
    abgesteckter Grundstücke (Lehrkraft: je Kind eins; Kinder: ein Viertel „Bald: eure Häuser“). Geprüft per Bild und
-   in Handybreite mit dem App-CSS, nicht in der laufenden App mit Server. Lehrkraft entscheidet übers Mergen. Danach:
-   Werkstatt-Artefakt neu veröffentlichen (Skill `figur`, Schritt 5; fragen).
+   in Handybreite mit dem App-CSS, nicht in der laufenden App mit Server.
 2. **Teil B: eigene Häuser** (Migration): Stufen Zelt gratis / Hütte 300 / Holzhaus 800 / Fachwerk 1800 / Turm 4000,
    höhere mit Heldenstufe; modulare Anbauten (Turm, Anbau, Balkon, Garten, Laterne, Zaun …), auch aus Truhen;
    Besuchen mit Sticker-Gruß. Erst planen (Skill `aufgabe`).
