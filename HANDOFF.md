@@ -25,7 +25,9 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
    passen. Zuerst Stilregeln im Skill `figur` und in `stil.ts`/Tests anpassen (Verläufe erlauben, Farben weiter aus der
    Palette), dann `figuren/dorf.tsx` als scrollbare Iso-Karte (Dorfplatz, Grundstück je Kind, Viertel à 6).
    **Rückmeldung 18.11. zu haus-v2:** Häuser etwas mittelalterlicher; die Anbauten passen nicht zum Haus (Turm,
-   Anbau, Balkon wirken fremd). Erst Stilprobe 3, dann abnicken lassen. Werkzeuge: siehe „Wichtig zu wissen“.
+   Anbau, Balkon wirken fremd). Erst Stilprobe 3, dann abnicken lassen. Lehrkraft: Vektor oder 3D-Paket, kein
+   Figma. Neuer Skill `grafik` (Branch `claude/skill-grafik`, noch nicht gemergt) mit geprüftem 3D-Render-Weg;
+   Probe `docs/design/lernquest/stilprobe/haus-3d-probe.png` auf dem Branch. Lehrkraft wählt 2.5D-Vektor oder 3D.
 2. **Teil B: eigene Häuser** (Migration): Stufen Zelt gratis / Hütte 300 / Holzhaus 800 / Fachwerk 1800 / Turm 4000,
    höhere mit Heldenstufe; modulare Anbauten (Turm, Anbau, Balkon, Garten, Laterne, Zaun …), auch aus Truhen;
    Besuchen mit Sticker-Gruß. Erst planen (Skill `aufgabe`).
@@ -34,9 +36,8 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
 6. Kleinkram: `docs/kritik-und-plan.md` nachziehen. 7. Offen: Fremde können leere Klassen anlegen (Datenmüll).
 
 ## Wichtig zu wissen
-- Externe Gestaltungs-Werkzeuge (Recherche 18.11.): Figma-Vektor-KI und Canva sind verbunden, kosten aber Guthaben
-  (Lehrkraft fragen); HF-Bildmodelle sind in Sessions gesperrt. CC0-3D-Pakete (Quaternius „LowPoly Medieval Village“,
-  „Modular Medieval Building Pack“) ließen sich isometrisch rendern. Entscheidung der Lehrkraft steht aus.
+- Gestaltungs-Werkzeuge: kein Figma (Lehrkraft, 18.11.). 3D: Blender als Python-Paket `bpy` + CC0-Paket von
+  Quaternius, Ablauf im Skill `grafik`. HF-Bildmodelle sind in Sessions gesperrt.
 - Prüfungen der Lehrkraft: Werkstatt https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG, Sammlung `pruefung`
   (Skill `figur`); Werkstatt-Artefakt ist noch nicht mit den Dorf-Zeichnungen neu veröffentlicht.
 - Server-Regeln stehen doppelt (SQL und `rules.ts`/`dorf.ts`), Tests vergleichen die SQL-Zeilen: beide zusammen ändern.
