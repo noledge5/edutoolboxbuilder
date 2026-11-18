@@ -9,7 +9,9 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
   Station nur 2 EP / 1 Münze, Kampfmusik am Beamer (`app/musik.ts`). Migrationen `20261130_lernquest_dorf` und
   `20261201_lernquest_lernzeit` sind live (18.11.). Musik nur auf Fehlerfreiheit geprüft, nicht angehört.
 - Werkstatt: alle 159 offenen Teile auf Wunsch der Lehrkraft als „passt“ eingetragen; sie sieht trotzdem durch.
-- Branch `claude/happy-pascal-p3h9wu`: nur Doku + Stilproben (nicht gemergt, kein Code).
+- Doku + Stilproben vom 18.11. sind in `main`. Alle alten Branches gelöscht (18.11.); Branches mit nicht
+  übernommenen Commits als Tags `archiv/<name>` gesichert.
+- **Regel ab 18.11.:** HANDOFF.md immer direkt in `main` ablegen (Skill `handoff`), Code weiter auf eigenem Branch.
 - Tests: grün (617). Letzter Commit siehe `git log`.
 
 ## Für die Lehrkraft offen
@@ -35,7 +37,8 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
   (Skill `figur`); Werkstatt-Artefakt ist noch nicht mit den Dorf-Zeichnungen neu veröffentlicht.
 - Server-Regeln stehen doppelt (SQL und `rules.ts`/`dorf.ts`), Tests vergleichen die SQL-Zeilen: beide zusammen ändern.
   `lq_runde_melden` hat jetzt `p_sekunden`; die App sendet bei altem Server ohne (Fallback in `server.ts`).
-- Wünsche für eigene Teile: `lq_teil where wunsch is not null` (Supabase „baukasten“); am 13.11. keine offen (Militärhelm gezeichnet).
+- Wünsche für eigene Teile: `lq_teil where wunsch is not null` (Supabase „baukasten“); am 18.11. keine offen (nur
+  Militärhelm, gezeichnet). Werkstatt am 18.11.: alle 180 Einträge „passt“, die 50 neuen Teile noch ohne Eintrag.
 - Lokale Datenbank zum Prüfen: Postgres 16 (`/usr/lib/postgresql/16/bin`, als Nutzer `postgres`, Datenordner unter
   `/var/lib/postgresql/`, nicht im Scratchpad); vor den Migrationen Ersatz für `auth` (`uid()`, `role()`), `extensions`
   (pgcrypto), `cron.schedule`/`cron.unschedule` und Rollen `anon`, `authenticated`, `service_role` anlegen.
