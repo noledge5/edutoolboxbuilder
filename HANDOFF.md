@@ -9,10 +9,10 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
   Station nur 2 EP / 1 Münze, Kampfmusik am Beamer (`app/musik.ts`). Migrationen `20261130_lernquest_dorf` und
   `20261201_lernquest_lernzeit` sind live (18.11.). Musik nur auf Fehlerfreiheit geprüft, nicht angehört.
 - Werkstatt: alle 159 offenen Teile auf Wunsch der Lehrkraft als „passt“ eingetragen; sie sieht trotzdem durch.
-- Doku + Stilproben vom 18.11. sind in `main`. Alle alten Branches gelöscht (18.11.); Branches mit nicht
-  übernommenen Commits als Tags `archiv/<name>` gesichert.
+- Alte Branches: die Lehrkraft löscht sie selbst (alles außer `main`, `archiv`, offene PR-Branches). Branch `archiv`
+  hält die Spitzen der Branches mit nicht übernommenen Commits (Liste in seiner Commit-Nachricht).
 - **Regel ab 18.11.:** HANDOFF.md immer direkt in `main` ablegen (Skill `handoff`), Code weiter auf eigenem Branch.
-- Tests: grün (617). Letzter Commit siehe `git log`.
+- Tests: grün (619). Letzter Commit siehe `git log`.
 
 ## Für die Lehrkraft offen
 - Kampfmusik am Beamer anhören; Klassendorf und „Lernzeit am Tag“ ausprobieren.
