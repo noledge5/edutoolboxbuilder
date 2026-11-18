@@ -27,7 +27,8 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
    **Rückmeldung 18.11. zu haus-v2:** Häuser etwas mittelalterlicher; die Anbauten passen nicht zum Haus (Turm,
    Anbau, Balkon wirken fremd). Erst Stilprobe 3, dann abnicken lassen. Lehrkraft: Vektor oder 3D-Paket, kein
    Figma. Neuer Skill `grafik` (Branch `claude/skill-grafik`, noch nicht gemergt) mit geprüftem 3D-Render-Weg;
-   Probe `docs/design/lernquest/stilprobe/haus-3d-probe.png` auf dem Branch. Lehrkraft wählt 2.5D-Vektor oder 3D.
+   Probe `docs/design/lernquest/stilprobe/haus-3d-probe.png` auf dem Branch. **Entschieden: 2.5D-Vektor** mit
+   Verläufen und Schatten = Stilprobe 3 `haus-v3.mjs` (+ .png, auf dem Branch). Darauf aufbauen; Farben noch in `stil.ts`.
 2. **Teil B: eigene Häuser** (Migration): Stufen Zelt gratis / Hütte 300 / Holzhaus 800 / Fachwerk 1800 / Turm 4000,
    höhere mit Heldenstufe; modulare Anbauten (Turm, Anbau, Balkon, Garten, Laterne, Zaun …), auch aus Truhen;
    Besuchen mit Sticker-Gruß. Erst planen (Skill `aufgabe`).
