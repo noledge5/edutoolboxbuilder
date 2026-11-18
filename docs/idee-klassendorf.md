@@ -66,6 +66,19 @@ auszugeben, statt nur für den eigenen Helden. Unten Vorschläge zum Auswählen;
 - Zuerst Stufe 1 „Dorfkasse“ (gebaut, siehe docs/roadmap.md). Bürgermeister-Bonus 1,5-fach, kein Zuschuss der
   Lehrkraft. Deckel 200 Münzen je Kind und Woche. Echte Belohnung: ja, frei als Text je Projekt.
 
+## Stufe 2: eigene Häuser und neuer Stil (18.11.2026)
+- **Entschieden:** Dorf zuerst (Stil + Dorf als scrollbare Karte, dann eigene Häuser, danach Figuren und Gegenstände
+  neu zeichnen). Hauspreise „teuer“: Zelt gratis, Hütte 300, Holzhaus 800, Fachwerkhaus 1800, Turm 4000 Münzen
+  (höhere Stufen zusätzlich mit Heldenstufe).
+- **Vorschlag Aufbau:** eigene Dorfkarte zum Scrollen mit Weg; Dorfplatz mit den Gemeinschaftsgebäuden; am Weg ein
+  Grundstück je Kind mit Namensschild, freie abgesteckt; je 6 Häuser ein Viertel um einen kleinen Platz,
+  Gemeinschaftsgebäude als Wegmarken dazwischen. Gemeinschaftsgebäude schalten etwas für alle Häuser frei
+  (Bäckerei → Brezelschild, Schmiede → Eisenzaun …). Besuchen: Held vor dem Haus, Trophäenregal, Sticker-Gruß.
+- **Stil:** Stilprobe `docs/design/lernquest/stilprobe/dorf-v1.mjs` (Bild daneben): runde Grundformen, drei Töne und
+  Lichtkante je Fläche, weiche Verläufe, Pillenschatten, Material (Ziegel, Fachwerk, Balken), Schrägansicht, ohne dunkle
+  Umrisse. Vorbild: Duolingo „Shape Language“ und das Mockup der Lehrkraft. Lehrkraft: „noch nicht, erst ändern“ –
+  ihre Änderungswünsche stehen noch aus.
+
 ## Offen zur Entscheidung (Lehrkraft)
 - Welche Teile davon? Reihenfolge? Bürgermeister-Bonus oder Zuschuss der Lehrkraft? Deckel je Woche wie hoch?
 - Echte Belohnung beim Dorffest: ja/nein, welche?
