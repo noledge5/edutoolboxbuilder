@@ -80,14 +80,14 @@ function iso(ox, oy) {
     const m = y + d / 2;
     const E = (t, xx) => P(xx, m + (y + d + o - m) * t, z + h + (-3 - h) * t);
     let s = poly([P(x - o, y - o, z - 3), P(x + w + o, y - o, z - 3), P(x + w + o, m, z + h), P(x - o, m, z + h)], M.ziegel.seite);
-    s += poly([P(x + w, y, z), P(x + w, y + d, z), P(x + w, m, z + h)], M.putz.rechts);
+    s += poly([P(x + w, y, z), P(x + w, y + d, z), P(x + w, m, z + h)], M.putz.rechts) + poly([P(x + w, y, z), P(x + w, y + d, z), P(x + w, m, z + h)], 'url(#aoR)');
     if (giebelFach) {
       s += line(P(x + w, y, z), P(x + w, m, z + h), M.balkenR, 4) + line(P(x + w, y + d, z), P(x + w, m, z + h), M.balkenR, 4);
       s += line(P(x + w, m, z), P(x + w, m, z + h), M.balkenR, 4) + line(P(x + w, y + d * 0.25, z + h * 0.5), P(x + w, y + d * 0.75, z + h * 0.5), M.balkenR, 3.5);
       const fz = z + h * 0.18, fh = h * 0.22;
       s += poly([P(x + w, m - 6, fz), P(x + w, m + 6, fz), P(x + w, m + 6, fz + fh), P(x + w, m - 6, fz + fh)], M.balkenR) + `__FENSTER_GIEBEL_${f(P(x + w, m, fz + fh / 2))}__`;
     }
-    s += poly([E(1, x - o), E(1, x + w + o), E(0, x + w + o), E(0, x - o)], M.ziegel.vorn);
+    s += poly([E(1, x - o), E(1, x + w + o), E(0, x + w + o), E(0, x - o)], M.ziegel.vorn) + poly([E(1, x - o), E(1, x + w + o), E(0, x + w + o), E(0, x - o)], 'url(#dach)');
     const reihen = Math.round(h / 7);
     const stueck = Math.round((w + 2 * o) / 7.5);
     for (let i = 1; i <= reihen; i++) { const t = i / reihen; s += schuppen(E(t, x - o), E(t, x + w + o), stueck, M.ziegel.kante); }
@@ -101,7 +101,7 @@ function iso(ox, oy) {
     const sp = P(x + w / 2, y + d / 2, z + h);
     const l = P(x - o, y + d + o, z - 2), v = P(x + w + o, y + d + o, z - 2), r = P(x + w + o, y - o, z - 2);
     const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-    let s = poly([l, v, sp], M.ziegel.vorn) + poly([v, r, sp], M.ziegel.seite);
+    let s = poly([l, v, sp], M.ziegel.vorn) + poly([l, v, sp], 'url(#dachT)') + poly([v, r, sp], M.ziegel.seite) + poly([v, r, sp], 'url(#dachT)');
     const reihen = Math.round(h / 8);
     for (let i = 1; i < reihen; i++) {
       const t = i / reihen;
@@ -135,33 +135,50 @@ function iso(ox, oy) {
     const k = P(a + b - 4, Y, z + h * 0.45); s += `<circle cx="${k[0].toFixed(1)}" cy="${k[1].toFixed(1)}" r="2.2" fill="#e8b23a"/>`;
     return s;
   };
-  return { P, poly, line, box, steine, fachL, fachR, satteldach, zeltdach, fenster, tuer };
+  // Tiefe: Verlauf auf beiden sichtbaren Wänden (unten dunkler, rechte Seite insgesamt dunkler).
+  const tiefe = (x, y, z, w, d, h) =>
+    poly([P(x, y + d, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x, y + d, z + h)], 'url(#ao)') +
+    poly([P(x + w, y, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x + w, y, z + h)], 'url(#aoR)') +
+    line(P(x, y + d, z + h), P(x + w, y + d, z + h), '#fff', 2, 0.35) + line(P(x + w, y + d, z), P(x + w, y + d, z + h), '#fff', 1.5, 0.25);
+  // Schattenband unter einer Kante (Traufe, Vorkragung), Höhe k, auf beiden Seiten.
+  const band = (x, y, z, w, d, k = 12) =>
+    poly([P(x, y + d, z), P(x + w, y + d, z), P(x + w, y + d, z - k), P(x, y + d, z - k)], 'url(#traufe)') +
+    poly([P(x + w, y, z), P(x + w, y + d, z), P(x + w, y + d, z - k), P(x + w, y, z - k)], 'url(#traufe)');
+  // Schlagschatten eines Körpers auf dem Boden: Grundriss und um die Höhe verschobener Grundriss (Licht von links oben).
+  const schlag = (x, y, w, d, h, o = 0.24) => {
+    const sx = h * 0.42, sy = h * 0.1;
+    const pts = [[x, y], [x + w, y], [x + w + sx, y + sy], [x + w + sx, y + d + sy], [x + sx, y + d + sy], [x, y + d]];
+    return poly(pts.map(([a, b]) => P(a, b, 0)), '#1f3a12', `opacity="${o}"`);
+  };
+  return { P, poly, line, box, steine, fachL, fachR, satteldach, zeltdach, fenster, tuer, tiefe, band, schlag };
 }
 
 // --- Bausatz: Grundhaus und Anbauten (alle aus denselben Bauteilen) ---
 function grundhaus(t, abend) {
   const { P, box, steine, fachL, fachR, satteldach, fenster, tuer, line } = t;
   let s = '';
-  s += box(0, 0, 0, 100, 76, 44, M.stein) + steine(0, 0, 0, 100, 76, 44);
+  s += box(0, 0, 0, 100, 76, 44, M.stein) + steine(0, 0, 0, 100, 76, 44) + t.tiefe(0, 0, 0, 100, 76, 44);
   s += tuer(18, 76, 2, 20, 34) + fenster('L', 60, 76, 16, 14, 14, abend) + fenster('R', 30, 100, 16, 14, 14, abend);
   // Vorkragendes Obergeschoss mit Balkenköpfen.
   for (let xx = 4; xx < 100; xx += 12) s += box(xx, 76, 41, 4, 5, 4, M.holz);
   for (let yy = 4; yy < 76; yy += 12) s += box(100, yy, 41, 5, 4, 4, M.holz);
-  s += box(-2, -2, 45, 106, 82, 40, M.putz);
+  s += t.band(0, 0, 44, 100, 76, 14);
+  s += box(-2, -2, 45, 106, 82, 40, M.putz) + t.tiefe(-2, -2, 45, 106, 82, 40);
   s += fachL(-2, 104, 80, 45, 85) + fachR(104, -2, 80, 45, 85);
   s += fenster('L', 10, 80, 56, 12, 16, abend) + fenster('L', 76, 80, 56, 12, 16, abend) + fenster('R', 18, 104, 56, 12, 16, abend) + fenster('R', 52, 104, 56, 12, 16, abend);
+  s += t.band(-2, -2, 85, 106, 82, 12);
   s += satteldach(-2, -2, 85, 106, 82, 64);
-  s += box(66, 10, 120, 13, 13, 44, M.stein) + box(64, 8, 162, 17, 17, 5, M.stein);
+  s += box(66, 10, 120, 13, 13, 44, M.stein) + t.tiefe(66, 10, 120, 13, 13, 44) + box(64, 8, 162, 17, 17, 5, M.stein);
   if (!abend) { const r = P(72, 16, 176); s += `<circle cx="${r[0] + 4}" cy="${r[1] - 6}" r="6" fill="#fff" opacity="0.75"/><circle cx="${r[0] + 12}" cy="${r[1] - 20}" r="9" fill="#fff" opacity="0.55"/>`; }
   return s;
 }
 
 function turm(t, x, y, abend) {
   const { box, steine, fachL, fachR, zeltdach, fenster } = t;
-  let s = box(x, y, 0, 38, 38, 104, M.stein) + steine(x, y, 0, 38, 38, 104);
+  let s = box(x, y, 0, 38, 38, 104, M.stein) + steine(x, y, 0, 38, 38, 104) + t.tiefe(x, y, 0, 38, 38, 104) + t.band(x, y, 104, 38, 38, 12);
   s += fenster('L', x + 13, y + 38, 30, 11, 16, abend) + fenster('R', y + 13, x + 38, 64, 11, 16, abend);
   s += box(x - 3, y - 3, 104, 44, 44, 30, M.putz) + fachL(x - 3, x + 41, y + 41, 104, 134, 15) + fachR(x + 41, y - 3, y + 41, 104, 134, 15);
-  s += fenster('L', x + 14, y + 41, 112, 12, 14, abend);
+  s += fenster('L', x + 14, y + 41, 112, 12, 14, abend) + t.tiefe(x - 3, y - 3, 104, 44, 44, 30) + t.band(x - 3, y - 3, 134, 44, 44, 10);
   s += zeltdach(x - 3, y - 3, 134, 44, 44, 70);
   return s;
 }
@@ -169,10 +186,10 @@ function turm(t, x, y, abend) {
 function werkstatt(t, x, y, abend) {
   const { P, poly, box, steine, fachL, fenster, line } = t;
   let s = box(x, y, 0, 46, 56, 14, M.stein) + steine(x, y, 0, 46, 56, 14);
-  s += box(x, y, 14, 46, 56, 28, M.putz) + fachL(x, x + 46, y + 56, 14, 42, 23) + fenster('L', x + 14, y + 56, 20, 14, 13, abend);
+  s += box(x, y, 14, 46, 56, 28, M.putz) + fachL(x, x + 46, y + 56, 14, 42, 23) + fenster('L', x + 14, y + 56, 20, 14, 13, abend) + t.tiefe(x, y, 0, 46, 56, 42) + t.band(x, y, 42, 46, 56, 10);
   // Pultdach aus denselben Ziegeln, hoch an der Hauswand (x + 46), tief außen.
   const a = P(x - 5, y - 4, 40), d = P(x - 5, y + 62, 40), b = P(x + 46, y - 4, 66), c = P(x + 46, y + 62, 66);
-  s += poly([a, b, c, d], M.ziegel.vorn);
+  s += poly([a, b, c, d], M.ziegel.vorn) + poly([b, c, d, a], 'url(#dachW)');
   for (let i = 1; i <= 5; i++) { const tt = i / 5; const l = [b[0] + (a[0] - b[0]) * tt, b[1] + (a[1] - b[1]) * tt], r = [c[0] + (d[0] - c[0]) * tt, c[1] + (d[1] - c[1]) * tt]; s += `<path d="${bogenreihe(l, r, 8)}" fill="none" stroke="${M.ziegel.kante}" stroke-width="1.8"/>`; }
   s += line(a, d, M.ziegel.licht, 3) + line(d, c, M.balken, 3.5) + line(a, b, M.balken, 3);
   // Holzstapel davor.
@@ -191,7 +208,7 @@ function bogenreihe(a, b, k) {
 
 function brunnen(t, x, y) {
   const { P, poly, box, steine, line, satteldach } = t;
-  let s = box(x, y, 0, 26, 26, 14, M.stein) + steine(x, y, 0, 26, 26, 14);
+  let s = box(x, y, 0, 26, 26, 14, M.stein) + steine(x, y, 0, 26, 26, 14) + t.tiefe(x, y, 0, 26, 26, 14);
   s += poly([P(x + 3, y + 3, 14), P(x + 23, y + 3, 14), P(x + 23, y + 23, 14), P(x + 3, y + 23, 14)], '#2d4a6b');
   s += line(P(x + 2, y + 13, 14), P(x + 2, y + 13, 44), M.balken, 4) + line(P(x + 24, y + 13, 14), P(x + 24, y + 13, 44), M.balkenR, 4);
   s += line(P(x + 2, y + 13, 34), P(x + 24, y + 13, 34), M.balkenHell, 3) + line(P(x + 13, y + 13, 34), P(x + 13, y + 13, 24), '#8a7a5a', 1.5);
@@ -233,7 +250,12 @@ function szene(ox, oy, voll, abend) {
   const g = [P(-70, -40), P(190, -40), P(190, 160), P(-70, 160)];
   s += poly(g.map(([a, b]) => [a, b + 10]), '#4f8f30') + poly(g, lin([[0, '#9ccf66'], [1, '#7cbc4c']]));
   s += poly([P(18, 80), P(38, 80), P(38, 160), P(18, 160)], '#d8c9a8') + [0, 1, 2, 3, 4].map((i) => poly([P(20, 86 + i * 15), P(36, 86 + i * 15), P(36, 96 + i * 15), P(20, 96 + i * 15)], '#c4b48f')).join('');
-  s += poly([P(0, 0), P(100, 0), P(118, 18), P(118, 92), P(18, 92), P(0, 76)].map(([a, b]) => [a + 6, b + 4]), '#24401a', 'opacity="0.2"');
+  const clip = uid('boden'); defs.push(`<clipPath id="${clip}">${poly(g, '#000')}</clipPath>`);
+  s += `<g clip-path="url(#${clip})">`;
+  s += t.schlag(-2, -2, 106, 82, 120);
+  if (voll) s += t.schlag(-46, 14, 46, 56, 50) + t.schlag(109, 1, 44, 44, 170) + t.schlag(132, 86, 26, 26, 50) + t.schlag(42, 126, 4, 4, 50, 0.18) + t.schlag(58, 104, 40, 18, 8, 0.18);
+  if (voll) for (const [x0, x1] of [[-60, 10], [46, 180]]) s += t.poly([t.P(x0, 150), t.P(x1, 150), t.P(x1 + 11, 152), t.P(x0 + 11, 152)], '#1f3a12', 'opacity="0.16"');
+  s += '</g>';
   if (voll) s += werkstatt(t, -46, 14, abend);
   s += grundhaus(t, abend);
   if (voll) {
@@ -260,5 +282,5 @@ function panel(x, titel, voll, abend) {
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 470" width="1180" height="470"><rect width="1180" height="470" fill="#fdf6ea"/>
 ${panel(15, 'Grundhaus', false, false)}${panel(400, 'Ausgebaut (Tag)', true, false)}${panel(785, 'Ausgebaut (Abend)', true, true)}
-<defs>${defs.join('')}<radialGradient id="fenster"><stop offset="0" stop-color="#ffcf6b" stop-opacity="0.7"/><stop offset="1" stop-color="#ffcf6b" stop-opacity="0"/></radialGradient><radialGradient id="lampe"><stop offset="0" stop-color="#ffd27a" stop-opacity="0.7"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient></defs></svg>`;
+<defs>${defs.join('')}<linearGradient id="ao" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.10"/><stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#1a1208" stop-opacity="0.30"/></linearGradient><linearGradient id="aoR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1208" stop-opacity="0.06"/><stop offset="1" stop-color="#1a1208" stop-opacity="0.34"/></linearGradient><linearGradient id="traufe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1208" stop-opacity="0.42"/><stop offset="1" stop-color="#1a1208" stop-opacity="0"/></linearGradient><linearGradient id="dach" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.22"/><stop offset="0.5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#2a0c06" stop-opacity="0.28"/></linearGradient><linearGradient id="dachT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.18"/><stop offset="1" stop-color="#2a0c06" stop-opacity="0.26"/></linearGradient><linearGradient id="dachW" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0.15"/><stop offset="1" stop-color="#2a0c06" stop-opacity="0.25"/></linearGradient><radialGradient id="fenster"><stop offset="0" stop-color="#ffcf6b" stop-opacity="0.7"/><stop offset="1" stop-color="#ffcf6b" stop-opacity="0"/></radialGradient><radialGradient id="lampe"><stop offset="0" stop-color="#ffd27a" stop-opacity="0.7"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient></defs></svg>`;
 writeFileSync(process.argv[2], svg);

@@ -20,6 +20,9 @@ No Figma, no paid AI generators without asking the teacher (credits). Hugging Fa
 - One projection for everything: 2:1 iso (x right-down, y left-down, z up). Light top left, as in `stil.ts`.
 - Build add-ons from the **same** helpers and materials as the house (same roof tiles, same timber, same stone).
   An add-on is drawn on the house's grid and shares its wall height steps.
+- Depth (teacher, 18.11.): gradient overlays per face (`tiefe`: walls darker toward the ground, right side darker),
+  shadow bands under eaves and the jetty (`band`), roofs lighter at the ridge, cast shadows on the ground toward
+  bottom right (`schlag`), clipped to the ground. No blur.
 - Medieval look: timber framing (Fachwerk) with dark beams, stone plinth, steep roofs with tiles or thatch,
   small windows with crossbars, wooden doors with round arch, chimney of stone. No glass fronts, no flat roofs.
 
