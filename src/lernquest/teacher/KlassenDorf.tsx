@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Icon } from '../../icons';
 import { DORF_GEBAEUDE, gebaeudeName, SPENDE_WOCHE, ZIEL_MAX, ZIEL_MIN, zielVorschlag, type Dorf } from '../dorf';
-import { DorfBild } from '../figuren/dorf';
+import { DorfKarte } from '../figuren/dorf';
 import { dorfLehrkraft, dorfProjektLoeschen, dorfProjektStarten, dorfSchalten, lqText, type KlasseInfo } from '../server';
 
 interface Props {
@@ -66,7 +66,7 @@ export function KlassenDorf({ klasse, keys, busy, act }: Props) {
       {d?.an && (
         <>
           <div className="lqt-dorf-bild">
-            <DorfBild fertig={d.fertig.map((f) => f.gebaeude)} baustelle={p?.gebaeude} titel="Das Dorf der Klasse" />
+            <DorfKarte fertig={d.fertig.map((f) => f.gebaeude)} baustelle={p?.gebaeude} plaetze={kinder} titel="Das Dorf der Klasse" />
           </div>
           {p ? (
             <div className="lqt-dorf-projekt">

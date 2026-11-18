@@ -3,7 +3,7 @@
 // finished buildings with the names of all who helped, never amounts. Shown only when the teacher switched it on.
 import { useEffect, useState } from 'react';
 import { gebaeudeName, SPENDE_WOCHE, spendeMoeglich, spendeWert, type Dorf } from '../dorf';
-import { DorfBild } from '../figuren/dorf';
+import { DorfKarte, JE_VIERTEL } from '../figuren/dorf';
 import { dorf as dorfLaden, lqText, spenden } from '../server';
 import type { Stand } from '../types';
 import { Meldung, MuenzIcon, type Aktion } from './Held';
@@ -52,7 +52,15 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
         <h2>Unser Dorf</h2>
         {d.fertig.length > 0 && <strong>{d.fertig.length === 1 ? '1 Gebäude' : `${d.fertig.length} Gebäude`}</strong>}
       </div>
-      <DorfBild fertig={d.fertig.map((f) => f.gebaeude)} baustelle={p?.gebaeude} titel={`Euer Dorf mit ${d.fertig.map((f) => gebaeudeName(f.gebaeude)).join(', ') || 'noch keinem Gebäude'}`} />
+      <div className="lq-dorf-rahmen">
+        <DorfKarte
+          fertig={d.fertig.map((f) => f.gebaeude)}
+          baustelle={p?.gebaeude}
+          plaetze={JE_VIERTEL}
+          hinweis="Bald: eure Häuser"
+          titel={`Euer Dorf mit ${d.fertig.map((f) => gebaeudeName(f.gebaeude)).join(', ') || 'noch keinem Gebäude'}`}
+        />
+      </div>
       <Meldung text={msg} />
       {p ? (
         <div className="lq-dorf-projekt">

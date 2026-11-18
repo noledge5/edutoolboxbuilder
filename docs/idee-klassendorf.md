@@ -84,6 +84,12 @@ auszugeben, statt nur für den eigenen Helden. Unten Vorschläge zum Auswählen;
   als Belohnungs-Karten mit Seltenheitsrahmen. Iso-Helfer (`box`, `dach`, Fenster) im Skript sind die Grundlage für den
   Umbau in `src/lernquest/figuren/`.
 
+- **Teil A umgesetzt (18.11.2026):** Stil = Stilprobe 3 (`haus-v3.mjs`): 2.5D-Vektor, mittelalterlich (Bruchstein,
+  Fachwerk, Schuppenziegel), Tiefe durch Verläufe und Schlagschatten; Anbauten aus denselben Bauteilen. Bausatz
+  `src/lernquest/figuren/iso.tsx`, Gebäude und Dorfkarte `figuren/dorf.tsx`: Dorfplatz mit den 6 Bauplätzen, Weg nach
+  rechts, Viertel à 6 abgesteckte Grundstücke ohne Namen (Lehrkraft: so viele wie Kinder; Kinder-Seite: ein Viertel als
+  Vorschau „Bald: eure Häuser“, weil die Kinder-Seite die Klassenliste nicht kennt). Karte scrollt seitlich.
+
 ## Offen zur Entscheidung (Lehrkraft)
 - Welche Teile davon? Reihenfolge? Bürgermeister-Bonus oder Zuschuss der Lehrkraft? Deckel je Woche wie hoch?
 - Echte Belohnung beim Dorffest: ja/nein, welche?
