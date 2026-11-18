@@ -19,16 +19,11 @@ Lernquest weiter ausbauen. Je Session ein Punkt aus „Nächste Schritte“, von
 - Durchsicht der Teile in der Werkstatt; Extra-Paket mit Claude erzeugen (ungetestet).
 
 ## Nächste Schritte (je einer pro Session)
-1. **Klassendorf Stufe 2, Teil A: neuer Stil + Dorfkarte.** Entscheidungen und Rückmeldung in
-   `docs/idee-klassendorf.md` („Stufe 2“). Vorlage: `docs/design/lernquest/stilprobe/haus-v2.mjs` (+ .png):
-   isometrisch schräg von oben, mehr Detail, Verläufe, Licht am Abend; Figuren flach und rund wie Duolingo; Farben
-   passen. Zuerst Stilregeln im Skill `figur` und in `stil.ts`/Tests anpassen (Verläufe erlauben, Farben weiter aus der
-   Palette), dann `figuren/dorf.tsx` als scrollbare Iso-Karte (Dorfplatz, Grundstück je Kind, Viertel à 6).
-   **Rückmeldung 18.11. zu haus-v2:** Häuser etwas mittelalterlicher; die Anbauten passen nicht zum Haus (Turm,
-   Anbau, Balkon wirken fremd). Erst Stilprobe 3, dann abnicken lassen. Lehrkraft: Vektor oder 3D-Paket, kein
-   Figma. Neuer Skill `grafik` (in `main`) mit geprüftem 3D-Render-Weg;
-   Probe `docs/design/lernquest/stilprobe/haus-3d-probe.png` . **Entschieden: 2.5D-Vektor** mit
-   Verläufen und Schatten = Stilprobe 3 `haus-v3.mjs` (+ .png). Darauf aufbauen; Farben noch in `stil.ts`.
+1. **Klassendorf Stufe 2, Teil A ist gebaut** (Branch `claude/dorf-stil-karte`, Tests grün, NICHT gemergt = nicht live):
+   Bausatz `figuren/iso.tsx` (Stilprobe 3), 6 Gebäude + Baustelle neu, `DorfKarte` mit Dorfplatz, Weg und Vierteln à 6
+   abgesteckter Grundstücke (Lehrkraft: je Kind eins; Kinder: ein Viertel „Bald: eure Häuser“). Geprüft per Bild und
+   in Handybreite mit dem App-CSS, nicht in der laufenden App mit Server. Lehrkraft entscheidet übers Mergen. Danach:
+   Werkstatt-Artefakt neu veröffentlichen (Skill `figur`, Schritt 5; fragen).
 2. **Teil B: eigene Häuser** (Migration): Stufen Zelt gratis / Hütte 300 / Holzhaus 800 / Fachwerk 1800 / Turm 4000,
    höhere mit Heldenstufe; modulare Anbauten (Turm, Anbau, Balkon, Garten, Laterne, Zaun …), auch aus Truhen;
    Besuchen mit Sticker-Gruß. Erst planen (Skill `aufgabe`).
