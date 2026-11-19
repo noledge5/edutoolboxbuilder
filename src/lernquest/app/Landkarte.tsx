@@ -53,8 +53,8 @@ export function Landkarte({ id, nummer = 1, kopf, punkte, mitBoss }: { id: strin
                 <circle key={`p${i}`} cx={(i * 97 + 31) % breite} cy={(i * 53 + 17) % hoehe} r={i % 3 ? 1.6 : 2.6} fill={welt.punkte} opacity={0.8} />
               ))}
             {plan.boss && <ellipse cx={plan.boss.x} cy={plan.boss.y - 10} rx={150} ry={60} fill={welt.bodenTief} opacity={0.6} />}
-            {/* The path: an edge, the path, a dashed line down the middle. */}
-            <path d={plan.pfad} fill="none" stroke={welt.wegRand} strokeWidth={30} strokeLinecap="round" />
+            {/* The path: its hard shade down right (no edge all round, 19.11.2026), the path, a dashed line. */}
+            <path d={plan.pfad} fill="none" stroke={welt.wegRand} strokeWidth={24} strokeLinecap="round" transform="translate(2 4)" />
             <path d={plan.pfad} fill="none" stroke={welt.weg} strokeWidth={22} strokeLinecap="round" />
             <path d={plan.pfad} fill="none" stroke={welt.wegLinie} strokeWidth={4} strokeLinecap="round" strokeDasharray="2 12" />
             {stehend.map((s) => (

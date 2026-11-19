@@ -1,5 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import { Landkarte } from '../app/Landkarte';
+import { Landschaft } from '../app/Landschaft';
+import { GELAENDE } from './gelaende';
 import { P } from './stil';
 import { MODUL_WELTEN, WELT_TEILE, WELTEN, weltVon } from './welten';
 
@@ -28,6 +31,25 @@ describe('Welten der Karte', () => {
       expect(farben.filter((f) => !PALETTE.has(f)), w.id).toEqual([]);
       for (const f of [w.boden, w.flecken, w.bodenTief, w.weg, w.wegRand, w.wegLinie]) expect(PALETTE.has(f.toLowerCase()), w.id).toBe(true);
     }
+  });
+
+  // Flat since 19.11.2026 (docs/design/prinzipien.md): no gradients, no blur, no outline in the line colour.
+  it('zeichnet Karte, Wahrzeichen und Start-Landschaft flach, ohne Verlauf und Umriss', () => {
+    const html = renderToStaticMarkup(
+      <>
+        <svg>
+          {[...GELAENDE, ...WELT_TEILE].map((t) => (
+            <g key={t.id}>{t.zeichnung()}</g>
+          ))}
+        </svg>
+        {Object.keys(WELTEN).map((w, i) => (
+          <Landkarte key={w} id={w === 'wald' ? 'extra-wortschatz-1' : w === 'turm' ? 'extra-grammatik-1' : `m${i}`} nummer={i + 1} kopf={w} punkte={[{ key: 'a', inhalt: 1 }, { key: 'b', inhalt: 2 }]} mitBoss />
+        ))}
+        <Landschaft />
+      </>,
+    );
+    expect(html).not.toMatch(/Gradient|filter=|blur/i);
+    expect(html).not.toContain(`stroke="${P.linie}"`);
   });
 
   it('zeigt alle neuen Teile in der Werkstatt, jedes einmal', () => {

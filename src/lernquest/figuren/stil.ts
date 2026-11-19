@@ -164,15 +164,9 @@ export const P = {
   pflasterTief: '#C4B48F',
 } as const;
 
-/** The outline every shape got until 19.11.2026: 3 units, round joins. Small details (mouth, belt) use 2.5.
- *  Being removed set by set (docs/design/prinzipien.md, „Umstellung des Bestands“); converted files use `flaeche`
- *  and `STRICH` instead. */
-export const UMRISS = { stroke: P.linie, strokeWidth: 3, strokeLinejoin: 'round', strokeLinecap: 'round' } as const;
-export const UMRISS_FEIN = { ...UMRISS, strokeWidth: 2.5 } as const;
-
-/** A shape without outline (since 19.11.2026): filled and stroked in its own colour, so it keeps the size it had with
- *  its outline (`breite` 3 for UMRISS, 2.5 for UMRISS_FEIN). A shade lying on the edge of a shape takes it too, so the
- *  edge does not get a rim of the base colour. */
+/** A shape without outline (no outline anywhere since 19.11.2026, docs/design/prinzipien.md): filled and stroked in
+ *  its own colour, so it keeps the size it had with the old outline (`breite` 3, 2.5 for small details). A shade lying
+ *  on the edge of a shape takes it too, so the edge does not get a rim of the base colour. */
 export const flaeche = (farbe: string, breite = 3) =>
   ({ fill: farbe, stroke: farbe, strokeWidth: breite, strokeLinejoin: 'round', strokeLinecap: 'round' }) as const;
 /** Dark enough to vanish on the night and boss backgrounds without an outline (hair haar0/haar1, dunkel, nacht,

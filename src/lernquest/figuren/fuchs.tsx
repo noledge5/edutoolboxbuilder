@@ -6,17 +6,14 @@ import { Schlagschatten } from './flaeche';
 import { flaeche, P, STRICH } from './stil';
 import type { Figur, Pose, Punkt, Stand, Teil } from './typen';
 
-/** A limb segment, 19 units wide with round caps. Without outline (`umriss={false}`, the fox) it is one stroke in its
- *  colour; with outline (the hero, until it is converted) a dark 19 under the colour 13, and `gelenk` covers the seam
- *  to the segment before (elbow). */
-export function Glied({ von, bis, farbe, schatten, gelenk = false, umriss = true }: { von: Punkt; bis: Punkt; farbe: string; schatten?: string; gelenk?: boolean; umriss?: boolean }) {
+/** A limb segment: one stroke 19 units wide in its colour with round caps (no outline); `schatten` a thin shade on its
+ *  right side (bare arms). */
+export function Glied({ von, bis, farbe, schatten }: { von: Punkt; bis: Punkt; farbe: string; schatten?: string }) {
   const d = `M${von[0]} ${von[1]} L${bis[0]} ${bis[1]}`;
   return (
     <g>
-      {umriss && <path d={d} fill="none" stroke={P.linie} strokeWidth={19} strokeLinecap="round" />}
-      <path d={d} fill="none" stroke={farbe} strokeWidth={umriss ? 13 : 19} strokeLinecap="round" />
+      <path d={d} fill="none" stroke={farbe} strokeWidth={19} strokeLinecap="round" />
       {schatten && <path d={`M${von[0] + 3} ${von[1]} L${bis[0] + 3} ${bis[1]}`} fill="none" stroke={schatten} strokeWidth={4} strokeLinecap="round" opacity={0.6} />}
-      {gelenk && umriss && <circle cx={von[0]} cy={von[1]} r={6.5} fill={farbe} />}
     </g>
   );
 }
@@ -34,14 +31,14 @@ function arm(seite: 'l' | 'r'): Teil {
     id: `arm-${seite}`,
     drehpunkt: schulter,
     // Sleeves one tone darker than the tunic, so the arm reads in front of the body; no shadow of its own.
-    zeichnung: () => <Glied von={schulter} bis={ellbogen} farbe={P.olivTief} umriss={false} />,
+    zeichnung: () => <Glied von={schulter} bis={ellbogen} farbe={P.olivTief} />,
     kinder: [
       {
         id: `unterarm-${seite}`,
         drehpunkt: ellbogen,
         zeichnung: () => (
           <g>
-            <Glied von={ellbogen} bis={[x, 181]} farbe={P.olivTief} umriss={false} />
+            <Glied von={ellbogen} bis={[x, 181]} farbe={P.olivTief} />
             <Pfote p={hand} />
           </g>
         ),
