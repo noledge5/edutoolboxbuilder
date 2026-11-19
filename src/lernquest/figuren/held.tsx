@@ -94,10 +94,10 @@ const Band = ({ y, h = 9, farbe, x = 90, b = 60 }: { y: number; h?: number; farb
 );
 /** A hood or collar lying behind the neck. */
 const Kapuze = ({ t }: { t: Ton }) => <Flaeche d="M94 144 Q86 122 106 126 Q120 138 134 126 Q154 122 146 144 Z" farbe={t.farbe} hell={t.hell} />;
-/** A shoulder pad: a rounded plate with a shade at the bottom. */
-const Schulter = ({ x, k, t }: { x: number; k: 1 | -1; t: Ton }) => (
+/** A shoulder plate with a shade at the bottom, in the light tone of its set (metal, gold) or in `farbe`. */
+const Schulter = ({ x, k, t, farbe = t.hell }: { x: number; k: 1 | -1; t: Ton; farbe?: string }) => (
   <g>
-    <path d={`M${x - 14 * k} 142 Q${x} 130 ${x + 14 * k} 142 L${x + 12 * k} 156 Q${x} 162 ${x - 12 * k} 156 Z`} {...flaeche(t.hell, 2.5)} />
+    <Flaeche d={`M${x - 14 * k} 142 Q${x} 130 ${x + 14 * k} 142 L${x + 12 * k} 156 Q${x} 162 ${x - 12 * k} 156 Z`} farbe={farbe} hell={t.hell} breite={2.5} />
     <path d={`M${x - 11 * k} 153 Q${x} 159 ${x + 11 * k} 153 L${x + 12 * k} 156 Q${x} 162 ${x - 12 * k} 156 Z`} fill={t.tief} opacity={0.6} />
   </g>
 );
@@ -552,8 +552,10 @@ export const KLEIDUNG: Record<string, Kleid> = {
             </>
           }
         />
-        <Schulter x={80} k={-1} t={T.rot} />
-        <Schulter x={160} k={1} t={T.rot} />
+        {/* Red lacquered shoulder plates, laced (the light red of T.rot is the cheek colour and read as pink) */}
+        <Schulter x={80} k={-1} t={T.rot} farbe={P.rot} />
+        <Schulter x={160} k={1} t={T.rot} farbe={P.rot} />
+        <path d="M68 146 Q80 150 92 146 M148 146 Q160 150 172 146" fill="none" stroke={P.rotTief} strokeWidth={3} strokeLinecap="round" />
       </g>
     ),
   },

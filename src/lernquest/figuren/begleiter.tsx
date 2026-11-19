@@ -407,13 +407,17 @@ function Phoenix({ zeit }: { zeit: number }) {
 function Hase() {
   return (
     <g>
-      <HellPf d="M6 -44 Q-4 -70 4 -78 Q14 -72 12 -44 Z" f={P.grauHell} t={P.grauTief} />
+      {/* Not pale (review 19.11.2026): three tones of white (back ear dark, body middle, head and tail light), a shade
+          under the belly, pink inside both ears. */}
+      <Pf d="M6 -44 Q-4 -70 4 -78 Q14 -72 12 -44 Z" f={P.wolkeTief} />
+      <path d="M6 -50 Q2 -64 5 -71" fill="none" stroke={P.rosa} strokeWidth={3.5} strokeLinecap="round" />
       <HellPf d="M16 -44 Q16 -76 26 -78 Q32 -66 22 -42 Z" />
-      <path d="M21 -48 Q22 -64 26 -69" fill="none" stroke={P.rosaHell} strokeWidth={4} strokeLinecap="round" />
-      <HellOv cx={-26} cy={-18} rx={8} />
+      <path d="M21 -48 Q22 -64 26 -69" fill="none" stroke={P.rosaHell} strokeWidth={4.5} strokeLinecap="round" />
       <HellOv cx={-4} cy={-18} rx={24} ry={18} />
+      <Schatten cx={-4} cy={-18} rx={24} ry={18} farbe={P.wolkeTief} a1={0} a2={150} />
+      <HellOv cx={-26} cy={-20} rx={8} f={P.wolkeHell} />
       <HellOv cx={14} cy={-3} rx={10} ry={4.5} />
-      <HellOv cx={16} cy={-38} rx={17} />
+      <HellOv cx={16} cy={-38} rx={17} f={P.wolkeHell} />
       <Auge x={12} y={-40} r={3.9} />
       <Auge x={24} y={-40} r={3.6} />
       <ellipse cx={30} cy={-34} rx={2.6} ry={2} fill={P.rosa} />

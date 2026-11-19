@@ -84,6 +84,9 @@ function Tanne({ stamm = true, schnee = false }: { stamm?: boolean; schnee?: boo
   );
 }
 
+/** A fir as one flat shape (silhouette, about 64 high, origin at the foot): forest edges and night trees. */
+const TANNE_FLACH = 'M-4 0 V-12 H-22 L-8 -34 H-16 L0 -64 L16 -34 H8 L22 -12 H4 V0 Z';
+
 function Kaktus() {
   return <path d="M0 -2 V-46 M0 -16 H-13 V-30 M0 -24 H13 V-38" stroke={P.gruen} strokeWidth={12} strokeLinecap="round" strokeLinejoin="round" fill="none" />;
 }
@@ -173,19 +176,23 @@ function wueste(): ReactNode {
   );
 }
 
+/** Wald (review 19.11.2026: was weak): blue sky, a dense edge of firs on the horizon, a path leading in, big trees in
+ *  front at the sides, a toadstool. */
 function wald(): ReactNode {
+  const rand: [number, number][] = [[6, 0.8], [32, 1], [58, 0.72], [84, 0.92], [110, 0.78], [136, 1], [162, 0.74], [188, 0.95], [214, 0.8], [238, 0.98]];
   return (
     <g>
       <R y={0} h={240} f={P.himmel} />
-      <rect x={0} y={0} width={240} height={150} fill={P.blattHell} opacity={0.5} />
-      <Land d="M0 150 Q40 118 80 142 Q120 116 160 140 Q200 120 240 144 V240 H0 Z" f={P.blattTief} />
-      {[52, 150, 198].map((x) => (
-        <Am key={x} x={x} y={160} s={0.6} kinder={<Tanne stamm={false} />} />
+      <Wolke x={74} y={46} s={0.7} />
+      {rand.map(([x, s]) => (
+        <Am key={x} x={x} y={158} s={s} kinder={<Fl d={TANNE_FLACH} f={P.blattTief} b={2} />} />
       ))}
-      <Land d="M0 164 Q60 148 120 162 Q190 148 240 162 V240 H0 Z" f={P.wieseTief} />
-      <Am x={22} y={200} s={1.9} kinder={<Baum />} />
-      <Am x={218} y={194} s={1.7} kinder={<Baum />} />
-      <g transform="translate(192 234)">
+      <Land d="M0 152 Q60 146 120 152 Q180 146 240 152 V240 H0 Z" f={P.wieseTief} />
+      <Land d="M0 178 Q60 168 120 176 Q190 166 240 178 V240 H0 Z" f={P.wiese} />
+      <Land d="M100 240 Q112 196 116 152 H124 Q128 196 140 240 Z" f={P.sand} />
+      <Am x={22} y={206} s={1.9} kinder={<Baum />} />
+      <Am x={218} y={204} s={1.6} kinder={<Tanne />} />
+      <g transform="translate(184 234)">
         <Fl d="M-4 0 L-3 -10 H3 L4 0 Z" f={P.creme} b={2.5} />
         <Fl d="M-12 -9 Q-11 -24 0 -24 Q11 -24 12 -9 Z" f={P.rot} b={2.5} />
         <Kr x={-3} y={-16} r={2.8} f={P.weiss} b={1} />
@@ -244,18 +251,23 @@ function winterwald(): ReactNode {
   );
 }
 
+/** Sternennacht (review 19.11.2026: was weak): the sky gets lighter towards the horizon in three flat bands, so the dark
+ *  hills, firs and the house stand out; a big crescent moon, twinkling stars, fireflies. */
 function nacht(zeit: number): ReactNode {
-  const sterne: [number, number, number][] = [[24, 30, 8], [84, 22, 6], [140, 52, 6], [214, 100, 6], [40, 100, 5]];
-  const tanne = 'M-4 0 V-12 H-22 L-8 -34 H-16 L0 -64 L16 -34 H8 L22 -12 H4 V0 Z';
+  const sterne: [number, number, number][] = [[24, 30, 8], [84, 22, 6], [136, 48, 6], [56, 76, 5], [150, 92, 4], [222, 104, 5]];
   return (
     <g>
       <R y={0} h={240} f={P.nachtTief} />
-      <R y={70} h={90} f={P.nacht} />
+      <R y={66} h={94} f={P.nacht} />
+      <R y={116} h={44} f={P.nachtHell} />
       {sterne.map(([x, y, r], i) => (
         <Funkeln key={i} x={x} y={y} r={r} zeit={zeit} versatz={i * 1.7} />
       ))}
-      <Kr x={196} y={46} r={20} f={P.gelbHell} />
-      <circle cx={206} cy={40} r={17} fill={P.nachtTief} />
+      <Kr x={190} y={42} r={24} f={P.gelbHell} />
+      <circle cx={202} cy={35} r={20} fill={P.nachtTief} />
+      {[[36, 0.55], [62, 0.7], [88, 0.5]].map(([x, s]) => (
+        <Am key={x} x={x} y={150} s={s} kinder={<Fl d={TANNE_FLACH} f={P.dunkel} b={2} />} />
+      ))}
       <Land d="M0 160 Q50 136 110 154 Q180 134 240 152 V240 H0 Z" f={P.dunkel} />
       <g transform="translate(170 158)">
         <Fl d="M-11 -16 H11 V0 H-11 Z" f={P.dunkelHell} b={2.5} />
@@ -263,8 +275,8 @@ function nacht(zeit: number): ReactNode {
         <rect x={-3.5} y={-12} width={7} height={8} rx={1} fill={P.gelb} />
       </g>
       <Land d="M0 178 Q70 166 130 178 Q190 168 240 178 V240 H0 Z" f={P.dunkelTief} />
-      <Am x={24} y={206} s={1.5} kinder={<Flaeche d={tanne} farbe={P.dunkelTief} hell={P.dunkelHell} />} />
-      <Am x={216} y={204} s={1.6} kinder={<Flaeche d={tanne} farbe={P.dunkelTief} hell={P.dunkelHell} />} />
+      <Am x={24} y={206} s={1.5} kinder={<Flaeche d={TANNE_FLACH} farbe={P.dunkelTief} hell={P.dunkelHell} />} />
+      <Am x={216} y={204} s={1.6} kinder={<Flaeche d={TANNE_FLACH} farbe={P.dunkelTief} hell={P.dunkelHell} />} />
       {[[52, 222], [196, 232], [226, 150]].map(([x, y], i) => {
         const k = (Math.sin(zeit * 2 + i * 2) + 1) / 2;
         return <circle key={i} cx={x} cy={y} r={3.5} fill={P.gelb} opacity={0.35 + 0.65 * k} />;
@@ -508,16 +520,25 @@ function klassenzimmer(): ReactNode {
   );
 }
 
-/** Bibliothek: high shelves full of books at both sides, a round window, a red rug, a lamp. */
+/** Bibliothek (review 19.11.2026: was clumsy): shelves at both sides with three boards of slim books in varied heights
+ *  (not two big blocks), a round window, a red rug, a lamp. */
 function bibliothek(): ReactNode {
+  const breiten = [12, 10, 13, 11];
   const regal = (x0: number, farben: string[]) => (
     <g key={x0}>
-      <Fl d={`M${x0} 8 H${x0 + 58} V178 H${x0} Z`} f={P.holzTief} b={2} />
-      {[88, 172].map((y, r) =>
-        [0, 1].map((i) => <Fl key={`${r}${i}`} d={`M${x0 + 6 + i * 25} ${y - 64 + ((i + r) % 2) * 8} h21 V${y} h-21 Z`} f={farben[(i + r * 2) % farben.length]} b={2.5} />),
-      )}
-      <Fl d={`M${x0} 92 H${x0 + 58}`} f={P.holz} b={5} />
-      <Fl d={`M${x0} 176 H${x0 + 58}`} f={P.holz} b={5} />
+      <Fl d={`M${x0} 4 H${x0 + 58} V178 H${x0} Z`} f={P.holzTief} b={2} />
+      {[64, 120, 176].map((boden, r) => {
+        let x = x0 + 5;
+        return breiten.map((b, i) => {
+          const hoch = 40 - ((i * 7 + r * 5) % 13);
+          const buch = <Fl key={`${r}${i}`} d={`M${x} ${boden - hoch} h${b - 2} V${boden} h${-(b - 2)} Z`} f={farben[(i + r) % farben.length]} b={2} />;
+          x += b + 1.5;
+          return buch;
+        });
+      })}
+      {[64, 120, 176].map((boden) => (
+        <Fl key={boden} d={`M${x0} ${boden + 1} H${x0 + 58}`} f={P.holz} b={5} />
+      ))}
     </g>
   );
   return (
@@ -525,8 +546,8 @@ function bibliothek(): ReactNode {
       <R y={0} h={240} f={P.lederHell} />
       <circle cx={120} cy={42} r={27} fill={P.himmel} stroke={P.holz} strokeWidth={7} />
       <path d="M120 15 V69 M93 42 H147" stroke={P.holz} strokeWidth={4} />
-      {regal(0, [P.rot, P.blau, P.gelb, P.gruen])}
-      {regal(182, [P.gruen, P.lila, P.rot, P.blau])}
+      {regal(0, [P.rot, P.blau, P.gelb, P.gruen, P.lila])}
+      {regal(182, [P.gruen, P.lila, P.rot, P.blau, P.gelb])}
       <R y={178} h={62} f={P.holzTief} />
       <ellipse cx={120} cy={222} rx={96} ry={16} {...flaeche(P.rot, 2.5)} />
       <ellipse cx={120} cy={222} rx={78} ry={10} fill="none" stroke={P.gold} strokeWidth={3} />
