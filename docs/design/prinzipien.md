@@ -58,7 +58,8 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
   Ohrbüschel, Haarschopf; etwa 19 Formen plus Gesicht) und **Held mit allen Teilen** (Kleidung, Frisuren, Kopf, Werkzeug,
   Begleiter, `items.tsx`; 19.11.2026, ebenfalls auf wenige Formen reduziert: Begleiter 11–15 mit Gesicht, Hüte und
   Werkzeuge 3–7, Kleider Rumpf plus 1–5 Merkmale, Frisuren 1–3 Flächen), dazu **Bosse** (Golem, Tintenkrake, Rätseldrache; je etwa 20–28 Flächen mit
-  Gesicht) und **Truhe** (Deckel `holzHell`, Kasten `holz`). Dunkle Teile: `<Flaeche>` aus `flaeche.tsx` setzt die
+  Gesicht) und **Truhe** (Deckel `holzHell`, Kasten `holz`), **Hintergründe** (je 10–22 Flächen, Tiefe über Töne:
+  hinten blasser, vorne kräftiger; ruhig, damit der Held vorne steht). Dunkle Teile: `<Flaeche>` aus `flaeche.tsx` setzt die
   `hell`-Kante selbst (`istDunkel`); Kinnschatten: `<Schlagschatten>`.
   Im Code: `{...flaeche(P.x)}` statt `fill={P.x} {...UMRISS}` (Fläche behält ihre Größe), `STRICH` für Detail-Linien;
   ein Test (`figuren.test.tsx`) hält umgestellte Dateien frei von `UMRISS`.
@@ -167,7 +168,8 @@ Nicht auf einmal, je ein Schritt pro Sitzung, jeweils mit Stilprobe und Blick de
    Wand: rechte Seite `tief`; Band unter Traufe als flache Form; Schlagschatten als eine Fläche mit fester Deckkraft).
 2. **Landkarte isometrisch:** `gelaende.tsx` und `welten.tsx` sind heute flach von vorn; sie wandern auf den Iso-Bausatz.
 3. **Figuren ohne Umriss** wie Stilprobe 2 (freigegeben von der Lehrkraft am 19.11.2026, [Stilprobe](#stilprobe-ohne-umriss)): Fuchs, Held mit allen Teilen,
-   Bosse, Begleiter, Gegenstände. **Fuchs, Held mit allen Teilen, Bosse und Truhe erledigt (19.11.2026).** Je Satz eine Sitzung, Vergleich vorher/nachher mit
+   Bosse, Begleiter, Gegenstände. **Fuchs, Held mit allen Teilen, Bosse, Truhe und Hintergründe erledigt (19.11.2026);** offen: Landkarte
+   (`gelaende.tsx`, `welten.tsx`, mit Schritt 2). Je Satz eine Sitzung, Vergleich vorher/nachher mit
    `STILPROBE=<ordner> npx vitest run src/lernquest/figuren/stilprobe`. Die Landkarte verliert ihren Umriss mit Schritt 2.
 4. 3D-Teile aufräumen: die Skripte in `.claude/skills/grafik/skripte/` und `stilprobe/haus-3d-probe.png` werden nicht
    mehr gebraucht (Löschen nach Rückfrage).
