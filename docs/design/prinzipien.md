@@ -49,7 +49,8 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
   Schlagschatten mit weichem Rand.
 - **Kein reines Schwarz:** das Dunkelste ist `P.linie` / `P.auge` (Dunkelbraun).
 - **Kein Umriss** (entschieden 19.11.2026, [Stilprobe](#stilprobe-ohne-umriss)). Formen trennen sich durch Ton:
-  Teile vor dem Körper (Arme, Kopf) werfen einen harten Schatten nach unten rechts, der nur auf den Körper fällt;
+  Arme vor dem Körper sind einen Ton dunkler (`tief`) als der Rumpf, der Kopf wirft einen harten Schatten nach unten
+  rechts, der nur auf den Körper fällt;
   dunkle Teile vor dunklem Grund bekommen eine `hell`-Kante oben links. Dunkle **Linien** für Details (Mund, Brauen,
   Schnur) bleiben erlaubt, sie umranden nichts.
 - Bis zur Umstellung haben die Figuren noch ihren Umriss. Neue Teile folgen ihrem Satz (Held-Teile mit Umriss, Dorf
@@ -173,8 +174,9 @@ Was die Probe zeigt:
 - **Kopf und Silhouette** lesen sich ohne Umriss gut, auch bei 48 und 32 px; Fuchs und Held wirken weicher und
   passen besser zum Dorf.
 - **Arme vor gleichfarbigem Körper verschwinden** (rote Ärmel auf rotem Pulli, Ärmel des Fuchses auf der Tunika).
-  Der Schatten auf den Körper hilft am Kinn deutlich, an den Armen nur wenig. Für die Umstellung: Ärmel einen Ton
-  dunkler (`tief`) **oder** kräftigerer Schatten; das entscheidet die nächste Probe.
+  Der Schatten auf den Körper hilft am Kinn deutlich, an den Armen nur wenig. **Entschieden (19.11.):** Ärmel und
+  Arme vor dem Körper sind einen Ton dunkler (`tief`) als der Rumpf; der Schatten bleibt für Kopf und Kinn.
+  Nächster Schritt: Stilprobe 2 (`umriss-v2.png`) mit dunkleren Ärmeln und `hell`-Kante an dunklen Haaren.
 - **Dunkle Haare vor dunklem Grund** (Nacht, Boss) verlieren die Kontur: Haare brauchen eine `hell`-Kante oben links.
 - **Offene Detail-Linien** stehen ohne Umriss allein da (Zacken an der Schwanzspitze des Fuchses): neu zeichnen oder weg.
 - Ohne Strich werden Formen 1,5 Einheiten kleiner; im Code die Formen entsprechend größer zeichnen, nicht den Strich
