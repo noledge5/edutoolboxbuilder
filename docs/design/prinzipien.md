@@ -56,12 +56,15 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
 - Bis zur Umstellung haben die Figuren noch ihren Umriss. Neue Teile folgen ihrem Satz (Held-Teile mit Umriss, Dorf
   ohne), damit nichts gemischt aussieht; die Umstellung macht einen Satz immer ganz. **Umgestellt: Fuchs** (19.11.2026, danach auf große Flächen reduziert: ohne Nähte, Tasche, Brosche, Stiefelkappen,
   Ohrbüschel, Haarschopf; etwa 19 Formen plus Gesicht) und **Held mit allen Teilen** (Kleidung, Frisuren, Kopf, Werkzeug,
-  Begleiter, `items.tsx`; 19.11.2026, noch nicht reduziert). Dunkle Teile: `<Flaeche>` aus `flaeche.tsx` setzt die
+  Begleiter, `items.tsx`; 19.11.2026, ebenfalls auf wenige Formen reduziert: Begleiter 11–15 mit Gesicht, Hüte und
+  Werkzeuge 3–7, Kleider Rumpf plus 1–5 Merkmale, Frisuren 1–3 Flächen). Dunkle Teile: `<Flaeche>` aus `flaeche.tsx` setzt die
   `hell`-Kante selbst (`istDunkel`); Kinnschatten: `<Schlagschatten>`.
   Im Code: `{...flaeche(P.x)}` statt `fill={P.x} {...UMRISS}` (Fläche behält ihre Größe), `STRICH` für Detail-Linien;
   ein Test (`figuren.test.tsx`) hält umgestellte Dateien frei von `UMRISS`.
 
 ### Farbe
+- **Weiße Dinge** (Kochmütze, Hase, Einhorn, Netz) werden in `wolke` (blasses Grau) mit `wolkeHell`-Licht und
+  `wolkeTief`-Schatten gezeichnet, nicht in reinem Weiß: sonst verschwinden sie auf weißen Karten und auf Creme.
 - Nur Farben aus `stil.ts` (`P.*`); ein Test schlägt bei jedem anderen Farbwert an. Neue Farbe: immer Grundton, `hell`
   und `tief` zusammen anlegen.
 - **Wenige Farben je Motiv:** höchstens vier Grundtöne (mit ihren Schattierungen), Haut und Haar nicht mitgezählt.

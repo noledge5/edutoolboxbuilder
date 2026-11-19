@@ -34,6 +34,8 @@ Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werk
   casts a hard shadow onto collar and body (`<Schlagschatten>` in `flaeche.tsx`); dark parts: draw them with
   `<Flaeche d farbe hell>`, which adds the `hell` edge top left by itself when `istDunkel(farbe)`. Add the file to `OHNE_UMRISS` in `figuren.test.tsx`. Sets not yet switched keep `{...UMRISS}` /
   `{...UMRISS_FEIN}` and `Glied` with outline (dark 19 under colour 13), and new parts follow their set.
+- **Few shapes** (Duolingo, prinzipien.md): companion 11–15 with face, hat or held thing 3–7, outfit = torso plus 1–5
+  big features, hair 1–3 shapes; no seams, rivets, grain lines, tiny buttons. White things in `wolke`, not `weiss`.
 - Light from top left: one light stroke or spot (`hell`) top left, one shadow shape (`tief`, about 60 % opacity)
   bottom right. No gradients, no blur, no thin lines under 2 units (they vanish at 48 px).
 - The village in 2.5D (`iso.tsx`, `dorf.tsx`, Skill `grafik`): no outline yet; its gradient overlays
