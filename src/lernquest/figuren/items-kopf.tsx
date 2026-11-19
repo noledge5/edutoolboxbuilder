@@ -1,5 +1,6 @@
 // Hats of the hero (slot `kopf` in src/lernquest/teile.ts), on the anchor `hut`.
 // Rarity shows in the material: wool, cloth, leather; then metal; then colour with a star; then gold and gems.
+// Few shapes each (3-7, docs/design/prinzipien.md): one clear silhouette and one feature (pompom, skull, propeller …).
 import { Flaeche } from './flaeche';
 import { flaeche, P } from './stil';
 import type { Item } from './typen';
@@ -7,24 +8,27 @@ import { Funkeln, stern } from './zeichnen';
 
 const GEIST = { fill: 'none', strokeLinecap: 'round' } as const;
 
+/** The shade of a shape: a darker copy of its lower right part, drawn over it. */
+const Tief = ({ d, farbe, deckkraft = 0.55 }: { d: string; farbe: string; deckkraft?: number }) => <path d={d} fill={farbe} opacity={deckkraft} />;
+/** The light of a shape: one short stroke top left. */
+const Hell = ({ d, farbe, breite = 5 }: { d: string; farbe: string; breite?: number }) => <path d={d} {...GEIST} stroke={farbe} strokeWidth={breite} />;
+
 export const KOPF_ITEMS: Item[] = [
   {
     id: 'wollmuetze',
     name: 'Wollmütze',
     platz: 'hut',
     seltenheit: 1,
-    rahmen: [-46, -64, 92, 76],
+    rahmen: [-46, -66, 92, 76],
     zeichnung: () => (
       <g>
-        <path d="M-38 -2 Q-42 -44 0 -46 Q42 -44 38 -2 Z" {...flaeche(P.rot)} />
-        <path d="M16 -42 Q40 -34 38 -2 L20 -2 Q24 -24 16 -42 Z" fill={P.rotTief} opacity={0.5} />
-        <path d="M-26 -12 Q-24 -32 -10 -40" {...GEIST} stroke={P.backe} strokeWidth={4} />
-        <path d="M-18 -42 L-18 -8 M-6 -46 L-6 -8 M6 -46 L6 -8 M18 -42 L18 -8" {...GEIST} stroke={P.rotTief} strokeWidth={1.8} opacity={0.6} />
-        <path d="M-43 -6 Q0 -14 43 -6 L44 8 Q0 0 -44 8 Z" {...flaeche(P.rotTief)} />
-        <path d="M-36 -2 Q0 -9 36 -2" {...GEIST} stroke={P.rot} strokeWidth={2.5} />
-        <circle cx={0} cy={-54} r={11} {...flaeche(P.weiss)} />
-        <path d="M-5 -58 Q-2 -62 3 -61" {...GEIST} stroke={P.creme} strokeWidth={3} />
-        <path d="M3 -50 Q9 -52 10 -57" {...GEIST} stroke={P.grauHell} strokeWidth={2} />
+        <path d="M-36 -4 Q-40 -42 0 -44 Q40 -42 36 -4 Z" {...flaeche(P.rot)} />
+        <Tief d="M14 -41 Q38 -34 36 -4 L18 -4 Q22 -24 14 -41 Z" farbe={P.rotTief} />
+        <Hell d="M-24 -12 Q-22 -30 -8 -38" farbe={P.backe} />
+        <rect x={-42} y={-12} width={84} height={20} rx={10} {...flaeche(P.rotTief)} />
+        {/* the pompom: white, with a grey shade lower right so it stands out on cream */}
+        <circle cx={3} cy={-49} r={11} {...flaeche(P.grauHell)} />
+        <circle cx={0} cy={-52} r={11} {...flaeche(P.weiss)} />
       </g>
     ),
   },
@@ -39,9 +43,7 @@ export const KOPF_ITEMS: Item[] = [
         <path d="M48 16 Q62 4 76 12 Q68 16 66 22 Q60 18 50 20 Z" {...flaeche(P.rot, 2.5)} />
         <path d="M48 20 Q60 28 72 38 Q64 38 60 34 Q56 36 48 26 Z" {...flaeche(P.rotTief, 2.5)} />
         <path d="M-52 10 Q0 3 52 10 L52 24 Q0 17 -52 24 Z" {...flaeche(P.rot)} />
-        <path d="M24 13 Q40 12 52 10 L52 24 Q36 20 20 19 Z" fill={P.rotTief} opacity={0.5} />
-        <path d="M-40 11 Q-20 7 -2 8" {...GEIST} stroke={P.backe} strokeWidth={3} />
-        <path d="M-38 19 Q-10 15 18 17" {...GEIST} stroke={P.rotTief} strokeWidth={1.6} strokeDasharray="3 3.5" />
+        <Tief d="M24 13 Q40 12 52 10 L52 24 Q36 20 20 19 Z" farbe={P.rotTief} />
         <ellipse cx={50} cy={17} rx={6} ry={7.5} {...flaeche(P.rotTief, 2.5)} />
       </g>
     ),
@@ -55,17 +57,12 @@ export const KOPF_ITEMS: Item[] = [
     zeichnung: () => (
       <g>
         <path d="M-6 -44 Q10 -66 28 -56 Q14 -54 8 -42 Z" {...flaeche(P.rot, 2.5)} />
-        <path d="M-44 6 L-54 8 L-58 34 L-50 42 L-44 30 Z" {...flaeche(P.metall, 2.5)} />
-        <path d="M44 6 L54 8 L58 34 L50 42 L44 30 Z" {...flaeche(P.metall, 2.5)} />
-        <path d="M50 14 L56 14 L56 34 L51 38 Z" fill={P.metallTief} opacity={0.5} />
-        <path d="M-38 12 Q-42 -40 0 -44 Q42 -40 38 12 Z" {...flaeche(P.metall)} />
-        <path d="M14 -40 Q40 -30 38 12 L20 12 Q24 -18 14 -40 Z" fill={P.metallTief} opacity={0.55} />
-        <path d="M-27 -6 Q-26 -28 -8 -37" {...GEIST} stroke={P.metallHell} strokeWidth={5} />
-        <path d="M-5 -44 L5 -44 L5 4 L-5 4 Z" {...flaeche(P.metallTief, 2.5)} />
-        <path d="M-42 0 Q0 -8 42 0 L42 12 Q0 4 -42 12 Z" {...flaeche(P.metallTief)} />
-        {[-30, -16, 16, 30].map((x) => (
-          <circle key={x} cx={x} cy={5} r={2.2} fill={P.metallHell} stroke={P.metallHell} strokeWidth={1.2} />
-        ))}
+        {/* dome with the two cheek guards as one shape */}
+        <path d="M-40 14 L-40 -10 Q-40 -46 0 -48 Q40 -46 40 -10 L40 14 Q34 18 30 10 L30 4 L-30 4 L-30 10 Q-34 18 -40 14 Z" {...flaeche(P.metall)} />
+        <Tief d="M16 -44 Q40 -36 40 -10 L40 14 Q34 18 30 10 L30 4 L18 4 Q24 -20 16 -44 Z" farbe={P.metallTief} deckkraft={0.6} />
+        <Hell d="M-27 -8 Q-26 -30 -8 -39" farbe={P.metallHell} />
+        {/* the visor slit */}
+        <rect x={-28} y={-16} width={56} height={12} rx={6} {...flaeche(P.grauTief, 2.5)} />
       </g>
     ),
   },
@@ -78,14 +75,10 @@ export const KOPF_ITEMS: Item[] = [
     zeichnung: () => (
       <g>
         <ellipse cx={0} cy={4} rx={56} ry={11} {...flaeche(P.sandTief)} />
-        <path d="M-46 4 Q0 -4 46 4" {...GEIST} stroke={P.sand} strokeWidth={2.5} />
         <path d="M-30 2 Q-34 -30 -22 -40 Q-10 -46 0 -40 Q12 -46 22 -40 Q34 -30 30 2 Q0 8 -30 2 Z" {...flaeche(P.sand)} />
-        <path d="M18 -38 Q34 -28 30 2 Q20 5 12 5 Q20 -14 18 -38 Z" fill={P.sandTief} opacity={0.55} />
-        <path d="M-24 -10 Q-26 -28 -18 -35" {...GEIST} stroke={P.sandHell} strokeWidth={4} />
+        <Tief d="M18 -38 Q34 -28 30 2 Q20 5 12 5 Q20 -14 18 -38 Z" farbe={P.sandTief} deckkraft={0.7} />
         <path d="M-31 -9 Q0 -3 31 -9 L30 1 Q0 7 -30 1 Z" {...flaeche(P.leder, 2.5)} />
-        <path d="M-26 -6 Q-10 -3 4 -4" {...GEIST} stroke={P.lederHell} strokeWidth={1.8} />
-        <rect x={10} y={-9} width={10} height={11} rx={2} fill={P.gold} stroke={P.goldTief} strokeWidth={2} />
-        <rect x={13.5} y={-5.5} width={3} height={4} fill={P.lederTief} />
+        <rect x={9} y={-10} width={12} height={13} rx={3} {...flaeche(P.gold, 2)} />
       </g>
     ),
   },
@@ -98,15 +91,12 @@ export const KOPF_ITEMS: Item[] = [
     zeichnung: () => (
       <g>
         <Flaeche d="M-56 8 L-46 -26 Q-22 -38 0 -34 Q22 -38 46 -26 L56 8 Q30 -4 0 -3 Q-30 -4 -56 8 Z" farbe={P.dunkel} hell={P.dunkelHell} />
-        <path d="M24 -32 Q40 -30 46 -26 L56 8 Q40 0 24 -2 Z" fill={P.dunkelTief} opacity={0.6} />
-        <path d="M-40 -24 Q-24 -32 -8 -30" {...GEIST} stroke={P.dunkelHell} strokeWidth={4} />
-        <path d="M-53 4 Q-30 -7 0 -7 Q30 -7 53 4" {...GEIST} stroke={P.gold} strokeWidth={3.5} />
-        <path d="M-44 -22 Q-30 -28 -14 -28" {...GEIST} stroke={P.goldTief} strokeWidth={0} />
-        <path d="M-9 -22 Q-9 -32 0 -32 Q9 -32 9 -22 Q9 -17 5 -16 L5 -12 L-5 -12 L-5 -16 Q-9 -17 -9 -22 Z" {...flaeche(P.weiss, 2.5)} />
-        <circle cx={-3.4} cy={-23} r={2.2} fill={P.auge} />
-        <circle cx={3.4} cy={-23} r={2.2} fill={P.auge} />
-        <path d="M-2 -17 L0 -19 L2 -17" {...GEIST} stroke={P.auge} strokeWidth={1.4} />
-        <path d="M-1.5 -16 L-1.5 -12.5 M1.5 -16 L1.5 -12.5" {...GEIST} stroke={P.grauHell} strokeWidth={1.4} />
+        <path d="M-53 4 Q-30 -7 0 -7 Q30 -7 53 4" {...GEIST} stroke={P.gold} strokeWidth={4} />
+        {/* the skull: big, so it reads at 48 px; shade lower right */}
+        <path d="M-10 -19 Q-10 -33 0 -33 Q10 -33 10 -19 Q10 -14 6 -13 L6 -8 L-6 -8 L-6 -13 Q-10 -14 -10 -19 Z" {...flaeche(P.grauHell, 2)} transform="translate(2 2)" />
+        <path d="M-10 -19 Q-10 -33 0 -33 Q10 -33 10 -19 Q10 -14 6 -13 L6 -8 L-6 -8 L-6 -13 Q-10 -14 -10 -19 Z" {...flaeche(P.weiss, 2)} />
+        <circle cx={-4.2} cy={-21} r={3} fill={P.auge} />
+        <circle cx={4.2} cy={-21} r={3} fill={P.auge} />
       </g>
     ),
   },
@@ -119,15 +109,12 @@ export const KOPF_ITEMS: Item[] = [
     zeichnung: () => (
       <g>
         <path d="M-40 6 Q-44 -38 0 -42 Q44 -38 40 6 Z" {...flaeche(P.blau)} />
-        <path d="M16 -38 Q42 -30 40 6 L22 6 Q26 -18 16 -38 Z" fill={P.blauTief} opacity={0.5} />
-        <path d="M-28 -6 Q-28 -28 -10 -37" {...GEIST} stroke={P.blauHell} strokeWidth={5} />
-        <path d="M0 -42 Q-8 -20 -6 4" {...GEIST} stroke={P.blauTief} strokeWidth={2} />
+        <Tief d="M16 -38 Q42 -30 40 6 L22 6 Q26 -18 16 -38 Z" farbe={P.blauTief} />
+        <Hell d="M-28 -6 Q-28 -28 -10 -37" farbe={P.blauHell} />
         <circle cx={0} cy={-42} r={4} {...flaeche(P.blauTief, 2.5)} />
-        <path d="M-42 0 Q0 -6 42 0 L42 8 Q0 2 -42 8 Z" {...flaeche(P.blauTief, 2.5)} />
         <path d="M6 -2 Q40 -8 60 6 Q56 14 36 14 Q18 12 6 8 Z" {...flaeche(P.rot)} />
-        <path d="M20 8 Q40 6 56 10 Q50 14 36 14 Q26 12 20 8 Z" fill={P.rotTief} opacity={0.5} />
-        <path d="M14 1 Q34 -3 50 4" {...GEIST} stroke={P.backe} strokeWidth={2.5} />
-        <path d={stern(-12, -18, 6)} fill={P.weiss} stroke={P.weiss} strokeWidth={1.4} strokeLinejoin="round" />
+        <Tief d="M20 8 Q40 6 56 10 Q50 14 36 14 Q26 12 20 8 Z" farbe={P.rotTief} />
+        <path d={stern(-12, -18, 7)} fill={P.weiss} stroke={P.weiss} strokeWidth={1.4} strokeLinejoin="round" />
       </g>
     ),
   },
@@ -139,18 +126,17 @@ export const KOPF_ITEMS: Item[] = [
     rahmen: [-66, -60, 132, 76],
     zeichnung: () => (
       <g>
-        <path d="M-32 -12 Q-62 -10 -60 -54 Q-54 -30 -42 -26 Q-30 -22 -24 -24 Z" {...flaeche(P.creme)} />
-        <path d="M-56 -36 Q-52 -30 -44 -27 L-48 -20 Q-58 -24 -58 -44 Z" fill={P.sandTief} opacity={0.5} />
-        <path d="M32 -12 Q62 -10 60 -54 Q54 -30 42 -26 Q30 -22 24 -24 Z" {...flaeche(P.creme)} />
-        <path d="M56 -36 Q52 -30 44 -27 L48 -20 Q58 -24 58 -44 Z" fill={P.sandTief} opacity={0.5} />
-        <path d="M-60 -54 Q-58 -48 -56 -42 M60 -54 Q58 -48 56 -42" {...GEIST} stroke={P.sandTief} strokeWidth={4} />
-        <path d="M-38 8 Q-42 -36 0 -40 Q42 -36 38 8 Z" {...flaeche(P.metall)} />
-        <path d="M14 -36 Q40 -28 38 8 L20 8 Q24 -16 14 -36 Z" fill={P.metallTief} opacity={0.55} />
-        <path d="M-27 -6 Q-26 -26 -8 -34" {...GEIST} stroke={P.metallHell} strokeWidth={5} />
-        <path d="M-42 -2 Q0 -10 42 -2 L42 10 Q0 2 -42 10 Z" {...flaeche(P.metallTief)} />
-        {[-28, -14, 0, 14, 28].map((x) => (
-          <circle key={x} cx={x} cy={3} r={2.2} fill={P.metallHell} stroke={P.metallHell} strokeWidth={1.2} />
+        {/* two horns, the left one mirrored: cream with a darker edge lower right */}
+        {[1, -1].map((s) => (
+          <g key={s} transform={`scale(${s} 1)`}>
+            <path d="M30 -12 Q62 -8 58 -52 Q50 -28 38 -26 Z" {...flaeche(P.creme)} />
+            <path d="M58 -52 Q56 -34 48 -26 L38 -26 Q52 -28 58 -52 Z" fill={P.sandTief} opacity={0.7} />
+          </g>
         ))}
+        <path d="M-38 8 Q-42 -36 0 -40 Q42 -36 38 8 Z" {...flaeche(P.metall)} />
+        <Tief d="M14 -36 Q40 -28 38 8 L20 8 Q24 -16 14 -36 Z" farbe={P.metallTief} deckkraft={0.6} />
+        <Hell d="M-27 -6 Q-26 -26 -8 -34" farbe={P.metallHell} />
+        <path d="M-42 -2 Q0 -10 42 -2 L42 10 Q0 2 -42 10 Z" {...flaeche(P.metallTief)} />
       </g>
     ),
   },
@@ -162,12 +148,16 @@ export const KOPF_ITEMS: Item[] = [
     rahmen: [-52, -66, 104, 76],
     zeichnung: () => (
       <g>
-        <path d="M-30 6 L-32 -10 Q-54 -14 -46 -36 Q-42 -52 -22 -48 Q-10 -64 6 -54 Q28 -60 38 -42 Q56 -30 36 -10 L32 6 Z" {...flaeche(P.weiss)} />
-        <path d="M34 -38 Q54 -28 36 -10 L32 6 L16 6 Q30 -8 24 -26 Q30 -30 34 -38 Z" fill={P.grauHell} opacity={0.5} />
-        <path d="M-20 -14 Q-20 -30 -16 -42 M2 -14 Q4 -30 0 -46" {...GEIST} stroke={P.grauHell} strokeWidth={2} />
-        <path d="M-40 -28 Q-36 -42 -26 -42" {...GEIST} stroke={P.schnee} strokeWidth={4} />
-        <path d="M-34 -8 Q0 -2 34 -8 L36 6 Q0 12 -36 6 Z" {...flaeche(P.schnee)} />
-        <path d="M-28 -2 Q-12 1 4 0" {...GEIST} stroke={P.grauHell} strokeWidth={2} />
+        {/* Toque: a tall column with three puffs on top, a band below. White things are drawn in `wolke` (pale grey)
+            with a white light and a grey shade, so they read on white cards and on cream. */}
+        <rect x={-22} y={-44} width={44} height={40} rx={6} {...flaeche(P.wolke)} />
+        <circle cx={-20} cy={-46} r={15} {...flaeche(P.wolke)} />
+        <circle cx={20} cy={-46} r={15} {...flaeche(P.wolke)} />
+        <circle cx={0} cy={-56} r={17} {...flaeche(P.wolke)} />
+        <Tief d="M8 -36 Q20 -34 22 -24 L22 -4 L8 -4 Z M35 -46 Q34 -32 21 -31 Q30 -38 35 -46 Z M16 -54 Q14 -42 2 -39 Q12 -46 16 -54 Z" farbe={P.wolkeTief} deckkraft={1} />
+        <Hell d="M-28 -52 Q-24 -58 -16 -59 M-8 -66 Q-2 -70 6 -69" farbe={P.wolkeHell} />
+        <rect x={-30} y={-8} width={60} height={16} rx={7} {...flaeche(P.wolke)} />
+        <Tief d="M-30 2 Q0 6 30 2 L30 4 Q30 10 23 10 L-23 10 Q-30 10 -30 4 Z" farbe={P.wolkeTief} deckkraft={1} />
       </g>
     ),
   },
@@ -180,13 +170,11 @@ export const KOPF_ITEMS: Item[] = [
     zeichnung: () => (
       <g>
         <path d="M-60 -6 Q-54 -18 -36 -8 Q0 2 36 -8 Q54 -18 60 -6 Q52 12 0 11 Q-52 12 -60 -6 Z" {...flaeche(P.leder)} />
-        <path d="M20 4 Q50 -2 60 -6 Q52 12 0 11 Q10 8 20 4 Z" fill={P.lederTief} opacity={0.55} />
-        <path d="M-52 -8 Q-46 -12 -40 -8" {...GEIST} stroke={P.lederHell} strokeWidth={2.5} />
+        <Tief d="M20 4 Q50 -2 60 -6 Q52 12 0 11 Q10 8 20 4 Z" farbe={P.lederTief} />
         <path d="M-30 0 Q-36 -28 -24 -42 Q-12 -34 0 -37 Q12 -34 24 -42 Q36 -28 30 0 Q0 6 -30 0 Z" {...flaeche(P.lederHell)} />
-        <path d="M20 -38 Q36 -26 30 0 Q22 3 14 4 Q22 -14 20 -38 Z" fill={P.lederTief} opacity={0.55} />
-        <path d="M-25 -12 Q-27 -28 -21 -36" {...GEIST} stroke={P.holz} strokeWidth={4} />
+        <Tief d="M20 -38 Q36 -26 30 0 Q22 3 14 4 Q22 -14 20 -38 Z" farbe={P.lederTief} />
         <path d="M-31 -9 Q0 -3 31 -9 L30 1 Q0 7 -30 1 Z" {...flaeche(P.lederTief, 2.5)} />
-        <path d={stern(0, -3, 5)} fill={P.gold} stroke={P.goldTief} strokeWidth={1.4} strokeLinejoin="round" />
+        <path d={stern(0, -3, 6)} fill={P.gold} stroke={P.gold} strokeWidth={1.4} strokeLinejoin="round" />
       </g>
     ),
   },
@@ -198,18 +186,14 @@ export const KOPF_ITEMS: Item[] = [
     rahmen: [-46, -74, 98, 88],
     zeichnung: () => (
       <g>
-        <path d="M26 -34 Q28 -48 32 -58" {...GEIST} stroke={P.metallTief} strokeWidth={7} />
-        <circle cx={32} cy={-62} r={6} {...flaeche(P.rot, 2.5)} />
-        <circle cx={30} cy={-64} r={1.8} fill={P.weiss} />
+        <path d="M26 -34 Q28 -48 32 -58" {...GEIST} stroke={P.metallTief} strokeWidth={6} />
+        <circle cx={32} cy={-62} r={6.5} {...flaeche(P.rot, 2.5)} />
+        <path d="M-40 6 Q-44 -38 0 -42 Q44 -38 40 6 Z" {...flaeche(P.grau)} transform="translate(3 3)" />
         <path d="M-40 6 Q-44 -38 0 -42 Q44 -38 40 6 Z" {...flaeche(P.weiss)} />
-        <path d="M16 -38 Q44 -30 40 6 L22 6 Q26 -18 16 -38 Z" fill={P.grauHell} opacity={0.55} />
-        <path d="M-30 -6 Q-30 -26 -14 -36" {...GEIST} stroke={P.schnee} strokeWidth={0} />
-        <path d="M-25 -26 Q-12 -26 0 -26 Q12 -26 25 -26 Q28 -14 24 -6 Q0 -2 -24 -6 Q-28 -14 -25 -26 Z" {...flaeche(P.blau, 2.5)} />
-        <path d="M-20 -22 Q-10 -23 -4 -22" {...GEIST} stroke={P.blauHell} strokeWidth={3.5} />
+        {/* the visor: one big blue window */}
+        <path d="M-26 -28 Q0 -34 26 -28 Q30 -14 24 -6 Q0 -2 -24 -6 Q-30 -14 -26 -28 Z" {...flaeche(P.blau, 2.5)} />
+        <Hell d="M-19 -22 Q-10 -25 -4 -24" farbe={P.blauHell} breite={3.5} />
         <path d="M-42 -2 Q0 -10 42 -2 L42 10 Q0 2 -42 10 Z" {...flaeche(P.metall)} />
-        <path d="M-34 1 Q-20 -3 -8 -3" {...GEIST} stroke={P.metallHell} strokeWidth={2.5} />
-        <path d={stern(0, 4, 6)} fill={P.gold} stroke={P.goldTief} strokeWidth={1.4} strokeLinejoin="round" />
-        <path d="M-27 -2 l5 4.5 -5 4.5 -5 -4.5 Z" fill={P.blauHell} stroke={P.blauTief} strokeWidth={1.4} />
       </g>
     ),
   },
@@ -222,24 +206,13 @@ export const KOPF_ITEMS: Item[] = [
     rahmen: [-42, -66, 84, 80],
     zeichnung: (zeit) => (
       <g>
-        <path d="M-32 -4 L-30 -32 L-18 -12 L-12 -42 L-4 -14 L0 -58 L4 -14 L12 -42 L18 -12 L30 -32 L32 -4 Z" {...flaeche(P.eis)} />
-        <path d="M0 -58 L4 -14 L12 -42 L18 -12 L30 -32 L32 -4 L10 -4 Z" fill={P.eisTief} opacity={0.5} />
-        <path d="M-27 -10 L-27 -24 M-13 -16 L-11 -32 M-3 -22 L-1 -44" {...GEIST} stroke={P.eisHell} strokeWidth={3.5} />
-        <path d="M-35 6 L35 6 L35 -6 L-35 -6 Z" {...flaeche(P.gold)} />
-        <path d="M-31 -2 L10 -2" {...GEIST} stroke={P.goldHell} strokeWidth={2.5} />
-        <path d="M16 6 L35 6 L35 -6 L22 -6 Z" fill={P.goldTief} opacity={0.5} />
-        {[
-          [-20, P.blau, P.blauTief],
-          [0, P.rot, P.rotTief],
-          [20, P.blau, P.blauTief],
-        ].map(([x, f, t]) => (
-          <g key={x as number}>
-            <path d={`M${x} -6 l5 5 -5 5 -5 -5 Z`} fill={f as string} stroke={t as string} strokeWidth={1.5} />
-            <path d={`M${(x as number) - 1.8} -2.5 l1.8 -1.8`} stroke={P.weiss} strokeWidth={1.4} strokeLinecap="round" />
-          </g>
-        ))}
-        <Funkeln x={-24} y={-38} r={7} zeit={zeit} />
-        <Funkeln x={22} y={-40} r={6} zeit={zeit} versatz={2.5} />
+        <path d="M-32 -4 L-28 -32 L-14 -14 L0 -60 L14 -14 L28 -32 L32 -4 Z" {...flaeche(P.eis)} />
+        <Tief d="M0 -60 L14 -14 L28 -32 L32 -4 L8 -4 Z" farbe={P.eisTief} deckkraft={0.7} />
+        <rect x={-36} y={-6} width={72} height={14} rx={6} {...flaeche(P.gold)} />
+        <path d="M-32 6 L36 6 L36 2 Q0 0 -32 2 Z" fill={P.goldTief} opacity={0.5} />
+        <path d="M0 -4 l6 6 -6 6 -6 -6 Z" fill={P.rot} stroke={P.rot} strokeWidth={1.5} strokeLinejoin="round" />
+        <Funkeln x={-26} y={-40} r={7} zeit={zeit} />
+        <Funkeln x={24} y={-42} r={6} zeit={zeit} versatz={2.5} />
       </g>
     ),
   },
@@ -252,22 +225,15 @@ export const KOPF_ITEMS: Item[] = [
     rahmen: [-50, -76, 100, 92],
     zeichnung: () => (
       <g>
-        {/* Red plume behind */}
+        {/* red plume behind */}
         <path d="M-2 -46 Q-8 -70 10 -74 Q30 -74 38 -58 Q24 -64 16 -58 Q30 -54 34 -40 Q20 -50 8 -44 Z" {...flaeche(P.rot, 2.5)} />
-        <path d="M6 -66 Q18 -70 28 -62" fill="none" stroke={P.backe} strokeWidth={2.5} strokeLinecap="round" />
-        {/* Steel dome with cheek guards */}
+        {/* steel dome with cheek guards */}
         <path d="M-44 14 L-44 -10 Q-44 -50 0 -52 Q44 -50 44 -10 L44 14 Q36 18 32 10 L32 -2 L-32 -2 L-32 10 Q-36 18 -44 14 Z" {...flaeche(P.metall)} />
-        <path d="M18 -48 Q44 -40 44 -10 L44 14 Q38 16 34 12 Q36 -24 18 -48 Z" fill={P.metallTief} opacity={0.6} />
-        <path d="M-32 -18 Q-28 -38 -10 -44" fill="none" stroke={P.metallHell} strokeWidth={5} strokeLinecap="round" />
-        {/* Gold crown band with three points and a sapphire */}
+        <Tief d="M18 -48 Q44 -40 44 -10 L44 14 Q38 16 34 12 Q36 -24 18 -48 Z" farbe={P.metallTief} deckkraft={0.6} />
+        <Hell d="M-32 -18 Q-28 -38 -10 -44" farbe={P.metallHell} />
+        {/* gold crown band with a blue star */}
         <path d="M-40 -2 L-40 -18 L-30 -12 L-20 -26 L-8 -14 L0 -30 L8 -14 L20 -26 L30 -12 L40 -18 L40 -2 Z" {...flaeche(P.gold, 2.5)} />
-        <path d="M-36 -6 H36" stroke={P.goldTief} strokeWidth={2} />
-        <path d={stern(0, -12, 7)} fill={P.blau} stroke={P.blauTief} strokeWidth={1.5} strokeLinejoin="round" />
-        <circle cx={-22} cy={-9} r={2.5} fill={P.rot} stroke={P.rotTief} strokeWidth={1} />
-        <circle cx={22} cy={-9} r={2.5} fill={P.rot} stroke={P.rotTief} strokeWidth={1} />
-        {[-38, 38].map((x) => (
-          <circle key={x} cx={x} cy={8} r={2} fill={P.metallHell} stroke={P.metallHell} strokeWidth={1} />
-        ))}
+        <path d={stern(0, -12, 7)} fill={P.blau} stroke={P.blau} strokeWidth={1.5} strokeLinejoin="round" />
       </g>
     ),
   },
@@ -276,31 +242,18 @@ export const KOPF_ITEMS: Item[] = [
     name: 'Militärhelm',
     platz: 'hut',
     seltenheit: 2,
-    rahmen: [-62, -56, 124, 126],
+    rahmen: [-66, -56, 132, 108],
     zeichnung: () => (
       <g>
-        {/* Headset band and ear cups, behind the helmet rim */}
-        <path d="M-52 40 Q-60 0 -46 -20 M52 40 Q60 0 46 -20" fill="none" stroke={P.grau} strokeWidth={7} strokeLinecap="round" />
-        {/* Olive steel dome with a flared rim */}
+        {/* headset: band behind the helmet, two ear cups */}
+        <path d="M-52 36 Q-60 0 -46 -20 M52 36 Q60 0 46 -20" {...GEIST} stroke={P.grau} strokeWidth={7} />
         <path d="M-50 10 Q-46 -50 0 -52 Q46 -50 50 10 Q0 0 -50 10 Z" {...flaeche(P.oliv)} />
-        <path d="M20 -48 Q48 -36 50 10 Q40 7 32 6 Q36 -22 20 -48 Z" fill={P.olivTief} opacity={0.6} />
-        <path d="M-34 -14 Q-30 -36 -12 -44" fill="none" stroke={P.gruenHell} strokeWidth={5} strokeLinecap="round" opacity={0.8} />
-        {/* Steel rim and side rails */}
-        <path d="M-52 10 Q0 -2 52 10" fill="none" stroke={P.metallTief} strokeWidth={5} strokeLinecap="round" />
-        <path d="M-40 -8 L-30 -10 M30 -10 L40 -8" stroke={P.metallTief} strokeWidth={4} strokeLinecap="round" />
-        {/* Night vision mount on the front */}
-        <rect x={-8} y={-30} width={16} height={12} rx={3} {...flaeche(P.metall, 2.5)} />
-        <circle cx={0} cy={-24} r={2.5} fill={P.metallTief} />
-        {/* Ear cups */}
+        <Tief d="M20 -48 Q48 -36 50 10 Q40 7 32 6 Q36 -22 20 -48 Z" farbe={P.olivTief} deckkraft={0.7} />
+        <Hell d="M-34 -14 Q-30 -36 -12 -44" farbe={P.gruenHell} />
+        <path d="M-52 10 Q0 -2 52 10" {...GEIST} stroke={P.metallTief} strokeWidth={5} />
         {[-54, 54].map((x) => (
-          <g key={x}>
-            <ellipse cx={x} cy={44} rx={11} ry={14} {...flaeche(P.grau)} />
-            <ellipse cx={x} cy={44} rx={5} ry={7} fill={P.grauTief} />
-          </g>
+          <ellipse key={x} cx={x} cy={38} rx={11} ry={14} {...flaeche(P.grau)} />
         ))}
-        {/* Boom microphone from the left cup to the mouth */}
-        <path d="M-50 56 Q-44 70 -24 70" fill="none" stroke={P.grau} strokeWidth={6} strokeLinecap="round" />
-        <ellipse cx={-20} cy={70} rx={6} ry={5} {...flaeche(P.grauTief, 2.5)} />
       </g>
     ),
   },
@@ -313,11 +266,10 @@ export const KOPF_ITEMS: Item[] = [
     rahmen: [-48, -46, 96, 56],
     zeichnung: () => (
       <g transform="rotate(-8)">
+        <path d="M2 -38 L4 -47" {...GEIST} stroke={P.blauTief} strokeWidth={6} />
         <path d="M-44 -4 Q-48 -34 -4 -38 Q42 -40 46 -12 Q44 2 2 4 Q-40 6 -44 -4 Z" {...flaeche(P.blauTief)} />
-        <path d="M20 -36 Q44 -30 46 -12 Q44 0 24 2 Q34 -16 20 -36 Z" fill={P.tinteTief} opacity={0.5} />
-        <path d="M-32 -20 Q-24 -32 -8 -34" fill="none" stroke={P.blau} strokeWidth={4} strokeLinecap="round" />
-        <path d="M-38 0 Q0 8 40 -4" fill="none" stroke={P.tinteTief} strokeWidth={5} strokeLinecap="round" />
-        <path d="M2 -38 L4 -46" stroke={P.blauTief} strokeWidth={5} strokeLinecap="round" />
+        <Tief d="M20 -36 Q44 -30 46 -12 Q44 0 24 2 Q34 -16 20 -36 Z" farbe={P.tinteTief} />
+        <Hell d="M-32 -20 Q-24 -32 -8 -34" farbe={P.blau} breite={4} />
       </g>
     ),
   },
@@ -329,21 +281,17 @@ export const KOPF_ITEMS: Item[] = [
     bewegt: true,
     rahmen: [-46, -70, 92, 80],
     zeichnung: (zeit) => {
-      // The propeller turns: its blades get short and long (seen from the side).
+      // The propeller turns: its blade gets short and long (seen from the side).
       const k = Math.cos(zeit * 14);
       return (
         <g>
           <path d="M-38 -2 Q-40 -44 0 -46 Q40 -44 38 -2 Z" {...flaeche(P.rot)} />
-          <path d="M0 -46 Q20 -44 30 -30 L38 -2 L0 -2 Z" fill={P.gelb} />
-          <path d="M0 -46 L0 -2 L-38 -2 Q-40 -24 -30 -34 Z" fill={P.blau} />
-          <path d="M-30 -34 Q-20 -44 0 -46 L0 -24 Z" fill={P.gruen} />
-          <path d="M0 -46 V-2 M-38 -20 Q0 -26 38 -20" fill="none" stroke={P.linie} strokeWidth={1.8} opacity={0.6} />
-          <path d="M-26 -30 Q-18 -40 -6 -42" fill="none" stroke={P.weiss} strokeWidth={3} strokeLinecap="round" opacity={0.6} />
-          <path d="M-6 -2 Q30 -6 48 4 Q30 10 -6 6 Z" {...flaeche(P.rot, 2.5)} />
-          <rect x={-2} y={-58} width={4} height={13} {...flaeche(P.metall, 2.5)} />
-          <ellipse cx={0} cy={-60} rx={26 * Math.abs(k) + 3} ry={4.5} {...flaeche(P.gelb, 2.5)} />
-          <ellipse cx={(k > 0 ? 12 : -12) * Math.abs(k)} cy={-60} rx={6 * Math.abs(k) + 1} ry={3} fill={P.rot} />
-          <circle cx={0} cy={-60} r={4} {...flaeche(P.blau, 2.5)} />
+          <path d="M-38 -2 Q-39.6 -36.4 -13 -44 L-13 -2 Z" {...flaeche(P.blau)} />
+          <path d="M13 -44 Q39.6 -36.4 38 -2 L13 -2 Z" {...flaeche(P.gelb)} />
+          <path d="M-6 -2 Q30 -6 48 4 Q30 10 -6 6 Z" {...flaeche(P.gruen, 2.5)} />
+          <rect x={-2.5} y={-58} width={5} height={13} {...flaeche(P.metall, 2.5)} />
+          <ellipse cx={0} cy={-60} rx={26 * Math.abs(k) + 3} ry={5} {...flaeche(P.gelb, 2.5)} />
+          <circle cx={0} cy={-60} r={4.5} {...flaeche(P.blau, 2.5)} />
         </g>
       );
     },
@@ -353,18 +301,15 @@ export const KOPF_ITEMS: Item[] = [
     name: 'Detektivhut',
     platz: 'hut',
     seltenheit: 3,
-    rahmen: [-56, -50, 112, 64],
+    rahmen: [-56, -54, 112, 68],
     zeichnung: () => (
       <g>
-        {/* Deerstalker: a check cap with a peak front and back, flaps tied on top */}
-        <path d="M-52 2 Q-40 -6 -30 -4 L-30 4 Q-42 8 -52 2 Z M52 2 Q40 -6 30 -4 L30 4 Q42 8 52 2 Z" {...flaeche(P.sandTief, 2.5)} />
-        <path d="M-36 0 Q-38 -42 0 -44 Q38 -42 36 0 Z" {...flaeche(P.sand)} />
-        <path d="M-24 -38 V0 M-8 -44 V0 M8 -44 V0 M24 -38 V0 M-36 -12 H36 M-30 -28 H30" stroke={P.leder} strokeWidth={2.5} opacity={0.6} />
-        <path d="M18 -40 Q36 -32 36 0 L20 0 Q24 -22 18 -40 Z" fill={P.sandTief} opacity={0.5} />
-        <path d="M-26 -16 Q-24 -32 -10 -38" fill="none" stroke={P.sandHell} strokeWidth={4} strokeLinecap="round" />
-        <path d="M-30 -10 Q-40 2 -34 14 Q-28 8 -26 -6 Z M30 -10 Q40 2 34 14 Q28 8 26 -6 Z" {...flaeche(P.sand, 2.5)} />
-        <path d="M-8 -46 Q0 -54 8 -46 Q0 -42 -8 -46 Z" {...flaeche(P.leder, 2.5)} />
-        <circle cx={0} cy={-46} r={3} fill={P.lederTief} />
+        {/* Deerstalker: a low dome with a big peak front and back, a few broad check stripes, a bow on top */}
+        <path d="M-58 4 Q-46 -10 -28 -6 L-28 8 Q-44 12 -58 4 Z M58 4 Q46 -10 28 -6 L28 8 Q44 12 58 4 Z" {...flaeche(P.holzTief)} />
+        <path d="M-34 6 Q-36 -36 0 -38 Q36 -36 34 6 Z" {...flaeche(P.sandTief)} />
+        <path d="M-14 -37 V6 M14 -37 V6 M-34 -12 Q0 -18 34 -12" {...GEIST} stroke={P.holz} strokeWidth={6} opacity={0.75} />
+        <Tief d="M20 -32 Q34 -24 34 6 L22 6 Q26 -14 20 -32 Z" farbe={P.holzTief} deckkraft={0.5} />
+        <path d="M-10 -44 Q0 -52 10 -44 Q0 -38 -10 -44 Z" {...flaeche(P.leder)} />
       </g>
     ),
   },
@@ -376,28 +321,22 @@ export const KOPF_ITEMS: Item[] = [
     bewegt: true,
     rahmen: [-50, -92, 100, 100],
     zeichnung: (zeit) => {
-      const federn: [number, string, string][] = [
-        [-48, P.rot, P.rotTief],
-        [-26, P.orange, P.orangeTief],
-        [-8, P.gelb, P.gelbTief],
-        [8, P.gruen, P.gruenTief],
-        [26, P.blau, P.blauTief],
-        [48, P.lila, P.lilaTief],
+      const federn: [number, string][] = [
+        [-44, P.rot],
+        [-22, P.orange],
+        [0, P.gelb],
+        [22, P.blau],
+        [44, P.lila],
       ];
       return (
         <g>
-          {federn.map(([w, f, t], i) => (
+          {federn.map(([w, f], i) => (
             <g key={w} transform={`rotate(${(w + Math.sin(zeit * 2 + i) * 3).toFixed(1)} 0 -6)`}>
-              <path d="M0 -6 Q-12 -40 0 -78 Q12 -40 0 -6 Z" {...flaeche(f, 2.5)} />
-              <path d="M0 -10 V-72" stroke={t} strokeWidth={2} />
-              <path d="M0 -30 l-6 -6 M0 -44 l-6 -6 M0 -30 l6 -6 M0 -44 l6 -6 M0 -58 l5 -5 M0 -58 l-5 -5" stroke={t} strokeWidth={1.5} opacity={0.7} />
+              <path d="M0 -6 Q-14 -40 0 -80 Q14 -40 0 -6 Z" {...flaeche(f, 2.5)} />
             </g>
           ))}
-          <path d="M-40 6 Q0 -6 40 6 L40 -8 Q0 -20 -40 -8 Z" {...flaeche(P.gold)} />
-          <path d="M-34 -4 Q0 -14 34 -4" fill="none" stroke={P.goldHell} strokeWidth={2.5} />
-          <path d="M-6 -6 L0 -14 L6 -6 L0 2 Z" fill={P.tuerkis} stroke={P.tuerkisTief} strokeWidth={1.5} />
-          <circle cx={-24} cy={-2} r={3} fill={P.rot} stroke={P.rotTief} strokeWidth={1.2} />
-          <circle cx={24} cy={-2} r={3} fill={P.rot} stroke={P.rotTief} strokeWidth={1.2} />
+          <rect x={-40} y={-10} width={80} height={16} rx={8} {...flaeche(P.gold)} />
+          <path d="M0 -12 l7 7 -7 7 -7 -7 Z" fill={P.tuerkis} stroke={P.tuerkis} strokeWidth={1.5} strokeLinejoin="round" />
           <Funkeln x={-14} y={-60} r={6} zeit={zeit} />
         </g>
       );
@@ -414,26 +353,21 @@ export const KOPF_ITEMS: Item[] = [
       const f = (k: number) => 1 + Math.sin(zeit * 8 + k) * 0.08;
       return (
         <g>
-          {/* Flame wings on both sides, flickering */}
+          {/* flame wings on both sides, flickering */}
           {[-1, 1].map((s) => (
             <g key={s} transform={`translate(${s * 30} -10) scale(${s * f(s)} ${f(s + 1)})`}>
               <path d="M0 0 Q18 -10 26 -40 Q14 -32 12 -44 Q4 -28 0 -36 Q-4 -18 0 0 Z" {...flaeche(P.lava, 2.5)} />
-              <path d="M2 -4 Q14 -14 18 -30 Q10 -24 8 -32 Q4 -20 2 -4 Z" fill={P.lavaHell} />
             </g>
           ))}
-          <path d="M-32 6 L-34 -24 L-18 -10 L-8 -36 L0 -16 L8 -36 L18 -10 L34 -24 L32 6 Z" {...flaeche(P.gold)} />
-          <path d="M18 -10 L34 -24 L32 6 L16 6 Z" fill={P.goldTief} opacity={0.45} />
-          <path d="M-28 -14 L-28 0 M-10 -26 L-6 -18" stroke={P.goldHell} strokeWidth={3} strokeLinecap="round" />
-          <g transform={`translate(0 -52) scale(${f(3).toFixed(3)})`}>
-            <path d="M0 10 Q-12 -2 -4 -16 Q-2 -8 2 -12 Q4 -22 0 -28 Q16 -16 10 2 Q8 8 0 10 Z" {...flaeche(P.lava, 2.5)} />
-            <path d="M0 6 Q-6 -2 -1 -10 Q2 -4 5 -6 Q8 2 0 6 Z" fill={P.gelb} />
+          <path d="M-32 6 L-34 -24 L-18 -10 L0 -36 L18 -10 L34 -24 L32 6 Z" {...flaeche(P.gold)} />
+          <Tief d="M18 -10 L34 -24 L32 6 L16 6 Z" farbe={P.goldTief} deckkraft={0.5} />
+          <g transform={`translate(0 -54) scale(${f(3).toFixed(3)})`}>
+            <path d="M0 12 Q-14 -2 -5 -18 Q-2 -9 2 -13 Q4 -24 0 -30 Q18 -16 11 3 Q8 10 0 12 Z" {...flaeche(P.lava, 2.5)} />
+            <path d="M0 7 Q-6 -1 -1 -9 Q2 -3 5 -5 Q8 2 0 7 Z" fill={P.gelb} />
           </g>
-          <path d="M-32 6 L32 6 L32 -4 L-32 -4 Z" {...flaeche(P.goldTief, 2.5)} />
-          <path d="M0 -6 l5 5 -5 5 -5 -5 Z" fill={P.rot} stroke={P.rotTief} strokeWidth={1.2} />
-          <circle cx={-18} cy={1} r={2.6} fill={P.tuerkis} />
-          <circle cx={18} cy={1} r={2.6} fill={P.tuerkis} />
-          <Funkeln x={-22} y={-20} r={6} zeit={zeit} />
-          <Funkeln x={24} y={-26} r={5} zeit={zeit} versatz={2.4} />
+          <path d="M0 -8 l6 6 -6 6 -6 -6 Z" fill={P.rot} stroke={P.rot} strokeWidth={1.5} strokeLinejoin="round" />
+          <Funkeln x={-24} y={-22} r={6} zeit={zeit} />
+          <Funkeln x={26} y={-28} r={5} zeit={zeit} versatz={2.4} />
         </g>
       );
     },

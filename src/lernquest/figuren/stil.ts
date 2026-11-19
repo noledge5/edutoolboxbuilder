@@ -131,6 +131,11 @@ export const P = {
   gelbHell: '#FFF29A',
   gelbTief: '#D9B300',
   schnee: '#F4F8FC',
+  // White things (chef's hat, rabbit, cloud): a pale grey base so they read on white cards and the cream app;
+  // `hell` is the white light spot, `tief` the shade.
+  wolke: '#E3E9F0',
+  wolkeHell: '#FBFCFE',
+  wolkeTief: '#C3CCD7',
 
   // The village in 2.5D (iso.tsx, dorf.tsx; Stilprobe 3, 18.11.2026): plaster, timber, roof tiles, field stone, glass.
   putz: '#F6E3B4',
