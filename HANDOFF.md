@@ -1,38 +1,39 @@
-# Handoff – 19.11.2026 (Gestaltungsprinzipien festgelegt; nächster Schritt: Stilprobe 2 ohne Umriss)
+# Handoff – 19.11.2026 (Stilprobe 2 freigegeben; nächster Schritt: Fuchs im Code ohne Umriss)
 
 ## Ziel
-Lernquest nach festen Gestaltungsregeln (Vorbild Duolingo, eigener Look) umbauen und danach jede Frage ohne das
-Arbeitsblatt lösbar machen (Plan: `docs/plan-lernquest-fragen.md`).
+Alle Lernquest-Grafiken nach `docs/design/prinzipien.md` umstellen (kein Umriss, keine Verläufe, Umgebung isometrisch),
+danach jede Frage ohne das Arbeitsblatt lösbar machen (Plan: `docs/plan-lernquest-fragen.md`).
 
 ## Stand
-- Neu, Branch `claude/sweet-hypatia-axj6ax` (**nicht gemergt**, kein PR): `docs/design/prinzipien.md` (Regeln für
-  Grafik, Bewegung, Oberfläche, Verträge, Prüfliste, Umstellung), `docs/adr/0001-flache-figuren-iso-umgebung.md`,
-  Skills `grafik` (ohne 3D) und `figur` angepasst, Roadmap-Eintrag, Stilprobe 1 `docs/design/lernquest/stilprobe/umriss-v1.png`
-  mit Generator `src/lernquest/figuren/stilprobe.test.tsx` (nur mit `STILPROBE=<ordner>`).
-- Entschieden (Lehrkraft, 19.11.): Figuren flach, Umgebung isometrisch, gleiche Regeln; kein 3D; **kein Umriss**,
-  auch nicht an Figuren; Arme vor dem Körper **einen Ton dunkler** (`tief`) als der Rumpf.
-- PR #81 (Lernquest im Umbau, `UMBAU = true`) ist gemergt und live.
-- Tests: grün (619), Typecheck grün. CI Commit 1 grün, spätere Commits beim Schreiben noch offen.
+- Branch `claude/sweet-hypatia-axj6ax` (**nicht gemergt**, kein PR): `docs/design/prinzipien.md`, ADR 0001,
+  Skills `grafik`/`figur`, Roadmap, Stilproben `docs/design/lernquest/stilprobe/umriss-v1.png` und `umriss-v2.png`,
+  Generator `src/lernquest/figuren/stilprobe.test.tsx` (nur mit `STILPROBE=<ordner>`, ändert alles nur im Bild).
+- Lehrkraft 19.11.: kein Umriss, Arme vor dem Körper einen Ton dunkler, **Stilprobe 2 freigegeben**.
+- Tests grün (619), Typecheck grün, CI grün bis Commit `023c8ae`.
 
-## Nächste Schritte (je einer pro Session, Skill `aufgabe` bzw. `figur`)
-1. **Stilprobe 2** (`umriss-v2.png`): wie Probe 1, aber Arme/Ärmel einen Ton dunkler, `hell`-Kante an dunklen Haaren,
-   Zacken an der Schwanzspitze des Fuchses neu. Befunde aus Probe 1: `prinzipien.md`, Abschnitt „Stilprobe ohne
-   Umriss“. Lehrkraft zeigen (Reifegrad nennen), dann Umstellung Satz für Satz (`prinzipien.md`, „Umstellung“).
-2. **Claude schreibt die Fragen aus dem Blatt:** `fragenpool.ts` (`poolPrompt`, bisher nur `blockText`) bekommt die
-   JSON-Struktur der Schülerseiten samt Bildhinweisen; ohne Blatt lösbar, curriculumsnah, verschiedene Formate.
-   Testfall: Englisch Präpositionen (Ball/Box). Danach `UMBAU = false`, Stationen neu veröffentlichen (Lehrkraft).
-3. Vokabeln getrennt von anderen Inhalten; Geografie u. a. nach Kompetenzen.
-4. Wiederholung mit Maß (fällige deckeln, Vorschlag ≤ ⅓ der Lernzeit).
-5. Fuchs während der Aufgaben + Fuchs-Challenges je Landkarte; flüssigere Animationen.
-6. Lehrerseite neu gestalten, übersichtlicher.
+## Nächste Schritte (je einer pro Session, Skill `figur`, Arbeit auf diesem Branch weiter)
+1. **Fuchs im Code ohne Umriss** (`figuren/fuchs.tsx`), wie Probe 2: `UMRISS`/`UMRISS_FEIN` an Flächen weg, Formen
+   1,5 Einheiten größer; `Glied` ohne dunklen Unterstrich (Breite 19 in der Farbe); Ärmel `olivTief`; Kopf wirft harten
+   Schatten nur auf den Körper (als Form zeichnen, nicht als Filter); Zackenlinie am Schwanz weg. Vergleich vorher/
+   nachher mit dem Generator, Werkstatt-Fotos, Lehrkraft zeigen (Reifegrad nennen).
+2. **Held** (`held.tsx`) samt Kopf-, Werkzeug-Teilen und Begleitern (`items-kopf.tsx`, `items-werkzeug.tsx`,
+   `begleiter.tsx`, `items.tsx`): Ärmel `tief`, `hell`-Kante an allen dunklen Teilen (Haare, Hüte, Kleidung).
+   Ein Satz erst mergen, wenn er ganz umgestellt ist (sonst gemischt).
+3. Bosse und Truhe (`golem`, `tintenkrake`, `raetseldrache`, `truhe`), Hintergründe (`hintergruende.tsx`).
+4. Dorf ohne Verläufe (`iso.tsx`, `IsoVerlaeufe`), dann Landkarte isometrisch (`gelaende.tsx`, `welten.tsx`).
+5. Danach die Fragen-Schritte: Claude schreibt lösbare Fragen aus dem Blatt (`fragenpool.ts`, `poolPrompt`;
+   Testfall Englisch Präpositionen), dann `UMBAU = false`; Vokabeln getrennt; Wiederholung mit Maß; Fuchs in den
+   Aufgaben; Lehrerseite neu.
 
 ## Wichtig zu wissen
-- Probe 1 entfernt den Umriss nur im Browser-Bild; im Code für die Umstellung Formen 1,5 Einheiten größer zeichnen.
-- Dorf nutzt noch Verläufe (`IsoVerlaeufe`), Landkarte ist noch flach mit Umriss: beides steht in der Umstellungsliste.
+- Umriss-Vorkommen je Datei (`grep -c UMRISS`): begleiter 137, hintergruende 90, held 58, welten 46, items-werkzeug 70,
+  items-kopf 61, items 33, fuchs 22, raetseldrache 19, golem 16, gelaende 13, tintenkrake 8, truhe 8. `Glied` nutzen
+  fuchs und held. Dunkle Detail-Linien (Mund, Brauen, Schnur) bleiben erlaubt.
+- Idee für einen Vertrag: Test, dass umgestellte Dateien `UMRISS` nicht mehr importieren; am Ende `UMRISS` aus `stil.ts` löschen.
 - 3D-Skripte (`.claude/skills/grafik/skripte/`) und `haus-3d-probe.png` ungenutzt; löschen nur nach Rückfrage.
-- Pool-Tipps für Blatt-Aufgaben (`poolTipps`) sind wirkungslos; in Schritt 2 aufräumen.
-- Server-Regeln stehen doppelt (SQL und `rules.ts`/`dorf.ts`), Tests vergleichen sie: beide zusammen ändern.
-- Supabase-Migrationen brauchen eine Bestätigung der Lehrkraft in ihrer App. Lokale DB: Postgres 16 (siehe Git-Verlauf).
-- Kein Figma (18.11.). Werkstatt: https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG
+- Lernquest ist live im Umbau (`UMBAU = true`, PR #81 gemergt). Mergen = live.
+- Server-Regeln doppelt (SQL und `rules.ts`/`dorf.ts`); Supabase-Migrationen braucht die Bestätigung der Lehrkraft.
+- Lokale DB: Postgres 16 (`/usr/lib/postgresql/16/bin`, Nutzer `postgres`) mit Ersatz für `auth`, `extensions`, `cron`
+  und Rollen `anon`, `authenticated`, `service_role`; Windows: PGlite. `poolTipps` sind wirkungslos (in Schritt 5 aufräumen).
+- Kein Figma (18.11.). Werkstatt: https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG · App prüfen: `npm run spieltest`.
 - Windows: keine zwei Dateien, die sich nur in Groß-/Kleinschreibung unterscheiden.
-- App prüfen: `npm run spieltest`, Daten `scripts/spieltest-daten.js`, Helfer `scripts/spieltest-helfer.js`.
