@@ -28,7 +28,7 @@ Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werk
 - As few shapes as possible; the silhouette must read at 48 px. Expressions through lids, brows and mouth.
 - Colours only from `stil.ts` (`P.*`); a test fails on any other hex. Need a new colour: add base, `hell` and `tief`.
 - **No outline** (decided 19.11.2026, Stilprobe 2 in prinzipien.md), switched set by set; **done: fox and hero with all
-  parts** (`fuchs.tsx`, `held.tsx`, `items*.tsx`, `begleiter.tsx`); bosses, chest, backgrounds still have it. Converted: `{...flaeche(P.x)}` (fill and stroke 3 in its own colour, so the shape keeps its
+  parts** (`fuchs.tsx`, `held.tsx`, `items*.tsx`, `begleiter.tsx`, `golem.tsx`, `tintenkrake.tsx`, `raetseldrache.tsx`, `truhe.tsx`); also bosses and chest; backgrounds (`hintergruende.tsx`) and the map still have it. Converted: `{...flaeche(P.x)}` (fill and stroke 3 in its own colour, so the shape keeps its
   size; a shade on the edge takes it too), dark details only as `{...STRICH}` (mouth, flap); limbs `Glied` with
   `umriss={false}` (19 in the colour); sleeves in front of the body one tone darker (`tief`, no own shadow); the head
   casts a hard shadow onto collar and body (`<Schlagschatten>` in `flaeche.tsx`); dark parts: draw them with

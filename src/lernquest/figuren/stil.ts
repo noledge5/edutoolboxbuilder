@@ -35,6 +35,7 @@ export const P = {
   metallHell: '#F2F6FA',
   holz: '#B9824A',
   holzTief: '#8A5A2C',
+  holzHell: '#D9A86E',
   rot: '#D9473B',
   rotTief: '#A3302A',
   blau: '#4F8FE0',

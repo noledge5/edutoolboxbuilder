@@ -24,11 +24,11 @@ export function TruheZeichnung({ offen = false }: { offen?: boolean }) {
       {[30, 130].map((x) => (
         <rect key={x} x={x - 7} y={64} width={14} height={64} {...flaeche(P.gold, 2.5)} />
       ))}
-      {/* Lid: one round shape, a gold rim, one light */}
+      {/* Lid: one round shape a tone lighter than the box (it catches the light from above), a gold rim, one light */}
       <g className="lq-truhe-deckel">
-        <path d="M14 68 C14 32 40 18 80 18 C120 18 146 32 146 68 Z" {...flaeche(P.holz)} />
-        <path d="M110 22 C132 30 146 44 146 68 H120 C122 48 118 34 110 22 Z" fill={P.holzTief} opacity={0.5} />
-        <path d="M30 50 Q40 32 64 26" fill="none" stroke={P.sand} strokeWidth={5} strokeLinecap="round" opacity={0.8} />
+        <path d="M14 68 C14 32 40 18 80 18 C120 18 146 32 146 68 Z" {...flaeche(P.holzHell)} />
+        <path d="M110 22 C132 30 146 44 146 68 H120 C122 48 118 34 110 22 Z" fill={P.holz} opacity={0.6} />
+        <path d="M30 50 Q40 32 64 26" fill="none" stroke={P.sandHell} strokeWidth={5} strokeLinecap="round" opacity={0.8} />
         <rect x={12} y={60} width={136} height={10} rx={4} {...flaeche(P.gold, 2.5)} />
         <rect x={23} y={34} width={14} height={28} rx={5} {...flaeche(P.gold, 2.5)} />
         <rect x={123} y={34} width={14} height={28} rx={5} {...flaeche(P.gold, 2.5)} />
