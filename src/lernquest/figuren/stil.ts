@@ -169,6 +169,12 @@ export const UMRISS_FEIN = { ...UMRISS, strokeWidth: 2.5 } as const;
  *  edge does not get a rim of the base colour. */
 export const flaeche = (farbe: string, breite = 3) =>
   ({ fill: farbe, stroke: farbe, strokeWidth: breite, strokeLinejoin: 'round', strokeLinecap: 'round' }) as const;
+/** Dark enough to vanish on the night and boss backgrounds without an outline (hair haar0/haar1, dunkel, nacht,
+ *  lederTief): such parts get a `hell` edge top left (`Flaeche`). Relative luminance of a `#RRGGBB` colour. */
+export function istDunkel(farbe: string): boolean {
+  const k = [1, 3, 5].map((i) => parseInt(farbe.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * k[0] + 0.7152 * k[1] + 0.0722 * k[2] < 0.05;
+}
 /** A dark detail line (mouth, flap, string): allowed without outline, it outlines nothing. */
 export const STRICH = { stroke: P.linie, strokeWidth: 2.5, strokeLinejoin: 'round', strokeLinecap: 'round' } as const;
 

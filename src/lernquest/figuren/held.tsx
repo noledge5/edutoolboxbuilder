@@ -5,8 +5,9 @@
 // mouth and eyes for a moment, glasses stay on.
 import { useId } from 'react';
 import type { ReactNode } from 'react';
+import { Flaeche, ovalPfad, Schlagschatten } from './flaeche';
 import { FUCHS, Glied } from './fuchs';
-import { HAAR_TOENE, HAUT_TOENE, P, UMRISS, UMRISS_FEIN } from './stil';
+import { flaeche, HAAR_TOENE, HAUT_TOENE, P, STRICH } from './stil';
 import type { Ton } from './stil';
 import type { Figur, Pose, Punkt, Stand, Teil } from './typen';
 import { Funkeln, stern } from './zeichnen';
@@ -51,11 +52,10 @@ const RUMPF = 'M92 140 Q120 132 148 140 L153 196 Q120 203 87 196 Z';
 function Rumpf({ t, d = RUMPF, kinder }: { t: Ton; d?: string; kinder?: ReactNode }) {
   return (
     <g>
-      <path d={d} fill={t.farbe} />
+      <Flaeche d={d} farbe={t.farbe} hell={t.hell} />
       <path d="M138 140 Q146 141 148 140 L153 196 Q142 199 132 200 Q140 170 138 140 Z" fill={t.tief} opacity={0.5} />
       <path d="M96 148 Q95 166 96 184" fill="none" stroke={t.hell} strokeWidth={4} strokeLinecap="round" opacity={0.8} />
       {kinder}
-      <path d={d} fill="none" {...UMRISS} />
     </g>
   );
 }
@@ -63,7 +63,7 @@ const Kragen = ({ t }: { t: Ton }) => <path d="M106 137 Q120 150 134 137" fill="
 const Knoepfe = ({ x = 120, ys, t = T.gold }: { x?: number; ys: number[]; t?: Ton }) => (
   <g>
     {ys.map((y) => (
-      <circle key={y} cx={x} cy={y} r={2.8} fill={t.farbe} stroke={P.linie} strokeWidth={1.5} />
+      <circle key={y} cx={x} cy={y} r={2.8} fill={t.farbe} stroke={t.farbe} strokeWidth={1.5} />
     ))}
   </g>
 );
@@ -83,7 +83,7 @@ interface Kleid {
 
 const Umhang = ({ t }: { t: Ton }) => (
   <g>
-    <path d="M92 140 Q120 130 148 140 L170 216 Q120 228 70 216 Z" fill={t.farbe} {...UMRISS} />
+    <Flaeche d="M92 140 Q120 130 148 140 L170 216 Q120 228 70 216 Z" farbe={t.farbe} hell={t.hell} />
     <path d="M150 160 L168 214 Q156 218 146 219 Z" fill={t.tief} opacity={0.55} />
   </g>
 );
@@ -122,10 +122,9 @@ export const KLEIDUNG: Record<string, Kleid> = {
     rumpf: () => (
       <g>
         <Rumpf t={T.gelb} kinder={<Kragen t={T.gelb} />} />
-        <path d="M100 162 L140 162 L141 198 Q120 202 99 198 Z" fill={P.blau} {...UMRISS_FEIN} />
-        <path d="M98 140 L102 164 M142 140 L138 164" stroke={P.linie} strokeWidth={8} strokeLinecap="round" />
-        <path d="M98 140 L102 164 M142 140 L138 164" stroke={P.blau} strokeWidth={4.5} strokeLinecap="round" />
-        <rect x={110} y={170} width={20} height={14} rx={3} fill={P.blauTief} {...UMRISS_FEIN} />
+        <path d="M100 162 L140 162 L141 198 Q120 202 99 198 Z" {...flaeche(P.blau, 2.5)} />
+        <path d="M98 140 L102 164 M142 140 L138 164" stroke={P.blau} strokeWidth={8} strokeLinecap="round" />
+        <rect x={110} y={170} width={20} height={14} rx={3} {...flaeche(P.blauTief, 2.5)} />
         <Knoepfe x={103} ys={[162]} />
         <Knoepfe x={137} ys={[162]} />
       </g>
@@ -141,9 +140,9 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.creme}
         kinder={
           <>
-            <path d="M92 140 Q104 136 112 140 L114 198 Q100 199 88 196 Z M148 140 Q136 136 128 140 L126 198 Q140 199 152 196 Z" fill={P.oliv} {...UMRISS_FEIN} />
-            <rect x={93} y={162} width={15} height={13} rx={2} fill={P.olivTief} {...UMRISS_FEIN} />
-            <rect x={132} y={162} width={15} height={13} rx={2} fill={P.olivTief} {...UMRISS_FEIN} />
+            <path d="M92 140 Q104 136 112 140 L114 198 Q100 199 88 196 Z M148 140 Q136 136 128 140 L126 198 Q140 199 152 196 Z" {...flaeche(P.oliv, 2.5)} />
+            <rect x={93} y={162} width={15} height={13} rx={2} {...flaeche(P.olivTief, 2.5)} />
+            <rect x={132} y={162} width={15} height={13} rx={2} {...flaeche(P.olivTief, 2.5)} />
             <Knoepfe x={110} ys={[152, 172]} t={T.leder} />
           </>
         }
@@ -163,9 +162,9 @@ export const KLEIDUNG: Record<string, Kleid> = {
           <>
             <path d="M120 140 V196" stroke={P.metallTief} strokeWidth={2.5} />
             <path d="M92 168 Q120 176 148 168" fill="none" stroke={P.metallTief} strokeWidth={2.5} />
-            <path d="M84 142 Q92 132 104 138 L102 152 Q92 150 84 152 Z M156 142 Q148 132 136 138 L138 152 Q148 150 156 152 Z" fill={P.metallHell} {...UMRISS_FEIN} />
+            <path d="M84 142 Q92 132 104 138 L102 152 Q92 150 84 152 Z M156 142 Q148 132 136 138 L138 152 Q148 150 156 152 Z" {...flaeche(P.metallHell, 2.5)} />
             {[104, 136].map((x) => (
-              <circle key={x} cx={x} cy={184} r={2.2} fill={P.metallHell} stroke={P.linie} strokeWidth={1.2} />
+              <circle key={x} cx={x} cy={184} r={2.2} fill={P.metallHell} stroke={P.metallHell} strokeWidth={1.2} />
             ))}
           </>
         }
@@ -232,7 +231,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
         kinder={
           <>
             <path d="M92 168 Q120 176 148 168" fill="none" stroke={P.goldTief} strokeWidth={2.5} />
-            <path d="M84 142 Q92 130 106 138 L104 154 Q92 150 84 154 Z M156 142 Q148 130 134 138 L136 154 Q148 150 156 154 Z" fill={P.goldHell} {...UMRISS_FEIN} />
+            <path d="M84 142 Q92 130 106 138 L104 154 Q92 150 84 154 Z M156 142 Q148 130 134 138 L136 154 Q148 150 156 154 Z" {...flaeche(P.goldHell, 2.5)} />
             <path d="M120 146 l9 9 -9 9 -9 -9 Z" fill={P.rot} stroke={P.rotTief} strokeWidth={2} />
             <path d="M117 151 l3 -3" stroke={P.weiss} strokeWidth={2} strokeLinecap="round" />
             <Funkeln x={102} y={180} r={6} zeit={zeit} />
@@ -248,7 +247,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
     schuhe: T.weiss,
     rumpf: () => (
       <g>
-        <path d="M94 142 Q88 124 104 128 Q120 140 136 128 Q152 124 146 142 Z" fill={P.gruenTief} {...UMRISS_FEIN} />
+        <path d="M94 142 Q88 124 104 128 Q120 140 136 128 Q152 124 146 142 Z" {...flaeche(P.gruenTief, 2.5)} />
         <Rumpf
           t={T.gruen}
           kinder={
@@ -294,7 +293,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
             {[150, 162, 174, 186].flatMap((y, r) =>
               [0, 1, 2, 3].map((i) => <path key={`${y}-${i}`} d={`M${96 + i * 13 + (r % 2) * 6} ${y} q6 6 12 0`} fill="none" stroke={P.gruenTief} strokeWidth={2.2} strokeLinecap="round" />),
             )}
-            <path d="M84 146 L88 128 L98 140 Z M156 146 L152 128 L142 140 Z" fill={P.gold} {...UMRISS_FEIN} />
+            <path d="M84 146 L88 128 L98 140 Z M156 146 L152 128 L142 140 Z" {...flaeche(P.gold, 2.5)} />
             <circle cx={120} cy={150} r={6.5} fill={P.rot} stroke={P.goldTief} strokeWidth={2.5} />
             <path d="M117 148 l2 -2" stroke={P.weiss} strokeWidth={1.8} strokeLinecap="round" />
           </>
@@ -309,7 +308,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
     schuhe: T.gruen,
     rumpf: () => (
       <g>
-        <path d="M94 142 Q88 124 104 128 Q120 140 136 128 Q152 124 146 142 Z" fill={P.gelbTief} {...UMRISS_FEIN} />
+        <path d="M94 142 Q88 124 104 128 Q120 140 136 128 Q152 124 146 142 Z" {...flaeche(P.gelbTief, 2.5)} />
         <Rumpf
           t={T.gelb}
           kinder={
@@ -334,7 +333,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
         kinder={
           <>
             <path d="M104 138 L132 176 M136 138 L108 176" stroke={P.dunkelHell} strokeWidth={3} />
-            <path d="M88 180 Q120 186 152 180 L153 190 Q120 196 87 190 Z" fill={P.rot} {...UMRISS_FEIN} />
+            <path d="M88 180 Q120 186 152 180 L153 190 Q120 196 87 190 Z" {...flaeche(P.rot, 2.5)} />
             <path d="M142 186 l10 12 M146 186 l2 14" stroke={P.rot} strokeWidth={4} strokeLinecap="round" />
           </>
         }
@@ -352,7 +351,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.weiss}
         kinder={
           <>
-            <rect x={106} y={152} width={28} height={22} rx={4} fill={P.blau} {...UMRISS_FEIN} />
+            <rect x={106} y={152} width={28} height={22} rx={4} {...flaeche(P.blau, 2.5)} />
             <circle cx={113} cy={160} r={3} fill={P.rot} />
             <circle cx={123} cy={160} r={3} fill={P.gelb} />
             <path d="M110 168 h20" stroke={P.blauHell} strokeWidth={2.5} strokeLinecap="round" />
@@ -377,7 +376,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
           <>
             <path d="M120 142 L136 162 L120 186 L104 162 Z" fill={P.eisHell} stroke={P.eisTief} strokeWidth={2.5} strokeLinejoin="round" />
             <path d="M120 142 V186 M104 162 H136" stroke={P.eisTief} strokeWidth={1.5} />
-            <path d="M84 142 L90 126 L100 140 Z M156 142 L150 126 L140 140 Z" fill={P.eisHell} {...UMRISS_FEIN} />
+            <path d="M84 142 L90 126 L100 140 Z M156 142 L150 126 L140 140 Z" {...flaeche(P.eisHell, 2.5)} />
             <path d="M88 190 Q120 196 152 190" fill="none" stroke={P.gold} strokeWidth={4} />
             <circle cx={120} cy={164} r={4.5} fill={P.lila} stroke={P.lilaTief} strokeWidth={1.8} />
             <Funkeln x={108} y={150} r={6} zeit={zeit} />
@@ -433,7 +432,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
             <path d="M104 140 V198 M120 136 V200 M136 140 V198" stroke={P.rotTief} strokeWidth={5} opacity={0.55} />
             <path d="M89 156 H151 M88 174 H152 M88 190 H152" stroke={P.rotTief} strokeWidth={5} opacity={0.55} />
             <path d="M112 140 V198 M128 138 V198 M89 165 H151 M88 182 H152" stroke={P.backe} strokeWidth={1.8} opacity={0.7} />
-            <path d="M106 136 L114 150 L120 140 L126 150 L134 136" fill={P.rot} stroke={P.linie} strokeWidth={2.5} strokeLinejoin="round" />
+            <path d="M106 136 L114 150 L120 140 L126 150 L134 136" fill={P.rot} stroke={P.rot} strokeWidth={2.5} strokeLinejoin="round" />
             <Knoepfe ys={[154, 168, 182]} t={T.weiss} />
             <rect x={124} y={152} width={14} height={10} rx={2} fill={P.rot} stroke={P.rotTief} strokeWidth={2} />
           </>
@@ -453,7 +452,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
           <>
             <path d="M120 138 V198" stroke={P.grauTief} strokeWidth={2.5} />
             <path d="M117 142 h6 M117 150 h6 M117 158 h6 M117 166 h6 M117 174 h6 M117 182 h6 M117 190 h6" stroke={P.grauHell} strokeWidth={1.6} />
-            <rect x={116} y={150} width={8} height={10} rx={2} fill={P.metall} stroke={P.linie} strokeWidth={1.5} />
+            <rect x={116} y={150} width={8} height={10} rx={2} fill={P.metall} stroke={P.metall} strokeWidth={1.5} />
             <path d="M92 146 L89 194 M148 146 L151 194" stroke={P.weiss} strokeWidth={4} strokeLinecap="round" />
             <path d="M98 146 L96 194 M142 146 L144 194" stroke={P.weiss} strokeWidth={2} strokeLinecap="round" opacity={0.8} />
             <path d="M106 137 Q120 146 134 137" fill="none" stroke={P.tuerkisTief} strokeWidth={5} strokeLinecap="round" />
@@ -475,14 +474,14 @@ export const KLEIDUNG: Record<string, Kleid> = {
           kinder={
             <>
               <path d="M89 186 H151 M88 192 H152" stroke={P.blauTief} strokeWidth={3} />
-              <path d="M92 140 L120 172 L148 140 L148 152 L120 182 L92 152 Z" fill={P.blauTief} stroke={P.linie} strokeWidth={2.5} strokeLinejoin="round" />
+              <path d="M92 140 L120 172 L148 140 L148 152 L120 182 L92 152 Z" fill={P.blauTief} stroke={P.blauTief} strokeWidth={2.5} strokeLinejoin="round" />
               <path d="M96 146 L120 174 L144 146" fill="none" stroke={P.weiss} strokeWidth={2} />
             </>
           }
         />
         {/* Red neckerchief with a knot */}
-        <path d="M112 170 L120 178 L128 170 L134 192 L124 186 L120 194 L116 186 L106 192 Z" fill={P.rot} {...UMRISS_FEIN} />
-        <circle cx={120} cy={175} r={5} fill={P.rotTief} {...UMRISS_FEIN} />
+        <path d="M112 170 L120 178 L128 170 L134 192 L124 186 L120 194 L116 186 L106 192 Z" {...flaeche(P.rot, 2.5)} />
+        <circle cx={120} cy={175} r={5} {...flaeche(P.rotTief, 2.5)} />
       </g>
     ),
   },
@@ -503,7 +502,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
             <path d="M120 138 V198" stroke={P.dunkelTief} strokeWidth={3} />
             <path d="M104 144 L104 160 M136 144 L136 160" stroke={P.gelb} strokeWidth={6} strokeLinecap="round" />
             <path d="M104 144 L104 160 M136 144 L136 160" stroke={P.metallHell} strokeWidth={2} strokeLinecap="round" />
-            <rect x={124} y={146} width={16} height={12} rx={3} fill={P.rot} stroke={P.linie} strokeWidth={1.5} />
+            <rect x={124} y={146} width={16} height={12} rx={3} fill={P.rot} stroke={P.rot} strokeWidth={1.5} />
             <path d="M128 152 h8 M132 148 v8" stroke={P.weiss} strokeWidth={2} />
           </>
         }
@@ -523,11 +522,11 @@ export const KLEIDUNG: Record<string, Kleid> = {
           kinder={
             <>
               {/* Lapels, double buttons, belt with buckle */}
-              <path d="M106 137 L114 160 L120 146 L126 160 L134 137" fill={P.sandHell} stroke={P.linie} strokeWidth={2.5} strokeLinejoin="round" />
+              <path d="M106 137 L114 160 L120 146 L126 160 L134 137" fill={P.sandHell} stroke={P.sandHell} strokeWidth={2.5} strokeLinejoin="round" />
               <path d="M120 146 V204" stroke={P.sandTief} strokeWidth={2.5} />
               <Knoepfe x={110} ys={[168, 182]} t={T.leder} />
               <Knoepfe x={130} ys={[168, 182]} t={T.leder} />
-              <path d="M86 174 Q120 180 154 174 L155 182 Q120 188 85 182 Z" fill={P.sandTief} stroke={P.linie} strokeWidth={2} />
+              <path d="M86 174 Q120 180 154 174 L155 182 Q120 188 85 182 Z" fill={P.sandTief} stroke={P.sandTief} strokeWidth={2} />
               <rect x={114} y={174} width={12} height={10} rx={2} fill="none" stroke={P.metallTief} strokeWidth={2.5} />
               <path d="M94 150 L104 154 M146 150 L136 154" stroke={P.sandTief} strokeWidth={2} strokeLinecap="round" />
             </>
@@ -548,10 +547,10 @@ export const KLEIDUNG: Record<string, Kleid> = {
           kinder={
             <>
               {/* White shirt in the opening, gold trim, wide belt */}
-              <path d="M110 138 L120 176 L130 138 Z" fill={P.schnee} stroke={P.linie} strokeWidth={2} />
+              <path d="M110 138 L120 176 L130 138 Z" fill={P.schnee} stroke={P.schnee} strokeWidth={2} />
               <path d="M114 146 q6 4 12 0 M115 154 q5 4 10 0" fill="none" stroke={P.grauHell} strokeWidth={1.8} />
               <path d="M110 138 L118 200 M130 138 L122 200" stroke={P.gold} strokeWidth={3.5} />
-              <path d="M88 178 Q120 186 152 178 L153 190 Q120 198 87 190 Z" fill={P.leder} stroke={P.linie} strokeWidth={2} />
+              <path d="M88 178 Q120 186 152 178 L153 190 Q120 198 87 190 Z" fill={P.leder} stroke={P.leder} strokeWidth={2} />
               <rect x={112} y={178} width={16} height={14} rx={3} fill={P.gold} stroke={P.goldTief} strokeWidth={2} />
               <rect x={117} y={182} width={6} height={6} fill={P.leder} />
               <Knoepfe x={102} ys={[150, 162]} />
@@ -590,7 +589,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
           [80, -1],
           [160, 1],
         ].map(([x, k]) => (
-          <path key={x} d={`M${x - 14 * k} 140 Q${x} 132 ${x + 14 * k} 140 L${x + 12 * k} 158 Q${x} 164 ${x - 12 * k} 158 Z`} fill={P.rot} {...UMRISS_FEIN} />
+          <path key={x} d={`M${x - 14 * k} 140 Q${x} 132 ${x + 14 * k} 140 L${x + 12 * k} 158 Q${x} 164 ${x - 12 * k} 158 Z`} {...flaeche(P.rot, 2.5)} />
         ))}
         <path d="M70 148 h20 M70 154 h20 M150 148 h20 M150 154 h20" stroke={P.rotTief} strokeWidth={2.5} />
       </g>
@@ -674,7 +673,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
             <>
               {/* Glowing runes and a silver clasp; a hood lies on the shoulders */}
               <path d="M98 152 l6 8 l-6 8 M140 152 l-6 8 l6 8 M112 184 h16 M120 176 v16" fill="none" stroke={P.lilaHell} strokeWidth={2.5} strokeLinecap="round" opacity={glut} />
-              <path d="M94 140 Q120 156 146 140 Q120 146 94 140 Z" fill={P.dunkelTief} {...UMRISS_FEIN} />
+              <path d="M94 140 Q120 156 146 140 Q120 146 94 140 Z" {...flaeche(P.dunkelTief, 2.5)} />
               <path d="M112 150 L120 158 L128 150 L120 142 Z" fill={P.metallHell} stroke={P.metallTief} strokeWidth={2} />
               <circle cx={120} cy={150} r={2.5} fill={P.lila} opacity={glut} />
               <Funkeln x={142} y={180} r={5} zeit={zeit} />
@@ -785,16 +784,15 @@ const BRILLE: Record<string, () => ReactNode> = {
   ),
   sonnenbrille: () => (
     <g>
-      <path d="M62 84 H98 Q98 104 82 104 Q64 104 62 84 Z M102 84 H138 Q136 104 118 104 Q102 104 102 84 Z" fill={P.dunkel} {...UMRISS_FEIN} />
+      <path d="M62 84 H98 Q98 104 82 104 Q64 104 62 84 Z M102 84 H138 Q136 104 118 104 Q102 104 102 84 Z" {...flaeche(P.dunkel, 2.5)} />
       <path d="M98 87 H102 M62 85 L50 82 M138 85 L150 82" stroke={P.linie} strokeWidth={3} strokeLinecap="round" />
       <path d="M68 89 l8 -2 M108 89 l8 -2" stroke={P.dunkelHell} strokeWidth={3} strokeLinecap="round" />
     </g>
   ),
   taucherbrille: () => (
     <g>
-      <path d="M44 88 Q100 78 156 88 L156 96 Q100 86 44 96 Z" fill={P.tuerkis} {...UMRISS_FEIN} />
+      <path d="M44 88 Q100 78 156 88 L156 96 Q100 86 44 96 Z" {...flaeche(P.tuerkis, 2.5)} />
       <rect x={62} y={78} width={76} height={30} rx={13} fill={P.wasserHell} fillOpacity={0.45} stroke={P.blau} strokeWidth={5} />
-      <rect x={62} y={78} width={76} height={30} rx={13} fill="none" {...UMRISS} />
       <path d="M98 80 V106" stroke={P.blau} strokeWidth={4} />
       <path d="M70 86 l8 -4 M108 86 l8 -4" stroke={P.weiss} strokeWidth={2.5} strokeLinecap="round" />
     </g>
@@ -802,12 +800,12 @@ const BRILLE: Record<string, () => ReactNode> = {
   // Visor of a robot (13.11.2026): a dark band with two light strips.
   roboteraugen: () => (
     <g>
-      <path d="M50 84 L150 84 L148 106 L52 106 Z" fill={P.dunkel} {...UMRISS_FEIN} />
+      <path d="M50 84 L150 84 L148 106 L52 106 Z" {...flaeche(P.dunkel, 2.5)} />
       <rect x={66} y={89} width={28} height={10} rx={4} fill={P.tuerkis} stroke={P.tuerkisTief} strokeWidth={1.5} />
       <rect x={106} y={89} width={28} height={10} rx={4} fill={P.tuerkis} stroke={P.tuerkisTief} strokeWidth={1.5} />
       <path d="M70 92 h10 M110 92 h10" stroke={P.tuerkisHell} strokeWidth={2.5} strokeLinecap="round" />
-      <circle cx={56} cy={95} r={3} fill={P.metall} stroke={P.linie} strokeWidth={1.2} />
-      <circle cx={144} cy={95} r={3} fill={P.metall} stroke={P.linie} strokeWidth={1.2} />
+      <circle cx={56} cy={95} r={3} fill={P.metall} stroke={P.metall} strokeWidth={1.2} />
+      <circle cx={144} cy={95} r={3} fill={P.metall} stroke={P.metall} strokeWidth={1.2} />
     </g>
   ),
   monokel: () => (
@@ -863,42 +861,42 @@ function Brauen({ s, t }: { s: Stand; t: Ton }) {
 
 /** The chosen mouths (MUENDER in src/lernquest/teile.ts). */
 const MUND_FORM: Record<string, () => ReactNode> = {
-  laecheln: () => <path d="M90 117 Q100 127 110 117" fill="none" {...UMRISS_FEIN} strokeWidth={3} />,
+  laecheln: () => <path d="M90 117 Q100 127 110 117" fill="none" {...STRICH} strokeWidth={3} />,
   grinsen: () => (
     <g>
-      <path d="M86 115 Q100 132 114 115 Z" fill={P.weiss} {...UMRISS_FEIN} />
+      <path d="M86 115 Q100 132 114 115 Z" {...flaeche(P.weiss, 2.5)} />
       <path d="M88 118 Q100 122 112 118" fill="none" stroke={P.linie} strokeWidth={1.5} />
     </g>
   ),
   lachen: () => (
     <g>
-      <path d="M89 116 Q100 134 111 116 Z" fill={P.mund} {...UMRISS_FEIN} />
+      <path d="M89 116 Q100 134 111 116 Z" {...flaeche(P.mund, 2.5)} />
       <path d="M94 125 Q100 120 106 125 Q100 131 94 125 Z" fill={P.zunge} />
       <path d="M91 117 H109 L107 120 H93 Z" fill={P.weiss} />
     </g>
   ),
   staunen: () => (
     <g>
-      <ellipse cx="100" cy="122" rx="6" ry="7" fill={P.mund} {...UMRISS_FEIN} />
+      <ellipse cx="100" cy="122" rx="6" ry="7" {...flaeche(P.mund, 2.5)} />
       <ellipse cx="100" cy="126" rx="3.5" ry="2.2" fill={P.zunge} />
     </g>
   ),
   frech: () => (
     <g>
-      <path d="M98 120 Q100 132 106 130 Q110 128 108 120 Z" fill={P.zunge} {...UMRISS_FEIN} />
+      <path d="M98 120 Q100 132 106 130 Q110 128 108 120 Z" {...flaeche(P.zunge, 2.5)} />
       <path d="M103 122 V127" stroke={P.mund} strokeWidth={1.5} strokeLinecap="round" />
-      <path d="M90 118 Q100 124 112 117" fill="none" {...UMRISS_FEIN} strokeWidth={3} />
+      <path d="M90 118 Q100 124 112 117" fill="none" {...STRICH} strokeWidth={3} />
     </g>
   ),
-  ernst: () => <path d="M92 120 H108" fill="none" {...UMRISS_FEIN} strokeWidth={3} />,
+  ernst: () => <path d="M92 120 H108" fill="none" {...STRICH} strokeWidth={3} />,
 };
 export const MUND_ARTEN = Object.keys(MUND_FORM);
 
 function Mund({ mund, s }: { mund: string; s: Stand }) {
   if (s.gesicht === 'lachen' || s.gesicht === 'jubel') return <>{MUND_FORM.lachen()}</>;
   if (s.gesicht === 'staunen' || s.gesicht === 'au') return <>{MUND_FORM.staunen()}</>;
-  if (s.gesicht === 'traurig') return <path d="M92 122 Q100 115 108 122" fill="none" {...UMRISS_FEIN} strokeWidth={3} />;
-  if (s.gesicht === 'denken') return <path d="M95 120 Q101 117 106 120" fill="none" {...UMRISS_FEIN} strokeWidth={3} />;
+  if (s.gesicht === 'traurig') return <path d="M92 122 Q100 115 108 122" fill="none" {...STRICH} strokeWidth={3} />;
+  if (s.gesicht === 'denken') return <path d="M95 120 Q101 117 106 120" fill="none" {...STRICH} strokeWidth={3} />;
   return <>{(MUND_FORM[mund] ?? MUND_FORM.laecheln)()}</>;
 }
 
@@ -913,33 +911,30 @@ const BOB_VORN = 'M66 102 C62 62 88 44 120 44 C152 44 178 62 174 102 L168 102 L1
 function Haarform({ d, t, licht = 'M84 62 Q100 50 116 50' }: { d: string; t: Ton; licht?: string }) {
   return (
     <g>
-      <path d={d} fill={t.farbe} />
+      <Flaeche d={d} farbe={t.farbe} hell={t.hell} />
       <path d={licht} fill="none" stroke={t.hell} strokeWidth={5} strokeLinecap="round" opacity={0.9} />
-      <path d={d} fill="none" {...UMRISS} />
     </g>
   );
 }
 const Locken = ({ t, punkte, r }: { t: Ton; punkte: Punkt[]; r: number }) => (
   <g>
+    {/* Without outline the curls merge into one bumpy shape; the silhouette carries the curls. */}
     {punkte.map(([x, y]) => (
-      <circle key={`u${x},${y}`} cx={x} cy={y} r={r + 3} fill={P.linie} />
-    ))}
-    {punkte.map(([x, y]) => (
-      <circle key={`f${x},${y}`} cx={x} cy={y} r={r} fill={t.farbe} />
+      <Flaeche key={`f${x},${y}`} d={ovalPfad(x, y, r)} farbe={t.farbe} hell={t.hell} />
     ))}
     {punkte.slice(0, 3).map(([x, y]) => (
       <path key={`l${x},${y}`} d={`M${x - r / 2} ${y - r / 3} q${r / 3} ${-r / 3} ${r * 0.7} ${-r / 4}`} fill="none" stroke={t.hell} strokeWidth={3} strokeLinecap="round" />
     ))}
   </g>
 );
-const Zopfband = ({ x, y }: { x: number; y: number }) => <circle cx={x} cy={y} r={5} fill={P.rot} {...UMRISS_FEIN} />;
+const Zopfband = ({ x, y }: { x: number; y: number }) => <circle cx={x} cy={y} r={5} {...flaeche(P.rot, 2.5)} />;
 const Flechte = ({ x, t }: { x: number; t: Ton }) => (
   <g>
     {[112, 126, 140, 154].map((y) => (
-      <ellipse key={y} cx={x} cy={y} rx={9} ry={8} fill={t.farbe} {...UMRISS_FEIN} />
+      <Flaeche key={y} d={ovalPfad(x, y, 9, 8)} farbe={t.farbe} hell={t.hell} breite={2.5} />
     ))}
     <Zopfband x={x} y={164} />
-    <path d={`M${x - 5} 168 L${x} 180 L${x + 5} 168 Z`} fill={t.farbe} {...UMRISS_FEIN} />
+    <Flaeche d={`M${x - 5} 168 L${x} 180 L${x + 5} 168 Z`} farbe={t.farbe} hell={t.hell} breite={2.5} />
   </g>
 );
 
@@ -959,7 +954,6 @@ function RegenbogenHaar({ teil }: { teil: 'hinten' | 'vorn' }) {
         ))}
         <path d="M84 62 Q100 50 116 50" fill="none" stroke={P.weiss} strokeWidth={4} strokeLinecap="round" opacity={0.5} />
       </g>
-      <path d={d} fill="none" {...UMRISS} />
     </g>
   );
 }
@@ -969,7 +963,7 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   zopf: {
     hinten: (t) => (
       <g>
-        <path d="M152 58 C192 58 198 104 186 144 C182 154 172 152 174 140 C180 110 174 84 150 74 Z" fill={t.farbe} {...UMRISS} />
+        <Flaeche d="M152 58 C192 58 198 104 186 144 C182 154 172 152 174 140 C180 110 174 84 150 74 Z" farbe={t.farbe} hell={t.hell} />
         <path d="M180 92 Q186 110 182 126" fill="none" stroke={t.hell} strokeWidth={3.5} strokeLinecap="round" />
         <Zopfband x={160} y={66} />
       </g>
@@ -983,7 +977,7 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   lang: {
     hinten: (t) => (
       <g>
-        <path d="M64 96 C60 58 88 42 120 42 C152 42 180 58 176 96 L182 170 Q170 178 156 170 L152 140 L88 140 L84 170 Q70 178 58 170 Z" fill={t.farbe} {...UMRISS} />
+        <Flaeche d="M64 96 C60 58 88 42 120 42 C152 42 180 58 176 96 L182 170 Q170 178 156 170 L152 140 L88 140 L84 170 Q70 178 58 170 Z" farbe={t.farbe} hell={t.hell} />
         <path d="M64 110 L62 160 M176 110 L178 160" stroke={t.tief} strokeWidth={3} strokeLinecap="round" opacity={0.6} />
       </g>
     ),
@@ -1006,7 +1000,7 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   dutt: {
     hinten: (t) => (
       <g>
-        <circle cx={120} cy={40} r={18} fill={t.farbe} {...UMRISS} />
+        <Flaeche d={ovalPfad(120, 40, 18)} farbe={t.farbe} hell={t.hell} />
         <path d="M108 34 Q114 26 122 26" fill="none" stroke={t.hell} strokeWidth={3.5} strokeLinecap="round" />
         <path d="M104 52 Q120 58 136 52" fill="none" stroke={P.rot} strokeWidth={5} strokeLinecap="round" />
       </g>
@@ -1015,7 +1009,7 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   },
   stacheln: { vorn: (t) => <Haarform d={STACHELN} t={t} licht="M86 60 L84 44 M104 50 L108 34" /> },
   bob: {
-    hinten: (t) => <path d="M62 100 C58 60 88 42 120 42 C152 42 182 60 178 100 L180 140 Q170 146 160 142 L80 142 Q70 146 60 140 Z" fill={t.farbe} {...UMRISS} />,
+    hinten: (t) => <Flaeche d="M62 100 C58 60 88 42 120 42 C152 42 182 60 178 100 L180 140 Q170 146 160 142 L80 142 Q70 146 60 140 Z" farbe={t.farbe} hell={t.hell} />,
     vorn: (t) => <Haarform d={BOB_VORN} t={t} />,
   },
   glatze: {},
@@ -1028,10 +1022,10 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   pferdeschwanz: {
     hinten: (t) => (
       <g>
-        <path d="M118 40 C152 18 190 40 186 86 C184 112 178 128 168 136 C170 116 170 96 160 80 C150 66 134 56 118 52 Z" fill={t.farbe} {...UMRISS} />
+        <Flaeche d="M118 40 C152 18 190 40 186 86 C184 112 178 128 168 136 C170 116 170 96 160 80 C150 66 134 56 118 52 Z" farbe={t.farbe} hell={t.hell} />
         <path d="M168 58 Q182 76 178 102" fill="none" stroke={t.hell} strokeWidth={3.5} strokeLinecap="round" />
         <path d="M176 92 Q174 112 168 124" fill="none" stroke={t.tief} strokeWidth={2.5} strokeLinecap="round" opacity={0.7} />
-        <ellipse cx={126} cy={44} rx={7} ry={6} fill={P.tuerkis} {...UMRISS_FEIN} />
+        <ellipse cx={126} cy={44} rx={7} ry={6} {...flaeche(P.tuerkis, 2.5)} />
       </g>
     ),
     vorn: (t) => <Haarform d={GLATT} t={t} />,
@@ -1047,8 +1041,7 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   afro: {
     hinten: (t) => (
       <g>
-        <circle cx={120} cy={82} r={66} fill={P.linie} />
-        <circle cx={120} cy={82} r={63} fill={t.farbe} />
+        <circle cx={120} cy={82} r={64.5} fill={t.farbe} />
         <Locken t={t} r={13} punkte={[[62, 60], [178, 60], [56, 92], [184, 92], [62, 122], [178, 122], [84, 30], [156, 30], [120, 20]]} />
         <path d="M74 44 Q90 26 112 22" fill="none" stroke={t.hell} strokeWidth={5} strokeLinecap="round" />
       </g>
@@ -1058,12 +1051,12 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   seitenzopf: {
     hinten: (t) => (
       <g>
-        <path d="M70 70 C54 92 52 120 58 144 C62 154 72 152 70 140 C66 118 70 96 82 80 Z" fill={t.farbe} {...UMRISS} />
+        <Flaeche d="M70 70 C54 92 52 120 58 144 C62 154 72 152 70 140 C66 118 70 96 82 80 Z" farbe={t.farbe} hell={t.hell} />
         {[150, 164, 178].map((y) => (
-          <ellipse key={y} cx={64} cy={y} rx={9} ry={8} fill={t.farbe} {...UMRISS_FEIN} />
+          <Flaeche key={y} d={ovalPfad(64, y, 9, 8)} farbe={t.farbe} hell={t.hell} breite={2.5} />
         ))}
         <Zopfband x={64} y={188} />
-        <path d="M59 192 L64 204 L69 192 Z" fill={t.farbe} {...UMRISS_FEIN} />
+        <Flaeche d="M59 192 L64 204 L69 192 Z" farbe={t.farbe} hell={t.hell} breite={2.5} />
       </g>
     ),
     vorn: (t) => (
@@ -1078,13 +1071,13 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
       <g>
         {[82, 158].map((x) => (
           <g key={x}>
-            <circle cx={x} cy={46} r={19} fill={t.farbe} {...UMRISS} />
+            <Flaeche d={ovalPfad(x, 46, 19)} farbe={t.farbe} hell={t.hell} />
             <path d={`M${x} 46 q6 0 6 -6 q0 -8 -9 -8 q-11 0 -11 11 q0 13 14 13`} fill="none" stroke={t.tief} strokeWidth={2.5} strokeLinecap="round" />
             <path d={`M${x - 10} 36 q4 -5 10 -6`} fill="none" stroke={t.hell} strokeWidth={3} strokeLinecap="round" />
           </g>
         ))}
-        <circle cx={96} cy={60} r={4} fill={P.rosa} {...UMRISS_FEIN} />
-        <circle cx={144} cy={60} r={4} fill={P.rosa} {...UMRISS_FEIN} />
+        <circle cx={96} cy={60} r={4} {...flaeche(P.rosa, 2.5)} />
+        <circle cx={144} cy={60} r={4} {...flaeche(P.rosa, 2.5)} />
       </g>
     ),
     vorn: (t) => (
@@ -1103,8 +1096,7 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
           licht="M84 56 Q96 44 110 44"
         />
         {/* Two loose strands sticking up */}
-        <path d="M120 40 q4 -14 14 -16 M98 44 q-6 -10 -2 -18" fill="none" stroke={P.linie} strokeWidth={8} strokeLinecap="round" />
-        <path d="M120 40 q4 -14 14 -16 M98 44 q-6 -10 -2 -18" fill="none" stroke={t.farbe} strokeWidth={4} strokeLinecap="round" />
+        <path d="M120 40 q4 -14 14 -16 M98 44 q-6 -10 -2 -18" fill="none" stroke={t.farbe} strokeWidth={8} strokeLinecap="round" />
         <path d="M90 66 q8 4 14 0 M132 66 q8 4 14 0" fill="none" stroke={t.tief} strokeWidth={2.5} strokeLinecap="round" />
       </g>
     ),
@@ -1118,14 +1110,14 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
           licht="M84 56 L76 38 M106 44 L106 26"
         />
         {/* A golden lightning streak */}
-        <path d="M126 34 L116 56 L126 56 L114 80 L136 50 L126 50 L136 34 Z" fill={P.gelb} stroke={P.linie} strokeWidth={2} strokeLinejoin="round" />
+        <path d="M126 34 L116 56 L126 56 L114 80 L136 50 L126 50 L136 34 Z" fill={P.gelb} stroke={P.gelb} strokeWidth={2} strokeLinejoin="round" />
       </g>
     ),
   },
   sternenzopf: {
     hinten: (t) => (
       <g>
-        <path d="M150 56 C186 60 192 100 184 140 C182 168 176 190 170 202 C162 190 166 170 168 148 C172 112 168 86 148 72 Z" fill={t.farbe} {...UMRISS} />
+        <Flaeche d="M150 56 C186 60 192 100 184 140 C182 168 176 190 170 202 C162 190 166 170 168 148 C172 112 168 86 148 72 Z" farbe={t.farbe} hell={t.hell} />
         <path d="M178 90 Q184 116 178 150" fill="none" stroke={t.hell} strokeWidth={3.5} strokeLinecap="round" />
         {[
           [176, 104],
@@ -1147,17 +1139,16 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   feuerhaar: {
     hinten: () => (
       <g>
-        <path d="M62 100 C50 70 60 40 80 30 C78 46 86 50 92 40 C96 22 112 12 122 8 C118 26 128 32 136 22 C150 26 158 40 152 54 C164 46 176 56 178 70 C186 84 182 96 178 100 Z" fill={P.lava} {...UMRISS} />
+        <path d="M62 100 C50 70 60 40 80 30 C78 46 86 50 92 40 C96 22 112 12 122 8 C118 26 128 32 136 22 C150 26 158 40 152 54 C164 46 176 56 178 70 C186 84 182 96 178 100 Z" {...flaeche(P.lava)} />
         <path d="M80 60 C78 46 88 40 96 50 C100 34 114 26 120 22 C118 38 128 42 134 36 C144 40 150 50 148 62 Z" fill={P.lavaHell} />
         <path d="M100 52 C104 42 112 38 116 34 C116 44 122 48 128 46 C134 50 136 56 134 62 Z" fill={P.gelb} />
       </g>
     ),
     vorn: () => (
       <g>
-        <path d={PONY} fill={P.lava} />
+        <path d={PONY} {...flaeche(P.lava)} />
         <path d="M84 62 Q100 50 116 50" fill="none" stroke={P.lavaHell} strokeWidth={5} strokeLinecap="round" />
         <path d="M128 72 C134 62 146 58 156 66 C150 70 152 76 160 80 C150 86 136 80 128 72 Z" fill={P.lavaHell} />
-        <path d={PONY} fill="none" {...UMRISS} />
       </g>
     ),
   },
@@ -1171,13 +1162,16 @@ function arm(seite: 'l' | 'r', k: Kleid, haut: Ton): Teil {
   const schulter: Punkt = [x, 148];
   const ellbogen: Punkt = [x, 166];
   const hand: Punkt = [x, 186];
-  const oben = k.aermel === 'haut' ? haut : k.aermel;
-  const unten = k.unterarm === 'haut' ? haut : k.unterarm;
+  // Sleeves one tone darker than the body (base → tief, hell → base), so arms read in front of it without an outline;
+  // bare skin keeps its colour and its shadow line.
+  const ton = (t: Ton | 'haut'): Ton => (t === 'haut' ? haut : { farbe: t.tief, hell: t.farbe, tief: t.tief });
+  const oben = ton(k.aermel);
+  const unten = ton(k.unterarm);
   const h = k.hand ?? haut;
   return {
     id: `arm-${seite}`,
     drehpunkt: schulter,
-    zeichnung: () => <Glied von={schulter} bis={ellbogen} farbe={oben.farbe} schatten={oben.tief} />,
+    zeichnung: () => <Glied von={schulter} bis={ellbogen} farbe={oben.farbe} schatten={k.aermel === 'haut' ? oben.tief : undefined} umriss={false} />,
     kinder: [
       {
         id: `unterarm-${seite}`,
@@ -1187,13 +1181,12 @@ function arm(seite: 'l' | 'r', k: Kleid, haut: Ton): Teil {
             {/* Straight end at the elbow (no round cap): the cap's outline lay over the upper arm as a ring, which
                 read as a stripe at the elbow (teacher's review 12.11.2026). The upper arm's own cap rounds the bend,
                 the hand covers the lower end. */}
-            <path d={`M${x} 166 V184`} fill="none" stroke={P.linie} strokeWidth={19} />
-            <path d={`M${x} 166 V184`} fill="none" stroke={unten.farbe} strokeWidth={13} />
-            {/* The joint dot takes the sleeve's colour, so a short sleeve ends round; the shadow runs on across it. */}
-            <circle cx={x} cy={166} r={6.5} fill={oben.farbe} />
-            <path d={`M${x + 3} 160.5 V171.5`} fill="none" stroke={oben.tief} strokeWidth={4} opacity={0.6} />
-            <path d={`M${x + 3} 171.5 V184`} fill="none" stroke={unten.tief} strokeWidth={4} opacity={0.6} />
-            <circle cx={hand[0]} cy={hand[1]} r={9} fill={h.farbe} {...UMRISS} />
+            <path d={`M${x} 166 V184`} fill="none" stroke={unten.farbe} strokeWidth={19} />
+            {/* The joint dot takes the sleeve's colour, so a short sleeve ends round; bare skin keeps its shadow line. */}
+            <circle cx={x} cy={166} r={9.5} fill={oben.farbe} />
+            {k.aermel === 'haut' && <path d={`M${x + 3} 160.5 V171.5`} fill="none" stroke={oben.tief} strokeWidth={4} opacity={0.6} />}
+            {k.unterarm === 'haut' && <path d={`M${x + 3} 171.5 V184`} fill="none" stroke={unten.tief} strokeWidth={4} opacity={0.6} />}
+            <circle cx={hand[0]} cy={hand[1]} r={9} {...flaeche(h.farbe)} />
             <path d={`M${x - 5} ${hand[1] - 4} q3 -3 6 -2`} fill="none" stroke={h.hell} strokeWidth={2.5} strokeLinecap="round" />
           </g>
         ),
@@ -1214,9 +1207,9 @@ function koerper(k: Kleid): Teil {
         {/* Legs and shoes */}
         {[100, 122].map((x) => (
           <g key={x}>
-            <rect x={x} y={186} width={18} height={30} rx={5} fill={k.hose.farbe} {...UMRISS} />
+            <rect x={x} y={186} width={18} height={30} rx={5} {...flaeche(k.hose.farbe)} />
             <path d={`M${x + 12} 190 V212`} stroke={k.hose.tief} strokeWidth={4} strokeLinecap="round" opacity={0.6} />
-            <path d={`M${x - 3} 226 Q${x - 3} 210 ${x + 9} 210 Q${x + 23} 210 ${x + 23} 226 Z`} fill={k.schuhe.farbe} {...UMRISS} />
+            <path d={`M${x - 3} 226 Q${x - 3} 210 ${x + 9} 210 Q${x + 23} 210 ${x + 23} 226 Z`} {...flaeche(k.schuhe.farbe)} />
             <path d={`M${x + 2} 218 q3 -4 8 -4`} fill="none" stroke={k.schuhe.hell} strokeWidth={2.5} strokeLinecap="round" />
           </g>
         ))}
@@ -1235,17 +1228,18 @@ function kopf(haut: Ton, haar: Ton, frisur: string, augen: string, mund: string)
     zeichnung: (s) => (
       <g>
         {f.hinten?.(haar)}
+        {/* The head's hard shadow on the body (and hair behind it), instead of an outline at the chin */}
+        <Schlagschatten form={KOPF} auf={[RUMPF]} />
         {/* Ears, head with light and shade */}
         {[68, 172].map((x) => (
           <g key={x}>
-            <circle cx={x} cy={104} r={10} fill={haut.farbe} {...UMRISS} />
+            <circle cx={x} cy={104} r={10} {...flaeche(haut.farbe)} />
             <circle cx={x} cy={104} r={4} fill={haut.tief} opacity={0.7} />
           </g>
         ))}
-        <path d={KOPF} fill={haut.farbe} />
+        <path d={KOPF} {...flaeche(haut.farbe)} />
         <path d="M168 104 C166 130 146 146 120 146 C146 138 160 122 162 104 Z" fill={haut.tief} opacity={0.55} />
         <path d="M78 84 Q82 66 98 58" fill="none" stroke={haut.hell} strokeWidth={5} strokeLinecap="round" opacity={0.9} />
-        <path d={KOPF} fill="none" {...UMRISS} />
         {f.vorn?.(haar)}
         <g transform="translate(20 11)">
           <ellipse cx="66" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.55} />

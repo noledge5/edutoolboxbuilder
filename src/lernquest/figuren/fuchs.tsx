@@ -2,7 +2,7 @@
 // Anchors: `hut` on the head, `hand-links` / `hand-rechts` on the paws.
 // No outline (docs/design/prinzipien.md, Stilprobe 2, 19.11.2026): shapes separate by tone. Sleeves in front of the
 // tunic are one tone darker, the head casts a hard shadow onto collar and body, dark lines only for details.
-import { useId } from 'react';
+import { Schlagschatten } from './flaeche';
 import { flaeche, P, STRICH } from './stil';
 import type { Figur, Pose, Punkt, Stand, Teil } from './typen';
 
@@ -194,31 +194,14 @@ const TUNIKA = 'M72 142 Q100 136 128 142 L133 202 Q100 209 67 202 Z';
 const KRAGEN = 'M62 140 Q80 156 100 150 Q120 156 138 140 Q120 130 100 134 Q80 130 62 140 Z';
 const KOPF = 'M100 38 C136 38 160 58 163 86 L174 100 L159 104 C151 124 128 136 100 136 C72 136 49 124 41 104 L26 100 L37 86 C40 58 64 38 100 38 Z';
 
-/** The head's hard shadow, down right, only on collar and body (clipped to their shapes): the chin reads in front of
- *  the collar without an outline. Drawn first inside the head, so it moves with it. */
-function KopfSchatten() {
-  const id = `fuchs-kinn-${useId().replace(/:/g, '')}`;
-  return (
-    <g>
-      <clipPath id={id}>
-        <path d={KRAGEN} />
-        <path d={UMHANG} />
-        <path d={TUNIKA} />
-      </clipPath>
-      <g clipPath={`url(#${id})`}>
-        <path d={KOPF} transform="translate(3 3)" fill={P.schatten} opacity={0.28} />
-      </g>
-    </g>
-  );
-}
-
 const kopf: Teil = {
   id: 'kopf',
   drehpunkt: [100, 134],
   anker: { hut: [100, 46] },
   zeichnung: (s) => (
     <g>
-      <KopfSchatten />
+      {/* The head's hard shadow on collar and body */}
+      <Schlagschatten form={KOPF} auf={[KRAGEN, UMHANG, TUNIKA]} />
       <Ohr d="M50 74 L44 24 C44 18 50 16 54 20 L86 48 Z" spitze="M44.6 34 L44 24 C44 18 50 16 54 20 L62 27 Q52 26 44.6 34 Z" />
       <Ohr d="M150 74 L156 24 C156 18 150 16 146 20 L114 48 Z" spitze="M155.4 34 L156 24 C156 18 150 16 146 20 L138 27 Q148 26 155.4 34 Z" />
       <path d={KOPF} {...flaeche(P.fell)} />
