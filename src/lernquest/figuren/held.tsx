@@ -88,13 +88,39 @@ const Umhang = ({ t }: { t: Ton }) => (
   </g>
 );
 
+/** A wide band across the torso (belt, stripe, hem), ends inside the body. */
+const Band = ({ y, h = 9, farbe, x = 90, b = 60 }: { y: number; h?: number; farbe: string; x?: number; b?: number }) => (
+  <rect x={x} y={y} width={b} height={h} rx={Math.min(4, h / 2)} {...flaeche(farbe, 2)} />
+);
+/** A hood or collar lying behind the neck. */
+const Kapuze = ({ t }: { t: Ton }) => <Flaeche d="M94 144 Q86 122 106 126 Q120 138 134 126 Q154 122 146 144 Z" farbe={t.farbe} hell={t.hell} />;
+/** A shoulder pad: a rounded plate with a shade at the bottom. */
+const Schulter = ({ x, k, t }: { x: number; k: 1 | -1; t: Ton }) => (
+  <g>
+    <path d={`M${x - 14 * k} 142 Q${x} 130 ${x + 14 * k} 142 L${x + 12 * k} 156 Q${x} 162 ${x - 12 * k} 156 Z`} {...flaeche(t.hell, 2.5)} />
+    <path d={`M${x - 11 * k} 153 Q${x} 159 ${x + 11 * k} 153 L${x + 12 * k} 156 Q${x} 162 ${x - 12 * k} 156 Z`} fill={t.tief} opacity={0.6} />
+  </g>
+);
+const Stern = ({ x, y, r, farbe = P.gold }: { x: number; y: number; r: number; farbe?: string }) => <path d={stern(x, y, r)} {...flaeche(farbe, 2)} />;
+
 export const KLEIDUNG: Record<string, Kleid> = {
   tshirt: {
     aermel: T.blau,
     unterarm: 'haut',
     hose: T.jeans,
     schuhe: T.rot,
-    rumpf: () => <Rumpf t={T.blau} kinder={<><Kragen t={T.blau} /><path d={stern(120, 166, 10)} fill={P.weiss} stroke={P.blauTief} strokeWidth={2} strokeLinejoin="round" /></>} />,
+    rumpf: () => (
+      <Rumpf
+        t={T.blau}
+        kinder={
+          <>
+            <Kragen t={T.blau} />
+            <path d={stern(122, 170, 13)} fill={P.blauTief} opacity={0.5} strokeWidth={2} stroke={P.blauTief} strokeLinejoin="round" />
+            <path d={stern(120, 168, 13)} {...flaeche(P.weiss, 2)} />
+          </>
+        }
+      />
+    ),
   },
   pulli: {
     aermel: T.rot,
@@ -106,9 +132,9 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.rot}
         kinder={
           <>
-            <path d="M106 136 Q120 146 134 136" fill="none" stroke={P.rotTief} strokeWidth={5} strokeLinecap="round" />
-            <path d="M90 158 Q120 164 150 158 M89 168 Q120 174 151 168" fill="none" stroke={P.weiss} strokeWidth={3.5} strokeLinecap="round" />
-            <path d="M88 190 Q120 196 152 190" fill="none" stroke={P.rotTief} strokeWidth={5} />
+            <path d="M106 136 Q120 146 134 136" fill="none" stroke={P.rotTief} strokeWidth={6} strokeLinecap="round" />
+            <Band y={162} h={10} farbe={P.weiss} />
+            <Band y={188} h={9} farbe={P.rotTief} x={88} b={64} />
           </>
         }
       />
@@ -122,11 +148,9 @@ export const KLEIDUNG: Record<string, Kleid> = {
     rumpf: () => (
       <g>
         <Rumpf t={T.gelb} kinder={<Kragen t={T.gelb} />} />
-        <path d="M100 162 L140 162 L141 198 Q120 202 99 198 Z" {...flaeche(P.blau, 2.5)} />
         <path d="M98 140 L102 164 M142 140 L138 164" stroke={P.blau} strokeWidth={8} strokeLinecap="round" />
-        <rect x={110} y={170} width={20} height={14} rx={3} {...flaeche(P.blauTief, 2.5)} />
-        <Knoepfe x={103} ys={[162]} />
-        <Knoepfe x={137} ys={[162]} />
+        <path d="M99 162 L141 162 L142 197 Q120 202 98 197 Z" {...flaeche(P.blau, 2.5)} />
+        <rect x={108} y={172} width={24} height={15} rx={4} {...flaeche(P.blauTief, 2)} />
       </g>
     ),
   },
@@ -141,9 +165,7 @@ export const KLEIDUNG: Record<string, Kleid> = {
         kinder={
           <>
             <path d="M92 140 Q104 136 112 140 L114 198 Q100 199 88 196 Z M148 140 Q136 136 128 140 L126 198 Q140 199 152 196 Z" {...flaeche(P.oliv, 2.5)} />
-            <rect x={93} y={162} width={15} height={13} rx={2} {...flaeche(P.olivTief, 2.5)} />
-            <rect x={132} y={162} width={15} height={13} rx={2} {...flaeche(P.olivTief, 2.5)} />
-            <Knoepfe x={110} ys={[152, 172]} t={T.leder} />
+            <Knoepfe x={120} ys={[164, 180]} t={T.leder} />
           </>
         }
       />
@@ -160,12 +182,10 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.metall}
         kinder={
           <>
-            <path d="M120 140 V196" stroke={P.metallTief} strokeWidth={2.5} />
-            <path d="M92 168 Q120 176 148 168" fill="none" stroke={P.metallTief} strokeWidth={2.5} />
-            <path d="M84 142 Q92 132 104 138 L102 152 Q92 150 84 152 Z M156 142 Q148 132 136 138 L138 152 Q148 150 156 152 Z" {...flaeche(P.metallHell, 2.5)} />
-            {[104, 136].map((x) => (
-              <circle key={x} cx={x} cy={184} r={2.2} fill={P.metallHell} stroke={P.metallHell} strokeWidth={1.2} />
-            ))}
+            <path d="M120 140 V198" stroke={P.metallTief} strokeWidth={3} />
+            <Band y={176} h={9} farbe={P.metallTief} />
+            <Schulter x={84} k={-1} t={T.metall} />
+            <Schulter x={156} k={1} t={T.metall} />
           </>
         }
       />
@@ -182,15 +202,10 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.nacht}
         kinder={
           <>
-            {[
-              [104, 158, 6],
-              [134, 176, 5],
-              [112, 186, 3.5],
-              [140, 152, 3.5],
-            ].map(([x, y, r]) => (
-              <path key={x} d={stern(x, y, r)} fill={P.gold} stroke={P.goldTief} strokeWidth={1.4} strokeLinejoin="round" />
-            ))}
-            <path d="M104 138 Q120 150 136 138" fill="none" stroke={P.gold} strokeWidth={3} strokeLinecap="round" />
+            <Stern x={106} y={170} r={11} />
+            <Stern x={134} y={188} r={7} />
+            <Stern x={136} y={158} r={5} />
+            <path d="M104 138 Q120 150 136 138" fill="none" stroke={P.gold} strokeWidth={4} strokeLinecap="round" />
           </>
         }
       />
@@ -208,11 +223,10 @@ export const KLEIDUNG: Record<string, Kleid> = {
         d="M92 140 Q120 132 148 140 L160 220 Q120 228 80 220 Z"
         kinder={
           <>
-            <path d="M120 140 V224" stroke={P.gold} strokeWidth={4} />
-            <path d="M82 214 Q120 222 158 214" fill="none" stroke={P.gold} strokeWidth={4} />
-            <path d={stern(104, 172, 7)} fill={P.gold} stroke={P.goldTief} strokeWidth={1.5} strokeLinejoin="round" />
-            <path d={stern(138, 196, 5)} fill={P.goldHell} stroke={P.goldTief} strokeWidth={1.4} strokeLinejoin="round" />
-            <path d="M106 137 Q120 150 134 137" fill="none" stroke={P.gold} strokeWidth={3.5} strokeLinecap="round" />
+            <path d="M120 140 V224" stroke={P.gold} strokeWidth={5} />
+            <path d="M82 212 Q120 220 158 212" fill="none" stroke={P.gold} strokeWidth={6} />
+            <Stern x={104} y={178} r={11} />
+            <path d="M106 137 Q120 150 134 137" fill="none" stroke={P.gold} strokeWidth={4} strokeLinecap="round" />
           </>
         }
       />
@@ -230,11 +244,11 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.gold}
         kinder={
           <>
-            <path d="M92 168 Q120 176 148 168" fill="none" stroke={P.goldTief} strokeWidth={2.5} />
-            <path d="M84 142 Q92 130 106 138 L104 154 Q92 150 84 154 Z M156 142 Q148 130 134 138 L136 154 Q148 150 156 154 Z" {...flaeche(P.goldHell, 2.5)} />
-            <path d="M120 146 l9 9 -9 9 -9 -9 Z" fill={P.rot} stroke={P.rotTief} strokeWidth={2} />
-            <path d="M117 151 l3 -3" stroke={P.weiss} strokeWidth={2} strokeLinecap="round" />
-            <Funkeln x={102} y={180} r={6} zeit={zeit} />
+            <Band y={182} h={9} farbe={P.goldTief} />
+            <Schulter x={84} k={-1} t={T.gold} />
+            <Schulter x={156} k={1} t={T.gold} />
+            <path d="M120 150 l13 13 -13 13 -13 -13 Z" {...flaeche(P.rot, 2.5)} />
+            <Funkeln x={102} y={184} r={6} zeit={zeit} />
           </>
         }
       />
@@ -247,14 +261,13 @@ export const KLEIDUNG: Record<string, Kleid> = {
     schuhe: T.weiss,
     rumpf: () => (
       <g>
-        <path d="M94 142 Q88 124 104 128 Q120 140 136 128 Q152 124 146 142 Z" {...flaeche(P.gruenTief, 2.5)} />
+        <Kapuze t={T.gruen} />
         <Rumpf
           t={T.gruen}
           kinder={
             <>
-              <path d="M112 142 L110 162 M128 142 L130 162" stroke={P.weiss} strokeWidth={2.5} strokeLinecap="round" />
-              <path d="M100 174 L140 174 L144 192 Q120 196 96 192 Z" fill={P.gruenTief} opacity={0.7} />
-              <path d="M100 174 L140 174" stroke={P.linie} strokeWidth={2} strokeLinecap="round" />
+              <path d="M112 142 L110 164 M128 142 L130 164" stroke={P.weiss} strokeWidth={3} strokeLinecap="round" />
+              <path d="M98 176 L142 176 L146 194 Q120 198 94 194 Z" {...flaeche(P.gruenTief, 2.5)} />
             </>
           }
         />
@@ -271,9 +284,9 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.orange}
         kinder={
           <>
-            <path d="M106 137 L120 150 L134 137" fill="none" stroke={P.weiss} strokeWidth={4} strokeLinejoin="round" />
-            <path d="M92 150 L94 196 M148 150 L146 196" stroke={P.weiss} strokeWidth={5} />
-            <path d="M114 160 L122 156 L122 186 M114 186 L130 186" fill="none" stroke={P.weiss} strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M106 137 L120 150 L134 137" fill="none" stroke={P.weiss} strokeWidth={5} strokeLinejoin="round" />
+            <path d="M92 150 L90 196 M148 150 L150 196" stroke={P.weiss} strokeWidth={6} />
+            <path d="M112 170 L122 162 V194" fill="none" stroke={P.weiss} strokeWidth={9} strokeLinecap="round" strokeLinejoin="round" />
           </>
         }
       />
@@ -290,12 +303,15 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.gruen}
         kinder={
           <>
-            {[150, 162, 174, 186].flatMap((y, r) =>
-              [0, 1, 2, 3].map((i) => <path key={`${y}-${i}`} d={`M${96 + i * 13 + (r % 2) * 6} ${y} q6 6 12 0`} fill="none" stroke={P.gruenTief} strokeWidth={2.2} strokeLinecap="round" />),
-            )}
-            <path d="M84 146 L88 128 L98 140 Z M156 146 L152 128 L142 140 Z" {...flaeche(P.gold, 2.5)} />
-            <circle cx={120} cy={150} r={6.5} fill={P.rot} stroke={P.goldTief} strokeWidth={2.5} />
-            <path d="M117 148 l2 -2" stroke={P.weiss} strokeWidth={1.8} strokeLinecap="round" />
+            {[
+              [106, 168],
+              [134, 168],
+              [120, 184],
+            ].map(([x, y]) => (
+              <path key={`${x},${y}`} d={`M${x - 12} ${y} q12 14 24 0`} fill="none" stroke={P.gruenTief} strokeWidth={4} strokeLinecap="round" />
+            ))}
+            <path d="M84 148 L88 130 Q94 134 98 142 Z M156 148 L152 130 Q146 134 142 142 Z" {...flaeche(P.gold, 2.5)} />
+            <circle cx={120} cy={152} r={7} {...flaeche(P.rot, 2.5)} />
           </>
         }
       />
@@ -308,14 +324,13 @@ export const KLEIDUNG: Record<string, Kleid> = {
     schuhe: T.gruen,
     rumpf: () => (
       <g>
-        <path d="M94 142 Q88 124 104 128 Q120 140 136 128 Q152 124 146 142 Z" {...flaeche(P.gelbTief, 2.5)} />
+        <Kapuze t={T.gelb} />
         <Rumpf
           t={T.gelb}
           kinder={
             <>
-              <path d="M120 140 V198" stroke={P.gelbTief} strokeWidth={2.5} />
-              <Knoepfe x={126} ys={[152, 166, 180]} t={T.blau} />
-              <path d="M96 176 h14 M130 176 h14" stroke={P.gelbTief} strokeWidth={2.5} strokeLinecap="round" />
+              <path d="M120 140 V198" stroke={P.gelbTief} strokeWidth={3} />
+              <path d="M94 174 h18 v14 h-18 Z M128 174 h18 v14 h-18 Z" {...flaeche(P.gelbTief, 2.5)} />
             </>
           }
         />
@@ -332,9 +347,9 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.dunkel}
         kinder={
           <>
-            <path d="M104 138 L132 176 M136 138 L108 176" stroke={P.dunkelHell} strokeWidth={3} />
-            <path d="M88 180 Q120 186 152 180 L153 190 Q120 196 87 190 Z" {...flaeche(P.rot, 2.5)} />
-            <path d="M142 186 l10 12 M146 186 l2 14" stroke={P.rot} strokeWidth={4} strokeLinecap="round" />
+            <path d="M102 140 L136 176" stroke={P.dunkelHell} strokeWidth={5} strokeLinecap="round" />
+            <Band y={180} h={11} farbe={P.rot} x={88} b={64} />
+            <path d="M138 188 l10 14" stroke={P.rot} strokeWidth={6} strokeLinecap="round" />
           </>
         }
       />
@@ -351,12 +366,11 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.weiss}
         kinder={
           <>
-            <rect x={106} y={152} width={28} height={22} rx={4} {...flaeche(P.blau, 2.5)} />
-            <circle cx={113} cy={160} r={3} fill={P.rot} />
-            <circle cx={123} cy={160} r={3} fill={P.gelb} />
-            <path d="M110 168 h20" stroke={P.blauHell} strokeWidth={2.5} strokeLinecap="round" />
-            <path d="M88 186 Q120 192 152 186" fill="none" stroke={P.grau} strokeWidth={5} />
-            <path d="M104 136 Q120 146 136 136" fill="none" stroke={P.grau} strokeWidth={5} strokeLinecap="round" />
+            <path d="M104 136 Q120 148 136 136" fill="none" stroke={P.grau} strokeWidth={6} strokeLinecap="round" />
+            <rect x={105} y={156} width={30} height={22} rx={6} {...flaeche(P.blau, 2.5)} />
+            <circle cx={114} cy={167} r={4} fill={P.rot} />
+            <circle cx={126} cy={167} r={4} fill={P.gelb} />
+            <Band y={186} h={8} farbe={P.grau} x={88} b={64} />
           </>
         }
       />
@@ -374,13 +388,11 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.eis}
         kinder={
           <>
-            <path d="M120 142 L136 162 L120 186 L104 162 Z" fill={P.eisHell} stroke={P.eisTief} strokeWidth={2.5} strokeLinejoin="round" />
-            <path d="M120 142 V186 M104 162 H136" stroke={P.eisTief} strokeWidth={1.5} />
-            <path d="M84 142 L90 126 L100 140 Z M156 142 L150 126 L140 140 Z" {...flaeche(P.eisHell, 2.5)} />
-            <path d="M88 190 Q120 196 152 190" fill="none" stroke={P.gold} strokeWidth={4} />
-            <circle cx={120} cy={164} r={4.5} fill={P.lila} stroke={P.lilaTief} strokeWidth={1.8} />
-            <Funkeln x={108} y={150} r={6} zeit={zeit} />
-            <Funkeln x={140} y={180} r={5} zeit={zeit} versatz={2} />
+            <path d="M120 144 L138 164 L120 190 L102 164 Z" {...flaeche(P.eisHell, 2.5)} />
+            <path d="M120 164 L138 164 L120 190 Z" fill={P.eisTief} opacity={0.6} />
+            <path d="M84 144 L90 126 Q96 132 100 140 Z M156 144 L150 126 Q144 132 140 140 Z" {...flaeche(P.eisHell, 2.5)} />
+            <Band y={192} h={7} farbe={P.gold} x={90} b={60} />
+            <Funkeln x={106} y={152} r={6} zeit={zeit} />
           </>
         }
       />
@@ -398,20 +410,10 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.oliv}
         kinder={
           <>
-            {/* Camouflage patches and leafy tufts */}
-            <path d="M94 150 q8 -6 16 0 q-4 8 -16 0 Z M124 164 q10 -6 18 2 q-8 8 -18 -2 Z M100 182 q8 -4 14 2 q-6 6 -14 -2 Z" fill={P.olivTief} />
-            <path d="M118 146 q6 -4 12 0 q-4 6 -12 0 Z M134 186 q6 -4 12 0 q-4 6 -12 0 Z" fill={P.leder} opacity={0.8} />
-            {[
-              [90, 142],
-              [150, 142],
-              [96, 196],
-              [146, 196],
-              [120, 138],
-            ].map(([x, y]) => (
-              <path key={`${x},${y}`} d={`M${x} ${y} l-6 -8 M${x} ${y} l0 -10 M${x} ${y} l6 -8`} stroke={P.gruenTief} strokeWidth={3.5} strokeLinecap="round" />
-            ))}
-            <path d="M118 158 q4 -8 10 -6 q-2 8 -10 6 Z" fill={P.gold} stroke={P.goldTief} strokeWidth={1.5} />
-            <Funkeln x={140} y={154} r={6} zeit={zeit} />
+            {/* Camouflage: three big patches, one gold badge */}
+            <path d="M92 152 q12 -10 24 0 q-6 14 -24 0 Z M122 166 q14 -8 24 4 q-10 12 -24 -4 Z M98 182 q12 -6 20 4 q-8 10 -20 -4 Z" fill={P.olivTief} />
+            <path d="M128 150 q6 -8 12 -4 q-2 10 -12 4 Z" {...flaeche(P.gold, 2)} />
+            <Funkeln x={140} y={186} r={6} zeit={zeit} />
           </>
         }
       />
@@ -428,13 +430,10 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.rot}
         kinder={
           <>
-            {/* Checks: dark stripes both ways, a light one between */}
-            <path d="M104 140 V198 M120 136 V200 M136 140 V198" stroke={P.rotTief} strokeWidth={5} opacity={0.55} />
-            <path d="M89 156 H151 M88 174 H152 M88 190 H152" stroke={P.rotTief} strokeWidth={5} opacity={0.55} />
-            <path d="M112 140 V198 M128 138 V198 M89 165 H151 M88 182 H152" stroke={P.backe} strokeWidth={1.8} opacity={0.7} />
-            <path d="M106 136 L114 150 L120 140 L126 150 L134 136" fill={P.rot} stroke={P.rot} strokeWidth={2.5} strokeLinejoin="round" />
-            <Knoepfe ys={[154, 168, 182]} t={T.weiss} />
-            <rect x={124} y={152} width={14} height={10} rx={2} fill={P.rot} stroke={P.rotTief} strokeWidth={2} />
+            {/* Checks as a few big fields: two dark stripes down, two across */}
+            <path d="M107 140 V198 M133 140 V198" stroke={P.rotTief} strokeWidth={9} opacity={0.5} />
+            <path d="M89 166 H151 M88 188 H152" stroke={P.rotTief} strokeWidth={9} opacity={0.5} />
+            <path d="M106 136 L114 150 L120 140 L126 150 L134 136" {...flaeche(P.weiss, 2.5)} />
           </>
         }
       />
@@ -450,13 +449,9 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.tuerkis}
         kinder={
           <>
-            <path d="M120 138 V198" stroke={P.grauTief} strokeWidth={2.5} />
-            <path d="M117 142 h6 M117 150 h6 M117 158 h6 M117 166 h6 M117 174 h6 M117 182 h6 M117 190 h6" stroke={P.grauHell} strokeWidth={1.6} />
-            <rect x={116} y={150} width={8} height={10} rx={2} fill={P.metall} stroke={P.metall} strokeWidth={1.5} />
-            <path d="M92 146 L89 194 M148 146 L151 194" stroke={P.weiss} strokeWidth={4} strokeLinecap="round" />
-            <path d="M98 146 L96 194 M142 146 L144 194" stroke={P.weiss} strokeWidth={2} strokeLinecap="round" opacity={0.8} />
-            <path d="M106 137 Q120 146 134 137" fill="none" stroke={P.tuerkisTief} strokeWidth={5} strokeLinecap="round" />
-            <path d="M88 192 Q120 198 152 192" stroke={P.tuerkisTief} strokeWidth={5} fill="none" />
+            <path d="M120 140 V198" stroke={P.tuerkisTief} strokeWidth={3} />
+            <path d="M93 148 L90 196 M147 148 L150 196" stroke={P.weiss} strokeWidth={6} strokeLinecap="round" />
+            <path d="M106 137 Q120 148 134 137" fill="none" stroke={P.tuerkisTief} strokeWidth={6} strokeLinecap="round" />
           </>
         }
       />
@@ -468,21 +463,15 @@ export const KLEIDUNG: Record<string, Kleid> = {
     hose: T.jeans,
     schuhe: T.dunkel,
     rumpf: () => (
-      <g>
-        <Rumpf
-          t={T.weiss}
-          kinder={
-            <>
-              <path d="M89 186 H151 M88 192 H152" stroke={P.blauTief} strokeWidth={3} />
-              <path d="M92 140 L120 172 L148 140 L148 152 L120 182 L92 152 Z" fill={P.blauTief} stroke={P.blauTief} strokeWidth={2.5} strokeLinejoin="round" />
-              <path d="M96 146 L120 174 L144 146" fill="none" stroke={P.weiss} strokeWidth={2} />
-            </>
-          }
-        />
-        {/* Red neckerchief with a knot */}
-        <path d="M112 170 L120 178 L128 170 L134 192 L124 186 L120 194 L116 186 L106 192 Z" {...flaeche(P.rot, 2.5)} />
-        <circle cx={120} cy={175} r={5} {...flaeche(P.rotTief, 2.5)} />
-      </g>
+      <Rumpf
+        t={T.weiss}
+        kinder={
+          <>
+            <path d="M92 140 L120 174 L148 140 L148 154 L120 188 L92 154 Z" {...flaeche(P.blauTief, 2.5)} />
+            <path d="M110 170 L120 178 L130 170 L136 194 L120 186 L104 194 Z" {...flaeche(P.rot, 2.5)} />
+          </>
+        }
+      />
     ),
   },
   feuerwehranzug: {
@@ -496,14 +485,10 @@ export const KLEIDUNG: Record<string, Kleid> = {
         t={T.dunkel}
         kinder={
           <>
-            {/* Reflective bands: yellow with a silver line */}
-            <path d="M89 166 H151 M88 186 H152" stroke={P.gelb} strokeWidth={8} />
-            <path d="M89 166 H151 M88 186 H152" stroke={P.metallHell} strokeWidth={2.5} />
-            <path d="M120 138 V198" stroke={P.dunkelTief} strokeWidth={3} />
-            <path d="M104 144 L104 160 M136 144 L136 160" stroke={P.gelb} strokeWidth={6} strokeLinecap="round" />
-            <path d="M104 144 L104 160 M136 144 L136 160" stroke={P.metallHell} strokeWidth={2} strokeLinecap="round" />
-            <rect x={124} y={146} width={16} height={12} rx={3} fill={P.rot} stroke={P.rot} strokeWidth={1.5} />
-            <path d="M128 152 h8 M132 148 v8" stroke={P.weiss} strokeWidth={2} />
+            <Band y={162} h={10} farbe={P.gelb} x={88} b={64} />
+            <Band y={184} h={10} farbe={P.gelb} x={88} b={64} />
+            <circle cx={138} cy={150} r={8} {...flaeche(P.rot, 2)} />
+            <path d="M134 150 h8 M138 146 v8" stroke={P.weiss} strokeWidth={3} />
           </>
         }
       />
@@ -515,24 +500,18 @@ export const KLEIDUNG: Record<string, Kleid> = {
     hose: T.leder,
     schuhe: T.dunkel,
     rumpf: () => (
-      <g>
-        <Rumpf
-          t={T.sand}
-          d="M90 140 Q120 132 150 140 L157 204 Q120 212 83 204 Z"
-          kinder={
-            <>
-              {/* Lapels, double buttons, belt with buckle */}
-              <path d="M106 137 L114 160 L120 146 L126 160 L134 137" fill={P.sandHell} stroke={P.sandHell} strokeWidth={2.5} strokeLinejoin="round" />
-              <path d="M120 146 V204" stroke={P.sandTief} strokeWidth={2.5} />
-              <Knoepfe x={110} ys={[168, 182]} t={T.leder} />
-              <Knoepfe x={130} ys={[168, 182]} t={T.leder} />
-              <path d="M86 174 Q120 180 154 174 L155 182 Q120 188 85 182 Z" fill={P.sandTief} stroke={P.sandTief} strokeWidth={2} />
-              <rect x={114} y={174} width={12} height={10} rx={2} fill="none" stroke={P.metallTief} strokeWidth={2.5} />
-              <path d="M94 150 L104 154 M146 150 L136 154" stroke={P.sandTief} strokeWidth={2} strokeLinecap="round" />
-            </>
-          }
-        />
-      </g>
+      <Rumpf
+        t={T.sand}
+        d="M90 140 Q120 132 150 140 L157 204 Q120 212 83 204 Z"
+        kinder={
+          <>
+            <path d="M106 137 L114 164 L120 148 L126 164 L134 137" {...flaeche(P.sandHell, 2.5)} />
+            <path d="M120 148 V206" stroke={P.sandTief} strokeWidth={3} />
+            <path d="M86 176 Q120 182 154 176 L155 186 Q120 192 85 186 Z" {...flaeche(P.sandTief, 2)} />
+            <rect x={113} y={176} width={14} height={11} rx={3} {...flaeche(P.metallTief, 2)} />
+          </>
+        }
+      />
     ),
   },
   piratenjacke: {
@@ -541,24 +520,17 @@ export const KLEIDUNG: Record<string, Kleid> = {
     hose: T.dunkel,
     schuhe: T.leder,
     rumpf: () => (
-      <g>
-        <Rumpf
-          t={T.rot}
-          kinder={
-            <>
-              {/* White shirt in the opening, gold trim, wide belt */}
-              <path d="M110 138 L120 176 L130 138 Z" fill={P.schnee} stroke={P.schnee} strokeWidth={2} />
-              <path d="M114 146 q6 4 12 0 M115 154 q5 4 10 0" fill="none" stroke={P.grauHell} strokeWidth={1.8} />
-              <path d="M110 138 L118 200 M130 138 L122 200" stroke={P.gold} strokeWidth={3.5} />
-              <path d="M88 178 Q120 186 152 178 L153 190 Q120 198 87 190 Z" fill={P.leder} stroke={P.leder} strokeWidth={2} />
-              <rect x={112} y={178} width={16} height={14} rx={3} fill={P.gold} stroke={P.goldTief} strokeWidth={2} />
-              <rect x={117} y={182} width={6} height={6} fill={P.leder} />
-              <Knoepfe x={102} ys={[150, 162]} />
-              <Knoepfe x={138} ys={[150, 162]} />
-            </>
-          }
-        />
-      </g>
+      <Rumpf
+        t={T.rot}
+        kinder={
+          <>
+            <path d="M108 138 L120 180 L132 138 Z" {...flaeche(P.schnee, 2.5)} />
+            <path d="M108 138 L116 198 M132 138 L124 198" stroke={P.gold} strokeWidth={4} />
+            <Band y={178} h={13} farbe={P.leder} x={88} b={64} />
+            <rect x={112} y={178} width={16} height={13} rx={4} {...flaeche(P.gold, 2)} />
+          </>
+        }
+      />
     ),
   },
   samurairuestung: {
@@ -572,26 +544,16 @@ export const KLEIDUNG: Record<string, Kleid> = {
           t={T.rot}
           kinder={
             <>
-              {/* Lacquered plates laced together, a gold cord across */}
-              {[150, 162, 174, 186].map((y) => (
-                <g key={y}>
-                  <path d={`M89 ${y} Q120 ${y + 5} 151 ${y}`} fill="none" stroke={P.rotTief} strokeWidth={3} />
-                  <path d={`M96 ${y + 2} v6 M108 ${y + 3} v6 M120 ${y + 3} v6 M132 ${y + 3} v6 M144 ${y + 2} v6`} stroke={P.gold} strokeWidth={1.8} />
-                </g>
+              {[160, 176, 192].map((y) => (
+                <path key={y} d={`M89 ${y} Q120 ${y + 6} 151 ${y}`} fill="none" stroke={P.rotTief} strokeWidth={4} />
               ))}
-              <path d="M96 140 L144 196" stroke={P.gold} strokeWidth={4} strokeLinecap="round" />
+              <path d="M96 142 L144 196" stroke={P.gold} strokeWidth={5} strokeLinecap="round" />
               <path d="M106 137 Q120 148 134 137" fill="none" stroke={P.dunkel} strokeWidth={6} strokeLinecap="round" />
             </>
           }
         />
-        {/* Shoulder plates */}
-        {[
-          [80, -1],
-          [160, 1],
-        ].map(([x, k]) => (
-          <path key={x} d={`M${x - 14 * k} 140 Q${x} 132 ${x + 14 * k} 140 L${x + 12 * k} 158 Q${x} 164 ${x - 12 * k} 158 Z`} {...flaeche(P.rot, 2.5)} />
-        ))}
-        <path d="M70 148 h20 M70 154 h20 M150 148 h20 M150 154 h20" stroke={P.rotTief} strokeWidth={2.5} />
+        <Schulter x={80} k={-1} t={T.rot} />
+        <Schulter x={160} k={1} t={T.rot} />
       </g>
     ),
   },
@@ -608,20 +570,12 @@ export const KLEIDUNG: Record<string, Kleid> = {
         d="M90 140 Q120 132 150 140 L160 224 Q120 232 80 224 Z"
         kinder={
           <>
-            <path d="M120 140 V226" stroke={P.gold} strokeWidth={3} />
-            <path d="M84 216 Q120 226 156 216" fill="none" stroke={P.gold} strokeWidth={3.5} />
-            {[
-              [102, 160, 5],
-              [138, 172, 6],
-              [104, 196, 4],
-              [142, 206, 4.5],
-              [126, 152, 3.5],
-            ].map(([x, y, r]) => (
-              <path key={`${x},${y}`} d={stern(x, y, r)} fill={P.gold} />
-            ))}
-            <path d="M106 137 L120 152 L134 137" fill="none" stroke={P.gold} strokeWidth={3} strokeLinejoin="round" />
-            <circle cx={120} cy={152} r={4.5} fill={P.tuerkis} stroke={P.goldTief} strokeWidth={2} />
-            <Funkeln x={98} y={182} r={5} zeit={zeit} />
+            <path d="M120 140 V226" stroke={P.gold} strokeWidth={4} />
+            <path d="M84 214 Q120 224 156 214" fill="none" stroke={P.gold} strokeWidth={5} />
+            <Stern x={102} y={170} r={9} />
+            <Stern x={140} y={190} r={7} />
+            <circle cx={120} cy={152} r={6} {...flaeche(P.tuerkis, 2.5)} />
+            <Funkeln x={100} y={198} r={5} zeit={zeit} />
           </>
         }
       />
@@ -640,18 +594,16 @@ export const KLEIDUNG: Record<string, Kleid> = {
           t={T.gold}
           kinder={
             <>
-              {/* A sun on the chest; its rays turn slowly */}
-              <g transform={`rotate(${dreh.toFixed(1)} 120 166)`}>
-                {Array.from({ length: 12 }, (_, i) => (
-                  <path key={i} d="M120 146 L124 156 L116 156 Z" fill={P.orange} transform={`rotate(${i * 30} 120 166)`} />
+              {/* A sun on the chest; its eight rays turn slowly */}
+              <g transform={`rotate(${dreh.toFixed(1)} 120 168)`}>
+                {Array.from({ length: 8 }, (_, i) => (
+                  <path key={i} d="M120 146 L126 158 L114 158 Z" {...flaeche(P.orange, 2)} transform={`rotate(${i * 45} 120 168)`} />
                 ))}
               </g>
-              <circle cx={120} cy={166} r={11} fill={P.gelb} stroke={P.goldTief} strokeWidth={2.5} />
-              <circle cx={120} cy={166} r={5} fill={P.rot} stroke={P.rotTief} strokeWidth={1.5} />
-              <path d="M88 188 Q120 196 152 188" fill="none" stroke={P.goldTief} strokeWidth={4} />
-              <path d="M96 144 Q100 140 106 141" stroke={P.goldHell} strokeWidth={3} strokeLinecap="round" fill="none" />
-              <Funkeln x={140} y={150} r={6} zeit={zeit} />
-              <Funkeln x={100} y={182} r={5} zeit={zeit} versatz={2} />
+              <circle cx={120} cy={168} r={12} {...flaeche(P.gelb, 2.5)} />
+              <circle cx={120} cy={168} r={5} fill={P.rot} />
+              <Band y={188} h={8} farbe={P.goldTief} />
+              <Funkeln x={142} y={152} r={6} zeit={zeit} />
             </>
           }
         />
@@ -665,18 +617,16 @@ export const KLEIDUNG: Record<string, Kleid> = {
     schuhe: T.dunkel,
     hinten: () => <Umhang t={T.lila} />,
     rumpf: ({ zeit }) => {
-      const glut = 0.55 + Math.sin(zeit * 2.5) * 0.35;
+      const glut = 0.65 + Math.sin(zeit * 2.5) * 0.3;
       return (
         <Rumpf
           t={T.dunkel}
           kinder={
             <>
-              {/* Glowing runes and a silver clasp; a hood lies on the shoulders */}
-              <path d="M98 152 l6 8 l-6 8 M140 152 l-6 8 l6 8 M112 184 h16 M120 176 v16" fill="none" stroke={P.lilaHell} strokeWidth={2.5} strokeLinecap="round" opacity={glut} />
-              <path d="M94 140 Q120 156 146 140 Q120 146 94 140 Z" {...flaeche(P.dunkelTief, 2.5)} />
-              <path d="M112 150 L120 158 L128 150 L120 142 Z" fill={P.metallHell} stroke={P.metallTief} strokeWidth={2} />
-              <circle cx={120} cy={150} r={2.5} fill={P.lila} opacity={glut} />
-              <Funkeln x={142} y={180} r={5} zeit={zeit} />
+              {/* Two glowing runes, a silver clasp */}
+              <path d="M100 158 l8 10 l-8 10 M140 158 l-8 10 l8 10" fill="none" stroke={P.lilaHell} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" opacity={glut} />
+              <path d="M120 142 L130 152 L120 162 L110 152 Z" {...flaeche(P.metallHell, 2.5)} />
+              <Funkeln x={140} y={188} r={5} zeit={zeit} />
             </>
           }
         />
@@ -686,7 +636,8 @@ export const KLEIDUNG: Record<string, Kleid> = {
 };
 
 // — Face: eyes (the `augen` part), brows, mouth (the chosen one), cheeks. Drawn in the fox's face coordinates and
-// moved over, so the expressions match the fox. —
+// moved over, so the expressions match the fox. Flat and plain (19.11.2026): dark eyes without shine, glasses as a few
+// clear shapes; the mood comes from lids, brows and mouth. —
 
 const AUGE_L = 80;
 const AUGE_R = 120;
@@ -698,8 +649,8 @@ function Punktauge({ x, rx = 7.5, ry = 9.5, iris, funkeln = false }: { x: number
   return (
     <g>
       <ellipse cx={x} cy={AUGE_Y} rx={rx} ry={ry} fill={P.auge} />
-      {iris && <path d={`M${x - rx + 2} 96 Q${x} ${AUGE_Y + ry + 1} ${x + rx - 2} 96`} fill="none" stroke={iris} strokeWidth={2.8} opacity={0.9} />}
-      {funkeln && <path d={stern(x - 2, 89, 3.4, 4)} fill={P.weiss} />}
+      {iris && <path d={`M${x - rx + 2} 96 Q${x} ${AUGE_Y + ry + 1} ${x + rx - 2} 96`} fill="none" stroke={iris} strokeWidth={3} strokeLinecap="round" />}
+      {funkeln && <path d={stern(x - 2, 89, 3.6, 4)} fill={P.weiss} />}
     </g>
   );
 }
@@ -710,30 +661,19 @@ const froh = (x: number) => <path key={x} d={`M${x - 9} 95 Q${x} 84 ${x + 9} 95`
 const AUGEN_FORM: Record<string, (x: number, s: Stand) => ReactNode> = {
   punktaugen: (x, s) => <Punktauge x={x} ry={s.gesicht === 'staunen' ? 11 : s.gesicht === 'sanft' ? 8 : 9.5} rx={s.gesicht === 'staunen' ? 8.5 : 7.5} />,
   froehlich: (x) => froh(x),
-  sternaugen: (x) => (
-    <g>
-      <path d={stern(x, AUGE_Y, 11)} fill={P.gold} stroke={P.goldTief} strokeWidth={2} strokeLinejoin="round" />
-      <circle cx={x - 2} cy={AUGE_Y - 3} r={2} fill={P.weiss} />
-    </g>
-  ),
+  sternaugen: (x) => <path d={stern(x, AUGE_Y, 11)} {...flaeche(P.gold, 2)} stroke={P.goldTief} />,
   funkelaugen: (x) => <Punktauge x={x} rx={8.5} ry={10.5} iris={P.lilaHell} funkeln />,
   herzaugen: (x) => (
-    <g>
-      <path d={`M${x} ${AUGE_Y + 10} C${x - 14} ${AUGE_Y} ${x - 12} ${AUGE_Y - 11} ${x - 5} ${AUGE_Y - 9} C${x - 2} ${AUGE_Y - 8} ${x} ${AUGE_Y - 5} ${x} ${AUGE_Y - 4} C${x} ${AUGE_Y - 5} ${x + 2} ${AUGE_Y - 8} ${x + 5} ${AUGE_Y - 9} C${x + 12} ${AUGE_Y - 11} ${x + 14} ${AUGE_Y} ${x} ${AUGE_Y + 10} Z`} fill={P.herz} stroke={P.rotTief} strokeWidth={2} />
-      <circle cx={x - 5} cy={AUGE_Y - 4} r={2} fill={P.weiss} />
-    </g>
+    <path
+      d={`M${x} ${AUGE_Y + 10} C${x - 14} ${AUGE_Y} ${x - 12} ${AUGE_Y - 11} ${x - 5} ${AUGE_Y - 9} C${x - 2} ${AUGE_Y - 8} ${x} ${AUGE_Y - 5} ${x} ${AUGE_Y - 4} C${x} ${AUGE_Y - 5} ${x + 2} ${AUGE_Y - 8} ${x + 5} ${AUGE_Y - 9} C${x + 12} ${AUGE_Y - 11} ${x + 14} ${AUGE_Y} ${x} ${AUGE_Y + 10} Z`}
+      {...flaeche(P.herz, 2)}
+    />
   ),
-  feueraugen: (x) => (
-    <g>
-      <Punktauge x={x} iris={P.lava} />
-      <path d={`M${x - 5} ${AUGE_Y + 8} Q${x} ${AUGE_Y + 1} ${x + 5} ${AUGE_Y + 8} Q${x} ${AUGE_Y + 5} ${x - 5} ${AUGE_Y + 8} Z`} fill={P.lavaHell} />
-    </g>
-  ),
+  feueraugen: (x) => <Punktauge x={x} iris={P.lava} />,
   schlaefrig: (x) => (
     <g>
       <path d={`M${x - 9} 93 Q${x} 104 ${x + 9} 93 Z`} fill={P.auge} />
       <path d={`M${x - 10} 93 H${x + 10}`} {...linie} strokeWidth={4} />
-      <circle cx={x + 2} cy={97} r={1.8} fill={P.weiss} />
     </g>
   ),
   zwinkern: (x, s) => (x === AUGE_R ? froh(x) : AUGEN_FORM.punktaugen(x, s)),
@@ -741,7 +681,7 @@ const AUGEN_FORM: Record<string, (x: number, s: Stand) => ReactNode> = {
   kulleraugen: (x, s) => <Punktauge x={x} rx={s.gesicht === 'staunen' ? 11 : 10} ry={s.gesicht === 'staunen' ? 13.5 : 12} iris={P.holz} />,
   katzenaugen: (x) => (
     <g>
-      <path d={`M${x - 11} ${AUGE_Y} Q${x} ${AUGE_Y - 13} ${x + 11} ${AUGE_Y} Q${x} ${AUGE_Y + 13} ${x - 11} ${AUGE_Y} Z`} fill={P.gruenHell} stroke={P.auge} strokeWidth={2.5} strokeLinejoin="round" />
+      <path d={`M${x - 11} ${AUGE_Y} Q${x} ${AUGE_Y - 13} ${x + 11} ${AUGE_Y} Q${x} ${AUGE_Y + 13} ${x - 11} ${AUGE_Y} Z`} {...flaeche(P.gruenHell, 2.5)} stroke={P.auge} />
       <ellipse cx={x} cy={AUGE_Y} rx={2.6} ry={7.5} fill={P.auge} />
     </g>
   ),
@@ -750,70 +690,58 @@ const AUGEN_FORM: Record<string, (x: number, s: Stand) => ReactNode> = {
     return (
       <g>
         <ellipse cx={x} cy={AUGE_Y} rx={8.5} ry={10.5} fill={P.nachtTief} />
-        <path d={`M${x - 6} ${AUGE_Y + 3} Q${x} ${AUGE_Y - 8} ${x + 6} ${AUGE_Y + 1}`} fill="none" stroke={P.lilaHell} strokeWidth={2.5} strokeLinecap="round" opacity={0.8} />
-        <path d={`M${x - 4} ${AUGE_Y + 6} Q${x + 2} ${AUGE_Y + 3} ${x + 5} ${AUGE_Y + 6}`} fill="none" stroke={P.tuerkisHell} strokeWidth={2} strokeLinecap="round" opacity={0.7} />
-        <circle cx={x - 3} cy={AUGE_Y - 4} r={1.3 + k} fill={P.weiss} />
-        <circle cx={x + 4} cy={AUGE_Y - 1} r={1} fill={P.weiss} opacity={0.8} />
-        <circle cx={x + 1} cy={AUGE_Y + 5} r={0.9} fill={P.gelbHell} />
+        <path d={`M${x - 6} ${AUGE_Y + 4} Q${x} ${AUGE_Y - 6} ${x + 6} ${AUGE_Y + 2}`} fill="none" stroke={P.lilaHell} strokeWidth={3} strokeLinecap="round" />
+        <circle cx={x - 2} cy={AUGE_Y - 4} r={1.6 + k * 1.2} fill={P.weiss} />
       </g>
     );
   },
   regenbogenaugen: (x, s) => {
-    const farben = [P.rot, P.orange, P.gelb, P.gruenHell, P.blau, P.lila];
-    const d = (s.zeit * 1.5) % farben.length;
+    const farben = [P.rot, P.gelb, P.gruenHell, P.blau];
+    const d = Math.floor(s.zeit * 1.5) % farben.length;
     return (
       <g>
         <ellipse cx={x} cy={AUGE_Y} rx={9} ry={11} fill={P.auge} />
         {farben.map((_, i) => (
-          <path key={i} d={`M${x - 7 + i * 0.4} ${AUGE_Y + 1 + i * 1.3} Q${x} ${AUGE_Y + 9 + i * 0.5} ${x + 7 - i * 0.4} ${AUGE_Y + 1 + i * 1.3}`} fill="none" stroke={farben[Math.floor(i + d) % farben.length]} strokeWidth={1.6} />
+          <path key={i} d={`M${x - 6 + i} ${AUGE_Y + 1 + i * 2.6} Q${x} ${AUGE_Y + 7 + i * 1.6} ${x + 6 - i} ${AUGE_Y + 1 + i * 2.6}`} fill="none" stroke={farben[(i + d) % farben.length]} strokeWidth={2.4} strokeLinecap="round" />
         ))}
-        <path d={stern(x - 2, AUGE_Y - 4, 3.6, 4)} fill={P.weiss} />
       </g>
     );
   },
 };
-/** Glasses and the like: drawn over plain eyes, in face coordinates. */
+/** Glasses and the like: drawn over plain eyes, in face coordinates. A few clear shapes each. */
 const BRILLE: Record<string, () => ReactNode> = {
   brille: () => (
-    <g fill="none" stroke={P.linie} strokeWidth={3}>
-      <circle cx={AUGE_L} cy={AUGE_Y} r={14} fill={P.weiss} fillOpacity={0.25} />
-      <circle cx={AUGE_R} cy={AUGE_Y} r={14} fill={P.weiss} fillOpacity={0.25} />
+    <g fill="none" stroke={P.linie} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx={AUGE_L} cy={AUGE_Y} r={14} fill={P.weiss} fillOpacity={0.3} />
+      <circle cx={AUGE_R} cy={AUGE_Y} r={14} fill={P.weiss} fillOpacity={0.3} />
       <path d="M94 92 Q100 88 106 92 M66 90 L52 86 M134 90 L148 86" />
-      <path d={`M${AUGE_L - 9} 86 q4 -5 9 -5 M${AUGE_R - 9} 86 q4 -5 9 -5`} stroke={P.weiss} strokeWidth={2} />
     </g>
   ),
   sonnenbrille: () => (
     <g>
-      <path d="M62 84 H98 Q98 104 82 104 Q64 104 62 84 Z M102 84 H138 Q136 104 118 104 Q102 104 102 84 Z" {...flaeche(P.dunkel, 2.5)} />
-      <path d="M98 87 H102 M62 85 L50 82 M138 85 L150 82" stroke={P.linie} strokeWidth={3} strokeLinecap="round" />
-      <path d="M68 89 l8 -2 M108 89 l8 -2" stroke={P.dunkelHell} strokeWidth={3} strokeLinecap="round" />
+      <path d="M98 87 H102 M62 85 L50 82 M138 85 L150 82" stroke={P.dunkel} strokeWidth={3.5} strokeLinecap="round" />
+      <Flaeche d="M62 84 H98 Q98 104 82 104 Q64 104 62 84 Z M102 84 H138 Q136 104 118 104 Q102 104 102 84 Z" farbe={P.dunkel} hell={P.dunkelHell} breite={2.5} />
     </g>
   ),
   taucherbrille: () => (
     <g>
       <path d="M44 88 Q100 78 156 88 L156 96 Q100 86 44 96 Z" {...flaeche(P.tuerkis, 2.5)} />
-      <rect x={62} y={78} width={76} height={30} rx={13} fill={P.wasserHell} fillOpacity={0.45} stroke={P.blau} strokeWidth={5} />
+      <rect x={62} y={78} width={76} height={30} rx={13} fill={P.wasserHell} fillOpacity={0.5} stroke={P.blau} strokeWidth={5} />
       <path d="M98 80 V106" stroke={P.blau} strokeWidth={4} />
-      <path d="M70 86 l8 -4 M108 86 l8 -4" stroke={P.weiss} strokeWidth={2.5} strokeLinecap="round" />
     </g>
   ),
   // Visor of a robot (13.11.2026): a dark band with two light strips.
   roboteraugen: () => (
     <g>
-      <path d="M50 84 L150 84 L148 106 L52 106 Z" {...flaeche(P.dunkel, 2.5)} />
-      <rect x={66} y={89} width={28} height={10} rx={4} fill={P.tuerkis} stroke={P.tuerkisTief} strokeWidth={1.5} />
-      <rect x={106} y={89} width={28} height={10} rx={4} fill={P.tuerkis} stroke={P.tuerkisTief} strokeWidth={1.5} />
-      <path d="M70 92 h10 M110 92 h10" stroke={P.tuerkisHell} strokeWidth={2.5} strokeLinecap="round" />
-      <circle cx={56} cy={95} r={3} fill={P.metall} stroke={P.metall} strokeWidth={1.2} />
-      <circle cx={144} cy={95} r={3} fill={P.metall} stroke={P.metall} strokeWidth={1.2} />
+      <Flaeche d="M50 84 L150 84 L148 106 L52 106 Z" farbe={P.dunkel} hell={P.dunkelHell} breite={2.5} />
+      <rect x={66} y={89} width={28} height={10} rx={5} fill={P.tuerkis} />
+      <rect x={106} y={89} width={28} height={10} rx={5} fill={P.tuerkis} />
     </g>
   ),
   monokel: () => (
     <g>
-      <circle cx={AUGE_R} cy={AUGE_Y} r={14} fill={P.weiss} fillOpacity={0.25} stroke={P.gold} strokeWidth={4} />
-      <circle cx={AUGE_R} cy={AUGE_Y} r={16} fill="none" stroke={P.linie} strokeWidth={1.5} />
-      <path d="M133 100 Q140 120 132 134" fill="none" stroke={P.goldTief} strokeWidth={2} strokeDasharray="3 2" />
-      <path d={`M${AUGE_R - 8} 86 q4 -5 9 -5`} stroke={P.weiss} strokeWidth={2} fill="none" />
+      <path d="M133 100 Q140 120 132 134" fill="none" stroke={P.goldTief} strokeWidth={2.5} strokeLinecap="round" />
+      <circle cx={AUGE_R} cy={AUGE_Y} r={14} fill={P.weiss} fillOpacity={0.3} stroke={P.gold} strokeWidth={4.5} />
     </g>
   ),
 };
@@ -861,87 +789,86 @@ function Brauen({ s, t }: { s: Stand; t: Ton }) {
 
 /** The chosen mouths (MUENDER in src/lernquest/teile.ts). */
 const MUND_FORM: Record<string, () => ReactNode> = {
-  laecheln: () => <path d="M90 117 Q100 127 110 117" fill="none" {...STRICH} strokeWidth={3} />,
-  grinsen: () => (
-    <g>
-      <path d="M86 115 Q100 132 114 115 Z" {...flaeche(P.weiss, 2.5)} />
-      <path d="M88 118 Q100 122 112 118" fill="none" stroke={P.linie} strokeWidth={1.5} />
-    </g>
-  ),
+  laecheln: () => <path d="M90 117 Q100 127 110 117" fill="none" {...STRICH} strokeWidth={3.5} />,
+  grinsen: () => <path d="M86 115 Q100 132 114 115 Z" {...flaeche(P.weiss, 2.5)} stroke={P.linie} />,
   lachen: () => (
     <g>
       <path d="M89 116 Q100 134 111 116 Z" {...flaeche(P.mund, 2.5)} />
       <path d="M94 125 Q100 120 106 125 Q100 131 94 125 Z" fill={P.zunge} />
-      <path d="M91 117 H109 L107 120 H93 Z" fill={P.weiss} />
     </g>
   ),
-  staunen: () => (
-    <g>
-      <ellipse cx="100" cy="122" rx="6" ry="7" {...flaeche(P.mund, 2.5)} />
-      <ellipse cx="100" cy="126" rx="3.5" ry="2.2" fill={P.zunge} />
-    </g>
-  ),
+  staunen: () => <ellipse cx="100" cy="122" rx="6" ry="7" {...flaeche(P.mund, 2.5)} />,
   frech: () => (
     <g>
       <path d="M98 120 Q100 132 106 130 Q110 128 108 120 Z" {...flaeche(P.zunge, 2.5)} />
-      <path d="M103 122 V127" stroke={P.mund} strokeWidth={1.5} strokeLinecap="round" />
-      <path d="M90 118 Q100 124 112 117" fill="none" {...STRICH} strokeWidth={3} />
+      <path d="M90 118 Q100 124 112 117" fill="none" {...STRICH} strokeWidth={3.5} />
     </g>
   ),
-  ernst: () => <path d="M92 120 H108" fill="none" {...STRICH} strokeWidth={3} />,
+  ernst: () => <path d="M92 120 H108" fill="none" {...STRICH} strokeWidth={3.5} />,
 };
 export const MUND_ARTEN = Object.keys(MUND_FORM);
 
 function Mund({ mund, s }: { mund: string; s: Stand }) {
   if (s.gesicht === 'lachen' || s.gesicht === 'jubel') return <>{MUND_FORM.lachen()}</>;
   if (s.gesicht === 'staunen' || s.gesicht === 'au') return <>{MUND_FORM.staunen()}</>;
-  if (s.gesicht === 'traurig') return <path d="M92 122 Q100 115 108 122" fill="none" {...STRICH} strokeWidth={3} />;
-  if (s.gesicht === 'denken') return <path d="M95 120 Q101 117 106 120" fill="none" {...STRICH} strokeWidth={3} />;
+  if (s.gesicht === 'traurig') return <path d="M92 122 Q100 115 108 122" fill="none" {...STRICH} strokeWidth={3.5} />;
+  if (s.gesicht === 'denken') return <path d="M95 120 Q101 117 106 120" fill="none" {...STRICH} strokeWidth={3.5} />;
   return <>{(MUND_FORM[mund] ?? MUND_FORM.laecheln)()}</>;
 }
 
-// — Hair: a part behind the head and one in front, in the chosen colour. —
+// — Hair: a part behind the head and one in front, in the chosen colour. One to three big shapes each, with a strong
+// silhouette (a plait is one capsule, curls are one wavy outline), at most one light stroke. —
 
 const KOPF = 'M120 50 C154 50 172 72 172 100 C172 128 150 146 120 146 C90 146 68 128 68 100 C68 72 86 50 120 50 Z';
 const PONY = 'M66 104 C60 66 86 44 120 44 C154 44 180 66 174 104 C170 92 166 84 160 80 C150 86 136 80 128 72 C118 82 98 86 84 82 C78 88 70 94 66 104 Z';
 const GLATT = 'M66 100 C62 62 88 44 120 44 C152 44 178 62 174 100 C168 82 150 70 120 70 C90 70 72 82 66 100 Z';
-const STACHELN = 'M66 100 C62 74 72 58 84 52 L78 30 L100 44 L106 20 L120 40 L134 20 L140 44 L162 30 L156 52 C168 58 178 74 174 100 C166 86 156 80 148 78 C136 84 104 84 92 78 C84 80 74 86 66 100 Z';
+const STACHELN = 'M66 100 C60 76 70 60 84 54 L76 30 L104 46 L120 20 L136 46 L164 30 L156 54 C170 60 180 76 174 100 C166 86 156 80 148 78 C136 84 104 84 92 78 C84 80 74 86 66 100 Z';
 const BOB_VORN = 'M66 102 C62 62 88 44 120 44 C152 44 178 62 174 102 L168 102 L166 80 Q120 72 74 80 L72 102 Z';
+const LANG_HINTEN = 'M64 96 C60 58 88 42 120 42 C152 42 180 58 176 96 L182 170 Q170 178 156 170 L152 140 L88 140 L84 170 Q70 178 58 170 Z';
+const HAARLICHT = 'M84 62 Q100 50 116 50';
 
-function Haarform({ d, t, licht = 'M84 62 Q100 50 116 50' }: { d: string; t: Ton; licht?: string }) {
+/** One closed outline of round bumps around an ellipse: the curly silhouette (n bumps). */
+function wellenPfad(cx: number, cy: number, rx: number, ry: number, n: number): string {
+  const punkt = (i: number): Punkt => {
+    const w = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+    return [cx + rx * Math.cos(w), cy + ry * Math.sin(w)];
+  };
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    const [x0, y0] = punkt(i);
+    const [x1, y1] = punkt(i + 1);
+    const r = Math.hypot(x1 - x0, y1 - y0) * 0.62;
+    d += `${i === 0 ? `M${x0.toFixed(1)} ${y0.toFixed(1)}` : ''}A${r.toFixed(1)} ${r.toFixed(1)} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+  }
+  return `${d}Z`;
+}
+const LOCKEN = wellenPfad(120, 86, 66, 54, 12);
+const LOCKEN_KURZ = wellenPfad(120, 93, 61, 50, 16);
+const AFRO = wellenPfad(120, 80, 77, 62, 14);
+
+function Haarform({ d, t, licht = HAARLICHT }: { d: string; t: Ton; licht?: string }) {
   return (
     <g>
       <Flaeche d={d} farbe={t.farbe} hell={t.hell} />
-      <path d={licht} fill="none" stroke={t.hell} strokeWidth={5} strokeLinecap="round" opacity={0.9} />
+      {licht && <path d={licht} fill="none" stroke={t.hell} strokeWidth={5} strokeLinecap="round" opacity={0.9} />}
     </g>
   );
 }
-const Locken = ({ t, punkte, r }: { t: Ton; punkte: Punkt[]; r: number }) => (
+/** A hair shape without a light stroke. */
+const Haar = ({ d, t }: { d: string; t: Ton }) => <Flaeche d={d} farbe={t.farbe} hell={t.hell} />;
+const Zopfband = ({ x, y }: { x: number; y: number }) => <circle cx={x} cy={y} r={5.5} {...flaeche(P.rot, 2.5)} />;
+/** A plait hanging beside the head: one capsule with a band. */
+const Zopf = ({ x, t }: { x: number; t: Ton }) => (
   <g>
-    {/* Without outline the curls merge into one bumpy shape; the silhouette carries the curls. */}
-    {punkte.map(([x, y]) => (
-      <Flaeche key={`f${x},${y}`} d={ovalPfad(x, y, r)} farbe={t.farbe} hell={t.hell} />
-    ))}
-    {punkte.slice(0, 3).map(([x, y]) => (
-      <path key={`l${x},${y}`} d={`M${x - r / 2} ${y - r / 3} q${r / 3} ${-r / 3} ${r * 0.7} ${-r / 4}`} fill="none" stroke={t.hell} strokeWidth={3} strokeLinecap="round" />
-    ))}
-  </g>
-);
-const Zopfband = ({ x, y }: { x: number; y: number }) => <circle cx={x} cy={y} r={5} {...flaeche(P.rot, 2.5)} />;
-const Flechte = ({ x, t }: { x: number; t: Ton }) => (
-  <g>
-    {[112, 126, 140, 154].map((y) => (
-      <Flaeche key={y} d={ovalPfad(x, y, 9, 8)} farbe={t.farbe} hell={t.hell} breite={2.5} />
-    ))}
-    <Zopfband x={x} y={164} />
-    <Flaeche d={`M${x - 5} 168 L${x} 180 L${x + 5} 168 Z`} farbe={t.farbe} hell={t.hell} breite={2.5} />
+    <Haar d={`M${x - 10} 108 H${x + 10} V166 A10 10 0 0 1 ${x - 10} 166 Z`} t={t} />
+    <Zopfband x={x} y={160} />
   </g>
 );
 
 /** Rainbow hair (13.11.2026): long hair in six coloured bands, its own colours whatever the hair colour. */
 function RegenbogenHaar({ teil }: { teil: 'hinten' | 'vorn' }) {
   const id = `regenbogen-${useId().replace(/:/g, '')}`;
-  const d = teil === 'hinten' ? 'M64 96 C60 58 88 42 120 42 C152 42 180 58 176 96 L182 170 Q170 178 156 170 L152 140 L88 140 L84 170 Q70 178 58 170 Z' : PONY;
+  const d = teil === 'hinten' ? LANG_HINTEN : PONY;
   const farben = [P.rot, P.orange, P.gelb, P.gruenHell, P.blau, P.lila];
   return (
     <g>
@@ -952,7 +879,6 @@ function RegenbogenHaar({ teil }: { teil: 'hinten' | 'vorn' }) {
         {farben.map((f, i) => (
           <rect key={f} x={50} y={36 + i * (teil === 'hinten' ? 24 : 12)} width={140} height={teil === 'hinten' ? 25 : 13} fill={f} />
         ))}
-        <path d="M84 62 Q100 50 116 50" fill="none" stroke={P.weiss} strokeWidth={4} strokeLinecap="round" opacity={0.5} />
       </g>
     </g>
   );
@@ -963,175 +889,117 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   zopf: {
     hinten: (t) => (
       <g>
-        <Flaeche d="M152 58 C192 58 198 104 186 144 C182 154 172 152 174 140 C180 110 174 84 150 74 Z" farbe={t.farbe} hell={t.hell} />
-        <path d="M180 92 Q186 110 182 126" fill="none" stroke={t.hell} strokeWidth={3.5} strokeLinecap="round" />
-        <Zopfband x={160} y={66} />
+        <Haar d="M150 60 C190 58 200 104 188 144 C184 158 168 156 172 138 C178 110 172 86 148 76 Z" t={t} />
+        <Zopfband x={160} y={67} />
       </g>
     ),
     vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
   locken: {
-    hinten: (t) => <Locken t={t} r={14} punkte={[[66, 108], [174, 108], [70, 128], [170, 128], [62, 88], [178, 88]]} />,
-    vorn: (t) => <Locken t={t} r={14} punkte={[[92, 54], [120, 46], [148, 54], [72, 70], [168, 70], [106, 66], [134, 66], [84, 82], [156, 82]]} />,
+    hinten: (t) => <Haar d={LOCKEN} t={t} />,
+    vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
   lang: {
-    hinten: (t) => (
-      <g>
-        <Flaeche d="M64 96 C60 58 88 42 120 42 C152 42 180 58 176 96 L182 170 Q170 178 156 170 L152 140 L88 140 L84 170 Q70 178 58 170 Z" farbe={t.farbe} hell={t.hell} />
-        <path d="M64 110 L62 160 M176 110 L178 160" stroke={t.tief} strokeWidth={3} strokeLinecap="round" opacity={0.6} />
-      </g>
-    ),
+    hinten: (t) => <Haar d={LANG_HINTEN} t={t} />,
     vorn: (t) => <Haarform d={PONY} t={t} />,
   },
   zoepfe: {
     hinten: (t) => (
       <g>
-        <Flechte x={62} t={t} />
-        <Flechte x={178} t={t} />
-      </g>
-    ),
-    vorn: (t) => (
-      <g>
-        <Haarform d={GLATT} t={t} />
-        <path d="M120 46 V70" stroke={t.tief} strokeWidth={2.5} strokeLinecap="round" />
-      </g>
-    ),
-  },
-  dutt: {
-    hinten: (t) => (
-      <g>
-        <Flaeche d={ovalPfad(120, 40, 18)} farbe={t.farbe} hell={t.hell} />
-        <path d="M108 34 Q114 26 122 26" fill="none" stroke={t.hell} strokeWidth={3.5} strokeLinecap="round" />
-        <path d="M104 52 Q120 58 136 52" fill="none" stroke={P.rot} strokeWidth={5} strokeLinecap="round" />
+        <Zopf x={60} t={t} />
+        <Zopf x={180} t={t} />
       </g>
     ),
     vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
-  stacheln: { vorn: (t) => <Haarform d={STACHELN} t={t} licht="M86 60 L84 44 M104 50 L108 34" /> },
+  dutt: {
+    hinten: (t) => (
+      <g>
+        <Haar d={ovalPfad(120, 36, 20)} t={t} />
+        <path d="M104 54 Q120 60 136 54" fill="none" stroke={P.rot} strokeWidth={6} strokeLinecap="round" />
+      </g>
+    ),
+    vorn: (t) => <Haarform d={GLATT} t={t} />,
+  },
+  stacheln: { vorn: (t) => <Haarform d={STACHELN} t={t} licht="" /> },
   bob: {
-    hinten: (t) => <Flaeche d="M62 100 C58 60 88 42 120 42 C152 42 182 60 178 100 L180 140 Q170 146 160 142 L80 142 Q70 146 60 140 Z" farbe={t.farbe} hell={t.hell} />,
+    hinten: (t) => <Haar d="M62 100 C58 60 88 42 120 42 C152 42 182 60 178 100 L180 142 Q170 150 160 144 L80 144 Q70 150 60 142 Z" t={t} />,
     vorn: (t) => <Haarform d={BOB_VORN} t={t} />,
   },
   glatze: {},
   // Own hair of the teacher (lq_frisur): short curls close to the head.
   f25e0e76346: {
-    hinten: (t) => <Locken t={t} r={11} punkte={[[66, 98], [174, 98], [64, 116], [176, 116]]} />,
-    vorn: (t) => <Locken t={t} r={11} punkte={[[96, 52], [120, 46], [144, 52], [78, 64], [162, 64], [108, 62], [132, 62], [70, 82], [170, 82], [90, 74], [150, 74]]} />,
+    hinten: (t) => <Haar d={LOCKEN_KURZ} t={t} />,
+    vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
   // — 13.11.2026: ten more (20261129_lernquest_neue_teile.sql), two per rarity. —
   pferdeschwanz: {
     hinten: (t) => (
       <g>
-        <Flaeche d="M118 40 C152 18 190 40 186 86 C184 112 178 128 168 136 C170 116 170 96 160 80 C150 66 134 56 118 52 Z" farbe={t.farbe} hell={t.hell} />
-        <path d="M168 58 Q182 76 178 102" fill="none" stroke={t.hell} strokeWidth={3.5} strokeLinecap="round" />
-        <path d="M176 92 Q174 112 168 124" fill="none" stroke={t.tief} strokeWidth={2.5} strokeLinecap="round" opacity={0.7} />
-        <ellipse cx={126} cy={44} rx={7} ry={6} {...flaeche(P.tuerkis, 2.5)} />
+        <Haar d="M118 40 C152 18 192 40 188 86 C186 114 180 130 168 138 C170 116 170 96 160 80 C150 66 134 56 118 52 Z" t={t} />
+        <ellipse cx={128} cy={46} rx={8} ry={7} {...flaeche(P.tuerkis, 2.5)} />
       </g>
     ),
     vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
   buerste: {
-    vorn: (t) => (
-      <g>
-        <Haarform d="M68 98 C64 72 74 56 88 50 L90 38 L150 38 L152 50 C166 56 176 72 172 98 C168 84 156 76 120 74 C84 76 72 84 68 98 Z" t={t} licht="M96 44 L96 58" />
-        <path d="M104 42 V56 M112 41 V55 M128 41 V55 M136 42 V56 M144 43 V57" stroke={t.tief} strokeWidth={2} strokeLinecap="round" opacity={0.7} />
-      </g>
-    ),
+    vorn: (t) => <Haarform d="M68 98 C64 72 74 56 88 50 L90 36 L150 36 L152 50 C166 56 176 72 172 98 C168 84 156 76 120 74 C84 76 72 84 68 98 Z" t={t} licht="M96 44 L96 58" />,
   },
   afro: {
-    hinten: (t) => (
-      <g>
-        <circle cx={120} cy={82} r={64.5} fill={t.farbe} />
-        <Locken t={t} r={13} punkte={[[62, 60], [178, 60], [56, 92], [184, 92], [62, 122], [178, 122], [84, 30], [156, 30], [120, 20]]} />
-        <path d="M74 44 Q90 26 112 22" fill="none" stroke={t.hell} strokeWidth={5} strokeLinecap="round" />
-      </g>
-    ),
-    vorn: (t) => <Locken t={t} r={11} punkte={[[86, 58], [104, 50], [122, 48], [140, 50], [156, 58], [72, 72], [168, 72]]} />,
+    hinten: (t) => <Haar d={AFRO} t={t} />,
+    vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
   seitenzopf: {
     hinten: (t) => (
       <g>
-        <Flaeche d="M70 70 C54 92 52 120 58 144 C62 154 72 152 70 140 C66 118 70 96 82 80 Z" farbe={t.farbe} hell={t.hell} />
-        {[150, 164, 178].map((y) => (
-          <Flaeche key={y} d={ovalPfad(64, y, 9, 8)} farbe={t.farbe} hell={t.hell} breite={2.5} />
-        ))}
-        <Zopfband x={64} y={188} />
-        <Flaeche d="M59 192 L64 204 L69 192 Z" farbe={t.farbe} hell={t.hell} breite={2.5} />
+        <Haar d="M80 64 C56 80 48 130 56 176 A11 11 0 0 0 78 172 C76 130 80 104 94 84 Z" t={t} />
+        <Zopfband x={67} y={168} />
       </g>
     ),
-    vorn: (t) => (
-      <g>
-        <Haarform d={GLATT} t={t} />
-        <path d="M104 46 Q100 58 96 72" fill="none" stroke={t.tief} strokeWidth={2.5} strokeLinecap="round" />
-      </g>
-    ),
+    vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
   haarschnecken: {
     hinten: (t) => (
       <g>
         {[82, 158].map((x) => (
           <g key={x}>
-            <Flaeche d={ovalPfad(x, 46, 19)} farbe={t.farbe} hell={t.hell} />
-            <path d={`M${x} 46 q6 0 6 -6 q0 -8 -9 -8 q-11 0 -11 11 q0 13 14 13`} fill="none" stroke={t.tief} strokeWidth={2.5} strokeLinecap="round" />
-            <path d={`M${x - 10} 36 q4 -5 10 -6`} fill="none" stroke={t.hell} strokeWidth={3} strokeLinecap="round" />
+            <Haar d={ovalPfad(x, 46, 21)} t={t} />
+            <path d={`M${x} 46 q6 0 6 -6 q0 -8 -9 -8 q-11 0 -11 11 q0 13 14 13`} fill="none" stroke={t.tief} strokeWidth={3} strokeLinecap="round" />
           </g>
         ))}
-        <circle cx={96} cy={60} r={4} {...flaeche(P.rosa, 2.5)} />
-        <circle cx={144} cy={60} r={4} {...flaeche(P.rosa, 2.5)} />
       </g>
     ),
-    vorn: (t) => (
-      <g>
-        <Haarform d={GLATT} t={t} />
-        <path d="M120 46 V70" stroke={t.tief} strokeWidth={2.5} strokeLinecap="round" />
-      </g>
-    ),
+    vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
   wuschelkopf: {
     vorn: (t) => (
-      <g>
-        <Haarform
-          d="M66 102 C56 82 62 60 78 52 C74 38 92 32 100 40 C104 28 122 26 126 36 C136 26 154 30 154 44 C168 44 180 62 174 80 C180 88 178 96 174 102 C168 88 160 82 150 82 C146 88 136 88 130 82 C122 90 110 90 104 82 C96 88 86 88 82 82 C74 86 70 94 66 102 Z"
-          t={t}
-          licht="M84 56 Q96 44 110 44"
-        />
-        {/* Two loose strands sticking up */}
-        <path d="M120 40 q4 -14 14 -16 M98 44 q-6 -10 -2 -18" fill="none" stroke={t.farbe} strokeWidth={8} strokeLinecap="round" />
-        <path d="M90 66 q8 4 14 0 M132 66 q8 4 14 0" fill="none" stroke={t.tief} strokeWidth={2.5} strokeLinecap="round" />
-      </g>
+      <Haarform
+        d="M66 102 C54 82 60 60 78 52 C72 36 92 28 102 38 C106 24 124 22 128 34 C138 22 158 28 156 44 C170 44 182 62 174 80 C182 88 180 96 174 102 C168 88 160 82 150 82 C146 88 136 88 130 82 C122 90 110 90 104 82 C96 88 86 88 82 82 C74 86 70 94 66 102 Z"
+        t={t}
+      />
     ),
   },
   blitzfrisur: {
     vorn: (t) => (
       <g>
-        <Haarform
-          d="M66 100 C60 76 68 60 82 52 L70 28 L98 42 L104 16 L120 38 L140 12 L142 42 L170 30 L158 54 C170 62 178 78 174 100 C166 86 156 80 148 78 C136 84 104 84 92 78 C84 80 74 86 66 100 Z"
-          t={t}
-          licht="M84 56 L76 38 M106 44 L106 26"
-        />
-        {/* A golden lightning streak */}
-        <path d="M126 34 L116 56 L126 56 L114 80 L136 50 L126 50 L136 34 Z" fill={P.gelb} stroke={P.gelb} strokeWidth={2} strokeLinejoin="round" />
+        <Haarform d={STACHELN} t={t} licht="" />
+        <path d="M128 34 L116 58 L128 58 L114 84 L138 52 L127 52 L138 34 Z" {...flaeche(P.gelb, 2)} stroke={P.goldTief} />
       </g>
     ),
   },
   sternenzopf: {
     hinten: (t) => (
       <g>
-        <Flaeche d="M150 56 C186 60 192 100 184 140 C182 168 176 190 170 202 C162 190 166 170 168 148 C172 112 168 86 148 72 Z" farbe={t.farbe} hell={t.hell} />
-        <path d="M178 90 Q184 116 178 150" fill="none" stroke={t.hell} strokeWidth={3.5} strokeLinecap="round" />
-        {[
-          [176, 104],
-          [174, 140],
-          [170, 176],
-        ].map(([x, y]) => (
-          <path key={y} d={stern(x, y, 8)} fill={P.gold} stroke={P.goldTief} strokeWidth={1.8} strokeLinejoin="round" />
+        <Haar d="M150 56 C190 60 196 100 188 142 C186 172 180 194 172 206 C162 192 166 170 168 148 C172 112 168 86 148 72 Z" t={t} />
+        {[116, 160].map((y) => (
+          <path key={y} d={stern(178, y, 9)} {...flaeche(P.gold, 2)} stroke={P.goldTief} />
         ))}
       </g>
     ),
     vorn: (t) => (
       <g>
         <Haarform d={GLATT} t={t} />
-        <path d={stern(90, 58, 8)} fill={P.gold} stroke={P.goldTief} strokeWidth={1.8} strokeLinejoin="round" />
+        <path d={stern(92, 58, 9)} {...flaeche(P.gold, 2)} stroke={P.goldTief} />
       </g>
     ),
   },
@@ -1140,14 +1008,12 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
     hinten: () => (
       <g>
         <path d="M62 100 C50 70 60 40 80 30 C78 46 86 50 92 40 C96 22 112 12 122 8 C118 26 128 32 136 22 C150 26 158 40 152 54 C164 46 176 56 178 70 C186 84 182 96 178 100 Z" {...flaeche(P.lava)} />
-        <path d="M80 60 C78 46 88 40 96 50 C100 34 114 26 120 22 C118 38 128 42 134 36 C144 40 150 50 148 62 Z" fill={P.lavaHell} />
-        <path d="M100 52 C104 42 112 38 116 34 C116 44 122 48 128 46 C134 50 136 56 134 62 Z" fill={P.gelb} />
+        <path d="M82 66 C80 48 90 42 98 52 C102 36 114 28 122 22 C120 40 130 44 136 38 C146 42 152 52 150 66 Z" fill={P.lavaHell} />
       </g>
     ),
     vorn: () => (
       <g>
         <path d={PONY} {...flaeche(P.lava)} />
-        <path d="M84 62 Q100 50 116 50" fill="none" stroke={P.lavaHell} strokeWidth={5} strokeLinecap="round" />
         <path d="M128 72 C134 62 146 58 156 66 C150 70 152 76 160 80 C150 86 136 80 128 72 Z" fill={P.lavaHell} />
       </g>
     ),
@@ -1208,7 +1074,6 @@ function koerper(k: Kleid): Teil {
         {[100, 122].map((x) => (
           <g key={x}>
             <rect x={x} y={186} width={18} height={30} rx={5} {...flaeche(k.hose.farbe)} />
-            <path d={`M${x + 12} 190 V212`} stroke={k.hose.tief} strokeWidth={4} strokeLinecap="round" opacity={0.6} />
             <path d={`M${x - 3} 226 Q${x - 3} 210 ${x + 9} 210 Q${x + 23} 210 ${x + 23} 226 Z`} {...flaeche(k.schuhe.farbe)} />
             <path d={`M${x + 2} 218 q3 -4 8 -4`} fill="none" stroke={k.schuhe.hell} strokeWidth={2.5} strokeLinecap="round" />
           </g>
@@ -1230,12 +1095,9 @@ function kopf(haut: Ton, haar: Ton, frisur: string, augen: string, mund: string)
         {f.hinten?.(haar)}
         {/* The head's hard shadow on the body (and hair behind it), instead of an outline at the chin */}
         <Schlagschatten form={KOPF} auf={[RUMPF]} />
-        {/* Ears, head with light and shade */}
+        {/* Ears, head with one light and one shade */}
         {[68, 172].map((x) => (
-          <g key={x}>
-            <circle cx={x} cy={104} r={10} {...flaeche(haut.farbe)} />
-            <circle cx={x} cy={104} r={4} fill={haut.tief} opacity={0.7} />
-          </g>
+          <circle key={x} cx={x} cy={104} r={10} {...flaeche(haut.farbe)} />
         ))}
         <path d={KOPF} {...flaeche(haut.farbe)} />
         <path d="M168 104 C166 130 146 146 120 146 C146 138 160 122 162 104 Z" fill={haut.tief} opacity={0.55} />
@@ -1246,7 +1108,6 @@ function kopf(haut: Ton, haar: Ton, frisur: string, augen: string, mund: string)
           <ellipse cx="134" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.55} />
           <Brauen s={s} t={haar} />
           <Augen augen={augen} s={s} />
-          <path d="M97 105 Q100 108 103 105" fill="none" stroke={haut.tief} strokeWidth={2.5} strokeLinecap="round" />
           <Mund mund={mund} s={s} />
           {s.gesicht === 'traurig' && <path d="M131 101 q4 6 0 9 q-4 -3 0 -9 Z" fill={P.blauHell} stroke={P.blauTief} strokeWidth={1.5} />}
         </g>
