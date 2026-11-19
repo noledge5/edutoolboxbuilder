@@ -54,7 +54,9 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
   dunkle Teile vor dunklem Grund bekommen eine `hell`-Kante oben links. Dunkle **Linien** für Details (Mund, Brauen,
   Schnur) bleiben erlaubt, sie umranden nichts.
 - Bis zur Umstellung haben die Figuren noch ihren Umriss. Neue Teile folgen ihrem Satz (Held-Teile mit Umriss, Dorf
-  ohne), damit nichts gemischt aussieht; die Umstellung macht einen Satz immer ganz.
+  ohne), damit nichts gemischt aussieht; die Umstellung macht einen Satz immer ganz. **Umgestellt: Fuchs** (19.11.2026).
+  Im Code: `{...flaeche(P.x)}` statt `fill={P.x} {...UMRISS}` (Fläche behält ihre Größe), `STRICH` für Detail-Linien;
+  ein Test (`figuren.test.tsx`) hält umgestellte Dateien frei von `UMRISS`.
 
 ### Farbe
 - Nur Farben aus `stil.ts` (`P.*`); ein Test schlägt bei jedem anderen Farbwert an. Neue Farbe: immer Grundton, `hell`
@@ -158,7 +160,7 @@ Nicht auf einmal, je ein Schritt pro Sitzung, jeweils mit Stilprobe und Blick de
    Wand: rechte Seite `tief`; Band unter Traufe als flache Form; Schlagschatten als eine Fläche mit fester Deckkraft).
 2. **Landkarte isometrisch:** `gelaende.tsx` und `welten.tsx` sind heute flach von vorn; sie wandern auf den Iso-Bausatz.
 3. **Figuren ohne Umriss** wie Stilprobe 2 (freigegeben von der Lehrkraft am 19.11.2026, [Stilprobe](#stilprobe-ohne-umriss)): Fuchs, Held mit allen Teilen,
-   Bosse, Begleiter, Gegenstände. Je Satz eine Sitzung, Vergleich vorher/nachher mit
+   Bosse, Begleiter, Gegenstände. **Fuchs erledigt (19.11.2026).** Je Satz eine Sitzung, Vergleich vorher/nachher mit
    `STILPROBE=<ordner> npx vitest run src/lernquest/figuren/stilprobe`. Die Landkarte verliert ihren Umriss mit Schritt 2.
 4. 3D-Teile aufräumen: die Skripte in `.claude/skills/grafik/skripte/` und `stilprobe/haus-3d-probe.png` werden nicht
    mehr gebraucht (Löschen nach Rückfrage).

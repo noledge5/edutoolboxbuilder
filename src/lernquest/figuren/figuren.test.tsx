@@ -186,4 +186,12 @@ describe('style', () => {
       .flatMap((f) => [...readFileSync(new URL(f, dir), 'utf8').matchAll(/#[0-9a-f]{3,8}\b|rgba?\(/gi)].map((m) => `${f}: ${m[0]}`));
     expect(bad).toEqual([]);
   });
+
+  // No outline (docs/design/prinzipien.md, decided 19.11.2026): files switched over stay without it. Add each file
+  // here once its set is converted; when all are, delete UMRISS from stil.ts.
+  it('keeps converted drawings free of the outline', () => {
+    const OHNE_UMRISS = ['fuchs.tsx'];
+    const dir = new URL('.', import.meta.url);
+    expect(OHNE_UMRISS.filter((f) => /\bUMRISS/.test(readFileSync(new URL(f, dir), 'utf8')))).toEqual([]);
+  });
 });

@@ -158,9 +158,19 @@ export const P = {
   pflasterTief: '#C4B48F',
 } as const;
 
-/** The outline every shape gets: 3 units, round joins. Small details (mouth, belt) use 2.5. */
+/** The outline every shape got until 19.11.2026: 3 units, round joins. Small details (mouth, belt) use 2.5.
+ *  Being removed set by set (docs/design/prinzipien.md, „Umstellung des Bestands“); converted files use `flaeche`
+ *  and `STRICH` instead. */
 export const UMRISS = { stroke: P.linie, strokeWidth: 3, strokeLinejoin: 'round', strokeLinecap: 'round' } as const;
 export const UMRISS_FEIN = { ...UMRISS, strokeWidth: 2.5 } as const;
+
+/** A shape without outline (since 19.11.2026): filled and stroked in its own colour, so it keeps the size it had with
+ *  its outline (`breite` 3 for UMRISS, 2.5 for UMRISS_FEIN). A shade lying on the edge of a shape takes it too, so the
+ *  edge does not get a rim of the base colour. */
+export const flaeche = (farbe: string, breite = 3) =>
+  ({ fill: farbe, stroke: farbe, strokeWidth: breite, strokeLinejoin: 'round', strokeLinecap: 'round' }) as const;
+/** A dark detail line (mouth, flap, string): allowed without outline, it outlines nothing. */
+export const STRICH = { stroke: P.linie, strokeWidth: 2.5, strokeLinejoin: 'round', strokeLinecap: 'round' } as const;
 
 /** Rarity frame colours, the same as SELTENHEITEN in src/lernquest/teile.ts (index 0 = Gewöhnlich). */
 export const SELTEN_FARBE = ['#6E6990', '#13804A', '#2459B8', '#6A2FC4', '#8A6100'] as const;
