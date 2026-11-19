@@ -35,6 +35,7 @@ export const P = {
   metallHell: '#F2F6FA',
   holz: '#B9824A',
   holzTief: '#8A5A2C',
+  holzHell: '#D9A86E',
   rot: '#D9473B',
   rotTief: '#A3302A',
   blau: '#4F8FE0',
@@ -131,6 +132,11 @@ export const P = {
   gelbHell: '#FFF29A',
   gelbTief: '#D9B300',
   schnee: '#F4F8FC',
+  // White things (chef's hat, rabbit, cloud): a pale grey base so they read on white cards and the cream app;
+  // `hell` is the white light spot, `tief` the shade.
+  wolke: '#E3E9F0',
+  wolkeHell: '#FBFCFE',
+  wolkeTief: '#C3CCD7',
 
   // The village in 2.5D (iso.tsx, dorf.tsx; Stilprobe 3, 18.11.2026): plaster, timber, roof tiles, field stone, glass.
   putz: '#F6E3B4',
@@ -158,9 +164,25 @@ export const P = {
   pflasterTief: '#C4B48F',
 } as const;
 
-/** The outline every shape gets: 3 units, round joins. Small details (mouth, belt) use 2.5. */
+/** The outline every shape got until 19.11.2026: 3 units, round joins. Small details (mouth, belt) use 2.5.
+ *  Being removed set by set (docs/design/prinzipien.md, „Umstellung des Bestands“); converted files use `flaeche`
+ *  and `STRICH` instead. */
 export const UMRISS = { stroke: P.linie, strokeWidth: 3, strokeLinejoin: 'round', strokeLinecap: 'round' } as const;
 export const UMRISS_FEIN = { ...UMRISS, strokeWidth: 2.5 } as const;
+
+/** A shape without outline (since 19.11.2026): filled and stroked in its own colour, so it keeps the size it had with
+ *  its outline (`breite` 3 for UMRISS, 2.5 for UMRISS_FEIN). A shade lying on the edge of a shape takes it too, so the
+ *  edge does not get a rim of the base colour. */
+export const flaeche = (farbe: string, breite = 3) =>
+  ({ fill: farbe, stroke: farbe, strokeWidth: breite, strokeLinejoin: 'round', strokeLinecap: 'round' }) as const;
+/** Dark enough to vanish on the night and boss backgrounds without an outline (hair haar0/haar1, dunkel, nacht,
+ *  lederTief): such parts get a `hell` edge top left (`Flaeche`). Relative luminance of a `#RRGGBB` colour. */
+export function istDunkel(farbe: string): boolean {
+  const k = [1, 3, 5].map((i) => parseInt(farbe.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * k[0] + 0.7152 * k[1] + 0.0722 * k[2] < 0.05;
+}
+/** A dark detail line (mouth, flap, string): allowed without outline, it outlines nothing. */
+export const STRICH = { stroke: P.linie, strokeWidth: 2.5, strokeLinejoin: 'round', strokeLinecap: 'round' } as const;
 
 /** Rarity frame colours, the same as SELTENHEITEN in src/lernquest/teile.ts (index 0 = Gewöhnlich). */
 export const SELTEN_FARBE = ['#6E6990', '#13804A', '#2459B8', '#6A2FC4', '#8A6100'] as const;

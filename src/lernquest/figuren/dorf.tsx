@@ -2,17 +2,9 @@
 // the class builds together, the building site of the running project and the village map (DorfKarte): the square
 // with the six building places, a road to the right and quarters of six staked plots (names and own houses come with
 // Teil B). Built from the parts of iso.tsx. Every building draws into one 100 × 100 cell at (x, y).
-import { useId, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { GelaendeTeil } from "./gelaende";
-import {
-  BRUCH,
-  HOLZ,
-  IsoVerlaeufe,
-  isoStift,
-  PUTZ,
-  SCHIEFER,
-  type IsoStift,
-} from "./iso";
+import { BRUCH, HOLZ, isoStift, PUTZ, SCHIEFER, type IsoStift } from "./iso";
 import { P } from "./stil";
 
 type Bau = (s: IsoStift, x: number, y: number) => ReactNode;
@@ -231,10 +223,6 @@ const sternwarte: Bau = (s, x, y) => {
       <path
         d={`M${top[0]} ${top[1] - 30} A34 30 0 0 1 ${top[0] + 34} ${top[1]} H${top[0]} Z`}
         fill={P.schieferTief}
-      />
-      <path
-        d={`M${top[0] - 34} ${top[1]} A34 30 0 0 1 ${top[0] + 34} ${top[1]} Z`}
-        fill={s.url("dachT")}
       />
       <path
         d={`M${top[0] - 26} ${top[1] - 10} A28 24 0 0 1 ${top[0] - 6} ${top[1] - 27}`}
@@ -471,13 +459,7 @@ const BAUTEN: Record<string, Bau> = {
 
 /** One building alone, its cell centre at (0, 0), for the workshop and lists. */
 function Einzeln({ bau }: { bau: Bau }) {
-  const id = `dorf-${useId().replace(/:/g, "")}`;
-  return (
-    <g>
-      <IsoVerlaeufe id={id} />
-      {bau(isoStift(0, -50, id), 0, 0)}
-    </g>
-  );
+  return <g>{bau(isoStift(0, -50), 0, 0)}</g>;
 }
 
 export const GEBAEUDE_BILD: Record<string, () => ReactNode> =
@@ -585,8 +567,7 @@ export function DorfKarte({
   hinweis?: string;
   titel: string;
 }) {
-  const id = `dk-${useId().replace(/:/g, "")}`;
-  const s = isoStift(0, 0, id);
+  const s = isoStift(0, 0);
   const n = Number.isFinite(plaetze)
     ? Math.min(200, Math.max(0, Math.floor(plaetze)))
     : 0;
@@ -662,7 +643,6 @@ export function DorfKarte({
       aria-label={titel}
       className="lq-dorf-karte"
     >
-      <IsoVerlaeufe id={id} />
       <rect
         x={minX}
         y={minY}

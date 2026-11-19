@@ -23,13 +23,23 @@ inside `held.tsx`. The workshop and the tests pick them up (`held.test.tsx`: eve
 Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werkzeug|begleiter|hintergrund npx vitest run src/lernquest/figuren/vorschau`.
 
 ## Style rules (the look of the teacher's mockup, docs/design/lernquest/mockup-stufe-e.png)
+- The rules above all: `docs/design/prinzipien.md` (goals, form rules, checklist; ADR 0001). Figures are flat and seen
+  from the front, the world around them is isometric; both share palette, light and form rules.
+- As few shapes as possible; the silhouette must read at 48 px. Expressions through lids, brows and mouth.
 - Colours only from `stil.ts` (`P.*`); a test fails on any other hex. Need a new colour: add base, `hell` and `tief`.
-- Outline on every shape: `{...UMRISS}` (3 units, round), details `{...UMRISS_FEIN}`. Limbs: the two-stroke trick
-  (`Glied` in `fuchs.tsx`): dark 19 under colour 13, round caps; cover the joint seam with a dot of the colour.
+- **No outline** (decided 19.11.2026, Stilprobe 2 in prinzipien.md), switched set by set; **done: fox and hero with all
+  parts** (`fuchs.tsx`, `held.tsx`, `items*.tsx`, `begleiter.tsx`, `golem.tsx`, `tintenkrake.tsx`, `raetseldrache.tsx`, `truhe.tsx`); also bosses, chest and backgrounds; only the map (`gelaende.tsx`, `welten.tsx`) still has it. Converted: `{...flaeche(P.x)}` (fill and stroke 3 in its own colour, so the shape keeps its
+  size; a shade on the edge takes it too), dark details only as `{...STRICH}` (mouth, flap); limbs `Glied` with
+  `umriss={false}` (19 in the colour); sleeves in front of the body one tone darker (`tief`, no own shadow); the head
+  casts a hard shadow onto collar and body (`<Schlagschatten>` in `flaeche.tsx`); dark parts: draw them with
+  `<Flaeche d farbe hell>`, which adds the `hell` edge top left by itself when `istDunkel(farbe)`. Add the file to `OHNE_UMRISS` in `figuren.test.tsx`. Sets not yet switched keep `{...UMRISS}` /
+  `{...UMRISS_FEIN}` and `Glied` with outline (dark 19 under colour 13), and new parts follow their set.
+- **Few shapes** (Duolingo, prinzipien.md): companion 11–15 with face, hat or held thing 3–7, outfit = torso plus 1–5
+  big features, hair 1–3 shapes; no seams, rivets, grain lines, tiny buttons. White things in `wolke`, not `weiss`.
 - Light from top left: one light stroke or spot (`hell`) top left, one shadow shape (`tief`, about 60 % opacity)
   bottom right. No gradients, no blur, no thin lines under 2 units (they vanish at 48 px).
-- Exception, the village in 2.5D (`iso.tsx`, `dorf.tsx`, Skill `grafik`): no outline, gradient overlays and cast
-  shadows for depth (`IsoVerlaeufe`, ids via `useId`), stop colours only from `P`. Still no blur.
+- The village in 2.5D (`iso.tsx`, `dorf.tsx`, Skill `grafik`): no outline, flat tones only since 19.11.2026
+  (`dorf.test.tsx` fails on any gradient); add no new gradients anywhere.
 - Chibi proportions for characters: head about half the height, flat dark eyes without white shine (teacher, 12.11.2026), short limbs.
 - Faces carry the emotion; a pose changes arms and face, never redraws the body.
 - Rarity shows on the item itself too: 1–2 plain materials (wood, leather), 3 metal or glass, 4 colour plus a star or
@@ -64,4 +74,4 @@ Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werk
 - Raised arms behind the big head disappear: put the arm in `vorne` or keep the paw outside the head outline.
 - „Bewegung reduzieren“ turns moves off in the app (not in the workshop); every pose must read on its own.
 - A move that runs a fixed number of times must start and end at rest; an endless one must loop seamlessly (tests).
-- Ids inside a drawing (clipPath, gradient) must be unique per drawing: use `useId()` (see `tintenkrake.tsx`).
+- Ids inside a drawing (clipPath, mask) must be unique per drawing: use `useId()` (see `tintenkrake.tsx`).

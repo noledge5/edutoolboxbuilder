@@ -1,8 +1,9 @@
 // 2.5D building kit of the village (Stilprobe 3, docs/design/lernquest/stilprobe/haus-v3.mjs, decided 18.11.2026):
 // 2:1 isometric, x runs right-down, y left-down, z up. Visible are the top, the left face (plane y + d) and the right
 // face (plane x + w). Light from the top left: left faces light, right faces dark, cast shadows fall right-down.
-// Every building and add-on uses these parts, so they match. Depth comes from gradient overlays (ids from
-// <IsoVerlaeufe>), all colours from stil.ts. Draw back to front (smaller x + y first).
+// Every building and add-on uses these parts, so they match. Depth comes from flat tones only (no gradients, ADR 0001,
+// 19.11.2026): right faces dark, a flat shadow band under eaves, a light edge at the ridge, cast shadows as one shape
+// of fixed opacity. All colours from stil.ts. Draw back to front (smaller x + y first).
 import type { ReactNode } from "react";
 import { P } from "./stil";
 
@@ -47,66 +48,11 @@ export const SCHIEFER: DachTon = {
   licht: P.schieferHell,
 };
 
-/** The shared gradients of one drawing; `id` must be unique in the page (useId). */
-export function IsoVerlaeufe({ id }: { id: string }) {
-  const lin = (
-    name: string,
-    stops: [number, string, number][],
-    x2 = 0,
-    y2 = 1,
-  ) => (
-    <linearGradient
-      id={`${id}-${name}`}
-      x1={x2 < 0 ? 1 : 0}
-      y1={0}
-      x2={x2 < 0 ? 0 : x2}
-      y2={y2}
-    >
-      {stops.map(([o, c, a], i) => (
-        <stop key={i} offset={o} stopColor={c} stopOpacity={a} />
-      ))}
-    </linearGradient>
-  );
-  return (
-    <defs>
-      {lin("ao", [
-        [0, P.weiss, 0.1],
-        [0.55, P.auge, 0],
-        [1, P.auge, 0.3],
-      ])}
-      {lin("aoR", [
-        [0, P.auge, 0.06],
-        [1, P.auge, 0.34],
-      ])}
-      {lin("traufe", [
-        [0, P.auge, 0.42],
-        [1, P.auge, 0],
-      ])}
-      {lin("dach", [
-        [0, P.weiss, 0.22],
-        [0.5, P.weiss, 0],
-        [1, P.auge, 0.28],
-      ])}
-      {lin("dachT", [
-        [0, P.weiss, 0.18],
-        [1, P.auge, 0.26],
-      ])}
-      {lin(
-        "dachW",
-        [
-          [0, P.weiss, 0.15],
-          [1, P.auge, 0.25],
-        ],
-        -1,
-        0,
-      )}
-      <radialGradient id={`${id}-glanz`}>
-        <stop offset={0} stopColor={P.licht} stopOpacity={0.7} />
-        <stop offset={1} stopColor={P.licht} stopOpacity={0} />
-      </radialGradient>
-    </defs>
-  );
-}
+/** The flat shade over every right face (walls, gables): one tone of fixed opacity, so the right side reads darker
+ *  than its base colour alone (it replaced the gradient overlays). */
+const RECHTS_SCHATTEN = { fill: P.auge, opacity: 0.18 } as const;
+/** The flat shadow band under eaves and jetties: a fraction of the band height, fixed opacity. */
+const BAND_SCHATTEN = { fill: P.auge, opacity: 0.3 } as const;
 
 const f = (p: Pt) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`;
 const hash = (a: number, b: number) => {
@@ -130,8 +76,8 @@ function bogen(a: Pt, b: Pt, k: number): string {
   return d;
 }
 
-/** The drawing kit for one origin (ox, oy) and the gradients of `<IsoVerlaeufe id={v}>`. Each part returns a <g>. */
-export function isoStift(ox: number, oy: number, v: string) {
+/** The drawing kit for one origin (ox, oy). Each part returns a <g>. */
+export function isoStift(ox: number, oy: number) {
   const P3 = (x: number, y: number, z = 0): Pt => [
     ox + (x - y) * 0.866,
     oy + (x + y) * 0.5 - z,
@@ -153,7 +99,6 @@ export function isoStift(ox: number, oy: number, v: string) {
       opacity={o}
     />
   );
-  const url = (n: string) => `url(#${v}-${n})`;
 
   const box = (
     x: number,
@@ -250,7 +195,7 @@ export function isoStift(ox: number, oy: number, v: string) {
     return <g>{out}</g>;
   };
 
-  /** Depth on both visible faces: darker toward the ground, the right face darker, a light top edge. */
+  /** Depth on a body: the right face one flat shade darker, a light edge along the top of the left face. */
   const tiefe = (
     x: number,
     y: number,
@@ -262,27 +207,19 @@ export function isoStift(ox: number, oy: number, v: string) {
     <g>
       {poly(
         [
-          P3(x, y + d, z),
-          P3(x + w, y + d, z),
-          P3(x + w, y + d, z + h),
-          P3(x, y + d, z + h),
-        ],
-        url("ao"),
-      )}
-      {poly(
-        [
           P3(x + w, y, z),
           P3(x + w, y + d, z),
           P3(x + w, y + d, z + h),
           P3(x + w, y, z + h),
         ],
-        url("aoR"),
+        RECHTS_SCHATTEN.fill,
+        { opacity: RECHTS_SCHATTEN.opacity },
       )}
       {linie(P3(x, y + d, z + h), P3(x + w, y + d, z + h), P.weiss, 2, 0.35)}
     </g>
   );
 
-  /** Shadow band below an edge (eaves, jetty) on both visible faces, `k` high. */
+  /** Flat shadow band below an edge (eaves, jetty) on both visible faces: one shape, 0.6 × `k` high, fixed opacity. */
   const band = (
     x: number,
     y: number,
@@ -290,28 +227,33 @@ export function isoStift(ox: number, oy: number, v: string) {
     w: number,
     d: number,
     k = 12,
-  ) => (
-    <g>
-      {poly(
-        [
-          P3(x, y + d, z),
-          P3(x + w, y + d, z),
-          P3(x + w, y + d, z - k),
-          P3(x, y + d, z - k),
-        ],
-        url("traufe"),
-      )}
-      {poly(
-        [
-          P3(x + w, y, z),
-          P3(x + w, y + d, z),
-          P3(x + w, y + d, z - k),
-          P3(x + w, y, z - k),
-        ],
-        url("traufe"),
-      )}
-    </g>
-  );
+  ) => {
+    const t = k * 0.6;
+    return (
+      <g>
+        {poly(
+          [
+            P3(x, y + d, z),
+            P3(x + w, y + d, z),
+            P3(x + w, y + d, z - t),
+            P3(x, y + d, z - t),
+          ],
+          BAND_SCHATTEN.fill,
+          { opacity: BAND_SCHATTEN.opacity },
+        )}
+        {poly(
+          [
+            P3(x + w, y, z),
+            P3(x + w, y + d, z),
+            P3(x + w, y + d, z - t),
+            P3(x + w, y, z - t),
+          ],
+          BAND_SCHATTEN.fill,
+          { opacity: BAND_SCHATTEN.opacity },
+        )}
+      </g>
+    );
+  };
 
   /** Cast shadow on the ground of a body w × d, h high. */
   const schlag = (
@@ -426,7 +368,9 @@ export function isoStift(ox: number, oy: number, v: string) {
           c.seite,
         )}
         {poly(giebel, P.putzTief)}
-        {poly(giebel, url("aoR"))}
+        {poly(giebel, RECHTS_SCHATTEN.fill, {
+          opacity: RECHTS_SCHATTEN.opacity,
+        })}
         {fach && (
           <g>
             {linie(P3(x + w, y, z), P3(x + w, m, z + h), P.balkenTief, 4)}
@@ -441,7 +385,6 @@ export function isoStift(ox: number, oy: number, v: string) {
           </g>
         )}
         {poly(vorn, c.vorn)}
-        {poly(vorn, url("dach"))}
         <path
           d={Array.from({ length: reihen }, (_, i) =>
             bogen(
@@ -497,9 +440,7 @@ export function isoStift(ox: number, oy: number, v: string) {
     return (
       <g>
         {poly([l, vv, sp], c.vorn)}
-        {poly([l, vv, sp], url("dachT"))}
         {poly([vv, r, sp], c.seite)}
-        {poly([vv, r, sp], url("dachT"))}
         <path d={dv} fill="none" stroke={c.kante} strokeWidth={1.8} />
         <path
           d={dr}
@@ -654,7 +595,6 @@ export function isoStift(ox: number, oy: number, v: string) {
     zaunX,
     flaeche,
     bogen,
-    url,
   };
 }
 export type IsoStift = ReturnType<typeof isoStift>;

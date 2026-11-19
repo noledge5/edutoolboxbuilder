@@ -1,30 +1,28 @@
 // The fox who guides the children (Stufe E). Chibi build: big head, short body, two-part arms with paws.
 // Anchors: `hut` on the head, `hand-links` / `hand-rechts` on the paws.
-import { P, UMRISS, UMRISS_FEIN } from './stil';
+// No outline (docs/design/prinzipien.md, Stilprobe 2, 19.11.2026): shapes separate by tone. Sleeves in front of the
+// tunic are one tone darker, the head casts a hard shadow onto collar and body, dark lines only for details.
+import { Schlagschatten } from './flaeche';
+import { flaeche, P, STRICH } from './stil';
 import type { Figur, Pose, Punkt, Stand, Teil } from './typen';
 
-/** A limb segment with outline: dark wide stroke under a narrower coloured one. `gelenk` covers the seam to the
- *  segment before (elbow). */
-export function Glied({ von, bis, farbe, schatten, gelenk = false }: { von: Punkt; bis: Punkt; farbe: string; schatten?: string; gelenk?: boolean }) {
+/** A limb segment, 19 units wide with round caps. Without outline (`umriss={false}`, the fox) it is one stroke in its
+ *  colour; with outline (the hero, until it is converted) a dark 19 under the colour 13, and `gelenk` covers the seam
+ *  to the segment before (elbow). */
+export function Glied({ von, bis, farbe, schatten, gelenk = false, umriss = true }: { von: Punkt; bis: Punkt; farbe: string; schatten?: string; gelenk?: boolean; umriss?: boolean }) {
   const d = `M${von[0]} ${von[1]} L${bis[0]} ${bis[1]}`;
   return (
     <g>
-      <path d={d} fill="none" stroke={P.linie} strokeWidth={19} strokeLinecap="round" />
-      <path d={d} fill="none" stroke={farbe} strokeWidth={13} strokeLinecap="round" />
+      {umriss && <path d={d} fill="none" stroke={P.linie} strokeWidth={19} strokeLinecap="round" />}
+      <path d={d} fill="none" stroke={farbe} strokeWidth={umriss ? 13 : 19} strokeLinecap="round" />
       {schatten && <path d={`M${von[0] + 3} ${von[1]} L${bis[0] + 3} ${bis[1]}`} fill="none" stroke={schatten} strokeWidth={4} strokeLinecap="round" opacity={0.6} />}
-      {gelenk && <circle cx={von[0]} cy={von[1]} r={6.5} fill={farbe} />}
+      {gelenk && umriss && <circle cx={von[0]} cy={von[1]} r={6.5} fill={farbe} />}
     </g>
   );
 }
 
 function Pfote({ p }: { p: Punkt }) {
-  return (
-    <g>
-      <circle cx={p[0]} cy={p[1]} r={9} fill={P.fell} {...UMRISS} />
-      <path d={`M${p[0] - 5} ${p[1] - 4} q3 -3 6 -2`} fill="none" stroke={P.fellHell} strokeWidth={2.5} strokeLinecap="round" />
-      <path d={`M${p[0] - 4} ${p[1] + 3}q4 3 8 0`} fill="none" stroke={P.fellTief} strokeWidth={2} strokeLinecap="round" />
-    </g>
-  );
+  return <circle cx={p[0]} cy={p[1]} r={10.5} fill={P.fell} />;
 }
 
 function arm(seite: 'l' | 'r'): Teil {
@@ -35,16 +33,15 @@ function arm(seite: 'l' | 'r'): Teil {
   return {
     id: `arm-${seite}`,
     drehpunkt: schulter,
-    zeichnung: () => <Glied von={schulter} bis={ellbogen} farbe={P.oliv} schatten={P.olivTief} />,
+    // Sleeves one tone darker than the tunic, so the arm reads in front of the body; no shadow of its own.
+    zeichnung: () => <Glied von={schulter} bis={ellbogen} farbe={P.olivTief} umriss={false} />,
     kinder: [
       {
         id: `unterarm-${seite}`,
         drehpunkt: ellbogen,
         zeichnung: () => (
           <g>
-            <Glied von={ellbogen} bis={[x, 181]} farbe={P.oliv} schatten={P.olivTief} gelenk />
-            {/* Leather cuff at the wrist */}
-            <rect x={x - 8} y={176} width={16} height={7} rx={3} fill={P.leder} {...UMRISS_FEIN} />
+            <Glied von={ellbogen} bis={[x, 181]} farbe={P.olivTief} umriss={false} />
             <Pfote p={hand} />
           </g>
         ),
@@ -124,32 +121,28 @@ function Mund({ gesicht }: Stand) {
   if (gesicht === 'lachen' || gesicht === 'jubel')
     return (
       <g>
-        <path d="M89 116 Q100 134 111 116 Z" fill={P.mund} {...UMRISS_FEIN} />
+        <path d="M89 116 Q100 134 111 116 Z" {...flaeche(P.mund, 2.5)} />
         <path d="M94 125 Q100 120 106 125 Q100 131 94 125 Z" fill={P.zunge} />
-        <path d="M92 117 L95 120 L98 117 Z M102 117 L105 120 L108 117 Z" fill={P.weiss} />
       </g>
     );
   if (gesicht === 'staunen' || gesicht === 'au')
     return (
       <g>
-        <ellipse cx="100" cy="122" rx="6" ry={gesicht === 'au' ? 4.5 : 7} fill={P.mund} {...UMRISS_FEIN} />
+        <ellipse cx="100" cy="122" rx="6" ry={gesicht === 'au' ? 4.5 : 7} {...flaeche(P.mund, 2.5)} />
         <ellipse cx="100" cy={gesicht === 'au' ? 124 : 126} rx="3.5" ry="2.2" fill={P.zunge} />
       </g>
     );
-  if (gesicht === 'traurig') return <path d="M92 122 Q100 115 108 122" fill="none" {...UMRISS_FEIN} />;
-  if (gesicht === 'denken') return <path d="M95 120 Q101 117 106 120" fill="none" {...UMRISS_FEIN} />;
-  return <path d="M91 116 Q95.5 122 100 117 Q104.5 122 109 116" fill="none" {...UMRISS_FEIN} />;
+  if (gesicht === 'traurig') return <path d="M92 122 Q100 115 108 122" fill="none" {...STRICH} />;
+  if (gesicht === 'denken') return <path d="M95 120 Q101 117 106 120" fill="none" {...STRICH} />;
+  return <path d="M91 116 Q95.5 122 100 117 Q104.5 122 109 116" fill="none" {...STRICH} />;
 }
 
-/** An ear in three passes: fur, dark tip and inner ear, then the outline on top. */
-function Ohr({ d, innen, spitze, buschel }: { d: string; innen: string; spitze: string; buschel: string }) {
+/** An ear: fur and a dark tip (out to the edge). */
+function Ohr({ d, spitze }: { d: string; spitze: string }) {
   return (
     <g>
-      <path d={d} fill={P.fell} />
-      <path d={spitze} fill={P.ohrInnen} />
-      <path d={innen} fill={P.ohrInnen} opacity={0.85} />
-      <path d={buschel} fill="none" stroke={P.creme} strokeWidth={2.5} strokeLinecap="round" />
-      <path d={d} fill="none" {...UMRISS} />
+      <path d={d} {...flaeche(P.fell)} />
+      <path d={spitze} {...flaeche(P.ohrInnen)} />
     </g>
   );
 }
@@ -159,13 +152,10 @@ const schwanz: Teil = {
   drehpunkt: [124, 190],
   zeichnung: () => (
     <g>
-      <path d="M120 200 C154 204 184 176 182 138 C181 116 170 102 160 98 C164 128 152 160 120 174 Z" fill={P.fell} />
+      <path d="M120 200 C154 204 184 176 182 138 C181 116 170 102 160 98 C164 128 152 160 120 174 Z" {...flaeche(P.fell)} />
       <path d="M126 196 C152 196 172 178 176 156 C170 172 150 186 124 186 Z" fill={P.fellTief} opacity={0.5} />
-      <path d="M160 98 C164 116 160 132 152 146 C162 136 168 120 166 104 Z" fill={P.fellHell} opacity={0.8} />
-      {/* Cream tip with a few tufts */}
-      <path d="M182 138 C181 116 170 102 160 98 C161 112 162 124 166 132 L170 128 L171 137 L176 134 L176 141 Q180 142 182 138 Z" fill={P.creme} />
-      <path d="M120 200 C154 204 184 176 182 138 C181 116 170 102 160 98 C164 128 152 160 120 174 Z" fill="none" {...UMRISS} />
-      <path d="M166 132 L170 128 L171 137 L176 134 L176 141" fill="none" {...UMRISS_FEIN} />
+      {/* Cream tip, one smooth shape */}
+      <path d="M182 138 C181 116 170 102 160 98 C161 114 164 128 171 135 Q177 141 182 138 Z" {...flaeche(P.creme)} />
     </g>
   ),
 };
@@ -175,35 +165,16 @@ const koerper: Teil = {
   drehpunkt: [100, 200],
   zeichnung: () => (
     <g>
-      {/* Cape, back part, with its darker lining and a stitched hem */}
-      <path d="M64 142 Q100 132 136 142 L150 214 Q100 224 50 214 Z" fill={P.gruen} {...UMRISS} />
-      <path d="M58 180 L52 212 Q66 216 78 217 Z" fill={P.gruenTief} opacity={0.75} />
-      <path d="M142 176 L148 212 Q138 215 128 216 Z" fill={P.gruenTief} opacity={0.45} />
-      <path d="M56 210 Q100 220 144 210" fill="none" stroke={P.gruenHell} strokeWidth={2} strokeDasharray="4 5" strokeLinecap="round" />
-      {/* Boots: cuff, shaft, sole */}
+      {/* Few big shapes (the Duolingo cat as model, docs/design/prinzipien.md): cape, two boots, tunic with one
+          shade, belt with a gold buckle. */}
+      <path d={UMHANG} {...flaeche(P.gruen)} />
       {[74, 104].map((x) => (
-        <g key={x}>
-          <rect x={x} y={196} width={22} height={30} rx={8} fill={P.leder} {...UMRISS} />
-          <path d={`M${x + 1.5} 220 h19 v1 a5 5 0 0 1 -5 5 h-9 a5 5 0 0 1 -5 -5 Z`} fill={P.lederTief} />
-          <rect x={x - 1} y={196} width={24} height={8} rx={4} fill={P.lederHell} {...UMRISS_FEIN} />
-          <path d={`M${x + 5} 211 q4 -3 8 0`} fill="none" stroke={P.lederHell} strokeWidth={2} strokeLinecap="round" />
-        </g>
+        <rect key={x} x={x} y={196} width={22} height={30} rx={9} {...flaeche(P.leder)} />
       ))}
-      {/* Tunic with shade, middle seam and stitched hem */}
-      <path d="M72 142 Q100 136 128 142 L133 202 Q100 209 67 202 Z" fill={P.oliv} />
-      <path d="M118 144 Q126 146 128 142 L133 202 Q122 205 112 206 Z" fill={P.olivTief} opacity={0.55} />
-      <path d="M72 142 Q100 136 128 142 L133 202 Q100 209 67 202 Z" fill="none" {...UMRISS} />
-      <path d="M100 150 V202" stroke={P.olivTief} strokeWidth={2.5} strokeLinecap="round" />
-      <path d="M71 198 Q100 204 129 198" fill="none" stroke={P.olivTief} strokeWidth={1.8} strokeDasharray="3 4" strokeLinecap="round" />
-      {/* Belt, buckle and a little pouch */}
-      <path d="M69 178 Q100 184 131 178 L132 189 Q100 195 68 189 Z" fill={P.leder} {...UMRISS_FEIN} />
-      <path d="M72 181 Q100 186 128 181" fill="none" stroke={P.lederHell} strokeWidth={1.5} strokeDasharray="3 3" />
-      <rect x="92" y="178" width="16" height="14" rx="3" fill={P.gold} stroke={P.goldTief} strokeWidth={2.5} />
-      <rect x="97" y="182" width="6" height="6" rx="1" fill={P.leder} />
-      <path d="M94 180 h5" stroke={P.goldHell} strokeWidth={2} strokeLinecap="round" />
-      <rect x="112" y="186" width="15" height="14" rx="4" fill={P.lederHell} {...UMRISS_FEIN} />
-      <path d="M112 191 Q119.5 196 127 191" fill="none" {...UMRISS_FEIN} />
-      <circle cx="119.5" cy="193" r="1.8" fill={P.gold} />
+      <path d={TUNIKA} {...flaeche(P.oliv)} />
+      <path d="M118 144 Q126 146 128 142 L133 202 Q122 205 112 206 Z" {...flaeche(P.olivTief)} opacity={0.55} />
+      <path d="M69 178 Q100 184 131 178 L132 189 Q100 195 68 189 Z" {...flaeche(P.leder, 2.5)} />
+      <rect x="92" y="177" width="16" height="15" rx="4" {...flaeche(P.gold, 1)} />
     </g>
   ),
 };
@@ -213,16 +184,14 @@ const kragen: Teil = {
   drehpunkt: [100, 142],
   zeichnung: () => (
     <g>
-      <path d="M62 140 Q80 156 100 150 Q120 156 138 140 Q120 130 100 134 Q80 130 62 140 Z" fill={P.gruenHell} {...UMRISS} />
-      <path d="M70 140 Q84 148 96 146" fill="none" stroke={P.gruen} strokeWidth={2.5} strokeLinecap="round" />
-      <path d="M130 140 Q116 148 104 146" fill="none" stroke={P.gruen} strokeWidth={2.5} strokeLinecap="round" />
-      <circle cx="100" cy="150" r="6.5" fill={P.gold} stroke={P.goldTief} strokeWidth={2.5} />
-      <path d="M97 147 l3 3 M100 147 v6" stroke={P.goldTief} strokeWidth={1.5} strokeLinecap="round" />
-      <circle cx="98" cy="148" r="1.6" fill={P.goldHell} />
+      <path d={KRAGEN} {...flaeche(P.gruenHell)} />
     </g>
   ),
 };
 
+const UMHANG = 'M64 142 Q100 132 136 142 L150 214 Q100 224 50 214 Z';
+const TUNIKA = 'M72 142 Q100 136 128 142 L133 202 Q100 209 67 202 Z';
+const KRAGEN = 'M62 140 Q80 156 100 150 Q120 156 138 140 Q120 130 100 134 Q80 130 62 140 Z';
 const KOPF = 'M100 38 C136 38 160 58 163 86 L174 100 L159 104 C151 124 128 136 100 136 C72 136 49 124 41 104 L26 100 L37 86 C40 58 64 38 100 38 Z';
 
 const kopf: Teil = {
@@ -231,19 +200,16 @@ const kopf: Teil = {
   anker: { hut: [100, 46] },
   zeichnung: (s) => (
     <g>
-      <Ohr d="M50 74 L44 24 C44 18 50 16 54 20 L86 48 Z" spitze="M44.6 34 L44 24 C44 18 50 16 54 20 L62 27 Q52 26 44.6 34 Z" innen="M56 62 L53 32 L76 50 Z" buschel="M58 58 l-1.5 -9 M63 55 l1 -9" />
-      <Ohr d="M150 74 L156 24 C156 18 150 16 146 20 L114 48 Z" spitze="M155.4 34 L156 24 C156 18 150 16 146 20 L138 27 Q148 26 155.4 34 Z" innen="M144 62 L147 32 L124 50 Z" buschel="M142 58 l1.5 -9 M137 55 l-1 -9" />
-      {/* Fur tuft on top, behind the head */}
-      <path d="M88 44 L94 30 L99 40 L105 29 L112 44 Z" fill={P.fell} {...UMRISS} />
-      <path d={KOPF} fill={P.fell} />
+      {/* The head's hard shadow on collar and body */}
+      <Schlagschatten form={KOPF} auf={[KRAGEN, UMHANG, TUNIKA]} />
+      <Ohr d="M50 74 L44 24 C44 18 50 16 54 20 L86 48 Z" spitze="M44.6 34 L44 24 C44 18 50 16 54 20 L62 27 Q52 26 44.6 34 Z" />
+      <Ohr d="M150 74 L156 24 C156 18 150 16 146 20 L114 48 Z" spitze="M155.4 34 L156 24 C156 18 150 16 146 20 L138 27 Q148 26 155.4 34 Z" />
+      <path d={KOPF} {...flaeche(P.fell)} />
       {/* Light top left, shade right */}
-      <path d="M70 50 Q100 40 130 50 Q118 46 100 46 Q82 46 70 50 Z" fill={P.fellHell} opacity={0.85} />
       <path d="M48 70 Q56 54 72 46 Q58 58 54 72 Z" fill={P.fellHell} opacity={0.7} />
-      <path d="M163 86 L174 100 L159 104 C151 124 128 136 100 136 C126 128 146 114 152 90 Q158 86 163 86 Z" fill={P.fellTief} opacity={0.35} />
-      <path d={KOPF} fill="none" {...UMRISS} />
+      <path d="M163 86 L174 100 L159 104 C151 124 128 136 100 136 C126 128 146 114 152 90 Q158 86 163 86 Z" {...flaeche(P.fellTief)} opacity={0.35} />
       {/* Cream mask and cheek fluff */}
       <path d="M100 84 C114 84 132 92 152 101 C142 122 124 132 100 132 C76 132 58 122 48 101 C68 92 86 84 100 84 Z" fill={P.creme} />
-      <path d="M38 98 l8 1 M162 98 l-8 1 M42 104 l7 -1 M158 104 l-7 -1" stroke={P.fellTief} strokeWidth={2} strokeLinecap="round" opacity={0.7} />
       <ellipse cx="66" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.6} />
       <ellipse cx="134" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.6} />
       <Brauen {...s} />
@@ -281,16 +247,20 @@ export const FUCHS: Figur = {
       const s = 1 + Math.max(0, Math.sin(zeit * 5)) * 0.08;
       return (
         <g transform={`translate(100 174) scale(${s.toFixed(3)}) translate(-100 -174)`}>
-          <path d="M100 186 C88 176 86 166 93 162 C97 160 100 163 100 166 C100 163 103 160 107 162 C114 166 112 176 100 186 Z" fill={P.herz} {...UMRISS_FEIN} />
+          <path d="M100 186 C88 176 86 166 93 162 C97 160 100 163 100 166 C100 163 103 160 107 162 C114 166 112 176 100 186 Z" {...flaeche(P.herz, 2.5)} />
           <path d="M93 166 q2 -2 4 0" fill="none" stroke={P.weiss} strokeWidth={2} strokeLinecap="round" opacity={0.8} />
         </g>
       );
     },
     gedanken: ({ zeit }) => (
-      <g fill={P.weiss} stroke={P.linie} strokeWidth={2.5} transform={`translate(0 ${(Math.sin(zeit * 2) * 2).toFixed(2)})`}>
-        <circle cx="160" cy="58" r="5" />
-        <circle cx="172" cy="42" r="7.5" />
-        <circle cx="188" cy="22" r="11" />
+      // Light blue instead of white with an outline: white alone vanishes on the cream of the app.
+      <g transform={`translate(0 ${(Math.sin(zeit * 2) * 2).toFixed(2)})`}>
+        {([[160, 58, 6.25], [172, 42, 8.75], [188, 22, 12.25]] as const).map(([x, y, r]) => (
+          <g key={r}>
+            <circle cx={x} cy={y} r={r} fill={P.blauHell} />
+            <circle cx={x - r * 0.35} cy={y - r * 0.35} r={r * 0.3} fill={P.weiss} />
+          </g>
+        ))}
       </g>
     ),
     sterne: ({ zeit }) => (
