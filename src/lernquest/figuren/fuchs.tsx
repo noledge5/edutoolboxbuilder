@@ -22,13 +22,7 @@ export function Glied({ von, bis, farbe, schatten, gelenk = false, umriss = true
 }
 
 function Pfote({ p }: { p: Punkt }) {
-  return (
-    <g>
-      <circle cx={p[0]} cy={p[1]} r={10.5} fill={P.fell} />
-      <path d={`M${p[0] - 5} ${p[1] - 4} q3 -3 6 -2`} fill="none" stroke={P.fellHell} strokeWidth={2.5} strokeLinecap="round" />
-      <path d={`M${p[0] - 4} ${p[1] + 3}q4 3 8 0`} fill="none" stroke={P.fellTief} strokeWidth={2} strokeLinecap="round" />
-    </g>
-  );
+  return <circle cx={p[0]} cy={p[1]} r={10.5} fill={P.fell} />;
 }
 
 function arm(seite: 'l' | 'r'): Teil {
@@ -48,8 +42,6 @@ function arm(seite: 'l' | 'r'): Teil {
         zeichnung: () => (
           <g>
             <Glied von={ellbogen} bis={[x, 181]} farbe={P.olivTief} umriss={false} />
-            {/* Leather cuff at the wrist, a tone darker like the sleeve and as wide */}
-            <rect x={x - 10} y={174.75} width={20} height={9.5} rx={4} fill={P.lederTief} />
             <Pfote p={hand} />
           </g>
         ),
@@ -131,7 +123,6 @@ function Mund({ gesicht }: Stand) {
       <g>
         <path d="M89 116 Q100 134 111 116 Z" {...flaeche(P.mund, 2.5)} />
         <path d="M94 125 Q100 120 106 125 Q100 131 94 125 Z" fill={P.zunge} />
-        <path d="M92 117 L95 120 L98 117 Z M102 117 L105 120 L108 117 Z" fill={P.weiss} />
       </g>
     );
   if (gesicht === 'staunen' || gesicht === 'au')
@@ -146,14 +137,12 @@ function Mund({ gesicht }: Stand) {
   return <path d="M91 116 Q95.5 122 100 117 Q104.5 122 109 116" fill="none" {...STRICH} />;
 }
 
-/** An ear: fur, dark tip (out to the edge), inner ear, a tuft. */
-function Ohr({ d, innen, spitze, buschel }: { d: string; innen: string; spitze: string; buschel: string }) {
+/** An ear: fur and a dark tip (out to the edge). */
+function Ohr({ d, spitze }: { d: string; spitze: string }) {
   return (
     <g>
       <path d={d} {...flaeche(P.fell)} />
       <path d={spitze} {...flaeche(P.ohrInnen)} />
-      <path d={innen} fill={P.ohrInnen} opacity={0.85} />
-      <path d={buschel} fill="none" stroke={P.creme} strokeWidth={2.5} strokeLinecap="round" />
     </g>
   );
 }
@@ -165,9 +154,8 @@ const schwanz: Teil = {
     <g>
       <path d="M120 200 C154 204 184 176 182 138 C181 116 170 102 160 98 C164 128 152 160 120 174 Z" {...flaeche(P.fell)} />
       <path d="M126 196 C152 196 172 178 176 156 C170 172 150 186 124 186 Z" fill={P.fellTief} opacity={0.5} />
-      <path d="M160 98 C164 116 160 132 152 146 C162 136 168 120 166 104 Z" fill={P.fellHell} opacity={0.8} />
-      {/* Cream tip with a few tufts (its zigzag edge is the shape itself, no line) */}
-      <path d="M182 138 C181 116 170 102 160 98 C161 112 162 124 166 132 L170 128 L171 137 L176 134 L176 141 Q180 142 182 138 Z" {...flaeche(P.creme)} />
+      {/* Cream tip, one smooth shape */}
+      <path d="M182 138 C181 116 170 102 160 98 C161 114 164 128 171 135 Q177 141 182 138 Z" {...flaeche(P.creme)} />
     </g>
   ),
 };
@@ -177,34 +165,16 @@ const koerper: Teil = {
   drehpunkt: [100, 200],
   zeichnung: () => (
     <g>
-      {/* Cape, back part, with its darker lining and a stitched hem */}
+      {/* Few big shapes (the Duolingo cat as model, docs/design/prinzipien.md): cape, two boots, tunic with one
+          shade, belt with a gold buckle. */}
       <path d={UMHANG} {...flaeche(P.gruen)} />
-      <path d="M58 180 L52 212 Q66 216 78 217 Z" {...flaeche(P.gruenTief)} opacity={0.75} />
-      <path d="M142 176 L148 212 Q138 215 128 216 Z" {...flaeche(P.gruenTief)} opacity={0.45} />
-      <path d="M56 210 Q100 220 144 210" fill="none" stroke={P.gruenHell} strokeWidth={2} strokeDasharray="4 5" strokeLinecap="round" />
-      {/* Boots: cuff, shaft, sole */}
       {[74, 104].map((x) => (
-        <g key={x}>
-          <rect x={x} y={196} width={22} height={30} rx={8} {...flaeche(P.leder)} />
-          <path d={`M${x + 1.5} 220 h19 v1 a5 5 0 0 1 -5 5 h-9 a5 5 0 0 1 -5 -5 Z`} {...flaeche(P.lederTief)} />
-          <rect x={x - 1} y={196} width={24} height={8} rx={4} {...flaeche(P.lederHell, 2.5)} />
-          <path d={`M${x + 5} 211 q4 -3 8 0`} fill="none" stroke={P.lederHell} strokeWidth={2} strokeLinecap="round" />
-        </g>
+        <rect key={x} x={x} y={196} width={22} height={30} rx={9} {...flaeche(P.leder)} />
       ))}
-      {/* Tunic with shade, middle seam and stitched hem */}
       <path d={TUNIKA} {...flaeche(P.oliv)} />
       <path d="M118 144 Q126 146 128 142 L133 202 Q122 205 112 206 Z" {...flaeche(P.olivTief)} opacity={0.55} />
-      <path d="M100 150 V202" stroke={P.olivTief} strokeWidth={2.5} strokeLinecap="round" />
-      <path d="M71 198 Q100 204 129 198" fill="none" stroke={P.olivTief} strokeWidth={1.8} strokeDasharray="3 4" strokeLinecap="round" />
-      {/* Belt, buckle and a little pouch */}
       <path d="M69 178 Q100 184 131 178 L132 189 Q100 195 68 189 Z" {...flaeche(P.leder, 2.5)} />
-      <path d="M72 181 Q100 186 128 181" fill="none" stroke={P.lederHell} strokeWidth={1.5} strokeDasharray="3 3" />
-      <rect x="92" y="178" width="16" height="14" rx="3" fill={P.gold} stroke={P.goldTief} strokeWidth={2.5} />
-      <rect x="97" y="182" width="6" height="6" rx="1" fill={P.leder} />
-      <path d="M94 180 h5" stroke={P.goldHell} strokeWidth={2} strokeLinecap="round" />
-      <rect x="112" y="186" width="15" height="14" rx="4" {...flaeche(P.lederHell, 2.5)} />
-      <path d="M112 191 Q119.5 196 127 191" fill="none" {...STRICH} />
-      <circle cx="119.5" cy="193" r="1.8" fill={P.gold} />
+      <rect x="92" y="177" width="16" height="15" rx="4" {...flaeche(P.gold, 1)} />
     </g>
   ),
 };
@@ -215,11 +185,6 @@ const kragen: Teil = {
   zeichnung: () => (
     <g>
       <path d={KRAGEN} {...flaeche(P.gruenHell)} />
-      <path d="M70 140 Q84 148 96 146" fill="none" stroke={P.gruen} strokeWidth={2.5} strokeLinecap="round" />
-      <path d="M130 140 Q116 148 104 146" fill="none" stroke={P.gruen} strokeWidth={2.5} strokeLinecap="round" />
-      <circle cx="100" cy="150" r="6.5" fill={P.gold} stroke={P.goldTief} strokeWidth={2.5} />
-      <path d="M97 147 l3 3 M100 147 v6" stroke={P.goldTief} strokeWidth={1.5} strokeLinecap="round" />
-      <circle cx="98" cy="148" r="1.6" fill={P.goldHell} />
     </g>
   ),
 };
@@ -254,18 +219,14 @@ const kopf: Teil = {
   zeichnung: (s) => (
     <g>
       <KopfSchatten />
-      <Ohr d="M50 74 L44 24 C44 18 50 16 54 20 L86 48 Z" spitze="M44.6 34 L44 24 C44 18 50 16 54 20 L62 27 Q52 26 44.6 34 Z" innen="M56 62 L53 32 L76 50 Z" buschel="M58 58 l-1.5 -9 M63 55 l1 -9" />
-      <Ohr d="M150 74 L156 24 C156 18 150 16 146 20 L114 48 Z" spitze="M155.4 34 L156 24 C156 18 150 16 146 20 L138 27 Q148 26 155.4 34 Z" innen="M144 62 L147 32 L124 50 Z" buschel="M142 58 l1.5 -9 M137 55 l-1 -9" />
-      {/* Fur tuft on top, behind the head */}
-      <path d="M88 44 L94 30 L99 40 L105 29 L112 44 Z" {...flaeche(P.fell)} />
+      <Ohr d="M50 74 L44 24 C44 18 50 16 54 20 L86 48 Z" spitze="M44.6 34 L44 24 C44 18 50 16 54 20 L62 27 Q52 26 44.6 34 Z" />
+      <Ohr d="M150 74 L156 24 C156 18 150 16 146 20 L114 48 Z" spitze="M155.4 34 L156 24 C156 18 150 16 146 20 L138 27 Q148 26 155.4 34 Z" />
       <path d={KOPF} {...flaeche(P.fell)} />
       {/* Light top left, shade right */}
-      <path d="M70 50 Q100 40 130 50 Q118 46 100 46 Q82 46 70 50 Z" fill={P.fellHell} opacity={0.85} />
       <path d="M48 70 Q56 54 72 46 Q58 58 54 72 Z" fill={P.fellHell} opacity={0.7} />
       <path d="M163 86 L174 100 L159 104 C151 124 128 136 100 136 C126 128 146 114 152 90 Q158 86 163 86 Z" {...flaeche(P.fellTief)} opacity={0.35} />
       {/* Cream mask and cheek fluff */}
       <path d="M100 84 C114 84 132 92 152 101 C142 122 124 132 100 132 C76 132 58 122 48 101 C68 92 86 84 100 84 Z" fill={P.creme} />
-      <path d="M38 98 l8 1 M162 98 l-8 1 M42 104 l7 -1 M158 104 l-7 -1" stroke={P.fellTief} strokeWidth={2} strokeLinecap="round" opacity={0.7} />
       <ellipse cx="66" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.6} />
       <ellipse cx="134" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.6} />
       <Brauen {...s} />

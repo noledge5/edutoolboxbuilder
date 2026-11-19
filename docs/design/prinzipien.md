@@ -54,7 +54,8 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
   dunkle Teile vor dunklem Grund bekommen eine `hell`-Kante oben links. Dunkle **Linien** für Details (Mund, Brauen,
   Schnur) bleiben erlaubt, sie umranden nichts.
 - Bis zur Umstellung haben die Figuren noch ihren Umriss. Neue Teile folgen ihrem Satz (Held-Teile mit Umriss, Dorf
-  ohne), damit nichts gemischt aussieht; die Umstellung macht einen Satz immer ganz. **Umgestellt: Fuchs** (19.11.2026).
+  ohne), damit nichts gemischt aussieht; die Umstellung macht einen Satz immer ganz. **Umgestellt: Fuchs** (19.11.2026, danach auf große Flächen reduziert: ohne Nähte, Tasche, Brosche, Stiefelkappen,
+  Ohrbüschel, Haarschopf; etwa 19 Formen plus Gesicht).
   Im Code: `{...flaeche(P.x)}` statt `fill={P.x} {...UMRISS}` (Fläche behält ihre Größe), `STRICH` für Detail-Linien;
   ein Test (`figuren.test.tsx`) hält umgestellte Dateien frei von `UMRISS`.
 
