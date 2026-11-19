@@ -176,11 +176,20 @@ Was die Probe zeigt:
 - **Arme vor gleichfarbigem Körper verschwinden** (rote Ärmel auf rotem Pulli, Ärmel des Fuchses auf der Tunika).
   Der Schatten auf den Körper hilft am Kinn deutlich, an den Armen nur wenig. **Entschieden (19.11.):** Ärmel und
   Arme vor dem Körper sind einen Ton dunkler (`tief`) als der Rumpf; der Schatten bleibt für Kopf und Kinn.
-  Nächster Schritt: Stilprobe 2 (`umriss-v2.png`) mit dunkleren Ärmeln und `hell`-Kante an dunklen Haaren.
 - **Dunkle Haare vor dunklem Grund** (Nacht, Boss) verlieren die Kontur: Haare brauchen eine `hell`-Kante oben links.
 - **Offene Detail-Linien** stehen ohne Umriss allein da (Zacken an der Schwanzspitze des Fuchses): neu zeichnen oder weg.
 - Ohne Strich werden Formen 1,5 Einheiten kleiner; im Code die Formen entsprechend größer zeichnen, nicht den Strich
   in der Füllfarbe stehen lassen.
+
+**Stilprobe 2** (19.11.2026, 10 %): [`lernquest/stilprobe/umriss-v2.png`](lernquest/stilprobe/umriss-v2.png), Spalten
+heute · Probe 1 · Probe 2. Probe 2 = ohne Umriss, Arme vor dem Körper einen Ton dunkler (Kleidung: Grundton → `tief`,
+`hell` → Grundton; Haut und Fell bleiben), Kopf wirft seinen Schatten auf den Körper, dunkle Haare (`haar0`, `haar1`)
+mit `hell`-Kante oben links (harte Kante, 2,5 Einheiten), ohne die Zackenlinie am Fuchsschwanz.
+- **Arme** heben sich jetzt klar ab, auch bei 48 px; der Schatten an den Armen ist nicht mehr nötig.
+- **Haare** behalten auf Nacht und Dunkelgrün ihre Form; Locken und Zöpfe wirken plastischer.
+- **Neu gesehen:** dunkle Hüte (Piratenhut) verschwinden auf dem Nachtgrund wie vorher die Haare. Regel daraus: die
+  `hell`-Kante gilt für **alle** dunklen Teile (Haare, Hüte, dunkle Kleidung), nicht nur für Haare.
+- Ärmel in `tief` verlieren ihren eigenen Schatten; das ist gewollt (eine Fläche, ein Ton).
 
 ## Quellen
 
