@@ -4,6 +4,9 @@ Design-Vorlage für die Schüler-App Lernquest (Plan: `docs/lernquest.md`). Ents
 Design-Canvas auf claude.ai (privat, Lehrkraft: https://claude.ai/artifact/H586HwfxoGuewKukR4dRv4).
 Die Dateien sind Referenz, kein Produktionscode; in `src/lernquest/` nachbauen.
 
+**Seit 19.11.2026 gelten zuerst die Gestaltungsprinzipien in [`../prinzipien.md`](../prinzipien.md)** (Figuren flach,
+Umgebung isometrisch, gleiche Regeln; ADR 0001). Die Regeln unten zur Oberfläche gelten weiter.
+
 | Datei | Bildschirm | Stufe |
 |---|---|---|
 | `Main.dc.html` | Klassencode → Name → PIN → Weltkarte → Station (antippen, Lücke mit Kacheln, Paare) → Ergebnis; klickbar | 1 |
