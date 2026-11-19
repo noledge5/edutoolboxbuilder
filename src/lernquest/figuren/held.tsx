@@ -1039,7 +1039,7 @@ function arm(seite: 'l' | 'r', k: Kleid, haut: Ton): Teil {
   return {
     id: `arm-${seite}`,
     drehpunkt: schulter,
-    zeichnung: () => <Glied von={schulter} bis={ellbogen} farbe={oben.farbe} schatten={k.aermel === 'haut' ? oben.tief : undefined} umriss={false} />,
+    zeichnung: () => <Glied von={schulter} bis={ellbogen} farbe={oben.farbe} schatten={k.aermel === 'haut' ? oben.tief : undefined} />,
     kinder: [
       {
         id: `unterarm-${seite}`,

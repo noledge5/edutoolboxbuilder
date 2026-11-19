@@ -61,8 +61,9 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
   Gesicht) und **Truhe** (Deckel `holzHell`, Kasten `holz`), **Hintergründe** (je 10–22 Flächen, Tiefe über Töne:
   hinten blasser, vorne kräftiger; ruhig, damit der Held vorne steht). Dunkle Teile: `<Flaeche>` aus `flaeche.tsx` setzt die
   `hell`-Kante selbst (`istDunkel`); Kinnschatten: `<Schlagschatten>`.
-  Im Code: `{...flaeche(P.x)}` statt `fill={P.x} {...UMRISS}` (Fläche behält ihre Größe), `STRICH` für Detail-Linien;
-  ein Test (`figuren.test.tsx`) hält umgestellte Dateien frei von `UMRISS`.
+  Im Code: `{...flaeche(P.x)}` (Fläche behält die Größe, die sie mit dem alten Umriss hatte), `STRICH` für Detail-Linien.
+  Seit 19.11.2026 ist alles umgestellt und `UMRISS` aus `stil.ts` gelöscht; ein Test (`figuren.test.tsx`) hält jede
+  Zeichnung in `figuren/` frei davon.
 
 ### Farbe
 - **Weiße Dinge** (Kochmütze, Hase, Einhorn, Netz) werden in `wolke` (blasses Grau) mit `wolkeHell`-Licht und
@@ -174,9 +175,9 @@ Nicht auf einmal, je ein Schritt pro Sitzung, jeweils mit Stilprobe und Blick de
    flachen Bändern, dieselbe Burg und dieselben Bäume. `welten.test.tsx` verbietet Verläufe und Umriss.
    Vorschau: `VORSCHAU=<ordner> VORSCHAU_TEIL=karte npx vitest run src/lernquest/figuren/vorschau`.
 3. **Figuren ohne Umriss** wie Stilprobe 2 (freigegeben von der Lehrkraft am 19.11.2026, [Stilprobe](#stilprobe-ohne-umriss)): Fuchs, Held mit allen Teilen,
-   Bosse, Begleiter, Gegenstände. **Fuchs, Held mit allen Teilen, Bosse, Truhe, Hintergründe und Landkarte erledigt (19.11.2026);**
-   offen: `UMRISS` aus `stil.ts` löschen (wird nirgends mehr benutzt). Je Satz eine Sitzung, Vergleich vorher/nachher mit
-   `STILPROBE=<ordner> npx vitest run src/lernquest/figuren/stilprobe`.
+   Bosse, Begleiter, Gegenstände. **Erledigt 19.11.2026:** Fuchs, Held mit allen Teilen, Bosse, Truhe, Hintergründe und
+   Landkarte; danach `UMRISS`/`UMRISS_FEIN` aus `stil.ts` und die `umriss`-Option von `Glied` gelöscht. Vergleichsbilder
+   macht weiter `STILPROBE=<ordner> npx vitest run src/lernquest/figuren/stilprobe`.
 4. 3D-Teile aufräumen: die Skripte in `.claude/skills/grafik/skripte/` und `stilprobe/haus-3d-probe.png` werden nicht
    mehr gebraucht (Löschen nach Rückfrage).
 

@@ -27,8 +27,7 @@ blocked in sessions.
   `welten.test.tsx` check it). Small map pieces (trees, bushes, stones) stay flat from the front like game pieces;
   trees, fir, palm and cactus come from `figuren/pflanzen.tsx`, shared with the hero backgrounds.
 - As few shapes as possible; the silhouette must read at 48 px.
-- No outline (decided 19.11.2026): shapes part by tone and hard shadows. Until the switch-over, figures keep theirs
-  and new parts follow their set (hero parts with `UMRISS`, iso without); a set is switched as a whole.
+- No outline (decided 19.11.2026, everything switched, `UMRISS` deleted): shapes part by tone and hard shadows.
 
 ## Isometric – rules
 - One projection for everything: 2:1 iso (x right-down, y left-down, z up).
