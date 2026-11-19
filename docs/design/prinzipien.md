@@ -157,7 +157,7 @@ Nicht auf einmal, je ein Schritt pro Sitzung, jeweils mit Stilprobe und Blick de
 1. **Dorf ohne Verläufe:** `IsoVerlaeufe` in `iso.tsx` durch flache Töne ersetzen (Dach: Lichtkante am First als Form;
    Wand: rechte Seite `tief`; Band unter Traufe als flache Form; Schlagschatten als eine Fläche mit fester Deckkraft).
 2. **Landkarte isometrisch:** `gelaende.tsx` und `welten.tsx` sind heute flach von vorn; sie wandern auf den Iso-Bausatz.
-3. **Figuren ohne Umriss**, nach Freigabe der [Stilprobe](#stilprobe-ohne-umriss): Fuchs, Held mit allen Teilen,
+3. **Figuren ohne Umriss** wie Stilprobe 2 (freigegeben von der Lehrkraft am 19.11.2026, [Stilprobe](#stilprobe-ohne-umriss)): Fuchs, Held mit allen Teilen,
    Bosse, Begleiter, Gegenstände. Je Satz eine Sitzung, Vergleich vorher/nachher mit
    `STILPROBE=<ordner> npx vitest run src/lernquest/figuren/stilprobe`. Die Landkarte verliert ihren Umriss mit Schritt 2.
 4. 3D-Teile aufräumen: die Skripte in `.claude/skills/grafik/skripte/` und `stilprobe/haus-3d-probe.png` werden nicht
@@ -181,7 +181,7 @@ Was die Probe zeigt:
 - Ohne Strich werden Formen 1,5 Einheiten kleiner; im Code die Formen entsprechend größer zeichnen, nicht den Strich
   in der Füllfarbe stehen lassen.
 
-**Stilprobe 2** (19.11.2026, 10 %): [`lernquest/stilprobe/umriss-v2.png`](lernquest/stilprobe/umriss-v2.png), Spalten
+**Stilprobe 2** (19.11.2026, 10 %, **freigegeben**): [`lernquest/stilprobe/umriss-v2.png`](lernquest/stilprobe/umriss-v2.png), Spalten
 heute · Probe 1 · Probe 2. Probe 2 = ohne Umriss, Arme vor dem Körper einen Ton dunkler (Kleidung: Grundton → `tief`,
 `hell` → Grundton; Haut und Fell bleiben), Kopf wirft seinen Schatten auf den Körper, dunkle Haare (`haar0`, `haar1`)
 mit `hell`-Kante oben links (harte Kante, 2,5 Einheiten), ohne die Zackenlinie am Fuchsschwanz.
