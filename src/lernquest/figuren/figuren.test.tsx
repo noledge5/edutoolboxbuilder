@@ -190,7 +190,7 @@ describe('style', () => {
   // No outline (docs/design/prinzipien.md, decided 19.11.2026): files switched over stay without it. Add each file
   // here once its set is converted; when all are, delete UMRISS from stil.ts.
   it('keeps converted drawings free of the outline', () => {
-    const OHNE_UMRISS = ['fuchs.tsx', 'held.tsx', 'items-kopf.tsx', 'items-werkzeug.tsx', 'begleiter.tsx', 'items.tsx', 'golem.tsx', 'tintenkrake.tsx', 'raetseldrache.tsx', 'truhe.tsx'];
+    const OHNE_UMRISS = ['fuchs.tsx', 'held.tsx', 'items-kopf.tsx', 'items-werkzeug.tsx', 'begleiter.tsx', 'items.tsx', 'golem.tsx', 'tintenkrake.tsx', 'raetseldrache.tsx', 'truhe.tsx', 'hintergruende.tsx'];
     const dir = new URL('.', import.meta.url);
     expect(OHNE_UMRISS.filter((f) => /\bUMRISS/.test(readFileSync(new URL(f, dir), 'utf8')))).toEqual([]);
   });
