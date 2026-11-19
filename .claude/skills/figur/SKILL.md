@@ -27,8 +27,9 @@ Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werk
   from the front, the world around them is isometric; both share palette, light and form rules.
 - As few shapes as possible; the silhouette must read at 48 px. Expressions through lids, brows and mouth.
 - Colours only from `stil.ts` (`P.*`); a test fails on any other hex. Need a new colour: add base, `hell` and `tief`.
-- Outline on every shape: `{...UMRISS}` (3 units, round), details `{...UMRISS_FEIN}` (open decision in
-  prinzipien.md, may go away; until then keep it). Limbs: the two-stroke trick
+- Outline on every shape: `{...UMRISS}` (3 units, round), details `{...UMRISS_FEIN}` — **for now**. Decided
+  19.11.2026: no outline anywhere; figures are switched set by set after the Stilprobe (`stilprobe.test.tsx`,
+  findings in prinzipien.md). Until a set is switched, new parts keep its outline so nothing looks mixed. Limbs: the two-stroke trick
   (`Glied` in `fuchs.tsx`): dark 19 under colour 13, round caps; cover the joint seam with a dot of the colour.
 - Light from top left: one light stroke or spot (`hell`) top left, one shadow shape (`tief`, about 60 % opacity)
   bottom right. No gradients, no blur, no thin lines under 2 units (they vanish at 48 px).

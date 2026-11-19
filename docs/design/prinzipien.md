@@ -48,8 +48,12 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
 - **Harte Kanten:** Schatten und Licht sind eigene Formen. **Keine Farbverläufe, keine Unschärfe, kein Glanz**, keine
   Schlagschatten mit weichem Rand.
 - **Kein reines Schwarz:** das Dunkelste ist `P.linie` / `P.auge` (Dunkelbraun).
-- **Umriss: offen** (siehe [Offene Entscheidung](#offene-entscheidung-umriss)). Bis dahin gilt der Bestand: Figuren
-  mit Umriss (`UMRISS`), Umgebung ohne.
+- **Kein Umriss** (entschieden 19.11.2026, [Stilprobe](#stilprobe-ohne-umriss)). Formen trennen sich durch Ton:
+  Teile vor dem Körper (Arme, Kopf) werfen einen harten Schatten nach unten rechts, der nur auf den Körper fällt;
+  dunkle Teile vor dunklem Grund bekommen eine `hell`-Kante oben links. Dunkle **Linien** für Details (Mund, Brauen,
+  Schnur) bleiben erlaubt, sie umranden nichts.
+- Bis zur Umstellung haben die Figuren noch ihren Umriss. Neue Teile folgen ihrem Satz (Held-Teile mit Umriss, Dorf
+  ohne), damit nichts gemischt aussieht; die Umstellung macht einen Satz immer ganz.
 
 ### Farbe
 - Nur Farben aus `stil.ts` (`P.*`); ein Test schlägt bei jedem anderen Farbwert an. Neue Farbe: immer Grundton, `hell`
@@ -140,6 +144,7 @@ Regeln dazu:
 - [ ] So wenige Formen wie möglich? Fällt eine weg, ohne dass das Bild unklar wird?
 - [ ] Nur Farben aus `stil.ts`, höchstens vier Grundtöne?
 - [ ] Licht oben links, ein Schatten unten rechts, harte Kanten, kein Verlauf?
+- [ ] Kein Umriss; Teile vor gleichfarbigem Grund durch Ton oder harten Schatten getrennt?
 - [ ] Figur flach von vorn bzw. Umgebung im 2:1-Raster aus dem Bausatz?
 - [ ] Passt neben den Fuchs und vor das Dorf (Werkstatt nebeneinander)?
 - [ ] Bei Bildern zu Fragen: nur eine Lesart möglich?
@@ -151,18 +156,29 @@ Nicht auf einmal, je ein Schritt pro Sitzung, jeweils mit Stilprobe und Blick de
 1. **Dorf ohne Verläufe:** `IsoVerlaeufe` in `iso.tsx` durch flache Töne ersetzen (Dach: Lichtkante am First als Form;
    Wand: rechte Seite `tief`; Band unter Traufe als flache Form; Schlagschatten als eine Fläche mit fester Deckkraft).
 2. **Landkarte isometrisch:** `gelaende.tsx` und `welten.tsx` sind heute flach von vorn; sie wandern auf den Iso-Bausatz.
-3. **Umriss** je nach Entscheidung unten: Figuren ohne Umriss oder Umgebung mit Umriss.
+3. **Figuren ohne Umriss**, nach Freigabe der [Stilprobe](#stilprobe-ohne-umriss): Fuchs, Held mit allen Teilen,
+   Bosse, Begleiter, Gegenstände. Je Satz eine Sitzung, Vergleich vorher/nachher mit
+   `STILPROBE=<ordner> npx vitest run src/lernquest/figuren/stilprobe`. Die Landkarte verliert ihren Umriss mit Schritt 2.
 4. 3D-Teile aufräumen: die Skripte in `.claude/skills/grafik/skripte/` und `stilprobe/haus-3d-probe.png` werden nicht
    mehr gebraucht (Löschen nach Rückfrage).
 
-## Offene Entscheidung: Umriss
+## Stilprobe ohne Umriss
 
-Heute haben Figuren und Karte einen dunkelbraunen Umriss (aus dem Mockup der Lehrkraft), das Dorf keinen. „Gleiche
-Regeln“ heißt: eins von beiden.
-- **Ohne Umriss überall** (Empfehlung): wie Duolingo; Kanten entstehen durch den `tief`-Ton. Großer Umbau (Umriss
-  steckt in fast allen Figuren-Dateien), daher erst eine Stilprobe Fuchs + Held vor dem Dorf, bei 48 px und auf allen
-  Hintergründen prüfen.
-- **Mit Umriss überall:** das Dorf bekommt den Umriss der Figuren; kleiner Umbau, aber weiter weg vom Vorbild.
+Entschieden am 19.11.2026: **überall ohne Umriss**, erst eine Stilprobe. Stand: 10 % (nur Richtung).
+Bild: [`lernquest/stilprobe/umriss-v1.png`](lernquest/stilprobe/umriss-v1.png), erzeugt aus den echten Figuren mit
+`src/lernquest/figuren/stilprobe.test.tsx` (der Umriss wird nur im Bild entfernt, der Code bleibt). Je Figur drei
+Fassungen: heute, nur ohne Umriss, Vorschlag (ohne Umriss + harter Schatten von Armen und Kopf auf den Körper).
+
+Was die Probe zeigt:
+- **Kopf und Silhouette** lesen sich ohne Umriss gut, auch bei 48 und 32 px; Fuchs und Held wirken weicher und
+  passen besser zum Dorf.
+- **Arme vor gleichfarbigem Körper verschwinden** (rote Ärmel auf rotem Pulli, Ärmel des Fuchses auf der Tunika).
+  Der Schatten auf den Körper hilft am Kinn deutlich, an den Armen nur wenig. Für die Umstellung: Ärmel einen Ton
+  dunkler (`tief`) **oder** kräftigerer Schatten; das entscheidet die nächste Probe.
+- **Dunkle Haare vor dunklem Grund** (Nacht, Boss) verlieren die Kontur: Haare brauchen eine `hell`-Kante oben links.
+- **Offene Detail-Linien** stehen ohne Umriss allein da (Zacken an der Schwanzspitze des Fuchses): neu zeichnen oder weg.
+- Ohne Strich werden Formen 1,5 Einheiten kleiner; im Code die Formen entsprechend größer zeichnen, nicht den Strich
+  in der Füllfarbe stehen lassen.
 
 ## Quellen
 

@@ -3,7 +3,7 @@
 *ADR = Architecture Decision Record: eine kurze Notiz, die eine Entscheidung und ihren Grund festhält.*
 
 - **Datum:** 19.11.2026
-- **Status:** angenommen (Lehrkraft); Umriss noch offen
+- **Status:** angenommen (Lehrkraft), Umriss entschieden am selben Tag
 - **Regeln im Detail:** [docs/design/prinzipien.md](../design/prinzipien.md)
 
 ## Ausgangslage
@@ -23,7 +23,9 @@ Lehrkraft hatte am 18.11. bemängelt, dass Teile nicht zusammenpassen. Vorbild f
 3. **Gleiche Regeln für beide:** eine Palette (`stil.ts`), Licht von oben links, je Fläche höchstens Grundton + hell +
    tief, harte Kanten, **keine Farbverläufe**, keine Unschärfe, wenige Formen, Silhouette bei 48 px erkennbar.
 4. **Kein 3D-Rendering mehr.** Der 3D-Weg mit Blender und CC0-Paketen entfällt.
-5. **Gegen Verträge bauen:** Jede Teilart (Farbe, Figur, Gegenstand, Gebäude, Bewegung, Oberfläche) hat eine
+5. **Kein Umriss**, weder an Figuren noch in der Umgebung; Trennung durch Ton und harte Schatten. Umstellung der
+   Figuren erst nach einer Stilprobe (`docs/design/lernquest/stilprobe/umriss-v1.png`).
+6. **Gegen Verträge bauen:** Jede Teilart (Farbe, Figur, Gegenstand, Gebäude, Bewegung, Oberfläche) hat eine
    schriftliche, getestete Abmachung; Änderungen gehen durch Doku, Test und Bestand zugleich.
 
 ## Gründe
@@ -47,7 +49,9 @@ Lehrkraft hatte am 18.11. bemängelt, dass Teile nicht zusammenpassen. Vorbild f
 - Die 3D-Skripte (`.claude/skills/grafik/skripte/`) und die 3D-Probe werden nicht mehr genutzt; Löschen nach Rückfrage.
 - Reihenfolge der Umstellung: [prinzipien.md, Abschnitt Umstellung](../design/prinzipien.md#umstellung-des-bestands).
 
-## Offen
+## Umriss (entschieden 19.11.2026)
 
-- **Umriss:** Figuren und Karte haben heute einen Umriss, das Dorf nicht. Entweder überall ohne (Empfehlung, wie
-  Duolingo, großer Umbau mit Stilprobe zuerst) oder überall mit. Bis zur Entscheidung bleibt der Bestand.
+Figuren und Karte hatten einen Umriss (aus dem Mockup der Lehrkraft), das Dorf nicht. Gewählt: **überall ohne**, wie
+Duolingo, weil so Figuren und Dorf eins werden und kleine Formen weniger schwer wirken. Preis: großer Umbau, der
+Umriss steckt in fast allen Figuren-Dateien; deshalb erst die Stilprobe, dann Satz für Satz. Befunde der Probe:
+[prinzipien.md, Stilprobe ohne Umriss](../design/prinzipien.md#stilprobe-ohne-umriss).

@@ -26,7 +26,8 @@ blocked in sessions.
 - **No gradients, no blur, no gloss** in new drawings. The village still uses gradient overlays (`IsoVerlaeufe`); they
   are to be replaced (prinzipien.md, „Umstellung des Bestands“), do not add new ones.
 - As few shapes as possible; the silhouette must read at 48 px.
-- Outline: open decision (prinzipien.md). Until decided, keep what the set has: figures with `UMRISS`, iso without.
+- No outline (decided 19.11.2026): shapes part by tone and hard shadows. Until the switch-over, figures keep theirs
+  and new parts follow their set (hero parts with `UMRISS`, iso without); a set is switched as a whole.
 
 ## Isometric – rules
 - One projection for everything: 2:1 iso (x right-down, y left-down, z up).
