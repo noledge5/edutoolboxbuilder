@@ -6,7 +6,7 @@ import { readLesson } from '../library/read';
 import type { Lesson, Module } from '../library/types';
 import { frueherVon, mitZusatz, poolAusAntwort, poolPrompt, poolSystem, readUebung } from './fragenpool';
 import { istRichtig, richtigeAntwort } from './rules';
-import { buildPaket, hilfeAusStunde, readLernkarte, readPaket } from './paket';
+import { buildPaket, exercisesOf, hilfeAusStunde, readLernkarte, readPaket } from './paket';
 
 const modul = { id: 'm1', number: 1, title: 'Hello', icon: 'users', subject: 'Englisch', grade: 5, lang: 'en' } as unknown as Module;
 const stunde = (number: number, blocks: ReturnType<typeof createBlock>[], extra: Partial<Lesson> = {}): Lesson =>
@@ -101,15 +101,15 @@ describe('test stations', () => {
 describe('tips for the sheet’s own exercises and the order of a station', () => {
   it('reads Claude’s tips by id, puts them on the sheet’s exercises and orders the station easy to hard', () => {
     const l = stunde(4, [createBlock('mc', { prompt: 'Wähle.', options: '* am\nis' })]);
-    const eigene = buildPaket(modul, l).uebungen[0];
+    const eigene = exercisesOf(l.doc.pages)[0];
     const p = poolPrompt({ modul, stunde: l, klasse: '', vorhanden: [eigene], wuensche: '' });
     expect(p).toContain(`[${eigene.id}]`);
     const r = poolAusAntwort({ tipps: { [eigene.id]: 'Schau, wer gemeint ist.', kaputt: 5 }, uebungen: [{ art: 'richtigfalsch', frage: 'Stimmt das?', aussage: 'I am Tom.', richtig: true, niveau: 1 }] }, [], true);
     expect(r.tipps).toEqual({ [eigene.id]: 'Schau, wer gemeint ist.' });
     const mit = { ...l, poolTipps: r.tipps, pool: r.neu.map((u) => ({ u, frei: true })) } as Lesson;
+    // The sheet's own exercises no longer go into the package (19.11.2026), only the released pool.
     const paket = buildPaket(modul, mit);
-    expect(paket.uebungen.map((u) => u.niveau ?? 2)).toEqual([1, 2]);
-    expect(paket.uebungen[1].tipp).toBe('Schau, wer gemeint ist.');
+    expect(paket.uebungen.map((u) => u.niveau ?? 2)).toEqual([1]);
     expect(readLesson(JSON.parse(JSON.stringify(mit)))?.poolTipps).toEqual(r.tipps);
   });
 

@@ -358,7 +358,7 @@ function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse,
         const l = lessons.find((x) => x.id === id);
         const m = l && modules.find((x) => x.id === l.moduleId);
         if (!l || !m || l.pool?.length) return;
-        const a = await runAi(poolAnfrage({ modul: m, stunde: l, klasse: classProfileOf(settings, m.subject, m.grade), vorhanden: exercisesOf(l.doc.pages), wuensche: '', frueher: frueherVon(lessons, l) }));
+        const a = await runAi(poolAnfrage({ modul: m, stunde: l, klasse: classProfileOf(settings, m.subject, m.grade), vorhanden: (l.pool ?? []).map((e) => e.u), wuensche: '', frueher: frueherVon(lessons, l) }));
         if (!a) return;
         const { neu, hilfe, tipps } = poolAusAntwort(jsonOf(a.text), [], m.lang === 'en');
         const eigeneIds = new Set(exercisesOf(l.doc.pages).map((u) => u.id));
@@ -683,7 +683,7 @@ function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse,
                 .filter((l) => l.moduleId === m.id && zeigen(l))
                 .sort((a, b) => a.number - b.number)
                 .map((l) => {
-                  const n = exercisesOf(l.doc.pages).length + freigegeben(l.pool).length;
+                  const n = freigegeben(l.pool).length;
                   const imPool = l.pool?.length ?? 0;
                   const stufe = want[l.id] ?? stufeVon(l.id, klasse.stunden, versteckt);
                   return (

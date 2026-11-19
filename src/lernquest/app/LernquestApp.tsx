@@ -135,8 +135,9 @@ const beamerFromUrl = () => beamerAusHash(location.hash);
 /** The children's app (sign-in, game, boss fight) is switched off while it is rebuilt (decision of the teacher,
  *  12.11.2026). Open exercises from a public link keep working. Nothing on the device is deleted: Spielstand and rounds
  *  not yet sent stay and go out once the app is back. Switched on again with the end of Stufe E (Teil 6, 12.11.2026);
- *  set to true to show the „Umbau“ page again. */
-export const UMBAU: boolean = false;
+ *  set to true to show the „Umbau“ page again. On again 19.11.2026: questions taken 1:1 from worksheets were often not
+ *  solvable without the sheet's pictures; closed until Claude writes the questions from the sheet (docs/plan-lernquest-fragen.md). */
+export const UMBAU: boolean = true;
 
 export function LernquestApp() {
   // Open exercises from a public link: no sign-in, no server (`probe.ts`).
