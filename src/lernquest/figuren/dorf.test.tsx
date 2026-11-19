@@ -63,7 +63,27 @@ describe("Klassendorf: Zeichnungen", () => {
     expect(breite(-3)).toBe(breite(0));
   });
 
-  it("nutzt für Verläufe nur eigene, eindeutige Ids", () => {
+  it("zeichnet Karte, Gebäude und Anbauten ohne Verläufe (ADR 0001, nur flache Töne)", () => {
+    const html = renderToStaticMarkup(
+      <svg>
+        <DorfKarte
+          fertig={DORF_GEBAEUDE.map((g) => g.id)}
+          baustelle={DORF_GEBAEUDE[0].id}
+          plaetze={12}
+          titel="Dorf"
+        />
+        {Object.values(GEBAEUDE_BILD).map((b, i) => (
+          <g key={i}>{b()}</g>
+        ))}
+        {DORF_TEILE.map((t) => (
+          <g key={t.id}>{t.zeichnung()}</g>
+        ))}
+      </svg>,
+    );
+    expect(html).not.toMatch(/Gradient|filter=|blur/i);
+  });
+
+  it("nutzt nur eigene, eindeutige Ids", () => {
     const html = renderToStaticMarkup(
       <div>
         <DorfKarte fertig={[]} plaetze={6} titel="A" />

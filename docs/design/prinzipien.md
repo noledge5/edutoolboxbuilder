@@ -164,7 +164,7 @@ Regeln dazu:
 ## Umstellung des Bestands
 
 Nicht auf einmal, je ein Schritt pro Sitzung, jeweils mit Stilprobe und Blick der Lehrkraft:
-1. **Dorf ohne Verläufe:** `IsoVerlaeufe` in `iso.tsx` durch flache Töne ersetzen (Dach: Lichtkante am First als Form;
+1. **Dorf ohne Verläufe – erledigt 19.11.2026:** `IsoVerlaeufe` in `iso.tsx` durch flache Töne ersetzt (Dach: Lichtkante am First als Form;
    Wand: rechte Seite `tief`; Band unter Traufe als flache Form; Schlagschatten als eine Fläche mit fester Deckkraft).
 2. **Landkarte isometrisch:** `gelaende.tsx` und `welten.tsx` sind heute flach von vorn; sie wandern auf den Iso-Bausatz.
 3. **Figuren ohne Umriss** wie Stilprobe 2 (freigegeben von der Lehrkraft am 19.11.2026, [Stilprobe](#stilprobe-ohne-umriss)): Fuchs, Held mit allen Teilen,

@@ -23,8 +23,8 @@ blocked in sessions.
 - Colours only from `stil.ts` (`P.*`), at most four base colours per motif (skin and hair not counted).
 - Light from the top left. Per face at most three tones: base, `hell` (light edge or spot top left), `tief` (shadow
   shape bottom right). Hard edges: light and shadow are shapes of their own.
-- **No gradients, no blur, no gloss** in new drawings. The village still uses gradient overlays (`IsoVerlaeufe`); they
-  are to be replaced (prinzipien.md, „Umstellung des Bestands“), do not add new ones.
+- **No gradients, no blur, no gloss.** The village is flat since 19.11.2026 (`dorf.test.tsx` checks it); the map
+  (`gelaende.tsx`, `welten.tsx`) and the app landscape (`app/Landschaft.tsx`, sky gradient) follow with step 2.
 - As few shapes as possible; the silhouette must read at 48 px.
 - No outline (decided 19.11.2026): shapes part by tone and hard shadows. Until the switch-over, figures keep theirs
   and new parts follow their set (hero parts with `UMRISS`, iso without); a set is switched as a whole.

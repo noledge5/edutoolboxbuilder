@@ -1,5 +1,5 @@
 // A quick look at drawings without the workshop: writes a page and a screenshot (Playwright) of one group.
-// Runs only when asked:  VORSCHAU=<ordner> VORSCHAU_TEIL=<kopf|werkzeug|begleiter|hintergrund|held|fuchs|eigen|alles> [VORSCHAU_ITEM=<hut-id>] npx vitest run src/lernquest/figuren/vorschau
+// Runs only when asked:  VORSCHAU=<ordner> VORSCHAU_TEIL=<kopf|werkzeug|begleiter|hintergrund|held|fuchs|eigen|dorf|alles> [VORSCHAU_ITEM=<hut-id>] npx vitest run src/lernquest/figuren/vorschau
 // VORSCHAU_NUR=<id>,<id> keeps only these items, backgrounds, figures (all poses) and, with VORSCHAU_TEIL=held, parts.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -7,6 +7,8 @@ import { join } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
 import { AUGEN_ARTEN, FIGUREN, FigurBild, FRISUR_ARTEN, held, ITEMS, ItemBild, KLEIDUNG, MUND_ARTEN } from '.';
+import { DORF_GEBAEUDE } from '../dorf';
+import { DorfKarte, DORF_TEILE, GEBAEUDE_BILD } from './dorf';
 import { HINTERGRUENDE } from './hintergruende';
 import type { Figur, Item, Teil } from './typen';
 
@@ -23,7 +25,13 @@ const traeger = (i: Item): Figur | undefined =>
 it.skipIf(!ziel)('writes a preview page and screenshot', async () => {
   const teile: string[] = [];
   const items = ITEMS.filter((i) => (teil === 'alles' || PLATZ[teil]?.includes(i.platz)) && gewaehlt(i.id));
-  if (teil !== 'hintergrund' && teil !== 'held')
+  if (teil === 'dorf') {
+    const ids = DORF_GEBAEUDE.map((g) => g.id);
+    teile.push(`<figure style="width:1360px">${renderToStaticMarkup(<DorfKarte fertig={ids.slice(1)} baustelle={ids[0]} plaetze={6} titel="Dorf" />)}<figcaption>Karte</figcaption></figure>`);
+    for (const [id, bild] of [...Object.entries(GEBAEUDE_BILD), ...DORF_TEILE.map((t) => [t.id, t.zeichnung] as const)].filter(([id]) => gewaehlt(id)))
+      teile.push(`<figure><svg width="220" height="220" viewBox="-110 -160 220 220">${renderToStaticMarkup(<>{bild()}</>)}</svg><figcaption>${id}</figcaption></figure>`);
+  }
+  if (teil !== 'hintergrund' && teil !== 'held' && teil !== 'dorf')
     for (const i of items) {
       const f = traeger(i);
       teile.push(
