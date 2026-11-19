@@ -90,6 +90,9 @@ auszugeben, statt nur für den eigenen Helden. Unten Vorschläge zum Auswählen;
   rechts, Viertel à 6 abgesteckte Grundstücke ohne Namen (Lehrkraft: so viele wie Kinder; Kinder-Seite: ein Viertel als
   Vorschau „Bald: eure Häuser“, weil die Kinder-Seite die Klassenliste nicht kennt). Karte scrollt seitlich.
 
+- **Teil B zurückgestellt (19.11.2026):** Plan in `docs/plan-klassendorf-haeuser.md`, inkl. Wunsch „Zelt aufstellen
+  mit kleinem Quiz“ (Umgang mit Lernquest, Mediennutzung, Bedienung). Erst nach dem Umbau des Workflows Inhalte/Spiel.
+
 ## Offen zur Entscheidung (Lehrkraft)
 - Welche Teile davon? Reihenfolge? Bürgermeister-Bonus oder Zuschuss der Lehrkraft? Deckel je Woche wie hoch?
 - Echte Belohnung beim Dorffest: ja/nein, welche?

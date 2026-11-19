@@ -270,15 +270,10 @@ export function buildPaket(m: Module, l: Lesson, lessons: Lesson[] = [l], verste
     modul: { id: m.id, nummer: m.number, titel: m.title, icon: m.icon, stunden },
     fach: m.subject,
     lang: m.lang,
-    // The released exercises of the KI-Fragenpool come after the lesson's own ones.
-    // Easy ones first, so the rounds of a station get harder (the sort is stable; no level counts as the middle).
     hilfe: [...hilfeAusStunde(l.doc.pages), ...(l.poolHilfe ?? [])].slice(0, 4),
-    // Easy to hard over the whole station (Stufe E): the introduction comes first; the sheet's own exercises have no
-    // level and count as the middle one. Tips Claude wrote for the sheet's exercises are put on them.
-    uebungen: [
-      ...exercisesOf(l.doc.pages).map((u) => (!u.tipp && l.poolTipps?.[u.id] ? { ...u, tipp: l.poolTipps[u.id] } : u)),
-      ...(l.pool ?? []).filter((e) => e.frei).map((e) => e.u),
-    ].sort((a, b) => (a.niveau ?? 2) - (b.niveau ?? 2)),
+    // Only the released exercises of the KI-Fragenpool (decision of the teacher, 19.11.2026): tasks taken 1:1 from the
+    // sheet were often not solvable without its pictures or layout. Easy to hard over the whole station (Stufe E).
+    uebungen: (l.pool ?? []).filter((e) => e.frei).map((e) => e.u).sort((a, b) => (a.niveau ?? 2) - (b.niveau ?? 2)),
   };
 }
 

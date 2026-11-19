@@ -71,7 +71,8 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
     modul,
     stunde,
     klasse: classProfileOf(settings, modul.subject, modul.grade),
-    vorhanden: [...eigene, ...pool.map((e) => e.u)],
+    // The sheet's own tasks no longer go to the children (19.11.2026), so Claude may cover them anew.
+    vorhanden: pool.map((e) => e.u),
     wuensche,
     frueher: inhalt ? [] : frueherVon(stunden, stunde),
     inhalt,
@@ -131,9 +132,9 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
             {pool.length ? `${pool.length} im Pool, ${frei} freigegeben` : 'Der Pool ist noch leer.'}
             {voll && ` · voll (höchstens ${POOL_MAX})`}
           </p>
-          {eigene.length + frei > RUNDEN_PLATZ && (
+          {frei > RUNDEN_PLATZ && (
             <p className="lqt-hint">
-              Zusammen sind es {eigene.length + frei} Übungen. In den Runden einer Station kommen höchstens {RUNDEN_PLATZ} dran; die übrigen nicht. Gib lieber weniger frei.
+              Freigegeben sind {frei} Übungen. In den Runden einer Station kommen höchstens {RUNDEN_PLATZ} dran; die übrigen nicht. Gib lieber weniger frei.
             </p>
           )}
 

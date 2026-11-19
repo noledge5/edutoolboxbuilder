@@ -84,16 +84,17 @@ describe('KI-Fragenpool (Stufe 5)', () => {
     expect(reihenfolgeAus('y', 'F', 'Eins')).toBeNull();
   });
 
-  it('gibt nur freigegebene Übungen ins Lernpaket, nach denen der Stunde', () => {
+  it('gibt nur freigegebene Übungen ins Lernpaket, keine Aufgaben 1:1 vom Blatt (19.11.2026)', () => {
     const [a, b] = poolAusAntwort(antwort, [], true).neu;
     const l = stunde([
       { u: a, frei: true },
       { u: b, frei: false },
     ]);
     const p = buildPaket(modul, l);
-    expect(p.uebungen.map((u) => u.id)).toEqual([...exercisesOf(l.doc.pages).map((u) => u.id), a.id]);
+    expect(exercisesOf(l.doc.pages)).toHaveLength(1);
+    expect(p.uebungen.map((u) => u.id)).toEqual([a.id]);
     expect(freigegeben(l.pool)).toEqual([a]);
-    expect(buildPaket(modul, stunde()).uebungen).toHaveLength(1);
+    expect(buildPaket(modul, stunde()).uebungen).toHaveLength(0);
   });
 
   it('hält den Pool beim Laden einer Stunde, ältere Stunden bleiben ohne', () => {
@@ -157,7 +158,7 @@ describe('Neue Formate (Stufe 5)', () => {
     expect(bird.art === 'bild' && bird.bilder[bird.richtig]).toBe('img:img123');
 
     // In the package the own picture travels as a small JPEG; without it the exercises that need it are left out.
-    const l = { ...stunde(), doc: { pages: [{ ...createPage(), blocks: [b] }] } } as Lesson;
+    const l = { ...stunde(), doc: { pages: [{ ...createPage(), blocks: [b] }] }, pool: us.map((u) => ({ u, frei: true })) } as Lesson;
     const mit = await mitBildern(buildPaket(modul, l), async (id) => (id === 'img123' ? 'data:image/jpeg;base64,AAA' : null));
     expect(mit.bilder).toEqual({ 'img:img123': 'data:image/jpeg;base64,AAA' });
     expect(mit.uebungen).toHaveLength(4);
@@ -170,7 +171,8 @@ describe('Neue Formate (Stufe 5)', () => {
   });
 
   it('lässt Übungsarten einer neueren Version im Paket weg', () => {
-    const p = buildPaket(modul, stunde());
+    const l = stunde();
+    const p = buildPaket(modul, { ...l, pool: exercisesOf(l.doc.pages).map((u) => ({ u, frei: true })) });
     const neu = readPaket({ ...p, uebungen: [...p.uebungen, { art: 'punkt', id: 'z' }, { art: 'bild', id: 'kaputt' }, null] });
     expect(neu?.uebungen.map((u) => u.art)).toEqual(['waehlen']);
   });
@@ -268,12 +270,11 @@ describe('KI-Pool automatisch (Stufe B)', () => {
     expect(fragenAus(u)).toEqual([]);
   });
 
-  it('legt die ganze Station von leicht nach schwer ins Paket, ohne Niveau (auch die Arbeitsblatt-Aufgaben) in die Mitte', () => {
+  it('legt die ganze Station von leicht nach schwer ins Paket, ohne Niveau in die Mitte', () => {
     const u = (id: string, niveau?: 1 | 2 | 3): PoolEintrag => ({ u: { art: 'richtigfalsch', id, frage: 'Stimmt das?', aussage: id, richtig: true, ...(niveau ? { niveau } : {}) }, frei: true });
     const l = stunde([u('s', 3), u('ohne'), u('l', 1), u('m', 2), u('l2', 1)]);
     const p = buildPaket(modul, l);
-    const blatt = exercisesOf(l.doc.pages)[0].id;
-    expect(p.uebungen.map((x) => x.id)).toEqual(['l', 'l2', blatt, 'ohne', 'm', 's']);
+    expect(p.uebungen.map((x) => x.id)).toEqual(['l', 'l2', 'ohne', 'm', 's']);
   });
 
   it('behält Erklärung und Niveau, wenn die Lehrkraft eine Aufgabe ändert', () => {
