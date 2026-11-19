@@ -2,15 +2,15 @@
 
 ## Ziel
 Lernquest überarbeiten, damit jede Frage ohne das Arbeitsblatt lösbar ist und die 45 Minuten am Tag effektiv genutzt
-werden. Plan und Reihenfolge: `docs/plan-lernquest-fragen.md` (auf dem Branch unten, nach Merge in `main`).
+werden. Plan und Reihenfolge: `docs/plan-lernquest-fragen.md`.
 
 ## Stand
-- PR #81 (Branch `claude/handoff-continuation-849cyl`, **noch nicht gemergt**; Mergen = live):
+- PR #81 (Branch `claude/handoff-continuation-849cyl`, gemergt am 19.11. = live):
   `UMBAU = true` (Kinder sehen „Wir bauen gerade um“), `buildPaket` gibt keine Aufgaben 1:1 vom Blatt mehr ins Paket,
   nur freigegebene Pool-Fragen. Auf dem Server nichts gelöscht. Pläne `docs/plan-lernquest-fragen.md`,
   `docs/plan-klassendorf-haeuser.md`, Eintrag in `docs/roadmap.md`.
 - Klassendorf Teil A (PR #80) ist live; Teil B (eigene Häuser, Zelt-Quiz) auf Halde.
-- Tests: grün (619), Typecheck, Build. CI zu PR #81 beim Schreiben noch nicht fertig.
+- Tests: grün (619), Typecheck, Build. CI zu PR #81 grün.
 
 ## Nächste Schritte (je einer pro Session, Skill `aufgabe`)
 1. **Claude schreibt die Fragen aus dem Blatt:** `fragenpool.ts` (`poolPrompt`, bisher nur `blockText`) bekommt die
