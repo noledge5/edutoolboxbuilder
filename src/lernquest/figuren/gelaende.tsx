@@ -1,24 +1,29 @@
-// The pieces of the map landscape (Stufe E, Teil 2): castle, boss castle, trees, bushes, flowers, stones. Same style
-// as the figures (stil.ts): outline, light from the top left, a shadow bottom right. Each piece is drawn with its
-// centre bottom at (0, 0), so it stands where it is placed; GELAENDE lists them for the workshop.
+// The pieces of the map landscape (Stufe E, Teil 2): castle, boss castle, trees, bushes, flowers, stones. Since
+// 19.11.2026 without outline (docs/design/prinzipien.md): the castles are built isometric from the village kit
+// (iso.tsx), so they match the houses; the small pieces stay flat from the front like pieces on a board, with light
+// top left and a hard shade bottom right. Each piece is drawn with its centre bottom at (0, 0) (for a castle: the
+// foot of its gate, where the path starts), so it stands where it is placed; GELAENDE lists them for the workshop.
 import type { ReactNode } from 'react';
-import { P, UMRISS, UMRISS_FEIN } from './stil';
+import { isoStift, type DachTon, type Flaechen, type IsoStift } from './iso';
+import { Baum as BaumForm, Tanne as TannenForm } from './pflanzen';
+import { P, flaeche } from './stil';
 
-/** A silhouette with an outline but no seams inside: the shapes once fat in the line colour, then in their fill. */
-export function Klumpen({ kreise, farbe, hell, tief }: { kreise: [number, number, number][]; farbe: string; hell: string; tief: string }) {
+/** A flat shadow on the ground under a standing piece, a little to the right (fixed opacity, hard edge). */
+export const bodenSchatten = (rx: number, ry = rx / 4) => <ellipse cx={rx * 0.22} cy={0} rx={rx} ry={ry} fill={P.schatten} opacity={0.18} />;
+
+/** A lumpy silhouette from circles without seams inside: the circles once in `tief`, moved down right (the hard shade
+ *  at the edge), then in `farbe`; a light spot top left on the first circles. */
+export function Klumpen({ kreise, farbe, hell, tief, licht = 2 }: { kreise: [number, number, number][]; farbe: string; hell: string; tief: string; licht?: number }) {
   return (
     <g>
       {kreise.map(([x, y, r]) => (
-        <circle key={`u${x},${y}`} cx={x} cy={y} r={r + 3} fill={P.linie} />
+        <circle key={`t${x},${y}`} cx={x + r * 0.2} cy={y + r * 0.2} r={r + 1.5} fill={tief} />
       ))}
       {kreise.map(([x, y, r]) => (
-        <circle key={`f${x},${y}`} cx={x} cy={y} r={r} fill={farbe} />
+        <circle key={`f${x},${y}`} cx={x} cy={y} r={r + 1.5} fill={farbe} />
       ))}
-      {kreise.map(([x, y, r]) => (
-        <circle key={`t${x},${y}`} cx={x + r * 0.28} cy={y + r * 0.28} r={r * 0.7} fill={tief} opacity={0.55} />
-      ))}
-      {kreise.slice(0, 2).map(([x, y, r]) => (
-        <path key={`h${x},${y}`} d={`M${x - r * 0.6} ${y - r * 0.05} A${r * 0.62} ${r * 0.62} 0 0 1 ${x - r * 0.05} ${y - r * 0.6}`} fill="none" stroke={hell} strokeWidth={Math.max(3, r * 0.22)} strokeLinecap="round" />
+      {kreise.slice(0, licht).map(([x, y, r]) => (
+        <circle key={`h${x},${y}`} cx={x - r * 0.38} cy={y - r * 0.38} r={r * 0.28} fill={hell} />
       ))}
     </g>
   );
@@ -27,42 +32,17 @@ export function Klumpen({ kreise, farbe, hell, tief }: { kreise: [number, number
 export function Baum(): ReactNode {
   return (
     <g>
-      <ellipse cx={4} cy={0} rx={20} ry={5} fill={P.schatten} opacity={0.18} />
-      <path d="M-6 0 L-4 -26 L4 -26 L6 0 Z" fill={P.leder} {...UMRISS_FEIN} />
-      <path d="M1 -24 L3 -2" stroke={P.lederTief} strokeWidth={2.5} strokeLinecap="round" />
-      <Klumpen
-        kreise={[
-          [-6, -48, 17],
-          [9, -44, 15],
-          [-13, -30, 13],
-          [12, -28, 13],
-          [0, -30, 14],
-        ]}
-        farbe={P.blatt}
-        hell={P.blattHell}
-        tief={P.blattTief}
-      />
+      {bodenSchatten(20, 5)}
+      <BaumForm />
     </g>
   );
 }
 
 export function Tanne(): ReactNode {
-  const stufe = (y: number, b: number, h: number) => `M0 ${y - h} Q${b * 0.4} ${y - h * 0.45} ${b} ${y} Q0 ${y + 5} ${-b} ${y} Q${-b * 0.4} ${y - h * 0.45} 0 ${y - h} Z`;
   return (
     <g>
-      <ellipse cx={4} cy={0} rx={17} ry={4.5} fill={P.schatten} opacity={0.18} />
-      <rect x={-4} y={-14} width={8} height={14} rx={2} fill={P.leder} {...UMRISS_FEIN} />
-      {[
-        [-12, 22, 26],
-        [-28, 18, 24],
-        [-44, 13, 22],
-      ].map(([y, b, h]) => (
-        <g key={y}>
-          <path d={stufe(y, b, h)} fill={P.blattTief} {...UMRISS} />
-          <path d={`M2 ${y - h + 4} Q${b * 0.5} ${y - h * 0.3} ${b - 3} ${y - 1} Q4 ${y + 2} 2 ${y - h + 4} Z`} fill={P.linie} opacity={0.18} />
-          <path d={`M-3 ${y - h + 7} Q${-b * 0.35} ${y - h * 0.45} ${-b * 0.6} ${y - 5}`} fill="none" stroke={P.blatt} strokeWidth={3} strokeLinecap="round" />
-        </g>
-      ))}
+      {bodenSchatten(18, 4.5)}
+      <TannenForm />
     </g>
   );
 }
@@ -70,7 +50,7 @@ export function Tanne(): ReactNode {
 export function Busch(): ReactNode {
   return (
     <g>
-      <ellipse cx={3} cy={0} rx={18} ry={4} fill={P.schatten} opacity={0.16} />
+      {bodenSchatten(18, 4)}
       <Klumpen
         kreise={[
           [-6, -11, 10],
@@ -82,8 +62,8 @@ export function Busch(): ReactNode {
         hell={P.wieseHell}
         tief={P.blattTief}
       />
-      <circle cx={-4} cy={-14} r={2.2} fill={P.backe} />
-      <circle cx={8} cy={-10} r={2.2} fill={P.backe} />
+      <circle cx={-4} cy={-14} r={2.4} fill={P.backe} />
+      <circle cx={8} cy={-10} r={2.4} fill={P.backe} />
     </g>
   );
 }
@@ -92,91 +72,152 @@ export function Blume(): ReactNode {
   return (
     <g>
       <path d="M0 0 Q-1 -7 0 -13" fill="none" stroke={P.blattTief} strokeWidth={2.5} strokeLinecap="round" />
-      <path d="M0 -5 Q6 -9 8 -5 Q4 -2 0 -5 Z" fill={P.wieseHell} {...UMRISS_FEIN} strokeWidth={1.8} />
+      <path d="M0 -5 Q6 -9 8 -5 Q4 -2 0 -5 Z" {...flaeche(P.blatt, 1.8)} />
       {[0, 72, 144, 216, 288].map((w) => (
-        <circle key={w} cx={Math.round(Math.sin((w * Math.PI) / 180) * 5 * 10) / 10} cy={Math.round((-15 - Math.cos((w * Math.PI) / 180) * 5) * 10) / 10} r={3.6} fill={P.weiss} stroke={P.linie} strokeWidth={1.8} />
+        <circle key={w} cx={Math.round(Math.sin((w * Math.PI) / 180) * 5 * 10) / 10} cy={Math.round((-15 - Math.cos((w * Math.PI) / 180) * 5) * 10) / 10} r={4.4} fill={P.wolke} />
       ))}
-      <circle cx={0} cy={-15} r={2.8} fill={P.gold} stroke={P.linie} strokeWidth={1.8} />
+      <circle cx={0} cy={-15} r={3.4} fill={P.gold} />
     </g>
   );
 }
 
-export function Stein(): ReactNode {
-  return (
-    <g>
-      <path d="M-14 0 Q-16 -10 -7 -14 Q2 -18 10 -12 Q16 -6 14 0 Z" fill={P.metall} {...UMRISS_FEIN} />
-      <path d="M3 -13 Q14 -7 13 -1 L1 -1 Z" fill={P.metallTief} opacity={0.6} />
-      <path d="M-10 -6 Q-9 -11 -4 -12" fill="none" stroke={P.metallHell} strokeWidth={2.5} strokeLinecap="round" />
-    </g>
-  );
-}
+/** A rounded stone in three tones: base, a hard shade down right, a light edge top left. */
+export const farbStein = (f: string, h: string, t: string) =>
+  function FarbStein(): ReactNode {
+    return (
+      <g>
+        <path d="M-14 0 Q-16 -10 -7 -14 Q2 -18 10 -12 Q16 -6 14 0 Z" {...flaeche(f, 2.5)} />
+        <path d="M3 -13 Q15 -7 14 0 L1 0 Z" {...flaeche(t, 2.5)} />
+        <path d="M-10 -6 Q-9 -11 -4 -12" fill="none" stroke={h} strokeWidth={3} strokeLinecap="round" />
+      </g>
+    );
+  };
+export const Stein = farbStein(P.metall, P.metallHell, P.metallTief);
 
-/** Battlements along the top of a wall from x1 to x2 at height y (merlons 8 wide, 6 high). */
-const zinnen = (x1: number, x2: number, y: number) => {
-  let d = `M${x1} ${y}`;
-  for (let x = x1; x + 8 <= x2 + 0.1; x += 16) d += ` v-7 h8 v7 h8`;
-  return d;
-};
+// — Castles (isometric) —
 
 export interface BurgFarben {
-  mauer: string;
-  mauerHell: string;
-  mauerTief: string;
-  dach: string;
-  dachTief: string;
+  /** Walls: top face, left (lit) face, right (shaded) face. */
+  mauer: Flaechen;
+  /** The courtyard inside the walls. */
+  hof: string;
+  dach: DachTon;
   fahne: string;
   tor: string;
 }
 
-const BURG: BurgFarben = { mauer: P.stein, mauerHell: P.steinHell, mauerTief: P.steinTief, dach: P.blau, dachTief: P.blauTief, fahne: P.gold, tor: P.holzTief };
-const BOSS: BurgFarben = { mauer: P.nachtHell, mauerHell: P.lilaHell, mauerTief: P.nacht, dach: P.nachtTief, dachTief: P.linie, fahne: P.rot, tor: P.nachtTief };
+const BURG: BurgFarben = {
+  mauer: { top: P.steinHell, links: P.stein, rechts: P.steinTief },
+  hof: P.wieseTief,
+  dach: { vorn: P.blau, seite: P.blauTief, kante: P.blauTief, licht: P.blauHell },
+  fahne: P.gold,
+  tor: P.holzTief,
+};
+const BOSS: BurgFarben = {
+  mauer: { top: P.lilaHell, links: P.nachtHell, rechts: P.nacht },
+  hof: P.nachtTief,
+  dach: { vorn: P.nacht, seite: P.nachtTief, kante: P.nachtTief, licht: P.nachtHell },
+  fahne: P.rot,
+  tor: P.nachtTief,
+};
 
-function Turm({ x, unten, oben, b, f, fenster = true }: { x: number; unten: number; oben: number; b: number; f: BurgFarben; fenster?: boolean }) {
-  const dachH = b * 1.35;
+/** Wall square side, wall height, wall thickness, tower side. */
+const W = 96;
+const H = 38;
+const DICKE = 8;
+const T = 30;
+
+/** A square tower with its corner (x, y) as centre: body, shade, a window slit, a pyramid roof and a flag. */
+function turm(s: IsoStift, x: number, y: number, h: number, f: BurgFarben, fahne = true, b = T) {
+  const a = x - b / 2;
+  const c = y - b / 2;
+  const sp = s.P3(x, y, h + b * 1.15);
   return (
     <g>
-      <rect x={x - b / 2} y={oben} width={b} height={unten - oben} fill={f.mauer} {...UMRISS} />
-      <rect x={x + b / 2 - b * 0.32} y={oben + 2} width={b * 0.3} height={unten - oben - 4} fill={f.mauerTief} opacity={0.55} />
-      <path d={`M${x - b / 2 + 4} ${oben + 6} V${unten - 6}`} stroke={f.mauerHell} strokeWidth={3} strokeLinecap="round" />
-      {fenster && <path d={`M${x - 4} ${oben + 26} v-6 a4 4 0 0 1 8 0 v6 Z`} fill={P.auge} />}
-      {/* Cone roof with a flag. */}
-      <path d={`M${x} ${oben - dachH} V${oben - dachH - 16}`} stroke={P.linie} strokeWidth={2.5} strokeLinecap="round" />
-      <path d={`M${x} ${oben - dachH - 16} l13 4 -13 5 Z`} fill={f.fahne} {...UMRISS_FEIN} strokeWidth={2} />
-      <path d={`M${x - b / 2 - 6} ${oben + 2} Q${x - b * 0.2} ${oben - dachH * 0.5} ${x} ${oben - dachH} Q${x + b * 0.2} ${oben - dachH * 0.5} ${x + b / 2 + 6} ${oben + 2} Z`} fill={f.dach} {...UMRISS} />
-      <path d={`M${x + 1} ${oben - dachH + 6} Q${x + b * 0.2} ${oben - dachH * 0.45} ${x + b / 2 + 2} ${oben - 1} L${x + 2} ${oben - 1} Z`} fill={f.dachTief} opacity={0.6} />
-      <path d={`M${x - b / 2 - 1} ${oben - 3} Q${x - b * 0.22} ${oben - dachH * 0.45} ${x - 3} ${oben - dachH + 8}`} fill="none" stroke={P.weiss} strokeWidth={2.5} strokeLinecap="round" opacity={0.45} />
+      {s.box(a, c, 0, b, b, h, f.mauer)}
+      {s.tiefe(a, c, 0, b, b, h)}
+      {s.bogenTor('L', x - 4, c + b, h - 26, 8, 13, P.auge)}
+      {s.bogenTor('R', y - 4, a + b, h - 26, 8, 13, P.auge)}
+      {s.band(a, c, h, b, b, 8)}
+      {s.zeltdach(a, c, h, b, b, b * 1.15, f.dach, 4, false)}
+      {fahne && s.linie(sp, [sp[0], sp[1] - 20], P.dunkel, 3)}
+      {fahne && <path d={`M${sp[0]} ${sp[1] - 20} l15 5 -15 6 Z`} fill={f.fahne} />}
     </g>
   );
 }
 
+/** A castle on the 2:1 grid: a square curtain wall with a courtyard and battlements, the keep inside, towers on the
+ *  left and right corner and the gatehouse on the front corner. The gate's foot is at (0, 0). */
 export function BurgBild({ f, boss }: { f: BurgFarben; boss: boolean }) {
+  const s = isoStift(10, -W - 6);
+  const i = DICKE;
+  const k = 30; // keep: corner and side
+  const kh = 74;
+  const ksp = s.P3(k + 18, k + 18, kh + 36);
+  const zinnen = [20, 34, 48, 62];
+  // Banner or the boss's emblem on the gatehouse, above the gate.
+  const schild = s.P3(W - 2, W + T / 2, 42);
   return (
     <g>
-      <ellipse cx={6} cy={2} rx={104} ry={10} fill={P.schatten} opacity={0.18} />
-      <Turm x={0} unten={-50} oben={-118} b={40} f={f} />
-      {/* Curtain wall with battlements and the gate, where the path starts or ends. */}
-      <path d={`${zinnen(-62, 62, -58)} V0 H-62 Z`} fill={f.mauer} {...UMRISS} />
-      <path d="M30 -56 V-2 H60 V-56 Z" fill={f.mauerTief} opacity={0.5} />
-      <path d="M-54 -50 H44" stroke={f.mauerHell} strokeWidth={3} strokeLinecap="round" />
-      {[-40, -24, 24, 40].map((x) => (
-        <path key={x} d={`M${x - 5} -22 h10 M${x} -36 h10 M${x - 10} -10 h8`} stroke={f.mauerTief} strokeWidth={2} strokeLinecap="round" />
+      {s.schlag(0, 0, W, W, H)}
+      {s.schlag(k, k, 36, 36, kh)}
+      {s.schlag(-T / 2, W - T / 2, T, T, 60)}
+      {s.schlag(W - T / 2, -T / 2, T, T, 60)}
+      {s.schlag(W - T / 2, W - T / 2, T, T, 54)}
+      {/* The courtyard seen through the top of the walls, with the inner faces of the back walls. */}
+      {s.poly([s.P3(i, i, H), s.P3(W - i, i, H), s.P3(W - i, W - i, H), s.P3(i, W - i, H)], f.hof)}
+      {s.poly([s.P3(i, i, H), s.P3(W - i, i, H), s.P3(W - i, i, H - 14), s.P3(i, i, H - 14)], f.mauer.links)}
+      {s.poly([s.P3(i, i, H), s.P3(i, W - i, H), s.P3(i, W - i, H - 14), s.P3(i, i, H - 14)], f.mauer.rechts)}
+      {/* The keep. */}
+      {s.box(k, k, 0, 36, 36, kh, f.mauer)}
+      {s.tiefe(k, k, 0, 36, 36, kh)}
+      {s.bogenTor('L', k + 13, k + 36, kh - 30, 10, 16, P.auge)}
+      {s.bogenTor('R', k + 13, k + 36, kh - 30, 10, 16, P.auge)}
+      {s.band(k, k, kh, 36, 36, 8)}
+      {s.zeltdach(k, k, kh, 36, 36, 36, f.dach, 5, false)}
+      {s.linie(ksp, [ksp[0], ksp[1] - 22], P.dunkel, 3)}
+      <path d={`M${ksp[0]} ${ksp[1] - 22} l16 5 -16 6 Z`} fill={f.fahne} />
+      {/* The walls: outer faces, the wall walk with a hole for the courtyard, battlements along the front. */}
+      {s.poly([s.P3(0, W, 0), s.P3(W, W, 0), s.P3(W, W, H), s.P3(0, W, H)], f.mauer.links)}
+      {s.poly([s.P3(W, 0, 0), s.P3(W, W, 0), s.P3(W, W, H), s.P3(W, 0, H)], f.mauer.rechts)}
+      {s.tiefe(0, 0, 0, W, W, H)}
+      <path
+        d={`M${[s.P3(0, 0, H), s.P3(W, 0, H), s.P3(W, W, H), s.P3(0, W, H)].map((p) => p.join(' ')).join(' L')} Z M${[s.P3(i, i, H), s.P3(i, W - i, H), s.P3(W - i, W - i, H), s.P3(W - i, i, H)].map((p) => p.join(' ')).join(' L')} Z`}
+        fill={f.mauer.top}
+        fillRule="evenodd"
+      />
+      {zinnen.map((x) => (
+        <g key={`l${x}`}>{s.box(x, W - 5, H, 8, 5, 7, f.mauer)}</g>
       ))}
-      <path d="M-18 0 V-24 A18 18 0 0 1 18 -24 V0 Z" fill={f.tor} {...UMRISS} />
-      <path d="M-9 -2 V-28 M0 -2 V-40 M9 -2 V-28" stroke={P.linie} strokeWidth={2} opacity={0.45} />
-      <Turm x={-66} unten={0} oben={-84} b={36} f={f} />
-      <Turm x={66} unten={0} oben={-84} b={36} f={f} />
+      {zinnen.map((y) => (
+        <g key={`r${y}`}>
+          {s.box(W - 5, y, H, 5, 8, 7, f.mauer)}
+          {s.tiefe(W - 5, y, H, 5, 8, 7)}
+        </g>
+      ))}
+      {turm(s, 0, W, 60, f)}
+      {turm(s, W, 0, 60, f)}
+      {/* The gatehouse with the gate, where the path begins. */}
+      {s.box(W - T / 2, W - T / 2, 0, T, T, 54, f.mauer)}
+      {s.tiefe(W - T / 2, W - T / 2, 0, T, T, 54)}
+      {s.bogenTor('L', W - 13, W + T / 2, 0, 24, 30, f.mauer.rechts)}
+      {s.bogenTor('L', W - 10, W + T / 2, 0, 18, 26, f.tor)}
+      {[W - 4, W + 2].map((x) => (
+        <g key={x}>{s.linie(s.P3(x, W + T / 2, 1), s.P3(x, W + T / 2, 20), P.auge, 2, 0.35)}</g>
+      ))}
       {boss ? (
-        // The boss's emblem over the gate: a skull on a dark disc.
-        <g transform="translate(0 -78)">
-          <circle r={19} fill={P.lila} {...UMRISS} />
-          <circle r={14} fill={P.nachtTief} />
-          <path d="M-8 1 A9 9 0 1 1 8 1 V5 H4 V8 H-4 V5 H-8 Z" fill={P.weiss} stroke={P.linie} strokeWidth={1.5} strokeLinejoin="round" />
-          <circle cx={-3.5} cy={-1} r={2.5} fill={P.nachtTief} />
-          <circle cx={3.5} cy={-1} r={2.5} fill={P.nachtTief} />
+        // The boss's emblem: a skull on a dark disc.
+        <g transform={`translate(${schild[0]} ${schild[1]})`}>
+          <circle r={10} fill={P.lila} />
+          <path d="M-5.5 1 A6 6 0 1 1 5.5 1 V4 H3 V6 H-3 V4 H-5.5 Z" fill={P.wolke} />
+          <circle cx={-2.4} cy={-0.5} r={1.8} fill={P.nachtTief} />
+          <circle cx={2.4} cy={-0.5} r={1.8} fill={P.nachtTief} />
         </g>
       ) : (
-        <path d="M-12 -70 h24 v10 l-12 6 -12 -6 Z" fill={P.rot} {...UMRISS_FEIN} />
+        s.poly([s.P3(W - 9, W + T / 2, 47), s.P3(W + 5, W + T / 2, 47), s.P3(W + 5, W + T / 2, 38), s.P3(W - 2, W + T / 2, 33), s.P3(W - 9, W + T / 2, 38)], P.rot)
       )}
+      {s.band(W - T / 2, W - T / 2, 54, T, T, 8)}
+      {s.zeltdach(W - T / 2, W - T / 2, 54, T, T, 30, f.dach, 4, false)}
     </g>
   );
 }
@@ -200,11 +241,11 @@ export interface GelaendeTeil {
 }
 
 export const GELAENDE: GelaendeTeil[] = [
-  { id: 'burg', name: 'Burg', rahmen: [-112, -200, 224, 210], zeichnung: Burg },
-  { id: 'bossburg', name: 'Boss-Burg', rahmen: [-112, -200, 224, 210], zeichnung: BossBurg },
-  { id: 'baum', name: 'Laubbaum', rahmen: [-34, -70, 68, 76], zeichnung: Baum },
-  { id: 'tanne', name: 'Tanne', rahmen: [-28, -72, 56, 78], zeichnung: Tanne },
-  { id: 'busch', name: 'Busch', rahmen: [-24, -26, 48, 30], zeichnung: Busch },
-  { id: 'blume', name: 'Blume', rahmen: [-12, -24, 24, 26], zeichnung: Blume },
-  { id: 'stein', name: 'Stein', rahmen: [-18, -20, 36, 22], zeichnung: Stein },
+  { id: 'burg', name: 'Burg', rahmen: [-110, -190, 250, 217], zeichnung: Burg },
+  { id: 'bossburg', name: 'Boss-Burg', rahmen: [-110, -190, 250, 217], zeichnung: BossBurg },
+  { id: 'baum', name: 'Laubbaum', rahmen: [-26, -73, 55, 82], zeichnung: Baum },
+  { id: 'tanne', name: 'Tanne', rahmen: [-28, -70, 56, 79], zeichnung: Tanne },
+  { id: 'busch', name: 'Busch', rahmen: [-25, -26, 51, 35], zeichnung: Busch },
+  { id: 'blume', name: 'Blume', rahmen: [-13, -28, 26, 32], zeichnung: Blume },
+  { id: 'stein', name: 'Stein', rahmen: [-18, -20, 37, 24], zeichnung: Stein },
 ];

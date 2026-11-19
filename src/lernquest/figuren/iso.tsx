@@ -64,6 +64,22 @@ const mix = (a: Pt, b: Pt, t: number): Pt => [
   a[1] + (b[1] - a[1]) * t,
 ];
 
+/** Convex hull of screen points (monotone chain), for cast shadows of round bodies. */
+function huelle(pts: Pt[]): Pt[] {
+  const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const kreuz = (o: Pt, a: Pt, b: Pt) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const halb = (liste: Pt[]) => {
+    const h: Pt[] = [];
+    for (const q of liste) {
+      while (h.length >= 2 && kreuz(h[h.length - 2], h[h.length - 1], q) <= 0) h.pop();
+      h.push(q);
+    }
+    h.pop();
+    return h;
+  };
+  return [...halb(p), ...halb([...p].reverse())];
+}
+
 /** Scalloped tile row from a to b (screen points), `k` tiles. */
 function bogen(a: Pt, b: Pt, k: number): string {
   let d = "";
@@ -577,9 +593,176 @@ export function isoStift(ox: number, oy: number) {
   ) =>
     poly([P3(x, y), P3(x + w, y), P3(x + w, y + d), P3(x, y + d)], fill, rest);
 
+  // Round parts (map landmarks, 19.11.2026): a circle of radius r on the ground shows as an ellipse rx × ry.
+  const RX = 1.2247;
+  const RY = 0.7071;
+  /** Arc data for the front half of the ellipse at screen point c (radius r on the ground), from left to right. */
+  const vorne = (c: Pt, r: number, zurueck = false) =>
+    zurueck
+      ? `A${(r * RX).toFixed(1)} ${(r * RY).toFixed(1)} 0 0 1 ${f([c[0] - r * RX, c[1]])}`
+      : `A${(r * RX).toFixed(1)} ${(r * RY).toFixed(1)} 0 0 0 ${f([c[0] + r * RX, c[1]])}`;
+
+  /** A ring of an upright round body (tower, base, stripe) at (x, y) from z to z + h, radius r at the foot and r2 at
+   *  the top: the visible front surface, without its top. */
+  const ring = (
+    x: number,
+    y: number,
+    z: number,
+    r: number,
+    h: number,
+    farbe: string,
+    r2 = r,
+  ) => {
+    const u = P3(x, y, z);
+    const o = P3(x, y, z + h);
+    return (
+      <path
+        d={`M${f([o[0] - r2 * RX, o[1]])} L${f([u[0] - r * RX, u[1]])} ${vorne(u, r)} L${f([o[0] + r2 * RX, o[1]])} ${vorne(o, r2, true)} Z`}
+        fill={farbe}
+      />
+    );
+  };
+
+  /** The flat shade on the right of a round body (like `tiefe` on a box): one shape, fixed opacity. */
+  const rundTiefe = (x: number, y: number, z: number, r: number, h: number, r2 = r) => {
+    const u = P3(x, y, z);
+    const o = P3(x, y, z + h);
+    const k = 0.35;
+    const s = Math.sqrt(1 - k * k);
+    return (
+      <path
+        d={`M${f([o[0] + k * r2 * RX, o[1] + s * r2 * RY])} L${f([u[0] + k * r * RX, u[1] + s * r * RY])} A${(r * RX).toFixed(1)} ${(r * RY).toFixed(1)} 0 0 0 ${f([u[0] + r * RX, u[1]])} L${f([o[0] + r2 * RX, o[1]])} A${(r2 * RX).toFixed(1)} ${(r2 * RY).toFixed(1)} 0 0 1 ${f([o[0] + k * r2 * RX, o[1] + s * r2 * RY])} Z`}
+        fill={RECHTS_SCHATTEN.fill}
+        opacity={RECHTS_SCHATTEN.opacity}
+      />
+    );
+  };
+
+  /** An upright round body (round tower, base): front ring, shade on the right, top face in `oben`. */
+  const walze = (
+    x: number,
+    y: number,
+    z: number,
+    r: number,
+    h: number,
+    c: Flaechen,
+    r2 = r,
+  ) => {
+    const o = P3(x, y, z + h);
+    return (
+      <g>
+        {ring(x, y, z, r, h, c.links, r2)}
+        {rundTiefe(x, y, z, r, h, r2)}
+        <ellipse cx={o[0]} cy={o[1]} rx={r2 * RX} ry={r2 * RY} fill={c.top} />
+      </g>
+    );
+  };
+
+  /** A cone roof on a round body: base radius r at height z, tip h above. The right part `tief`, a light edge. */
+  const kegel = (
+    x: number,
+    y: number,
+    z: number,
+    r: number,
+    h: number,
+    farbe: string,
+    tief: string,
+    licht: string,
+  ) => {
+    const u = P3(x, y, z);
+    const sp = P3(x, y, z + h);
+    const k = 0.3;
+    const s = Math.sqrt(1 - k * k);
+    return (
+      <g>
+        <path d={`M${f(sp)} L${f([u[0] - r * RX, u[1]])} ${vorne(u, r)} Z`} fill={farbe} />
+        <path
+          d={`M${f(sp)} L${f([u[0] + k * r * RX, u[1] + s * r * RY])} A${(r * RX).toFixed(1)} ${(r * RY).toFixed(1)} 0 0 0 ${f([u[0] + r * RX, u[1]])} Z`}
+          fill={tief}
+        />
+        {linie(mix(sp, [u[0] - 0.45 * r * RX, u[1] + 0.89 * r * RY], 0.08), [u[0] - 0.45 * r * RX, u[1] + 0.89 * r * RY - 2], licht, 3.5)}
+      </g>
+    );
+  };
+
+  /** A dome (half ball) of radius r on (x, y, z): the right part `tief` from a hard edge, a light arc top left. */
+  const kuppel = (
+    x: number,
+    y: number,
+    z: number,
+    r: number,
+    farbe: string,
+    tief: string,
+    licht: string,
+  ) => {
+    const u = P3(x, y, z);
+    const rx = r * RX;
+    const ry = r * RY;
+    const k = 0.4;
+    const s = Math.sqrt(1 - k * k);
+    return (
+      <g>
+        <path d={`M${f([u[0] - rx, u[1]])} A${rx.toFixed(1)} ${r} 0 0 1 ${f([u[0] + rx, u[1]])} ${vorne(u, r, true)} Z`} fill={farbe} />
+        <path
+          d={`M${f([u[0] + k * rx, u[1] - s * r])} A${rx.toFixed(1)} ${r} 0 0 1 ${f([u[0] + rx, u[1]])} A${rx.toFixed(1)} ${ry.toFixed(1)} 0 0 1 ${f([u[0] + k * rx, u[1] + s * ry])} Q${f([u[0] + k * rx + r * 0.25, u[1] - r * 0.2])} ${f([u[0] + k * rx, u[1] - s * r])} Z`}
+          fill={tief}
+        />
+        <path
+          d={`M${f([u[0] - rx * 0.72, u[1] - r * 0.42])} A${(rx * 0.78).toFixed(1)} ${(r * 0.78).toFixed(1)} 0 0 1 ${f([u[0] - rx * 0.2, u[1] - r * 0.76])}`}
+          fill="none"
+          stroke={licht}
+          strokeWidth={5}
+          strokeLinecap="round"
+        />
+      </g>
+    );
+  };
+
+  /** Cast shadow of a round body (radius r at the foot, r2 at the top, h high) on the ground: the hull of its foot and
+   *  its top moved like `schlag`, one shape of fixed opacity. */
+  const rundSchlag = (x: number, y: number, r: number, h: number, r2 = r, o = 0.24) => {
+    const pts: Pt[] = [];
+    for (let i = 0; i < 24; i++) {
+      const t = (i / 24) * 2 * Math.PI;
+      pts.push(P3(x + Math.cos(t) * r, y + Math.sin(t) * r));
+      pts.push(P3(x + h * 0.42 + Math.cos(t) * r2, y + h * 0.1 + Math.sin(t) * r2));
+    }
+    return poly(huelle(pts), P.schatten, { opacity: o });
+  };
+
+  /** An arched opening (gate, door, window slit) in one colour on the left face (plane y = E) or the right face
+   *  (plane x = E): from `a` along the face, b wide, h high to the top of the arch. */
+  const bogenTor = (
+    seite: "L" | "R",
+    a: number,
+    E: number,
+    z: number,
+    b: number,
+    h: number,
+    farbe: string,
+  ) => {
+    const Q =
+      seite === "L"
+        ? (u: number, zz: number) => P3(u, E, zz)
+        : (u: number, zz: number) => P3(E, u, zz);
+    const pts: Pt[] = [Q(a, z), Q(a + b, z)];
+    for (let i = 0; i <= 8; i++) {
+      const t = (i / 8) * Math.PI;
+      pts.push(Q(a + b / 2 + (Math.cos(t) * b) / 2, z + h - b / 2 + (Math.sin(t) * b) / 2));
+    }
+    return poly(pts, farbe);
+  };
+
   return {
     P3,
     poly,
+    ring,
+    rundTiefe,
+    walze,
+    kegel,
+    kuppel,
+    rundSchlag,
+    bogenTor,
     linie,
     box,
     steine,

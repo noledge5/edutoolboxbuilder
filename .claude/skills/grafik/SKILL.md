@@ -14,7 +14,7 @@ do not match the house were the teacher's complaint on 18.11.2026 (haus-v2).
 | Weg | Wann | Ergebnis |
 |---|---|---|
 | **Flach (2D Vektor)** | Figuren, Held, Gegenstände, Icons, Bosse, Bilder in Fragen | Code in `src/lernquest/figuren/` – Skill `figur` |
-| **Isometrisch (2.5D Vektor)** | Dorfkarte, Häuser, Anbauten, Gemeinschaftsgebäude; später Landkarte und Landschaften | React in `src/lernquest/figuren/iso.tsx` (Bausatz: `box`, `steine`, `tiefe`, `band`, `schlag`, `fachL/R`, `satteldach`, `zeltdach`, `fenster`, `tuer`, `zaunX`), Gebäude und `DorfKarte` in `dorf.tsx`; Vorlage `docs/design/lernquest/stilprobe/haus-v3.mjs` |
+| **Isometrisch (2.5D Vektor)** | Dorfkarte, Häuser, Anbauten, Gemeinschaftsgebäude, Wahrzeichen der Landkarte | React in `src/lernquest/figuren/iso.tsx` (Bausatz: `box`, `steine`, `tiefe`, `band`, `schlag`, `fachL/R`, `satteldach`, `zeltdach`, `fenster`, `tuer`, `zaunX`; rund: `walze`, `ring`, `rundTiefe`, `kegel`, `kuppel`, `rundSchlag`, `bogenTor`), Gebäude und `DorfKarte` in `dorf.tsx`, Wahrzeichen in `gelaende.tsx`/`welten.tsx`; Vorlage `docs/design/lernquest/stilprobe/haus-v3.mjs` |
 
 No 3D renders, no Figma, no paid AI generators without asking the teacher (credits). Hugging Face image spaces are
 blocked in sessions.
@@ -23,8 +23,9 @@ blocked in sessions.
 - Colours only from `stil.ts` (`P.*`), at most four base colours per motif (skin and hair not counted).
 - Light from the top left. Per face at most three tones: base, `hell` (light edge or spot top left), `tief` (shadow
   shape bottom right). Hard edges: light and shadow are shapes of their own.
-- **No gradients, no blur, no gloss.** The village is flat since 19.11.2026 (`dorf.test.tsx` checks it); the map
-  (`gelaende.tsx`, `welten.tsx`) and the app landscape (`app/Landschaft.tsx`, sky gradient) follow with step 2.
+- **No gradients, no blur, no gloss.** Village, map and app landscape are flat since 19.11.2026 (`dorf.test.tsx`,
+  `welten.test.tsx` check it). Small map pieces (trees, bushes, stones) stay flat from the front like game pieces;
+  trees, fir, palm and cactus come from `figuren/pflanzen.tsx`, shared with the hero backgrounds.
 - As few shapes as possible; the silhouette must read at 48 px.
 - No outline (decided 19.11.2026): shapes part by tone and hard shadows. Until the switch-over, figures keep theirs
   and new parts follow their set (hero parts with `UMRISS`, iso without); a set is switched as a whole.
@@ -42,6 +43,9 @@ blocked in sessions.
 
 ## Check
 - `npx vitest run src/lernquest/figuren`, `npm run typecheck`.
+- Map without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=karte npx vitest run src/lernquest/figuren/vorschau`
+  (start landscape, every world as a region, every piece at full size and at 48 px). The app shows the map only with
+  `UMBAU = false` in `app/LernquestApp.tsx`; flip it locally for a look, never commit it.
 - Look at it in the workshop (`npm run spieltest` → `/lernquest/werkstatt.html`), next to the fox, at phone width and
   on the night background; go through the checklist in prinzipien.md.
 - Show the teacher with the maturity level named (10 % direction, 50 % structure, 99 % polish).

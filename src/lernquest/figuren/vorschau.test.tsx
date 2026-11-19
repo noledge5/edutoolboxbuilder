@@ -1,5 +1,5 @@
 // A quick look at drawings without the workshop: writes a page and a screenshot (Playwright) of one group.
-// Runs only when asked:  VORSCHAU=<ordner> VORSCHAU_TEIL=<kopf|werkzeug|begleiter|hintergrund|held|fuchs|eigen|dorf|alles> [VORSCHAU_ITEM=<hut-id>] npx vitest run src/lernquest/figuren/vorschau
+// Runs only when asked:  VORSCHAU=<ordner> VORSCHAU_TEIL=<kopf|werkzeug|begleiter|hintergrund|held|fuchs|eigen|dorf|karte|alles> [VORSCHAU_ITEM=<hut-id>] npx vitest run src/lernquest/figuren/vorschau
 // VORSCHAU_NUR=<id>,<id> keeps only these items, backgrounds, figures (all poses) and, with VORSCHAU_TEIL=held, parts.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -8,7 +8,11 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
 import { AUGEN_ARTEN, FIGUREN, FigurBild, FRISUR_ARTEN, held, ITEMS, ItemBild, KLEIDUNG, MUND_ARTEN } from '.';
 import { DORF_GEBAEUDE } from '../dorf';
+import { Landkarte } from '../app/Landkarte';
+import { Landschaft } from '../app/Landschaft';
 import { DorfKarte, DORF_TEILE, GEBAEUDE_BILD } from './dorf';
+import { GELAENDE } from './gelaende';
+import { MODUL_WELTEN, WELT_TEILE } from './welten';
 import { HINTERGRUENDE } from './hintergruende';
 import type { Figur, Item, Teil } from './typen';
 
@@ -31,7 +35,18 @@ it.skipIf(!ziel)('writes a preview page and screenshot', async () => {
     for (const [id, bild] of [...Object.entries(GEBAEUDE_BILD), ...DORF_TEILE.map((t) => [t.id, t.zeichnung] as const)].filter(([id]) => gewaehlt(id)))
       teile.push(`<figure><svg width="220" height="220" viewBox="-110 -160 220 220">${renderToStaticMarkup(<>{bild()}</>)}</svg><figcaption>${id}</figcaption></figure>`);
   }
-  if (teil !== 'hintergrund' && teil !== 'held' && teil !== 'dorf')
+  if (teil === 'karte') {
+    // One region per world (modules in turn, then the two Extra-Pakete regions), then every piece alone.
+    if (gewaehlt('landschaft')) teile.push(`<figure style="width:400px">${renderToStaticMarkup(<Landschaft />)}<figcaption>Landschaft (Start)</figcaption></figure>`);
+    const regionen: [string, number][] = [...MODUL_WELTEN.map((_, i): [string, number] => [`m${i + 1}`, i + 1]), ['extra-wortschatz-5', 1], ['extra-grammatik-5', 1]];
+    for (const [id, n] of regionen.filter(([id]) => gewaehlt(id)))
+      teile.push(`<figure style="width:300px">${renderToStaticMarkup(<Landkarte id={id} nummer={n} kopf={id} punkte={[1, 2, 3, 4].map((k) => ({ key: `${k}`, inhalt: k }))} mitBoss />)}<figcaption>${id}</figcaption></figure>`);
+    for (const t of [...GELAENDE, ...WELT_TEILE].filter((x) => gewaehlt(x.id))) {
+      const [x, y, w, h] = t.rahmen;
+      teile.push(`<figure><div class="reihe"><svg width="${Math.max(120, w)}" height="${Math.max(120, w) * (h / w)}" viewBox="${x} ${y} ${w} ${h}">${renderToStaticMarkup(<>{t.zeichnung()}</>)}</svg><svg width="48" height="48" viewBox="${x} ${y} ${w} ${h}">${renderToStaticMarkup(<>{t.zeichnung()}</>)}</svg></div><figcaption>${t.id}</figcaption></figure>`);
+    }
+  }
+  if (teil !== 'hintergrund' && teil !== 'held' && teil !== 'dorf' && teil !== 'karte')
     for (const i of items) {
       const f = traeger(i);
       teile.push(
@@ -70,7 +85,7 @@ it.skipIf(!ziel)('writes a preview page and screenshot', async () => {
       teile.push(`<figure>${renderToStaticMarkup(<FigurBild figur={held({ kleidung: k, haut: i + 1, frisur: FRISUR_ARTEN[i + 2], haarfarbe: i })} items={kombi(h, w, b)} zeit={0} lebendig={false} breite={200} />)}<figcaption>${h}+${w}+${b}</figcaption></figure>`),
     );
   }
-  const html = `<!doctype html><meta charset="utf-8"><style>body{font:14px system-ui;background:#f3efe6;display:flex;flex-wrap:wrap;gap:12px;margin:12px}figure{margin:0;background:#fff;padding:8px;border-radius:12px}.reihe{display:flex;gap:8px;align-items:end}figcaption{text-align:center}</style>${teile.join('')}`;
+  const html = `<!doctype html><meta charset="utf-8"><style>body{font:14px system-ui;background:#f3efe6;display:flex;flex-wrap:wrap;gap:12px;margin:12px}figure{margin:0;background:#fff;padding:8px;border-radius:12px}.reihe{display:flex;gap:8px;align-items:end}figcaption{text-align:center}.lq-landkarte-flaeche{position:relative}.lq-landkarte-flaeche svg{display:block;width:100%}.lq-wegpunkte{margin:0;padding:0}.lq-wegpunkt{position:absolute;list-style:none;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 3px 0 #0003}</style>${teile.join('')}`;
   mkdirSync(ziel!, { recursive: true });
   const datei = join(ziel!, `vorschau-${teil}.html`);
   writeFileSync(datei, html);

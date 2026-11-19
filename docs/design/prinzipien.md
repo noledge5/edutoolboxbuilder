@@ -24,7 +24,7 @@ Jede Grafik und jeder Bildschirm muss alle drei erfüllen. Bei Streit gewinnt da
 |---|---|---|---|---|
 | **Oberfläche** | Knöpfe, Karten, Kopfbereiche, Schrift | flach | `src/lernquest/app/lernquest.css` (Tokens) | `lernquest.css.test.ts` |
 | **Figuren** | Fuchs, Held, Teile, Bosse, Begleiter, Symbole, Bilder in Fragen | **flach, von vorn** | `src/lernquest/figuren/` (Gerüst: `typen.ts`, `bewegung.ts`, `Figur.tsx`) | `figuren.test.tsx`, `held.test.tsx`, Werkstatt |
-| **Umgebung** | Dorf, Häuser, Anbauten, Landkarte, Landschaften | **isometrisch 2:1** (schräg von oben) | Bausatz `figuren/iso.tsx`, Gebäude `figuren/dorf.tsx` | `dorf.test.tsx`, Werkstatt |
+| **Umgebung** | Dorf, Häuser, Anbauten, Landkarte, Landschaften | **isometrisch 2:1** (schräg von oben) | Bausatz `figuren/iso.tsx`, Gebäude `figuren/dorf.tsx`, Wahrzeichen `figuren/gelaende.tsx` und `welten.tsx` | `dorf.test.tsx`, `welten.test.tsx`, Werkstatt |
 
 Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Tokens), **ein Licht** (von oben links),
 **dieselben Formregeln** (unten). Figuren stehen in der Umgebung, also müssen sie dazu passen.
@@ -166,11 +166,17 @@ Regeln dazu:
 Nicht auf einmal, je ein Schritt pro Sitzung, jeweils mit Stilprobe und Blick der Lehrkraft:
 1. **Dorf ohne Verläufe – erledigt 19.11.2026:** `IsoVerlaeufe` in `iso.tsx` durch flache Töne ersetzt (Dach: Lichtkante am First als Form;
    Wand: rechte Seite `tief`; Band unter Traufe als flache Form; Schlagschatten als eine Fläche mit fester Deckkraft).
-2. **Landkarte isometrisch:** `gelaende.tsx` und `welten.tsx` sind heute flach von vorn; sie wandern auf den Iso-Bausatz.
+2. **Landkarte isometrisch – erledigt 19.11.2026:** Die Wahrzeichen (Burgen, Pyramide, Leuchtturm, Raumstation, Baumhaus,
+   Zauberturm) sind aus dem Iso-Bausatz gebaut, der dafür runde Teile bekam (`walze`, `ring`, `kegel`, `kuppel`,
+   `rundSchlag`, `bogenTor`). Kleine Teile (Bäume, Büsche, Steine) bleiben flach von vorn wie Spielfiguren auf dem Brett,
+   ohne Umriss. Baum, Tanne, Palme und Kaktus kommen für Karte und Hintergründe aus `figuren/pflanzen.tsx`. Der Weg hat
+   statt Rand einen harten Schatten nach unten rechts; die Start-Landschaft (`app/Landschaft.tsx`) hat einen Himmel aus
+   flachen Bändern, dieselbe Burg und dieselben Bäume. `welten.test.tsx` verbietet Verläufe und Umriss.
+   Vorschau: `VORSCHAU=<ordner> VORSCHAU_TEIL=karte npx vitest run src/lernquest/figuren/vorschau`.
 3. **Figuren ohne Umriss** wie Stilprobe 2 (freigegeben von der Lehrkraft am 19.11.2026, [Stilprobe](#stilprobe-ohne-umriss)): Fuchs, Held mit allen Teilen,
-   Bosse, Begleiter, Gegenstände. **Fuchs, Held mit allen Teilen, Bosse, Truhe und Hintergründe erledigt (19.11.2026);** offen: Landkarte
-   (`gelaende.tsx`, `welten.tsx`, mit Schritt 2). Je Satz eine Sitzung, Vergleich vorher/nachher mit
-   `STILPROBE=<ordner> npx vitest run src/lernquest/figuren/stilprobe`. Die Landkarte verliert ihren Umriss mit Schritt 2.
+   Bosse, Begleiter, Gegenstände. **Fuchs, Held mit allen Teilen, Bosse, Truhe, Hintergründe und Landkarte erledigt (19.11.2026);**
+   offen: `UMRISS` aus `stil.ts` löschen (wird nirgends mehr benutzt). Je Satz eine Sitzung, Vergleich vorher/nachher mit
+   `STILPROBE=<ordner> npx vitest run src/lernquest/figuren/stilprobe`.
 4. 3D-Teile aufräumen: die Skripte in `.claude/skills/grafik/skripte/` und `stilprobe/haus-3d-probe.png` werden nicht
    mehr gebraucht (Löschen nach Rückfrage).
 
