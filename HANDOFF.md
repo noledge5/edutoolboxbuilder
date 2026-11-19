@@ -1,33 +1,38 @@
-# Handoff – 19.11.2026 (Lernquest im Umbau; nächster Schritt: Claude schreibt lösbare Fragen aus dem Blatt)
+# Handoff – 19.11.2026 (Gestaltungsprinzipien festgelegt; nächster Schritt: Stilprobe 2 ohne Umriss)
 
 ## Ziel
-Lernquest überarbeiten, damit jede Frage ohne das Arbeitsblatt lösbar ist und die 45 Minuten am Tag effektiv genutzt
-werden. Plan und Reihenfolge: `docs/plan-lernquest-fragen.md`.
+Lernquest nach festen Gestaltungsregeln (Vorbild Duolingo, eigener Look) umbauen und danach jede Frage ohne das
+Arbeitsblatt lösbar machen (Plan: `docs/plan-lernquest-fragen.md`).
 
 ## Stand
-- PR #81 (Branch `claude/handoff-continuation-849cyl`, gemergt am 19.11. = live):
-  `UMBAU = true` (Kinder sehen „Wir bauen gerade um“), `buildPaket` gibt keine Aufgaben 1:1 vom Blatt mehr ins Paket,
-  nur freigegebene Pool-Fragen. Auf dem Server nichts gelöscht. Pläne `docs/plan-lernquest-fragen.md`,
-  `docs/plan-klassendorf-haeuser.md`, Eintrag in `docs/roadmap.md`.
-- Klassendorf Teil A (PR #80) ist live; Teil B (eigene Häuser, Zelt-Quiz) auf Halde.
-- Tests: grün (619), Typecheck, Build. CI zu PR #81 grün.
+- Neu, Branch `claude/sweet-hypatia-axj6ax` (**nicht gemergt**, kein PR): `docs/design/prinzipien.md` (Regeln für
+  Grafik, Bewegung, Oberfläche, Verträge, Prüfliste, Umstellung), `docs/adr/0001-flache-figuren-iso-umgebung.md`,
+  Skills `grafik` (ohne 3D) und `figur` angepasst, Roadmap-Eintrag, Stilprobe 1 `docs/design/lernquest/stilprobe/umriss-v1.png`
+  mit Generator `src/lernquest/figuren/stilprobe.test.tsx` (nur mit `STILPROBE=<ordner>`).
+- Entschieden (Lehrkraft, 19.11.): Figuren flach, Umgebung isometrisch, gleiche Regeln; kein 3D; **kein Umriss**,
+  auch nicht an Figuren; Arme vor dem Körper **einen Ton dunkler** (`tief`) als der Rumpf.
+- PR #81 (Lernquest im Umbau, `UMBAU = true`) ist gemergt und live.
+- Tests: grün (619), Typecheck grün. CI Commit 1 grün, spätere Commits beim Schreiben noch offen.
 
-## Nächste Schritte (je einer pro Session, Skill `aufgabe`)
-1. **Claude schreibt die Fragen aus dem Blatt:** `fragenpool.ts` (`poolPrompt`, bisher nur `blockText`) bekommt die
-   JSON-Struktur der Schülerseiten samt Bildhinweisen; Regeln: ohne Blatt lösbar, curriculumsnah, verschiedene Formate.
-   Testfall: Englisch Präpositionen (Ball/Box) – Lehrkraft nach der Stunde fragen. Danach `UMBAU = false` und
-   Stationen der laufenden Klassen neu veröffentlichen (Lehrkraft).
-2. Vokabeln getrennt von anderen Inhalten; Geografie u. a. nach Kompetenzen.
-3. Wiederholung mit Maß (fällige deckeln, Vorschlag ≤ ⅓ der Lernzeit).
-4. Fuchs während der Aufgaben + Fuchs-Challenges je Landkarte; flüssigere Animationen (wie Duolingo).
-5. Lehrerseite neu gestalten, übersichtlicher.
+## Nächste Schritte (je einer pro Session, Skill `aufgabe` bzw. `figur`)
+1. **Stilprobe 2** (`umriss-v2.png`): wie Probe 1, aber Arme/Ärmel einen Ton dunkler, `hell`-Kante an dunklen Haaren,
+   Zacken an der Schwanzspitze des Fuchses neu. Befunde aus Probe 1: `prinzipien.md`, Abschnitt „Stilprobe ohne
+   Umriss“. Lehrkraft zeigen (Reifegrad nennen), dann Umstellung Satz für Satz (`prinzipien.md`, „Umstellung“).
+2. **Claude schreibt die Fragen aus dem Blatt:** `fragenpool.ts` (`poolPrompt`, bisher nur `blockText`) bekommt die
+   JSON-Struktur der Schülerseiten samt Bildhinweisen; ohne Blatt lösbar, curriculumsnah, verschiedene Formate.
+   Testfall: Englisch Präpositionen (Ball/Box). Danach `UMBAU = false`, Stationen neu veröffentlichen (Lehrkraft).
+3. Vokabeln getrennt von anderen Inhalten; Geografie u. a. nach Kompetenzen.
+4. Wiederholung mit Maß (fällige deckeln, Vorschlag ≤ ⅓ der Lernzeit).
+5. Fuchs während der Aufgaben + Fuchs-Challenges je Landkarte; flüssigere Animationen.
+6. Lehrerseite neu gestalten, übersichtlicher.
 
 ## Wichtig zu wissen
-- Pool-Tipps für Blatt-Aufgaben (`poolTipps`) sind jetzt wirkungslos; in Schritt 1 aufräumen.
+- Probe 1 entfernt den Umriss nur im Browser-Bild; im Code für die Umstellung Formen 1,5 Einheiten größer zeichnen.
+- Dorf nutzt noch Verläufe (`IsoVerlaeufe`), Landkarte ist noch flach mit Umriss: beides steht in der Umstellungsliste.
+- 3D-Skripte (`.claude/skills/grafik/skripte/`) und `haus-3d-probe.png` ungenutzt; löschen nur nach Rückfrage.
+- Pool-Tipps für Blatt-Aufgaben (`poolTipps`) sind wirkungslos; in Schritt 2 aufräumen.
 - Server-Regeln stehen doppelt (SQL und `rules.ts`/`dorf.ts`), Tests vergleichen sie: beide zusammen ändern.
-- Supabase-Migrationen brauchen eine Bestätigung der Lehrkraft in ihrer App.
-- Lokale DB: Postgres 16 (`/usr/lib/postgresql/16/bin`, Nutzer `postgres`); vorher Ersatz für `auth`, `extensions`,
-  `cron` und Rollen `anon`, `authenticated`, `service_role`. Auf Windows: PGlite.
-- Kein Figma (Lehrkraft, 18.11.). 3D/Grafik: Skill `grafik`. Werkstatt: https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG
+- Supabase-Migrationen brauchen eine Bestätigung der Lehrkraft in ihrer App. Lokale DB: Postgres 16 (siehe Git-Verlauf).
+- Kein Figma (18.11.). Werkstatt: https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG
 - Windows: keine zwei Dateien, die sich nur in Groß-/Kleinschreibung unterscheiden.
 - App prüfen: `npm run spieltest`, Daten `scripts/spieltest-daten.js`, Helfer `scripts/spieltest-helfer.js`.
