@@ -4,7 +4,7 @@
 // makes here by hand („Punkte im Bild“).
 // Changes are saved at once in the lesson (it syncs like the rest of the lesson); the class gets the released ones
 // with the next sending of the package.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Check, CheckCheck, ClipboardCopy, ClipboardPaste, KeyRound, MapPin, Move, Pencil, Sparkles, Trash2, Undo2 } from 'lucide-react';
 import { Icon } from '../../icons';
 import { AiSettingsDialog } from '../../ai/AiSettingsDialog';
@@ -15,10 +15,9 @@ import { modelLabel } from '../../ai/settings';
 import { useAiSettings } from '../../ai/useAi';
 import type { Lesson, Module, Settings } from '../../library/types';
 import { useImageUrl } from '../../storage/images';
-import { exercisesOf } from '../paket';
 import { RUNDE_MAX, RUNDEN_MAX } from '../rules';
-import { ablenkerVon, bilderDerStunde, frueherVon, kurzText, lueckeAus, lueckeText, mitZusatz, neueId, NIVEAUS, POOL_MAX, poolAnfrage, poolAusAntwort, poolPrompt, poolSystem, POOL_ZIEL, PUNKTE, punktAufgabe, readUebung, reihenfolgeAus } from '../fragenpool';
-import { KARTE_KEY } from '../paket';
+import { ablenkerVon, bilderDerStunde, bilderFuerClaude, frueherVon, lueckeAus, lueckeText, mitZusatz, neueId, NIVEAUS, POOL_MAX, poolAnfrage, poolAusAntwort, poolPrompt, poolSystem, POOL_ZIEL, PUNKTE, punktAufgabe, readUebung, reihenfolgeAus } from '../fragenpool';
+import { BILD_KEY, KARTE_KEY } from '../paket';
 import type { Lernkarte, Niveau, PoolEintrag, Uebung, UebungsArt } from '../types';
 
 const ARTEN: Record<UebungsArt, string> = {
@@ -41,7 +40,7 @@ interface Props {
   stunde: Lesson;
   settings: Settings;
   /** `hilfe`: new help cards for the lesson (absent = keep them). */
-  onChange(pool: PoolEintrag[], hilfe?: Lernkarte[], tipps?: Record<string, string>): void;
+  onChange(pool: PoolEintrag[], hilfe?: Lernkarte[]): void;
   /** All lessons, for the earlier ones of the module (repetition mixed in). */
   stunden?: Lesson[];
   /** An Extra-Paket: what Claude writes from (topic and words) instead of the lesson's sheets. */
@@ -63,7 +62,6 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
   const bilder = useMemo(() => bilderDerStunde(stunde), [stunde]);
   const [meldung, setMeldung] = useState('');
   const pool = useMemo(() => stunde.pool ?? [], [stunde.pool]);
-  const eigene = useMemo(() => exercisesOf(stunde.doc.pages), [stunde.doc]);
   const frei = pool.filter((e) => e.frei).length;
   const voll = pool.length >= POOL_MAX;
 
@@ -78,14 +76,11 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
     inhalt,
   });
   const read = (raw: unknown) => {
-    const { neu, verworfen, hilfe, tipps } = poolAusAntwort(raw, pool.map((e) => e.u.id), modul.lang === 'en');
-    // Tips only for the sheet's own exercises, added to what is there.
-    const ids = new Set(eigene.map((u) => u.id));
-    const neueTipps = Object.fromEntries(Object.entries(tipps).filter(([id]) => ids.has(id)));
+    const { neu, verworfen, hilfe } = poolAusAntwort(raw, pool.map((e) => e.u.id), modul.lang === 'en', inhalt ? [] : bilderFuerClaude(stunde).map((b) => b.id));
     const platz = Math.max(0, POOL_MAX - pool.length);
     const dazu = neu.slice(0, platz).map((u) => ({ u, frei: false }));
     // New help cards replace the old ones only when Claude wrote some.
-    onChange([...pool, ...dazu], hilfe.length ? hilfe : undefined, Object.keys(neueTipps).length ? { ...stunde.poolTipps, ...neueTipps } : undefined);
+    onChange([...pool, ...dazu], hilfe.length ? hilfe : undefined);
     setChatOpen(false);
     setPasted('');
     const weg = verworfen + (neu.length - dazu.length);
@@ -123,8 +118,8 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
             </p>
           ) : (
           <p className="dialog-body">
-            Claude schreibt nur aus den Arbeitsblättern der Kinder etwa {POOL_ZIEL} weitere Fragen in drei Stufen (leicht, mittel, schwer), jede mit einer kurzen Erklärung (ohne Lehrkraft-Seiten, ohne Kinderdaten). Lies sie durch, nimm
-            Schlechtes heraus und gib den Rest mit „Alle freigeben“ frei. Nur Freigegebenes kommt ins Lernpaket, hinter die Übungen der Stunde, von leicht nach schwer. Ist die Stunde für diese Klasse freigeschaltet, bekommt die Klasse
+            Claude schreibt nur aus den Arbeitsblättern der Kinder etwa {POOL_ZIEL} Fragen in drei Stufen (leicht, mittel, schwer), jede mit einer kurzen Erklärung (ohne Lehrkraft-Seiten, ohne Kinderdaten). Die Kinder sehen das Blatt nicht: Jede Frage muss ohne das Blatt lösbar sein. Lies sie durch, nimm
+            Schlechtes heraus und gib den Rest mit „Alle freigeben“ frei. Nur Freigegebenes kommt ins Lernpaket, von leicht nach schwer. Ist die Stunde für diese Klasse freigeschaltet, bekommt die Klasse
             die Änderungen beim Schließen; andere Klassen mit „Freigeschaltete neu senden“. Mit „Punkte im Bild“ setzt du selbst Stellen auf ein Bild vom Arbeitsblatt.
           </p>
           )}
@@ -294,10 +289,11 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
 
 /** How the exercise reads, with the right answers marked. */
 function Vorschau({ u }: { u: Uebung }) {
-  const ok = (text: string, on: boolean, key: number) => (
+  const ok = (text: string, on: boolean, key: number, bild?: ReactNode) => (
     <li key={key} className={on ? 'is-richtig' : ''}>
       {on && <span aria-label="richtig">✓ </span>}
       {text}
+      {bild}
     </li>
   );
   return (
@@ -337,7 +333,12 @@ function Vorschau({ u }: { u: Uebung }) {
           ))}
         </ul>
       )}
-      {u.art === 'bild' && <p>{kurzText(u)}</p>}
+      {u.art === 'bild' && (
+        <>
+          <p>{u.wort}</p>
+          <ul className="lqt-pool-bilder">{u.bilder.map((b, i) => ok('', i === u.richtig, i, <PoolBild bild={b} />))}</ul>
+        </>
+      )}
       {u.art === 'punkt' && <BildMitPunkten bildId={u.bild.slice(KARTE_KEY.length)} punkte={u.punkte} klein />}
       {u.art === 'schreiben' && (
         <p>
@@ -497,6 +498,14 @@ function PoolEditor({ u, onSave, onCancel }: { u: Uebung; onSave(u: Uebung): voi
       </div>
     </div>
   );
+}
+
+/** A picture in „Bild wählen“: an emoji, or one of the lesson's pictures ("img:<id>"). */
+function PoolBild({ bild }: { bild: string }) {
+  const eigen = bild.startsWith(BILD_KEY);
+  const img = useImageUrl(eigen ? bild.slice(BILD_KEY.length) : '');
+  if (!eigen) return <span className="lqt-pool-emoji">{bild}</span>;
+  return img.status === 'ready' ? <img src={img.url} alt="" /> : <span className="lqt-pool-neben">{img.status === 'loading' ? '…' : 'Bild fehlt auf diesem Gerät'}</span>;
 }
 
 /** A picture of this device with its places, numbered and named. `onTap` gets the place in percent. */
