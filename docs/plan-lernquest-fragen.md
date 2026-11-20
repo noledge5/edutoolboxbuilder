@@ -24,5 +24,10 @@ Englisch, Präpositionen: Ball vor/in/neben der Box). Eltern finden die Zeit am 
 4. **Fuchs und Animationen:** Fuchs kommentiert und hilft während der Aufgaben, kleine Fuchs-Challenges je Landkarte
    (wie Duolingo); nächste Aufgabe gleitet schnell herein, Zuordnungen mit fliegenden Wörtern.
 5. **Lehrerseite neu gestalten**, übersichtlicher (Lernquest-Bereich der Lehrkraft).
+6. **Solo-Boss an der Burg** (Wunsch der Lehrkraft 20.11.2026, als Nächstes dran): Am Ende des Lernwegs einer Region
+   besiegt jedes Kind allein einen kleinen Boss, ein „Lernkampf“ mit Lebensbalken, Schaden je richtiger Antwort.
+   Naheliegend: der Meilenstein (10 gemischte Fragen, nur auf dem Gerät gespeichert) wird dieser Kampf; der große
+   Bosskampf der Klasse am Beamer bleibt. Vorher mit der Lehrkraft klären: ersetzt er den Meilenstein, Belohnung,
+   was bei Niederlage passiert, eigene Boss-Figuren je Region (Skill `figur`).
 
 Zurückgestellt: Klassendorf Teil B, siehe `docs/plan-klassendorf-haeuser.md`.
