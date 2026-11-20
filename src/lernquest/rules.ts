@@ -443,13 +443,17 @@ export function karteNach(alt: [number, number] | undefined, richtig: boolean, h
   return [box, heuteNr + ABSTAND[box]];
 }
 
-/** Cards due today or earlier, the most overdue and lowest box first. */
+/** Cards due today or earlier, the most important first: the lowest box (still hard), then the most overdue. */
 export function faellig(leitner: Stand['leitner'], heuteNr: number, gueltig?: Set<string>): string[] {
   return Object.entries(leitner)
     .filter(([k, [, due]]) => due <= heuteNr && (!gueltig || gueltig.has(k)))
-    .sort(([, a], [, b]) => a[1] - b[1] || a[0] - b[0])
+    .sort(([, a], [, b]) => a[0] - b[0] || a[1] - b[1])
     .map(([k]) => k);
 }
+
+/** Most cards of „Wiederholen“ a day, two rounds (teacher 20.11.2026). What is left waits for the next days, so it
+ *  never piles up for the child, also after days without practice. */
+export const WDH_TAG = 16;
 
 /** „Wiederholen sofort“ from the teacher (e.g. before a test): the exercises of these lessons are due from `ab` to
  *  `bis` (dates as `heute()`), once each, also those never played. Kept on the class (`lq_klasse.extra_wdh`). */
@@ -483,19 +487,18 @@ export function extraFaellig(leitner: Stand['leitner'], karten: string[], extra:
   });
 }
 
-/** What the „Wiederholen“ round takes today: the cards due by their box, then those of „Wiederholen sofort“. */
-export function heuteDran(leitner: Stand['leitner'], karten: string[], extra: ExtraWiederholen | null | undefined, tag: string): string[] {
-  const normal = faellig(leitner, tagNummer(tag), new Set(karten));
-  const schon = new Set(normal);
-  return [...normal, ...extraFaellig(leitner, karten, extra, tag).filter((k) => !schon.has(k))];
+/** What „Wiederholen“ takes today: first those of „Wiederholen sofort“, then the cards due by their box; at most
+ *  `WDH_TAG` less the cards repeated today already (`schonHeute`). */
+export function heuteDran(leitner: Stand['leitner'], karten: string[], extra: ExtraWiederholen | null | undefined, tag: string, schonHeute = 0): string[] {
+  const zuerst = extraFaellig(leitner, karten, extra, tag);
+  const schon = new Set(zuerst);
+  const normal = faellig(leitner, tagNummer(tag), new Set(karten)).filter((k) => !schon.has(k));
+  return [...zuerst, ...normal].slice(0, Math.max(0, WDH_TAG - schonHeute));
 }
 
-/** How many cards come due tomorrow that are not due today (for „Morgen sind … dran“). */
-export function morgenDran(leitner: Stand['leitner'], karten: string[], tag: string): number {
-  const g = new Set(karten);
-  const n = tagNummer(tag);
-  return faellig(leitner, n + 1, g).length - faellig(leitner, n, g).length;
-}
+/** How many cards „Wiederholen“ takes tomorrow, a new day (for „Morgen sind … dran“). */
+export const morgenDran = (leitner: Stand['leitner'], karten: string[], extra: ExtraWiederholen | null | undefined, tag: string): number =>
+  heuteDran(leitner, karten, extra, tagPlus(tag, 1)).length;
 
 // — Coins (Stufe 2) —
 
