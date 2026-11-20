@@ -44,7 +44,7 @@ import { readPaket } from '../paket';
 import { bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
-import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, hilfeGesehen, merkeHilfe, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
+import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, hilfeGesehen, merkeHilfe, merkeWiederholt, wiederholtHeute, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
 import { Jubel } from './Jubel';
 import { GluehbirneIcon, HilfeSeite } from './Hilfe';
@@ -665,7 +665,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const wiederholen = (nur?: string[]) => {
     const karten = new Map<string, { u: Uebung; stunde: string }>();
     for (const p of pakete) for (const u of p.uebungen) karten.set(karteKey(p.stunde, u.id), { u, stunde: p.stunde });
-    const due = (nur ?? heuteDran(stand.leitner, [...karten.keys()], daten?.extra, heute())).filter((k) => karten.has(k)).slice(0, RUNDE_MAX);
+    const due = (nur ?? heuteDran(stand.leitner, [...karten.keys()], daten?.extra, heute(), wiederholtHeute(heute()))).filter((k) => karten.has(k)).slice(0, RUNDE_MAX);
     setScreen({
       kind: 'runde',
       nr: Date.now(),
@@ -694,6 +694,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         titel={screen.willkommen ? 'Deine erste Runde' : screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Meilenstein · ${screen.meilenstein.titel}` : 'Wiederholen'}
         onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
         onFertig={(st, r, e, l) => {
+          // A round of „Wiederholen“ (not the Meilenstein or the welcome, also sent without a lesson): counts for the daily limit.
+          if (!screen.stunde && !screen.meilenstein && !screen.willkommen) merkeWiederholt(heute(), Object.keys(l).length);
           fertig(st, r, e, l, screen.meilenstein);
           if (screen.willkommen) setScreen({ kind: 'willkommen', schritt: 'truhe' });
         }}
@@ -803,9 +805,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const rundeStarten = (p: Paket, r: number) => setScreen({ kind: 'runde', nr: Date.now(), stunde: p.stunde, runde: r, uebungen: rundeVon(p.uebungen, r).map((u) => ({ u, stunde: p.stunde })) });
 
   const karten = pakete.flatMap((p) => p.uebungen.map((u) => karteKey(p.stunde, u.id)));
-  const dran = heuteDran(stand.leitner, karten, daten.extra, heute());
+  // At most WDH_TAG a day (less what was repeated today), so it never piles up; everything on the page counts from this.
+  const schonHeute = wiederholtHeute(heute());
+  const dran = heuteDran(stand.leitner, karten, daten.extra, heute(), schonHeute);
   const dueCount = dran.length;
-  const morgen = morgenDran(stand.leitner, karten, heute());
+  const morgen = morgenDran(stand.leitner, karten, daten.extra, heute());
   // „Wiederholen sofort“ from the teacher today: said so on the page.
   const extraHeute = !!daten.extra && heute() >= daten.extra.ab && heute() <= daten.extra.bis;
 
@@ -1073,17 +1077,13 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
               Los geht’s!
             </button>
           </>
+        ) : schonHeute > 0 ? (
+          <p>Für heute hast du genug wiederholt. Super! Spiel gern Stationen auf der Karte.</p>
         ) : (
           <p>Gerade ist nichts dran. Spiel Stationen auf der Karte – was du dort übst, kommt hier später wieder.</p>
         )}
         {extraHeute && dueCount > 0 && <p className="lq-wdh-hinweis">Deine Lehrkraft hat Aufgaben zum Üben freigegeben, zum Beispiel vor einer Klassenarbeit.</p>}
-        {morgen > 0 && (
-          <p className="lq-wdh-hinweis">
-            {dueCount
-              ? `Morgen ${morgen === 1 ? 'kommt 1 Aufgabe' : `kommen ${morgen} Aufgaben`} dazu.`
-              : `Morgen ${morgen === 1 ? 'ist 1 Aufgabe' : `sind ${morgen} Aufgaben`} dran.`}
-          </p>
-        )}
+        {!dueCount && morgen > 0 && <p className="lq-wdh-hinweis">Morgen {morgen === 1 ? 'ist 1 Aufgabe' : `sind ${morgen} Aufgaben`} dran.</p>}
       </section>,
     );
   }

@@ -218,15 +218,15 @@ describe('Wiederholen', () => {
     expect(karteNach([4, t], false, t)).toEqual([1, t + 1]);
   });
 
-  it('nimmt fällige Karten, die ältesten zuerst, nur aus freigeschalteten Stunden', () => {
+  it('nimmt fällige Karten, die schwersten (niedrigste Box) und dann die ältesten zuerst, nur aus freigeschalteten Stunden', () => {
     const l = {
       'a/1': [2, t - 3],
       'a/2': [1, t + 1],
       'b/1': [1, t],
       'c/1': [1, t - 9],
     } as Record<string, [number, number]>;
-    expect(faellig(l, t)).toEqual(['c/1', 'a/1', 'b/1']);
-    expect(faellig(l, t, new Set(['a/1', 'b/1']))).toEqual(['a/1', 'b/1']);
+    expect(faellig(l, t)).toEqual(['c/1', 'b/1', 'a/1']);
+    expect(faellig(l, t, new Set(['a/1', 'b/1']))).toEqual(['b/1', 'a/1']);
   });
 
   it('setzt Sätze aus Kacheln ohne Leerzeichen vor Satzzeichen', () => {

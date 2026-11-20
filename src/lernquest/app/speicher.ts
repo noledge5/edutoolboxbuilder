@@ -113,7 +113,15 @@ export function speichereMeilenstein(id: string, prozent: number) {
   if (prozent > (alt[id] ?? -1)) write(K_MEILENSTEINE, { ...alt, [id]: prozent });
 }
 
+/** How many cards were repeated in „Wiederholen“ today on this device (for the daily limit `WDH_TAG`). */
+const K_WDH = 'lernquest:wiederholt';
+export function wiederholtHeute(tag: string): number {
+  const r = read<{ tag?: unknown; anzahl?: unknown }>(K_WDH);
+  return r && r.tag === tag && typeof r.anzahl === 'number' && Number.isFinite(r.anzahl) ? Math.max(0, r.anzahl) : 0;
+}
+export const merkeWiederholt = (tag: string, anzahl: number) => write(K_WDH, { tag, anzahl: wiederholtHeute(tag) + anzahl });
+
 /** Everything of this child off the device (sign out). */
 export function allesWeg() {
-  for (const k of [K_SITZUNG, K_DATEN, K_WARTE, K_MEILENSTEINE]) write(k, null);
+  for (const k of [K_SITZUNG, K_DATEN, K_WARTE, K_MEILENSTEINE, K_WDH]) write(k, null);
 }

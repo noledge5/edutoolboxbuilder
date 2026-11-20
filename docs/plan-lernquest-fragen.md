@@ -19,10 +19,15 @@ Englisch, Präpositionen: Ball vor/in/neben der Box). Eltern finden die Zeit am 
    App wieder an: Die Lehrkraft schaltet jede Klasse selbst live (Schalter „Kinder-App“ auf der Lehrerseite,
    20.11.2026), sobald deren Stationen neue, geprüfte Fragen haben und neu veröffentlicht sind.
 2. **Vokabeln getrennt von anderen Inhalten**; Geografie und andere Fächer nach Kompetenzen statt nach Blatt.
-3. **Wiederholung mit Maß:** fällige Wiederholungen je Tag deckeln (Vorschlag: höchstens ein Drittel der Lernzeit),
-   das Wichtigste zuerst; 45 Minuten bleiben das Tageslimit.
+3. ✅ (20.11.2026, vorgezogen) **Wiederholung mit Maß:** höchstens 16 Wiederholungen am Tag (zwei Runden), das
+   Wichtigste zuerst; 45 Minuten bleiben das Tageslimit. Anlass: 58 fällige Aufgaben beim Testen der Lehrkraft.
 4. **Fuchs und Animationen:** Fuchs kommentiert und hilft während der Aufgaben, kleine Fuchs-Challenges je Landkarte
    (wie Duolingo); nächste Aufgabe gleitet schnell herein, Zuordnungen mit fliegenden Wörtern.
 5. **Lehrerseite neu gestalten**, übersichtlicher (Lernquest-Bereich der Lehrkraft).
+6. **Solo-Boss an der Burg** (Wunsch der Lehrkraft 20.11.2026, als Nächstes dran): Am Ende des Lernwegs einer Region
+   besiegt jedes Kind allein einen kleinen Boss, ein „Lernkampf“ mit Lebensbalken, Schaden je richtiger Antwort.
+   Naheliegend: der Meilenstein (10 gemischte Fragen, nur auf dem Gerät gespeichert) wird dieser Kampf; der große
+   Bosskampf der Klasse am Beamer bleibt. Vorher mit der Lehrkraft klären: ersetzt er den Meilenstein, Belohnung,
+   was bei Niederlage passiert, eigene Boss-Figuren je Region (Skill `figur`).
 
 Zurückgestellt: Klassendorf Teil B, siehe `docs/plan-klassendorf-haeuser.md`.

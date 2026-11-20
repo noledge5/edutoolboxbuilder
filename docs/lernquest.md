@@ -355,14 +355,15 @@ am 09.11.2026 über die Supabase-Verbindung nach OK der Lehrkraft, vor dem Merge
 
 - Wunsch der Lehrkraft: ein Hinweis „Morgen sind … dran“ und ein Knopf, um Wiederholungen ausnahmsweise sofort zu
   geben („z. B. wegen morgen Klassenarbeit“).
-- **Kind** („Wiederholen“): unter dem Knopf „Morgen kommt 1 Aufgabe dazu“ bzw. ohne heutige Aufgaben „Morgen sind 3
-  Aufgaben dran“ (`morgenDran`). Läuft „Wiederholen sofort“, steht dort „Deine Lehrkraft hat Aufgaben zum Üben
+- **Kind** („Wiederholen“): ohne heutige Aufgaben „Morgen sind 3 Aufgaben dran“ (`morgenDran`; seit 20.11.2026 nur
+  noch ohne heutige Aufgaben). Läuft „Wiederholen sofort“, steht dort „Deine Lehrkraft hat Aufgaben zum Üben
   freigegeben, zum Beispiel vor einer Klassenarbeit.“
 - **Lehrkraft**: Karte „Wiederholen sofort“ je Klasse (`teacher/WiederholenSofort.tsx`): freigeschaltete Stunden nach Modul
   ankreuzen, Dauer (nur heute, bis morgen, bis übermorgen, eine Woche) → „Freigeben“; „Beenden“ und „Ändern“.
 - **Regel** (`rules.ts` `extraFaellig`, `heuteDran`): in der Zeit sind alle Aufgaben der gewählten Stunden dran, die das
   Kind seit dem Start nicht beantwortet hat, auch nie gespielte, jede einmal (beantwortet am = fällig am − Abstand des
-  Kastens, darum keine neue Speicherung). Erst die nach Kasten fälligen, dann diese. Belohnung wie jede Wiederholung (ein
+  Kastens, darum keine neue Speicherung). Seit 20.11.2026 erst diese, dann die nach Kasten fälligen, zusammen höchstens
+  16 am Tag (siehe „Wiederholung mit Maß“). Belohnung wie jede Wiederholung (ein
   Drittel). Danach läuft alles nach den Kästen weiter.
 - **Server** (`supabase/migrations/20261119_lernquest_wiederholen_sofort.sql`, eingespielt am 09.11.2026 nach OK der
   Lehrkraft, Live-Tests grün): `lq_klasse.extra_wdh`
@@ -447,6 +448,19 @@ Server bekommt wie bisher „richtig von gesamt“, gezählt werden die ersten V
   erfundenen Schülerin mit allen acht Formaten legt `scripts/spieltest-daten.js` in den Browser,
   `scripts/spieltest-helfer.js` spielt Aufgaben richtig oder falsch. So gespielt am 11.11.2026: alle Formate, Wiederholen,
   Held, Laden, Truhe, Gutscheine und Klasse ohne Netz, offene Übung mit Probetest, Zurück-Taste überall.
+
+## Wiederholung mit Maß (20.11.2026)
+
+- Anlass: Beim Testen standen 58 Aufgaben zum Wiederholen an. Jede gespielte Stationsaufgabe kommt nach den Kästen
+  wieder; wer viel spielt oder ein paar Tage aussetzt, bekam alles auf einmal.
+- **Regel** (`rules.ts`: `WDH_TAG`, `faellig`, `heuteDran`): höchstens 16 am Tag (zwei Runden à 8). Erst „Wiederholen
+  sofort“, dann die nach Kasten fälligen, die schwersten zuerst (niedrigster Kasten, dann am längsten überfällig). Was
+  heute schon wiederholt wurde, zählt ab; danach „Für heute hast du genug wiederholt“. Der Rest wartet und erscheint
+  nie gesammelt, auch nicht nach Wochen Pause.
+- Karte (Knoten „Wiederholen“, blasse Stationen), Fuchs und Zahl im Menü zählen alle aus derselben gedeckelten Liste.
+- **Gezählt** werden nur Runden „Wiederholen“ (auch über eine blasse Station), nicht Meilenstein, Willkommen oder
+  Stationsrunden; je Gerät in `localStorage` (`lernquest:wiederholt`, `speicher.ts`), beim Abmelden gelöscht. Keine
+  Server-Änderung.
 
 ## Inhalte, die reichen (11.11.2026, „Stufe B“ aus `docs/kritik-und-plan.md`)
 
