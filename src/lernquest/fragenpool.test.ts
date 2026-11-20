@@ -3,7 +3,7 @@ import { createBlock, createPage } from '../model/ops';
 import { readLesson } from '../library/read';
 import type { Lesson, Module } from '../library/types';
 import { fragenAus } from './boss';
-import { ablenkerVon, bilderDerStunde, freigegeben, mitZusatz, punktAufgabe, lueckeAus, lueckeText, neueId, poolAnfrage, poolAusAntwort, poolPrompt, readPool, readUebung, reihenfolgeAus, stundenText } from './fragenpool';
+import { ablenkerVon, bilderDerStunde, freigegeben, mitZusatz, punktAufgabe, lueckeAus, lueckeText, neueId, poolAnfrage, poolAusAntwort, poolPrompt, readPool, readUebung, reihenfolgeAus, seitenJson, bilderFuerClaude, stundenText } from './fragenpool';
 import { buildPaket, exercisesOf, KARTE_SEITE, KARTEN_MAX, mitBildern, readPaket } from './paket';
 import { istRichtig, loesungText, punktTrifft, richtigeAntwort } from './rules';
 import type { PoolEintrag, Uebung } from './types';
@@ -291,5 +291,105 @@ describe('KI-Pool automatisch (Stufe B)', () => {
     expect(a.system).toMatch(/"erklaerung"/);
     expect(a.system).toMatch(/schreiben/);
     expect(a.user).toContain('My family');
+  });
+});
+
+// Testfall der Lehrkraft (19.11.2026): Präpositionen mit Ball und Box. Die Aufgaben leben vom Bild des Blatts.
+describe('Lösbare Fragen aus dem Blatt (20.11.2026)', () => {
+  const englisch = {
+    ...modul,
+    title: 'Where is it?',
+    competences: [
+      { id: 'k1', area: 'Ortsangaben mit Präpositionen machen', g: 'in, on, under nennen', m: 'Lage beschreiben', e: 'Weg beschreiben', lessons: '3, 4', domain: 'Sprechen' },
+      { id: 'k2', area: 'Uhrzeiten nennen', g: '', m: '', e: '', lessons: '7', domain: 'Sprechen' },
+      { id: 'k3', area: 'Wörter rund ums Haus', g: '', m: '', e: '', lessons: '1–4', domain: 'Wortschatz' },
+    ],
+  } as unknown as Module;
+  const praep = (): Lesson => {
+    const pg = {
+      ...createPage(),
+      title: 'Where is the ball?',
+      blocks: [
+        createBlock('image', { image: 'praep-1', caption: 'Abb. 1: Where is the ball?', describe: 'Ball 1 liegt in einem Karton, Ball 2 auf dem Karton, Ball 3 unter dem Karton, Ball 4 neben dem Karton.', source: 'Schulbuch S. 34', search: 'ball box prepositions', labels: '1\n2\n3\n4', mat: 'M1' }),
+        createBlock('mc', { prompt: 'Look at M1. Where is ball 1?', options: '* in\non\nunder', competence: 'k1' }),
+        createBlock('gap', { prompt: 'Complete.', text: 'Ball 3 is [[under]] the box.' }),
+        createBlock('picvocab', { prompt: 'Label the pictures.', items: '🐶 | dog\n | box', pics: '\nbox-1' }),
+      ],
+    };
+    const lehrer = { ...createPage(), type: 'lehrkraft' as const, title: 'Geheim', blocks: [createBlock('text', { text: 'Nur für die Lehrkraft' })] };
+    return { id: 'l3', moduleId: 'm1', number: 3, title: 'Prepositions', doc: { pages: [pg, lehrer] }, updatedAt: 1 } as unknown as Lesson;
+  };
+
+  it('schickt die Schülerseiten als JSON: Bausteine mit Lösungen und Bildbeschreibung, ohne Lehrkraft-Seite und Layout', () => {
+    const j = JSON.parse(seitenJson(praep(), englisch));
+    expect(j.seiten).toHaveLength(1);
+    const [bild, mc, gap, vokabeln] = j.seiten[0].bausteine;
+    expect(bild).toMatchObject({ typ: 'image', image: 'img:praep-1', describe: expect.stringContaining('Ball 3 unter dem Karton') });
+    expect(bild).not.toHaveProperty('source');
+    expect(bild).not.toHaveProperty('height');
+    expect(bild).not.toHaveProperty('mat');
+    // The solutions stay: * before the right answer, [[…]] in a gap.
+    expect(mc).toMatchObject({ typ: 'mc', options: '* in\non\nunder', competence: 'Ortsangaben mit Präpositionen machen' });
+    expect(gap.text).toBe('Ball 3 is [[under]] the box.');
+    expect(vokabeln.pics).toBe('\nimg:box-1');
+    expect(j.legende.mc).toMatchObject({ name: 'Ankreuzen', options: expect.stringContaining('richtige mit * davor') });
+    expect(j.legende.mc).not.toHaveProperty('help');
+    expect(j.legende.gap.text).toContain('[[Wort]]');
+    expect(JSON.stringify(j)).not.toContain('Nur für die Lehrkraft');
+  });
+
+  it('kürzt ein langes Blatt so, dass das JSON gültig bleibt', () => {
+    const l = praep();
+    l.doc.pages[0].blocks = [createBlock('reading', { text: 'Long text. '.repeat(2000) }), ...Array.from({ length: 200 }, (_, i) => createBlock('text', { text: `Satz ${i} `.repeat(20) }))];
+    const t = seitenJson(l, englisch);
+    expect(t.length).toBeLessThanOrEqual(16000);
+    const j = JSON.parse(t);
+    expect(j.gekuerzt).toBe(true);
+    // The long reading text is cut, the next blocks still come along.
+    expect(j.seiten[0].bausteine[0].text.length).toBeLessThanOrEqual(4001);
+    expect(j.seiten[0].bausteine.length).toBeGreaterThan(5);
+  });
+
+  it('nennt die Bilder, die Claude zeigen darf, das Kompetenzraster und die Regel „ohne Blatt lösbar“', () => {
+    expect(bilderFuerClaude(praep())).toEqual([
+      { id: 'praep-1', zeigt: expect.stringContaining('Ball 1 liegt in einem Karton') },
+      { id: 'box-1', zeigt: expect.stringContaining('box') },
+    ]);
+    const a = poolAnfrage({ modul: englisch, stunde: praep(), klasse: '', vorhanden: [], wuensche: '' });
+    expect(a.user).toContain('"typ":"mc"');
+    expect(a.user).toContain('img:praep-1');
+    expect(a.user).toMatch(/diese Stunde.*Ortsangaben mit Präpositionen/);
+    expect(a.user).toContain('Uhrzeiten nennen');
+    expect(a.user).not.toContain('(diese Stunde) Uhrzeiten');
+    expect(a.user).toContain('(diese Stunde) Wörter rund ums Haus');
+    expect(a.user).not.toContain('Nur für die Lehrkraft');
+    expect(a.system).toMatch(/ohne das Blatt lösbar/i);
+    expect(a.system).toContain('"art":"bild"');
+    expect(a.system).not.toContain('"tipps"');
+  });
+
+  it('nimmt „Bild wählen“ mit Emoji oder Bildern der Stunde, sonst nicht', () => {
+    const bild = (bilder: string[], richtig: unknown = 0) => ({ art: 'bild', wort: 'dog', bilder, richtig, niveau: 1 });
+    const r = poolAusAntwort(
+      {
+        uebungen: [
+          bild(['🐶', '🐱', '🇩🇪']),
+          bild(['img:praep-1', 'img:box-1'], [1]),
+          bild(['img:fremd', '🐶']),
+          bild(['dog', 'cat']),
+          bild(['🐶', '🐶']),
+          bild(['1️⃣', '2️⃣']),
+        ],
+      },
+      [],
+      true,
+      ['praep-1', 'box-1'],
+    );
+    expect(r.verworfen).toBe(4);
+    expect(r.neu.map((u) => u.art === 'bild' && u.bilder)).toEqual([['🐶', '🐱', '🇩🇪'], ['img:praep-1', 'img:box-1']]);
+    expect(r.neu[0]).toMatchObject({ frage: 'Welches Bild passt?', richtig: 0 });
+    expect(r.neu[1]).toMatchObject({ richtig: 1 });
+    // Without the lesson's pictures no own picture comes through.
+    expect(() => poolAusAntwort({ uebungen: [bild(['img:praep-1', 'img:box-1'])] }, [], true)).toThrow();
   });
 });

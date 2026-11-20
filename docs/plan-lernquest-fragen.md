@@ -12,10 +12,12 @@ Englisch, Präpositionen: Ball vor/in/neben der Box). Eltern finden die Zeit am 
   neues Veröffentlichen ersetzt; vor dem Wieder-Anschalten alle Stationen der laufenden Klassen neu veröffentlichen.
 
 ## Reihenfolge (je eine Sitzung, eigener Branch, erst planen mit Skill `aufgabe`)
-1. **Claude schreibt die Fragen aus dem Blatt.** Claude bekommt die JSON-Struktur der Schülerseiten (Blöcke, Lösungen,
+1. ✅ (20.11.2026) **Claude schreibt die Fragen aus dem Blatt.** Claude bekommt die JSON-Struktur der Schülerseiten (Blöcke, Lösungen,
    Hinweis auf Bilder mit Bildbeschreibung), nicht nur Text. Regeln im Auftrag: jede Frage ohne das Blatt lösbar, am
    Curriculum ausgerichtet, verschiedene Formate; Bilder nur, wenn sie mitgeliefert werden (Emoji oder eigene Bilder).
-   Testfall: Präpositionen mit Ball und Box. Danach App wieder an (`UMBAU = false`).
+   Testfall: Präpositionen mit Ball und Box (`fragenpool.test.ts`).
+   **Offen:** App wieder an (`UMBAU = false`) erst, wenn die Lehrkraft die Fragen der laufenden Stationen neu erzeugt,
+   geprüft und die Stationen neu veröffentlicht hat (entschieden 20.11.2026); dann eigene Ein-Zeilen-Änderung.
 2. **Vokabeln getrennt von anderen Inhalten**; Geografie und andere Fächer nach Kompetenzen statt nach Blatt.
 3. **Wiederholung mit Maß:** fällige Wiederholungen je Tag deckeln (Vorschlag: höchstens ein Drittel der Lernzeit),
    das Wichtigste zuerst; 45 Minuten bleiben das Tageslimit.
