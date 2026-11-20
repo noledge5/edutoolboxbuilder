@@ -43,8 +43,8 @@ blocked in sessions.
 ## Check
 - `npx vitest run src/lernquest/figuren`, `npm run typecheck`.
 - Map without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=karte npx vitest run src/lernquest/figuren/vorschau`
-  (start landscape, every world as a region, every piece at full size and at 48 px). The app shows the map only with
-  `UMBAU = false` in `app/LernquestApp.tsx`; flip it locally for a look, never commit it.
+  (start landscape, every world as a region, every piece at full size and at 48 px). The app shows the map only when the
+  class is live (switch „Kinder-App“ on the teacher page, `imUmbau` in `rules.ts`); `scripts/spieltest-daten.js` is live.
 - Look at it in the workshop (`npm run spieltest` → `/lernquest/werkstatt.html`), next to the fox, at phone width and
   on the night background; go through the checklist in prinzipien.md.
 - Show the teacher with the maturity level named (10 % direction, 50 % structure, 99 % polish).

@@ -16,8 +16,8 @@ Englisch, Präpositionen: Ball vor/in/neben der Box). Eltern finden die Zeit am 
    Hinweis auf Bilder mit Bildbeschreibung), nicht nur Text. Regeln im Auftrag: jede Frage ohne das Blatt lösbar, am
    Curriculum ausgerichtet, verschiedene Formate; Bilder nur, wenn sie mitgeliefert werden (Emoji oder eigene Bilder).
    Testfall: Präpositionen mit Ball und Box (`fragenpool.test.ts`).
-   **Offen:** App wieder an (`UMBAU = false`) erst, wenn die Lehrkraft die Fragen der laufenden Stationen neu erzeugt,
-   geprüft und die Stationen neu veröffentlicht hat (entschieden 20.11.2026); dann eigene Ein-Zeilen-Änderung.
+   App wieder an: Die Lehrkraft schaltet jede Klasse selbst live (Schalter „Kinder-App“ auf der Lehrerseite,
+   20.11.2026), sobald deren Stationen neue, geprüfte Fragen haben und neu veröffentlicht sind.
 2. **Vokabeln getrennt von anderen Inhalten**; Geografie und andere Fächer nach Kompetenzen statt nach Blatt.
 3. **Wiederholung mit Maß:** fällige Wiederholungen je Tag deckeln (Vorschlag: höchstens ein Drittel der Lernzeit),
    das Wichtigste zuerst; 45 Minuten bleiben das Tageslimit.

@@ -4,7 +4,7 @@ import { angelegt, bonusText, bonusVon, ladenWare, SCHADEN_MAX, CHANCEN, DOPPELT
 import { createBlock } from '../model/ops';
 import type { Block, Page } from '../model/types';
 import { exercisesOf, readPaket } from './paket';
-import { klassenNach, klassenZiel, KLASSEN_ZIEL_JE_KIND, aufgabenNach, aufgabenVon, AUFGABE_MUENZEN, AUFGABEN_BONUS, ladenAb, TAGESAUFGABEN, tagPlus, niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, STATION_WDH_XP, STATION_WDH_MUENZEN, MUENZEN_TAG, rundeSekunden, zeitUebrig, ZEIT_LIMIT_STANDARD, RUNDE_SEKUNDEN_MAX, RUNDE_SEKUNDEN_OHNE, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest } from './rules';
+import { klassenNach, klassenZiel, KLASSEN_ZIEL_JE_KIND, aufgabenNach, aufgabenVon, AUFGABE_MUENZEN, AUFGABEN_BONUS, ladenAb, TAGESAUFGABEN, tagPlus, niveauVon, rundenStufen, sterneVon, faellig, gleich, heldenstufe, istRichtig, loesungText, naechsteRunde, karteNach, rundeVon, rundenZahl, satz, sterne, tagNummer, titel, woche, wochenStart, xpFuerRunde, rundeAnwenden, neueSterne, muenzenFuerRunde, istWiederholung, WIEDERHOLUNG_TEILER, STATION_WDH_XP, STATION_WDH_MUENZEN, MUENZEN_TAG, rundeSekunden, zeitUebrig, ZEIT_LIMIT_STANDARD, RUNDE_SEKUNDEN_MAX, RUNDE_SEKUNDEN_OHNE, GESCHAFFT_AB, XP_TAG, PUNKTE_WOCHENZIEL, gutscheinFrei, punkteHandRest, imUmbau } from './rules';
 import { auswerten, kartenJeKompetenz } from './auswertung';
 import type { Lesson, Module } from '../library/types';
 import { beamerAusHash, beitrittsLink, codeAus, fuchsHinweis, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, vorname, wochenTage } from './karte';
@@ -729,5 +729,15 @@ describe('Klassen-Aufgabe der Woche (Stufe D, Teil 2)', () => {
     expect(st.klassenTruhe).toBe(true);
     expect(st.klassenAufgabe?.geschafft).toBe(true);
     expect(st.truhen).toBe(truhen);
+  });
+});
+
+describe('Umbau-Schalter je Klasse (20.11.2026)', () => {
+  it('öffnet die App nur, wenn der Server die Klasse ausdrücklich live meldet', () => {
+    expect(imUmbau({ umbau: false })).toBe(false);
+    expect(imUmbau({ umbau: true })).toBe(true);
+    // Before the migration, or a stand saved on the device before: in Umbau.
+    expect(imUmbau({})).toBe(true);
+    expect(imUmbau(null)).toBe(true);
   });
 });

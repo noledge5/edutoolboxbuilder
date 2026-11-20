@@ -28,6 +28,7 @@ import {
   rundeVon,
   RUNDE_MAX,
   heuteDran,
+  imUmbau,
   morgenDran,
   readExtra,
   STERNE_JE_TRUHE,
@@ -132,18 +133,10 @@ const codeFromUrl = () => {
 
 const beamerFromUrl = () => beamerAusHash(location.hash);
 
-/** The children's app (sign-in, game, boss fight) is switched off while it is rebuilt (decision of the teacher,
- *  12.11.2026). Open exercises from a public link keep working. Nothing on the device is deleted: Spielstand and rounds
- *  not yet sent stay and go out once the app is back. Switched on again with the end of Stufe E (Teil 6, 12.11.2026);
- *  set to true to show the „Umbau“ page again. On again 19.11.2026: questions taken 1:1 from worksheets were often not
- *  solvable without the sheet's pictures; closed until Claude writes the questions from the sheet (docs/plan-lernquest-fragen.md). */
-export const UMBAU: boolean = true;
-
 export function LernquestApp() {
   // Open exercises from a public link: no sign-in, no server (`probe.ts`).
   const probe = probeAusUrl();
   if (probe) return <ProbeApp id={probe} />;
-  if (UMBAU) return <Umbau />;
   const beamer = beamerFromUrl();
   if (beamer) return <BossBeamer id={beamer.id} klasse={beamer.klasse} />;
   return <KinderApp />;
@@ -620,6 +613,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       </main>
     );
   }
+  // The teacher switches each class live (20.11.2026); until then the Umbau page. Rounds waiting on the device still go out (`laden`).
+  if (imUmbau(stand)) return <Umbau />;
 
   /** A round is over: shown at once, sent now or later. */
   const fertig = (stunde: string, runde: number, ergebnisse: boolean[], leitner: Stand['leitner'], meilenstein?: Meilenstein) => {

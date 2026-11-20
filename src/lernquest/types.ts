@@ -150,6 +150,8 @@ export interface Stand {
   willkommen?: boolean;
   /** Learning time today (seconds of rounds) and the class's limit in minutes (null: none). Missing before 20261201. */
   zeit?: { tag: string; sekunden: number; limit: number | null };
+  /** The class is in Umbau: the app shows the Umbau page (20261202_lernquest_umbau.sql; missing before, see `imUmbau`). */
+  umbau?: boolean;
 }
 
 /** Class task of the week (`lq_klassen_aufgabe`): new stars of all children together toward a shared goal. */
