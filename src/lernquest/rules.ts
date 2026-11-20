@@ -230,6 +230,12 @@ export function xpFuerRunde(richtig: number, gesamt: number, heuteSchon = 0, wie
 
 /** Minutes of rounds per day unless the teacher sets another limit for the class (or none). */
 export const ZEIT_LIMIT_STANDARD = 45;
+
+/**
+ * Whether the children's app of a class shows the Umbau page (switch on the teacher page, 20.11.2026). Only an
+ * explicit „live“ from the server opens it, so an older server or a stand saved before counts as in Umbau.
+ */
+export const imUmbau = (x: { umbau?: boolean } | null | undefined): boolean => x?.umbau !== false;
 /** A round counts at most this long (a device left lying), and this long when an old app does not say. */
 export const RUNDE_SEKUNDEN_MAX = 900;
 export const RUNDE_SEKUNDEN_OHNE = 120;

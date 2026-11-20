@@ -11,6 +11,7 @@ import type { ExtraPaket, Lesson, Library, Module } from '../../library/types';
 import { ExtraPakete, extraSenden } from './ExtraPakete';
 import { KlassenDorf } from './KlassenDorf';
 import { Lernzeit } from './Lernzeit';
+import { UmbauSchalter } from './UmbauSchalter';
 import { classProfileOf } from '../../ai/classNotes';
 import { jsonOf } from '../../ai/client';
 import { runAi, useAiSettings } from '../../ai/useAi';
@@ -608,6 +609,8 @@ function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse,
           </button>
         </div>
       </section>
+
+      <UmbauSchalter klasse={klasse} busy={busy} act={act} />
 
       <Belohnungen klasse={klasse} keys={keys} busy={busy} act={act} />
 

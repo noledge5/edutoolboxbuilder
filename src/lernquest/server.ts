@@ -355,6 +355,8 @@ export interface KlasseInfo {
   wochenZiel?: number | null;
   /** Learning time per day in minutes; null: no limit; missing before 20261201 (then the standard). */
   zeitLimit?: number | null;
+  /** The children's app of the class shows the Umbau page; missing before 20261202 (then in Umbau, see `imUmbau`). */
+  umbau?: boolean;
   aufgabe?: KlassenAufgabe;
 }
 
@@ -474,6 +476,8 @@ export const wochenzielSetzen = (keys: string[], klasse: string, ziel: number | 
 /** Learning time per day in minutes (5–240), null for none. */
 export const zeitlimitSetzen = (keys: string[], klasse: string, minuten: number | null) =>
   lq<null>('lq_zeitlimit_setzen', { p_schluessel: keys, p_klasse: klasse, p_minuten: minuten });
+export const umbauSetzen = (keys: string[], klasse: string, umbau: boolean) =>
+  lq<null>('lq_umbau_setzen', { p_schluessel: keys, p_klasse: klasse, p_umbau: umbau });
 export const wiederholenSetzen = (keys: string[], klasse: string, extra: { ab: string; bis: string; stunden: string[] } | null) =>
   lq<null>('lq_wiederholen_setzen', { p_schluessel: keys, p_klasse: klasse, p_extra: extra });
 
