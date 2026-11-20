@@ -1,16 +1,15 @@
-# Handoff – 20.11.2026 (Wiederholung mit Maß fertig, nicht gemergt; als Nächstes Solo-Boss an der Burg)
+# Handoff – 20.11.2026 (Wiederholung mit Maß gemergt, PR #86; als Nächstes Solo-Boss an der Burg)
 
 ## Ziel
 Lernquest nach `docs/plan-lernquest-fragen.md` überarbeiten; Kinder-App schaltet die Lehrkraft je Klasse selbst live.
 
 ## Stand
-- Erledigt, **nicht gemergt**: Wiederholung mit Maß (Plan Schritt 3). „Wiederholen“ gibt höchstens 16 am Tag
+- Erledigt und **gemergt (PR #86, live)**: Wiederholung mit Maß (Plan Schritt 3). „Wiederholen“ gibt höchstens 16 am Tag
   (`WDH_TAG` in `rules.ts`), danach „Für heute hast du genug wiederholt“; der Rest wartet unsichtbar. Reihenfolge:
   „Wiederholen sofort“ zuerst (auch innerhalb der 16), dann niedrigster Kasten, dann am längsten überfällig. Gezählt
   je Gerät (`lernquest:wiederholt`, `app/speicher.ts`), keine Migration. Entscheidungen der Lehrkraft: 16 am Tag,
   „Wiederholen sofort“ zuerst und mit Limit. Doku: `docs/lernquest.md`, `docs/roadmap.md`, Plan.
-  Branch `claude/dreamy-bardeen-2fmcg4` (neu von `main`, darin per Merge `-s ours` der alte, schon als #84 gemergte Stand).
-  Kein PR offen; Lehrkraft fragen, ob PR. Mergen = live.
+  Branch `claude/dreamy-bardeen-2fmcg4`. Mergen = live.
 - Tests grün (631), Typecheck, Build, CI grün. Spieltest mit 70 fälligen Aufgaben: Karte/Fuchs/Menü zeigen 16,
   nach einer echten Runde 8, nach 16 „für heute geschafft“.
 - Lehrkraft 20.11.: Die neuen Fragen von Claude sind gut (keine Änderung am Auftrag nötig).
@@ -29,7 +28,7 @@ Lernquest nach `docs/plan-lernquest-fragen.md` überarbeiten; Kinder-App schalte
 - Kinder-App: Umbau-Seite, solange die Klasse nicht live ist (`imUmbau` in `rules.ts`); Schalter je Klasse auf der Lehrerseite.
 - Force-Push auf Branches wird von der Rechteprüfung blockiert; gemergte Branch-Namen neu aufsetzen per Merge, nicht per Force.
 - Gemergte Branches `claude/admiring-fermi-fcitkp`, `claude/eloquent-davinci-xlogq4`, `claude/jolly-planck-0jqcot`,
-  `claude/umbau-schalter`; löschen nur nach Rückfrage. Ebenso 3D-Skripte (`.claude/skills/grafik/skripte/`).
+  `claude/umbau-schalter`, `claude/dreamy-bardeen-2fmcg4`; löschen nur nach Rückfrage. Ebenso 3D-Skripte (`.claude/skills/grafik/skripte/`).
 - Spieltest: `npm run spieltest`, Daten `scripts/spieltest-daten.js`, Spielen `scripts/spieltest-helfer.js` (per Playwright `evaluate`).
 - Vorschau ohne Werkstatt: `VORSCHAU=<ordner> VORSCHAU_TEIL=dorf|karte|… npx vitest run src/lernquest/figuren/vorschau`.
 - Werkstatt veröffentlichen braucht die Zustimmung der Lehrkraft; die Live-Fassung vorher lesen (Artifact `read`).
