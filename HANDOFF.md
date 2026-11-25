@@ -1,18 +1,18 @@
-# Handoff – 25.11.2026 (Eigene Häuser im Klassendorf gebaut, nicht gemergt)
+# Handoff – 25.11.2026 (Eigene Häuser im Klassendorf gemergt, PR #87; Migration noch offen)
 
 ## Ziel
 Lernquest weiter ausbauen. Die Lehrkraft hat am 25.11. die Häuser vorgezogen; danach weiter nach
 `docs/plan-lernquest-fragen.md` und den neuen Wünschen in `docs/plan-klassendorf-haeuser.md`.
 
 ## Stand
-- Erledigt, **nicht gemergt**: Klassendorf Teil B1 „Eigenes Haus“. Schalter je Klasse auf der Lehrerseite (Standard
+- Erledigt und **gemergt (PR #87, live)**: Klassendorf Teil B1 „Eigenes Haus“. Schalter je Klasse auf der Lehrerseite (Standard
   aus), Zelt per Quiz (`zelt.ts`, 5 von 12 Fragen, ab 4 richtig), Ausbau Hütte 300, Holzhaus 800 (Heldenstufe 3),
   Fachwerkhaus 1800 (5), Turmhaus 4000 (12). Kinder sehen alle Häuser ohne Namen, „Du“ am eigenen; die Lehrkraft sieht Namen.
-  Branch `claude/compassionate-davinci-8in8er` (Commit ecbdfe6), CI grün. Mergen = live.
+  Branch `claude/compassionate-davinci-8in8er` (gemergt, nur nach Rückfrage löschen), CI grün.
 - Tests grün (639), Typecheck, Build. SQL mit lokalem Postgres geprüft. Kinderseite im Browser mit nachgestelltem
   Server geprüft (Quiz, Zelt, Hütte, Handybreite). Nicht geprüft: echter Server, Lehrerseite im Browser.
-- Offen bei der Lehrkraft: PR gewünscht? Mergen, Migration `20261203_lernquest_haeuser.sql` einspielen, Quizfragen in
-  `src/lernquest/zelt.ts` prüfen. Danach je Klasse „Eigene Häuser freigeschaltet“ setzen (Dorf muss an sein).
+- Offen bei der Lehrkraft: Migration `20261203_lernquest_haeuser.sql` in Supabase einspielen (bis dahin blendet die
+  App die Häuser aus), Quizfragen in `src/lernquest/zelt.ts` prüfen, je Klasse „Eigene Häuser freigeschaltet“ setzen.
 
 ## Nächste Schritte (je einer pro Session, neuer Branch von `main`)
 1. Rückmeldung zu den Häusern einarbeiten (Fragen, Bilder, Texte), falls die Lehrkraft etwas ändern will.
