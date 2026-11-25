@@ -1,4 +1,4 @@
-# Handoff – 26.11.2026 (30 neue Teile zu den Welten der Karte, PR #89 gemergt und live; Migration offen)
+# Handoff – 26.11.2026 (30 neue Teile live, Häuser live für 5c; als Nächstes Sprachausgabe)
 
 ## Ziel
 Lernquest weiter ausbauen; als Nächstes die übrigen Wünsche der Lehrkraft vom 25.11. (Reihenfolge fragt man sie).
@@ -10,9 +10,9 @@ Lernquest weiter ausbauen; als Nächstes die übrigen Wünsche der Lehrkraft vom
 - Tests grün (699), Typecheck, Build. SQL mit PGlite geprüft (alle 32 Migrationen, Werte = teile.ts, Laden kauft/verweigert
   richtig, 3000 Truhen geben neue Teile aus). Kinder-App im Browser (Handybreite, nachgestellter Server): Teile-Liste und
   Held mit neuen Teilen. Nicht geprüft: echter Server, echtes Handy.
-- Die Lehrkraft hat `20261203` und `20261204` (Häuser, Gestalten) am 26.11. eingespielt.
-- **Offen bei der Lehrkraft:** `20261205_lernquest_welten_teile.sql` in Supabase einspielen (bis dahin gibt es die neuen
-  Teile weder im Laden noch in Truhen).
+- **Server (26.11., von Claude mit Zustimmung):** `20261203`, `20261204`, `20261205` in einer Transaktion eingespielt (vorher
+  Probelauf mit Rollback); 174 Teile, Häuser-Funktionen da. Klasse 5c: Dorf an, Häuser an, nicht im Umbau. Die Lehrkraft
+  dachte, 1203/1204 seien schon drin; sie waren es nicht. Künftig nach „eingespielt“ per RPC-Probe prüfen.
 
 ## Nächste Schritte (je einer pro Session, neuer Branch von `main`)
 1. **Sprachausgabe neu (Wunsch 26.11., als Nächstes):** Vorlesen klingt auf vielen Geräten fehlerhaft oder blechern
@@ -37,4 +37,6 @@ Lernquest weiter ausbauen; als Nächstes die übrigen Wünsche der Lehrkraft vom
 - Gemergte Branches nur nach Rückfrage löschen: `claude/neue-teile-welten`, `claude/dorf-hochformat`, `claude/compassionate-davinci-8in8er`,
   `claude/admiring-fermi-fcitkp`, `claude/eloquent-davinci-xlogq4`, `claude/jolly-planck-0jqcot`, `claude/umbau-schalter`,
   `claude/dreamy-bardeen-2fmcg4`.
+- Supabase: CLI ist auf diesem Mac angemeldet (Schlüsselbund). Lesen: `npx supabase db query --remote=txafdkaeotgekoxzgcxd
+  --read-only "<sql>"`; Einspielen nur mit Zustimmung: `begin; … commit;` als Datei, `-f <datei> --yes`, erst Probelauf mit rollback.
 - Supabase-Migrationen und Werkstatt-Veröffentlichung nur mit Zustimmung; Force-Push gesperrt; kein Figma.
