@@ -11,6 +11,7 @@ import { DORF_GEBAEUDE } from '../dorf';
 import { Landkarte } from '../app/Landkarte';
 import { Landschaft } from '../app/Landschaft';
 import { DorfKarte, DORF_TEILE, GEBAEUDE_BILD } from './dorf';
+import { HAUS_TEILE } from './haeuser';
 import { GELAENDE } from './gelaende';
 import { MODUL_WELTEN, WELT_TEILE } from './welten';
 import { HINTERGRUENDE } from './hintergruende';
@@ -32,6 +33,12 @@ it.skipIf(!ziel)('writes a preview page and screenshot', async () => {
   if (teil === 'dorf') {
     const ids = DORF_GEBAEUDE.map((g) => g.id);
     teile.push(`<figure style="width:1360px">${renderToStaticMarkup(<DorfKarte fertig={ids.slice(1)} baustelle={ids[0]} plaetze={6} titel="Dorf" />)}<figcaption>Karte</figcaption></figure>`);
+    // Own houses (Teil B1): 14 plots with every stage, the own one marked, then the teacher's view with names.
+    const haeuser = Array.from({ length: 14 }, (_, i) => ({ stufe: i % 6 === 5 ? null : i % 6, name: ['Ali', 'Bea', 'Can', 'Dana', 'Emil', 'Fiona', 'Gül'][i % 7] }));
+    teile.push(`<figure style="width:1360px">${renderToStaticMarkup(<DorfKarte fertig={ids.slice(2)} plaetze={14} haeuser={haeuser.map(({ stufe }) => ({ stufe }))} ich={3} titel="Dorf" />)}<figcaption>Karte mit Häusern (Kind)</figcaption></figure>`);
+    teile.push(`<figure style="width:1360px">${renderToStaticMarkup(<DorfKarte fertig={ids.slice(2)} plaetze={14} haeuser={haeuser} titel="Dorf" />)}<figcaption>Karte mit Häusern (Lehrkraft)</figcaption></figure>`);
+    for (const t of HAUS_TEILE)
+      teile.push(`<figure><div class="reihe"><svg width="48" height="48" viewBox="${t.rahmen.join(' ')}">${renderToStaticMarkup(<>{t.zeichnung()}</>)}</svg></div><figcaption>${t.id} · 48 px</figcaption></figure>`);
     for (const [id, bild] of [...Object.entries(GEBAEUDE_BILD), ...DORF_TEILE.map((t) => [t.id, t.zeichnung] as const)].filter(([id]) => gewaehlt(id)))
       teile.push(`<figure><svg width="220" height="220" viewBox="-110 -160 220 220">${renderToStaticMarkup(<>{bild()}</>)}</svg><figcaption>${id}</figcaption></figure>`);
   }

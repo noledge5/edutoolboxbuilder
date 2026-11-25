@@ -1,12 +1,13 @@
 // Klassendorf, Stufe 1 „Dorfkasse“ on the teacher page (decided 13.11.2026, docs/idee-klassendorf.md): switch the
 // village on or off per class, start the next project (building, goal in coins, an optional real reward), see the
 // progress and the finished buildings; deleting a running project gives every child the donated coins back.
+// Teil B1 (25.11.2026): unlock the children's own houses per class; the map then shows every house with its name.
 import { useCallback, useEffect, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Icon } from '../../icons';
-import { DORF_GEBAEUDE, gebaeudeName, SPENDE_WOCHE, ZIEL_MAX, ZIEL_MIN, zielVorschlag, type Dorf } from '../dorf';
+import { DORF_GEBAEUDE, gebaeudeName, HAUS_STUFEN, SPENDE_WOCHE, ZIEL_MAX, ZIEL_MIN, zielVorschlag, type Dorf } from '../dorf';
 import { DorfKarte } from '../figuren/dorf';
-import { dorfLehrkraft, dorfProjektLoeschen, dorfProjektStarten, dorfSchalten, lqText, type KlasseInfo } from '../server';
+import { dorfLehrkraft, dorfProjektLoeschen, dorfProjektStarten, dorfSchalten, haeuserSchalten, lqText, type KlasseInfo } from '../server';
 
 interface Props {
   klasse: KlasseInfo;
@@ -66,8 +67,41 @@ export function KlassenDorf({ klasse, keys, busy, act }: Props) {
       {d?.an && (
         <>
           <div className="lqt-dorf-bild">
-            <DorfKarte fertig={d.fertig.map((f) => f.gebaeude)} baustelle={p?.gebaeude} plaetze={kinder} titel="Das Dorf der Klasse" />
+            <DorfKarte
+              fertig={d.fertig.map((f) => f.gebaeude)}
+              baustelle={p?.gebaeude}
+              plaetze={kinder}
+              haeuser={d.haeuser?.an ? d.haeuser.plaetze : undefined}
+              titel="Das Dorf der Klasse"
+            />
           </div>
+          {d.haeuser ? (
+            <div className="lqt-dorf-haeuser">
+              <label className="lqt-hint">
+                <input
+                  type="checkbox"
+                  checked={d.haeuser.an}
+                  disabled={busy}
+                  onChange={(e) => {
+                    const an = e.target.checked;
+                    if (!an || confirm('Häuser für diese Klasse freischalten? Jedes Kind sieht dann sein Grundstück im Reiter „Klasse“.')) void tun((k) => haeuserSchalten(k, klasse.id, an));
+                  }}
+                />{' '}
+                Eigene Häuser freigeschaltet
+              </label>
+              <p className="lqt-hint">
+                Jedes Kind stellt mit einem kurzen Quiz (Umgang mit Lernquest und Medien, wie Spiel und App funktionieren) ein Zelt auf und baut es mit Münzen aus:{' '}
+                {HAUS_STUFEN.slice(1)
+                  .map((h) => `${h.name} ${h.preis}${h.ab > 1 ? ` (ab Heldenstufe ${h.ab})` : ''}`)
+                  .join(', ')}
+                . Die Kinder sehen alle Häuser, aber keine Namen; du siehst die Namen auf der Karte.
+                {d.haeuser.an &&
+                  ` ${d.haeuser.plaetze.filter((h) => h.stufe !== null).length} von ${d.haeuser.plaetze.length} Kindern haben schon ein Haus.`}
+              </p>
+            </div>
+          ) : (
+            <p className="lqt-hint">Eigene Häuser: Erst muss die Datenbank-Änderung „Häuser“ eingespielt sein.</p>
+          )}
           {p ? (
             <div className="lqt-dorf-projekt">
               <p>

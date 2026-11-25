@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { DORF_GEBAEUDE } from "../dorf";
+import { DORF_GEBAEUDE, HAUS_STUFEN } from "../dorf";
+import { HAUS_BILD, HAUS_TEILE } from "./haeuser";
 import {
   DORF_TEILE,
   DorfKarte,
@@ -78,9 +79,66 @@ describe("Klassendorf: Zeichnungen", () => {
         {DORF_TEILE.map((t) => (
           <g key={t.id}>{t.zeichnung()}</g>
         ))}
+        <DorfKarte
+          fertig={[]}
+          plaetze={5}
+          haeuser={HAUS_STUFEN.map((_, i) => ({ stufe: i, name: "X" }))}
+          ich={0}
+          titel="Häuser"
+        />
       </svg>,
     );
     expect(html).not.toMatch(/Gradient|filter=|blur/i);
+  });
+
+  it("hat für jede Hausstufe eine Zeichnung, und jede Stufe ist größer als die vorige", () => {
+    expect(HAUS_BILD).toHaveLength(HAUS_STUFEN.length);
+    expect(HAUS_TEILE.map((t) => t.name)).toEqual(
+      HAUS_STUFEN.map((h) => `Haus: ${h.name}`),
+    );
+    const laenge = HAUS_TEILE.map(
+      (t) => renderToStaticMarkup(<svg>{t.zeichnung()}</svg>).length,
+    );
+    for (let i = 1; i < laenge.length; i++)
+      expect(laenge[i], HAUS_STUFEN[i].name).toBeGreaterThan(laenge[i - 1]);
+  });
+
+  it("zeigt Häuser auf ihren Grundstücken, „Du“ am eigenen und Namen nur, wenn sie mitkommen", () => {
+    const plaetze = [{ stufe: null }, { stufe: 0 }, { stufe: 4 }];
+    const kind = renderToStaticMarkup(
+      <DorfKarte fertig={[]} plaetze={3} haeuser={plaetze} ich={1} titel="D" />,
+    );
+    const leer = renderToStaticMarkup(
+      <DorfKarte fertig={[]} plaetze={3} titel="D" />,
+    );
+    expect(kind.length).toBeGreaterThan(leer.length + 2000);
+    expect(kind).toContain(">Du<");
+    const lehrkraft = renderToStaticMarkup(
+      <DorfKarte
+        fertig={[]}
+        plaetze={3}
+        haeuser={[
+          { stufe: null, name: "Ali" },
+          { stufe: 2, name: "Bea" },
+          { stufe: 1, name: "Maximilian-Alexander" },
+        ]}
+        titel="D"
+      />,
+    );
+    expect(lehrkraft).toContain(">Ali<");
+    expect(lehrkraft).toContain(">Bea<");
+    expect(lehrkraft).toContain(">Maximilia…<");
+    expect(lehrkraft).not.toContain(">Du<");
+    // More houses than plots: the map makes room for all of them.
+    const breite = (html: string) =>
+      Number(/viewBox="[-\d.]+ [-\d.]+ ([\d.]+)/.exec(html)![1]);
+    expect(
+      breite(
+        renderToStaticMarkup(
+          <DorfKarte fertig={[]} plaetze={0} haeuser={plaetze} titel="D" />,
+        ),
+      ),
+    ).toBe(breite(leer));
   });
 
   it("nutzt nur eigene, eindeutige Ids", () => {

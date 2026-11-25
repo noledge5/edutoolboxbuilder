@@ -1,9 +1,11 @@
 // The class village in 2.5D (Klassendorf Stufe 2 Teil A, style of Stilprobe 3, decided 18.11.2026): the six buildings
 // the class builds together, the building site of the running project and the village map (DorfKarte): the square
-// with the six building places, a road to the right and quarters of six staked plots (names and own houses come with
-// Teil B). Built from the parts of iso.tsx. Every building draws into one 100 × 100 cell at (x, y).
+// with the six building places, a road to the right and quarters of six staked plots with the children's own houses
+// (Teil B1, haeuser.tsx). Built from the parts of iso.tsx. Every building draws into one 100 × 100 cell at (x, y).
 import type { ReactNode } from "react";
 import type { GelaendeTeil } from "./gelaende";
+import type { HausPlatz } from "../dorf";
+import { HAUS_BILD, HAUS_TEILE } from "./haeuser";
 import { BRUCH, HOLZ, isoStift, PUTZ, SCHIEFER, type IsoStift } from "./iso";
 import { P } from "./stil";
 
@@ -512,6 +514,7 @@ export const DORF_TEILE: GelaendeTeil[] = [
     rahmen: R,
     zeichnung: () => <Einzeln bau={baustelle} />,
   },
+  ...HAUS_TEILE,
 ];
 
 /** Building places on the square (cells of 100), back row first. */
@@ -550,6 +553,47 @@ export function grundstuecke(
   return out;
 }
 
+/** A name sign in front of a plot (teacher), or the gold sign „Du“ at the own plot. Drawn on top of everything and
+ *  large, because the map is shown only about half size (260–300 px high). */
+const schild = (
+  s: IsoStift,
+  x: number,
+  y: number,
+  text: string,
+  du: boolean,
+  key: number,
+) => {
+  const [cx, cy] = s.P3(x + W, y + W, 0);
+  const kurz = text.length > 10 ? `${text.slice(0, 9)}…` : text;
+  const gr = du ? 24 : 18;
+  const hoch = du ? 32 : 26;
+  const breite = kurz.length * gr * 0.58 + hoch * 0.8;
+  return (
+    <g key={`s${key}`} data-ich={du ? "" : undefined}>
+      <rect
+        x={cx - breite / 2}
+        y={cy - hoch / 2}
+        width={breite}
+        height={hoch}
+        rx={hoch / 2}
+        fill={du ? P.gold : P.weiss}
+        opacity={du ? 1 : 0.94}
+      />
+      <text
+        x={cx}
+        y={cy + gr * 0.36}
+        textAnchor="middle"
+        fontFamily="Fredoka, Nunito, sans-serif"
+        fontWeight={700}
+        fontSize={gr}
+        fill={P.linie}
+      >
+        {kurz}
+      </text>
+    </g>
+  );
+};
+
 /**
  * The village map: the square with the built buildings, the building site of the running project, the road and
  * `plaetze` staked plots in quarters of six. Wider than the screen: the caller lets it scroll sideways.
@@ -558,18 +602,25 @@ export function DorfKarte({
   fertig,
   baustelle: bauId,
   plaetze,
+  haeuser,
+  ich,
   hinweis,
   titel,
 }: {
   fertig: string[];
   baustelle?: string | null;
   plaetze: number;
+  /** Own houses (Teil B1) by plot; names are shown when given (teacher). */
+  haeuser?: HausPlatz[];
+  /** The viewer's own plot: marked „Du“. */
+  ich?: number | null;
   hinweis?: string;
   titel: string;
 }) {
   const s = isoStift(0, 0);
-  const n = Number.isFinite(plaetze)
-    ? Math.min(200, Math.max(0, Math.floor(plaetze)))
+  const roh = Math.max(plaetze, haeuser?.length ?? 0);
+  const n = Number.isFinite(roh)
+    ? Math.min(200, Math.max(0, Math.floor(roh)))
     : 0;
   const viertel = Math.ceil(n / JE_VIERTEL);
   const ende = viertel * 4 + 1;
@@ -612,12 +663,28 @@ export function DorfKarte({
     const bau = fertig.includes(g) ? BAUTEN[g] : bauId === g ? baustelle : null;
     dinge.push({ t: x + y, node: bau ? bau(s, x, y) : platz(s, x, y) });
   }
-  plots.forEach((p, i) =>
+  const schilder: ReactNode[] = [];
+  plots.forEach((p, i) => {
+    const h = haeuser?.[i];
+    const bau = h && h.stufe !== null ? HAUS_BILD[h.stufe] : undefined;
     dinge.push({
       t: p.x + p.y - 1000,
-      node: <g key={`g${i}`}>{grundstueck(s, p.x, p.y, W)}</g>,
-    }),
-  );
+      node: (
+        <g key={`g${i}`}>
+          {bau ? (
+            <>
+              {s.flaeche(p.x, p.y, W, W, P.wieseHell)}
+              {bau(s, p.x, p.y)}
+            </>
+          ) : (
+            grundstueck(s, p.x, p.y, W)
+          )}
+        </g>
+      ),
+    });
+    const text = i === ich ? "Du" : h?.name;
+    if (text) schilder.push(schild(s, p.x, p.y, text, i === ich, i));
+  });
   kleinePlaetze.forEach(([x, y], i) =>
     dinge.push({
       t: x + y + 50,
@@ -669,6 +736,7 @@ export function DorfKarte({
         .map((d, i) => (
           <g key={i}>{d.node}</g>
         ))}
+      {schilder}
       {label && (
         <text
           x={label[0]}
