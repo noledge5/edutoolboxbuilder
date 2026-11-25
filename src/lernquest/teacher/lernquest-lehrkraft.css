@@ -1143,15 +1143,17 @@
 
 /* — Klassendorf (Stufe 1 „Dorfkasse“) — */
 /* The village map keeps its height and grows to the right (one quarter per six children); the frame scrolls. */
+/* The map in portrait (Richtung A, 25.11.2026): at most 420 px wide, scrolls up and down. */
 .lqt-dorf-bild {
-  overflow-x: auto;
+  max-width: 420px;
+  max-height: 560px;
+  overflow-y: auto;
   border-radius: 8px;
 }
 .lqt-dorf-bild svg {
   display: block;
-  height: 300px;
-  width: auto;
-  max-width: none;
+  width: 100%;
+  height: auto;
 }
 .lqt-dorf-projekt {
   display: flex;

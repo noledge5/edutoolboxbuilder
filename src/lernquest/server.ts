@@ -4,7 +4,7 @@
 // 20261107_lernquest_boss.sql (Stufe 3) and 20261108_lernquest_belohnungen.sql (Stufe 4).
 import { SERVER } from '../share/server';
 import type { BossFrage } from './boss';
-import type { Dorf } from './dorf';
+import type { Aussehen, Dorf } from './dorf';
 import type { Avatar } from './teile';
 import { LEERER_STAND, type KlassenAufgabe, type Stand } from './types';
 
@@ -519,4 +519,7 @@ export const hausBauen = async (token: string, stufe: number) => {
   return { dorf: r.dorf, stand: voll(r.stand) };
 };
 /** The teacher's switch for the houses of a class. */
+/** Saves the look of the own house (20261204_lernquest_haus_aussehen.sql); refusal 'ungueltig' (no house, a choice not
+ *  allowed for its stage). */
+export const hausGestalten = (token: string, aussehen: Aussehen) => lq<{ dorf: Dorf }>('lq_haus_gestalten', { p_token: token, p_aussehen: aussehen });
 export const haeuserSchalten = (keys: string[], klasse: string, an: boolean) => lq<Dorf>('lq_haeuser_schalten', { p_schluessel: keys, p_klasse: klasse, p_an: an });

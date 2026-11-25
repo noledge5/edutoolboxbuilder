@@ -10,8 +10,8 @@ import { AUGEN_ARTEN, FIGUREN, FigurBild, FRISUR_ARTEN, held, ITEMS, ItemBild, K
 import { DORF_GEBAEUDE } from '../dorf';
 import { Landkarte } from '../app/Landkarte';
 import { Landschaft } from '../app/Landschaft';
-import { DorfKarte, DORF_TEILE, GEBAEUDE_BILD } from './dorf';
-import { HAUS_TEILE } from './haeuser';
+import { DorfKarte, GEBAEUDE_BILD } from './dorf';
+import { HAUS_GESTALTET, HAUS_TEILE } from './haeuser';
 import { GELAENDE } from './gelaende';
 import { MODUL_WELTEN, WELT_TEILE } from './welten';
 import { HINTERGRUENDE } from './hintergruende';
@@ -31,15 +31,35 @@ it.skipIf(!ziel)('writes a preview page and screenshot', async () => {
   const teile: string[] = [];
   const items = ITEMS.filter((i) => (teil === 'alles' || PLATZ[teil]?.includes(i.platz)) && gewaehlt(i.id));
   if (teil === 'dorf') {
+    // Richtung A: the map at phone size (330 wide, 1:1) for each village stage, evening, winter, the teacher's view and
+    // a city of 30; then every house stage, every look and the buildings alone.
     const ids = DORF_GEBAEUDE.map((g) => g.id);
-    teile.push(`<figure style="width:1360px">${renderToStaticMarkup(<DorfKarte fertig={ids.slice(1)} baustelle={ids[0]} plaetze={6} titel="Dorf" />)}<figcaption>Karte</figcaption></figure>`);
-    // Own houses (Teil B1): 14 plots with every stage, the own one marked, then the teacher's view with names.
-    const haeuser = Array.from({ length: 14 }, (_, i) => ({ stufe: i % 6 === 5 ? null : i % 6, name: ['Ali', 'Bea', 'Can', 'Dana', 'Emil', 'Fiona', 'Gül'][i % 7] }));
-    teile.push(`<figure style="width:1360px">${renderToStaticMarkup(<DorfKarte fertig={ids.slice(2)} plaetze={14} haeuser={haeuser.map(({ stufe }) => ({ stufe }))} ich={3} titel="Dorf" />)}<figcaption>Karte mit Häusern (Kind)</figcaption></figure>`);
-    teile.push(`<figure style="width:1360px">${renderToStaticMarkup(<DorfKarte fertig={ids.slice(2)} plaetze={14} haeuser={haeuser} titel="Dorf" />)}<figcaption>Karte mit Häusern (Lehrkraft)</figcaption></figure>`);
-    for (const t of HAUS_TEILE)
-      teile.push(`<figure><div class="reihe"><svg width="48" height="48" viewBox="${t.rahmen.join(' ')}">${renderToStaticMarkup(<>{t.zeichnung()}</>)}</svg></div><figcaption>${t.id} · 48 px</figcaption></figure>`);
-    for (const [id, bild] of [...Object.entries(GEBAEUDE_BILD), ...DORF_TEILE.map((t) => [t.id, t.zeichnung] as const)].filter(([id]) => gewaehlt(id)))
+    const namen = ['Ali', 'Bea', 'Can', 'Dana', 'Emil', 'Fiona', 'Gül', 'Hannes', 'Ida', 'Jonas', 'Kim', 'Maximilian-Alexander'];
+    const haeuser = (n: number) => Array.from({ length: n }, (_, i) => ({ stufe: i % 7 === 6 ? null : i % 5, name: namen[i % namen.length], aussehen: null }));
+    const karte = (titel: string, p: Parameters<typeof DorfKarte>[0], hoch = 900) =>
+      teile.push(`<figure style="width:330px"><div class="karte" style="height:${hoch}px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end">${renderToStaticMarkup(<DorfKarte {...p} />)}</div><figcaption>${titel}</figcaption></figure>`);
+    const kind = (fertig: number, extra: Partial<Parameters<typeof DorfKarte>[0]> = {}) => ({
+      fertig: ids.slice(0, fertig),
+      baustelle: ids[fertig] ?? null,
+      plaetze: 14,
+      haeuser: haeuser(14).map(({ stufe, aussehen }) => ({ stufe, aussehen })),
+      ich: 3,
+      titel: 'Dorf',
+      ...extra,
+    });
+    karte('Weiler (0 Gebäude)', kind(0));
+    karte('Dorf (2)', kind(2));
+    karte('Marktflecken (4)', kind(4));
+    karte('Stadt (6)', kind(6));
+    karte('Stadt am Abend', kind(6, { abend: true }));
+    karte('Dorf im Winter', kind(3, { winter: true }));
+    karte('Winterabend', kind(5, { winter: true, abend: true }));
+    karte('Lehrkraft (Namen)', { fertig: ids.slice(0, 3), plaetze: 14, haeuser: haeuser(14), titel: 'Dorf' });
+    karte('Häuser noch aus', { fertig: ids.slice(0, 1), baustelle: ids[1], plaetze: 6, hinweis: 'Bald: eure Häuser', titel: 'Dorf' });
+    karte('Stadt mit 30 Häusern', { fertig: ids, plaetze: 30, haeuser: haeuser(30).map(({ stufe }, i) => ({ stufe: stufe ?? 2, aussehen: null, ...(i === 20 ? {} : {}) })), ich: 20, titel: 'Dorf' }, 2400);
+    for (const t of [...HAUS_TEILE, ...HAUS_GESTALTET])
+      teile.push(`<figure><div class="reihe"><svg width="160" height="${(160 * t.rahmen[3]) / t.rahmen[2]}" viewBox="${t.rahmen.join(' ')}">${renderToStaticMarkup(<>{t.zeichnung()}</>)}</svg><svg width="48" height="48" viewBox="${t.rahmen.join(' ')}">${renderToStaticMarkup(<>{t.zeichnung()}</>)}</svg></div><figcaption>${t.id}</figcaption></figure>`);
+    for (const [id, bild] of Object.entries(GEBAEUDE_BILD).filter(([id]) => gewaehlt(id)))
       teile.push(`<figure><svg width="220" height="220" viewBox="-110 -160 220 220">${renderToStaticMarkup(<>{bild()}</>)}</svg><figcaption>${id}</figcaption></figure>`);
   }
   if (teil === 'karte') {
@@ -92,13 +112,13 @@ it.skipIf(!ziel)('writes a preview page and screenshot', async () => {
       teile.push(`<figure>${renderToStaticMarkup(<FigurBild figur={held({ kleidung: k, haut: i + 1, frisur: FRISUR_ARTEN[i + 2], haarfarbe: i })} items={kombi(h, w, b)} zeit={0} lebendig={false} breite={200} />)}<figcaption>${h}+${w}+${b}</figcaption></figure>`),
     );
   }
-  const html = `<!doctype html><meta charset="utf-8"><style>body{font:14px system-ui;background:#f3efe6;display:flex;flex-wrap:wrap;gap:12px;margin:12px}figure{margin:0;background:#fff;padding:8px;border-radius:12px}.reihe{display:flex;gap:8px;align-items:end}figcaption{text-align:center}.lq-landkarte-flaeche{position:relative}.lq-landkarte-flaeche svg{display:block;width:100%}.lq-wegpunkte{margin:0;padding:0}.lq-wegpunkt{position:absolute;list-style:none;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 3px 0 #0003}</style>${teile.join('')}`;
+  const html = `<!doctype html><meta charset="utf-8"><style>body{font:14px system-ui;background:#f3efe6;display:flex;flex-wrap:wrap;gap:12px;margin:12px}figure{margin:0;background:#fff;padding:8px;border-radius:12px}.reihe{display:flex;gap:8px;align-items:end}figcaption{text-align:center}.karte svg{display:block;width:100%;height:auto;flex:none}.lq-landkarte-flaeche{position:relative}.lq-landkarte-flaeche svg{display:block;width:100%}.lq-wegpunkte{margin:0;padding:0}.lq-wegpunkt{position:absolute;list-style:none;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 3px 0 #0003}</style>${teile.join('')}`;
   mkdirSync(ziel!, { recursive: true });
   const datei = join(ziel!, `vorschau-${teil}.html`);
   writeFileSync(datei, html);
   // The preinstalled Playwright (global, not a dependency of the project).
-  const { chromium } = createRequire(import.meta.url)('playwright') as { chromium: { launch: () => Promise<any> } };
-  const b = await chromium.launch();
+  const { chromium } = createRequire(import.meta.url)('playwright') as { chromium: { launch: (o?: object) => Promise<any> } };
+  const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   const s = await b.newPage({ viewport: { width: 1400, height: 900 } });
   await s.goto(`file://${datei}`);
   await s.screenshot({ path: join(ziel!, `vorschau-${teil}.png`), fullPage: true });

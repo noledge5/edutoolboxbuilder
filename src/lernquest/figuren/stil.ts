@@ -162,6 +162,23 @@ export const P = {
   rasenTief: '#4F8F30',
   pflaster: '#D8C9A8',
   pflasterTief: '#C4B48F',
+  // Plaster colours a child can choose for the own house (Häuser gestalten, 25.11.2026): pale, so timber and windows
+  // stay readable.
+  putzRosa: '#F5CFC6',
+  putzRosaHell: '#FFE5DE',
+  putzRosaTief: '#D9A69B',
+  putzBlau: '#CBE0F2',
+  putzBlauHell: '#E6F1FB',
+  putzBlauTief: '#9FBCD6',
+  putzMint: '#CBEBD5',
+  putzMintHell: '#E5F7EA',
+  putzMintTief: '#9CC9AB',
+  putzGelb: '#FAE29C',
+  putzGelbHell: '#FFF0C2',
+  putzGelbTief: '#D9BC6A',
+  putzLila: '#DACDEF',
+  putzLilaHell: '#EDE6F8',
+  putzLilaTief: '#B4A3D4',
 } as const;
 
 /** A shape without outline (no outline anywhere since 19.11.2026, docs/design/prinzipien.md): filled and stroked in

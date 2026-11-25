@@ -3,9 +3,12 @@
 // finished buildings with the names of all who helped, never amounts. Shown only when the teacher switched it on.
 // Teil B1 (25.11.2026): with the houses unlocked, the map shows every child's house (own one marked „Du“, no names)
 // and „Mein Haus“ (MeinHaus.tsx) sits below it.
+// Richtung A (25.11.2026): the map in portrait, opening at the own house; evening and winter follow the clock; the
+// village stage (Weiler … Stadt) in the header; what was built since the last visit pops up (remembered on the device).
 import { useEffect, useRef, useState } from 'react';
-import { gebaeudeName, SPENDE_WOCHE, spendeMoeglich, spendeWert, type Dorf } from '../dorf';
-import { DorfKarte, JE_VIERTEL } from '../figuren/dorf';
+import { DORF_STUFEN, dorfStufe, gebaeudeName, istAbend, istWinter, naechsteDorfStufe, SPENDE_WOCHE, spendeMoeglich, spendeWert, type Dorf } from '../dorf';
+import { JE_VIERTEL } from '../dorfplan';
+import { DorfKarte, type DorfNeu } from '../figuren/dorf';
 import { dorf as dorfLaden, lqText, spenden } from '../server';
 import type { Stand } from '../types';
 import { Meldung, MuenzIcon, type Aktion } from './Held';
@@ -13,6 +16,42 @@ import { MeinHaus } from './MeinHaus';
 import { ton } from './ton';
 
 const BETRAEGE = [10, 25, 50];
+/** „aus eurem Weiler wird ein Dorf“: the stages with their articles. */
+const AUS = ['eurem Weiler', 'eurem Dorf', 'eurem Marktflecken', 'eurer Stadt'];
+const WIRD = ['ein Weiler', 'ein Dorf', 'ein Marktflecken', 'eine Stadt'];
+
+/** What the child saw last time on this device: finished buildings and the stage of each plot. */
+interface Gesehen {
+  fertig: string[];
+  haeuser: (number | null)[];
+}
+const GESEHEN = 'lq-dorf-gesehen';
+function gesehenLesen(): Gesehen | null {
+  try {
+    const g = JSON.parse(localStorage.getItem(GESEHEN) ?? 'null') as Gesehen | null;
+    return g && Array.isArray(g.fertig) && Array.isArray(g.haeuser) ? g : null;
+  } catch {
+    return null;
+  }
+}
+function gesehenMerken(g: Gesehen) {
+  try {
+    localStorage.setItem(GESEHEN, JSON.stringify(g));
+  } catch {
+    // Private mode: nothing pops next time, that is all.
+  }
+}
+/** The buildings and plots that are new or higher than last time (nothing on the very first visit). */
+export function dorfNeu(alt: Gesehen | null, jetzt: Gesehen): DorfNeu {
+  if (!alt) return {};
+  return {
+    gebaeude: jetzt.fertig.filter((g) => !alt.fertig.includes(g)),
+    haeuser: jetzt.haeuser.flatMap((s, i) => {
+      const vorher = alt.haeuser[i];
+      return s !== null && (vorher === null || vorher === undefined || s > vorher) ? [i] : [];
+    }),
+  };
+}
 
 export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: Stand; setStand: (s: Stand) => void }) {
   const [d, setD] = useState<Dorf | null>(null);
@@ -20,17 +59,35 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
   const [busy, setBusy] = useState(false);
   const [danke, setDanke] = useState('');
   const rahmen = useRef<HTMLDivElement>(null);
-  const ich = d?.haeuser?.an ? d.haeuser.ich : null;
+  const [jetzt] = useState(() => new Date());
+  const [neu, setNeu] = useState<DorfNeu>({});
+  const gesehen = useRef<Gesehen | null | undefined>(undefined);
+  const gerollt = useRef(false);
 
-  // The map is wider than a phone: show the own plot (marked „Du“) when the village loads.
+  // The map is taller than a phone: open it at the own plot (marked „Du“), else at the square at the bottom.
   useEffect(() => {
     const r = rahmen.current;
-    const du = r?.querySelector('[data-ich]');
-    if (!r || !du) return;
+    if (!r || !d?.an || gerollt.current) return;
+    gerollt.current = true;
+    const du = r.querySelector('[data-ich]');
+    if (!du) {
+      r.scrollTop = r.scrollHeight;
+      return;
+    }
     const a = r.getBoundingClientRect();
     const b = du.getBoundingClientRect();
-    r.scrollLeft += b.left + b.width / 2 - (a.left + a.width / 2);
-  }, [ich]);
+    r.scrollTop += b.top + b.height / 2 + 40 - (a.top + a.height / 2);
+  }, [d]);
+
+  // Pop up what was built since the last look (other children's houses too), then remember the new state.
+  useEffect(() => {
+    if (!d?.an) return;
+    if (gesehen.current === undefined) gesehen.current = gesehenLesen();
+    const stand = { fertig: d.fertig.map((f) => f.gebaeude), haeuser: d.haeuser?.an ? d.haeuser.plaetze.map((p) => p.stufe) : [] };
+    setNeu(dorfNeu(gesehen.current, stand));
+    gesehen.current = stand;
+    gesehenMerken(stand);
+  }, [d]);
 
   useEffect(() => {
     aktion(dorfLaden).then(setD, () => setD(null));
@@ -42,6 +99,9 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
   const woche = d.woche ?? 0;
   const rest = Math.max(0, SPENDE_WOCHE - woche);
   const haeuser = d.haeuser?.an ? d.haeuser : null;
+  const gebaeude = new Set(d.fertig.map((f) => f.gebaeude)).size;
+  const stufe = dorfStufe(gebaeude);
+  const naechste = naechsteDorfStufe(gebaeude);
 
   const geben = async (wunsch: number) => {
     if (!p) return;
@@ -66,7 +126,7 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
     <section className="lq-box lq-dorf">
       <div className="lq-zeile-zwischen">
         <h2>Unser Dorf</h2>
-        {d.fertig.length > 0 && <strong>{d.fertig.length === 1 ? '1 Gebäude' : `${d.fertig.length} Gebäude`}</strong>}
+        <strong>{DORF_STUFEN[stufe].name}</strong>
       </div>
       <div className="lq-dorf-rahmen" ref={rahmen}>
         <DorfKarte
@@ -76,9 +136,17 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
           haeuser={haeuser?.plaetze}
           ich={haeuser?.ich}
           hinweis={haeuser ? undefined : 'Bald: eure Häuser'}
-          titel={`Euer Dorf mit ${d.fertig.map((f) => gebaeudeName(f.gebaeude)).join(', ') || 'noch keinem Gebäude'}`}
+          titel={`Euer ${DORF_STUFEN[stufe].name} mit ${d.fertig.map((f) => gebaeudeName(f.gebaeude)).join(', ') || 'noch keinem Gebäude'}`}
+          abend={istAbend(jetzt)}
+          winter={istWinter(jetzt)}
+          neu={neu}
         />
       </div>
+      <p className="lq-klein lq-dorf-stufe">
+        {naechste
+          ? `Noch ${naechste.fehlt === 1 ? '1 Gebäude' : `${naechste.fehlt} Gebäude`}, dann wird aus ${AUS[stufe]} ${WIRD[stufe + 1]}.`
+          : 'Ihr habt zusammen eine Stadt gebaut!'}
+      </p>
       <Meldung text={msg} />
       <MeinHaus dorf={d} aktion={aktion} stand={stand} setStand={setStand} setDorf={setD} />
       {p ? (

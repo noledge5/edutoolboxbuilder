@@ -14,7 +14,7 @@ do not match the house were the teacher's complaint on 18.11.2026 (haus-v2).
 | Weg | Wann | Ergebnis |
 |---|---|---|
 | **Flach (2D Vektor)** | Figuren, Held, Gegenstände, Icons, Bosse, Bilder in Fragen | Code in `src/lernquest/figuren/` – Skill `figur` |
-| **Isometrisch (2.5D Vektor)** | Dorfkarte, Häuser, Anbauten, Gemeinschaftsgebäude, Wahrzeichen der Landkarte | React in `src/lernquest/figuren/iso.tsx` (Bausatz: `box`, `steine`, `tiefe`, `band`, `schlag`, `fachL/R`, `satteldach`, `zeltdach`, `fenster`, `tuer`, `zaunX`; rund: `walze`, `ring`, `rundTiefe`, `kegel`, `kuppel`, `rundSchlag`, `bogenTor`), Gebäude und `DorfKarte` in `dorf.tsx`, Wahrzeichen in `gelaende.tsx`/`welten.tsx`; Vorlage `docs/design/lernquest/stilprobe/haus-v3.mjs` |
+| **Isometrisch (2.5D Vektor)** | Dorfkarte, Häuser, Anbauten, Gemeinschaftsgebäude, Wahrzeichen der Landkarte | React in `src/lernquest/figuren/iso.tsx` (Bausatz: `box`, `steine`, `tiefe`, `band`, `schlag`, `fachL/R`, `satteldach`, `zeltdach`, `fenster`, `tuer`, `zaunX`; rund: `walze`, `ring`, `rundTiefe`, `kegel`, `kuppel`, `rundSchlag`, `bogenTor`), Gebäude und `DorfKarte` in `dorf.tsx` (Aufbau in `../dorfplan.ts`, kleine Teile in `dorfdeko.tsx`, Abend in `nacht.tsx`, Häuser mit Aussehen in `haeuser.tsx`), Wahrzeichen in `gelaende.tsx`/`welten.tsx`; Vorlage `docs/design/lernquest/stilprobe/haus-v3.mjs` |
 
 No 3D renders, no Figma, no paid AI generators without asking the teacher (credits). Hugging Face image spaces are
 blocked in sessions.

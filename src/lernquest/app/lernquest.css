@@ -4270,18 +4270,130 @@ button.lq-teil:active {
   font-size: var(--lq-t-gross);
   font-weight: 800;
 }
+/* Richtung A (25.11.2026): the map in portrait, as wide as the box; the frame scrolls up and down and opens with
+   the own house in the middle (Dorf.tsx). */
 .lq-dorf-rahmen {
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
+  max-height: min(64vh, 560px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border-radius: var(--lq-r-klein);
   box-shadow: inset 0 0 0 2px var(--lq-linie);
 }
-/* The map keeps its height and grows to the right; the frame scrolls sideways. */
 .lq-dorf-karte {
   display: block;
-  height: 260px;
-  width: auto;
-  max-width: none;
+  width: 100%;
+  height: auto;
+}
+/* Moving parts of the village (figuren/dorfdeko.tsx, haeuser.tsx, dorf.tsx): only transform and opacity, so they stay
+   smooth; „Bewegung reduzieren“ stops them like everything else (.lq-ruhig). */
+.lq-rauch circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lq-rauch calc(var(--lq-dauer-lang) * 5) linear infinite;
+}
+@keyframes lq-rauch {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(5px, -22px) scale(1.5);
+    opacity: 0;
+  }
+}
+.lq-fahne {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+  animation: lq-wehen calc(var(--lq-dauer-lang) * 2) ease-in-out infinite alternate;
+}
+@keyframes lq-wehen {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0.78) skewY(5deg);
+  }
+}
+.lq-glitzer {
+  animation: lq-glitzer calc(var(--lq-dauer-lang) * 6) ease-in-out infinite;
+}
+@keyframes lq-glitzer {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.lq-huhn {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: lq-picken calc(var(--lq-dauer-lang) * 6) ease-in-out infinite;
+}
+@keyframes lq-picken {
+  0%,
+  80%,
+  90%,
+  100% {
+    transform: rotate(0);
+  }
+  85%,
+  95% {
+    transform: rotate(16deg);
+  }
+}
+/* The gold „Du“ above the own house bobs, so the eye finds it first. */
+.lq-du {
+  animation: lq-hops calc(var(--lq-dauer-lang) * 2) ease-in-out infinite;
+}
+@keyframes lq-hops {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+/* Just built (since the last visit): the house or building pops up out of a puff of dust. */
+.lq-neu {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: lq-bauen var(--lq-dauer-lang) var(--lq-feder) calc(var(--lq-dauer) * 2) both;
+}
+@keyframes lq-bauen {
+  from {
+    transform: scale(0.3, 0.1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.lq-staub circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: lq-staub var(--lq-dauer-lang) ease-out calc(var(--lq-dauer) * 2) both;
+}
+@keyframes lq-staub {
+  0% {
+    transform: scale(0.3);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1.9) translateY(-4px);
+    opacity: 0;
+  }
+}
+.lq-dorf-stufe {
+  margin: 0;
 }
 .lq-dorf-projekt {
   display: flex;
@@ -4354,5 +4466,73 @@ button.lq-teil:active {
 }
 .lq-haus-quiz p {
   margin: 0;
+}
+/* Häuser gestalten (25.11.2026): the house large on top, one row of choices per part below. */
+.lq-gestalten {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-3);
+}
+.lq-gestalten .lq-haus-bild {
+  align-self: center;
+  width: 180px;
+  height: 230px;
+}
+.lq-gestalten-teil {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+}
+.lq-gestalten-teil legend {
+  padding: 0;
+  font-weight: 800;
+}
+.lq-gestalten-wahl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lq-a-2);
+}
+.lq-wahl {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lq-a-1);
+  min-height: var(--lq-tippen);
+  padding: var(--lq-a-1) var(--lq-a-3);
+  border: 0;
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-karte);
+  color: var(--lq-schrift);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+  font: inherit;
+  font-size: var(--lq-t-klein);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--lq-dauer-kurz);
+}
+.lq-wahl:active {
+  transform: scale(0.96);
+}
+.lq-wahl[aria-pressed='true'] {
+  background: var(--lq-primary-flaeche);
+  box-shadow: inset 0 0 0 3px var(--lq-primary);
+}
+.lq-wahl:disabled {
+  cursor: default;
+  color: var(--lq-gedaempft);
+  background: var(--lq-grund);
+}
+.lq-wahl small {
+  font-size: var(--lq-t-klein);
+  font-weight: 600;
+}
+.lq-muster {
+  flex: none;
+  width: var(--lq-a-5);
+  height: var(--lq-a-5);
+  border-radius: var(--lq-r-pille);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
 }
 
