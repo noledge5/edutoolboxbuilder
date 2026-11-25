@@ -34,5 +34,10 @@ Lernquest weiter ausbauen; als Nächstes die Wünsche der Lehrkraft vom 25.11. (
   je Wahl in `figuren/haeuser.tsx`. Neu seit letztem Besuch: `lernquest:dorf-gesehen` je Kind (`app/speicher.ts`).
 - Vorschau: `VORSCHAU=<ordner> VORSCHAU_TEIL=dorf npx vitest run src/lernquest/figuren/vorschau` (alle Stufen, Abend, Winter,
   Lehrkraft, 30 Häuser); ohne globales Playwright: `NODE_PATH=<eigenes playwright>/node_modules PW_CHROME=<Chrome-Pfad>`.
-- Spieltest mit fester Uhrzeit (Playwright `clock.setFixedTime`) hält Aktionen als „offline“ fest; mit echter Uhr testen.
+- Spieltest ohne Server: `npm run spieltest`, `scripts/spieltest-daten.js` einfügen, Playwright `page.route('http://127.0.0.1:9/**')`
+  stellt `lq_klasse_ansicht` ({klasse, tage, kinder}) und `lq_dorf` nach. Mit fester Uhrzeit (`clock.setFixedTime`) gelten
+  Aktionen als „offline“; Speichern mit echter Uhr testen.
+- Gemergte Branches nur nach Rückfrage löschen: `claude/dorf-hochformat`, `claude/compassionate-davinci-8in8er`,
+  `claude/admiring-fermi-fcitkp`, `claude/eloquent-davinci-xlogq4`, `claude/jolly-planck-0jqcot`, `claude/umbau-schalter`,
+  `claude/dreamy-bardeen-2fmcg4`.
 - Supabase-Migrationen und Werkstatt-Veröffentlichung nur mit Zustimmung; Force-Push gesperrt; kein Figma.
