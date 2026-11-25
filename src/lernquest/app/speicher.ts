@@ -122,6 +122,19 @@ export function wiederholtHeute(tag: string): number {
 export const merkeWiederholt = (tag: string, anzahl: number) => write(K_WDH, { tag, anzahl: wiederholtHeute(tag) + anzahl });
 
 /** Everything of this child off the device (sign out). */
+/** What the class village looked like at the child's last visit (Dorf.tsx): what was built since then pops up. Per
+ *  child, so two children sharing a tablet do not mix their villages. */
+const K_DORF = 'lernquest:dorf-gesehen';
+export interface DorfGesehen {
+  fertig: string[];
+  haeuser: (number | null)[];
+}
+export function ladeDorfGesehen(kind: string): DorfGesehen | null {
+  const g = read<DorfGesehen & { kind?: string }>(K_DORF);
+  return g && g.kind === kind && Array.isArray(g.fertig) && Array.isArray(g.haeuser) ? { fertig: g.fertig, haeuser: g.haeuser } : null;
+}
+export const merkeDorfGesehen = (kind: string, g: DorfGesehen) => write(K_DORF, { kind, ...g });
+
 export function allesWeg() {
-  for (const k of [K_SITZUNG, K_DATEN, K_WARTE, K_MEILENSTEINE, K_WDH]) write(k, null);
+  for (const k of [K_SITZUNG, K_DATEN, K_WARTE, K_MEILENSTEINE, K_WDH, K_DORF]) write(k, null);
 }

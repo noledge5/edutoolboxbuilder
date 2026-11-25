@@ -446,7 +446,7 @@ const staub = (s: IsoStift, x: number, y: number) => (
 );
 
 /** A house of `stufe` with its look on the plot at (x, y): lawn, path to the door, the house, garden, decoration and
- *  fence. `neu`: it pops up (just built). */
+ *  fence. `neu`: just built, with puffs of dust (the map lets the whole plot pop up). */
 export function hausMitGarten(s: IsoStift, x: number, y: number, stufe: number, a: Aussehen, neu = false) {
   const bau = HAUS_BILD[stufe];
   if (!bau) return null;
@@ -456,7 +456,7 @@ export function hausMitGarten(s: IsoStift, x: number, y: number, stufe: number, 
     <g>
       {s.flaeche(x, y, GRUND, GRUND, s.wetter.schnee ? P.wolkeHell : P.wieseHell)}
       {stufe > 0 && s.flaeche(x + tx - 4, y + ty, 8, GRUND - ty, s.wetter.schnee ? P.wolke : P.pflaster)}
-      <g className={neu ? "lq-neu" : undefined}>{bau(s, x, y, l)}</g>
+      {bau(s, x, y, l)}
       {garten(s, l.garten, x, y)}
       {schmuck(s, l.deko, x, y)}
       {zaun(s, l.zaun, x, y)}

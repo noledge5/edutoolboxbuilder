@@ -36,6 +36,8 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
   const platz = h.ich;
   const stufe = h.plaetze[platz]?.stufe ?? null;
   const aussehen = h.plaetze[platz]?.aussehen ?? null;
+  // The server sends `aussehen` (maybe null) once 20261204_lernquest_haus_aussehen.sql is in; before that no button.
+  const kannGestalten = stufe !== null && stufe >= 1 && !!h.plaetze[platz] && 'aussehen' in h.plaetze[platz];
   const held = heldenstufe(stand.xp).stufe;
   const next = hausAusbau(stufe, { muenzen: stand.muenzen, heldenstufe: held });
 
@@ -47,7 +49,7 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
       setDorf(r.dorf);
       setStand(r.stand);
       ton('fertig');
-      setFreude(ziel === 0 ? 'Dein Zelt steht! Jetzt kannst du es ausbauen.' : `Geschafft! Du hast jetzt ${MIT_ARTIKEL[ziel]}.`);
+      setFreude(ziel === 0 ? 'Dein Zelt steht! Jetzt kannst du es ausbauen.' : `Geschafft! Du hast jetzt ${MIT_ARTIKEL[ziel]}. Mit „Haus gestalten“ machst du es zu deinem.`);
       setQuiz(false);
       setSicher(false);
     } catch (e) {
@@ -64,7 +66,7 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
         {stufe !== null && <strong>{hausName(stufe)}</strong>}
       </div>
       <Meldung text={msg} />
-      {stufe !== null && gestalten ? (
+      {stufe !== null && gestalten && kannGestalten ? (
         <HausGestalten
           stufe={stufe}
           start={aussehenVon(aussehen, platz, stufe)}
@@ -146,17 +148,21 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
                 Dein Turmhaus ist fertig. Jetzt hast du die größte Auswahl zum Schmücken.
               </p>
             )}
-            <button
-              type="button"
-              className="lq-knopf lq-hell"
-              onClick={() => {
-                setGestalten(true);
-                setSicher(false);
-                setFreude('');
-              }}
-            >
-              Haus gestalten
-            </button>
+            {kannGestalten ? (
+              <button
+                type="button"
+                className="lq-knopf lq-hell"
+                onClick={() => {
+                  setGestalten(true);
+                  setSicher(false);
+                  setFreude('');
+                }}
+              >
+                Haus gestalten
+              </button>
+            ) : (
+              stufe === 0 && <p className="lq-klein">Ab der Hütte kannst du dein Haus gestalten: Farben, Zaun, Garten und mehr.</p>
+            )}
           </div>
         </div>
       )}

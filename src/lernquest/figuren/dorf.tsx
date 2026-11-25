@@ -750,24 +750,26 @@ export function DorfKarte({
   );
 
   // Everything that stands, back to front.
-  const dinge: { k: number; node: ReactNode }[] = [];
+  // `neu`: pops up as a whole, with its lights in the evening.
+  const dinge: { k: number; node: ReactNode; neu?: boolean }[] = [];
   const gebaut = new Set(fertig);
   for (const [id, o] of Object.entries(GEBAEUDE_ORT)) {
     const bau = gebaut.has(id) ? BAUTEN[id] : bauId === id ? baustelle : null;
-    const bild = bau ? bau(s, o.x, o.y) : platz(s, o.x, o.y);
-    dinge.push({ k: o.sy, node: neu?.gebaeude?.includes(id) ? <g className="lq-neu">{bild}</g> : bild });
+    dinge.push({ k: o.sy, node: bau ? bau(s, o.x, o.y) : platz(s, o.x, o.y), neu: !!bau && !!neu?.gebaeude?.includes(id) });
   }
   const schilder: ReactNode[] = [];
   plots.forEach((p, i) => {
     const h = haeuser?.[i];
     const st = h && h.stufe !== null && h.stufe >= 0 && h.stufe < HAUS_HOEHE.length ? h.stufe : null;
+    const neuesHaus = st !== null && !!neu?.haeuser?.includes(i);
     dinge.push({
       k: p.sy,
       node: (
         <g data-platz={i}>
-          {st === null ? grundstueck(s, p.x, p.y) : hausMitGarten(s, p.x, p.y, st, aussehenVon(h?.aussehen, i, st), !!neu?.haeuser?.includes(i))}
+          {st === null ? grundstueck(s, p.x, p.y) : hausMitGarten(s, p.x, p.y, st, aussehenVon(h?.aussehen, i, st), neuesHaus)}
         </g>
       ),
+      neu: neuesHaus,
     });
     const text = i === ich ? "Du" : h?.name;
     if (text) schilder.push(schild([p.sx, p.sy - (st === null ? 24 : HAUS_HOEHE[st])], text, i === ich, i));
@@ -800,7 +802,9 @@ export function DorfKarte({
       {dinge
         .sort((a, b) => a.k - b.k)
         .map((d, i) => (
-          <g key={i}>{abend ? imDunkeln(d.node, P.nachtTief, NACHT_DECKUNG) : d.node}</g>
+          <g key={i} className={d.neu ? "lq-neu" : undefined}>
+            {abend ? imDunkeln(d.node, P.nachtTief, NACHT_DECKUNG) : d.node}
+          </g>
         ))}
       {schilder}
       {label && (

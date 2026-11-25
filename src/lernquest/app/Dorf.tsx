@@ -5,7 +5,7 @@
 // and „Mein Haus“ (MeinHaus.tsx) sits below it.
 // Richtung A (25.11.2026): the map in portrait, opening at the own house; evening and winter follow the clock; the
 // village stage (Weiler … Stadt) in the header; what was built since the last visit pops up (remembered on the device).
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DORF_STUFEN, dorfStufe, gebaeudeName, istAbend, istWinter, naechsteDorfStufe, SPENDE_WOCHE, spendeMoeglich, spendeWert, type Dorf } from '../dorf';
 import { JE_VIERTEL } from '../dorfplan';
 import { DorfKarte, type DorfNeu } from '../figuren/dorf';
@@ -13,6 +13,7 @@ import { dorf as dorfLaden, lqText, spenden } from '../server';
 import type { Stand } from '../types';
 import { Meldung, MuenzIcon, type Aktion } from './Held';
 import { MeinHaus } from './MeinHaus';
+import { ladeDorfGesehen, ladeSitzung, merkeDorfGesehen, type DorfGesehen } from './speicher';
 import { ton } from './ton';
 
 const BETRAEGE = [10, 25, 50];
@@ -20,29 +21,8 @@ const BETRAEGE = [10, 25, 50];
 const AUS = ['eurem Weiler', 'eurem Dorf', 'eurem Marktflecken', 'eurer Stadt'];
 const WIRD = ['ein Weiler', 'ein Dorf', 'ein Marktflecken', 'eine Stadt'];
 
-/** What the child saw last time on this device: finished buildings and the stage of each plot. */
-interface Gesehen {
-  fertig: string[];
-  haeuser: (number | null)[];
-}
-const GESEHEN = 'lq-dorf-gesehen';
-function gesehenLesen(): Gesehen | null {
-  try {
-    const g = JSON.parse(localStorage.getItem(GESEHEN) ?? 'null') as Gesehen | null;
-    return g && Array.isArray(g.fertig) && Array.isArray(g.haeuser) ? g : null;
-  } catch {
-    return null;
-  }
-}
-function gesehenMerken(g: Gesehen) {
-  try {
-    localStorage.setItem(GESEHEN, JSON.stringify(g));
-  } catch {
-    // Private mode: nothing pops next time, that is all.
-  }
-}
 /** The buildings and plots that are new or higher than last time (nothing on the very first visit). */
-export function dorfNeu(alt: Gesehen | null, jetzt: Gesehen): DorfNeu {
+export function dorfNeu(alt: DorfGesehen | null, jetzt: DorfGesehen): DorfNeu {
   if (!alt) return {};
   return {
     gebaeude: jetzt.fertig.filter((g) => !alt.fertig.includes(g)),
@@ -60,9 +40,16 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
   const [danke, setDanke] = useState('');
   const rahmen = useRef<HTMLDivElement>(null);
   const [jetzt] = useState(() => new Date());
-  const [neu, setNeu] = useState<DorfNeu>({});
-  const gesehen = useRef<Gesehen | null | undefined>(undefined);
+  const kind = ladeSitzung()?.kind ?? '';
+  const gesehen = useRef<DorfGesehen | null | undefined>(undefined);
+  if (gesehen.current === undefined) gesehen.current = ladeDorfGesehen(kind);
   const gerollt = useRef(false);
+  // Compared during render, so a new house never shows for a moment before it pops up.
+  const jetztStand = useMemo<DorfGesehen | null>(
+    () => (d?.an ? { fertig: d.fertig.map((f) => f.gebaeude), haeuser: d.haeuser?.an ? d.haeuser.plaetze.map((p) => p.stufe) : [] } : null),
+    [d],
+  );
+  const neu = useMemo<DorfNeu>(() => (jetztStand ? dorfNeu(gesehen.current ?? null, jetztStand) : {}), [jetztStand]);
 
   // The map is taller than a phone: open it at the own plot (marked „Du“), else at the square at the bottom.
   useEffect(() => {
@@ -79,15 +66,12 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
     r.scrollTop += b.top + b.height / 2 + 40 - (a.top + a.height / 2);
   }, [d]);
 
-  // Pop up what was built since the last look (other children's houses too), then remember the new state.
+  // What was built since the last look pops up (other children's houses too); then the new state is remembered.
   useEffect(() => {
-    if (!d?.an) return;
-    if (gesehen.current === undefined) gesehen.current = gesehenLesen();
-    const stand = { fertig: d.fertig.map((f) => f.gebaeude), haeuser: d.haeuser?.an ? d.haeuser.plaetze.map((p) => p.stufe) : [] };
-    setNeu(dorfNeu(gesehen.current, stand));
-    gesehen.current = stand;
-    gesehenMerken(stand);
-  }, [d]);
+    if (!jetztStand) return;
+    gesehen.current = jetztStand;
+    merkeDorfGesehen(kind, jetztStand);
+  }, [jetztStand, kind]);
 
   useEffect(() => {
     aktion(dorfLaden).then(setD, () => setD(null));
