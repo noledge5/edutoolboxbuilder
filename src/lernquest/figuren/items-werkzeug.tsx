@@ -394,4 +394,146 @@ export const WERKZEUG_ITEMS: Item[] = [
       );
     },
   },
+  // — 26.11.2026 (supabase/migrations/20261205_lernquest_welten_teile.sql): the worlds of the map. —
+  {
+    id: 'holzfackel',
+    name: 'Fackel',
+    platz: 'hand-rechts',
+    seltenheit: 1,
+    bewegt: true,
+    rahmen: [-14, -104, 76, 120],
+    zeichnung: (zeit) => {
+      const f = (k: number) => (1 + Math.sin(zeit * 10 + k) * 0.1).toFixed(3);
+      return (
+        <g transform="rotate(26)">
+          {stiel(14, -48, 9, P.holz)}
+          {rohr('M-2.5 -40 V-8', 3, P.holzHell, { opacity: 0.8 })}
+          <path d="M-12 -62 H12 L9 -46 H-9 Z" {...flaeche(P.leder, 2.5)} />
+          <path d="M-11 -55 H11" stroke={P.lederTief} strokeWidth={3} />
+          <g transform={`translate(0 -62) scale(${f(0)} ${f(1.3)})`}>
+            <path d="M0 0 Q-16 -6 -12 -24 Q-8 -16 -4 -18 Q-6 -34 4 -42 Q4 -30 10 -28 Q18 -14 12 -4 Q8 0 0 0 Z" {...flaeche(P.lava, 2.5)} />
+            <path d="M0 -2 Q-8 -6 -6 -16 Q-1 -12 2 -15 Q8 -8 5 -3 Z" fill={P.gelb} />
+          </g>
+        </g>
+      );
+    },
+  },
+  {
+    id: 'schleuder',
+    name: 'Schleuder',
+    platz: 'hand-rechts',
+    seltenheit: 2,
+    rahmen: [-20, -68, 66, 86],
+    zeichnung: () => (
+      <g transform="rotate(24)">
+        {/* A wooden fork, a red rubber band and a small leather pouch */}
+        {rohr('M-17 -54 Q-16 -30 0 -24 Q16 -30 17 -54', 8, P.holz)}
+        {stiel(14, -24, 10, P.holz)}
+        {rohr('M-14 -50 Q-13 -36 -4 -30', 2.5, P.holzHell, { opacity: 0.8 })}
+        <path d="M-17 -53 Q-10 -36 0 -36 Q10 -36 17 -53" fill="none" stroke={P.rot} strokeWidth={3.5} strokeLinecap="round" />
+        <ellipse cx={0} cy={-36} rx={7.5} ry={5} {...flaeche(P.leder, 2.5)} />
+        <rect x={-7} y={-8} width={14} height={9} rx={3} {...flaeche(P.lederTief, 2)} />
+      </g>
+    ),
+  },
+  {
+    id: 'sanduhr',
+    name: 'Sanduhr',
+    platz: 'hand-rechts',
+    seltenheit: 3,
+    bewegt: true,
+    rahmen: [-20, -72, 64, 80],
+    zeichnung: (zeit) => {
+      // Sand runs down for 5.2 s, then the hourglass turns over (it looks the same upside down) and runs again.
+      const t = zeit % 6;
+      const p = Math.min(1, t / 5.2);
+      const dreh = t > 5.2 ? ((t - 5.2) / 0.8) * 180 : 0;
+      const oben = -60 + 19 * p;
+      const breit = 11 * (1 - p) + 1;
+      return (
+        <g transform={`rotate(22) scale(0.85) rotate(${dreh.toFixed(1)} 0 -40)`}>
+          {/* Glass bulbs, sand on top and a growing pile below, a wooden plate above and below, two metal posts */}
+          <path d="M-13 -64 Q-13 -48 -2.5 -41 L-2.5 -39 Q-13 -32 -13 -16 H13 Q13 -32 2.5 -39 L2.5 -41 Q13 -48 13 -64 Z" {...flaeche(P.eis, 2.5)} />
+          {p < 1 && <path d={`M${(-breit).toFixed(1)} ${oben.toFixed(1)} L${breit.toFixed(1)} ${oben.toFixed(1)} L0 -40 Z`} {...flaeche(P.holzHell, 2)} />}
+          {p < 0.98 && <path d={`M0 -40 V${(-16 - 18 * p).toFixed(1)}`} stroke={P.holzHell} strokeWidth={2.5} strokeLinecap="round" />}
+          <path d={`M-12 -16 Q0 ${(-16 - 36 * p).toFixed(1)} 12 -16 Z`} {...flaeche(P.holzHell, 2)} />
+          <path d="M-9 -60 Q-9 -52 -5 -48" fill="none" stroke={P.eisHell} strokeWidth={3} strokeLinecap="round" />
+          <rect x={-19} y={-72} width={38} height={9} rx={4} {...flaeche(P.holzTief, 2.5)} />
+          <rect x={-19} y={-17} width={38} height={9} rx={4} {...flaeche(P.holzTief, 2.5)} />
+          {[-15.5, 15.5].map((x) => (
+            <path key={x} d={`M${x} -64 V-16`} stroke={P.metall} strokeWidth={4} strokeLinecap="round" />
+          ))}
+        </g>
+      );
+    },
+  },
+  {
+    id: 'planetenstab',
+    name: 'Planetenstab',
+    platz: 'hand-rechts',
+    seltenheit: 4,
+    bewegt: true,
+    rahmen: [-14, -100, 88, 116],
+    zeichnung: (zeit) => {
+      // A staff with a ringed planet on top and a little moon going round it (behind the planet half the time).
+      const a = zeit * 1.8;
+      const mond = <circle cx={(Math.cos(a) * 30).toFixed(1)} cy={(-76 + Math.sin(a) * 10).toFixed(1)} r={5} {...flaeche(P.grauHell, 2)} />;
+      const hinten = Math.sin(a) < 0;
+      return (
+        <g transform="rotate(26)">
+          {stiel(14, -58, 7, P.lila)}
+          {rohr('M-2 -54 V-8', 2.5, P.lilaHell, { opacity: 0.8 })}
+          <path d={stern(0, -50, 8)} {...flaeche(P.gold, 2)} />
+          {hinten && mond}
+          <g transform="rotate(-14 0 -76)">
+            <path d="M-31 -76 A31 8 0 0 1 31 -76" fill="none" stroke={P.goldTief} strokeWidth={5} strokeLinecap="round" />
+          </g>
+          <circle cx={1.5} cy={-74.5} r={16} {...flaeche(P.orangeTief)} />
+          <circle cx={0} cy={-76} r={16} {...flaeche(P.orange)} />
+          <path d="M-9 -82 Q-5 -88 2 -89" fill="none" stroke={P.orangeHell} strokeWidth={3.5} strokeLinecap="round" />
+          <g transform="rotate(-14 0 -76)">
+            <path d="M-31 -76 A31 8 0 0 0 31 -76" fill="none" stroke={P.gold} strokeWidth={5} strokeLinecap="round" />
+          </g>
+          {!hinten && mond}
+        </g>
+      );
+    },
+  },
+  {
+    id: 'eiszepter',
+    name: 'Eiszepter',
+    platz: 'hand-rechts',
+    seltenheit: 5,
+    bewegt: true,
+    rahmen: [-26, -122, 92, 138],
+    zeichnung: (zeit) => {
+      // A gold sceptre with a big ice crystal in a gold claw, a turquoise gem, snowflakes circling the crystal.
+      const flocke = (x: number, y: number, r: number, k: number) => (
+        <path
+          key={k}
+          d={`M${x} ${y - r} V${y + r} M${x - 0.87 * r} ${y - 0.5 * r} L${x + 0.87 * r} ${y + 0.5 * r} M${x - 0.87 * r} ${y + 0.5 * r} L${x + 0.87 * r} ${y - 0.5 * r}`}
+          stroke={P.eisTief}
+          strokeWidth={2.5}
+          strokeLinecap="round"
+        />
+      );
+      return (
+        <g transform="rotate(20)">
+          {stiel(14, -62, 8, P.gold)}
+          {rohr('M-2 -56 V-8', 3, P.goldHell, { opacity: 0.9 })}
+          <path d="M-7 -32 L0 -41 L7 -32 L0 -23 Z" {...flaeche(P.tuerkis, 2)} />
+          <path d="M0 -112 L12 -98 L12 -76 L0 -64 L-12 -76 L-12 -98 Z" {...flaeche(P.eis)} />
+          <path d="M0 -112 L12 -98 L12 -76 L0 -64 Z" fill={P.eisTief} opacity={0.7} />
+          <path d="M-7 -96 L-7 -80" stroke={P.eisHell} strokeWidth={3.5} strokeLinecap="round" />
+          {rohr('M-15 -80 Q-14 -62 0 -60 Q14 -62 15 -80', 6, P.gold)}
+          {[0, 1, 2].map((i) => {
+            const a = zeit * 1.2 + (i * Math.PI * 2) / 3;
+            return flocke(+(Math.cos(a) * 26).toFixed(1), +(-88 + Math.sin(a) * 12).toFixed(1), 5, i);
+          })}
+          <Funkeln x={-18} y={-108} r={7} zeit={zeit} />
+          <Funkeln x={20} y={-64} r={5} zeit={zeit} versatz={2.2} />
+        </g>
+      );
+    },
+  },
 ];

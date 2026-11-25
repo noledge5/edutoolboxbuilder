@@ -635,6 +635,145 @@ export const KLEIDUNG: Record<string, Kleid> = {
       );
     },
   },
+  // — 26.11.2026 (20261205_lernquest_welten_teile.sql): the worlds of the map. —
+  daunenjacke: {
+    aermel: T.orange,
+    unterarm: T.orange,
+    hand: T.blau,
+    hose: T.jeans,
+    schuhe: T.leder,
+    rumpf: () => (
+      <g>
+        <Rumpf
+          t={T.orange}
+          kinder={
+            <>
+              {/* Puffy down jacket: three soft seams across, a zip, a white fur collar, blue mittens */}
+              {[158, 174, 190].map((y) => (
+                <path key={y} d={`M89 ${y} Q120 ${y + 6} 151 ${y}`} fill="none" stroke={P.orangeTief} strokeWidth={4} strokeLinecap="round" />
+              ))}
+              <path d="M120 148 V200" stroke={P.orangeTief} strokeWidth={3} />
+            </>
+          }
+        />
+        <path d="M100 136 Q120 152 140 136 Q147 144 141 151 Q120 163 99 151 Q93 144 100 136 Z" {...flaeche(P.wolke, 2.5)} />
+        <path d="M128 152 Q136 150 140 146" fill="none" stroke={P.wolkeTief} strokeWidth={3} strokeLinecap="round" />
+      </g>
+    ),
+  },
+  hawaiihemd: {
+    aermel: T.tuerkis,
+    unterarm: 'haut',
+    hose: T.sand,
+    schuhe: T.leder,
+    rumpf: () => {
+      // Three big flowers on a turquoise shirt, each with a leaf; an open collar.
+      const blume = (x: number, y: number, f: string, mitte: string) => (
+        <g key={`${x}-${y}`}>
+          <path d={`M${x - 3} ${y + 2} Q${x + 6} ${y + 16} ${x + 16} ${y + 8} Q${x + 6} ${y + 4} ${x - 3} ${y + 2} Z`} {...flaeche(P.gruen, 2)} />
+          {[0, 1, 2, 3, 4].map((k) => {
+            const a = (k * 72 - 90) * (Math.PI / 180);
+            return <circle key={k} cx={(x + Math.cos(a) * 5.5).toFixed(1)} cy={(y + Math.sin(a) * 5.5).toFixed(1)} r={4.6} {...flaeche(f, 2)} />;
+          })}
+          <circle cx={x} cy={y} r={2.8} fill={mitte} />
+        </g>
+      );
+      return (
+        <Rumpf
+          t={T.tuerkis}
+          kinder={
+            <>
+              <path d="M106 137 L114 152 L120 142 L126 152 L134 137" {...flaeche(P.tuerkisHell, 2.5)} />
+              {blume(101, 166, P.rosa, P.gelb)}
+              {blume(137, 160, P.gelb, P.orange)}
+              {blume(124, 188, P.rosa, P.gelb)}
+            </>
+          }
+        />
+      );
+    },
+  },
+  blaettermantel: {
+    aermel: T.oliv,
+    unterarm: T.oliv,
+    hose: T.leder,
+    schuhe: T.leder,
+    hinten: () => <Umhang t={T.gruen} />,
+    rumpf: () => {
+      // A cloak of leaves: big leaves in two rows over an olive tunic, a wooden toggle at the neck.
+      const blatt = (x: number, y: number) => `M${x} ${y - 11} Q${x + 12} ${y} ${x} ${y + 13} Q${x - 12} ${y} ${x} ${y - 11} Z`;
+      return (
+        <Rumpf
+          t={T.oliv}
+          kinder={
+            <>
+              {[[100, 160], [120, 156], [140, 160], [110, 183], [131, 183]].map(([x, y], i) => (
+                <g key={i}>
+                  <path d={blatt(x, y)} {...flaeche(i % 2 ? P.gruenHell : P.gruen, 2)} />
+                  <path d={`M${x} ${y - 6} V${y + 8}`} stroke={P.gruenTief} strokeWidth={2} strokeLinecap="round" opacity={0.6} />
+                </g>
+              ))}
+              <rect x={113} y={139} width={14} height={7} rx={3} {...flaeche(P.holz, 2)} />
+            </>
+          }
+        />
+      );
+    },
+  },
+  lavaruestung: {
+    aermel: T.dunkel,
+    unterarm: T.dunkel,
+    hand: T.grau,
+    hose: T.dunkel,
+    schuhe: T.dunkel,
+    rumpf: ({ zeit }) => {
+      const glut = (0.7 + Math.sin(zeit * 2.2) * 0.3).toFixed(2);
+      return (
+        <g>
+          <Rumpf
+            t={T.dunkel}
+            kinder={
+              <>
+                {/* Plates of black volcanic stone with glowing cracks and a lava stone in the middle */}
+                <path d="M96 150 L106 162 L100 176 M144 152 L134 166 L140 184 M110 188 L120 196 L130 188" fill="none" stroke={P.lava} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" opacity={glut} />
+                <circle cx={120} cy={166} r={9} {...flaeche(P.lava, 2.5)} />
+                <circle cx={118} cy={164} r={4} fill={P.lavaHell} opacity={glut} />
+              </>
+            }
+          />
+          <Schulter x={80} k={-1} t={T.dunkel} farbe={P.dunkel} />
+          <Schulter x={160} k={1} t={T.dunkel} farbe={P.dunkel} />
+          <path d="M70 152 Q80 157 90 152 M150 152 Q160 157 170 152" fill="none" stroke={P.lava} strokeWidth={3} strokeLinecap="round" opacity={glut} />
+        </g>
+      );
+    },
+  },
+  pharaonengewand: {
+    aermel: 'haut',
+    unterarm: 'haut',
+    hose: T.creme,
+    schuhe: T.gold,
+    lang: true,
+    rumpf: ({ zeit }) => (
+      <Rumpf
+        t={T.creme}
+        d="M90 140 Q120 132 150 140 L160 224 Q120 232 80 224 Z"
+        kinder={
+          <>
+            {/* A linen robe with a broad gold collar (turquoise and lapis rings), a gold belt with a red stone */}
+            <path d="M86 140 Q120 218 154 140 Q120 129 86 140 Z" {...flaeche(P.gold, 2.5)} />
+            <path d="M94 144 Q120 202 146 144" fill="none" stroke={P.tuerkis} strokeWidth={6} strokeLinecap="round" />
+            <path d="M100 143 Q120 186 140 143" fill="none" stroke={P.blauTief} strokeWidth={6} strokeLinecap="round" />
+            <path d="M84 194 Q120 202 156 194 L157 206 Q120 214 83 206 Z" {...flaeche(P.gold, 2)} />
+            <path d="M113 208 L120 226 L127 208 Z" {...flaeche(P.goldTief, 2)} />
+            <path d="M120 195 l6 6 -6 6 -6 -6 Z" fill={P.rot} stroke={P.rot} strokeWidth={1.5} strokeLinejoin="round" />
+            <Funkeln x={140} y={154} r={6} zeit={zeit} />
+            <Funkeln x={98} y={212} r={5} zeit={zeit} versatz={2} />
+          </>
+        }
+      />
+    ),
+  },
 };
 
 // — Face: eyes (the `augen` part), brows, mouth (the chosen one), cheeks. Drawn in the fox's face coordinates and
@@ -709,6 +848,33 @@ const AUGEN_FORM: Record<string, (x: number, s: Stand) => ReactNode> = {
       </g>
     );
   },
+  // — 26.11.2026 (20261205_lernquest_welten_teile.sql) —
+  smaragdaugen: (x) => (
+    <g>
+      {/* An emerald cut as an eye: an octagon, a light facet top left, a dark centre, a small glint */}
+      <path d={`M${x - 5} ${AUGE_Y - 11} H${x + 5} L${x + 9.5} ${AUGE_Y - 4} V${AUGE_Y + 4} L${x + 5} ${AUGE_Y + 11} H${x - 5} L${x - 9.5} ${AUGE_Y + 4} V${AUGE_Y - 4} Z`} {...flaeche(P.gruen, 2)} />
+      <path d={`M${x - 5} ${AUGE_Y - 11} H${x + 5} L${x + 2} ${AUGE_Y - 4} H${x - 2} Z M${x - 9.5} ${AUGE_Y - 4} H${x - 2} V${AUGE_Y + 4} H${x - 9.5} Z`} fill={P.gruenHell} />
+      <ellipse cx={x + 1} cy={AUGE_Y + 2} rx={3.4} ry={4.6} fill={P.gruenTief} />
+      <path d={stern(x - 4, AUGE_Y - 6, 3.4, 4)} fill={P.weiss} />
+    </g>
+  ),
+  kometenaugen: (x, s) => {
+    // Night-sky eyes with a gold rim below; a little comet crosses each eye again and again.
+    const t = (s.zeit * 0.5 + (x === AUGE_L ? 0 : 0.5)) % 1;
+    const kx = x - 5 + t * 10;
+    const ky = AUGE_Y - 6 + t * 11;
+    const da = Math.sin(t * Math.PI);
+    return (
+      <g>
+        <ellipse cx={x} cy={AUGE_Y} rx={9} ry={11} fill={P.nachtTief} />
+        <path d={`M${x - 6} 97 Q${x} ${AUGE_Y + 12} ${x + 6} 97`} fill="none" stroke={P.gold} strokeWidth={2.5} strokeLinecap="round" />
+        <circle cx={x + 4} cy={AUGE_Y - 5} r={1.4} fill={P.weiss} />
+        <circle cx={x - 4} cy={AUGE_Y + 4} r={1.1} fill={P.weiss} />
+        <path d={`M${(kx - 6).toFixed(1)} ${(ky - 6.6).toFixed(1)} L${kx.toFixed(1)} ${ky.toFixed(1)}`} stroke={P.gelb} strokeWidth={2.6} strokeLinecap="round" opacity={(0.85 * da).toFixed(2)} />
+        <circle cx={kx.toFixed(1)} cy={ky.toFixed(1)} r={2.6} fill={P.gelbHell} opacity={da.toFixed(2)} />
+      </g>
+    );
+  },
 };
 /** Glasses and the like: drawn over plain eyes, in face coordinates. A few clear shapes each. */
 const BRILLE: Record<string, () => ReactNode> = {
@@ -744,6 +910,43 @@ const BRILLE: Record<string, () => ReactNode> = {
     <g>
       <path d="M133 100 Q140 120 132 134" fill="none" stroke={P.goldTief} strokeWidth={2.5} strokeLinecap="round" />
       <circle cx={AUGE_R} cy={AUGE_Y} r={14} fill={P.weiss} fillOpacity={0.3} stroke={P.gold} strokeWidth={4.5} />
+    </g>
+  ),
+  // — 26.11.2026 (20261205_lernquest_welten_teile.sql) —
+  // Party glasses: two orange starfish with dark lenses.
+  seesternbrille: () => (
+    <g>
+      <path d="M97 89 Q100 86 103 89 M64 88 L50 84 M136 88 L150 84" fill="none" stroke={P.orangeTief} strokeWidth={3.5} strokeLinecap="round" />
+      {[AUGE_L, AUGE_R].map((x) => (
+        <g key={x}>
+          <path d={stern(x, AUGE_Y, 19)} {...flaeche(P.orange, 3)} />
+          <path d={stern(x, AUGE_Y + 1, 10.5)} fill={P.dunkel} stroke={P.dunkel} strokeWidth={2} strokeLinejoin="round" />
+        </g>
+      ))}
+    </g>
+  ),
+  // Ski goggles: a strap, a white frame, one wide orange mirror lens with two light streaks.
+  schneebrille: () => (
+    <g>
+      <path d="M44 90 Q100 80 156 90 L156 98 Q100 88 44 98 Z" {...flaeche(P.blauTief, 2.5)} />
+      <path d="M58 84 Q58 76 68 76 H132 Q142 76 142 84 V98 Q142 108 132 108 H112 Q106 100 100 100 Q94 100 88 108 H68 Q58 108 58 98 Z" {...flaeche(P.wolke, 2.5)} />
+      <path d="M64 86 Q64 82 70 82 H130 Q136 82 136 86 V96 Q136 102 130 102 H113 Q107 95 100 95 Q93 95 87 102 H70 Q64 102 64 96 Z" fill={P.orange} />
+      <path d="M72 98 L84 85 M82 99 L95 85" stroke={P.orangeHell} strokeWidth={3.5} strokeLinecap="round" />
+    </g>
+  ),
+  // Goggles of a volcano researcher: two thick metal rims with orange heat glass, a leather strap.
+  forscherbrille: () => (
+    <g>
+      <path d="M44 92 Q100 84 156 92" fill="none" stroke={P.leder} strokeWidth={7} strokeLinecap="round" />
+      <path d="M94 92 H106" stroke={P.metallTief} strokeWidth={5} strokeLinecap="round" />
+      {[AUGE_L, AUGE_R].map((x) => (
+        <g key={x}>
+          <circle cx={x + 1.5} cy={AUGE_Y + 1.5} r={15} {...flaeche(P.metallTief, 3)} />
+          <circle cx={x} cy={AUGE_Y} r={15} {...flaeche(P.metall, 3)} />
+          <circle cx={x} cy={AUGE_Y} r={9.5} fill={P.orangeHell} fillOpacity={0.55} stroke={P.metallTief} strokeWidth={2} />
+          <path d={`M${x - 5} ${AUGE_Y - 2} Q${x - 4} ${AUGE_Y - 6} ${x} ${AUGE_Y - 7}`} fill="none" stroke={P.weiss} strokeWidth={2.5} strokeLinecap="round" />
+        </g>
+      ))}
     </g>
   ),
 };

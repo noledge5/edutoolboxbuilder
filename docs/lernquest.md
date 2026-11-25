@@ -549,6 +549,25 @@ stehen gleich in `rules.ts` (`GESCHAFFT_AB`, `niveauVon`, `rundenStufen`, `stern
   → Truhe öffnen. „Überspringen“ setzt nur das Merkzeichen.
 - Server vor 20261125 schicken `willkommen` und `klassenAufgabe` nicht: dann zeigt die App beides nicht.
 
+## Teile zu den Welten der Karte (26.11.2026)
+
+Wunsch der Lehrkraft (25.11.): neue Gegenstände für alle Seltenheiten, auch Legendär. Entschieden am 26.11.: 30 Teile,
+Thema „Welten der Karte“, Herkunft wie bisher. Jetzt 150 Teile.
+- **Je Welt ein Set** mit einem Teil je Seltenheit (Gewöhnlich → Legendär), jeder Platz bekommt je Seltenheit genau eins:
+  Wüste (Erdmännchen, Oase, Sanduhr, Pharaonenhaube, Pharaonengewand), Schneeland (Daunenjacke, Schneebrille, Eisburg,
+  Eisbär, Eiszepter), Strand (Seesternbrille, Hawaiihemd, Kapitänsmütze, Leuchtturm, Leuchtqualle), Vulkan (Fackel,
+  Feuersalamander, Forscherbrille, Lavarüstung, Flammenkrone), Weltall (Raumstation, Antennenreif, Alien, Planetenstab,
+  Kometenaugen), Wald (Pilzhut, Schleuder, Blättermantel, Smaragdaugen, Glühwürmchenwald).
+- **Herkunft:** Gewöhnlich und Ungewöhnlich im Laden; Selten: Alien und Eisburg nur aus Truhen; Episch: Planetenstab und
+  Leuchtturm im Laden, die anderen nur aus Truhen; Legendär nur aus Truhen. Boni im Rahmen der bisherigen Teile.
+  Die Lehrkraft kann alles auf der Lehrerseite ändern („Teile einstellen“).
+- Die Kennung der Fackel ist `holzfackel` (`fackel` ist schon ein Gegenstand des Fuchses).
+- Bewegt: alle Legendären, dazu Fackel, Antennenreif, Sanduhr (dreht sich um), Planetenstab (Mond kreist), Eisburg
+  (Schnee), Leuchtturm (Lichtstrahl). Gezeichnet in `src/lernquest/figuren/` (Hüte `items-kopf.tsx`, Werkzeuge
+  `items-werkzeug.tsx`, Begleiter `begleiter.tsx`, Hintergründe `hintergruende.tsx`, Augen und Kleidung `held.tsx`).
+- Server: nur neue Zeilen in `lq_teil` (`20261205_lernquest_welten_teile.sql`); Truhen, Laden und Spielstände bleiben.
+  Erst mergen, dann einspielen: eine ältere App kennt die neuen Teile nicht und zeigt sie aus der Truhe ohne Bild.
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

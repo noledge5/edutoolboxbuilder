@@ -372,4 +372,125 @@ export const KOPF_ITEMS: Item[] = [
       );
     },
   },
+  // — 26.11.2026 (supabase/migrations/20261205_lernquest_welten_teile.sql): the worlds of the map. —
+  {
+    id: 'pilzhut',
+    name: 'Pilzhut',
+    platz: 'hut',
+    seltenheit: 1,
+    rahmen: [-56, -58, 112, 70],
+    zeichnung: () => (
+      <g>
+        {/* Toadstool: a wide red cap over a pale rim, three big white dots */}
+        <path d="M-48 0 Q0 -10 48 0 Q42 10 0 10 Q-42 10 -48 0 Z" {...flaeche(P.sand)} />
+        <path d="M-52 2 Q-54 -50 0 -54 Q54 -50 52 2 Q0 -10 -52 2 Z" {...flaeche(P.rot)} />
+        <Tief d="M18 -50 Q52 -40 52 2 Q42 -1 32 -3 Q36 -28 18 -50 Z" farbe={P.rotTief} />
+        <Hell d="M-38 -16 Q-34 -36 -16 -45" farbe={P.backe} />
+        <circle cx={-20} cy={-27} r={8} {...flaeche(P.schnee)} />
+        <circle cx={9} cy={-40} r={7} {...flaeche(P.schnee)} />
+        <circle cx={30} cy={-17} r={6} {...flaeche(P.schnee)} />
+      </g>
+    ),
+  },
+  {
+    id: 'antennenreif',
+    name: 'Antennenreif',
+    platz: 'hut',
+    seltenheit: 2,
+    bewegt: true,
+    rahmen: [-54, -84, 108, 110],
+    zeichnung: (zeit) => {
+      // An alien headband: a band over the hair, two antennae that wobble a little, green bobbles on top.
+      const w = Math.sin(zeit * 3) * 5;
+      return (
+        <g>
+          <path d="M-50 22 Q-52 -18 0 -20 Q52 -18 50 22" {...GEIST} stroke={P.lila} strokeWidth={7} />
+          {[-1, 1].map((s) => (
+            <g key={s} transform={`rotate(${(s * 6 + w).toFixed(1)} ${s * 14} -19)`}>
+              <path d={`M${s * 14} -19 Q${s * 16} -40 ${s * 22} -56`} {...GEIST} stroke={P.lila} strokeWidth={5} />
+              <circle cx={s * 22} cy={-63} r={9} {...flaeche(P.gruenHell)} />
+              <path d={`M${s * 22 + 2} -56 A8 8 0 0 0 ${s * 22 + 8} -61`} {...GEIST} stroke={P.gruen} strokeWidth={3} />
+              <circle cx={s * 22 - 3} cy={-66} r={2.6} fill={P.wieseHell} />
+            </g>
+          ))}
+        </g>
+      );
+    },
+  },
+  {
+    id: 'kapitaensmuetze',
+    name: 'Kapitänsmütze',
+    platz: 'hut',
+    seltenheit: 3,
+    rahmen: [-50, -52, 100, 68],
+    zeichnung: () => (
+      <g>
+        {/* White crown, wider at the top, a navy band, a black peak and a gold badge with an anchor */}
+        <path d="M-36 -2 Q-50 -26 -42 -40 Q0 -52 42 -40 Q50 -26 36 -2 Z" {...flaeche(P.wolke)} />
+        <Tief d="M18 -47 Q44 -42 46 -32 Q46 -16 36 -2 L22 -2 Q32 -24 18 -47 Z" farbe={P.wolkeTief} deckkraft={1} />
+        <Hell d="M-36 -33 Q-18 -42 4 -44" farbe={P.wolkeHell} />
+        <rect x={-38} y={-13} width={76} height={14} rx={6} {...flaeche(P.blauTief)} />
+        <Flaeche d="M-36 0 Q0 -4 36 0 Q30 14 0 14 Q-30 14 -36 0 Z" farbe={P.dunkel} hell={P.dunkelHell} />
+        <ellipse cx={0} cy={-27} rx={11} ry={10} {...flaeche(P.gold, 2.5)} />
+        <path d="M0 -33 V-20 M-6 -25 Q0 -18 6 -25 M-4 -31 H4" {...GEIST} stroke={P.blauTief} strokeWidth={2.5} />
+      </g>
+    ),
+  },
+  {
+    id: 'pharaonenhaube',
+    name: 'Pharaonenhaube',
+    platz: 'hut',
+    seltenheit: 4,
+    rahmen: [-64, -54, 128, 126],
+    zeichnung: () => (
+      <g>
+        {/* Nemes: gold cloth with blue stripes over the head, a flap down beside each cheek, a cobra on the brow */}
+        {[-1, 1].map((s) => (
+          <g key={s} transform={`scale(${s} 1)`}>
+            <path d="M40 -6 L60 62 Q50 70 40 64 L33 8 Z" {...flaeche(P.gold)} />
+            <path d="M37 19 L45 17 M39 35 L49 32 M41 51 L54 48" {...GEIST} stroke={P.blauTief} strokeWidth={5} />
+          </g>
+        ))}
+        <path d="M-46 10 Q-52 -44 0 -48 Q52 -44 46 10 Q0 2 -46 10 Z" {...flaeche(P.gold)} />
+        <path d="M-30 -36 Q-20 -12 -21 4 M-11 -45 Q-7 -16 -7 2 M11 -45 Q7 -16 7 2 M30 -36 Q20 -12 21 4" {...GEIST} stroke={P.blauTief} strokeWidth={6} />
+        <Tief d="M22 -43 Q48 -34 46 10 Q38 6 31 5 Q34 -20 22 -43 Z" farbe={P.goldTief} deckkraft={0.5} />
+        <rect x={-46} y={0} width={92} height={12} rx={5} {...flaeche(P.goldTief)} />
+        <path d="M-6 6 Q-9 -10 0 -17 Q9 -10 6 6 Z" {...flaeche(P.gold, 2.5)} />
+        <path d="M0 -10 l4 4 -4 4 -4 -4 Z" fill={P.rot} stroke={P.rot} strokeWidth={1.5} strokeLinejoin="round" />
+      </g>
+    ),
+  },
+  {
+    id: 'flammenkrone',
+    name: 'Flammenkrone',
+    platz: 'hut',
+    seltenheit: 5,
+    bewegt: true,
+    rahmen: [-50, -94, 100, 106],
+    zeichnung: (zeit) => {
+      // A crown of black volcanic stone on a gold band: the cracks glow, a flame burns on each point.
+      const f = (k: number) => (1 + Math.sin(zeit * 9 + k) * 0.12).toFixed(3);
+      const glut = (0.65 + Math.sin(zeit * 2.4) * 0.3).toFixed(2);
+      const flamme = (x: number, y: number, s: number, k: number) => (
+        <g key={k} transform={`translate(${x} ${y}) scale(${s}) scale(1 ${f(k)})`}>
+          <path d="M0 0 Q-14 -8 -9 -24 Q-6 -16 -2 -18 Q-4 -32 3 -40 Q5 -30 10 -28 Q16 -14 9 -4 Q6 0 0 0 Z" {...flaeche(P.lava, 2.5)} />
+          <path d="M0 -3 Q-7 -8 -4 -17 Q0 -12 3 -15 Q8 -8 4 -4 Z" fill={P.gelb} />
+        </g>
+      );
+      return (
+        <g>
+          {flamme(-35, -27, 0.75, 0)}
+          {flamme(35, -27, 0.75, 2)}
+          {flamme(0, -41, 1.05, 4)}
+          <Flaeche d="M-36 4 L-38 -30 L-20 -16 L0 -44 L20 -16 L38 -30 L36 4 Z" farbe={P.dunkel} hell={P.dunkelHell} />
+          <path d="M-27 -16 L-20 -8 L-25 -1 M12 -26 L6 -14 L13 -6" {...GEIST} stroke={P.lava} strokeWidth={3.5} strokeLinejoin="round" opacity={glut} />
+          <rect x={-40} y={-4} width={80} height={14} rx={6} {...flaeche(P.gold)} />
+          <path d="M-36 8 Q0 11 36 8 L36 4 Q0 6 -36 4 Z" fill={P.goldTief} opacity={0.6} />
+          <path d="M0 -4 l7 7 -7 7 -7 -7 Z" fill={P.rot} stroke={P.rot} strokeWidth={1.5} strokeLinejoin="round" />
+          <Funkeln x={-28} y={-50} r={6} zeit={zeit} />
+          <Funkeln x={30} y={-54} r={5} zeit={zeit} versatz={2.4} />
+        </g>
+      );
+    },
+  },
 ];

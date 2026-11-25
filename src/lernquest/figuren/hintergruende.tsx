@@ -606,6 +606,178 @@ function nordlicht(zeit: number): ReactNode {
   );
 }
 
+// — 26.11.2026 (20261205_lernquest_welten_teile.sql): the worlds of the map. —
+
+/** Raumstation: inside a space station; a round window with the Earth on the left, a control desk on the right. */
+function raumstation(): ReactNode {
+  return (
+    <g>
+      <R y={0} h={240} f={P.metall} />
+      <R y={0} h={22} f={P.metallTief} />
+      {[36, 120, 204].map((x) => (
+        <rect key={x} x={x - 16} y={8} width={32} height={7} rx={3.5} fill={P.licht} />
+      ))}
+      <Kr x={52} y={92} r={38} f={P.grauTief} />
+      <Kr x={52} y={92} r={29} f={P.dunkelTief} />
+      <circle cx={60} cy={102} r={15} fill={P.blau} />
+      <path d="M53 96 Q60 89 66 94 Q68 102 60 104 Q54 102 53 96 Z M62 110 Q68 108 72 110 Q68 114 62 110 Z" fill={P.gruenHell} />
+      {[[36, 76], [66, 74], [38, 106]].map(([x, y]) => (
+        <circle key={x} cx={x} cy={y} r={2} fill={P.weiss} />
+      ))}
+      <path d="M30 78 Q35 68 45 65" fill="none" stroke={P.metallHell} strokeWidth={3.5} strokeLinecap="round" opacity={0.6} />
+      <R y={196} h={44} f={P.grau} />
+      <R y={196} h={6} f={P.grauTief} />
+      <Fl d="M186 102 H240 V136 H186 Z" f={P.dunkel} />
+      <path d="M192 126 L202 116 L210 122 L222 108 L234 114" fill="none" stroke={P.gruenHell} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+      <Fl d="M176 196 V156 Q176 148 184 148 H240 V196 Z" f={P.grauTief} />
+      {[[192, P.rot], [208, P.gelb], [224, P.gruenHell]].map(([x, f]) => (
+        <rect key={x as number} x={(x as number) - 5} y={160} width={10} height={8} rx={2} fill={f as string} />
+      ))}
+      <Fl d="M0 150 H22 V196 H0 Z" f={P.metallTief} />
+      <path d="M0 162 H22 M0 180 H22" stroke={P.grau} strokeWidth={3} />
+    </g>
+  );
+}
+
+/** Oase: a pond with palms in the desert, dunes behind. */
+function oase(): ReactNode {
+  return (
+    <g>
+      <R y={0} h={240} f={P.himmel} />
+      <Sonne x={198} y={42} r={16} />
+      <Wolke x={70} y={50} s={0.7} />
+      <Land d="M0 150 Q70 128 140 146 Q200 134 240 146 V240 H0 Z" f={P.sandTief} />
+      <Am x={180} y={160} s={0.6} kinder={<Palme />} />
+      <Land d="M0 176 Q60 160 120 172 Q190 160 240 174 V240 H0 Z" f={P.sand} />
+      <ellipse cx={52} cy={212} rx={46} ry={13} {...flaeche(P.wasser)} />
+      <path d="M24 209 Q38 205 52 208 M58 215 Q70 212 82 215" fill="none" stroke={P.wasserHell} strokeWidth={3.5} strokeLinecap="round" />
+      <path d="M90 214 L86 202 M95 214 L96 200 M100 214 L104 203" fill="none" stroke={P.gruen} strokeWidth={4} strokeLinecap="round" />
+      <Am x={20} y={204} s={1.3} kinder={<Palme />} />
+      <Am x={214} y={200} s={1.3} kinder={<Palme />} />
+      <ellipse cx={196} cy={228} rx={12} ry={5} {...flaeche(P.sandTief, 2.5)} />
+    </g>
+  );
+}
+
+/** Eisburg: an ice castle on the right in the snow, a small tower on the left, snow falling. */
+function eisburg(zeit: number): ReactNode {
+  const turm = (x: number, b: number, h: number) => (
+    <g key={x}>
+      <Fl d={`M${x - b / 2} 0 V${-h} H${x + b / 2} V0 Z`} f={P.eis} />
+      <path d={`M${x + b / 2 - 5} ${-h + 3} V-3`} stroke={P.eisTief} strokeWidth={6} opacity={0.5} />
+      <Fl d={`M${x - b / 2 - 4} ${-h} L${x} ${-h - b * 1.2} L${x + b / 2 + 4} ${-h} Z`} f={P.eisHell} />
+      <path d={`M${x} ${-h - b * 1.2} L${x + b / 2 + 4} ${-h} H${x + 2} Z`} fill={P.eisTief} opacity={0.45} />
+      <rect x={x - 3} y={-h + 12} width={6} height={10} rx={3} fill={P.blauTief} opacity={0.7} />
+    </g>
+  );
+  const flocken: [number, number, number][] = [[14, 20, 3], [52, 90, 2.5], [96, 40, 2.5], [150, 120, 2.5], [208, 30, 3], [228, 110, 2.5], [30, 160, 3], [176, 70, 2.5]];
+  return (
+    <g>
+      <R y={0} h={240} f={P.blauHell} />
+      <Land d="M0 156 Q60 140 120 152 Q180 138 240 150 V240 H0 Z" f={P.eis} />
+      <g transform="translate(192 166)">
+        <Fl d="M-34 0 V-46 H34 V0 Z" f={P.eis} />
+        {[-28, -14, 0, 14, 28].map((x) => (
+          <rect key={x} x={x - 4} y={-54} width={8} height={10} rx={2} {...flaeche(P.eis, 2)} />
+        ))}
+        <path d="M22 -44 V-2" stroke={P.eisTief} strokeWidth={10} opacity={0.45} />
+        <Fl d="M-10 0 V-20 Q0 -32 10 -20 V0 Z" f={P.eisTief} />
+        {turm(-36, 18, 70)}
+        {turm(0, 20, 92)}
+        {turm(38, 18, 76)}
+      </g>
+      <g transform="translate(34 172) scale(0.62)">{turm(0, 20, 80)}</g>
+      <Land d="M0 178 Q70 164 130 176 Q190 166 240 176 V240 H0 Z" f={P.schnee} />
+      <Land d="M140 240 Q196 220 240 224 V240 Z" f={P.eis} />
+      {flocken.map(([x, y, r], i) => (
+        <circle key={i} cx={(x + Math.sin(zeit + i) * 4).toFixed(1)} cy={(((y + zeit * 18) % 250) - 6).toFixed(1)} r={r} fill={P.weiss} />
+      ))}
+    </g>
+  );
+}
+
+/** Leuchtturm: evening at the coast, the lighthouse on rocks to the right, its beam sweeping over the sky. */
+function leuchtturm(zeit: number): ReactNode {
+  const k = Math.cos(zeit * 1.2);
+  const lang = 210 * Math.abs(k);
+  const s = k >= 0 ? -1 : 1;
+  const glanz = (0.35 + Math.abs(k) * 0.35).toFixed(2);
+  const strahl = (0.15 + Math.abs(k) * 0.2).toFixed(2);
+  const links = (y: number) => 190 - (y - 76) / 30;
+  const rechts = (y: number) => 210 + (y - 76) / 30;
+  const streifen = (y1: number, y2: number) => `M${links(y1)} ${y1} L${rechts(y1)} ${y1} L${rechts(y2)} ${y2} L${links(y2)} ${y2} Z`;
+  const welle = Math.sin(zeit * 1.5) * 4;
+  return (
+    <g>
+      <R y={0} h={240} f={P.tinteHell} />
+      <R y={92} h={48} f={P.lilaHell} />
+      {[[24, 22], [92, 34], [140, 16]].map(([x, y]) => (
+        <circle key={x} cx={x} cy={y} r={2.4} fill={P.weiss} />
+      ))}
+      <circle cx={58} cy={140} r={18} fill={P.orangeHell} />
+      <path d={`M200 61 L${(200 + s * lang).toFixed(1)} ${(61 - 0.22 * lang).toFixed(1)} L${(200 + s * lang).toFixed(1)} ${(61 + 0.03 * lang).toFixed(1)} Z`} fill={P.gelbHell} opacity={strahl} />
+      <R y={140} h={100} f={P.wasserTief} />
+      <path d={`M10 ${158 + welle} Q30 ${152 + welle} 50 ${158 + welle} M90 ${170 - welle} Q110 ${164 - welle} 130 ${170 - welle}`} fill="none" stroke={P.wasser} strokeWidth={4} strokeLinecap="round" />
+      <Land d="M0 204 Q50 190 106 202 Q124 212 116 240 H0 Z" f={P.sand} />
+      <Fl d="M150 240 Q148 202 174 192 Q200 182 222 194 Q240 202 240 240 Z" f={P.grauTief} />
+      <Fl d="M166 200 Q184 188 204 190" f={P.grau} b={5} />
+      <Fl d={`M186 196 L190 76 H210 L214 196 Z`} f={P.schnee} />
+      <Fl d={streifen(96, 116)} f={P.rot} b={2} />
+      <Fl d={streifen(136, 156)} f={P.rot} b={2} />
+      <Fl d={streifen(176, 196)} f={P.rot} b={2} />
+      <path d="M206 80 L209 194" stroke={P.grauHell} strokeWidth={4} opacity={0.6} />
+      <circle cx={200} cy={61} r={15} fill={P.gelbHell} opacity={glanz} />
+      <rect x={192} y={52} width={16} height={18} rx={2} fill={P.licht} />
+      <Fl d="M184 70 H216 V77 H184 Z" f={P.dunkel} />
+      <Fl d="M188 52 Q200 36 212 52 Z" f={P.rotTief} />
+      <path d="M38 52 q6 -6 12 0 q6 -6 12 0" fill="none" {...STRICH} />
+    </g>
+  );
+}
+
+/** Glühwürmchenwald: the forest at night with a lit tree house on the left, the moon, fireflies drifting and blinking. */
+function gluehwuermchenwald(zeit: number): ReactNode {
+  const fliegen: [number, number][] = [[78, 58], [176, 92], [146, 36], [96, 150], [214, 140], [118, 104], [184, 196], [90, 206]];
+  return (
+    <g>
+      <R y={0} h={240} f={P.nachtTief} />
+      <circle cx={198} cy={38} r={15} fill={P.goldHell} />
+      <circle cx={206} cy={32} r={13} fill={P.nachtTief} />
+      {[84, 122, 160, 196].map((x, i) => (
+        <path key={x} d={TANNE_FLACH} transform={`translate(${x} ${170 - (i % 2) * 6}) scale(1.25)`} fill={P.nacht} />
+      ))}
+      <Land d="M0 166 Q60 150 120 162 Q190 150 240 164 V240 H0 Z" f={P.nacht} />
+      <Land d="M0 192 Q70 178 140 190 Q200 182 240 192 V240 H0 Z" f={P.gruenTief} />
+      <rect x={12} y={70} width={18} height={132} rx={5} {...flaeche(P.holzTief)} />
+      <Kr x={16} y={40} r={42} f={P.blattTief} />
+      <Kr x={52} y={14} r={24} f={P.blattTief} />
+      <path d="M52 119 L56 198 M64 119 L68 198" stroke={P.holzHell} strokeWidth={3} />
+      {[136, 156, 176].map((y) => (
+        <path key={y} d={`M53 ${y} H66`} stroke={P.holzHell} strokeWidth={3} />
+      ))}
+      <rect x={0} y={112} width={74} height={7} rx={3} {...flaeche(P.holz, 2.5)} />
+      <Fl d="M12 112 V88 H60 V112 Z" f={P.holz} />
+      <Fl d="M6 90 L36 68 L66 90 Z" f={P.rotTief} />
+      <circle cx={37} cy={99} r={13} fill={P.licht} opacity={0.3} />
+      <rect x={31} y={93} width={13} height={12} rx={2} fill={P.licht} />
+      <Kr x={224} y={198} r={20} f={P.blattTief} />
+      <Kr x={202} y={206} r={13} f={P.blattTief} />
+      {fliegen.map(([x0, y0], i) => {
+        const x = (x0 + Math.sin(zeit * 0.7 + i * 1.9) * 14).toFixed(1);
+        const y = (y0 + Math.cos(zeit * 0.9 + i * 1.3) * 9).toFixed(1);
+        const b = (Math.sin(zeit * 2.6 + i * 2.3) + 1) / 2;
+        return (
+          <g key={i}>
+            <circle cx={x} cy={y} r={7} fill={P.gelb} opacity={(0.3 + 0.35 * b).toFixed(2)} />
+            <circle cx={x} cy={y} r={3.2} fill={P.gelbHell} opacity={(0.75 + 0.25 * b).toFixed(2)} />
+          </g>
+        );
+      })}
+      <Funkeln x={172} y={24} r={6} zeit={zeit} />
+    </g>
+  );
+}
+
 export const HINTERGRUENDE: Hintergrund[] = [
   { id: 'wiese', name: 'Wiese', seltenheit: 1, zeichnung: wiese },
   { id: 'strand', name: 'Strand', seltenheit: 1, zeichnung: strand },
@@ -626,6 +798,12 @@ export const HINTERGRUENDE: Hintergrund[] = [
   { id: 'dschungel', name: 'Dschungel', seltenheit: 3, bewegt: true, zeichnung: dschungel },
   { id: 'piratenschiff', name: 'Piratenschiff', seltenheit: 4, bewegt: true, zeichnung: piratenschiff },
   { id: 'nordlicht', name: 'Nordlicht', seltenheit: 5, bewegt: true, zeichnung: nordlicht },
+  // 26.11.2026 (20261205_lernquest_welten_teile.sql): the worlds of the map
+  { id: 'raumstation', name: 'Raumstation', seltenheit: 1, zeichnung: raumstation },
+  { id: 'oase', name: 'Oase', seltenheit: 2, zeichnung: oase },
+  { id: 'eisburg', name: 'Eisburg', seltenheit: 3, bewegt: true, zeichnung: eisburg },
+  { id: 'leuchtturm', name: 'Leuchtturm', seltenheit: 4, bewegt: true, zeichnung: leuchtturm },
+  { id: 'gluehwuermchenwald', name: 'Glühwürmchenwald', seltenheit: 5, bewegt: true, zeichnung: gluehwuermchenwald },
   // Own parts of the teacher (lq_teil, eigen), by their id.
   { id: 'e57ef47f771', name: 'Höllenfeuer', seltenheit: 4, bewegt: true, zeichnung: hoellenfeuer },
 ];

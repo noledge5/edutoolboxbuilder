@@ -46,7 +46,8 @@ Je eine eigene Session, Reihenfolge entscheidet die Lehrkraft. Vor dem Bauen mit
 offenen Fragen klären.
 - **Mathe-Aufgaben** kommen bald: prüfen, ob die Aufgabenformate (`fragenpool.ts`, `Uebungen.tsx`) Rechnen tragen
   (Zahleneingabe, Brüche, Einheiten, Rechenweg?).
-- **Neue Gegenstände** für alle Seltenheiten, auch Legendär (ist seit 13.11. leer, `docs/roadmap.md`).
+- ~~**Neue Gegenstände** für alle Seltenheiten, auch Legendär~~: gebaut am 26.11.2026, 30 Teile zu den Welten der Karte
+  (`docs/lernquest.md` „Teile zu den Welten der Karte“, Migration `20261205_lernquest_welten_teile.sql`).
 - **Einschmelzen** (langfristig): mehrere Gegenstände einer Seltenheit ergeben einen der nächst selteneren.
   Legendär ist ausgenommen. Offen: wie viele, Zufall oder Wahl, Gegenstände aus Truhen und Laden gleich, was mit
   getragenen Teilen, Startteilen und eigenen Teilen der Lehrkraft. Server-Regel (wie `lq_truhe_oeffnen`).
