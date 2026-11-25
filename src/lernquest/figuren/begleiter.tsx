@@ -530,6 +530,144 @@ function Sternenhirsch({ zeit }: { zeit: number }) {
   );
 }
 
+// ---------------------------------------------------------------- 26.11.2026 (20261205_lernquest_welten_teile.sql)
+
+function Erdmaennchen() {
+  return (
+    <g>
+      {/* Standing up on watch: a tall body, paws held at the chest, dark patches round the eyes */}
+      <path d="M-8 -6 Q-24 -4 -26 -20" fill="none" stroke={P.holz} strokeWidth={6} strokeLinecap="round" />
+      <path d="M-26 -20 L-25 -25" fill="none" stroke={P.holzTief} strokeWidth={6} strokeLinecap="round" />
+      <Ov cx={-5} cy={-3} rx={8} ry={4} f={P.holz} />
+      <Ov cx={10} cy={-3} rx={8} ry={4} f={P.holz} />
+      <Ov cx={2} cy={-26} rx={14} ry={24} f={P.holzHell} />
+      <Schatten cx={2} cy={-26} rx={14} ry={24} farbe={P.holz} />
+      <ellipse cx={6} cy={-22} rx={7} ry={15} fill={P.sand} />
+      <path d="M8 -38 Q16 -36 15 -30 M4 -37 Q12 -33 11 -27" fill="none" stroke={P.holz} strokeWidth={5} strokeLinecap="round" />
+      <Ov cx={-4} cy={-66} rx={4} f={P.holz} />
+      <Pf d="M-8 -58 Q-8 -72 6 -72 Q18 -72 20 -62 L28 -58 Q28 -52 20 -51 Q12 -46 2 -48 Q-8 -50 -8 -58 Z" f={P.holzHell} />
+      <circle cx={28} cy={-57} r={2.8} fill={P.auge} />
+      <ellipse cx={5} cy={-60} rx={5.5} ry={5} fill={P.holz} />
+      <ellipse cx={16} cy={-61} rx={5} ry={4.6} fill={P.holz} />
+      <Auge x={6} y={-60} r={3.4} />
+      <Auge x={16} y={-61} r={3.2} />
+      <Mund x={22} y={-53} w={2.6} />
+      <Backe x={2} y={-52} rx={3.4} ry={2.2} />
+    </g>
+  );
+}
+
+function Feuersalamander() {
+  return (
+    <g>
+      {/* Black with yellow spots (lighter sockets carry the dark eyes), a little flame at the tip of the tail */}
+      <path d="M-40 -20 Q-46 -26 -42 -34 Q-40 -28 -36 -30 Q-36 -24 -40 -20 Z" {...flaeche(P.lava, 2.5)} />
+      <Flaeche d="M-14 -10 Q-30 -8 -40 -20 Q-28 -14 -16 -18 Z" farbe={P.dunkel} hell={P.dunkelHell} />
+      <Flaeche d={ovalPfad(-14, -3, 6, 4)} farbe={P.dunkel} hell={P.dunkelHell} />
+      <Flaeche d={ovalPfad(10, -3, 6, 4)} farbe={P.dunkel} hell={P.dunkelHell} />
+      <Flaeche d={ovalPfad(-4, -13, 20, 10)} farbe={P.dunkel} hell={P.dunkelHell} />
+      <Flaeche d={ovalPfad(20, -24, 16, 13)} farbe={P.dunkel} hell={P.dunkelHell} />
+      <ellipse cx={-14} cy={-17} rx={5} ry={3} fill={P.gelb} />
+      <ellipse cx={0} cy={-19} rx={4.5} ry={3} fill={P.gelb} />
+      <ellipse cx={-28} cy={-15} rx={3.5} ry={2.4} fill={P.gelb} />
+      <path d="M10 -33 Q18 -39 28 -34" fill="none" stroke={P.gelb} strokeWidth={5} strokeLinecap="round" />
+      <circle cx={16} cy={-26} r={5} fill={P.dunkelHell} />
+      <circle cx={28} cy={-26} r={4.6} fill={P.dunkelHell} />
+      <circle cx={16} cy={-26} r={3.2} fill={P.auge} />
+      <circle cx={28} cy={-26} r={3} fill={P.auge} />
+      <path d="M22 -17 Q28 -13 34 -18" fill="none" stroke={P.dunkelHell} strokeWidth={2.5} strokeLinecap="round" />
+      <Backe x={12} y={-18} rx={3.4} ry={2.2} />
+    </g>
+  );
+}
+
+function Alien() {
+  return (
+    <g>
+      {/* A small green alien in a glass helmet: big head, big dark eyes, two antennae */}
+      <Ov cx={-6} cy={-3} rx={7} ry={4} f={P.gruen} />
+      <Ov cx={10} cy={-3} rx={7} ry={4} f={P.gruen} />
+      <Pf d="M-12 -4 Q-16 -22 2 -26 Q20 -22 16 -4 Z" f={P.lila} />
+      <path d="M8 -22 Q18 -18 15 -6" fill="none" stroke={P.lilaTief} strokeWidth={4} strokeLinecap="round" opacity={0.6} />
+      <path d="M14 -16 Q22 -14 22 -8" fill="none" stroke={P.gruenHell} strokeWidth={5} strokeLinecap="round" />
+      <path d="M-2 -60 L-6 -70 M10 -60 L15 -70" fill="none" stroke={P.gruen} strokeWidth={3.5} strokeLinecap="round" />
+      <circle cx={-6} cy={-72} r={3.6} fill={P.gelb} />
+      <circle cx={15} cy={-72} r={3.6} fill={P.gelb} />
+      <Ov cx={4} cy={-44} rx={19} ry={17} f={P.gruenHell} />
+      <Schatten cx={4} cy={-44} rx={19} ry={17} farbe={P.gruen} />
+      <ellipse cx={3} cy={-46} rx={4.6} ry={7} fill={P.auge} transform="rotate(-18 3 -46)" />
+      <ellipse cx={16} cy={-46} rx={4.2} ry={6.6} fill={P.auge} transform="rotate(18 16 -46)" />
+      <Mund x={11} y={-36} w={2.8} />
+      <Backe x={-4} y={-38} rx={3.4} ry={2.2} />
+      {/* the helmet: a pale glass bubble with a light stroke top left and a metal ring at the neck */}
+      <circle cx={4} cy={-46} r={27} fill={P.blauHell} fillOpacity={0.28} stroke={P.blauHell} strokeWidth={3} />
+      <path d="M-15 -58 Q-10 -68 0 -71" fill="none" stroke={P.weiss} strokeWidth={3.5} strokeLinecap="round" opacity={0.9} />
+      <rect x={-12} y={-25} width={32} height={7} rx={3.5} {...flaeche(P.metall, 2)} />
+    </g>
+  );
+}
+
+function Eisbaer() {
+  return (
+    <g>
+      {/* A polar bear cub on four legs, head to the right, a blue scarf with a gold star */}
+      <HellOv cx={-20} cy={-5} rx={6} ry={6} />
+      <HellOv cx={6} cy={-5} rx={6} ry={6} />
+      <HellOv cx={-4} cy={-21} rx={25} ry={16} />
+      <Schatten cx={-4} cy={-21} rx={25} ry={16} farbe={P.wolkeTief} a1={0} a2={150} />
+      <HellOv cx={-12} cy={-4} rx={6} ry={5} f={P.wolkeHell} />
+      <HellOv cx={14} cy={-4} rx={6} ry={5} f={P.wolkeHell} />
+      <HellOv cx={9} cy={-50} rx={5.5} />
+      <HellOv cx={27} cy={-51} rx={5.5} />
+      <circle cx={9} cy={-50} r={2.6} fill={P.rosaHell} />
+      <circle cx={27} cy={-51} r={2.6} fill={P.rosaHell} />
+      <HellOv cx={19} cy={-38} rx={16} ry={15} f={P.wolkeHell} />
+      <HellOv cx={31} cy={-33} rx={8} ry={6} f={P.wolkeHell} />
+      <ellipse cx={37} cy={-35} rx={3.2} ry={2.5} fill={P.auge} />
+      <Auge x={16} y={-41} r={3.6} />
+      <Auge x={27} y={-42} r={3.4} />
+      <Mund x={33} y={-29} w={2.6} />
+      <Backe x={12} y={-33} rx={3.4} ry={2.2} />
+      <path d="M6 -27 Q19 -20 32 -26 L32 -20 Q19 -14 6 -21 Z" {...flaeche(P.blau, 2.5)} />
+      <path d="M10 -22 L6 -6 L15 -8 Z" {...flaeche(P.blauTief, 2.5)} />
+      <path d={stern(22, -21, 4.5)} {...flaeche(P.gold, 2)} />
+    </g>
+  );
+}
+
+function Leuchtqualle({ zeit }: { zeit: number }) {
+  // Floats and glows: the whole jellyfish bobs, its four tentacles wave, the light inside pulses.
+  const auf = Math.sin(zeit * 1.6) * 4;
+  const glanz = 0.5 + Math.sin(zeit * 2.2) * 0.25;
+  return (
+    <g>
+      <ellipse cx={0} cy={-2} rx={14 - auf * 0.8} ry={3} fill={P.schatten} opacity={0.15} />
+      <g transform={`translate(0 ${auf.toFixed(2)})`}>
+        <circle cx={0} cy={-60} r={30} fill={P.lilaHell} opacity={(glanz * 0.5).toFixed(2)} />
+        {[0, 1, 2, 3].map((i) => {
+          const x = -12 + i * 8;
+          const w = Math.sin(zeit * 3 + i * 1.3) * 5;
+          return <path key={i} d={`M${x} -44 Q${(x + w).toFixed(1)} -34 ${x} -26 T${x} -10`} fill="none" stroke={i % 2 ? P.rosa : P.lila} strokeWidth={4} strokeLinecap="round" />;
+        })}
+        <Pf d="M-23 -44 Q-25 -78 0 -80 Q25 -78 23 -44 Q17 -40 11.5 -44 Q6 -40 0 -44 Q-6 -40 -11.5 -44 Q-17 -40 -23 -44 Z" f={P.lilaHell} />
+        <path d="M10 -76 Q24 -70 23 -46 Q17 -42 12 -45 Q18 -60 10 -76 Z" fill={P.lila} opacity={0.5} />
+        <ellipse cx={-8} cy={-64} rx={7} ry={6} fill={P.rosaHell} opacity={(glanz + 0.3).toFixed(2)} />
+        <path d="M-15 -68 Q-12 -74 -6 -76" fill="none" stroke={P.wolkeHell} strokeWidth={3} strokeLinecap="round" />
+        {[-14, 0, 14].map((x) => (
+          <circle key={x} cx={x} cy={-46} r={2.6} {...flaeche(P.goldHell, 2)} />
+        ))}
+        <Auge x={2} y={-58} r={3.6} />
+        <Auge x={13} y={-58} r={3.4} />
+        <Mund x={8} y={-52} w={2.6} />
+        <Backe x={-3} y={-52} rx={3.4} ry={2.2} />
+        <Backe x={18} y={-52} rx={2.8} ry={2} />
+      </g>
+      <Funkeln x={-26} y={-82} r={6} zeit={zeit} />
+      <Funkeln x={26} y={-40} r={5} zeit={zeit} versatz={2.2} />
+    </g>
+  );
+}
+
 const rahmen = (x: number, y: number, w: number, h: number) => [x, y, w, h] as const;
 const tier = (id: string, name: string, seltenheit: Item['seltenheit'], r: readonly [number, number, number, number], zeichnung: (zeit: number) => ReactNode, bewegt = false): Item => ({
   id,
@@ -561,4 +699,10 @@ export const BEGLEITER_ITEMS: Item[] = [
   tier('panda', 'Panda', 3, rahmen(-44, -65, 75, 70), () => <Panda />),
   tier('mondwolf', 'Mondwolf', 4, rahmen(-43, -76, 92, 82), (zeit) => <Mondwolf zeit={zeit} />, true),
   tier('sternenhirsch', 'Sternenhirsch', 5, rahmen(-32, -99, 80, 100), (zeit) => <Sternenhirsch zeit={zeit} />, true),
+  // 26.11.2026 (20261205_lernquest_welten_teile.sql): the worlds of the map
+  tier('erdmaennchen', 'Erdmännchen', 1, rahmen(-30, -74, 62, 77), () => <Erdmaennchen />),
+  tier('salamander', 'Feuersalamander', 2, rahmen(-48, -42, 86, 46), () => <Feuersalamander />),
+  tier('alien', 'Alien', 3, rahmen(-26, -76, 60, 79), () => <Alien />),
+  tier('eisbaer', 'Eisbär', 4, rahmen(-32, -58, 74, 61), () => <Eisbaer />),
+  tier('leuchtqualle', 'Leuchtqualle', 5, rahmen(-34, -96, 68, 98), (zeit) => <Leuchtqualle zeit={zeit} />, true),
 ];

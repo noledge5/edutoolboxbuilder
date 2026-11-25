@@ -1,8 +1,10 @@
-// The hero's parts (Stufe 2, 16 more on 06.11.2026, 24 more on 09.11.2026, 40 more on 13.11.2026): 120 parts on six places, five rarities, a few
+// The hero's parts (Stufe 2, 16 more on 06.11.2026, 24 more on 09.11.2026, 40 more on 13.11.2026, 30 more on 26.11.2026):
+// 150 parts on six places, five rarities, a few
 // with small bonuses that count only in the game (never for marks or real rewards). Some are chest treasures (`nurTruhe`):
 // not in the shop, and unknown (a question mark) until found. The server holds the same catalogue (`lq_teil` in
-// supabase/migrations/20261106b_lernquest_held.sql, 20261109_lernquest_beute.sql and
-// 20261116_lernquest_truhenschaetze.sql); a test checks both are the same.
+// supabase/migrations/20261106b_lernquest_held.sql, 20261109_lernquest_beute.sql,
+// 20261116_lernquest_truhenschaetze.sql, 20261129_lernquest_neue_teile.sql and 20261205_lernquest_welten_teile.sql); a test
+// checks both are the same.
 
 export type Slot = 'kopf' | 'augen' | 'kleidung' | 'werkzeug' | 'begleiter' | 'hintergrund';
 
@@ -162,6 +164,38 @@ export const TEILE: Teil[] = [
   { id: 'mondsichel', slot: 'werkzeug', name: 'Mondsichelstab', seltenheit: 4, muenzen: 15, schaden: 3, nurTruhe: true },
   { id: 'sternenhirsch', slot: 'begleiter', name: 'Sternenhirsch', seltenheit: 4, muenzen: 10, herz: 1, schaden: 1, nurTruhe: true },
   { id: 'nordlicht', slot: 'hintergrund', name: 'Nordlicht', seltenheit: 4, muenzen: 15, nurTruhe: true },
+  // Added 26.11.2026 (supabase/migrations/20261205_lernquest_welten_teile.sql): the worlds of the map, one set per world
+  // (Wüste, Schneeland, Strand, Vulkan, Weltall, Wald) with one part per rarity, and every place one new part per rarity.
+  { id: 'pilzhut', slot: 'kopf', name: 'Pilzhut', seltenheit: 0 },
+  { id: 'seesternbrille', slot: 'augen', name: 'Seesternbrille', seltenheit: 0 },
+  { id: 'daunenjacke', slot: 'kleidung', name: 'Daunenjacke', seltenheit: 0 },
+  { id: 'holzfackel', slot: 'werkzeug', name: 'Fackel', seltenheit: 0, schaden: 1 },
+  { id: 'erdmaennchen', slot: 'begleiter', name: 'Erdmännchen', seltenheit: 0 },
+  { id: 'raumstation', slot: 'hintergrund', name: 'Raumstation', seltenheit: 0 },
+  { id: 'antennenreif', slot: 'kopf', name: 'Antennenreif', seltenheit: 1, muenzen: 5 },
+  { id: 'schneebrille', slot: 'augen', name: 'Schneebrille', seltenheit: 1 },
+  { id: 'hawaiihemd', slot: 'kleidung', name: 'Hawaiihemd', seltenheit: 1 },
+  { id: 'schleuder', slot: 'werkzeug', name: 'Schleuder', seltenheit: 1, schaden: 1 },
+  { id: 'salamander', slot: 'begleiter', name: 'Feuersalamander', seltenheit: 1, herz: 1 },
+  { id: 'oase', slot: 'hintergrund', name: 'Oase', seltenheit: 1, muenzen: 5 },
+  { id: 'kapitaensmuetze', slot: 'kopf', name: 'Kapitänsmütze', seltenheit: 2, muenzen: 5 },
+  { id: 'forscherbrille', slot: 'augen', name: 'Forscherbrille', seltenheit: 2, schaden: 1 },
+  { id: 'blaettermantel', slot: 'kleidung', name: 'Blättermantel', seltenheit: 2, herz: 1 },
+  { id: 'sanduhr', slot: 'werkzeug', name: 'Sanduhr', seltenheit: 2, herz: 1 },
+  { id: 'alien', slot: 'begleiter', name: 'Alien', seltenheit: 2, muenzen: 5, schaden: 1, nurTruhe: true },
+  { id: 'eisburg', slot: 'hintergrund', name: 'Eisburg', seltenheit: 2, muenzen: 5, nurTruhe: true },
+  { id: 'pharaonenhaube', slot: 'kopf', name: 'Pharaonenhaube', seltenheit: 3, muenzen: 10, herz: 1, nurTruhe: true },
+  { id: 'smaragdaugen', slot: 'augen', name: 'Smaragdaugen', seltenheit: 3, muenzen: 10, nurTruhe: true },
+  { id: 'lavaruestung', slot: 'kleidung', name: 'Lavarüstung', seltenheit: 3, herz: 1, schaden: 1, nurTruhe: true },
+  { id: 'planetenstab', slot: 'werkzeug', name: 'Planetenstab', seltenheit: 3, muenzen: 5, schaden: 2 },
+  { id: 'eisbaer', slot: 'begleiter', name: 'Eisbär', seltenheit: 3, herz: 1, schaden: 1, nurTruhe: true },
+  { id: 'leuchtturm', slot: 'hintergrund', name: 'Leuchtturm', seltenheit: 3, muenzen: 10 },
+  { id: 'flammenkrone', slot: 'kopf', name: 'Flammenkrone', seltenheit: 4, muenzen: 10, herz: 1, schaden: 2, nurTruhe: true },
+  { id: 'kometenaugen', slot: 'augen', name: 'Kometenaugen', seltenheit: 4, muenzen: 15, schaden: 1, nurTruhe: true },
+  { id: 'pharaonengewand', slot: 'kleidung', name: 'Pharaonengewand', seltenheit: 4, muenzen: 15, herz: 2, nurTruhe: true },
+  { id: 'eiszepter', slot: 'werkzeug', name: 'Eiszepter', seltenheit: 4, muenzen: 10, herz: 1, schaden: 3, nurTruhe: true },
+  { id: 'leuchtqualle', slot: 'begleiter', name: 'Leuchtqualle', seltenheit: 4, muenzen: 15, herz: 1, nurTruhe: true },
+  { id: 'gluehwuermchenwald', slot: 'hintergrund', name: 'Glühwürmchenwald', seltenheit: 4, muenzen: 15, nurTruhe: true },
 ];
 
 // — Parts the admin teacher made on the teacher page (supabase/migrations/20261118_lernquest_eigene_teile.sql). The app

@@ -379,10 +379,22 @@ describe('Held und Beute', () => {
     const neuer = readFileSync(new URL('../../supabase/migrations/20261129_lernquest_neue_teile.sql', import.meta.url), 'utf8');
     const neue = [...neuer.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+), (\d+), (true|false)\)/g)];
     rows.push(...neue.map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]));
+    // 30 more on 26.11.2026 (20261205_lernquest_welten_teile.sql), the worlds of the map.
+    const welten = readFileSync(new URL('../../supabase/migrations/20261205_lernquest_welten_teile.sql', import.meta.url), 'utf8');
+    const weltTeile = [...welten.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+), (\d+), (true|false)\)/g)];
+    rows.push(...weltTeile.map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]));
     expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, !!t.start, t.muenzen ?? 0, t.herz ?? 0]));
-    expect([...neu, ...neue].map((m) => [m[1], +m[7], m[8] === 'true'])).toEqual(TEILE.slice(56).map((t) => [t.id, t.schaden ?? 0, !!t.nurTruhe]));
+    expect([...neu, ...neue, ...weltTeile].map((m) => [m[1], +m[7], m[8] === 'true'])).toEqual(TEILE.slice(56).map((t) => [t.id, t.schaden ?? 0, !!t.nurTruhe]));
     expect(TEILE.slice(0, 56).filter((t) => t.nurTruhe)).toEqual([]);
-    expect(TEILE).toHaveLength(120);
+    expect(TEILE).toHaveLength(150);
+    expect(new Set(TEILE.map((t) => t.id)).size).toBe(TEILE.length);
+    // Every place one new part per rarity; nobody starts with one; Legendär only from chests, the cheap ones in the shop.
+    const plaetze = ['kopf', 'augen', 'kleidung', 'werkzeug', 'begleiter', 'hintergrund'];
+    expect(plaetze.map((p) => [0, 1, 2, 3, 4].map((s) => weltTeile.filter((m) => m[2] === p && +m[3] === s).length))).toEqual(plaetze.map(() => [1, 1, 1, 1, 1]));
+    expect(weltTeile.filter((m) => m[4] === 'true')).toEqual([]);
+    expect(weltTeile.filter((m) => +m[3] === 4).every((m) => m[8] === 'true')).toBe(true);
+    expect(weltTeile.filter((m) => +m[3] <= 1 && m[8] === 'true')).toEqual([]);
+    expect(welten).toContain('on conflict (id) do nothing');
     // Ten per rarity in the new batch (hairstyles included), so every rarity has parts.
     const haare = [...neuer.matchAll(/\('frisur-([a-z0-9]+)', 'frisur', (\d), false, 0, 0, 0, (true|false), '([^']+)', false\)/g)];
     const zahl = (s: number) => neue.filter((m) => +m[3] === s).length + haare.filter((m) => +m[2] === s).length;
