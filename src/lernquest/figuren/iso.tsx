@@ -41,6 +41,13 @@ export const ZIEGEL: DachTon = {
   kante: P.ziegelKante,
   licht: P.ziegelHell,
 };
+/** Thatch, for the hut of the own houses. */
+export const STROH: DachTon = {
+  vorn: P.sand,
+  seite: P.sandTief,
+  kante: P.sandTief,
+  licht: P.sandHell,
+};
 export const SCHIEFER: DachTon = {
   vorn: P.schiefer,
   seite: P.schieferTief,
@@ -353,7 +360,8 @@ export function isoStift(ox: number, oy: number) {
     );
   };
 
-  /** Steep gable roof, ridge along x. Visible: the front slope and the right gable (timbered when `fach`). */
+  /** Steep gable roof, ridge along x. Visible: the front slope and the right gable (timbered when `fach`; plaster
+   *  unless `giebelFarbe` says otherwise, e.g. wood for a hut). */
   const satteldach = (
     x: number,
     y: number,
@@ -364,6 +372,7 @@ export function isoStift(ox: number, oy: number) {
     c: DachTon = ZIEGEL,
     o = 7,
     fach = true,
+    giebelFarbe: string = P.putzTief,
   ) => {
     const m = y + d / 2;
     const E = (t: number, xx: number) =>
@@ -383,7 +392,7 @@ export function isoStift(ox: number, oy: number) {
           ],
           c.seite,
         )}
-        {poly(giebel, P.putzTief)}
+        {poly(giebel, giebelFarbe)}
         {poly(giebel, RECHTS_SCHATTEN.fill, {
           opacity: RECHTS_SCHATTEN.opacity,
         })}

@@ -61,4 +61,59 @@ export interface Dorf {
   fertig: DorfFertig[];
   /** Own coins donated this week (children only). */
   woche: number | null;
+  /** Stufe 2 Teil B1: own houses (20261203_lernquest_haeuser.sql); missing until that migration is applied. */
+  haeuser?: Haeuser;
+}
+
+// — Teil B1 „Eigenes Haus“ (decided 25.11.2026, docs/plan-klassendorf-haeuser.md) —
+// Each child has a plot; it sets up a tent with a short quiz (zelt.ts) and builds it up in four steps with coins.
+// The same table is on the server (20261203_lernquest_haeuser.sql, lq_haus_bauen); change both.
+
+export interface HausStufe {
+  name: string;
+  /** Coins for this step (the server takes them). */
+  preis: number;
+  /** Hero level needed (`heldenstufe` in rules.ts). */
+  ab: number;
+}
+
+/** The five house stages, 0 = tent (free, after the quiz) up to 4 = tower house. */
+export const HAUS_STUFEN: HausStufe[] = [
+  { name: 'Zelt', preis: 0, ab: 1 },
+  { name: 'Hütte', preis: 300, ab: 1 },
+  { name: 'Holzhaus', preis: 800, ab: 3 },
+  { name: 'Fachwerkhaus', preis: 1800, ab: 5 },
+  { name: 'Turmhaus', preis: 4000, ab: 12 },
+];
+export const HAUS_MAX = HAUS_STUFEN.length - 1;
+export const hausName = (stufe: number | null) => (stufe === null ? 'leeres Grundstück' : HAUS_STUFEN[stufe]?.name ?? 'Haus');
+
+export type Ausbau =
+  | { geht: true; stufe: number; preis: number }
+  | { geht: false; grund: 'fertig' | 'muenzen' | 'stufe'; stufe: number; preis: number; ab: number };
+
+/** The next step from `stufe` (null = no house yet) and whether the child can build it now. Same checks as the
+ *  server: stages one by one, enough coins, hero level. */
+export function hausAusbau(stufe: number | null, d: { muenzen: number; heldenstufe: number }): Ausbau {
+  const neu = stufe === null ? 0 : stufe + 1;
+  const z = HAUS_STUFEN[neu];
+  if (!z) return { geht: false, grund: 'fertig', stufe: HAUS_MAX, preis: 0, ab: 0 };
+  if (d.heldenstufe < z.ab) return { geht: false, grund: 'stufe', stufe: neu, preis: z.preis, ab: z.ab };
+  if (d.muenzen < z.preis) return { geht: false, grund: 'muenzen', stufe: neu, preis: z.preis, ab: z.ab };
+  return { geht: true, stufe: neu, preis: z.preis };
+}
+
+/** One plot of the class in plot order: the house stage (null = empty) and, for the teacher, the child's name. */
+export interface HausPlatz {
+  stufe: number | null;
+  name?: string;
+}
+
+export interface Haeuser {
+  /** The teacher's switch per class (default off). */
+  an: boolean;
+  /** All plots of the class, ordered by when the child joined. Children see no names. */
+  plaetze: HausPlatz[];
+  /** The own plot (children only). */
+  ich: number | null;
 }

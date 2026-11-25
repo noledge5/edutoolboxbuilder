@@ -509,3 +509,14 @@ export const dorfProjektStarten = (keys: string[], klasse: string, gebaeude: str
   lq<Dorf>('lq_dorf_projekt_starten', { p_schluessel: keys, p_klasse: klasse, p_gebaeude: gebaeude, p_ziel: ziel, p_belohnung: belohnung });
 /** Deletes the running project; every child gets the donated coins back. */
 export const dorfProjektLoeschen = (keys: string[], klasse: string) => lq<Dorf>('lq_dorf_projekt_loeschen', { p_schluessel: keys, p_klasse: klasse });
+
+// — Klassendorf, Teil B1 „Eigenes Haus“ (20261203_lernquest_haeuser.sql) —
+
+/** Builds the next house stage (`stufe` = exactly the next one, 0 = set up the tent). Refusals 'ungueltig', 'stufe',
+ *  'muenzen'. */
+export const hausBauen = async (token: string, stufe: number) => {
+  const r = await lq<{ dorf: Dorf; stand: Partial<Stand> }>('lq_haus_bauen', { p_token: token, p_stufe: stufe });
+  return { dorf: r.dorf, stand: voll(r.stand) };
+};
+/** The teacher's switch for the houses of a class. */
+export const haeuserSchalten = (keys: string[], klasse: string, an: boolean) => lq<Dorf>('lq_haeuser_schalten', { p_schluessel: keys, p_klasse: klasse, p_an: an });

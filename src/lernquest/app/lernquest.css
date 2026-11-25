@@ -4316,3 +4316,43 @@ button.lq-teil:active {
   background: var(--lq-grund);
   box-shadow: inset 0 0 0 2px var(--lq-linie);
 }
+/* Klassendorf Teil B1: the own house below the map (MeinHaus.tsx). */
+.lq-haus {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-2);
+  padding: var(--lq-a-3);
+  border-radius: var(--lq-r-klein);
+  background: var(--lq-grund);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+}
+.lq-haus-zeile {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-3);
+}
+.lq-haus-bild {
+  flex: none;
+  width: 120px;
+  height: 150px;
+}
+.lq-haus-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--lq-a-2);
+}
+.lq-haus-text p {
+  margin: 0;
+}
+.lq-haus-quiz {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-2);
+}
+.lq-haus-quiz p {
+  margin: 0;
+}
+

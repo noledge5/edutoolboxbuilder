@@ -1,12 +1,15 @@
 // Klassendorf, Stufe 1 „Dorfkasse“ (decided 13.11.2026) on the children's class page: the village picture, the running
 // project with its bar and buttons to donate coins (each counts 1.5 times, at most SPENDE_WOCHE a week), and the
 // finished buildings with the names of all who helped, never amounts. Shown only when the teacher switched it on.
-import { useEffect, useState } from 'react';
+// Teil B1 (25.11.2026): with the houses unlocked, the map shows every child's house (own one marked „Du“, no names)
+// and „Mein Haus“ (MeinHaus.tsx) sits below it.
+import { useEffect, useRef, useState } from 'react';
 import { gebaeudeName, SPENDE_WOCHE, spendeMoeglich, spendeWert, type Dorf } from '../dorf';
 import { DorfKarte, JE_VIERTEL } from '../figuren/dorf';
 import { dorf as dorfLaden, lqText, spenden } from '../server';
 import type { Stand } from '../types';
 import { Meldung, MuenzIcon, type Aktion } from './Held';
+import { MeinHaus } from './MeinHaus';
 import { ton } from './ton';
 
 const BETRAEGE = [10, 25, 50];
@@ -16,6 +19,18 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [danke, setDanke] = useState('');
+  const rahmen = useRef<HTMLDivElement>(null);
+  const ich = d?.haeuser?.an ? d.haeuser.ich : null;
+
+  // The map is wider than a phone: show the own plot (marked „Du“) when the village loads.
+  useEffect(() => {
+    const r = rahmen.current;
+    const du = r?.querySelector('[data-ich]');
+    if (!r || !du) return;
+    const a = r.getBoundingClientRect();
+    const b = du.getBoundingClientRect();
+    r.scrollLeft += b.left + b.width / 2 - (a.left + a.width / 2);
+  }, [ich]);
 
   useEffect(() => {
     aktion(dorfLaden).then(setD, () => setD(null));
@@ -26,6 +41,7 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
   const p = d.projekt;
   const woche = d.woche ?? 0;
   const rest = Math.max(0, SPENDE_WOCHE - woche);
+  const haeuser = d.haeuser?.an ? d.haeuser : null;
 
   const geben = async (wunsch: number) => {
     if (!p) return;
@@ -52,16 +68,19 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
         <h2>Unser Dorf</h2>
         {d.fertig.length > 0 && <strong>{d.fertig.length === 1 ? '1 Gebäude' : `${d.fertig.length} Gebäude`}</strong>}
       </div>
-      <div className="lq-dorf-rahmen">
+      <div className="lq-dorf-rahmen" ref={rahmen}>
         <DorfKarte
           fertig={d.fertig.map((f) => f.gebaeude)}
           baustelle={p?.gebaeude}
-          plaetze={JE_VIERTEL}
-          hinweis="Bald: eure Häuser"
+          plaetze={haeuser ? haeuser.plaetze.length : JE_VIERTEL}
+          haeuser={haeuser?.plaetze}
+          ich={haeuser?.ich}
+          hinweis={haeuser ? undefined : 'Bald: eure Häuser'}
           titel={`Euer Dorf mit ${d.fertig.map((f) => gebaeudeName(f.gebaeude)).join(', ') || 'noch keinem Gebäude'}`}
         />
       </div>
       <Meldung text={msg} />
+      <MeinHaus dorf={d} aktion={aktion} stand={stand} setStand={setStand} setDorf={setD} />
       {p ? (
         <div className="lq-dorf-projekt">
           <div className="lq-zeile-zwischen">
