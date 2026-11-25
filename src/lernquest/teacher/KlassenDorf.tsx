@@ -2,10 +2,10 @@
 // village on or off per class, start the next project (building, goal in coins, an optional real reward), see the
 // progress and the finished buildings; deleting a running project gives every child the donated coins back.
 // Teil B1 (25.11.2026): unlock the children's own houses per class; the map then shows every house with its name.
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Icon } from '../../icons';
-import { DORF_GEBAEUDE, gebaeudeName, HAUS_STUFEN, SPENDE_WOCHE, ZIEL_MAX, ZIEL_MIN, zielVorschlag, type Dorf } from '../dorf';
+import { DORF_GEBAEUDE, DORF_STUFEN, dorfStufe, gebaeudeName, HAUS_STUFEN, istAbend, istWinter, SPENDE_WOCHE, ZIEL_MAX, ZIEL_MIN, zielVorschlag, type Dorf } from '../dorf';
 import { DorfKarte } from '../figuren/dorf';
 import { dorfLehrkraft, dorfProjektLoeschen, dorfProjektStarten, dorfSchalten, haeuserSchalten, lqText, type KlasseInfo } from '../server';
 
@@ -23,6 +23,8 @@ export function KlassenDorf({ klasse, keys, busy, act }: Props) {
   const [gebaeude, setGebaeude] = useState('');
   const [ziel, setZiel] = useState(() => zielVorschlag(kinder));
   const [belohnung, setBelohnung] = useState('');
+  const bild = useRef<HTMLDivElement>(null);
+  const gerollt = useRef(false);
 
   const laden = useCallback(async () => {
     if (!keys.length) return;
@@ -37,6 +39,14 @@ export function KlassenDorf({ klasse, keys, busy, act }: Props) {
   useEffect(() => {
     void laden();
   }, [laden]);
+
+  // The map grows upwards: open it at the square at the bottom.
+  useEffect(() => {
+    const b = bild.current;
+    if (!b || !d?.an || gerollt.current) return;
+    gerollt.current = true;
+    b.scrollTop = b.scrollHeight;
+  }, [d]);
 
   /** A change; the server answers with the village. */
   const tun = (f: (keys: string[]) => Promise<Dorf>) => act(async (k) => setD(await f(k)));
@@ -66,15 +76,24 @@ export function KlassenDorf({ klasse, keys, busy, act }: Props) {
       </div>
       {d?.an && (
         <>
-          <div className="lqt-dorf-bild">
+          <div className="lqt-dorf-bild" ref={bild}>
             <DorfKarte
               fertig={d.fertig.map((f) => f.gebaeude)}
               baustelle={p?.gebaeude}
               plaetze={kinder}
               haeuser={d.haeuser?.an ? d.haeuser.plaetze : undefined}
               titel="Das Dorf der Klasse"
+              abend={istAbend(new Date())}
+              winter={istWinter(new Date())}
             />
           </div>
+          <p className="lqt-hint">
+            Stufe: <b>{DORF_STUFEN[dorfStufe(gebaut.size)].name}</b>. Das Dorf wächst mit den fertigen Gebäuden: ab{' '}
+            {DORF_STUFEN.slice(1)
+              .map((s) => `${s.ab} ${s.name}`)
+              .join(', ')}
+            . Abends leuchten die Fenster, im Winter liegt Schnee.
+          </p>
           {d.haeuser ? (
             <div className="lqt-dorf-haeuser">
               <label className="lqt-hint">
@@ -94,7 +113,8 @@ export function KlassenDorf({ klasse, keys, busy, act }: Props) {
                 {HAUS_STUFEN.slice(1)
                   .map((h) => `${h.name} ${h.preis}${h.ab > 1 ? ` (ab Heldenstufe ${h.ab})` : ''}`)
                   .join(', ')}
-                . Die Kinder sehen alle Häuser, aber keine Namen; du siehst die Namen auf der Karte.
+                . Die Kinder sehen alle Häuser, aber keine Namen; du siehst die Namen auf der Karte. Mit „Haus gestalten“ wählt jedes Kind
+                Farben, Zaun, Garten und Schmuck, kostenlos; höhere Hausstufen haben mehr Auswahl.
                 {d.haeuser.an &&
                   ` ${d.haeuser.plaetze.filter((h) => h.stufe !== null).length} von ${d.haeuser.plaetze.length} Kindern haben schon ein Haus.`}
               </p>

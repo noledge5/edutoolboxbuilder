@@ -107,6 +107,8 @@ export function hausAusbau(stufe: number | null, d: { muenzen: number; heldenstu
 export interface HausPlatz {
   stufe: number | null;
   name?: string;
+  /** The chosen look (20261204_lernquest_haus_aussehen.sql); null or missing = not chosen yet. */
+  aussehen?: Aussehen | null;
 }
 
 export interface Haeuser {
@@ -116,4 +118,177 @@ export interface Haeuser {
   plaetze: HausPlatz[];
   /** The own plot (children only). */
   ich: number | null;
+}
+
+// — Richtung A „Schlängelweg“ (decided 25.11.2026, docs/plan-klassendorf-haeuser.md) —
+// The village grows with the community buildings the class finishes together: Weiler → Dorf → Marktflecken → Stadt.
+// Only drawn, never checked by the server, so the rule lives here alone.
+
+export interface DorfStufe {
+  name: string;
+  /** Finished community buildings needed. */
+  ab: number;
+}
+export const DORF_STUFEN: DorfStufe[] = [
+  { name: 'Weiler', ab: 0 },
+  { name: 'Dorf', ab: 2 },
+  { name: 'Marktflecken', ab: 4 },
+  { name: 'Stadt', ab: 6 },
+];
+
+/** The stage of a village with `fertig` finished community buildings (0 = Weiler … 3 = Stadt). */
+export function dorfStufe(fertig: number): number {
+  let s = 0;
+  DORF_STUFEN.forEach((d, i) => {
+    if (fertig >= d.ab) s = i;
+  });
+  return s;
+}
+
+/** What is missing for the next stage, for the line under the map; null in the city. */
+export function naechsteDorfStufe(fertig: number): { name: string; fehlt: number } | null {
+  const n = DORF_STUFEN[dorfStufe(fertig) + 1];
+  return n ? { name: n.name, fehlt: n.ab - Math.max(0, fertig) } : null;
+}
+
+/** Evening from 17 to 7 o'clock (device time): windows and lanterns light up (decided 25.11.2026). */
+export const istAbend = (d: Date) => d.getHours() >= 17 || d.getHours() < 7;
+/** Winter from December to February: snow on roofs, trees and meadows (decided 25.11.2026). */
+export const istWinter = (d: Date) => d.getMonth() === 11 || d.getMonth() <= 1;
+
+// — Häuser gestalten (decided 25.11.2026) —
+// Every child picks the look of the own house: colours of roof, walls, door and flag, a fence, a garden and one
+// decoration. A choice is free and can be changed at any time; more choices unlock with a higher house stage (`ab`).
+// Stored by index; the same lists are on the server (20261204_lernquest_haus_aussehen.sql, lq_aussehen_ok); change both.
+
+export type AussehenTeil = 'dach' | 'wand' | 'tuer' | 'fahne' | 'zaun' | 'garten' | 'deko';
+export interface AussehenWahl {
+  name: string;
+  /** House stage needed (HAUS_STUFEN index). */
+  ab: number;
+}
+export const AUSSEHEN: Record<AussehenTeil, { name: string; wahl: AussehenWahl[] }> = {
+  dach: {
+    name: 'Dach',
+    wahl: [
+      { name: 'Ziegel', ab: 0 },
+      { name: 'Stroh', ab: 1 },
+      { name: 'Schiefer', ab: 2 },
+      { name: 'Moos', ab: 2 },
+      { name: 'Pflaume', ab: 3 },
+      { name: 'Gold', ab: 4 },
+    ],
+  },
+  wand: {
+    name: 'Wände',
+    wahl: [
+      { name: 'Natur', ab: 0 },
+      { name: 'Rot', ab: 1 },
+      { name: 'Blau', ab: 1 },
+      { name: 'Grün', ab: 2 },
+      { name: 'Gelb', ab: 2 },
+      { name: 'Lila', ab: 3 },
+    ],
+  },
+  tuer: {
+    name: 'Tür',
+    wahl: [
+      { name: 'Holz', ab: 0 },
+      { name: 'Rot', ab: 1 },
+      { name: 'Blau', ab: 1 },
+      { name: 'Grün', ab: 2 },
+      { name: 'Gelb', ab: 2 },
+      { name: 'Lila', ab: 3 },
+    ],
+  },
+  fahne: {
+    name: 'Fahne',
+    wahl: [
+      { name: 'Rot', ab: 0 },
+      { name: 'Blau', ab: 0 },
+      { name: 'Gelb', ab: 0 },
+      { name: 'Grün', ab: 0 },
+      { name: 'Lila', ab: 2 },
+      { name: 'Rosa', ab: 2 },
+    ],
+  },
+  zaun: {
+    name: 'Zaun',
+    wahl: [
+      { name: 'Kein Zaun', ab: 0 },
+      { name: 'Holzzaun', ab: 1 },
+      { name: 'Hecke', ab: 2 },
+      { name: 'Lattenzaun', ab: 2 },
+      { name: 'Steinmauer', ab: 3 },
+    ],
+  },
+  garten: {
+    name: 'Garten',
+    wahl: [
+      { name: 'Kein Garten', ab: 0 },
+      { name: 'Blumenbeet', ab: 1 },
+      { name: 'Gemüsebeet', ab: 1 },
+      { name: 'Apfelbaum', ab: 2 },
+      { name: 'Teich', ab: 3 },
+    ],
+  },
+  deko: {
+    name: 'Schmuck',
+    wahl: [
+      { name: 'Nichts', ab: 0 },
+      { name: 'Laterne', ab: 1 },
+      { name: 'Bank', ab: 2 },
+      { name: 'Fässer', ab: 2 },
+      { name: 'Katze', ab: 3 },
+      { name: 'Brunnen', ab: 4 },
+    ],
+  },
+};
+export const AUSSEHEN_TEILE = Object.keys(AUSSEHEN) as AussehenTeil[];
+export type Aussehen = Record<AussehenTeil, number>;
+
+/** Whether `wahl` of part `teil` may be used on a house of stage `stufe`. */
+export const aussehenErlaubt = (teil: AussehenTeil, wahl: number, stufe: number) =>
+  Number.isInteger(wahl) && wahl >= 0 && wahl < AUSSEHEN[teil].wahl.length && AUSSEHEN[teil].wahl[wahl].ab <= stufe;
+
+/** The server's check: an object with exactly the seven parts, each an allowed choice for `stufe`. Null otherwise. */
+export function aussehenGueltig(a: unknown, stufe: number): Aussehen | null {
+  if (!a || typeof a !== 'object' || Array.isArray(a)) return null;
+  const o = a as Record<string, unknown>;
+  if (Object.keys(o).length !== AUSSEHEN_TEILE.length) return null;
+  const out = {} as Aussehen;
+  for (const t of AUSSEHEN_TEILE) {
+    const v = o[t];
+    if (typeof v !== 'number' || !aussehenErlaubt(t, v, stufe)) return null;
+    out[t] = v;
+  }
+  return out;
+}
+
+const mischen = (a: number, b: number) => {
+  const v = Math.sin(a * 91.7 + b * 47.3 + 3.1) * 43758.5453;
+  return v - Math.floor(v);
+};
+
+/** The look of a house whose child has not chosen yet: picked from the plot number, so every house looks different
+ *  and stays the same. Only choices allowed for `stufe`. */
+export function aussehenAuto(platz: number, stufe: number): Aussehen {
+  const out = {} as Aussehen;
+  AUSSEHEN_TEILE.forEach((t, i) => {
+    const frei = AUSSEHEN[t].wahl.map((w, k) => (w.ab <= stufe ? k : -1)).filter((k) => k >= 0);
+    out[t] = frei.length ? frei[Math.floor(mischen(platz, i) * frei.length)] : 0;
+  });
+  return out;
+}
+
+/** What to draw: each chosen part that is still allowed, the automatic look for the rest. */
+export function aussehenVon(a: Partial<Record<string, unknown>> | null | undefined, platz: number, stufe: number): Aussehen {
+  const auto = aussehenAuto(platz, stufe);
+  if (!a || typeof a !== 'object') return auto;
+  const out = { ...auto };
+  for (const t of AUSSEHEN_TEILE) {
+    const v = a[t];
+    if (typeof v === 'number' && aussehenErlaubt(t, v, stufe)) out[t] = v;
+  }
+  return out;
 }

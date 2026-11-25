@@ -99,8 +99,21 @@ function bogen(a: Pt, b: Pt, k: number): string {
   return d;
 }
 
+/** Weather of a drawing (Klassendorf, 25.11.2026): snow on the roofs in winter, lit windows in the evening. Lit parts
+ *  carry `data-licht`, so the evening tint (nacht.tsx) leaves them bright. */
+export interface Wetter {
+  schnee?: boolean;
+  nacht?: boolean;
+}
+/** Colours of a door: the boards and their light lines. */
+export interface TuerTon {
+  brett: string;
+  leiste: string;
+}
+const LEDER_TUER: TuerTon = { brett: P.leder, leiste: P.lederHell };
+
 /** The drawing kit for one origin (ox, oy). Each part returns a <g>. */
-export function isoStift(ox: number, oy: number) {
+export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
   const P3 = (x: number, y: number, z = 0): Pt => [
     ox + (x - y) * 0.866,
     oy + (x + y) * 0.5 - z,
@@ -424,6 +437,13 @@ export function isoStift(ox: number, oy: number) {
           strokeLinecap="round"
         />
         {linie(E(0, x - o), E(0, x + w + o), c.licht, 4)}
+        {wetter.schnee && (
+          <g>
+            {poly([E(0, x - o), E(0, x + w + o), E(0.42, x + w + o), E(0.36, x - o)], P.schnee)}
+            {linie(E(0.36, x - o), E(0.42, x + w + o), P.wolkeTief, 2)}
+            {linie(E(0, x - o), E(0, x + w + o), P.wolkeTief, 3)}
+          </g>
+        )}
         {linie(E(0, x - o), E(1, x - o), P.balken, 4)}
         {linie(E(1, x - o), E(1, x + w + o), P.balken, 3)}
         {linie(
@@ -447,7 +467,7 @@ export function isoStift(ox: number, oy: number) {
     h: number,
     c: DachTon = ZIEGEL,
     o = 6,
-    fahne = true,
+    fahne: boolean | string = true,
   ) => {
     const sp = P3(x + w / 2, y + d / 2, z + h);
     const l = P3(x - o, y + d + o, z - 2);
@@ -479,8 +499,18 @@ export function isoStift(ox: number, oy: number) {
         {linie(vv, sp, c.licht, 3.5)}
         {linie(l, sp, P.balken, 3.5)}
         {linie(r, sp, P.balken, 3.5)}
+        {wetter.schnee && (
+          <g>
+            {poly([sp, mix(sp, l, 0.36), mix(sp, vv, 0.36)], P.schnee)}
+            {poly([sp, mix(sp, vv, 0.36), mix(sp, r, 0.36)], P.wolke)}
+          </g>
+        )}
         {fahne && linie(sp, [sp[0], sp[1] - 22], P.dunkel, 3)}
-        {fahne && <path d={`M${f(sp)} m0 -22 l16 5 -16 6Z`} fill={P.gold} />}
+        {fahne && (
+          <g className="lq-fahne">
+            <path d={`M${f(sp)} m0 -22 l16 5 -16 6Z`} fill={typeof fahne === "string" ? fahne : P.gold} />
+          </g>
+        )}
       </g>
     );
   };
@@ -493,7 +523,7 @@ export function isoStift(ox: number, oy: number) {
     z: number,
     b: number,
     h: number,
-    hell = false,
+    hell = !!wetter.nacht,
   ) => {
     const Q =
       seite === "L"
@@ -514,9 +544,12 @@ export function isoStift(ox: number, oy: number) {
         {poly(
           [Q(a, z), Q(a + b, z), Q(a + b, z + h), Q(a, z + h)],
           hell ? P.licht : P.glas,
+          hell ? { "data-licht": "" } : {},
         )}
-        {linie(Q(a + b / 2, z), Q(a + b / 2, z + h), rahmen, 2)}
-        {linie(Q(a, z + h / 2), Q(a + b, z + h / 2), rahmen, 2)}
+        <g data-licht={hell ? "" : undefined}>
+          {linie(Q(a + b / 2, z), Q(a + b / 2, z + h), rahmen, 2)}
+          {linie(Q(a, z + h / 2), Q(a + b, z + h / 2), rahmen, 2)}
+        </g>
         {poly(
           [
             Q(a - 2 - b * 0.45, z - 1),
@@ -531,7 +564,7 @@ export function isoStift(ox: number, oy: number) {
   };
 
   /** Arched door on the left face (plane y = Y). */
-  const tuer = (a: number, Y: number, z: number, b: number, h: number) => {
+  const tuer = (a: number, Y: number, z: number, b: number, h: number, ton: TuerTon = LEDER_TUER) => {
     const bg = (r0: number, inset: number) => {
       const pts: Pt[] = [P3(a + inset, Y, z), P3(a + b - inset, Y, z)];
       for (let i = 0; i <= 8; i++) {
@@ -550,13 +583,13 @@ export function isoStift(ox: number, oy: number) {
     return (
       <g>
         {poly(bg(b / 2 + 3, -3), P.bruchTief)}
-        {poly(bg(b / 2, 0), P.leder)}
+        {poly(bg(b / 2, 0), ton.brett)}
         {[1, 2].map((i) => (
           <g key={i}>
             {linie(
               P3(a + (b * i) / 3, Y, z + 1),
               P3(a + (b * i) / 3, Y, z + h - 3),
-              P.lederHell,
+              ton.leiste,
               2,
             )}
           </g>
@@ -763,6 +796,7 @@ export function isoStift(ox: number, oy: number) {
   };
 
   return {
+    wetter,
     P3,
     poly,
     ring,

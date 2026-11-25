@@ -1,11 +1,13 @@
 // Klassendorf Teil B1 „Eigenes Haus“ (decided 25.11.2026) on the children's class page: the own plot with its house,
 // the tent quiz that sets up the tent (zelt.ts) and the button for the next stage (HAUS_STUFEN, the server takes the
 // coins). Shown inside the village box when the teacher unlocked the houses for the class.
+// Häuser gestalten (25.11.2026): „Haus gestalten“ opens the house large with one row of choices per part (AUSSEHEN);
+// free and changeable any time, locked choices show from which stage they come.
 import { useState } from 'react';
-import { HAUS_STUFEN, hausAusbau, hausName, type Dorf } from '../dorf';
-import { GRUND, HausEinzeln } from '../figuren/haeuser';
+import { AUSSEHEN, AUSSEHEN_TEILE, aussehenVon, HAUS_STUFEN, hausAusbau, hausName, type Aussehen, type AussehenTeil, type Dorf } from '../dorf';
+import { FARBMUSTER, GRUND, HausEinzeln } from '../figuren/haeuser';
 import { heldenstufe } from '../rules';
-import { hausBauen, lqText } from '../server';
+import { hausBauen, hausGestalten, lqText } from '../server';
 import type { Stand } from '../types';
 import { ZELT_RICHTIG_AB, ZELT_RUNDE, zeltBestanden, zeltFragen, type ZeltFrage } from '../zelt';
 import { Meldung, MuenzIcon, type Aktion } from './Held';
@@ -29,8 +31,13 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
   const [quiz, setQuiz] = useState(false);
   const [sicher, setSicher] = useState(false);
   const [freude, setFreude] = useState('');
+  const [gestalten, setGestalten] = useState(false);
   if (!h?.an || h.ich === null) return null;
-  const stufe = h.plaetze[h.ich]?.stufe ?? null;
+  const platz = h.ich;
+  const stufe = h.plaetze[platz]?.stufe ?? null;
+  const aussehen = h.plaetze[platz]?.aussehen ?? null;
+  // The server sends `aussehen` (maybe null) once 20261204_lernquest_haus_aussehen.sql is in; before that no button.
+  const kannGestalten = stufe !== null && stufe >= 1 && !!h.plaetze[platz] && 'aussehen' in h.plaetze[platz];
   const held = heldenstufe(stand.xp).stufe;
   const next = hausAusbau(stufe, { muenzen: stand.muenzen, heldenstufe: held });
 
@@ -42,7 +49,7 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
       setDorf(r.dorf);
       setStand(r.stand);
       ton('fertig');
-      setFreude(ziel === 0 ? 'Dein Zelt steht! Jetzt kannst du es ausbauen.' : `Geschafft! Du hast jetzt ${MIT_ARTIKEL[ziel]}.`);
+      setFreude(ziel === 0 ? 'Dein Zelt steht! Jetzt kannst du es ausbauen.' : `Geschafft! Du hast jetzt ${MIT_ARTIKEL[ziel]}. Mit „Haus gestalten“ machst du es zu deinem.`);
       setQuiz(false);
       setSicher(false);
     } catch (e) {
@@ -59,7 +66,26 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
         {stufe !== null && <strong>{hausName(stufe)}</strong>}
       </div>
       <Meldung text={msg} />
-      {stufe === null ? (
+      {stufe !== null && gestalten && kannGestalten ? (
+        <HausGestalten
+          stufe={stufe}
+          start={aussehenVon(aussehen, platz, stufe)}
+          platz={platz}
+          speichern={async (a) => {
+            setMsg('');
+            try {
+              const r = await aktion((t) => hausGestalten(t, a));
+              setDorf(r.dorf);
+              ton('richtig');
+              setFreude('Dein Haus sieht jetzt so aus. Schau es dir im Dorf an!');
+              setGestalten(false);
+            } catch (e) {
+              setMsg(lqText(e));
+            }
+          }}
+          abbrechen={() => setGestalten(false)}
+        />
+      ) : stufe === null ? (
         quiz ? (
           <ZeltQuiz busy={busy} aufstellen={() => void bauen(0)} abbrechen={() => setQuiz(false)} />
         ) : (
@@ -77,7 +103,7 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
         )
       ) : (
         <div className="lq-haus-zeile">
-          <HausBild stufe={stufe} />
+          <HausBild stufe={stufe} aussehen={aussehen} platz={platz} />
           <div className="lq-haus-text">
             {freude && (
               <p className="lq-klein" role="status">
@@ -119,8 +145,23 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
               </>
             ) : (
               <p className="lq-klein" role="status">
-                Dein Turmhaus ist fertig. Bald kannst du es schmücken.
+                Dein Turmhaus ist fertig. Jetzt hast du die größte Auswahl zum Schmücken.
               </p>
+            )}
+            {kannGestalten ? (
+              <button
+                type="button"
+                className="lq-knopf lq-hell"
+                onClick={() => {
+                  setGestalten(true);
+                  setSicher(false);
+                  setFreude('');
+                }}
+              >
+                Haus gestalten
+              </button>
+            ) : (
+              stufe === 0 && <p className="lq-klein">Ab der Hütte kannst du dein Haus gestalten: Farben, Zaun, Garten und mehr.</p>
             )}
           </div>
         </div>
@@ -130,11 +171,82 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
 }
 
 /** The own house alone on its plot (an empty staked plot before the tent). */
-function HausBild({ stufe }: { stufe: number | null }) {
+function HausBild({ stufe, aussehen, platz }: { stufe: number | null; aussehen?: Aussehen | null; platz?: number }) {
   return (
-    <svg className="lq-haus-bild" viewBox={`-60 -120 120 150`} role="img" aria-label={stufe === null ? 'Dein leeres Grundstück' : `Dein Haus: ${hausName(stufe)}`}>
-      {stufe === null ? <LeererPlatz /> : <HausEinzeln stufe={stufe} />}
+    <svg className="lq-haus-bild" viewBox="-62 -126 124 164" role="img" aria-label={stufe === null ? 'Dein leeres Grundstück' : `Dein Haus: ${hausName(stufe)}`}>
+      {stufe === null ? <LeererPlatz /> : <HausEinzeln stufe={stufe} aussehen={aussehen} platz={platz ?? 0} />}
     </svg>
+  );
+}
+
+const FARBIG = new Set<AussehenTeil>(['dach', 'wand', 'tuer', 'fahne']);
+
+/** „Haus gestalten“: the house large, below one row per part. Every tap shows the change at once; „Speichern“ sends
+ *  it. Parts without a choice yet (the tent has only its flag) are left out, with one line on what comes next. */
+function HausGestalten({
+  stufe,
+  start,
+  platz,
+  speichern,
+  abbrechen,
+}: {
+  stufe: number;
+  start: Aussehen;
+  platz: number;
+  speichern: (a: Aussehen) => Promise<void>;
+  abbrechen: () => void;
+}) {
+  const [a, setA] = useState<Aussehen>(start);
+  const [busy, setBusy] = useState(false);
+  // Only parts with something to choose (the tent: its flag).
+  const teile = AUSSEHEN_TEILE.filter((t) => AUSSEHEN[t].wahl.filter((w) => w.ab <= stufe).length > 1);
+  const mehr = HAUS_STUFEN[stufe + 1];
+  return (
+    <div className="lq-gestalten">
+      <HausBild stufe={stufe} aussehen={a} platz={platz} />
+      {teile.map((t) => (
+        <fieldset key={t} className="lq-gestalten-teil">
+          <legend>{AUSSEHEN[t].name}</legend>
+          <div className="lq-gestalten-wahl">
+            {AUSSEHEN[t].wahl.map((w, k) => {
+              const frei = w.ab <= stufe;
+              return (
+                <button
+                  key={w.name}
+                  type="button"
+                  className="lq-wahl"
+                  aria-pressed={a[t] === k}
+                  disabled={!frei || busy}
+                  onClick={() => setA({ ...a, [t]: k })}
+                >
+                  {FARBIG.has(t) && <span className="lq-muster" style={{ background: FARBMUSTER[t as 'dach'][k] }} aria-hidden />}
+                  <span>{w.name}</span>
+                  {!frei && <small>ab {HAUS_STUFEN[w.ab].name}</small>}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      ))}
+      {mehr && <p className="lq-klein">Mit {mehr.name === 'Hütte' ? 'der Hütte' : `dem ${mehr.name}`} kannst du noch mehr aussuchen.</p>}
+      <div className="lq-dorf-knoepfe">
+        <button
+          type="button"
+          className="lq-knopf"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            await speichern(a);
+            setBusy(false);
+          }}
+        >
+          Speichern
+        </button>
+        <button type="button" className="lq-knopf lq-hell" disabled={busy} onClick={abbrechen}>
+          Abbrechen
+        </button>
+      </div>
+    </div>
   );
 }
 

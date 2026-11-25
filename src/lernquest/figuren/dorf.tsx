@@ -1,12 +1,38 @@
 // The class village in 2.5D (Klassendorf Stufe 2 Teil A, style of Stilprobe 3, decided 18.11.2026): the six buildings
-// the class builds together, the building site of the running project and the village map (DorfKarte): the square
-// with the six building places, a road to the right and quarters of six staked plots with the children's own houses
-// (Teil B1, haeuser.tsx). Built from the parts of iso.tsx. Every building draws into one 100 × 100 cell at (x, y).
+// the class builds together, the building site of the running project and the village map (DorfKarte).
+// Richtung A „Schlängelweg im Hochformat“ (decided 25.11.2026): the square with the buildings at the bottom, a road
+// winding upwards with the children's houses (haeuser.tsx) left and right, a small square after every six. The map
+// grows with the class (dorfplan.ts) and with the finished buildings from Weiler to Stadt (DORF_STUFEN): sandy road →
+// paved road and lanterns → market stalls → city wall with gate. In the evening it darkens and lights come on
+// (nacht.tsx), in winter it snows. Built from the parts of iso.tsx; every building draws into one 100 × 100 cell.
 import type { ReactNode } from "react";
+import { aussehenVon, dorfStufe, type HausPlatz } from "../dorf";
+import {
+  anzahl,
+  deko,
+  GEBAEUDE_ORT,
+  GRUND,
+  grundstuecke,
+  HUEHNER,
+  insel,
+  laternen,
+  MAUER,
+  plaetzchen,
+  rahmen,
+  STAENDE,
+  WEG_HALB,
+  wegEnde,
+  wegPunkte,
+  wegX,
+  welt,
+  wasser,
+  type Pt,
+} from "../dorfplan";
+import { baum, blume, busch, glitzer, huhn, laterne, rauch, stein, wimpel } from "./dorfdeko";
 import type { GelaendeTeil } from "./gelaende";
-import type { HausPlatz } from "../dorf";
-import { HAUS_BILD, HAUS_TEILE } from "./haeuser";
-import { BRUCH, HOLZ, isoStift, PUTZ, SCHIEFER, type IsoStift } from "./iso";
+import { HAUS_GESTALTET, HAUS_HOEHE, HAUS_TEILE, hausMitGarten } from "./haeuser";
+import { BRUCH, HOLZ, isoStift, PUTZ, SCHIEFER, type Flaechen, type IsoStift } from "./iso";
+import { imDunkeln } from "./nacht";
 import { P } from "./stil";
 
 type Bau = (s: IsoStift, x: number, y: number) => ReactNode;
@@ -17,23 +43,6 @@ const kreis = (
   fill: string,
   rest: Record<string, unknown> = {},
 ) => <circle cx={p[0]} cy={p[1]} r={r} fill={fill} {...rest} />;
-
-/** A round tree (blob crown on a trunk), standing at (x, y). */
-const baum = (s: IsoStift, x: number, y: number, g = 1) => {
-  const fuss = s.P3(x, y, 0);
-  const k = s.P3(x, y, 34 * g);
-  return (
-    <g>
-      {kreis([fuss[0] + 14 * g, fuss[1] + 3], 14 * g, P.schatten, {
-        opacity: 0.2,
-      })}
-      {s.linie(fuss, s.P3(x, y, 22 * g), P.balken, 6 * g)}
-      {kreis(k, 18 * g, P.blattTief)}
-      {kreis([k[0] - 5 * g, k[1] - 5 * g], 14 * g, P.blatt)}
-      {kreis([k[0] - 8 * g, k[1] - 9 * g], 6 * g, P.blattHell)}
-    </g>
-  );
-};
 
 const brunnen: Bau = (s, x, y) => {
   const a = x + 37;
@@ -145,6 +154,7 @@ const baeckerei: Bau = (s, x, y) => {
       {s.satteldach(a - 2, b - 2, 65, 74, 62, 48)}
       {s.box(a + 46, b + 8, 92, 12, 12, 34, BRUCH)}
       {s.tiefe(a + 46, b + 8, 92, 12, 12, 34)}
+      {rauch(s.P3(a + 52, b + 14, 128))}
       {s.linie(
         s.P3(a + 54, b + 62, 48),
         s.P3(a + 54, b + 74, 48),
@@ -379,8 +389,9 @@ const baustelle: Bau = (s, x, y) => {
   );
 };
 
-/** An empty, staked plot of w × w at (x, y), with a blank sign. */
-const grundstueck = (s: IsoStift, x: number, y: number, w: number) => {
+/** An empty, staked plot at (x, y), with a blank sign. */
+const grundstueck = (s: IsoStift, x: number, y: number) => {
+  const w = GRUND;
   const ecken: [number, number][] = [
     [x, y],
     [x + w, y],
@@ -390,44 +401,18 @@ const grundstueck = (s: IsoStift, x: number, y: number, w: number) => {
   const schild = s.P3(x + w, y + w * 0.5, 22);
   return (
     <g>
-      {s.flaeche(x, y, w, w, P.wieseHell)}
-      {s.poly(
-        [
-          s.P3(x, y, 6),
-          s.P3(x + w, y, 6),
-          s.P3(x + w, y + w, 6),
-          s.P3(x, y + w, 6),
-          s.P3(x, y, 6),
-        ],
-        "none",
-        {
-          stroke: P.weiss,
-          strokeWidth: 1.5,
-          strokeDasharray: "4 4",
-          opacity: 0.8,
-        },
-      )}
+      {s.flaeche(x, y, w, w, s.wetter.schnee ? P.wolkeHell : P.wieseHell)}
+      {s.poly([...ecken.map(([a, b]) => s.P3(a, b, 6)), s.P3(x, y, 6)], "none", {
+        stroke: P.weiss,
+        strokeWidth: 1.5,
+        strokeDasharray: "4 4",
+        opacity: 0.8,
+      })}
       {ecken.map(([xx, yy]) => (
-        <g key={`${xx}-${yy}`}>
-          {s.linie(s.P3(xx, yy, 0), s.P3(xx, yy, 10), P.balken, 3.5)}
-        </g>
+        <g key={`${xx}-${yy}`}>{s.linie(s.P3(xx, yy, 0), s.P3(xx, yy, 10), P.balken, 3.5)}</g>
       ))}
-      {s.linie(
-        s.P3(x + w, y + w * 0.5, 0),
-        s.P3(x + w, y + w * 0.5, 22),
-        P.balken,
-        3,
-      )}
-      <rect
-        x={schild[0] - 9}
-        y={schild[1] - 6}
-        width={18}
-        height={10}
-        rx={2}
-        fill={P.holz}
-        stroke={P.balken}
-        strokeWidth={2}
-      />
+      {s.linie(s.P3(x + w, y + w * 0.5, 0), s.P3(x + w, y + w * 0.5, 22), P.balken, 3)}
+      <rect x={schild[0] - 9} y={schild[1] - 6} width={18} height={10} rx={2} fill={P.holz} stroke={P.balken} strokeWidth={2} />
     </g>
   );
 };
@@ -515,88 +500,163 @@ export const DORF_TEILE: GelaendeTeil[] = [
     zeichnung: () => <Einzeln bau={baustelle} />,
   },
   ...HAUS_TEILE,
+  ...HAUS_GESTALTET,
 ];
 
-/** Building places on the square (cells of 100), back row first. */
-const PLAETZE: Record<string, [number, number]> = {
-  bibliothek: [0, 0],
-  sternwarte: [100, 0],
-  festwiese: [200, 0],
-  baeckerei: [0, 200],
-  brunnen: [100, 200],
-  bruecke: [200, 200],
-};
-/** Plots per quarter, their size and the step along the road (direction +x −y, i.e. to the right on screen). */
-export const JE_VIERTEL = 6;
-const W = 56;
-const SCHRITT = 60;
-const START: [number, number] = [320, 100];
 
-/** Plot positions (world x, y of the corner) for `n` plots; a quarter = 3 steps of plot pairs and a small square. */
-export function grundstuecke(
-  n: number,
-): { x: number; y: number; viertel: number }[] {
-  const out: { x: number; y: number; viertel: number }[] = [];
-  for (let i = 0; i < n; i++) {
-    const v = Math.floor(i / JE_VIERTEL);
-    const k = i % JE_VIERTEL;
-    const schritt = v * 4 + Math.floor(k / 2) + 1;
-    const rx = START[0] + schritt * SCHRITT;
-    const ry = START[1] - schritt * SCHRITT;
-    const seite = k % 2 ? 1 : -1;
-    out.push({
-      x: rx + seite * 46 - W / 2,
-      y: ry + seite * 46 - W / 2,
-      viertel: v,
-    });
-  }
-  return out;
+// — The map —
+
+/** A market stall (from Marktflecken on): counter with goods, a striped awning. */
+function stand(s: IsoStift, p: Pt, farbe: string) {
+  const [cx, cy] = welt(p[0], p[1]);
+  const x = cx - 14;
+  const y = cy - 9;
+  const ware = [P.rot, P.gold, P.blattHell, P.orange];
+  return (
+    <g data-teil="stand">
+      {s.schlag(x, y, 28, 18, 26)}
+      {s.box(x, y, 0, 28, 18, 10, HOLZ)}
+      {s.tiefe(x, y, 0, 28, 18, 10)}
+      {ware.map((c, i) => (
+        <g key={i}>{s.poly([s.P3(x + 3 + i * 6.5, y + 6, 10), s.P3(x + 8 + i * 6.5, y + 6, 10), s.P3(x + 8 + i * 6.5, y + 13, 10), s.P3(x + 3 + i * 6.5, y + 13, 10)], c)}</g>
+      ))}
+      {[
+        [x, y + 18],
+        [x + 28, y + 18],
+        [x + 28, y],
+      ].map(([a, b], i) => (
+        <g key={i}>{s.linie(s.P3(a, b, 0), s.P3(a, b, 24), P.balken, 2.5)}</g>
+      ))}
+      {[0, 1, 2, 3].map((i) => {
+        const a = x - 2 + i * 8;
+        return (
+          <g key={`d${i}`}>
+            {s.poly([s.P3(a, y - 2, 30), s.P3(a + 8, y - 2, 30), s.P3(a + 8, y + 22, 22), s.P3(a, y + 22, 22)], i % 2 ? (s.wetter.schnee ? P.schnee : P.wolke) : farbe)}
+          </g>
+        );
+      })}
+      {s.linie(s.P3(x - 2, y + 22, 22), s.P3(x + 30, y + 22, 22), P.balken, 2)}
+    </g>
+  );
 }
 
-/** A name sign in front of a plot (teacher), or the gold sign „Du“ at the own plot. Drawn on top of everything and
- *  large, because the map is shown only about half size (260–300 px high). */
-const schild = (
-  s: IsoStift,
-  x: number,
-  y: number,
-  text: string,
-  du: boolean,
-  key: number,
-) => {
-  const [cx, cy] = s.P3(x + W, y + W, 0);
-  const kurz = text.length > 10 ? `${text.slice(0, 9)}…` : text;
-  const gr = du ? 24 : 18;
-  const hoch = du ? 32 : 26;
-  const breite = kurz.length * gr * 0.58 + hoch * 0.8;
+/** The city wall (Stadt): walls along the world axes with merlons, round corner towers, two gate towers and the gate. */
+function mauerTeile(s: IsoStift): { k: number; node: ReactNode }[] {
+  const stein: Flaechen = s.wetter.schnee ? { ...BRUCH, top: P.schnee } : BRUCH;
+  const W = (p: Pt) => welt(p[0], p[1]);
+  const [tlx, tly] = W(MAUER.torL);
+  const [elx, ely] = W(MAUER.eckeL);
+  const [, aly] = W(MAUER.endeL);
+  const [trx, try_] = W(MAUER.torR);
+  const [erx, ery] = W(MAUER.eckeR);
+  const [arx] = W(MAUER.endeR);
+  const H = 26;
+  const zinnenX = (x0: number, x1: number, y: number) =>
+    Array.from({ length: Math.floor((x1 - x0) / 10) }, (_, i) => <g key={i}>{s.box(x0 + 2 + i * 10, y - 4, H, 5, 8, 6, stein)}</g>);
+  const zinnenY = (y0: number, y1: number, x: number) =>
+    Array.from({ length: Math.floor((y1 - y0) / 10) }, (_, i) => <g key={i}>{s.box(x - 4, y0 + 2 + i * 10, H, 8, 5, 6, stein)}</g>);
+  const wandX = (x0: number, x1: number, y: number) => (
+    <g>
+      {s.box(x0, y - 4, 0, x1 - x0, 8, H, stein)}
+      {s.tiefe(x0, y - 4, 0, x1 - x0, 8, H)}
+      {zinnenX(x0, x1, y)}
+    </g>
+  );
+  const wandY = (y0: number, y1: number, x: number) => (
+    <g>
+      {s.box(x - 4, y0, 0, 8, y1 - y0, H, stein)}
+      {s.tiefe(x - 4, y0, 0, 8, y1 - y0, H)}
+      {zinnenY(y0, y1, x)}
+    </g>
+  );
+  const rundturm = (x: number, y: number) => (
+    <g>
+      {s.rundSchlag(x, y, 13, 52)}
+      {s.walze(x, y, 0, 13, 52, stein)}
+      {s.bogenTor("L", x - 3, y + 12.5, 20, 6, 10, P.dunkel)}
+      {s.kegel(x, y, 52, 16, 30, P.schiefer, P.schieferTief, P.schieferHell)}
+      {wimpel(s.P3(x, y, 82), P.rot, 16)}
+    </g>
+  );
+  const torturm = (x: number, y: number) => (
+    <g>
+      {s.schlag(x - 11, y - 11, 22, 22, 50)}
+      {s.box(x - 11, y - 11, 0, 22, 22, 48, stein)}
+      {s.fenster("L", x - 3, y + 11, 26, 6, 9)}
+      {s.fenster("R", y - 3, x + 11, 26, 6, 9)}
+      {s.tiefe(x - 11, y - 11, 0, 22, 22, 48)}
+      {s.zeltdach(x - 11, y - 11, 48, 22, 22, 26, SCHIEFER, 4, P.gold)}
+    </g>
+  );
+  const tor = () => {
+    const l = s.P3(tlx, tly, 0);
+    const r = s.P3(trx, try_, 0);
+    const a = l[0] + 18;
+    const b = r[0] - 18;
+    const y = l[1];
+    return (
+      <g data-teil="mauer">
+        <rect x={a} y={y - 46} width={b - a} height={14} fill={stein.links} />
+        <rect x={a} y={y - 51} width={b - a} height={5} fill={stein.top} />
+        {[0, 1, 2].map((i) => (
+          <rect key={i} x={a + 3 + i * ((b - a - 8) / 2)} y={y - 56} width={5} height={6} fill={stein.links} />
+        ))}
+        <rect x={(a + b) / 2 - 5} y={y - 36} width={10} height={13} rx={2} fill={P.rot} />
+        <circle cx={(a + b) / 2} cy={y - 30} r={2.5} fill={P.gold} />
+      </g>
+    );
+  };
+  return [
+    { k: -46, node: wandY(ely, aly, elx) },
+    { k: -46, node: wandX(erx, arx, ery) },
+    { k: -40, node: wandX(elx, tlx, tly) },
+    { k: -40, node: wandY(ery, try_, trx) },
+    { k: MAUER.eckeL[1], node: rundturm(elx, ely) },
+    { k: MAUER.eckeR[1], node: rundturm(erx, ery) },
+    { k: MAUER.torL[1], node: torturm(tlx, tly) },
+    { k: MAUER.torR[1], node: torturm(trx, try_) },
+    { k: MAUER.torL[1] + 1, node: tor() },
+  ];
+}
+
+const hash = (a: number, b: number) => {
+  const v = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453;
+  return v - Math.floor(v);
+};
+const punkte = (a: Pt[]) => a.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+const linienzug = (a: Pt[]) => `M${a.map((p) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" L")}`;
+const NACHT_DECKUNG = 0.45;
+/** Text longer than 10 characters is shortened (names on the teacher's map). */
+const kurz = (t: string) => (t.length > 10 ? `${t.slice(0, 9)}…` : t);
+
+/** A sign above a house: the gold „Du“ at the own plot (it bobs), or a name for the teacher. */
+function schild(p: Pt, text: string, du: boolean, key: number) {
+  const t = kurz(text);
+  const gr = du ? 15 : 12;
+  const hoch = du ? 24 : 20;
+  const breite = t.length * gr * 0.6 + hoch * 0.9;
   return (
-    <g key={`s${key}`} data-ich={du ? "" : undefined}>
-      <rect
-        x={cx - breite / 2}
-        y={cy - hoch / 2}
-        width={breite}
-        height={hoch}
-        rx={hoch / 2}
-        fill={du ? P.gold : P.weiss}
-        opacity={du ? 1 : 0.94}
-      />
-      <text
-        x={cx}
-        y={cy + gr * 0.36}
-        textAnchor="middle"
-        fontFamily="Fredoka, Nunito, sans-serif"
-        fontWeight={700}
-        fontSize={gr}
-        fill={P.linie}
-      >
-        {kurz}
+    <g key={`s${key}`} className={du ? "lq-du" : undefined} data-ich={du ? "" : undefined}>
+      <path d={`M${p[0] - 6} ${p[1] - 1} L${p[0]} ${p[1] + 6} L${p[0] + 6} ${p[1] - 1}Z`} fill={du ? P.goldTief : P.wolkeTief} />
+      <rect x={p[0] - breite / 2} y={p[1] - hoch} width={breite} height={hoch} rx={hoch / 2} fill={du ? P.gold : P.weiss} />
+      <rect x={p[0] - breite / 2 + hoch / 2} y={p[1] - 3} width={breite - hoch} height={3} fill={du ? P.goldTief : P.wolke} />
+      <text x={p[0]} y={p[1] - hoch / 2 + gr * 0.36} textAnchor="middle" fontFamily="Fredoka, Nunito, sans-serif" fontWeight={800} fontSize={gr} fill={P.linie}>
+        {t}
       </text>
     </g>
   );
-};
+}
+
+/** What changed since the child last looked: these houses (plot numbers) and buildings pop up. */
+export interface DorfNeu {
+  haeuser?: number[];
+  gebaeude?: string[];
+}
 
 /**
- * The village map: the square with the built buildings, the building site of the running project, the road and
- * `plaetze` staked plots in quarters of six. Wider than the screen: the caller lets it scroll sideways.
+ * The village map in portrait (Richtung A): the square with the built buildings and the building site at the bottom,
+ * the road up with `plaetze` plots, the children's houses with their looks, and on top of everything the signs.
+ * Taller than the screen: the caller lets it scroll up and down.
  */
 export function DorfKarte({
   fertig,
@@ -606,6 +666,9 @@ export function DorfKarte({
   ich,
   hinweis,
   titel,
+  abend = false,
+  winter = false,
+  neu,
 }: {
   fertig: string[];
   baustelle?: string | null;
@@ -616,140 +679,143 @@ export function DorfKarte({
   ich?: number | null;
   hinweis?: string;
   titel: string;
+  /** Evening: dark, windows and lanterns lit (istAbend). */
+  abend?: boolean;
+  /** Winter: snow (istWinter). */
+  winter?: boolean;
+  neu?: DorfNeu;
 }) {
-  const s = isoStift(0, 0);
-  const roh = Math.max(plaetze, haeuser?.length ?? 0);
-  const n = Number.isFinite(roh)
-    ? Math.min(200, Math.max(0, Math.floor(roh)))
-    : 0;
-  const viertel = Math.ceil(n / JE_VIERTEL);
-  const ende = viertel * 4 + 1;
-  const E: [number, number] = [
-    START[0] + ende * SCHRITT,
-    START[1] - ende * SCHRITT,
-  ];
-  const ns = (x: number, y: number, o: number): [number, number][] => [
-    [x + o, y + o],
-    [x - o, y - o],
-  ];
-  // Ground: the square and a band along the road.
-  const strasse = [
-    ...ns(START[0] - 30, START[1] + 30, 14),
-    ...ns(E[0], E[1], 14).reverse(),
-  ];
-  const band = viertel
-    ? [
-        ...ns(START[0] - 40, START[1] + 40, 110),
-        ...ns(E[0] + 30, E[1] - 30, 110).reverse(),
-      ]
-    : [];
-  const platzRand: [number, number][] = [
-    [-24, -24],
-    [324, -24],
-    [324, 324],
-    [-24, 324],
-  ];
-  const boden = (pts: [number, number][]) => pts.map(([a, b]) => s.P3(a, b));
-  const unten = (pts: [number, number][]) =>
-    boden(pts).map(([a, b]) => [a, b + 12] as [number, number]);
+  const n = anzahl(Math.max(plaetze, haeuser?.length ?? 0));
+  const stufe = dorfStufe(new Set(fertig).size);
+  const s = isoStift(0, 0, { schnee: winter, nacht: abend });
+  const [vx, vy, vw, vh] = rahmen(n);
+  const ins = insel(n);
   const plots = grundstuecke(n);
-  const kleinePlaetze = Array.from({ length: viertel }, (_, v) => {
-    const k = v * 4 + 4;
-    return [START[0] + k * SCHRITT, START[1] - k * SCHRITT] as [number, number];
-  });
-  // Everything that stands, sorted back to front.
-  const dinge: { t: number; node: ReactNode }[] = [];
-  for (const [g, [x, y]] of Object.entries(PLAETZE)) {
-    const bau = fertig.includes(g) ? BAUTEN[g] : bauId === g ? baustelle : null;
-    dinge.push({ t: x + y, node: bau ? bau(s, x, y) : platz(s, x, y) });
+  const ende = wegEnde(n);
+  const boden = winter
+    ? { grund: P.schnee, hell: P.wolkeHell, tief: P.wolke, kante: P.wolkeTief }
+    : { grund: P.wiese, hell: P.wieseHell, tief: P.wieseTief, kante: P.rasenTief };
+  const [wegHell, wegTief] = stufe === 0 ? [P.sand, P.sandTief] : [P.pflaster, P.pflasterTief];
+  const runter = (a: Pt[], d: number) => a.map(([x, y]) => [x, y + d] as Pt);
+
+  // Ground: water with glints, the island with its edge, patches of grass, the square, the road and the small squares.
+  const flecken: ReactNode[] = [];
+  for (let gy = Math.ceil(ins.oben / 70); gy * 70 < ins.unten; gy++)
+    for (let gx = -3; gx <= 3; gx++) {
+      const r = hash(gx + 11, gy);
+      if (r < 0.45) continue;
+      const c: Pt = [gx * 70 + (hash(gy, gx) - 0.5) * 40, gy * 70 + (hash(gx, gy + 3) - 0.5) * 30];
+      if (!ins.auf(c, 40)) continue;
+      const rx = 26 + hash(gx, gy + 9) * 30;
+      flecken.push(<ellipse key={`${gx}/${gy}`} cx={c[0]} cy={c[1]} rx={rx} ry={rx * 0.5} fill={r > 0.75 ? boden.tief : boden.hell} />);
+    }
+  const platzOben = -34;
+  const platzFlaeche: Pt[] = [];
+  for (let y = platzOben; y <= ins.unten; y += 6) platzFlaeche.push([ins.mitte(y) + ins.halb(y) - 6, y]);
+  for (let y = ins.unten; y >= platzOben; y -= 6) platzFlaeche.push([ins.mitte(y) - ins.halb(y) + 6, y]);
+  const weg = wegPunkte(n);
+  const ellipse = (c: Pt, rx: number, fill: string, dy = 0) => <ellipse cx={c[0]} cy={c[1] + dy} rx={rx} ry={rx * 0.58} fill={fill} />;
+  const grund = (
+    <g>
+      <rect x={vx} y={vy} width={vw} height={vh} fill={winter ? P.wasserTief : P.wasser} />
+      {wasser(n).map((p, i) => (
+        <g key={i}>{glitzer(p, i, winter ? P.eisHell : P.wasserHell)}</g>
+      ))}
+      <polygon points={punkte(runter(ins.umriss, 20))} fill={P.holzTief} />
+      <polygon points={punkte(runter(ins.umriss, 11))} fill={P.holz} />
+      <polygon points={punkte(runter(ins.umriss, 5))} fill={boden.kante} />
+      <polygon points={punkte(ins.umriss)} fill={boden.grund} />
+      {flecken}
+      {stufe === 3 ? (
+        <polygon points={punkte(platzFlaeche)} fill={P.pflaster} />
+      ) : (
+        <g>
+          <path d={linienzug([[0, platzOben], [0, 244]])} stroke={wegTief} strokeWidth={stufe ? 76 : WEG_HALB * 2} strokeLinecap="round" transform="translate(0 4)" />
+          <path d={linienzug([[0, platzOben], [0, 244]])} stroke={wegHell} strokeWidth={stufe ? 76 : WEG_HALB * 2} strokeLinecap="round" />
+        </g>
+      )}
+      {stufe === 3 && <path d={linienzug(weg)} fill="none" stroke={P.bruch} strokeWidth={WEG_HALB * 2 + 6} strokeLinecap="round" strokeLinejoin="round" />}
+      <path d={linienzug(runter(weg, 4))} fill="none" stroke={wegTief} strokeWidth={WEG_HALB * 2} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={linienzug(weg)} fill="none" stroke={wegHell} strokeWidth={WEG_HALB * 2} strokeLinecap="round" strokeLinejoin="round" />
+      {ellipse([wegX(ende), ende], 36, wegTief, 4)}
+      {ellipse([wegX(ende), ende], 36, wegHell)}
+      {plaetzchen(n).map((q, i) => (
+        <g key={i}>
+          {ellipse(q, 44, wegTief, 4)}
+          {ellipse(q, 44, wegHell)}
+        </g>
+      ))}
+      {abend && <rect x={vx} y={vy} width={vw} height={vh} fill={P.nachtTief} opacity={NACHT_DECKUNG} />}
+    </g>
+  );
+
+  // Everything that stands, back to front.
+  // `neu`: pops up as a whole, with its lights in the evening.
+  const dinge: { k: number; node: ReactNode; neu?: boolean }[] = [];
+  const gebaut = new Set(fertig);
+  for (const [id, o] of Object.entries(GEBAEUDE_ORT)) {
+    const bau = gebaut.has(id) ? BAUTEN[id] : bauId === id ? baustelle : null;
+    dinge.push({ k: o.sy, node: bau ? bau(s, o.x, o.y) : platz(s, o.x, o.y), neu: !!bau && !!neu?.gebaeude?.includes(id) });
   }
   const schilder: ReactNode[] = [];
   plots.forEach((p, i) => {
     const h = haeuser?.[i];
-    const bau = h && h.stufe !== null ? HAUS_BILD[h.stufe] : undefined;
+    const st = h && h.stufe !== null && h.stufe >= 0 && h.stufe < HAUS_HOEHE.length ? h.stufe : null;
+    const neuesHaus = st !== null && !!neu?.haeuser?.includes(i);
     dinge.push({
-      t: p.x + p.y - 1000,
+      k: p.sy,
       node: (
-        <g key={`g${i}`}>
-          {bau ? (
-            <>
-              {s.flaeche(p.x, p.y, W, W, P.wieseHell)}
-              {bau(s, p.x, p.y)}
-            </>
-          ) : (
-            grundstueck(s, p.x, p.y, W)
-          )}
+        <g data-platz={i}>
+          {st === null ? grundstueck(s, p.x, p.y) : hausMitGarten(s, p.x, p.y, st, aussehenVon(h?.aussehen, i, st), neuesHaus)}
         </g>
       ),
+      neu: neuesHaus,
     });
     const text = i === ich ? "Du" : h?.name;
-    if (text) schilder.push(schild(s, p.x, p.y, text, i === ich, i));
+    if (text) schilder.push(schild([p.sx, p.sy - (st === null ? 24 : HAUS_HOEHE[st])], text, i === ich, i));
   });
-  kleinePlaetze.forEach(([x, y], i) =>
-    dinge.push({
-      t: x + y + 50,
-      node: <g key={`b${i}`}>{baum(s, x - 30, y + 30, 0.9)}</g>,
-    }),
-  );
-  dinge.push({ t: 300, node: baum(s, 150, 150, 1.1) });
-  dinge.push({ t: -10, node: baum(s, -10, 150, 0.8) });
-  // Screen box.
-  const ecken = [...boden(platzRand), ...boden(band), ...boden(strasse)];
-  const minX = Math.min(...ecken.map((p) => p[0])) - 16;
-  const maxX = Math.max(...ecken.map((p) => p[0])) + 16;
-  const minY = -150;
-  const maxY = Math.max(...ecken.map((p) => p[1])) + 24;
-  const label =
-    hinweis && kleinePlaetze.length
-      ? s.P3(kleinePlaetze[0][0] - 120, kleinePlaetze[0][1] + 120, 150)
-      : null;
+  for (const d of deko(n)) {
+    const node =
+      d.art === "baum" ? baum(d.p, d.k, winter) : d.art === "busch" ? busch(d.p, d.k, winter) : d.art === "stein" ? stein(d.p, d.k) : winter ? null : blume(d.p, Math.round(d.k * 10));
+    if (node) dinge.push({ k: d.p[1], node });
+  }
+  plaetzchen(n).forEach((q, i) => {
+    dinge.push({ k: q[1] - 2, node: busch([q[0] - 54, q[1] - 2], 1.1, winter) });
+    dinge.push({ k: q[1] + 2, node: busch([q[0] + 56, q[1] + 2], 0.9, winter) });
+    if (stufe > 0) dinge.push({ k: q[1] + 6, node: laterne([q[0] + (i % 2 ? -34 : 34), q[1] + 6], abend) });
+  });
+  if (stufe > 0) for (const l of laternen(n)) dinge.push({ k: l[1], node: laterne(l, abend) });
+  if (stufe > 1) STAENDE.forEach((p, i) => dinge.push({ k: p[1], node: stand(s, p, i ? P.blau : P.rot) }));
+  if (stufe > 2) dinge.push(...mauerTeile(s));
+  HUEHNER.forEach((p, i) => dinge.push({ k: p[1], node: huhn(p, i % 2 === 1) }));
+
+  const label = hinweis ? ([0, (plots[2]?.sy ?? -250) - 64] as Pt) : null;
   return (
     <svg
-      viewBox={`${minX.toFixed(0)} ${minY} ${(maxX - minX).toFixed(0)} ${(maxY - minY).toFixed(0)}`}
+      viewBox={`${vx} ${vy} ${vw} ${vh}`}
       role="img"
       aria-label={titel}
       className="lq-dorf-karte"
+      data-stufe={stufe}
     >
-      <rect
-        x={minX}
-        y={minY}
-        width={maxX - minX}
-        height={maxY - minY}
-        fill={P.himmel}
-      />
-      {band.length > 0 && s.poly(unten(band), P.rasenTief)}
-      {s.poly(unten(platzRand), P.rasenTief)}
-      {band.length > 0 && s.poly(boden(band), P.wiese)}
-      {s.poly(boden(platzRand), P.wiese)}
-      {s.flaeche(0, 100, 300, 100, P.pflaster)}
-      {s.poly(boden(strasse), P.pflaster)}
-      {[60, 140, 220].map((xx) => (
-        <g key={xx}>
-          {s.flaeche(xx, 130, 40, 40, P.pflasterTief, { opacity: 0.6 })}
-        </g>
-      ))}
-      {kleinePlaetze.map(([x, y], i) => (
-        <g key={i}>{s.flaeche(x - 34, y - 34, 68, 68, P.pflaster)}</g>
-      ))}
+      {grund}
       {dinge
-        .sort((a, b) => a.t - b.t)
+        .sort((a, b) => a.k - b.k)
         .map((d, i) => (
-          <g key={i}>{d.node}</g>
+          <g key={i} className={d.neu ? "lq-neu" : undefined}>
+            {abend ? imDunkeln(d.node, P.nachtTief, NACHT_DECKUNG) : d.node}
+          </g>
         ))}
       {schilder}
       {label && (
-        <text
-          x={label[0]}
-          y={label[1]}
-          textAnchor="middle"
-          fontFamily="Fredoka, Nunito, sans-serif"
-          fontWeight={800}
-          fontSize={24}
-          fill={P.linie}
-        >
-          {hinweis}
-        </text>
+        <g>
+          <rect x={label[0] - 92} y={label[1] - 20} width={184} height={30} rx={15} fill={P.weiss} opacity={0.92} />
+          <text x={label[0]} y={label[1]} textAnchor="middle" fontFamily="Fredoka, Nunito, sans-serif" fontWeight={800} fontSize={18} fill={P.linie}>
+            {hinweis}
+          </text>
+        </g>
       )}
     </svg>
   );
 }
+

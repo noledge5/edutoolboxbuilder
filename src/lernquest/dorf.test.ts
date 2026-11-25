@@ -1,5 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { DORF_GEBAEUDE, HAUS_MAX, HAUS_STUFEN, hausAusbau, spendeMoeglich, spendeNoetig, spendeWert, SPENDE_WOCHE, zielVorschlag } from './dorf';
+import {
+  AUSSEHEN,
+  AUSSEHEN_TEILE,
+  aussehenAuto,
+  aussehenGueltig,
+  aussehenVon,
+  DORF_GEBAEUDE,
+  DORF_STUFEN,
+  dorfStufe,
+  HAUS_MAX,
+  HAUS_STUFEN,
+  hausAusbau,
+  istAbend,
+  istWinter,
+  naechsteDorfStufe,
+  spendeMoeglich,
+  spendeNoetig,
+  spendeWert,
+  SPENDE_WOCHE,
+  zielVorschlag,
+} from './dorf';
 import { ZELT_FRAGEN, ZELT_RICHTIG_AB, ZELT_RUNDE, zeltBestanden, zeltFragen } from './zelt';
 import { readFileSync } from 'node:fs';
 
@@ -96,5 +116,94 @@ describe('Zelt-Quiz', () => {
     expect(ZELT_RICHTIG_AB).toBe(4);
     expect(zeltBestanden(3)).toBe(false);
     expect(zeltBestanden(4)).toBe(true);
+  });
+});
+
+describe('Dorfstufen (Richtung A)', () => {
+  it('wächst mit den fertigen Gemeinschaftsgebäuden vom Weiler zur Stadt', () => {
+    expect(DORF_STUFEN.map((s) => [s.name, s.ab])).toEqual([
+      ['Weiler', 0],
+      ['Dorf', 2],
+      ['Marktflecken', 4],
+      ['Stadt', 6],
+    ]);
+    expect([0, 1, 2, 3, 4, 5, 6, 9, -1].map(dorfStufe)).toEqual([0, 0, 1, 1, 2, 2, 3, 3, 0]);
+    expect(naechsteDorfStufe(0)).toEqual({ name: 'Dorf', fehlt: 2 });
+    expect(naechsteDorfStufe(3)).toEqual({ name: 'Marktflecken', fehlt: 1 });
+    expect(naechsteDorfStufe(6)).toBeNull();
+    expect(DORF_STUFEN.at(-1)!.ab).toBe(DORF_GEBAEUDE.length);
+  });
+
+  it('kennt Abend (17 bis 7 Uhr) und Winter (Dezember bis Februar)', () => {
+    const um = (h: number, m = 0) => new Date(2026, 5, 1, h, m);
+    expect([um(6, 59), um(7), um(16, 59), um(17), um(23, 30), um(0)].map(istAbend)).toEqual([true, false, false, true, true, true]);
+    expect(Array.from({ length: 12 }, (_, m) => istWinter(new Date(2026, m, 15)))).toEqual([
+      true, true, false, false, false, false, false, false, false, false, false, true,
+    ]);
+  });
+});
+
+describe('Häuser gestalten', () => {
+  const voll = { dach: 0, wand: 1, tuer: 2, fahne: 3, zaun: 1, garten: 2, deko: 1 };
+
+  it('nimmt genau die sieben Teile mit erlaubter Wahl an, sonst nichts', () => {
+    expect(aussehenGueltig(voll, 1)).toEqual(voll);
+    expect(aussehenGueltig({ ...voll, extra: 1 }, 4)).toBeNull();
+    const { deko: _, ...ohne } = voll;
+    expect(aussehenGueltig(ohne, 4)).toBeNull();
+    expect(aussehenGueltig({ ...ohne, schmuck: 1 }, 4)).toBeNull();
+    expect(aussehenGueltig({ ...voll, dach: 6 }, 4)).toBeNull();
+    expect(aussehenGueltig({ ...voll, dach: -1 }, 4)).toBeNull();
+    expect(aussehenGueltig({ ...voll, dach: 1.5 }, 4)).toBeNull();
+    expect(aussehenGueltig({ ...voll, dach: '1' }, 4)).toBeNull();
+    expect(aussehenGueltig([1, 2], 4)).toBeNull();
+    expect(aussehenGueltig(null, 4)).toBeNull();
+  });
+
+  it('schaltet mehr Auswahl mit höherer Hausstufe frei', () => {
+    expect(aussehenGueltig({ ...voll, dach: 5 }, 3)).toBeNull();
+    expect(aussehenGueltig({ ...voll, dach: 5 }, 4)).not.toBeNull();
+    expect(aussehenGueltig({ ...voll, zaun: 4 }, 2)).toBeNull();
+    expect(aussehenGueltig({ ...voll, zaun: 4 }, 3)).not.toBeNull();
+    // The tent: only the flag; the first choice of every other part, so it can still be saved.
+    const zelt = { dach: 0, wand: 0, tuer: 0, fahne: 2, zaun: 0, garten: 0, deko: 0 };
+    expect(aussehenGueltig(zelt, 0)).toEqual(zelt);
+    expect(aussehenGueltig({ ...zelt, dach: 1 }, 0)).toBeNull();
+    expect(aussehenGueltig({ ...zelt, zaun: 1 }, 0)).toBeNull();
+    for (const t of AUSSEHEN_TEILE) expect(AUSSEHEN[t].wahl[0].ab, t).toBe(0);
+    for (const t of AUSSEHEN_TEILE) {
+      const ab = AUSSEHEN[t].wahl.map((w) => w.ab);
+      expect(ab, t).toEqual([...ab].sort((a, b) => a - b));
+      expect(Math.max(...ab), t).toBeLessThanOrEqual(HAUS_MAX);
+    }
+  });
+
+  it('gibt jedem Haus ohne eigene Wahl ein festes, erlaubtes Aussehen, und die Häuser sehen verschieden aus', () => {
+    for (let stufe = 0; stufe <= HAUS_MAX; stufe++)
+      for (let p = 0; p < 60; p++) {
+        const a = aussehenAuto(p, stufe);
+        expect(aussehenGueltig(a, stufe), `${stufe}/${p}`).toEqual(a);
+        expect(aussehenAuto(p, stufe)).toEqual(a);
+      }
+    const daecher = new Set(Array.from({ length: 40 }, (_, p) => aussehenAuto(p, HAUS_MAX).dach));
+    expect(daecher.size).toBeGreaterThanOrEqual(5);
+    const ganz = new Set(Array.from({ length: 30 }, (_, p) => JSON.stringify(aussehenAuto(p, 3))));
+    expect(ganz.size).toBe(30);
+  });
+
+  it('zeichnet die eigene Wahl, soweit sie erlaubt ist, und füllt den Rest auf', () => {
+    expect(aussehenVon(voll, 7, 1)).toEqual(voll);
+    const halb = aussehenVon({ dach: 5, zaun: 1, wand: 'x' }, 7, 1);
+    expect(halb.zaun).toBe(1);
+    expect(halb.dach).toBe(aussehenAuto(7, 1).dach);
+    expect(halb.wand).toBe(aussehenAuto(7, 1).wand);
+    expect(aussehenVon(null, 3, 2)).toEqual(aussehenAuto(3, 2));
+  });
+
+  it('kennt dieselben Teile und Stufen wie der Server', () => {
+    const sql = readFileSync('supabase/migrations/20261204_lernquest_haus_aussehen.sql', 'utf8');
+    for (const t of AUSSEHEN_TEILE) expect(sql).toContain(`('${t}', array[${AUSSEHEN[t].wahl.map((w) => w.ab).join(', ')}])`);
+    expect(sql).toContain(`jsonb_object_keys(p_aussehen)) = ${AUSSEHEN_TEILE.length}`);
+    expect(sql).toContain("'aussehen', h.aussehen");
   });
 });

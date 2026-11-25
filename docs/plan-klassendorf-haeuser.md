@@ -29,9 +29,13 @@ Ursprünglicher Plan:
   oder fest in der App)? Wie viele Fragen, ab wie vielen richtig? Darf man wiederholen (Vorschlag: ja, ohne Strafe)?
   Passt zu den vorhandenen Aufgaben und Karten (`fragenpool.ts`); beim Planen prüfen, ob der Fragenpool das trägt.
 
-### B2 – Anbauten
-- Teile: Turm, Anbau, Balkon, Garten, Laterne, Zaun u. a., mit Seltenheit.
-- Herkunft: kaufen und aus Truhen (dafür `lq_truhe_oeffnen` ändern, zuletzt `20261128_lernquest_truhen_neu.sql`).
+### B2 – Häuser gestalten ✅ (gebaut 25.11.2026, zusammen mit dem Dorf im Hochformat)
+Entschieden am 25.11.: Richtung A (Schlängelweg im Hochformat, Stilproben als Claude-Artifact), Dorfstufen nach fertigen
+Gemeinschaftsgebäuden (Weiler 0, Dorf 2, Marktflecken 4, Stadt 6), Abend und Winter nach der Uhr, Gestalten gleich mit
+(Server-Änderung `20261204_lernquest_haus_aussehen.sql`). Gestalten ist kostenlos (Empfehlung, Antwort offen): Farben von
+Dach, Wänden, Tür, Fahne; Zaun, Garten, Schmuck; mehr Auswahl mit höherer Hausstufe (`AUSSEHEN` in `dorf.ts`, gleiche Listen
+in `lq_aussehen_ok`, ein Test vergleicht sie). Neues seit dem letzten Besuch ploppt auf (auf dem Gerät gemerkt).
+Offen: Anbauten (Turm, Balkon, Anbau) mit Seltenheit aus Truhen oder Laden; ob Gestalten doch Münzen kosten soll.
 
 ### B3 – Besuchen
 - Haus antippen: hineinschauen, Held und Trophäenregal sehen.
@@ -49,8 +53,7 @@ offenen Fragen klären.
 - **Auszeichnungen und Abzeichen** (Badges): z. B. für Lernserien, geschaffte Regionen, Hausstufen. Keine Rangliste.
 - **Besuchen**: Haus und Profil der anderen ansehen (erweitert B3: Held, Trophäenregal, Abzeichen). Dafür müssen
   Kinder Namen sehen; das ist eine neue Entscheidung zur Sichtbarkeit.
-- **Häuser gestalten**, damit nicht alle gleich aussehen (B2 Anbauten, dazu z. B. Farben von Dach und Wand, Zaun,
-  Garten). Gleicher Bausatz `figuren/iso.tsx`, gleiche Materialien.
+- ~~**Häuser gestalten**~~: gebaut am 25.11.2026 (siehe B2).
 
 ## Erfolgskriterien (für jede Scheibe)
 Typecheck, Tests und Build grün; SQL-Regeln mit lokalem Postgres oder PGlite geprüft; Bild der Karte und Handybreite;

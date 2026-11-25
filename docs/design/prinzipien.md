@@ -91,6 +91,17 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
   öffnen. Lässt sich das Bild falsch lesen, wird es schlichter.
 - Kultur zeigen: Zu Sprache und Erdkunde gehören Essen, Kleidung, Bauwerke des Landes als eigene kleine Motive.
 
+## Klassendorf (Richtung A, 25.11.2026)
+
+- **Aufbau rechnet, Zeichnung zeichnet:** `dorfplan.ts` legt Weg, Grundstücke, Plätze, Laternen und Deko fest (reine Geometrie,
+  getestet: nichts überlappt, Bäume stehen nie vor einem Haus, die Karte wächst nur nach oben); `figuren/dorf.tsx` zeichnet.
+- **Abend ohne Verläufe:** Jedes Ding bekommt eine einfarbige Kopie in `nachtTief` darüber (halb durchsichtig,
+  `figuren/nacht.tsx`). Was leuchtet (Fenster, Laternenglas, Feuer), trägt `data-licht` und wird darüber neu gezeichnet. Neue
+  Teile mit Licht setzen `data-licht`, sonst bleiben sie abends dunkel.
+- **Winter:** `isoStift(…, { schnee })` legt Schnee auf Sattel- und Zeltdächer; Boden, Bäume und Zäune fragen `s.wetter`.
+- **Häuser gestalten:** Farben und Teile kommen nur aus den Listen in `figuren/haeuser.tsx` (je Wahl aus `AUSSEHEN` genau ein
+  Eintrag); Zaun vorne, Garten rechts, Schmuck vorne rechts, so dass sich nichts mit dem Haus schneidet (Grundstück 64 × 64).
+
 ## Bewegung
 
 - **Bewegung lenkt den Blick**, sie schmückt nicht. Das Auge geht zuerst auf das, was sich bewegt. Darum bewegt sich
@@ -98,6 +109,8 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
 - **Ruhe-Schleife klein:** blinzeln (macht die Engine), atmen, kurz wippen. Nahtlos, nie hektisch.
 - **Aktion in drei Teilen:** Anlauf (kurz zusammenziehen, `strecken`) → Bewegung → Nachfedern zurück in die Ruhe.
 - Dauern und Kurven aus den Tokens (`--lq-dauer-*`, federnd nur für Belohnungen); nur `transform` und `opacity`.
+- Im Dorf: Rauch (`lq-rauch`), Fahnen (`lq-fahne`), Wasser (`lq-glitzer`), Hühner (`lq-huhn`), „Du“ (`lq-du`), Neues
+  (`lq-neu` mit `lq-staub`). Sparsam: die Karte ist kein Lernbildschirm, aber das Auge soll das eigene Haus zuerst finden.
 - „Bewegung reduzieren“ im App-Menü hält alles an; jede Pose muss allein lesbar sein.
 
 ## Oberfläche
