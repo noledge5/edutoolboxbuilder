@@ -1,4 +1,4 @@
-# Handoff – 26.11.2026 (30 neue Teile live, Häuser live für 5c; als Nächstes Sprachausgabe)
+# Handoff – 26.11.2026 (Teile, Häuser und Vorlesen mit Google-Stimme live)
 
 ## Ziel
 Lernquest weiter ausbauen; als Nächstes die übrigen Wünsche der Lehrkraft vom 25.11. (Reihenfolge fragt man sie).
@@ -10,13 +10,17 @@ Lernquest weiter ausbauen; als Nächstes die übrigen Wünsche der Lehrkraft vom
 - Tests grün (699), Typecheck, Build. SQL mit PGlite geprüft (alle 32 Migrationen, Werte = teile.ts, Laden kauft/verweigert
   richtig, 3000 Truhen geben neue Teile aus). Kinder-App im Browser (Handybreite, nachgestellter Server): Teile-Liste und
   Held mit neuen Teilen. Nicht geprüft: echter Server, echtes Handy.
-- **Server (26.11., von Claude mit Zustimmung):** `20261203`, `20261204`, `20261205` in einer Transaktion eingespielt (vorher
+- Erledigt und **gemergt (PR #90, live)**: Vorlesen mit aufgenommener Google-Stimme (`docs/lernquest.md` „Vorlesen mit
+  aufgenommener Stimme“; `src/lernquest/stimme.ts`, `app/vorlesen.ts`, `teacher/stimme.ts`, `teacher/StimmeKarte.tsx`).
+  Ohne Schlüssel/Aufnahme liest weiter das Gerät. Nicht geprüft: echtes Google, echtes iPad/Handy.
+- **Server (26.11., von Claude mit Zustimmung):** `20261206_lernquest_ton.sql` eingespielt (live geprüft per RPC). `20261203`, `20261204`, `20261205` in einer Transaktion eingespielt (vorher
   Probelauf mit Rollback); 174 Teile, Häuser-Funktionen da. Klasse 5c: Dorf an, Häuser an, nicht im Umbau. Die Lehrkraft
   dachte, 1203/1204 seien schon drin; sie waren es nicht. Künftig nach „eingespielt“ per RPC-Probe prüfen.
 
 ## Nächste Schritte (je einer pro Session, neuer Branch von `main`)
-1. **Sprachausgabe neu (Wunsch 26.11., als Nächstes):** Vorlesen klingt auf vielen Geräten fehlerhaft oder blechern
-   (`app/vorlesen.ts`, Stimme des Geräts). Andere Lösung finden, mit der Lehrkraft planen (Skill `aufgabe`).
+1. **Vorlesen mit Google prüfen:** Lehrkraft trägt den Google-Schlüssel in der Karte „Vorlesen mit guter Stimme“ ein, hört
+   die Probe, drückt „Freigeschaltete neu senden“. Dann auf iPad und Handy hören; welche Stimme Google nimmt, steht in
+   localStorage `lernquest:google-stimme-name` (erst `en-GB-Chirp3-HD-Aoede`). Bei Fehlern zeigt die Karte Googles Meldung.
 2. Rückmeldung zu den neuen Teilen oder zum Dorf einarbeiten.
 3. Wünsche vom 25.11. (`docs/plan-klassendorf-haeuser.md`): Mathe-Aufgaben (bald!), Einschmelzen, Abzeichen, Haus und
    Profil anderer besuchen (braucht Namen für Kinder = neue Entscheidung), Anbauten mit Seltenheit aus Truhen/Laden.
@@ -34,7 +38,7 @@ Lernquest weiter ausbauen; als Nächstes die übrigen Wünsche der Lehrkraft vom
   src/lernquest/figuren/vorschau`; ohne globales Playwright `NODE_PATH=<eigenes playwright>/node_modules PW_CHROME=<Chrome>`.
 - Spieltest ohne Server: `npm run spieltest`, `scripts/spieltest-daten.js` einfügen, Playwright `page.route('http://127.0.0.1:9/**')`.
 - Dorf: `dorfplan.ts`, `figuren/dorf.tsx`, `dorfdeko.tsx`, `nacht.tsx`; Aussehen doppelt in `dorf.ts` und `lq_aussehen_ok`.
-- Gemergte Branches nur nach Rückfrage löschen: `claude/neue-teile-welten`, `claude/dorf-hochformat`, `claude/compassionate-davinci-8in8er`,
+- Gemergte Branches nur nach Rückfrage löschen: `claude/sprachausgabe`, `claude/neue-teile-welten`, `claude/dorf-hochformat`, `claude/compassionate-davinci-8in8er`,
   `claude/admiring-fermi-fcitkp`, `claude/eloquent-davinci-xlogq4`, `claude/jolly-planck-0jqcot`, `claude/umbau-schalter`,
   `claude/dreamy-bardeen-2fmcg4`.
 - Supabase: CLI ist auf diesem Mac angemeldet (Schlüsselbund). Lesen: `npx supabase db query --remote=txafdkaeotgekoxzgcxd
