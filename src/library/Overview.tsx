@@ -1,50 +1,65 @@
-// Start page: choose subject and grade, then a module; recently edited lessons for quick access.
-import { useState, type DragEvent } from 'react';
-import { Blocks, CalendarRange, FolderSync, Lock, Map as MapIcon, Plus, Settings as SettingsIcon, Sparkles, Trash2, Users, X } from 'lucide-react';
+// The class board (start page): one class of one subject, its modules with their first real sheet, and the lessons
+// edited last. Subjects and classes are chosen in the sidebar (src/shell/Sidebar.tsx).
+import { memo, useState, type DragEvent } from 'react';
+import { CalendarRange, Plus, Users } from 'lucide-react';
 import { Icon } from '../icons';
 import { topicIcon } from '../topicIcons';
-import { AiSettingsDialog } from '../ai/AiSettingsDialog';
+import { PagePreview } from '../ai/LessonAiDialog';
 import { ClassNotesDialog } from '../ai/ClassNotesDialog';
-import { dollars } from '../ai/prices';
-import { useAiSettings } from '../ai/useAi';
-import { ClaudeDialog } from './ClaudeDialog';
 import { statusText } from '../sync/AutoSyncPanel';
 import type { SyncStatus } from '../sync/engine';
-import { SearchButton } from './SearchDialog';
-import { isWorkedOut, lastChange, lessonsOf, modulesOf, progressOf, progressText, subjectsOf } from './model';
-import type { Lesson, Library, Module, SchoolYear, Settings } from './types';
-import { readSchoolYear } from './read';
-import { SUBJECT_COLORS, subjectColor, subjectVars, swatch } from './subjectColor';
-import { BW_2026_27, holidaysText } from './yearplan';
-import { GRADES } from './types';
-import { SperreEinstellung, useSperre } from '../sperre/SperreRahmen';
+import { docForLesson, isWorkedOut, lastChange, lessonCode, lessonsOf, modulesOf, progressOf } from './model';
+import type { Lesson, Library, Module } from './types';
+import type { Doc } from '../model/types';
+import { subjectColor, subjectTint } from './subjectColor';
+import { boardPlace } from '../shell/place';
+import './board.css';
 
 interface OverviewProps {
   lib: Library;
-  /** Entries in the trash; 0 hides the button. */
-  trashCount: number;
-  /** Time of the last backup file saved or opened on this device (0: none yet). */
-  savedAt: number;
-  onOpenTrash(): void;
   subject?: string;
   grade?: number;
-  onPick(subject: string, grade: number): void;
-  onOpenModule(m: Module): void;
-  onOpenLesson(l: Lesson): void;
-  onAddModule(subject: string, grade: number): void;
-  onAddSubject(name: string): void;
-  onRemoveSubject(name: string): void;
-  onSettings(s: Settings): void;
+  /** Time of the last backup file saved or opened on this device (0: none yet). */
+  savedAt: number;
   /** Changes not yet in a backup file on this device. */
   pending: number;
   /** The automatic sync; with it on, the reminders about backup files are not needed. */
   autoSync: SyncStatus;
   onSync(): void;
+  onOpenModule(m: Module): void;
+  onOpenLesson(l: Lesson): void;
+  onAddModule(subject: string, grade: number): void;
   /** A file opened or dropped here: Stundenpaket, library backup or worksheet. */
   onOpenFile(file: File): void;
   onOpenPlan(subject: string, grade: number): void;
-  onOpenLernquest(): void;
 }
+
+/** Scale of the worksheet thumbnails: on a module card and next to a recently edited lesson. */
+const CARD_SCALE = 0.24;
+const RECENT_SCALE = 0.075;
+
+/** The page that stands for a module or lesson: the first filled page for the students, else the first page. */
+function sheetOf(m: Module, lessons: Lesson[]): { doc: Doc; p: number } | null {
+  const docs = lessons.filter(isWorkedOut).map((l) => docForLesson(m, l));
+  for (const doc of docs) {
+    const p = doc.pages.findIndex((page) => page.type !== 'lehrkraft' && page.blocks.length > 0);
+    if (p >= 0) return { doc, p };
+  }
+  const doc = docs.find((d) => d.pages.length > 0);
+  return doc ? { doc, p: 0 } : null;
+}
+
+/** The sheet of a module or lesson, drawn small. Memoised on the stored objects, which only change when edited, so a
+ *  sync tick or a hover does not draw every page again. */
+const SheetThumb = memo(
+  function SheetThumb({ m, lessons, scale }: { m: Module; lessons: Lesson[]; scale: number }) {
+    const sheet = sheetOf(m, lessons);
+    return sheet ? <PagePreview doc={sheet.doc} p={sheet.p} scale={scale} /> : <Icon icon={topicIcon(m.icon)} size={scale > 0.1 ? 32 : 20} />;
+  },
+  (a, b) => a.m === b.m && a.scale === b.scale && a.lessons.length === b.lessons.length && a.lessons.every((l, i) => l === b.lessons[i]),
+);
+
+const count = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`;
 
 export function Overview(p: OverviewProps) {
   const [notesOpen, setNotesOpen] = useState(false);
@@ -70,33 +85,25 @@ export function Overview(p: OverviewProps) {
   };
   const auto = p.autoSync.kind !== 'aus';
   const backupAge = p.savedAt ? Math.floor((Date.now() - p.savedAt) / 86_400_000) : null;
+  const [dropping, setDropping] = useState(false);
+  const hasFiles = (e: DragEvent) => e.dataTransfer.types.includes('Files');
 
   const { lib } = p;
-  const subjects = subjectsOf(lib);
-  const subject = p.subject && subjects.includes(p.subject) ? p.subject : subjects[0];
-  const gradesWithModules = GRADES.filter((g) => subject && modulesOf(lib, subject, g).length > 0);
-  const grade = p.grade && (GRADES as readonly number[]).includes(p.grade) ? p.grade : (gradesWithModules[0] ?? GRADES[0]);
-  const modules = subject ? modulesOf(lib, subject, grade) : [];
+  const place = boardPlace(lib, p.subject, p.grade);
+  const modules = place ? modulesOf(lib, place.subject, place.grade) : [];
+  const lessonsByModule = new Map(modules.map((m) => [m.id, lessonsOf(lib, m.id)]));
+  const worked = modules.reduce((k, m) => k + (lessonsByModule.get(m.id) ?? []).filter(isWorkedOut).length, 0);
+  const planned = modules.reduce((k, m) => k + (lessonsByModule.get(m.id) ?? []).filter((l) => !isWorkedOut(l)).length, 0);
   // Planned lessons from the year plan were imported, not edited.
   const recent = lib.lessons
     .filter(isWorkedOut)
     .sort((a, b) => b.updatedAt - a.updatedAt)
     .slice(0, 4);
   const moduleOf = (l: Lesson) => lib.modules.find((m) => m.id === l.moduleId);
-  const sperre = useSperre();
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [claudeOpen, setClaudeOpen] = useState(false);
-  const [dropping, setDropping] = useState(false);
-  const hasFiles = (e: DragEvent) => e.dataTransfer.types.includes('Files');
-
-  const addSubject = () => {
-    const name = window.prompt('Name des Fachs, z. B. Biologie:')?.trim();
-    if (name) p.onAddSubject(name);
-  };
 
   return (
     <div
-      className={'lib' + (dropping ? ' is-dropping' : '')}
+      className={'board' + (dropping ? ' is-dropping' : '')}
       onDragOver={(e) => {
         if (!hasFiles(e)) return;
         e.preventDefault();
@@ -108,55 +115,10 @@ export function Overview(p: OverviewProps) {
         e.preventDefault();
         setDropping(false);
         const f = e.dataTransfer.files[0];
-        if (f) {
-          setClaudeOpen(false);
-          p.onOpenFile(f);
-        }
+        if (f) p.onOpenFile(f);
       }}
     >
-      <header className="topbar">
-        <div className="topbar-icon">
-          <Icon icon={Blocks} size={20} />
-        </div>
-        <div className="topbar-name">
-          <div className="topbar-title">Arbeitsblatt-Baukasten</div>
-          <div className="topbar-place">Übersicht</div>
-        </div>
-        <SearchButton />
-        {auto ? (
-          <button type="button" className="btn btn-secondary ui-btn sync-btn" onClick={p.onSync} title={statusText(p.autoSync)}>
-            <Icon icon={FolderSync} />
-            <span className="btn-label">Abgleich Mac/iPad</span>
-            <span className={`sync-dot is-auto is-${p.autoSync.kind}`} aria-label={statusText(p.autoSync)} />
-          </button>
-        ) : (
-          <button type="button" className="btn btn-secondary ui-btn sync-btn" onClick={p.onSync} title={p.pending > 0 ? 'Änderungen noch nicht gesichert' : 'Alles gesichert'}>
-            <Icon icon={FolderSync} />
-            <span className="btn-label">Abgleich Mac/iPad</span>
-            <span className={'sync-dot' + (p.pending > 0 ? ' is-open' : '')} aria-label={p.pending > 0 ? 'nicht gesichert' : 'gesichert'} />
-          </button>
-        )}
-        <button type="button" className="btn btn-secondary ui-btn" title="Lernquest: Klassen, Freischalten, Fortschritt" onClick={p.onOpenLernquest}>
-          <Icon icon={MapIcon} />
-          <span className="btn-label">Lernquest</span>
-        </button>
-        <button type="button" className="btn btn-secondary ui-btn" title="Mit KI bauen" onClick={() => setClaudeOpen(true)}>
-          <Icon icon={Sparkles} />
-          <span className="btn-label">Mit KI bauen</span>
-        </button>
-        {sperre.aktiv && (
-          <button type="button" className="btn btn-secondary ui-btn" title="Baukasten sperren, bevor du das Gerät aus der Hand gibst" onClick={sperre.sperren}>
-            <Icon icon={Lock} />
-            <span className="btn-label">Sperren</span>
-          </button>
-        )}
-        <button type="button" className="btn btn-secondary ui-btn lib-settings-btn" title="Einstellungen" onClick={() => setSettingsOpen(true)}>
-          <Icon icon={SettingsIcon} />
-          <span className="btn-label">Einstellungen</span>
-        </button>
-      </header>
-
-      <main className="lib-main">
+      <main className="board-main">
         {lastChange(lib) === 0 && (
           <div className="sync-banner is-welcome">
             <span>
@@ -198,24 +160,26 @@ export function Overview(p: OverviewProps) {
             </button>
           </div>
         )}
+
         {recent.length > 0 && (
-          <section className="lib-section">
-            <h2 className="lib-h2">Zuletzt bearbeitet</h2>
-            <div className="lib-recent">
+          <section className="board-recent" aria-labelledby="board-recent-h">
+            <h2 id="board-recent-h" className="board-h2">
+              Zuletzt bearbeitet
+            </h2>
+            <div className="board-recent-list">
               {recent.map((l) => {
                 const m = moduleOf(l);
                 if (!m) return null;
                 return (
-                  <button key={l.id} type="button" className="lib-recent-item" style={subjectVars(subjectColor(lib.settings, m.subject))} onClick={() => p.onOpenLesson(l)}>
-                    <span className="lib-icon is-small">
-                      <Icon icon={topicIcon(m.icon)} size={16} />
+                  <button key={l.id} type="button" className="rcard" style={subjectTint(subjectColor(lib.settings, m.subject))} onClick={() => p.onOpenLesson(l)}>
+                    <span className="rcard-sheet" aria-hidden="true">
+                      <SheetThumb m={m} lessons={[l]} scale={RECENT_SCALE} />
                     </span>
-                    <span className="lib-recent-text">
-                      <span className="lib-recent-title">
-                        Stunde {l.number}: {l.title}
-                      </span>
-                      <span className="lib-recent-place">
-                        {m.subject} · Klasse {m.grade} · {m.title}
+                    <span className="rcard-text">
+                      <span className="rcard-code">{lessonCode(m, l.number)}</span>
+                      <span className="rcard-title">{l.title}</span>
+                      <span className="rcard-place">
+                        {m.subject}, {m.title}
                       </span>
                     </span>
                   </button>
@@ -225,266 +189,86 @@ export function Overview(p: OverviewProps) {
           </section>
         )}
 
-        <section className="lib-section">
-          <h2 className="lib-h2">Fach</h2>
-          <div className="lib-chips">
-            {subjects.map((s) => {
-              const empty = !lib.modules.some((m) => m.subject === s);
-              return (
-                <span key={s} className={'lib-chip' + (s === subject ? ' is-on' : '')}>
-                  <button type="button" onClick={() => p.onPick(s, grade)}>
-                    <span className="lib-chip-dot" style={{ background: swatch(subjectColor(lib.settings, s)) }} />
-                    {s}
-                  </button>
-                  {empty && (
-                    <button type="button" className="lib-chip-x" title={`${s} entfernen`} aria-label={`${s} entfernen`} onClick={() => p.onRemoveSubject(s)}>
-                      <Icon icon={X} size={13} />
+        {place ? (
+          <section className="board-class" style={subjectTint(subjectColor(lib.settings, place.subject))} aria-labelledby="board-title">
+            <header className="board-band">
+              <div className="board-band-text">
+                <p className="board-kicker">{place.subject}</p>
+                <h1 id="board-title" className="board-title">
+                  Klasse {place.grade}
+                </h1>
+                <p className="board-meta">
+                  <span>{count(modules.length, 'Modul', 'Module')}</span>
+                  {worked > 0 && <span>{count(worked, 'Stunde ausgearbeitet', 'Stunden ausgearbeitet')}</span>}
+                  {planned > 0 && <span>{count(planned, 'Stunde geplant', 'Stunden geplant')}</span>}
+                </p>
+              </div>
+              <div className="board-actions">
+                <button type="button" className="btn btn-secondary ui-btn" onClick={() => setNotesOpen(true)}>
+                  <Icon icon={Users} />
+                  Klasse und Grundsätze
+                </button>
+                <button type="button" className="btn btn-secondary ui-btn" onClick={() => p.onOpenPlan(place.subject, place.grade)}>
+                  <Icon icon={CalendarRange} />
+                  Jahresplan
+                </button>
+                <button type="button" className="btn btn-primary ui-btn" onClick={() => p.onAddModule(place.subject, place.grade)}>
+                  <Icon icon={Plus} />
+                  Neues Modul
+                </button>
+              </div>
+              {notesOpen && <ClassNotesDialog subject={place.subject} grade={place.grade} onClose={() => setNotesOpen(false)} />}
+            </header>
+
+            {modules.length > 0 ? (
+              <div className="board-modules">
+                {modules.map((m) => {
+                  const lessons = lessonsByModule.get(m.id) ?? [];
+                  const progress = progressOf(lessons);
+                  const state = lessons.length === 0 ? 'leer' : progress.done === 0 ? 'geplant' : '';
+                  return (
+                    <button key={m.id} type="button" className={'mcard' + (state ? ' is-' + state : '')} onClick={() => p.onOpenModule(m)}>
+                      <span className="mcard-tray" aria-hidden="true">
+                        <SheetThumb m={m} lessons={lessons} scale={CARD_SCALE} />
+                        {state && <span className="mcard-stamp">{state === 'leer' ? 'noch leer' : 'geplant'}</span>}
+                      </span>
+                      <span className="mcard-body">
+                        <span className="mcard-code">
+                          <Icon icon={topicIcon(m.icon)} size={16} />M{m.number}
+                        </span>
+                        <span className="mcard-title">{m.title}</span>
+                        <span className="mcard-meta">
+                          <span>{progress.total ? `${progress.done} von ${progress.total} Stunden` : 'noch keine Stunden'}</span>
+                          <span>{count(m.competences.length, 'Kompetenz', 'Kompetenzen')}</span>
+                        </span>
+                        {progress.total > 0 && (
+                          <span className="mcard-progress" aria-hidden="true">
+                            <span style={{ transform: `scaleX(${progress.done / progress.total})` }} />
+                          </span>
+                        )}
+                      </span>
                     </button>
-                  )}
-                </span>
-              );
-            })}
-            <button type="button" className="lib-chip is-add" onClick={addSubject}>
-              <Icon icon={Plus} size={14} />
-              Fach
-            </button>
-          </div>
-        </section>
-
-        {subject && (
-          <section className="lib-section">
-            <h2 className="lib-h2">Jahrgang</h2>
-            <div className="lib-chips">
-              {GRADES.map((g) => {
-                const n = modulesOf(lib, subject, g).length;
-                return (
-                  <button key={g} type="button" className={'lib-chip' + (g === grade ? ' is-on' : '')} onClick={() => p.onPick(subject, g)}>
-                    Klasse {g}
-                    {n > 0 && <span className="lib-count">{n}</span>}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {subject ? (
-          <section className="lib-section">
-            <div className="lib-h2-row">
-              <h2 className="lib-h2">
-                Module · {subject} · Klasse {grade}
-              </h2>
-              <button type="button" className="btn btn-secondary ui-btn" onClick={() => setNotesOpen(true)} style={{ marginLeft: 'auto' }}>
-                <Icon icon={Users} />
-                Klasse und Grundsätze
-              </button>
-              <button type="button" className="btn btn-secondary ui-btn" onClick={() => p.onOpenPlan(subject, grade)}>
-                <Icon icon={CalendarRange} />
-                Jahresplan
-              </button>
-              {notesOpen && <ClassNotesDialog subject={subject} grade={grade} onClose={() => setNotesOpen(false)} />}
-            </div>
-            <div className="lib-grid">
-              {modules.map((m) => {
-                const lessons = lessonsOf(lib, m.id);
-                const progress = progressOf(lessons);
-                const planned = progress.done === 0;
-                return (
-                  <button key={m.id} type="button" className={'lib-card' + (planned ? ' is-planned' : '')} onClick={() => p.onOpenModule(m)}>
-                    <span className="lib-icon">
-                      <Icon icon={topicIcon(m.icon)} size={22} />
-                    </span>
-                    <span className="lib-card-kicker">
-                      Modul {m.number}
-                      {planned && <span className="lib-planned-badge">{progress.total ? 'Geplant' : 'Noch leer'}</span>}
-                    </span>
-                    <span className="lib-card-title">{m.title}</span>
-                    <span className="lib-card-meta">
-                      {progressText(progress)} · {m.competences.length} {m.competences.length === 1 ? 'Kompetenz' : 'Kompetenzen'}
-                    </span>
-                    {progress.done > 0 && progress.done < progress.total && (
-                      <span className="lib-progress-bar is-card" aria-hidden="true">
-                        <span style={{ width: `${(100 * progress.done) / progress.total}%` }} />
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-              <button type="button" className="lib-card is-add" onClick={() => p.onAddModule(subject, grade)}>
-                <span className="lib-icon is-add">
-                  <Icon icon={Plus} size={22} />
-                </span>
-                <span className="lib-card-title">Neues Modul</span>
-                <span className="lib-card-meta">
-                  {subject} · Klasse {grade}
-                </span>
-              </button>
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="board-empty">
+                <p>
+                  Für {place.subject} in Klasse {place.grade} gibt es noch keine Module.
+                </p>
+                <button type="button" className="btn btn-primary ui-btn" onClick={() => p.onAddModule(place.subject, place.grade)}>
+                  <Icon icon={Plus} />
+                  Erstes Modul anlegen
+                </button>
+              </div>
+            )}
           </section>
         ) : (
-          <p className="lib-empty">Lege zuerst ein Fach an.</p>
-        )}
-        {p.trashCount > 0 && (
-          <div className="lib-trash-row">
-            <button type="button" className="btn btn-secondary ui-btn" onClick={p.onOpenTrash}>
-              <Icon icon={Trash2} />
-              Papierkorb · {p.trashCount}
-            </button>
+          <div className="board-empty">
+            <p>Lege zuerst links ein Fach an.</p>
           </div>
         )}
       </main>
-
-      {claudeOpen && (
-        <ClaudeDialog
-          onOpenFile={(f) => {
-            setClaudeOpen(false);
-            p.onOpenFile(f);
-          }}
-          onClose={() => setClaudeOpen(false)}
-        />
-      )}
-      {settingsOpen && <SettingsDialog settings={lib.settings} subjects={subjects} onSave={p.onSettings} onClose={() => setSettingsOpen(false)} />}
     </div>
   );
-}
-
-export function SettingsDialog({ settings, subjects, onSave, onClose }: { settings: Settings; subjects: string[]; onSave(s: Settings): void; onClose(): void }) {
-  const [footerBase, setFooterBase] = useState(settings.footerBase);
-  const [colors, setColors] = useState(settings.subjectColors);
-  const y = settings.schoolYear;
-  const [yearName, setYearName] = useState(y?.name ?? '');
-  const [start, setStart] = useState(y?.start ?? '');
-  const [end, setEnd] = useState(y?.end ?? '');
-  const [holidays, setHolidays] = useState(y ? holidaysText(y.holidays) : '');
-  const fill = (v: SchoolYear) => {
-    setYearName(v.name);
-    setStart(v.start);
-    setEnd(v.end);
-    setHolidays(holidaysText(v.holidays));
-  };
-  const schoolYear = (): SchoolYear | null =>
-    readSchoolYear({
-      name: yearName.trim(),
-      start,
-      end,
-      holidays: holidays
-        .split('\n')
-        .map((l) => l.split('|').map((x) => x.trim()))
-        .filter(([name]) => name)
-        .map(([name, from = '', to = '']) => ({ name, from, to })),
-    });
-  const incomplete = (start || end) && !schoolYear();
-  const ai = useAiSettings();
-  const [aiOpen, setAiOpen] = useState(false);
-  return (
-    <>
-    <div className="dialog-backdrop" onClick={onClose}>
-      <div className="dialog sync-dialog settings-dialog" role="dialog" aria-modal="true" aria-label="Einstellungen" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-title">Einstellungen</div>
-        <div className="field">
-          <label htmlFor="footer-base">Fußzeile neuer Arbeitsblätter (das Fach wird angehängt)</label>
-          <input id="footer-base" className="input" value={footerBase} placeholder="Name · Schule" onChange={(e) => setFooterBase(e.target.value)} />
-        </div>
-        {subjects.length > 0 && (
-          <div className="settings-colors">
-            <div className="panel-section-label">Farbe je Fach</div>
-            {subjects.map((s) => {
-              const current = subjectColor({ ...settings, subjectColors: colors }, s);
-              return (
-                <div key={s} className="settings-color-row">
-                  <span className="settings-color-name">{s}</span>
-                  <div className="swatches" role="radiogroup" aria-label={`Farbe für ${s}`}>
-                    {SUBJECT_COLORS.map((c) => (
-                      <button
-                        key={c.key}
-                        type="button"
-                        role="radio"
-                        aria-checked={current === c.key}
-                        className={'swatch' + (current === c.key ? ' is-on' : '')}
-                        style={{ background: swatch(c.key) }}
-                        title={c.label}
-                        aria-label={c.label}
-                        onClick={() => setColors({ ...colors, [s]: c.key })}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-            <p className="sync-tip">Die Farbe gilt für Knöpfe und Symbole im Baukasten, damit du die Fächer auseinanderhältst. Die gedruckten Blätter bleiben, wie sie sind.</p>
-          </div>
-        )}
-        <SperreEinstellung />
-        <div className="settings-year">
-          <div className="panel-section-label">Schuljahr für den Jahresplan</div>
-          <div className="settings-year-row">
-            <div className="field">
-              <label htmlFor="sy-name">Schuljahr</label>
-              <input id="sy-name" className="input" value={yearName} placeholder="2026/27" onChange={(e) => setYearName(e.target.value)} />
-            </div>
-            <div className="field">
-              <label htmlFor="sy-start">Erster Schultag</label>
-              <input id="sy-start" className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
-            </div>
-            <div className="field">
-              <label htmlFor="sy-end">Letzter Schultag</label>
-              <input id="sy-end" className="input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
-            </div>
-          </div>
-          <div className="field">
-            <label htmlFor="sy-holidays">Ferien und freie Tage (je Zeile: Name | von | bis, z. B. Herbstferien | 26.10.2026 | 31.10.2026)</label>
-            <textarea id="sy-holidays" className="input" rows={6} value={holidays} onChange={(e) => setHolidays(e.target.value)} />
-          </div>
-          <div className="panel-row">
-            <button type="button" className="btn btn-secondary ui-btn" onClick={() => fill(BW_2026_27)}>
-              Baden-Württemberg {BW_2026_27.name} eintragen
-            </button>
-          </div>
-          <p className="sync-tip">Bewegliche Ferientage legt jede Schule selbst fest: Trage sie als eigene Zeile ein.</p>
-          {incomplete && <p className="json-err">Erster und letzter Schultag fehlen oder passen nicht zusammen.</p>}
-        </div>
-        <div className="settings-ai">
-          <div className="panel-section-label">KI im Baukasten</div>
-          <div className="panel-row">
-            <span className="settings-ai-state">
-              {ai === undefined ? '…' : ai ? `${ai.provider === 'openrouter' ? 'OpenRouter' : 'Claude direkt'} · diesen Monat ${dollars(ai.spent)}${ai.limit ? ` von ${dollars(ai.limit)}` : ''}` : 'Kein Schlüssel auf diesem Gerät: „Stunde prüfen“ geht über den Chat, Bilder mit KI brauchen einen Schlüssel.'}
-            </span>
-            <button type="button" className="btn btn-secondary ui-btn" onClick={() => setAiOpen(true)}>
-              <Icon icon={Sparkles} />
-              {ai ? 'Ändern …' : 'Einrichten …'}
-            </button>
-          </div>
-        </div>
-        <div className="settings-version">
-          <div className="panel-section-label">Version</div>
-          <p>{versionText(__APP_VERSION__)}</p>
-        </div>
-        <div className="dialog-actions">
-          <button type="button" className="btn btn-secondary ui-btn" onClick={onClose}>
-            Abbrechen
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary ui-btn"
-            disabled={!!incomplete}
-            onClick={() => {
-              onSave({ ...settings, footerBase: footerBase.trim(), schoolYear: schoolYear(), subjectColors: colors, updatedAt: Date.now() });
-              onClose();
-            }}
-          >
-            Übernehmen
-          </button>
-        </div>
-      </div>
-    </div>
-    {aiOpen && <AiSettingsDialog onClose={() => setAiOpen(false)} />}
-    </>
-  );
-}
-
-/** "PR #8 · 29.10.2026, 19:54 · a4128a6": which merge this is, so the teacher knows what is live. */
-export function versionText(v: { sha: string; date: string; pr: string }): string {
-  const d = v.date ? new Date(v.date) : null;
-  const when = d && !isNaN(d.getTime()) ? d.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-  return [v.pr ? `PR #${v.pr}` : 'Entwicklungsstand', when, v.sha].filter(Boolean).join(' · ');
 }

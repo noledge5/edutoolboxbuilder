@@ -49,6 +49,13 @@ export function subjectVars(color: SubjectColor): CSSProperties {
   return vars as CSSProperties;
 }
 
+/** The subject's identity in the chrome (Dose, 26.11.2026): a pale band, a paler ground and a mark. Never a signal;
+ *  the app's green does those. Read by src/ui/tokens.css (--subject-tint, --subject-tint-2, --subject-mark). */
+export function subjectTint(color: SubjectColor): CSSProperties {
+  const ramp = color === 'accent' ? '--color-accent-1' : `--color-${color}`;
+  return { '--subject-tint': `var(${ramp}-200)`, '--subject-tint-2': `var(${ramp}-100)`, '--subject-mark': `var(${ramp}-600)` } as CSSProperties;
+}
+
 /** The colour itself, for a swatch or a dot next to the subject's name. */
 export const swatch = (color: SubjectColor) => (color === 'accent' ? 'var(--color-accent-1)' : color === 'accent-2' ? 'var(--color-accent-2)' : `var(--color-${color}-600)`);
 

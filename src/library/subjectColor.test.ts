@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { favoriteBlocks, seedLibrary } from './model';
 import { readSettings } from './read';
-import { readSubjectColors, subjectColor, subjectVars } from './subjectColor';
+import { readSubjectColors, subjectColor, subjectTint, subjectVars } from './subjectColor';
 import type { Lesson } from './types';
 
 describe('subject colours', () => {
@@ -34,5 +34,12 @@ describe('favourite blocks of a subject', () => {
     expect(types.length).toBeGreaterThan(0);
     expect(types.length).toBeLessThanOrEqual(6);
     expect(favoriteBlocks({ ...lib, lessons: [lesson, copy] }, 'Englisch')).toEqual([]);
+  });
+});
+
+describe('subjectTint', () => {
+  it('points band, ground and mark at the pale steps of the subject ramp, orange for the design colour', () => {
+    expect(subjectTint('accent-3')).toEqual({ '--subject-tint': 'var(--color-accent-3-200)', '--subject-tint-2': 'var(--color-accent-3-100)', '--subject-mark': 'var(--color-accent-3-600)' });
+    expect(subjectTint('accent')).toMatchObject({ '--subject-tint': 'var(--color-accent-1-200)' });
   });
 });

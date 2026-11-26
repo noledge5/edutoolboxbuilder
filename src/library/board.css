@@ -1,0 +1,138 @@
+/* The class board (26.11.2026, Dose): the subject's tinted band, modules as white cards with their sheet in a
+   tray of the subject's tint, recent lessons as labels. */
+
+.board { height: 100%; min-height: 0; overflow: auto; background: var(--ui-paper); color: var(--ui-ink); font-family: var(--ui-font); }
+.board.is-dropping { outline: 3px dashed var(--ui-accent); outline-offset: -8px; }
+.board-main { max-width: 1280px; margin: 0 auto; padding: 32px 40px 80px; display: flex; flex-direction: column; gap: 32px; }
+.board-h2 { margin: 0; font: 500 13px/1.4 var(--ui-font); color: var(--ui-muted); }
+
+/* Recently edited: a label each, the lesson code in mono like on a pharmacy label */
+.board-recent { display: flex; flex-direction: column; gap: 12px; }
+.board-recent-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(248px, 1fr)); gap: 12px; }
+.rcard {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 8px;
+  border: 0;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-surface);
+  box-shadow: inset 0 0 0 1px var(--ui-rule), 0 1px 2px oklch(30% 0.03 165 / 0.06);
+  color: var(--ui-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow var(--dur-micro) var(--ease-out);
+}
+.rcard:hover { box-shadow: inset 0 0 0 1px var(--color-neutral-500), 0 8px 20px -12px oklch(36% 0.06 165 / 0.35); }
+.rcard-sheet {
+  position: relative;
+  width: 64px;
+  height: 76px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--subject-tint);
+  box-shadow: inset 0 1px 0 var(--ui-glint);
+  color: var(--subject-mark);
+}
+.rcard-sheet > .ai-page { position: absolute; top: 8px; left: 50%; translate: -50% 0; box-shadow: 0 1px 3px oklch(30% 0.03 165 / 0.25); }
+.rcard-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.rcard-code { font: 500 12px var(--ui-font-mono); color: var(--ui-muted); }
+.rcard-title, .rcard-place { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rcard-title { font-size: 15px; font-weight: 600; }
+.rcard-place { font-size: 13px; color: var(--ui-muted); }
+
+/* The class: a plastic band in the subject's tint (glint on top, a deeper shade at the foot), then the modules */
+.board-class { display: flex; flex-direction: column; gap: 24px; }
+.board-band {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  padding: 28px 24px 24px 28px;
+  border-radius: var(--ui-radius-card);
+  background: linear-gradient(color-mix(in oklab, var(--ui-glint) 40%, transparent), transparent 24%), var(--subject-tint);
+  box-shadow: inset 0 1.5px 0 var(--ui-glint), inset 0 -24px 36px -30px color-mix(in oklab, var(--subject-tint) 70%, var(--ui-ink));
+}
+.board-band-text { min-width: 0; }
+.board-kicker { margin: 0 0 4px; font-size: 15px; font-weight: 500; color: var(--ui-ink-2); }
+.board-title { margin: 0; font: 700 40px/1.02 var(--ui-font-display); letter-spacing: -0.03em; overflow-wrap: break-word; text-wrap: balance; }
+.board-meta { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 13px var(--ui-font-mono); color: var(--ui-ink-2); }
+.board-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.board-modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 228px), 1fr)); gap: 20px; }
+.mcard {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-surface);
+  box-shadow: inset 0 0 0 1px var(--ui-rule), 0 1px 2px oklch(30% 0.03 165 / 0.06);
+  color: var(--ui-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+}
+.mcard:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1px var(--color-neutral-500), var(--ui-shadow-lift); }
+.mcard:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.mcard-tray {
+  position: relative;
+  height: 184px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(color-mix(in oklab, var(--ui-glint) 36%, transparent), transparent 22%), var(--subject-tint);
+  box-shadow: inset 0 1.5px 0 var(--ui-glint), inset 0 -20px 30px -26px color-mix(in oklab, var(--subject-tint) 40%, var(--ui-ink));
+  color: var(--subject-mark);
+}
+.mcard-tray > .ai-page { position: absolute; top: 20px; left: 50%; translate: -50% 0; box-shadow: 0 1px 2px oklch(30% 0.03 165 / 0.16), 0 14px 24px -14px oklch(36% 0.06 165 / 0.45); transition: translate var(--dur-short) var(--ease-out); }
+.mcard:hover .mcard-tray > .ai-page { translate: -50% -4px; }
+/* A stamp for what is not worked out yet: grey, never a warning colour. */
+.mcard-stamp {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 0 8px;
+  border: 1.5px solid currentColor;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--ui-surface) 70%, transparent);
+  color: var(--ui-muted);
+  font: 500 12px/22px var(--ui-font-mono);
+  rotate: -2deg;
+}
+.mcard.is-leer .mcard-tray { background: var(--ui-paper); box-shadow: inset 0 0 0 1px var(--ui-rule); color: var(--color-neutral-500); }
+.mcard-body { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 16px; }
+.mcard-code { display: flex; align-items: center; gap: 8px; font: 500 12px var(--ui-font-mono); color: var(--ui-muted); }
+.mcard-code svg { flex: none; color: var(--subject-mark); }
+.mcard-title { font: 700 18px/1.2 var(--ui-font-display); letter-spacing: -0.02em; overflow-wrap: break-word; min-width: 0; }
+.mcard-meta { display: flex; flex-wrap: wrap; gap: 0 12px; margin-top: 2px; font-size: 13px; color: var(--ui-muted); }
+.mcard-progress { height: 4px; margin-top: 10px; overflow: hidden; border-radius: 2px; background: var(--color-neutral-300); }
+.mcard-progress > span { display: block; height: 100%; background: var(--ui-accent); transform-origin: left; }
+
+.board-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 32px; border-radius: var(--ui-radius-card); box-shadow: inset 0 0 0 1px var(--ui-rule); color: var(--ui-ink-2); }
+.board-empty p { margin: 0; font-size: 15px; }
+
+@media (max-width: 960px) {
+  .board-main { padding-inline: 24px; }
+}
+@media (max-width: 560px) {
+  .board-main { padding: 64px 16px 64px; gap: 24px; }
+  .board-band { padding: 20px; }
+  .board-title { font-size: 32px; }
+  .board-modules { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .mcard-tray { height: 144px; }
+  .mcard-tray > .ai-page { zoom: 0.7; }
+  .mcard-title { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mcard, .mcard-tray > .ai-page { transition: none; }
+}

@@ -12,7 +12,7 @@ import { footerFor, lessonsOf, modulesOf, progressOf, progressText, subjectsOf }
 import type { ParsedPackage } from './package';
 import { PlanImportDialog } from './PlanImportDialog';
 import { SearchButton } from './SearchDialog';
-import { SettingsDialog } from './Overview';
+import { SettingsDialog } from '../shell/SettingsDialog';
 import type { Library, Module, Settings } from './types';
 import { BW_2026_27, dayText, planModules, schoolWeekCount, schoolWeeks, type PlannedModule, type PlanWeek } from './yearplan';
 

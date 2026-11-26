@@ -1,0 +1,109 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: dose (dealt 1/3, seed worksheet-lesson-builder-teachers-d8c2·eb728414·2026-11-26·r0) · redesign: full
+ * paper: oklch(97.6% 0.011 88) · accent: oklch(50% 0.13 160) · display: Schibsted Grotesk · body: Instrument Sans · outlier: DM Mono
+ * nav: sidebar (subjects, classes, modules) · signature: each subject a tinted plastic band, the real first sheet on every module · states: empty, planned, notices
+ * axes: light/grotesk-sans/chromatic-green · posture: committed · dose: white · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: E, the editor and the year plan get the system now and their own layouts in later steps */
+/* Hallmark · waive 37 · Caprasimo, Figtree, Noto Sans, Kalam and the subject faces · they belong to the worksheets and slides, the chrome uses the three Dose faces only */
+/* The scaffold's base.css is not imported: its global h1 to h3 and p rules would restyle the printed A4 sheets. */
+
+/* The app's own system (Dose, 26.11.2026): warm paper, green-black ink, one green for every signal, Schibsted
+   Grotesk titles over Instrument Sans, DM Mono for codes and numbers. The worksheets and slides keep the Organic
+   system (src/styles/tokens.css): the chrome re-points the shared names on <body>, the documents point them back. */
+
+:root {
+  --ui-paper: oklch(97.6% 0.011 88);
+  --ui-paper-2: oklch(96.5% 0.02 160);
+  --ui-paper-3: oklch(93% 0.036 160);
+  --ui-desk: oklch(93.4% 0.012 96);
+  --ui-surface: oklch(99.5% 0.004 90);
+  --ui-ink: oklch(21% 0.025 170);
+  --ui-ink-2: oklch(31% 0.02 170);
+  --ui-muted: oklch(49% 0.024 165);
+  --ui-rule: oklch(86.5% 0.022 140);
+  --ui-accent: oklch(50% 0.13 160);
+  --ui-accent-deep: oklch(42% 0.11 162);
+  --ui-accent-soft: oklch(88% 0.08 160);
+  --ui-on-accent: oklch(99% 0.006 160);
+  --ui-focus: oklch(45% 0.14 160);
+  --ui-glint: oklch(99.8% 0.004 90);
+  --ui-font-display: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --ui-font: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --ui-font-mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --ui-radius-control: 10px;
+  --ui-radius-card: 14px;
+  --ui-shadow-card: 0 1px 2px oklch(30% 0.03 165 / 0.08), 0 24px 48px -24px oklch(40% 0.08 165 / 0.35);
+  --ui-shadow-lift: 0 1px 1px oklch(30% 0.03 165 / 0.1), 8px 18px 28px -14px oklch(36% 0.06 165 / 0.32), 18px 40px 60px -30px oklch(40% 0.08 165 / 0.3);
+  --ui-shadow-pop: 0 1px 2px oklch(30% 0.03 165 / 0.12), 0 12px 32px -8px oklch(36% 0.06 165 / 0.3);
+
+  /* The documents' own values, taken here while the shared names still hold them (see the top of this file). */
+  --doc-text: var(--color-text);
+  --doc-bg: var(--color-bg);
+  --doc-surface: var(--color-surface);
+  --doc-divider: var(--color-divider);
+  --doc-neutral-100: var(--color-neutral-100);
+  --doc-neutral-200: var(--color-neutral-200);
+  --doc-neutral-300: var(--color-neutral-300);
+  --doc-neutral-400: var(--color-neutral-400);
+  --doc-neutral-500: var(--color-neutral-500);
+  --doc-neutral-600: var(--color-neutral-600);
+  --doc-neutral-700: var(--color-neutral-700);
+  --doc-neutral-800: var(--color-neutral-800);
+  --doc-neutral-900: var(--color-neutral-900);
+}
+
+/* The chrome: the shared names take the Dose values. Greys lean to the ink's green, the signal ramp is the green. */
+body {
+  --color-text: var(--ui-ink);
+  --color-bg: var(--ui-paper);
+  --color-surface: var(--ui-paper-2);
+  --color-ui: var(--ui-surface);
+  --color-divider: var(--ui-rule);
+  --color-ui-rule: var(--ui-rule);
+  --color-ui-hover: oklch(21% 0.025 170 / 0.06);
+  --color-neutral-100: oklch(97.2% 0.008 110);
+  --color-neutral-200: oklch(94.4% 0.012 120);
+  --color-neutral-300: oklch(90.4% 0.016 130);
+  --color-neutral-400: oklch(84% 0.02 140);
+  --color-neutral-500: oklch(71% 0.022 150);
+  --color-neutral-600: oklch(59% 0.024 160);
+  --color-neutral-700: oklch(49% 0.024 165);
+  --color-neutral-800: oklch(33% 0.022 168);
+  --color-neutral-900: oklch(24% 0.024 170);
+  --color-accent: var(--ui-accent);
+  --color-accent-ink: var(--ui-accent-deep);
+  --color-accent-100: var(--ui-paper-2);
+  --color-accent-200: var(--ui-paper-3);
+  --color-accent-300: var(--ui-accent-soft);
+  --color-accent-400: oklch(74% 0.11 160);
+  --color-accent-500: oklch(60% 0.13 160);
+  --color-accent-600: var(--ui-accent);
+  --color-accent-700: var(--ui-accent-deep);
+  --color-accent-800: oklch(35% 0.09 164);
+  --color-accent-900: oklch(27% 0.06 166);
+  --font-ui: var(--ui-font);
+  background: var(--ui-paper);
+  color: var(--ui-ink);
+  font-family: var(--ui-font);
+}
+
+/* The worksheets and the slides keep their own system wherever they are drawn (editor, previews, print). */
+.ws-page,
+.sl-slide {
+  --color-text: var(--doc-text);
+  --color-bg: var(--doc-bg);
+  --color-surface: var(--doc-surface);
+  --color-divider: var(--doc-divider);
+  --color-neutral-100: var(--doc-neutral-100);
+  --color-neutral-200: var(--doc-neutral-200);
+  --color-neutral-300: var(--doc-neutral-300);
+  --color-neutral-400: var(--doc-neutral-400);
+  --color-neutral-500: var(--doc-neutral-500);
+  --color-neutral-600: var(--doc-neutral-600);
+  --color-neutral-700: var(--doc-neutral-700);
+  --color-neutral-800: var(--doc-neutral-800);
+  --color-neutral-900: var(--doc-neutral-900);
+  color: var(--doc-text);
+}
+
+/* A subject's identity in the chrome: its pale ramp step as a tinted band (set by subjectTint, never a signal). */
+:root, .subject-scope { --subject-tint: oklch(91% 0.03 100); --subject-tint-2: oklch(95.5% 0.02 100); --subject-mark: oklch(60% 0.06 100); }
