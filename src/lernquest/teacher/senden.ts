@@ -5,6 +5,7 @@ import type { Lesson, Module } from '../../library/types';
 import { getImage } from '../../storage/db';
 import { BILD_SEITE, buildPaket, mitBildern } from '../paket';
 import { freischalten, LqError } from '../server';
+import { toeneErzeugen } from './stimme';
 
 /**
  * Bytes of JSON we send at most: `lq_freischalten` takes 300 000 bytes of `jsonb::text`, which writes a space after
@@ -43,4 +44,6 @@ export async function paketSenden(keys: string[], klasse: string, m: Module, l: 
   const paket = await mitBildern(buildPaket(m, l, lessons, versteckt), bildVorschau);
   if (new TextEncoder().encode(JSON.stringify(paket)).length > PAKET_MAX) throw new LqError('gross');
   await freischalten(keys, klasse, l.id, paket);
+  // English texts get a recorded voice (with the teacher's Google key; never fails the sending).
+  await toeneErzeugen(keys, paket);
 }

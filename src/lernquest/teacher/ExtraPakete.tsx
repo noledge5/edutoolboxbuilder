@@ -13,6 +13,7 @@ import { rundenZahl } from '../rules';
 import { freischalten, LqError, sperren, type KlasseInfo } from '../server';
 import { FragenpoolDialog } from './Fragenpool';
 import { bildVorschau, PAKET_MAX } from './senden';
+import { toeneErzeugen } from './stimme';
 
 /** The Extra-Pakete unlocked for a class (from its unlocked „stunden“). */
 export const freiFuer = (stunden: readonly string[]) => stunden.filter(istExtraStunde).map((s) => s.slice('extra-'.length));
@@ -22,6 +23,7 @@ export async function extraEinzelnSenden(keys: string[], klasse: string, e: Extr
   const paket = await mitBildern(buildExtraPaket(e, alle, frei), bildVorschau);
   if (new TextEncoder().encode(JSON.stringify(paket)).length > PAKET_MAX) throw new LqError('gross');
   await freischalten(keys, klasse, extraStunde(e), paket);
+  await toeneErzeugen(keys, paket);
 }
 
 /** Sends again every Extra-Paket unlocked for a class (after changes, with „Freigeschaltete neu senden“). */

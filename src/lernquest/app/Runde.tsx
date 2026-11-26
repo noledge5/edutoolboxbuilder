@@ -13,7 +13,8 @@ import { Herzen } from './Held';
 import { tonAn } from './speicher';
 import { ton } from './ton';
 import { Rich, UebungView, Vorlesen } from './Uebungen';
-import { vorlesen } from './vorlesen';
+import { nachDemPruefen, vorleseTexteVon } from '../stimme';
+import { tonVorladen, vorlesen } from './vorlesen';
 
 const svg = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 3.4, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true } as const;
 export const HakenIcon = () => (
@@ -53,12 +54,6 @@ export interface RundeProps {
 }
 
 /** In English: the sentence a child hears after checking a gap or word order. */
-function nachDemPruefen(u: Uebung): string {
-  if (u.art === 'luecke') return u.teile.join('');
-  if (u.art === 'reihenfolge') return u.loesung;
-  return '';
-}
-
 /** Formats that check themselves with the last tap (no „Prüfen“). */
 const prueftSelbst = (u: Uebung) => u.art === 'paare' || u.art === 'punkt';
 /** Formats that show the solution on the exercise itself once it is checked; the others get „Richtig wäre: …“. */
@@ -82,6 +77,12 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
   const paket = item && paketVon?.(item.stunde);
   const englisch = paket?.lang === 'en';
   const hoerSatz = englisch && item ? nachDemPruefen(item.u) : '';
+  // The recordings of the whole round load at the start, so every speaker and the sentence after „Prüfen“ play at once.
+  useEffect(() => {
+    tonVorladen(uebungen.flatMap((x) => vorleseTexteVon(x.u, paketVon?.(x.stunde)?.lang ?? 'de')));
+    // once per round
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const abbrechen = () => (ergebnisse.length ? setFrage(true) : onAbbruch());
   const erstes = useRef(zurueck);

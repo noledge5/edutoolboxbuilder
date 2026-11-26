@@ -523,3 +523,12 @@ export const hausBauen = async (token: string, stufe: number) => {
  *  allowed for its stage). */
 export const hausGestalten = (token: string, aussehen: Aussehen) => lq<{ dorf: Dorf }>('lq_haus_gestalten', { p_token: token, p_aussehen: aussehen });
 export const haeuserSchalten = (keys: string[], klasse: string, an: boolean) => lq<Dorf>('lq_haeuser_schalten', { p_schluessel: keys, p_klasse: klasse, p_an: an });
+
+// — Vorlesen mit aufgenommener Stimme (20261206_lernquest_ton.sql): MP3s unter dem Schlüssel aus stimme.ts. —
+
+/** Recordings for up to 60 keys as {key: base64 MP3}; missing ones are absent. */
+export const toeneHolen = (schluessel: string[]) => lq<Record<string, string>>('lq_ton_holen', { p_schluessel: schluessel });
+/** Which of up to 500 keys have no recording yet. */
+export const toeneFehlend = (schluessel: string[]) => lq<string[]>('lq_ton_fehlend', { p_schluessel: schluessel });
+/** Stores up to 20 recordings (teachers only); answers how many were new. */
+export const toeneSpeichern = (keys: string[], toene: { s: string; d: string }[]) => lq<number>('lq_ton_speichern', { p_schluessel: keys, p_toene: toene });

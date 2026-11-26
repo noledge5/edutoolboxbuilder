@@ -1,12 +1,12 @@
 // The exercises on screen: tap, listen and tap, true/false, pairs, gap with tiles, word order, sort into groups, pick
 // the picture, tap the places on a picture. Each reports its answer to the round (`onChange`), which checks it when the child taps „Prüfen“ (pairs
 // and places check themselves when all are done). In English packages a speaker reads statements and words aloud.
-import { useMemo, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { richParts } from '../../model/text';
 import { gemischt, gleich, punktTrifft, satz, type Antwort } from '../rules';
 import type { Uebung } from '../types';
 import { ton } from './ton';
-import { kannVorlesen, vorlesen } from './vorlesen';
+import { kannVorlesen, tonVorladen, vorlesen } from './vorlesen';
 
 /** Text with **bold** and {{marked}}, like on the sheet. */
 export function Rich({ text }: { text: string }) {
@@ -44,6 +44,8 @@ interface Props {
 
 /** A speaker that reads `text` in English (nothing on devices without a voice). */
 export function Vorlesen({ text, gross = false }: { text: string; gross?: boolean }) {
+  // The recording loads as soon as the speaker shows, so the tap plays it at once.
+  useEffect(() => tonVorladen([text]), [text]);
   if (!kannVorlesen()) return null;
   return (
     <span className={`lq-vorlesen ${gross ? 'gross' : ''}`}>

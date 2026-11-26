@@ -91,7 +91,8 @@ Mit der Lehrkraft entschieden (Fragerunde 06.11.2026):
   Stundeninhalt, keine Kinderdaten). Die Lehrkraft gibt jede Frage einzeln frei, ändert oder löscht sie; nur
   Freigegebenes kommt ins Lernpaket. Keine Server-Änderung (der Pool reist im vorhandenen Lernpaket).
 - **Neue Formate:** in Gruppen sortieren, Punkt auf Karte/Bild, Vorlesen (Englisch), Bild wählen.
-- **Vorlesen:** Stimme des Geräts (Browser-Sprachausgabe), keine Ton-Dateien.
+- **Vorlesen:** Stimme des Geräts (Browser-Sprachausgabe), keine Ton-Dateien. (Seit 26.11.2026: Aufnahmen mit Google,
+  das Gerät nur noch als Ersatz, siehe „Vorlesen mit aufgenommener Stimme“.)
 - **Karte/Bild-Punkte:** Bild vom Arbeitsblatt, Punkte setzt und benennt die Lehrkraft im Baukasten.
 
 ## Gemalte Bilder für Held und Teile (06.11.2026)
@@ -548,6 +549,27 @@ stehen gleich in `rules.ts` (`GESCHAFFT_AB`, `niveauVon`, `rundenStufen`, `stern
   gemeldet, damit keine Station einen Bestwert aus 3 Fragen bekommt) → `lq_willkommen` (Truhe nur bei Erfahrung > 0)
   → Truhe öffnen. „Überspringen“ setzt nur das Merkzeichen.
 - Server vor 20261125 schicken `willkommen` und `klassenAufgabe` nicht: dann zeigt die App beides nicht.
+
+## Vorlesen mit aufgenommener Stimme (26.11.2026)
+
+Rückmeldung der Lehrkraft: Die Sprachausgabe klingt auf vielen Geräten fehlerhaft oder sehr blechern (Stimme des Geräts;
+fehlt eine englische Stimme, liest eine deutsche den englischen Satz). Entschieden: Google spricht, die Kinder hören Aufnahmen.
+- **Aufnehmen im Baukasten:** Schickt die Lehrkraft eine Station (Freischalten, „Freigeschaltete neu senden“, Extra-Pakete),
+  lässt der Baukasten jeden englischen Text, den Kinder dort hören können, von Google Text-to-Speech sprechen (britische
+  Stimme, zuerst `en-GB-Chirp3-HD-Aoede`, sonst Neural2/WaveNet) und speichert die MP3 auf dem Server. Nur was fehlt,
+  wird aufgenommen; „Freigeschaltete neu senden“ holt alle bisherigen Stationen nach. Der Google-Schlüssel steht in der
+  Karte „Vorlesen mit guter Stimme“ und bleibt im Browser des Geräts (nicht in der Bibliothek, nicht im Abgleich).
+  Senden scheitert nie an der Stimme; Fehler zeigt die Karte. Code: `teacher/stimme.ts`, `teacher/StimmeKarte.tsx`.
+- **Welche Texte:** Hör-Aufgaben immer, in Englisch-Paketen dazu Aussagen (Antippen, Richtig/Falsch), das Wort bei „Bild
+  wählen“ und der Satz nach „Prüfen“ bei Lücke und Satzbau (`vorleseTexteVon` in `src/lernquest/stimme.ts`). Schlüssel
+  einer Aufnahme: SHA-256 von „en-GB|“ und dem gesprochenen Text (ohne Fett und Markierung).
+- **Abspielen in der App:** Zu Beginn einer Runde holt die App alle Aufnahmen der Runde mit einer Anfrage, jeder Lautsprecher
+  lädt seine auch selbst; das Antippen spielt sofort (iPads nur im Antippen). „langsam“ = dieselbe Aufnahme mit 70 %.
+  Ohne Aufnahme (noch nicht gemacht, offline) spricht wie bisher das Gerät. Code: `app/vorlesen.ts`.
+- **Server:** `20261206_lernquest_ton.sql`, Tabelle `lq_ton` (MP3 bis 200 KB, höchstens 50 000), lesen dürfen alle
+  (`lq_ton_holen`, `lq_ton_fehlend`), speichern nur Lehrkräfte mit Klasse (`lq_ton_speichern`, 20 je Aufruf, nur MP3).
+- **Kosten:** Google gibt 1 Mio. Zeichen im Monat frei (Chirp 3 HD, Stand 26.11.2026); eine Station hat meist unter 2000
+  Zeichen. Die Lehrkraft legt ein Budget mit Warnung an.
 
 ## Teile zu den Welten der Karte (26.11.2026)
 

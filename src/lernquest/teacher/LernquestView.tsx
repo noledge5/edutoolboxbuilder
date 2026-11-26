@@ -19,6 +19,7 @@ import { bilderFuerClaude, freigegeben, frueherVon, POOL_MAX, poolAnfrage, poolA
 import { FragenpoolDialog } from './Fragenpool';
 import { PunkteDialog } from './PunkteDialog';
 import { paketSenden } from './senden';
+import { StimmeKarte } from './StimmeKarte';
 import { ensureLehrkraft, kartenNummern, updateLehrkraft, type Lehrkraft } from '../lehrkraft';
 import { STUFEN, stufenPlan, stufeVon, type Stufe } from '../sichtbarkeit';
 import { BOSS_FRAGEN_MIN, bossFragen, bossVon, type BossFrage } from '../boss';
@@ -619,6 +620,7 @@ function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse,
       <KlassenAufgabe klasse={klasse} busy={busy} act={act} />
 
       <Lernzeit klasse={klasse} busy={busy} act={act} />
+      <StimmeKarte busy={busy} />
 
       <KlassenDorf klasse={klasse} keys={keys} busy={busy} act={act} />
 
