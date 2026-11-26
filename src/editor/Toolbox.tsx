@@ -87,12 +87,22 @@ export function Toolbox({ open, compact, lang, favorites, onAdd, clips, onPaste,
         </label>
       </div>
       {query.trim() ? (
-        <div className="tb-group">{found.length ? found.map((t) => <ToolboxItem key={t} type={t} onAdd={onAdd} />) : <div className="tb-none">Kein Baustein zu „{query.trim()}“.</div>}</div>
+        <div className="tb-group">
+          {found.length ? (
+            <div className="tb-grid">
+              {found.map((t) => (
+                <ToolboxItem key={t} type={t} onAdd={onAdd} />
+              ))}
+            </div>
+          ) : (
+            <div className="tb-none">Kein Baustein zu „{query.trim()}“.</div>
+          )}
+        </div>
       ) : (
         <>
           <div className={'tb-group is-ablage' + (closed[ABLAGE] ? ' is-closed' : '')}>
             <button type="button" className="tb-group-label" aria-expanded={!closed[ABLAGE]} onClick={() => toggle({ label: ABLAGE })}>
-              {clips.length ? `Ablage · ${clips.length}` : 'Ablage'}
+              {clips.length ? `Ablage (${clips.length})` : 'Ablage'}
               <Icon icon={ChevronDown} size={14} />
             </button>
             {!closed[ABLAGE] &&
@@ -115,7 +125,13 @@ export function Toolbox({ open, compact, lang, favorites, onAdd, clips, onPaste,
                 {favorites.label}
                 <Icon icon={ChevronDown} size={14} />
               </button>
-              {!closed[FAVORITES] && favorites.types.map((t) => <ToolboxItem key={t} type={t} onAdd={onAdd} favorite />)}
+              {!closed[FAVORITES] && (
+                <div className="tb-grid">
+                  {favorites.types.map((t) => (
+                    <ToolboxItem key={t} type={t} onAdd={onAdd} favorite />
+                  ))}
+                </div>
+              )}
             </div>
           )}
           {GROUPS.map((g, gi) => (
@@ -124,7 +140,13 @@ export function Toolbox({ open, compact, lang, favorites, onAdd, clips, onPaste,
                 {g.label}
                 <Icon icon={ChevronDown} size={14} />
               </button>
-              {!isClosed(g) && BLOCK_ORDER.filter((t) => BLOCK_TYPES[t].group === gi).map((t) => <ToolboxItem key={t} type={t} onAdd={onAdd} />)}
+              {!isClosed(g) && (
+                <div className="tb-grid">
+                  {BLOCK_ORDER.filter((t) => BLOCK_TYPES[t].group === gi).map((t) => (
+                    <ToolboxItem key={t} type={t} onAdd={onAdd} />
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </>
@@ -152,7 +174,7 @@ function ToolboxItem({ type, onAdd, favorite }: { type: BlockType; onAdd(type: B
       }}
     >
       <TypeIcon type={type} />
-      <span>{BLOCK_TYPES[type].label}</span>
+      <span className="tb-label">{BLOCK_TYPES[type].label}</span>
     </div>
   );
 }
@@ -204,11 +226,11 @@ function ClipItem({ clip, onPaste, onRemove }: { clip: Clip; onPaste(id: string)
   );
 }
 
+/** The block's icon on a small neutral key; the group it belongs to is the heading above it, not a colour. */
 function TypeIcon({ type }: { type: BlockType }) {
-  const g = GROUPS[BLOCK_TYPES[type].group];
   return (
-    <span className="tb-icon" style={{ background: g.bg, color: g.fg }}>
-      <Icon icon={BLOCK_ICONS[type]} />
+    <span className="tb-icon">
+      <Icon icon={BLOCK_ICONS[type]} size={18} />
     </span>
   );
 }

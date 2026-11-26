@@ -29,7 +29,7 @@ export function PropertiesPanel({ api, open, compact, onClose }: PanelProps) {
   );
 
   return (
-    <aside className={'panel' + (open ? ' is-open' : '')} data-noprint="1" aria-label="Eigenschaften">
+    <aside className={'panel ed-panel' + (open ? ' is-open' : '')} data-noprint="1" aria-label="Eigenschaften">
       {block ? (
         <BlockProperties api={api} block={block} close={close} />
       ) : page && sel?.kind === 'page' ? (
@@ -53,16 +53,35 @@ export function PropertiesPanel({ api, open, compact, onClose }: PanelProps) {
           <div className="panel-title">Eigenschaften</div>
           <p className="panel-help">Wähle ein Element auf der Seite aus, um Inhalt und Breite zu ändern. Ein Klick auf den Kopf der Seite öffnet Titel, Blatt-Typ und Fußzeile.</p>
           <p className="panel-help">Texte lassen sich auch direkt auf der Seite ändern: Doppelklick, oder ein ausgewähltes Element noch einmal antippen.</p>
-          <p className="panel-help">Entf löscht das ausgewählte Element, Esc hebt die Auswahl auf. ⌘D dupliziert, Pfeiltasten wählen das nächste Element, Alt+Pfeiltasten verschieben es, ↵ bearbeitet den Text auf der Seite, 1/2/3 setzt das Niveau. Alle Tastenkürzel: ?</p>
-          <p className="panel-help">
-            Mehrere Bausteine: ⌘-Klick oder ⇧-Klick, ⌘A wählt alle; auf dem iPad „Mehrere auswählen“ an einem Baustein. ⌘C legt sie in die Ablage (in der Toolbox), ⌘V fügt sie hinter der Auswahl ein,
-            auch in einer anderen Stunde.
-          </p>
+          <dl className="ed-keys" aria-label="Tastenkürzel">
+            {KEY_HINTS.map(([k, what]) => (
+              <div key={k}>
+                <dt>
+                  <kbd>{k}</kbd>
+                </dt>
+                <dd>{what}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="panel-help">Auf dem iPad: „Mehrere auswählen“ an einem Baustein. Alle Tastenkürzel: ?</p>
         </div>
       )}
     </aside>
   );
 }
+
+/** The shortcuts of the editor, as the panel shows them while nothing is selected. */
+const KEY_HINTS: [string, string][] = [
+  ['Entf', 'löscht das ausgewählte Element'],
+  ['Esc', 'hebt die Auswahl auf'],
+  ['⌘D', 'dupliziert'],
+  ['Pfeiltasten', 'wählen das nächste Element'],
+  ['Alt+Pfeile', 'verschieben es'],
+  ['↵', 'bearbeitet den Text auf der Seite'],
+  ['1, 2, 3', 'setzt das Niveau'],
+  ['⌘-Klick, ⇧-Klick', 'mehrere Bausteine; ⌘A wählt alle'],
+  ['⌘C, ⌘V', 'in die Ablage (in der Toolbox), einfügen hinter der Auswahl, auch in einer anderen Stunde'],
+];
 
 function PanelHead({ icon, title, close }: { icon: ReactNode; title: string; close: ReactNode }) {
   return (
@@ -185,14 +204,10 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         <SegField label="Breite im 12er-Raster" value={block.span} options={SPAN_OPTIONS} onPick={(v) => api.setSpan(block.id, v)} />
         {T.fields.map(field)}
       </div>
-      <div className="panel-row">
+      <div className="panel-row ed-block-actions">
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => api.duplicateBlock(block.id)}>
           <Icon icon={Copy} />
           Duplizieren
-        </button>
-        <button type="button" className="btn btn-secondary ui-btn is-danger" onClick={() => api.deleteBlock(block.id)}>
-          <Icon icon={Trash2} />
-          Löschen
         </button>
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => api.toAblage([block.id])} title="Zum Einfügen hier oder in einer anderen Stunde (⌘C)">
           <Icon icon={ClipboardCopy} />
@@ -208,6 +223,10 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
             Digital austeilen
           </button>
         )}
+        <button type="button" className="btn btn-secondary ui-btn is-danger" onClick={() => api.deleteBlock(block.id)}>
+          <Icon icon={Trash2} />
+          Löschen
+        </button>
       </div>
     </>
   );
@@ -270,7 +289,7 @@ function PageProperties({ api, p, close }: { api: EditorApi; p: number; close: R
         />
       </div>
       <div className="panel-section">
-        <div className="panel-section-label">{api.codeLocked ? 'Sprache · ganzes Modul' : 'Sprache · alle Seiten'}</div>
+        <div className="panel-section-label">{api.codeLocked ? 'Sprache (ganzes Modul)' : 'Sprache (alle Seiten)'}</div>
         <SegField<Lang>
           label="Sprache der Arbeitsblätter"
           value={doc.lang}
@@ -291,14 +310,14 @@ function PageProperties({ api, p, close }: { api: EditorApi; p: number; close: R
             onPick={(help) => api.setMeta({ help })}
           />
         )}
-        <p className="panel-note">Englisch: Kopfzeile „Name · Date“, englische Anführungszeichen, Rechtschreibprüfung und Silbentrennung auf Englisch.</p>
+        <p className="panel-note">Englisch: Kopfzeile mit „Name“ und „Date“, englische Anführungszeichen, Rechtschreibprüfung und Silbentrennung auf Englisch.</p>
       </div>
       <div className="panel-section">
-        <div className="panel-section-label">{api.codeLocked ? 'Symbol · ganzes Modul' : 'Symbol · alle Seiten'}</div>
+        <div className="panel-section-label">{api.codeLocked ? 'Symbol (ganzes Modul)' : 'Symbol (alle Seiten)'}</div>
         <IconPickerField label="Themen-Symbol im Kopfband" value={doc.icon} onPick={(icon) => api.setMeta({ icon })} />
       </div>
       <div className="panel-section">
-        <div className="panel-section-label">Fußband · alle Seiten</div>
+        <div className="panel-section-label">Fußband (alle Seiten)</div>
         <TextField label="Fußzeile" value={doc.footer} onChange={(footer) => api.setMeta({ footer })} />
         {api.codeLocked ? (
           <div className="field">
