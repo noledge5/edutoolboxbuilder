@@ -44,6 +44,11 @@
 @media (prefers-reduced-motion: reduce) {
   .shell-nav, .shell-scrim { transition: none; }
 }
+/* Print (year plan, content overview, competence grid): only the A4 pages, never the sidebar. */
+@media print {
+  .shell, .shell-main { display: block !important; height: auto !important; min-height: 0 !important; overflow: visible !important; background: none !important; }
+  .shell-nav, .shell-scrim, .shell-menu { display: none !important; }
+}
 
 /* — Sidebar — */
 .side { min-height: 100%; display: flex; flex-direction: column; gap: 20px; padding: 16px 12px; font-family: var(--ui-font); color: var(--ui-ink); }

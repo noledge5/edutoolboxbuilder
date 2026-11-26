@@ -760,6 +760,7 @@ export function App() {
     const lessons = lessonsOf(lib, m.id);
     view = (
       <ModuleView
+        key={m.id}
         module={m}
         lessons={lessons}
         subjects={subjectsOf(lib)}

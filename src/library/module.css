@@ -1,0 +1,421 @@
+/* Hallmark · shape: app screen · redesign: full (stage 3: module page, year plan) · stamp, critique and the other waivers at the top of src/ui/tokens.css */
+
+/* Module page and year plan (26.11.2026, Dose, stage 3): the subject's band on top as on the class board, then the
+   work: lessons with their sheets fanned in a tray, the module's data in a side panel, the year as a strip of weeks. */
+
+.mod-main { gap: 28px; }
+.mod :is(button):focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+
+/* — Band — */
+.mod-band { flex-direction: column; align-items: stretch; gap: 16px; }
+.mod-band-head { min-width: 0; display: flex; align-items: flex-start; gap: 20px; }
+.mod-band-head > .board-band-text { flex: 1; }
+.mod-band-foot { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; padding-left: 76px; }
+.mod-band-foot > .board-meta { flex: 1 1 260px; min-width: 0; margin: 0; }
+.mod-band-foot > .board-actions { margin-left: auto; }
+.mod-icon {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  margin-top: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-surface);
+  color: var(--subject-mark);
+  box-shadow: inset 0 1px 0 var(--ui-glint), 0 0 0 1px color-mix(in oklab, var(--ui-ink) 10%, transparent), 0 2px 0 color-mix(in oklab, var(--ui-ink) 12%, transparent);
+  transition: transform var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+}
+button.mod-icon { cursor: pointer; }
+button.mod-icon:hover { box-shadow: inset 0 1px 0 var(--ui-glint), 0 0 0 1px color-mix(in oklab, var(--ui-ink) 22%, transparent), 0 2px 0 color-mix(in oklab, var(--ui-ink) 16%, transparent); }
+button.mod-icon:active { transform: translateY(2px); box-shadow: inset 0 1px 0 var(--ui-glint), 0 0 0 1px color-mix(in oklab, var(--ui-ink) 22%, transparent); }
+.mod-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 8px; font-size: 14px; color: var(--ui-ink-2); }
+.mod-crumbs svg { flex: none; color: var(--ui-muted); }
+.mod-crumbs button {
+  margin: -2px -4px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ui-ink);
+  font: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--ui-ink) 30%, transparent);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.mod-crumbs button:hover { text-decoration-color: var(--ui-ink); }
+.mod-title { font-size: 36px; }
+.mod-desc { margin: 8px 0 0; max-width: 62ch; font-size: 15px; line-height: 1.5; color: var(--ui-ink-2); text-wrap: pretty; }
+.board-meta .is-over { color: var(--ui-danger); }
+
+/* — Layout: the work, and the module's data beside it on a wide screen (above it on a narrow one) — */
+.mod-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+.mod-content { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+@media (min-width: 1200px) {
+  .mod-layout.has-details { grid-template-columns: minmax(0, 1fr) 336px; }
+}
+@media (max-width: 1199px) {
+  .mod-details { order: -1; }
+}
+
+.mod-section { display: flex; flex-direction: column; gap: 12px; }
+.mod-h2 { margin: 0; font: 700 18px/1.25 var(--ui-font-display); letter-spacing: -0.015em; color: var(--ui-ink); }
+.mod-h3 { margin: 0; font: 600 14px/1.3 var(--ui-font); color: var(--ui-ink); }
+.mod-hint { margin: 0; max-width: 78ch; font-size: 13.5px; line-height: 1.5; color: var(--ui-muted); text-wrap: pretty; }
+.mod-label { display: block; margin-bottom: 4px; font-size: 13px; color: var(--ui-ink-2); }
+
+/* — Tabs: the lessons and the competence grid — */
+.mod-tabbar { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; border-bottom: 1px solid var(--ui-rule); }
+.mod-tabs { display: flex; gap: 4px; }
+.mod-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  background: none;
+  color: var(--ui-muted);
+  font: 500 15px/1 var(--ui-font);
+  cursor: pointer;
+  transition: color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.mod-tab:hover { color: var(--ui-ink); background: var(--color-ui-hover); }
+.mod-tab[aria-selected='true'] { color: var(--ui-ink); font-weight: 600; }
+.mod-tab[aria-selected='true']::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--ui-accent); }
+.mod .mod-tab:focus-visible { outline-offset: -2px; }
+.mod-tab-count { min-width: 24px; padding: 0 4px; border-radius: 6px; background: color-mix(in oklab, var(--ui-ink) 7%, transparent); color: var(--ui-ink-2); font: 500 12px/20px var(--ui-font-mono); text-align: center; }
+.mod-tab[aria-selected='true'] .mod-tab-count { background: var(--ui-accent-soft); color: var(--ui-ink); }
+.mod-tab-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-bottom: 8px; }
+.mod-panel { min-width: 0; }
+
+/* — Lessons: one row each, the sheets fanned in a tray of the subject's tint — */
+.mod-lessons-wrap { display: flex; flex-direction: column; gap: 12px; container-type: inline-size; }
+.mod-lessons { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.lrow {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px 20px;
+  padding: 12px 12px 12px 12px;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-surface);
+  box-shadow: inset 0 0 0 1px var(--ui-rule), 0 1px 2px color-mix(in oklab, var(--ui-ink) 6%, transparent);
+}
+.lrow-tray {
+  position: relative;
+  height: 116px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(color-mix(in oklab, var(--ui-glint) 36%, transparent), transparent 22%), var(--subject-tint);
+  box-shadow: inset 0 1.5px 0 var(--ui-glint), inset 0 -16px 24px -22px color-mix(in oklab, var(--subject-tint) 40%, var(--ui-ink));
+  color: var(--subject-mark);
+  cursor: pointer;
+}
+.lrow-fan { position: relative; width: 168px; height: 100%; flex: none; }
+.lrow-sheet {
+  position: absolute;
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--ui-ink) 16%, transparent), 0 10px 18px -12px color-mix(in oklab, var(--ui-ink) 45%, transparent);
+  transition: translate var(--dur-short) var(--ease-out);
+}
+.lrow-tray:hover .lrow-sheet:first-child { translate: 0 -4px; }
+.lrow-blank {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 95px;
+  height: 135px;
+  translate: -50% 0;
+  border: 1.5px dashed color-mix(in oklab, var(--ui-muted) 55%, transparent);
+  border-radius: 3px;
+  background: color-mix(in oklab, var(--ui-surface) 70%, transparent);
+}
+.lrow-tray .mcard-stamp { right: 10px; bottom: 10px; }
+.lrow.is-planned { background: color-mix(in oklab, var(--ui-surface) 45%, var(--ui-paper)); box-shadow: inset 0 0 0 1px var(--ui-rule); }
+.lrow.is-planned .lrow-tray { background: color-mix(in oklab, var(--subject-tint) 30%, var(--ui-paper)); box-shadow: inset 0 0 0 1px var(--ui-rule); }
+
+.lrow-main { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.lrow-head { display: flex; align-items: center; gap: 2px; }
+.lrow-num { flex: none; display: flex; align-items: center; padding-left: 8px; font: 500 13px var(--ui-font-mono); color: var(--ui-muted); }
+.lrow-num .field > label, .yp-weeks-cell .field > label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.lrow-num .input { width: 30px; min-height: 28px; margin-left: 2px; padding: 2px 4px; border-color: transparent; border-radius: 6px; background: color-mix(in oklab, var(--ui-ink) 5%, transparent); font: 500 13px var(--ui-font-mono); color: var(--ui-muted); -moz-appearance: textfield; }
+.lrow-num .input::-webkit-inner-spin-button, .lrow-num .input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.lrow-num .input:hover { border-color: var(--ui-rule); }
+.mod .input.is-quiet { border-color: transparent; background: transparent; }
+.mod .input.is-quiet:hover { border-color: var(--ui-rule); background: var(--ui-surface); }
+.mod .input.is-quiet:focus-visible { border-color: var(--ui-focus); outline: 2px solid color-mix(in oklab, var(--ui-focus) 30%, transparent); outline-offset: 0; background: var(--ui-surface); }
+.mod .input.is-quiet::placeholder { color: color-mix(in oklab, var(--ui-muted) 70%, var(--ui-surface)); }
+/* An empty quiet field shows a dashed line, so it reads as a blank to fill, not as text. */
+.mod .input.is-quiet:placeholder-shown:not(:hover):not(:focus-visible) { border-bottom-color: color-mix(in oklab, var(--ui-muted) 45%, transparent); border-bottom-style: dashed; border-radius: 0; }
+.lrow-title { flex: 1; min-width: 0; min-height: 36px; padding-inline: 8px; font: 700 18px/1.2 var(--ui-font-display); letter-spacing: -0.02em; color: var(--ui-ink); }
+.lrow.is-planned .lrow-title { color: var(--ui-ink-2); }
+.lrow-pages { margin: 0; padding: 0 8px; list-style: none; display: flex; flex-wrap: wrap; gap: 2px 16px; font-size: 14px; line-height: 1.4; color: var(--ui-ink-2); }
+.lrow-pages li { min-width: 0; }
+.lrow-page-type { margin-left: 8px; color: var(--ui-muted); }
+.lrow-fields { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; }
+.lrow-fields .input { min-height: 32px; padding: 4px 8px; font-size: 13.5px; }
+.lrow-book { flex: 0 1 200px; min-width: 0; color: var(--ui-ink-2); }
+.lrow-role { flex: none; width: auto; field-sizing: content; color: var(--ui-muted); }
+.lrow-role.is-set { color: var(--ui-ink); font-weight: 600; }
+.lrow-plan { flex: 1 1 100%; min-width: 0; }
+.lrow-comps { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-left: 8px; }
+.lrow-comp {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 26px;
+  padding: 0 4px 0 12px;
+  border-radius: 8px;
+  background: var(--ui-paper);
+  box-shadow: inset 0 0 0 1px var(--ui-rule);
+  color: var(--ui-ink);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.lrow-comp button { display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--ui-muted); cursor: pointer; }
+.lrow-comp button:hover { background: var(--color-ui-hover); color: var(--ui-ink); }
+.mod .lrow-comp-add { width: auto; max-width: 240px; min-height: 28px; padding: 4px 8px; font-size: 12.5px; }
+.lrow-actions { display: flex; align-items: center; gap: 4px; }
+.lrow-actions .iconbtn, .crow-actions .iconbtn { width: 36px; height: 36px; border-radius: var(--ui-radius-control); color: var(--ui-muted); }
+.lrow-actions .iconbtn:hover:not(:disabled), .crow-actions .iconbtn:hover:not(:disabled) { color: var(--ui-ink); }
+.mod .iconbtn.is-danger:hover:not(:disabled) { color: var(--ui-danger); }
+
+.mod-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  border: 1.5px dashed color-mix(in oklab, var(--ui-muted) 50%, transparent);
+  border-radius: var(--ui-radius-card);
+  background: transparent;
+  color: var(--ui-ink-2);
+  font: 500 14px var(--ui-font);
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+.mod-add:hover { border-color: var(--ui-accent); background: var(--ui-surface); color: var(--ui-ink); }
+
+@container (max-width: 900px) {
+  .lrow { grid-template-columns: 136px minmax(0, 1fr); }
+  .lrow-tray { height: 104px; }
+  .lrow-fan { scale: 0.85; transform-origin: 50% 0; }
+  .lrow-actions { grid-column: 2; flex-wrap: wrap; }
+}
+@container (max-width: 480px) {
+  .lrow { grid-template-columns: minmax(0, 1fr); }
+  .lrow-fan { scale: 1; }
+  .lrow-actions { grid-column: 1; }
+}
+
+/* — Empty states and the desk for the A4 preview — */
+.mod-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 28px; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: inset 0 0 0 1px var(--ui-rule); color: var(--ui-ink-2); }
+.mod-empty p { margin: 0; max-width: 62ch; font-size: 15px; line-height: 1.5; }
+.mod-empty-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.mod-desk { padding: 24px; border-radius: var(--ui-radius-card); background: var(--ui-desk); box-shadow: inset 0 1px 3px color-mix(in oklab, var(--ui-ink) 8%, transparent); }
+
+/* — Module data — */
+.mod-details {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 1px solid var(--ui-rule);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-surface);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--ui-ink) 6%, transparent);
+  scrollbar-width: thin;
+}
+.mod-details-head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; padding: 12px 8px 8px 20px; background: var(--ui-surface); }
+.mod-details-body { display: flex; flex-direction: column; gap: 20px; padding: 4px 20px 20px; }
+.mod-group { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--ui-rule); }
+.mod-group:first-child { padding-top: 0; border-top: 0; }
+.mod-details .field > label { margin-bottom: 4px; font-size: 13px; color: var(--ui-ink-2); }
+.mod-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 12px; }
+.mod-icon-btn { width: 100%; }
+.mod-details .icon-groups { max-height: 280px; overflow: auto; }
+@media (max-width: 1199px) {
+  .mod-details { position: static; max-height: none; }
+  .mod-details-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 24px 32px; }
+  .mod-group, .mod-group:first-child { padding-top: 0; border-top: 0; }
+}
+
+/* — Competence grid, edited: a row per competence, the three levels side by side — */
+.cgrid { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+.cgrid-rows { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.crow { display: flex; flex-direction: column; gap: 16px; padding: 16px; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: inset 0 0 0 1px var(--ui-rule), 0 1px 2px color-mix(in oklab, var(--ui-ink) 6%, transparent); }
+.crow-head { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.crow-num { height: 40px; display: grid; place-items: center; font: 500 13px var(--ui-font-mono); color: var(--ui-muted); }
+.crow-title { min-height: 40px; padding-inline: 8px; font: 700 18px/1.2 var(--ui-font-display); letter-spacing: -0.02em; color: var(--ui-ink); }
+.crow-meta { display: grid; grid-template-columns: minmax(160px, 260px) 120px minmax(0, 1fr); align-items: end; gap: 12px; padding-left: 36px; }
+.crow .field > label { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; color: var(--ui-ink-2); }
+.crow-actions { display: flex; gap: 2px; }
+.crow-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-left: 36px; }
+.crow-code { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; background: var(--ui-paper-3); color: var(--ui-ink); font: 500 12px var(--ui-font-mono); }
+.crow-level textarea.input { min-height: 0; font-size: 14px; line-height: 1.45; }
+.crow-links { margin: 0; padding-bottom: 8px; font-size: 13px; line-height: 1.45; color: var(--ui-muted); }
+.cgrid-add { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.mod .cgrid-template { width: auto; max-width: 100%; }
+@container (max-width: 720px) {
+  .crow-head { grid-template-columns: minmax(0, 1fr) auto; }
+  .crow-num { display: none; }
+  .crow-meta { grid-template-columns: minmax(0, 1fr) 96px; padding-left: 0; }
+  .crow-links { grid-column: 1 / -1; padding: 0; }
+  .crow-levels { grid-template-columns: minmax(0, 1fr); padding-left: 0; }
+}
+
+
+/* — Year plan: the year as a strip of weeks — */
+.yp-strip-wrap { overflow-x: auto; padding: 12px 16px 32px; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: inset 0 0 0 1px var(--ui-rule), 0 1px 2px color-mix(in oklab, var(--ui-ink) 6%, transparent); }
+.yp-strip { position: relative; min-width: 760px; display: grid; grid-template-columns: minmax(150px, 220px) repeat(var(--weeks), minmax(0, 1fr)); grid-template-rows: 40px repeat(var(--rows), 40px); }
+.yp-month { grid-row: 1 / -1; display: flex; flex-direction: column; padding: 4px 0 0 8px; border-left: 1px solid var(--ui-rule); overflow: hidden; pointer-events: none; white-space: nowrap; }
+.yp-month-name { color: var(--ui-ink-2); font: 600 12px/16px var(--ui-font); }
+.yp-month-kw { color: var(--ui-muted); font: 400 11px/14px var(--ui-font-mono); }
+/* A hairline per school week, so a bar's length can be counted. */
+.yp-ticks { grid-column: 2 / -1; grid-row: 2 / -1; background: repeating-linear-gradient(to right, color-mix(in oklab, var(--ui-rule) 55%, transparent) 0 1px, transparent 1px calc(100% / var(--weeks))); pointer-events: none; }
+.yp-off {
+  position: relative;
+  z-index: 2;
+  grid-row: 2 / -1;
+  background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--ui-desk) 88%, transparent) 0 4px, color-mix(in oklab, var(--ui-rule) 90%, transparent) 4px 5px);
+  box-shadow: inset 1px 0 0 var(--ui-rule), inset -1px 0 0 var(--ui-rule);
+}
+.yp-off-name { position: absolute; top: 8px; left: 50%; max-height: calc(100% - 16px); overflow: hidden; translate: -50% 0; writing-mode: vertical-rl; color: var(--ui-muted); font: 500 11px/1 var(--ui-font); white-space: nowrap; }
+.yp-now { position: relative; z-index: 3; grid-row: 1 / -1; justify-self: center; width: 2px; border-radius: 1px; background: var(--ui-accent); pointer-events: none; }
+.yp-now-label { position: absolute; bottom: -24px; left: 50%; translate: -50% 0; padding: 0 4px; border-radius: 4px; background: var(--ui-accent); color: var(--ui-on-accent); font: 600 12px/18px var(--ui-font); }
+.yp-row { display: contents; }
+.yp-row-label {
+  grid-column: 1;
+  align-self: center;
+  min-width: 0;
+  height: 32px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ui-ink);
+  font: 500 14px var(--ui-font);
+  text-align: left;
+  cursor: pointer;
+}
+.yp-row-label:hover { background: var(--color-ui-hover); }
+.yp-row-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yp-code { flex: none; color: var(--ui-muted); font: 500 12px var(--ui-font-mono); }
+.yp-bar {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1.5px solid color-mix(in oklab, var(--subject-mark) 40%, transparent);
+  border-radius: 7px;
+  background: linear-gradient(color-mix(in oklab, var(--ui-glint) 45%, transparent), transparent 45%), var(--subject-tint);
+  box-shadow: inset 0 1px 0 var(--ui-glint);
+  color: var(--ui-ink);
+  font: 500 12px var(--ui-font-mono);
+  white-space: nowrap;
+}
+/* The code of a module, above the hatching of a holiday its bar runs into. */
+.yp-bar-label { position: relative; z-index: 4; grid-column-end: span 4; align-self: center; padding-left: 8px; color: var(--ui-ink); font: 600 12px var(--ui-font); white-space: nowrap; pointer-events: none; }
+.yp-bar.is-planned { border-style: dashed; background: color-mix(in oklab, var(--subject-tint) 35%, var(--ui-surface)); box-shadow: none; color: var(--ui-ink-2); }
+.yp-bar.is-short { border-right-color: var(--ui-danger); border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.yp-none { grid-column: 2 / -1; align-self: center; padding-left: 8px; color: var(--ui-muted); font-size: 13px; }
+
+/* — Year plan: the modules and the weeks as tables — */
+.yp-table-wrap { overflow-x: auto; border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: inset 0 0 0 1px var(--ui-rule), 0 1px 2px color-mix(in oklab, var(--ui-ink) 6%, transparent); }
+.yp-table, .ypw { width: 100%; border-collapse: collapse; font-size: 14px; }
+.yp-table :is(th, td), .ypw :is(th, td) { padding: 8px 16px; border-top: 1px solid var(--ui-rule); text-align: left; vertical-align: middle; }
+.yp-table thead th, .ypw thead th { padding-block: 12px 8px; border-top: 0; color: var(--ui-muted); font: 500 13px var(--ui-font); white-space: nowrap; }
+.yp-table tbody th { font-weight: 400; }
+.yp-module-link {
+  max-width: 100%;
+  margin: -4px -8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ui-ink);
+  font: 600 15px var(--ui-font);
+  text-align: left;
+  cursor: pointer;
+}
+.yp-module-link > svg { flex: none; color: var(--subject-mark); }
+.yp-module-link:hover .yp-module-name { text-decoration: underline; text-underline-offset: 3px; }
+.yp-book { display: block; margin-top: 2px; padding-left: 24px; color: var(--ui-muted); font-size: 13px; }
+.yp-table tr.is-planned :is(.yp-module-name, .yp-progress) { color: var(--ui-muted); }
+.yp-progress { color: var(--ui-ink-2); }
+.yp-weeks-cell { width: 92px; }
+.yp-weeks-cell .input { width: 72px; font-family: var(--ui-font-mono); }
+.yp-table input[type='date'] { width: 164px; }
+.yp-period { white-space: nowrap; }
+.yp-kw-range { display: block; color: var(--ui-ink); font: 500 13px var(--ui-font-mono); }
+.yp-days { display: block; color: var(--ui-muted); font: 400 12.5px var(--ui-font-mono); }
+.yp-unplanned { color: var(--ui-muted); font-size: 13px; }
+.yp-warn { display: block; color: var(--ui-danger); font-size: 12.5px; white-space: normal; }
+.ypw td { padding-block: 4px; }
+.ypw-kw, .ypw-dates { width: 1%; color: var(--ui-ink-2); font: 400 13px var(--ui-font-mono); white-space: nowrap; }
+.ypw-what > * + * { margin-left: 8px; }
+.ypw-chip { display: inline-flex; align-items: center; gap: 8px; padding: 1px 8px; border: 1px solid color-mix(in oklab, var(--subject-mark) 30%, transparent); border-radius: 6px; background: var(--subject-tint-2); color: var(--ui-ink); font-size: 13px; font-weight: 500; }
+.ypw-chip.is-planned { border-style: dashed; background: transparent; color: var(--ui-ink-2); }
+.ypw tr.is-holiday td { background: color-mix(in oklab, var(--ui-desk) 70%, var(--ui-surface)); }
+.ypw-holiday { color: var(--ui-ink-2); font-weight: 500; }
+.ypw-short { color: var(--ui-muted); font-size: 12.5px; }
+
+@media (max-width: 560px) {
+  .mod-band-head { gap: 12px; }
+  .mod-icon { width: 44px; height: 44px; margin-top: 32px; }
+  .mod-band-foot { padding-left: 0; }
+  /* Secondary actions as icons, so the band stays two rows; their names stay as title and aria-label. */
+  .mod-band .board-actions .btn-label { display: none; }
+  /* The year strip fits the screen: codes only in the first column. */
+  .yp-strip-wrap { padding-inline: 8px; }
+  .yp-strip { min-width: 0; grid-template-columns: 36px repeat(var(--weeks), minmax(0, 1fr)); }
+  .yp-row-label { margin-right: 4px; padding: 0 4px; }
+  .yp-row-name, .yp-bar-label, .yp-month-kw { display: none; }
+  .yp-month { padding-left: 2px; }
+  .yp-month-name { font-size: 11px; }
+  /* The modules as cards: name, period and lessons, then weeks and start. */
+  .yp-table thead { display: none; }
+  .yp-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 12px 16px; border-top: 1px solid var(--ui-rule); }
+  .yp-table tbody tr:first-child { border-top: 0; }
+  .yp-table tbody :is(th, td) { padding: 0; border: 0; }
+  .yp-table tbody th { grid-column: 1 / -1; }
+  .yp-table td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 4px; color: var(--ui-muted); font: 400 12px var(--ui-font); }
+  .yp-table .yp-period { order: 1; }
+  .yp-table .yp-progress { order: 2; }
+  .yp-table .yp-weeks-cell { order: 3; width: auto; }
+  .yp-table .yp-start { order: 4; }
+  .yp-table input[type='date'] { width: 100%; }
+  .mod-title { font-size: 28px; }
+  .mod-empty { padding: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mod-icon, .mod-tab, .lrow-sheet, .mod-add { transition: none; }
+  button.mod-icon:active { transform: none; }
+}

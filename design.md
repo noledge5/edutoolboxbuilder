@@ -14,7 +14,7 @@ The locked system of the app around the worksheets. Every Hallmark run reads thi
 :root {
   --ui-paper: oklch(97.6% 0.011 88);  --ui-paper-2: oklch(96.5% 0.02 160);  --ui-paper-3: oklch(93% 0.036 160);  --ui-desk: oklch(93.4% 0.012 96);
   --ui-surface: oklch(99.5% 0.004 90);  --ui-ink: oklch(21% 0.025 170);  --ui-ink-2: oklch(31% 0.02 170);  --ui-muted: oklch(49% 0.024 165);  --ui-rule: oklch(86.5% 0.022 140);
-  --ui-accent: oklch(50% 0.13 160);  --ui-accent-deep: oklch(42% 0.11 162);  --ui-accent-soft: oklch(88% 0.08 160);  --ui-on-accent: oklch(99% 0.006 160);  --ui-focus: oklch(45% 0.14 160);
+  --ui-accent: oklch(50% 0.13 160);  --ui-accent-deep: oklch(42% 0.11 162);  --ui-accent-soft: oklch(88% 0.08 160);  --ui-on-accent: oklch(99% 0.006 160);  --ui-focus: oklch(45% 0.14 160);  --ui-danger: oklch(45% 0.13 30);
   --ui-font-display: "Schibsted Grotesk";  --ui-font: "Instrument Sans";  --ui-font-mono: "DM Mono";
   --ui-radius-control: 10px;  --ui-radius-card: 14px;  --ui-shadow-lift: (see tokens.css);
 }
@@ -29,6 +29,12 @@ On `<body>` the shared Organic names (`--color-text`, `--color-neutral-*`, `--co
 - Secondary: clear plastic (surface, 1px rule rim, 2px rim below), same radius and height; quiet (no rim) in a top bar.
 - Choices: keys, mint (`--ui-accent-soft`) when chosen. Fields: surface, 1px edge at 3:1, green focus ring.
 - Codes and numbers (K9 · M1 · S2, counts, weeks): DM Mono. Titles: Schibsted Grotesk 700. Labels: Instrument Sans 500, sentence case, never tracked capitals.
+
+## Screens
+- Every library screen opens with the band: the subject's tint, a path (Fach › Klasse › here), the title in Schibsted Grotesk, figures in DM Mono, then the actions with one primary (the thing the screen creates: Neues Modul, Neue Stunde; on the year plan Drucken). No top bar on these screens; the sidebar is the navigation.
+- Module page: lessons first, one row each with its real sheets fanned in a tray of the subject's tint (a planned lesson: a blank dashed sheet and the grey stamp "geplant"); title, Lehrwerk, role and plan are quiet fields that show their edge on hover. The module's data sits in a side panel ("Moduldaten"), open at once for a new module. Tabs are underlined in green.
+- Year plan: the year as a strip of weeks (months on top, holidays hatched, a green line at this week), each module a bar in the subject's tint (dashed while only planned); below it the modules and the weeks as tables.
+- Ranges in the chrome are written with "bis" (KW 38 bis 42), never with a dash. The A4 prints keep their own wording until step 5.
 
 ## Motion
 - Character: calm; press and hover only, 120 to 220 ms, one easing; under reduced motion everything ends at once.

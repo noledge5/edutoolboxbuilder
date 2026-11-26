@@ -2,7 +2,7 @@
  * paper: oklch(97.6% 0.011 88) · accent: oklch(50% 0.13 160) · display: Schibsted Grotesk · body: Instrument Sans · outlier: DM Mono
  * nav: sidebar (subjects, classes, modules) · signature: each subject a tinted plastic band, the real first sheet on every module · states: empty, planned, notices
  * axes: light/grotesk-sans/chromatic-green · posture: committed · dose: white · contrast: pass · v2.0.0 */
-/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: E, the editor and the year plan get the system now and their own layouts in later steps */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: E, the editor gets its own layout in stage 4, the sheets and slides in stage 5 */
 /* Hallmark · waive 37 · Caprasimo, Figtree, Noto Sans, Kalam and the subject faces · they belong to the worksheets and slides, the chrome uses the three Dose faces only */
 /* The scaffold's base.css is not imported: its global h1 to h3 and p rules would restyle the printed A4 sheets. */
 
@@ -25,6 +25,7 @@
   --ui-accent-soft: oklch(88% 0.08 160);
   --ui-on-accent: oklch(99% 0.006 160);
   --ui-focus: oklch(45% 0.14 160);
+  --ui-danger: oklch(45% 0.13 30);
   --ui-glint: oklch(99.8% 0.004 90);
   --ui-font-display: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
   --ui-font: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;

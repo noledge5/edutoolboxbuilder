@@ -18,14 +18,14 @@
   border: 0;
   border-radius: var(--ui-radius-card);
   background: var(--ui-surface);
-  box-shadow: inset 0 0 0 1px var(--ui-rule), 0 1px 2px oklch(30% 0.03 165 / 0.06);
+  box-shadow: inset 0 0 0 1px var(--ui-rule), 0 1px 2px color-mix(in oklab, var(--ui-ink) 6%, transparent);
   color: var(--ui-ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
   transition: box-shadow var(--dur-micro) var(--ease-out);
 }
-.rcard:hover { box-shadow: inset 0 0 0 1px var(--color-neutral-500), 0 8px 20px -12px oklch(36% 0.06 165 / 0.35); }
+.rcard:hover { box-shadow: inset 0 0 0 1px var(--color-neutral-500), 0 8px 20px -12px color-mix(in oklab, var(--ui-ink) 35%, transparent); }
 .rcard-sheet {
   position: relative;
   width: 64px;
@@ -39,7 +39,7 @@
   box-shadow: inset 0 1px 0 var(--ui-glint);
   color: var(--subject-mark);
 }
-.rcard-sheet > .ai-page { position: absolute; top: 8px; left: 50%; translate: -50% 0; box-shadow: 0 1px 3px oklch(30% 0.03 165 / 0.25); }
+.rcard-sheet > .ai-page { position: absolute; top: 8px; left: 50%; translate: -50% 0; box-shadow: 0 1px 3px color-mix(in oklab, var(--ui-ink) 25%, transparent); }
 .rcard-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .rcard-code { font: 500 12px var(--ui-font-mono); color: var(--ui-muted); }
 .rcard-title, .rcard-place { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -62,7 +62,7 @@
 .board-band-text { min-width: 0; }
 .board-kicker { margin: 0 0 4px; font-size: 15px; font-weight: 500; color: var(--ui-ink-2); }
 .board-title { margin: 0; font: 700 40px/1.02 var(--ui-font-display); letter-spacing: -0.03em; overflow-wrap: break-word; text-wrap: balance; }
-.board-meta { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 13px var(--ui-font-mono); color: var(--ui-ink-2); }
+.board-meta { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 14px var(--ui-font); font-variant-numeric: tabular-nums; color: var(--ui-ink-2); }
 .board-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .board-modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 228px), 1fr)); gap: 20px; }
@@ -75,7 +75,7 @@
   border: 0;
   border-radius: var(--ui-radius-card);
   background: var(--ui-surface);
-  box-shadow: inset 0 0 0 1px var(--ui-rule), 0 1px 2px oklch(30% 0.03 165 / 0.06);
+  box-shadow: inset 0 0 0 1px var(--ui-rule), 0 1px 2px color-mix(in oklab, var(--ui-ink) 6%, transparent);
   color: var(--ui-ink);
   font: inherit;
   text-align: left;
@@ -94,7 +94,7 @@
   box-shadow: inset 0 1.5px 0 var(--ui-glint), inset 0 -20px 30px -26px color-mix(in oklab, var(--subject-tint) 40%, var(--ui-ink));
   color: var(--subject-mark);
 }
-.mcard-tray > .ai-page { position: absolute; top: 20px; left: 50%; translate: -50% 0; box-shadow: 0 1px 2px oklch(30% 0.03 165 / 0.16), 0 14px 24px -14px oklch(36% 0.06 165 / 0.45); transition: translate var(--dur-short) var(--ease-out); }
+.mcard-tray > .ai-page { position: absolute; top: 20px; left: 50%; translate: -50% 0; box-shadow: 0 1px 2px color-mix(in oklab, var(--ui-ink) 16%, transparent), 0 14px 24px -14px color-mix(in oklab, var(--ui-ink) 45%, transparent); transition: translate var(--dur-short) var(--ease-out); }
 .mcard:hover .mcard-tray > .ai-page { translate: -50% -4px; }
 /* A stamp for what is not worked out yet: grey, never a warning colour. */
 .mcard-stamp {
@@ -110,12 +110,12 @@
   rotate: -2deg;
 }
 .mcard.is-leer .mcard-tray { background: var(--ui-paper); box-shadow: inset 0 0 0 1px var(--ui-rule); color: var(--color-neutral-500); }
-.mcard-body { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 16px; }
+.mcard-body { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px 16px; }
 .mcard-code { display: flex; align-items: center; gap: 8px; font: 500 12px var(--ui-font-mono); color: var(--ui-muted); }
 .mcard-code svg { flex: none; color: var(--subject-mark); }
 .mcard-title { font: 700 18px/1.2 var(--ui-font-display); letter-spacing: -0.02em; overflow-wrap: break-word; min-width: 0; }
 .mcard-meta { display: flex; flex-wrap: wrap; gap: 0 12px; margin-top: 2px; font-size: 13px; color: var(--ui-muted); }
-.mcard-progress { height: 4px; margin-top: 10px; overflow: hidden; border-radius: 2px; background: var(--color-neutral-300); }
+.mcard-progress { height: 4px; margin-top: 8px; overflow: hidden; border-radius: 2px; background: var(--color-neutral-300); }
 .mcard-progress > span { display: block; height: 100%; background: var(--ui-accent); transform-origin: left; }
 
 .board-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 32px; border-radius: var(--ui-radius-card); box-shadow: inset 0 0 0 1px var(--ui-rule); color: var(--ui-ink-2); }
