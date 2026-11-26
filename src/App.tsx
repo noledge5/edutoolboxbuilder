@@ -36,6 +36,7 @@ import { CanvaDialog } from './canva/CanvaDialog';
 import type { Slide } from './model/slides';
 import { subjectColor, subjectTint } from './library/subjectColor';
 import { Shell } from './shell/Shell';
+import { SheetDrafts } from './design/SheetDrafts';
 import { Sidebar } from './shell/Sidebar';
 import { ModuleView } from './library/ModuleView';
 import { Overview } from './library/Overview';
@@ -828,6 +829,8 @@ export function App() {
         }}
       />
     );
+  } else if (route.view === 'entwuerfe') {
+    view = <SheetDrafts lib={lib} onBack={() => go({ view: 'overview' })} />;
   } else {
     const subjects = subjectsOf(lib);
     subject = route.subject && subjects.includes(route.subject) ? route.subject : (subjects[0] ?? '');
@@ -859,7 +862,7 @@ export function App() {
       <div className="subject-scope" style={subject ? subjectTint(subjectColor(lib.settings, subject)) : undefined}>
         <AiGradeContext.Provider value={here.grade}>
           <ClassNotesContext.Provider value={{ settings: lib.settings, save: putSettings }}>
-            {route.view === 'overview' || route.view === 'module' || route.view === 'plan' || route.view === 'lernquest' ? (
+            {route.view === 'overview' || route.view === 'module' || route.view === 'plan' || route.view === 'lernquest' || route.view === 'entwuerfe' ? (
               <Shell
                 nav={(close) => (
                   <Sidebar

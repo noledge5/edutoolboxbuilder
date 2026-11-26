@@ -1,0 +1,105 @@
+/* Stage 5 of the redesign (26.11.2026): three designs for the worksheets, shown beside the current one on #/entwuerfe.
+   Each is a skin over the real page (.wsd-a/-b/-c around .ws-page), so it works with every subject form, grades 5–6,
+   the solution sheet and the black-and-white copy. Rule kept from November: body text stays Figtree at its size and
+   no box grows, so no sheet breaks differently. Temporary: the chosen one replaces faecher.css, the rest goes. */
+
+/* — Shared by the three: Schibsted titles (Englisch keeps its serif, Informatik its code font), labels in sentence
+     case without letter-spacing, the lesson code in DM Mono — */
+:is(.wsd-a, .wsd-b, .wsd-c) .ws-page { --k-head: "Schibsted Grotesk", var(--font-body); --k-head-weight: 700; }
+:is(.wsd-a, .wsd-b, .wsd-c) .ws-page.is-k-eng { --k-head: "DM Serif Display", var(--font-heading); --k-head-weight: 400; }
+:is(.wsd-a, .wsd-b, .wsd-c) .ws-page.is-k-inf { --k-head: "JetBrains Mono", var(--font-heading); --k-head-weight: 700; }
+:is(.wsd-a, .wsd-b, .wsd-c) .ws-title { letter-spacing: -0.015em; }
+:is(.wsd-a, .wsd-b, .wsd-c) .ws-page .ws-kicker { font: 600 11.5px/1.4 "Instrument Sans", var(--font-body); letter-spacing: 0; text-transform: none; }
+:is(.wsd-a, .wsd-b, .wsd-c) .ws-page .ws-type-pill { font: 600 11px/1.6 "Instrument Sans", var(--font-body); letter-spacing: 0; text-transform: none; }
+:is(.wsd-a, .wsd-b, .wsd-c) .ws-page .ws-label { font-size: 12px; letter-spacing: 0; text-transform: none; }
+:is(.wsd-a, .wsd-b, .wsd-c) .ws-page .ws-foot-code { font: 500 10.5px "DM Mono", monospace; letter-spacing: 0; }
+:is(.wsd-a, .wsd-b, .wsd-c) .ws-page .ws-name-row { font-family: "Instrument Sans", var(--font-body); }
+:is(.wsd-a, .wsd-b, .wsd-c) .ws-page .ws-band::after { display: none; }
+
+/* — A Etikett: the app's label on paper. A framed header, the topic icon on a plate of the subject's tint, task numbers
+     as small keys, calm boxes with 10 px corners. — */
+.wsd-a .ws-page .ws-band { padding-left: 12px; background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--k-acc); }
+/* The label's strip: the subject line on a band of the tint across the top of the header (inside its height). */
+.wsd-a .ws-page .ws-band:not(.is-back) { padding-top: 30px; padding-bottom: 8px; background: linear-gradient(var(--k-soft) 0 22px, var(--k-acc) 22px 23.5px, var(--paper) 23.5px); }
+.wsd-a .ws-page .ws-band:not(.is-back) .ws-kicker { position: absolute; top: 4px; left: 14px; right: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wsd-a .ws-page.is-bw .ws-band:not(.is-back) { background: linear-gradient(var(--paper) 0 22px, var(--color-text) 22px 23.5px, var(--paper) 23.5px); }
+.wsd-a .ws-page .ws-band:not(.is-back) .ws-band-icon { width: 48px; height: 48px; border-radius: calc(var(--k-r) - 3px); background: var(--k-soft); color: var(--k-acc); }
+.wsd-a .ws-page .ws-type-pill { padding: 0 8px; border-radius: 6px; background: var(--k-soft); color: var(--k-acc); }
+.wsd-a .ws-page:not(.is-k-eng):not(.is-k-inf) .ws-num { border-radius: 7px; background: var(--k-acc); color: var(--paper); font: 700 13px "Schibsted Grotesk", var(--font-body); }
+.wsd-a .ws-page .ws-hint { border-radius: 10px; }
+.wsd-a .ws-page .ws-hint-icon { border-radius: 8px; }
+.wsd-a .ws-page .ws-merksatz { border-radius: 12px; box-shadow: inset 0 0 0 2px var(--v-solid); }
+.wsd-a .ws-page .ws-merksatz-icon { border-radius: 10px; }
+.wsd-a .ws-page:not(.is-k-eng):not(.is-k-inf) .ws-table { border-radius: 10px; }
+.wsd-a .ws-page .ws-word { border-radius: 6px; background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--k-mid); }
+.wsd-a .ws-page .ws-foot { padding-top: 3px; border-top: 1px solid var(--k-mid); }
+.wsd-a .ws-page.is-bw .ws-band-icon { box-shadow: inset 0 0 0 1.5px var(--color-text); }
+
+/* — B Lineal: rules instead of areas, like a good textbook. No fill anywhere (saves toner, clean on a copy): a heavy
+     rule under the header, big plain task numbers, notes marked by a rule at the side, open tables. — */
+.wsd-b .ws-page .ws-band { padding: 6px 0 12px; border-radius: 0; background: var(--paper); box-shadow: inset 0 -3px 0 var(--k-acc); }
+.wsd-b .ws-page .ws-band.is-back { padding: 2px 0 6px; box-shadow: inset 0 -2px 0 var(--k-acc); }
+.wsd-b .ws-page .ws-band-icon { border-radius: 50%; background: var(--paper); color: var(--k-acc); box-shadow: inset 0 0 0 1.5px var(--k-mid); }
+.wsd-b .ws-page .ws-kicker { color: var(--color-neutral-700); }
+.wsd-b .ws-page .ws-band:not(.is-back) .ws-title { font-size: 26px; line-height: 1.1; }
+.wsd-b .ws-page .ws-type-pill { padding: 0; background: none; color: var(--k-acc); }
+.wsd-b .ws-page:not(.is-k-eng):not(.is-k-inf) .ws-num { border-radius: 0; background: none; color: var(--k-acc); font: 700 20px/24px "Schibsted Grotesk", var(--font-body); }
+.wsd-b .ws-page .ws-hint { padding: 4px 0 4px 16px; border-radius: 0; background: none; box-shadow: inset 3px 0 0 var(--v-title); }
+.wsd-b .ws-page .ws-hint-icon { background: none; color: var(--v-title); box-shadow: inset 0 0 0 1.5px var(--v-title); }
+.wsd-b .ws-page .ws-merksatz { border-radius: 0; box-shadow: inset 0 2px 0 var(--v-solid), inset 0 -2px 0 var(--v-solid); }
+.wsd-b .ws-page .ws-merksatz-icon { background: none; color: var(--v-solid); box-shadow: inset 0 0 0 2px var(--v-solid); }
+.wsd-b .ws-page .ws-table { border-radius: 0; }
+.wsd-b .ws-page .ws-table::after { display: none; }
+.wsd-b .ws-page:not(.is-k-inf) .ws-table-head { background: none; box-shadow: inset 0 -2px 0 var(--color-text); }
+.wsd-b .ws-page .ws-table-cell { border-left-color: transparent; }
+.wsd-b .ws-page .ws-table-row { border-top-width: 1px; }
+.wsd-b .ws-page .ws-word { padding: 3px 4px; border-radius: 0; background: none; box-shadow: inset 0 -1.5px 0 var(--k-mid); }
+.wsd-b .ws-page .ws-image { border-radius: 0; }
+.wsd-b .ws-page .ws-foot { padding-top: 3px; border-top: 1px solid var(--color-text); }
+
+/* — C Heft: friendly and round, for the younger classes too. The subject sits on a binder tab over the header (like the
+     tabs in the app), tinted cards, round numbers, dotted writing lines. — */
+.wsd-c .ws-page { --k-r: 16px; }
+.wsd-c .ws-page .ws-band { box-shadow: none; }
+.wsd-c .ws-page .ws-band:not(.is-back) { border-top-left-radius: 0; }
+.wsd-c .ws-page .ws-band:not(.is-back) .ws-kicker {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  max-width: 62%;
+  height: 20px;
+  padding: 3px 12px 0;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  background: var(--t-band);
+  color: var(--k-acc);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.wsd-c .ws-page .ws-band-icon { border-radius: 50%; background: var(--paper); color: var(--k-acc); }
+.wsd-c .ws-page .ws-type-pill { padding: 0 10px; border-radius: 999px; background: var(--paper); color: var(--k-acc); }
+.wsd-c .ws-page:not(.is-k-eng):not(.is-k-inf) .ws-num { border-radius: 50%; background: var(--k-acc); color: var(--paper); font: 700 13px "Schibsted Grotesk", var(--font-body); }
+.wsd-c .ws-page .ws-hint { border-radius: 16px; }
+.wsd-c .ws-page .ws-merksatz { border-radius: 18px; box-shadow: none; outline: 2px dashed var(--v-solid); outline-offset: -5px; }
+.wsd-c .ws-page:not(.is-k-eng):not(.is-k-inf) .ws-table { border-radius: 14px; }
+.wsd-c .ws-page .ws-wline { border-bottom-style: dotted; border-bottom-color: var(--k-mid); }
+.wsd-c .ws-page .ws-foot-page { padding: 0 8px; border-radius: 999px; background: var(--k-soft); color: var(--k-acc); }
+.wsd-c .ws-page.is-bw .ws-band { box-shadow: inset 0 0 0 1.5px var(--color-text); }
+.wsd-c .ws-page.is-bw .ws-band:not(.is-back) .ws-kicker { box-shadow: inset 1.5px 1.5px 0 var(--color-text), inset -1.5px 0 0 var(--color-text); color: var(--color-text); }
+.wsd-c .ws-page.is-bw .ws-band-icon { box-shadow: inset 0 0 0 1.5px var(--color-text); }
+
+/* — The page that shows them — */
+.drafts-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; }
+.drafts-control { display: flex; flex-direction: column; gap: 8px; }
+.drafts-control > span { color: var(--ui-ink-2); font-size: 13px; }
+.drafts-control .seg-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.drafts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 24px; }
+.draft { min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: var(--ui-radius-card); background: var(--ui-desk); box-shadow: inset 0 0 0 1px var(--ui-rule); }
+.draft.is-now { background: var(--ui-paper); }
+.draft-head { display: flex; flex-direction: column; gap: 4px; }
+.draft-name { margin: 0; color: var(--ui-ink); font: 700 18px/1.25 var(--ui-font-display); letter-spacing: -0.015em; }
+.draft-note { margin: 0; max-width: 62ch; color: var(--ui-ink-2); font-size: 14px; line-height: 1.45; }
+.draft-sheet { min-width: 0; }
+.draft-sheet .ai-page { box-shadow: 0 1px 2px color-mix(in oklab, var(--ui-ink) 14%, transparent), 0 16px 28px -18px color-mix(in oklab, var(--ui-ink) 40%, transparent); }
+.drafts-grid.is-big { grid-template-columns: minmax(0, 1fr); }
+.drafts-grid.is-big .draft-sheet { max-width: 794px; }
