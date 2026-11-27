@@ -34,6 +34,7 @@ import {
 } from '../teile';
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
+import { AbzeichenKarte } from './Abzeichen';
 import { TruheZeichnung } from '../figuren';
 import { ruhig } from '../figuren/Figur';
 import { Zaehler } from './Zaehler';
@@ -212,6 +213,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
           </button>
         </section>
         <GutscheinLeiste punkte={stand.klassenpunkte ?? 0} onOeffnen={onGutscheine} />
+        <AbzeichenKarte stand={stand} pakete={Object.values(daten.pakete)} />
       </div>
       <div className="lq-held-rechts">
         <SlotTabs slot={slot} setSlot={setSlot} label="Teile" />
