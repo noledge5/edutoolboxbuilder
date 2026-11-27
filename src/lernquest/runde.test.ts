@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fehlgriffeFrei, istRichtig, nachAntwort, fehlgriffHinweis, serieMeilenstein, wissen, rundenFazit, WIEDER_MAX } from './rules';
+import { fehlgriffeFrei, istRichtig, nachAntwort, fehlgriffHinweis, serieMeilenstein, wissen, laengsteSerie, rundenFazit, WIEDER_MAX } from './rules';
 import { readUebung } from './fragenpool';
 import type { Uebung } from './types';
 
@@ -78,5 +78,13 @@ describe('what sits', () => {
     const leitner = { 'a/1': [5, 0], 'a/2': [4, 0], 'a/3': [3, 0], 'a/4': [2, 0], 'a/5': [1, 0], 'b/1': [5, 0] } as Record<string, [number, number]>;
     expect(wissen(leitner)).toEqual({ sitzt: 3, wird: 2, ueben: 1 });
     expect(wissen(leitner, new Set(['a/1', 'a/5']))).toEqual({ sitzt: 1, wird: 0, ueben: 1 });
+  });
+});
+
+describe('longest streak', () => {
+  it('is the longest run of right first answers', () => {
+    expect(laengsteSerie([true, true, false, true, true, true, false])).toBe(3);
+    expect(laengsteSerie([])).toBe(0);
+    expect(laengsteSerie([false, false])).toBe(0);
   });
 });

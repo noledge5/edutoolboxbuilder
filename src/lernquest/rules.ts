@@ -56,6 +56,9 @@ export const WIEDER_MAX = 3;
  * The order of a round after the answer at `pos`: `reihe` holds exercise indexes; a missed exercise is put at the
  * end again, so the child meets it once more before the round is over.
  */
+/** The longest run of right answers in a round (first tries), for the result (27.11.2026). */
+export const laengsteSerie = (ergebnisse: boolean[]) => ergebnisse.reduce(([best, jetzt], r) => (r ? [Math.max(best, jetzt + 1), jetzt + 1] : [best, 0]), [0, 0])[0];
+
 /** A streak worth a moment of its own (sound, badge, a higher jump): 3 in a row, then every 5. */
 export const serieMeilenstein = (serie: number) => serie === 3 || (serie >= 5 && serie % 5 === 0);
 
