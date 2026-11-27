@@ -6,7 +6,7 @@
   /* Colours, named by their job. Stufe E (12.11.2026): green and cream after the teacher's mockup
      (docs/design/lernquest/mockup-stufe-e.png); the art of fox and landscape keeps its own colours in the TSX. */
   --lq-grund: #fbf6e9;
-  --lq-karte: #fffdf7;
+  --lq-karte: #ffffff;
   --lq-schrift: #263322;
   --lq-gedaempft: #556149;
   --lq-linie: #e6ddc4;
@@ -45,6 +45,12 @@
   --lq-selten-3: #2459b8;
   --lq-selten-4: #6a2fc4;
   --lq-selten-5: #8a6100;
+  /* Rarity plates behind items (Oberfläche neu, 27.11.2026): a light area per rarity, same order as --lq-selten-* */
+  --lq-selten-1-flaeche: #efeef4;
+  --lq-selten-2-flaeche: #e2f3e8;
+  --lq-selten-3-flaeche: #e3ecfb;
+  --lq-selten-4-flaeche: #efe6fc;
+  --lq-selten-5-flaeche: #fdf0c6;
   /* Class events (src/lernquest/event.ts): the colour of each kind and its light area, as the pennants
      (figuren/fest.tsx) */
   --lq-event-vokabel: #2f62b0;
@@ -4624,3 +4630,180 @@ button.lq-teil:active {
   box-shadow: inset 0 0 0 2px var(--lq-linie);
 }
 
+
+
+/* ===== Oberfläche neu, Stufe 1 (27.11.2026): eine Statuszeile, eigene Symbole (figuren/symbole.tsx), Seltenheit als
+   Platte hinter dem Teil, Truhe ohne Verlauf, keine Karten in Karten. Plan: docs/design/prinzipien.md, „Oberfläche“. ===== */
+
+/* The status row: avatar left, then level badge with its bar, coins and offline on the right; one line, no text block. */
+.lq-mit-leiste .lq-kopf {
+  grid-template-columns: auto 1fr;
+  padding: max(var(--lq-a-2), env(safe-area-inset-top)) var(--lq-a-4) var(--lq-a-2);
+}
+.lq-stats {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--lq-a-4);
+  min-width: 0;
+}
+.lq-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lq-a-2);
+}
+.lq-stufe-abzeichen {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+.lq-stufe-abzeichen svg {
+  position: absolute;
+  inset: 0;
+}
+.lq-stufe-abzeichen b {
+  position: relative;
+  font:
+    600 var(--lq-t-text) Fredoka,
+    sans-serif;
+  color: var(--lq-auf-farbe);
+}
+.lq-stat-stufe .lq-xp {
+  width: 72px;
+  height: 10px;
+  background: var(--lq-linie);
+}
+.lq-stat-stufe .lq-xp > span {
+  background: var(--lq-primary);
+}
+.lq-kopf .lq-muenzen {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.lq-muenz-icon,
+.lq-stat-offline svg {
+  display: block;
+  flex: none;
+}
+
+/* Tab bar: the drawn symbols in colour; the open tab as a soft pill with its label in green. */
+.lq-leiste button svg {
+  width: 28px;
+  height: 28px;
+}
+.lq-leiste button.an {
+  box-shadow: inset 0 0 0 2px var(--lq-primary-nacht);
+}
+
+/* Items stand on a plate in the colour of their rarity, all the same size, so a shop row reads as one set. */
+.lq-platte {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 6 / 5;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--lq-r-klein);
+}
+.lq-platte::before {
+  content: '';
+  position: absolute;
+  width: 72%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--lq-karte);
+  opacity: 0.55;
+}
+.lq-platte > * {
+  position: relative;
+}
+.lq-platte .lq-teil-bild {
+  width: 78%;
+  height: 78%;
+}
+.lq-platte.lq-s-0 {
+  background: var(--lq-selten-1-flaeche);
+}
+.lq-platte.lq-s-1 {
+  background: var(--lq-selten-2-flaeche);
+}
+.lq-platte.lq-s-2 {
+  background: var(--lq-selten-3-flaeche);
+}
+.lq-platte.lq-s-3 {
+  background: var(--lq-selten-4-flaeche);
+}
+.lq-platte.lq-s-4 {
+  background: var(--lq-selten-5-flaeche);
+}
+.lq-platte-zu::before {
+  opacity: 0.3;
+}
+.lq-platte .lq-fragezeichen {
+  display: grid;
+  place-items: center;
+  font:
+    600 var(--lq-t-h2) Fredoka,
+    sans-serif;
+  color: var(--lq-gedaempft);
+}
+.lq-teil {
+  padding: var(--lq-a-2) var(--lq-a-2) var(--lq-a-3);
+}
+.lq-teil .lq-seltenheit {
+  flex-direction: row;
+  gap: var(--lq-a-1);
+}
+.lq-teil .lq-punkte {
+  display: none;
+}
+.lq-teil.zu {
+  background: var(--lq-karte);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+}
+
+/* The chest stands in a slow ray burst (flat shapes, no gradient). */
+.lq-truhe-glanz {
+  width: 280px;
+  height: 280px;
+  background: none;
+  border-radius: 0;
+  animation: lq-strahlen 30s linear infinite;
+}
+.lq-truhe-glanz path,
+.lq-truhe-glanz .lq-glanz-ring {
+  fill: var(--lq-primary-nacht);
+  opacity: 0.12;
+}
+@keyframes lq-strahlen {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-truhe-glanz {
+    animation: none;
+  }
+}
+
+/* Daily tasks: rows inside the card are separated by a line, not boxed again. */
+.lq-tagesaufgaben li,
+.lq-tagesaufgaben li.ok {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: var(--lq-a-3) 0;
+}
+.lq-tagesaufgaben li + li {
+  border-top: 2px solid var(--lq-linie);
+}
+
+/* Not found yet: the item as a dark silhouette on its plate, so the collection shows what there is to find. */
+.lq-silhouette {
+  filter: brightness(0);
+  opacity: 0.18;
+}

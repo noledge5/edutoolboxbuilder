@@ -43,7 +43,7 @@ import { BossBeamer, BossBild, BossKind, useLangsam } from './Boss';
 import { readPaket } from '../paket';
 import { bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
-import { HeldIcon, HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
+import { HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
 import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, hilfeGesehen, merkeHilfe, merkeWiederholt, wiederholtHeute, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
 import { Jubel } from './Jubel';
@@ -61,6 +61,7 @@ import { Landkarte } from './Landkarte';
 import { EventBanner } from './EventBanner';
 import { eventFortschritt, eventLaeuft, eventPakete, readEvent } from '../event';
 import { EVENT_FARBEN } from '../figuren/fest';
+import { SymbolAufgaben, SymbolHeld, SymbolKarte, SymbolKlasse, SymbolOffline, SymbolStufe, SymbolWiederholen } from '../figuren/symbole';
 import type { Wegpunkt } from './Landkarte';
 
 export type Screen =
@@ -982,21 +983,21 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       </div>
       <nav className="lq-leiste" aria-label="Hauptmenü">
         <button type="button" className={tab === 'karte' ? 'an' : ''} aria-current={tab === 'karte' ? 'page' : undefined} onClick={() => setScreen({ kind: 'karte' })}>
-          <KarteIcon />
+          <SymbolKarte groesse={28} />
           Karte
         </button>
         <button type="button" className={tab === 'aufgaben' ? 'an' : ''} aria-current={tab === 'aufgaben' ? 'page' : undefined} onClick={() => setScreen({ kind: 'aufgaben', ansicht: 'heute' })}>
-          <AufgabenIcon />
+          <SymbolAufgaben groesse={28} />
           Aufgaben
           {offeneAufgaben > 0 && <span className="lq-zahl lq-zahl-gruen" aria-label={`${offeneAufgaben} Tagesaufgaben offen`}>{offeneAufgaben}</span>}
         </button>
         <button type="button" className={tab === 'wiederholen' ? 'an' : ''} aria-current={tab === 'wiederholen' ? 'page' : undefined} onClick={() => setScreen({ kind: 'wiederholen' })}>
-          <WiederholenIcon />
+          <SymbolWiederholen groesse={28} />
           Wiederholen
           {dueCount > 0 && <span className="lq-zahl">{dueCount}</span>}
         </button>
         <button type="button" className={tab === 'held' ? 'an' : ''} aria-current={tab === 'held' ? 'page' : undefined} onClick={() => setScreen({ kind: 'held' })}>
-          <HeldIcon />
+          <SymbolHeld groesse={28} />
           Held
           {stand.truhen > 0 && (
             <span className="lq-zahl lq-zahl-gold" aria-label={`${stand.truhen} ${stand.truhen === 1 ? 'Truhe' : 'Truhen'} bereit`}>
@@ -1005,7 +1006,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           )}
         </button>
         <button type="button" className={tab === 'klasse' ? 'an' : ''} aria-current={tab === 'klasse' ? 'page' : undefined} onClick={() => setScreen({ kind: 'klasse' })}>
-          <KlasseIcon />
+          <SymbolKlasse groesse={28} />
           Klasse
         </button>
       </nav>
@@ -1514,23 +1515,39 @@ function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; o
       <button type="button" className="lq-avatar" aria-label="Menü" aria-expanded={menu} onClick={() => setMenu(!menu)}>
         <AvatarBild avatar={daten.stand.avatar} ausschnitt={AUSSCHNITT_KOPF} className="lq-avatar-bild" />
       </button>
-      <div className="lq-held">
-        <strong>
-          Heldenstufe {h.stufe} · {titel(h.stufe)}
-        </strong>
-        <span className="lq-xp" role="progressbar" aria-valuemin={0} aria-valuemax={h.noetig} aria-valuenow={h.drin} aria-label="Erfahrung bis zur nächsten Stufe">
-          <span style={{ width: `${(100 * h.drin) / h.noetig}%` }} />
+      {/* One status row (Oberfläche neu, 27.11.2026): level badge with its experience bar, coins, offline. */}
+      <div className="lq-stats">
+        <span
+          className="lq-stat lq-stat-stufe"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={h.noetig}
+          aria-valuenow={h.drin}
+          aria-label={`Heldenstufe ${h.stufe}, ${titel(h.stufe)}: ${h.drin} von ${h.noetig} Erfahrung bis Stufe ${h.stufe + 1}`}
+        >
+          <span className="lq-stufe-abzeichen" aria-hidden>
+            <SymbolStufe groesse={32} />
+            <b>{h.stufe}</b>
+          </span>
+          <span className="lq-xp" aria-hidden>
+            <span style={{ width: `${(100 * h.drin) / h.noetig}%` }} />
+          </span>
         </span>
-        <span className="lq-klein">
-          {h.drin} / {h.noetig} EP bis Stufe {h.stufe + 1}
-        </span>
+        <Muenzen n={daten.stand.muenzen} />
+        {offline && (
+          <span className="lq-stat lq-stat-offline" role="status" title="Offline – deine Runden werden später gesendet.">
+            <SymbolOffline groesse={28} />
+            <span className="lq-unsichtbar">Offline – deine Runden werden später gesendet.</span>
+          </span>
+        )}
       </div>
-      <Muenzen n={daten.stand.muenzen} />
-      {offline && <p className="lq-offline">Offline – deine Runden werden später gesendet.</p>}
       {menu && (
         <div className="lq-menu">
           <p>
             <strong>{daten.name}</strong> · {daten.klasse}
+          </p>
+          <p className="lq-klein">
+            Heldenstufe {h.stufe} · {titel(h.stufe)}: {h.drin} / {h.noetig} EP bis Stufe {h.stufe + 1}
           </p>
           <p className="lq-klein">
             {w.geschafft} {w.geschafft === 1 ? 'Woche' : 'Wochen'} mit Wochenziel
@@ -1596,12 +1613,6 @@ export const SternIcon = () => (
     <path fill="currentColor" d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8Z" />
   </svg>
 );
-const KarteIcon = () => (
-  <svg {...svg} strokeWidth={2.2}>
-    <path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5Z" />
-    <path d="M9 4v13.5M15 6.5V20" />
-  </svg>
-);
 const FahneIcon = () => (
   <svg {...svg} width={30} height={30} strokeWidth={2.4}>
     <path d="M6 21V4M6 4h11l-2.5 4L17 12H6" />
@@ -1614,12 +1625,6 @@ const WiederholenIcon = () => (
 );
 
 /** The tab of today's tasks: a list with a tick. */
-const AufgabenIcon = () => (
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <rect x="4" y="3.5" width="16" height="17" rx="3" />
-    <path d="m8 9 1.5 1.5L12 8M8 15.5h8M14 9.5h2" />
-  </svg>
-);
 
 /** A small picture per kind of daily task (what it counts). */
 function AufgabeIcon({ art }: { art: string }) {
