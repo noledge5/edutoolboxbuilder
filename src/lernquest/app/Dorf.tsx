@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { DORF_STUFEN, dorfStufe, gebaeudeName, istAbend, istWinter, naechsteDorfStufe, SPENDE_WOCHE, spendeMoeglich, spendeWert, type Dorf } from '../dorf';
 import { JE_VIERTEL } from '../dorfplan';
 import { DorfKarte, type DorfNeu } from '../figuren/dorf';
+import { AvatarBild } from './avatar';
 import { dorf as dorfLaden, lqText, spenden } from '../server';
 import type { Stand } from '../types';
 import { Meldung, MuenzIcon, type Aktion } from './Held';
@@ -45,10 +46,7 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
   if (gesehen.current === undefined) gesehen.current = ladeDorfGesehen(kind);
   const gerollt = useRef(false);
   // Compared during render, so a new house never shows for a moment before it pops up.
-  const jetztStand = useMemo<DorfGesehen | null>(
-    () => (d?.an ? { fertig: d.fertig.map((f) => f.gebaeude), haeuser: d.haeuser?.an ? d.haeuser.plaetze.map((p) => p.stufe) : [] } : null),
-    [d],
-  );
+  const jetztStand = useMemo<DorfGesehen | null>(() => (d?.an ? { fertig: d.fertig.map((f) => f.gebaeude), haeuser: d.haeuser?.an ? d.haeuser.plaetze.map((p) => p.stufe) : [] } : null), [d]);
   const neu = useMemo<DorfNeu>(() => (jetztStand ? dorfNeu(gesehen.current ?? null, jetztStand) : {}), [jetztStand]);
 
   // The map is taller than a phone: open it at the own plot (marked „Du“), else at the square at the bottom.
@@ -124,12 +122,11 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
           abend={istAbend(jetzt)}
           winter={istWinter(jetzt)}
           neu={neu}
+          held={<AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} lebendig />}
         />
       </div>
       <p className="lq-klein lq-dorf-stufe">
-        {naechste
-          ? `Noch ${naechste.fehlt === 1 ? '1 Gebäude' : `${naechste.fehlt} Gebäude`}, dann wird aus ${AUS[stufe]} ${WIRD[stufe + 1]}.`
-          : 'Ihr habt zusammen eine Stadt gebaut!'}
+        {naechste ? `Noch ${naechste.fehlt === 1 ? '1 Gebäude' : `${naechste.fehlt} Gebäude`}, dann wird aus ${AUS[stufe]} ${WIRD[stufe + 1]}.` : 'Ihr habt zusammen eine Stadt gebaut!'}
       </p>
       <Meldung text={msg} />
       <MeinHaus dorf={d} aktion={aktion} stand={stand} setStand={setStand} setDorf={setD} />
@@ -145,9 +142,7 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
             <span style={{ width: `${Math.min(100, (100 * p.stand) / p.ziel)}%` }} />
           </div>
           {p.belohnung && <p className="lq-klein">Wenn es fertig ist: {p.belohnung}</p>}
-          <p className="lq-klein">
-            Jede Münze für das Dorf zählt 1,5-fach. {p.helfer === 1 ? '1 Kind hat schon geholfen.' : p.helfer > 1 ? `${p.helfer} Kinder haben schon geholfen.` : ''}
-          </p>
+          <p className="lq-klein">Jede Münze für das Dorf zählt 1,5-fach. {p.helfer === 1 ? '1 Kind hat schon geholfen.' : p.helfer > 1 ? `${p.helfer} Kinder haben schon geholfen.` : ''}</p>
           {rest > 0 ? (
             <div className="lq-dorf-knoepfe">
               {[...new Set(BETRAEGE.map((b) => spendeMoeglich(b, { muenzen: stand.muenzen, woche, ziel: p.ziel, stand: p.stand })))]

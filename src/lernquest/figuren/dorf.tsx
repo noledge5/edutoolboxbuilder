@@ -28,7 +28,7 @@ import {
   wasser,
   type Pt,
 } from "../dorfplan";
-import { baum, blume, busch, glitzer, huhn, laterne, rauch, stein, wimpel } from "./dorfdeko";
+import { baum, blume, boot, busch, ente, glitzer, huhn, laterne, rauch, stein, wimpel } from "./dorfdeko";
 import type { GelaendeTeil } from "./gelaende";
 import { HAUS_GESTALTET, HAUS_HOEHE, HAUS_TEILE, hausMitGarten } from "./haeuser";
 import { BRUCH, HOLZ, isoStift, PUTZ, SCHIEFER, type Flaechen, type IsoStift } from "./iso";
@@ -629,6 +629,22 @@ const NACHT_DECKUNG = 0.45;
 /** Text longer than 10 characters is shortened (names on the teacher's map). */
 const kurz = (t: string) => (t.length > 10 ? `${t.slice(0, 9)}…` : t);
 
+/** Scale of the big community buildings on the map (Dorf 4, 27.11.2026). */
+const GEBAEUDE_MASS: Record<string, number> = { bibliothek: 0.76, baeckerei: 0.8, sternwarte: 0.84 };
+
+/** Two ducks and a boat on the water: the first spots of open water left and right of the island, always the same. */
+function wasserLeben(n: number): { p: Pt; boot?: boolean }[] {
+  const punkte = wasser(n);
+  // From the bottom (the square, seen first), left two ducks, right the boat a little higher up.
+  const links = punkte.filter((p) => p[0] < -130).sort((a, b) => b[1] - a[1]);
+  const rechts = punkte.filter((p) => p[0] > 130).sort((a, b) => b[1] - a[1]);
+  const out: { p: Pt; boot?: boolean }[] = [];
+  if (links[0]) out.push({ p: links[0] });
+  if (links[0]) out.push({ p: [links[0][0] + 16, links[0][1] + 12] });
+  if (rechts[0]) out.push({ p: rechts[0], boot: true });
+  return out;
+}
+
 /** A sign above a house: the gold „Du“ at the own plot (it bobs), or a name for the teacher. */
 function schild(p: Pt, text: string, du: boolean, key: number) {
   const t = kurz(text);
@@ -669,6 +685,7 @@ export function DorfKarte({
   abend = false,
   winter = false,
   neu,
+  held,
 }: {
   fertig: string[];
   baustelle?: string | null;
@@ -684,6 +701,8 @@ export function DorfKarte({
   /** Winter: snow (istWinter). */
   winter?: boolean;
   neu?: DorfNeu;
+  /** The viewer's own hero (an SVG drawn on 240 × 240), standing in front of the own plot. */
+  held?: ReactNode;
 }) {
   const n = anzahl(Math.max(plaetze, haeuser?.length ?? 0));
   const stufe = dorfStufe(new Set(fertig).size);
@@ -696,6 +715,7 @@ export function DorfKarte({
     ? { grund: P.schnee, hell: P.wolkeHell, tief: P.wolke, kante: P.wolkeTief }
     : { grund: P.wiese, hell: P.wieseHell, tief: P.wieseTief, kante: P.rasenTief };
   const [wegHell, wegTief] = stufe === 0 ? [P.sand, P.sandTief] : [P.pflaster, P.pflasterTief];
+  const wegLicht = stufe === 0 ? P.sandHell : P.steinHell;
   const runter = (a: Pt[], d: number) => a.map(([x, y]) => [x, y + d] as Pt);
 
   // Ground: water with glints, the island with its edge, patches of grass, the square, the road and the small squares.
@@ -721,6 +741,7 @@ export function DorfKarte({
       {wasser(n).map((p, i) => (
         <g key={i}>{glitzer(p, i, winter ? P.eisHell : P.wasserHell)}</g>
       ))}
+      {!winter && wasserLeben(n).map((w, i) => <g key={`w${i}`}>{w.boot ? boot(w.p) : ente(w.p, i % 2 === 1)}</g>)}
       <polygon points={punkte(runter(ins.umriss, 20))} fill={P.holzTief} />
       <polygon points={punkte(runter(ins.umriss, 11))} fill={P.holz} />
       <polygon points={punkte(runter(ins.umriss, 5))} fill={boden.kante} />
@@ -737,12 +758,25 @@ export function DorfKarte({
       {stufe === 3 && <path d={linienzug(weg)} fill="none" stroke={P.bruch} strokeWidth={WEG_HALB * 2 + 6} strokeLinecap="round" strokeLinejoin="round" />}
       <path d={linienzug(runter(weg, 4))} fill="none" stroke={wegTief} strokeWidth={WEG_HALB * 2} strokeLinecap="round" strokeLinejoin="round" />
       <path d={linienzug(weg)} fill="none" stroke={wegHell} strokeWidth={WEG_HALB * 2} strokeLinecap="round" strokeLinejoin="round" />
+      {/* Dorf 4: a worn, lighter track down the middle of the road, paved rings for the small squares */}
+      <path d={linienzug(weg)} fill="none" stroke={wegLicht} strokeWidth={WEG_HALB * 0.9} strokeLinecap="round" strokeLinejoin="round" opacity={0.6} />
       {ellipse([wegX(ende), ende], 36, wegTief, 4)}
       {ellipse([wegX(ende), ende], 36, wegHell)}
+      {ellipse([wegX(ende), ende], 22, wegLicht)}
       {plaetzchen(n).map((q, i) => (
         <g key={i}>
           {ellipse(q, 44, wegTief, 4)}
           {ellipse(q, 44, wegHell)}
+          {ellipse(q, 30, wegLicht)}
+          {/* a round flower bed in the middle */}
+          {ellipse(q, 15, P.wieseTief, 2)}
+          {ellipse(q, 15, P.wiese)}
+          {!winter &&
+            [
+              [-6, -2, P.rosa],
+              [5, -3, P.gelb],
+              [0, 3, P.weiss],
+            ].map(([dx, dy, f], j) => <circle key={j} cx={q[0] + (dx as number)} cy={q[1] + (dy as number)} r={2.6} fill={f as string} />)}
         </g>
       ))}
       {abend && <rect x={vx} y={vy} width={vw} height={vh} fill={P.nachtTief} opacity={NACHT_DECKUNG} />}
@@ -755,7 +789,14 @@ export function DorfKarte({
   const gebaut = new Set(fertig);
   for (const [id, o] of Object.entries(GEBAEUDE_ORT)) {
     const bau = gebaut.has(id) ? BAUTEN[id] : bauId === id ? baustelle : null;
-    dinge.push({ k: o.sy, node: bau ? bau(s, o.x, o.y) : platz(s, o.x, o.y), neu: !!bau && !!neu?.gebaeude?.includes(id) });
+    const node = bau ? bau(s, o.x, o.y) : platz(s, o.x, o.y);
+    // Dorf 4: the big buildings a little smaller, so they stand beside the children's houses, not over them.
+    const m = bau ? (GEBAEUDE_MASS[id] ?? 1) : 1;
+    dinge.push({
+      k: o.sy,
+      node: m === 1 ? node : <g transform={`translate(${o.sx} ${o.sy}) scale(${m}) translate(${-o.sx} ${-o.sy})`}>{node}</g>,
+      neu: !!bau && !!neu?.gebaeude?.includes(id),
+    });
   }
   const schilder: ReactNode[] = [];
   plots.forEach((p, i) => {
@@ -788,6 +829,21 @@ export function DorfKarte({
   if (stufe > 1) STAENDE.forEach((p, i) => dinge.push({ k: p[1], node: stand(s, p, i ? P.blau : P.rot) }));
   if (stufe > 2) dinge.push(...mauerTeile(s));
   HUEHNER.forEach((p, i) => dinge.push({ k: p[1], node: huhn(p, i % 2 === 1) }));
+  // The own hero in front of the own plot (Dorf 4): only the child's own, so no name of another child shows.
+  const meins = ich !== null && ich !== undefined ? plots[ich] : undefined;
+  if (held && meins) {
+    const w = 46;
+    const fx = meins.sx - 30;
+    const fy = meins.sy + 24;
+    dinge.push({
+      k: fy,
+      node: (
+        <svg x={fx - w / 2} y={fy - w * (230 / 240)} width={w} height={w} viewBox="0 0 240 240" overflow="visible" aria-hidden>
+          {held}
+        </svg>
+      ),
+    });
+  }
 
   const label = hinweis ? ([0, (plots[2]?.sy ?? -250) - 64] as Pt) : null;
   return (
