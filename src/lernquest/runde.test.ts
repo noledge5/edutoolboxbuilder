@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fehlgriffeFrei, istRichtig, nachAntwort, fehlgriffHinweis, serieMeilenstein, wissen, laengsteSerie, merksatz, rundenFazit, WIEDER_MAX } from './rules';
+import { fehlgriffeFrei, istRichtig, nachAntwort, fehlgriffHinweis, serieMeilenstein, wissen, laengsteSerie, merksatz, fastRichtig, rundenFazit, WIEDER_MAX } from './rules';
 import { readUebung } from './fragenpool';
 import type { Uebung } from './types';
 
@@ -99,5 +99,22 @@ describe('take-away lines', () => {
   it('leave out what a line cannot show', () => {
     expect(merksatz({ art: 'punkt', id: 'p', frage: 'Finde', bild: 'karte:x', punkte: [] })).toBeNull();
     expect(merksatz({ art: 'bild', id: 'b', frage: 'Welches Bild?', wort: 'apple', bilder: ['img:x', '🐕'], richtig: 0 })).toBeNull();
+  });
+});
+
+describe('close typed answers', () => {
+  const u = { art: 'schreiben' as const, id: 's', frage: 'Schreib auf Englisch.', aussage: 'das Buch', loesungen: ['book', 'the book'] };
+  it('say how close a typo was', () => {
+    expect(fastRichtig(u, { art: 'schreiben', text: 'bok' })).toBe(1);
+    expect(fastRichtig(u, { art: 'schreiben', text: 'Boook' })).toBe(1);
+  });
+  it('stay 0 when right, far off or empty', () => {
+    expect(fastRichtig(u, { art: 'schreiben', text: 'book' })).toBe(0);
+    expect(fastRichtig(u, { art: 'schreiben', text: 'table' })).toBe(0);
+    expect(fastRichtig(u, { art: 'schreiben', text: '' })).toBe(0);
+  });
+  it('allow two letters from eight letters on', () => {
+    const lang = { ...u, loesungen: ['classroom'] };
+    expect(fastRichtig(lang, { art: 'schreiben', text: 'clasrom' })).toBe(2);
   });
 });

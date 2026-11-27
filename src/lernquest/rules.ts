@@ -122,6 +122,28 @@ export function fehlgriffHinweis(u: Uebung, a: Antwort | null): string | null {
 /** Two answers in words are the same, as `istRichtig` compares them (case, spaces, punctuation). */
 export const gleich = (a: string, b: string) => normalize(a) === normalize(b);
 
+/** Letters to change, add or remove to turn one word into the other (Levenshtein). */
+function abstand(a: string, b: string): number {
+  let vorher = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const jetzt = [i];
+    for (let j = 1; j <= b.length; j++) jetzt[j] = Math.min(vorher[j] + 1, jetzt[j - 1] + 1, vorher[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    vorher = jetzt;
+  }
+  return vorher[b.length];
+}
+
+/** A typed answer that missed by a typo (27.11.2026): one letter off, two from eight letters on. It still counts as
+ *  wrong (spelling is what is practised); the feedback says how close it was. 0 when not close or not typed. */
+export function fastRichtig(u: Uebung, a: Antwort | null): number {
+  if (u.art !== 'schreiben' || a?.art !== 'schreiben') return 0;
+  const t = normalize(a.text);
+  if (!t) return 0;
+  const d = Math.min(...u.loesungen.map((l) => abstand(t, normalize(l))));
+  const erlaubt = Math.min(...u.loesungen.map((l) => normalize(l).length)) >= 8 ? 2 : 1;
+  return d > 0 && d <= erlaubt ? d : 0;
+}
+
 export const satz = (tiles: string[]) => tiles.join(' ').replace(/\s+([.,!?;:])/g, '$1');
 
 /** Whether an answer is right. Pairs and places allow `fehlgriffeFrei` slips. */
