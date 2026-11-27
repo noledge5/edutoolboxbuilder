@@ -61,7 +61,8 @@ import { Landkarte } from './Landkarte';
 import { EventBanner } from './EventBanner';
 import { eventFortschritt, eventLaeuft, eventPakete, readEvent } from '../event';
 import { EVENT_FARBEN } from '../figuren/fest';
-import { SymbolAufgaben, SymbolHeld, SymbolKarte, SymbolKlasse, SymbolOffline, SymbolStufe, SymbolWiederholen } from '../figuren/symbole';
+import { SymbolAufgaben, SymbolHeld, SymbolKarte, SymbolKlasse, SymbolMuenze, SymbolOffline, SymbolStufe, SymbolWiederholen } from '../figuren/symbole';
+import { Zaehler } from './Zaehler';
 import type { Wegpunkt } from './Landkarte';
 
 export type Screen =
@@ -877,11 +878,22 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         <div className="lq-kacheln-ergebnis">
           <div>
             <span>Erfahrung</span>
-            <strong className="lq-violett">+{screen.plus} EP</strong>
+            <strong className="lq-violett">
+              <SymbolStufe groesse={22} />
+              <em className="lq-wert">
+                +<Zaehler wert={screen.plus} verzoegerung={450} />
+                <small className="lq-einheit">EP</small>
+              </em>
+            </strong>
           </div>
           <div>
             <span>Münzen</span>
-            <strong className="lq-gold-zahl">+{screen.muenzenPlus + screen.aufgabenPlus}</strong>
+            <strong className="lq-gold-zahl">
+              <SymbolMuenze groesse={22} />
+              <em className="lq-wert">
+                +<Zaehler wert={screen.muenzenPlus + screen.aufgabenPlus} verzoegerung={950} klang />
+              </em>
+            </strong>
           </div>
           <div>
             <span>Woche</span>
@@ -1533,7 +1545,7 @@ function Kopf({ daten, offline, onSignOut }: { daten: Daten; offline: boolean; o
             <span style={{ width: `${(100 * h.drin) / h.noetig}%` }} />
           </span>
         </span>
-        <Muenzen n={daten.stand.muenzen} />
+        <Muenzen n={daten.stand.muenzen} zaehlen />
         {offline && (
           <span className="lq-stat lq-stat-offline" role="status" title="Offline – deine Runden werden später gesendet.">
             <SymbolOffline groesse={28} />
