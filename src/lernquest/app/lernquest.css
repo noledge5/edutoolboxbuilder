@@ -5390,3 +5390,41 @@ button.lq-teil:active {
     transform: scale(1);
   }
 }
+
+/* „Das nimmst du mit“ on the result (27.11.2026): the missed exercises with their right answers, one line each. */
+.lq-mitnehmen {
+  display: grid;
+  gap: var(--lq-a-2);
+  text-align: left;
+  width: 100%;
+}
+.lq-mitnehmen ul {
+  display: grid;
+  gap: var(--lq-a-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lq-mitnehmen li {
+  display: grid;
+  gap: var(--lq-a-1);
+  padding: var(--lq-a-2) var(--lq-a-3);
+  border-radius: var(--lq-r-klein);
+  background: var(--lq-grund);
+}
+.lq-mitnehmen li span {
+  color: var(--lq-gedaempft);
+  font-size: var(--lq-t-klein);
+}
+.lq-mitnehmen li strong {
+  color: var(--lq-ok);
+}
+.lq-ergebnis-knoepfe {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  display: grid;
+  gap: var(--lq-a-3);
+  padding: var(--lq-a-3) 0 max(var(--lq-a-3), env(safe-area-inset-bottom));
+  background: var(--lq-grund);
+}
