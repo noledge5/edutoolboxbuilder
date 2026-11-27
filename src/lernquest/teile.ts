@@ -362,6 +362,11 @@ export const MUENDER: { id: string; name: string }[] = [
   { id: 'staunen', name: 'Staunen' },
   { id: 'frech', name: 'Zunge raus' },
   { id: 'ernst', name: 'Ernst' },
+  // 27.11.2026: four more to choose freely (the server takes any mouth name, no part needed)
+  { id: 'zahnluecke', name: 'Zahnlücke' },
+  { id: 'schief', name: 'Schief' },
+  { id: 'vampir', name: 'Vampir' },
+  { id: 'zahnspange', name: 'Zahnspange' },
 ];
 
 /** Hair colours to choose freely: the first is the colour the pictures are painted in. */
