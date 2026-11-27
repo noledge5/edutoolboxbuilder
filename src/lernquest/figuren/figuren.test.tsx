@@ -89,7 +89,7 @@ describe('motion engine', () => {
     expect(transform({ drehen: 0, schieben: [0, 0], strecken: [0.9856, 1.0237] }, [120, 230])).toContain('scale(0.9856 1.0237)');
     // one breath of the hero at 60 frames a second: nearly every frame is a new shape
     const atmen = ANIMATIONEN.atmen;
-    const bilder = Array.from({ length: Math.round(atmen.dauer * 60) }, (_, i) => transform(stellung({ winkel: {} }, { animation: atmen, zeit: i / 60 }).ganz, [120, 230]));
+    const bilder = Array.from({ length: Math.round(atmen.dauer * 60) }, (_, i) => transform(stellung({ name: 'stehen', gesicht: 'froh' }, { animation: atmen, zeit: i / 60 }).ganz, [120, 230]));
     const wechsel = bilder.filter((b, i) => i > 0 && b !== bilder[i - 1]).length;
     expect(wechsel).toBeGreaterThan(bilder.length * 0.9);
   });
