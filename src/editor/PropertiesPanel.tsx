@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { ClipboardCopy, Copy, File, ListChecks, Send, Trash2, X } from 'lucide-react';
 import { BLOCK_ICONS, Icon } from '../icons';
 import { BLOCK_TYPES, SPAN_OPTIONS, type FieldDef } from '../model/blockTypes';
@@ -10,6 +10,9 @@ import type { EditorApi } from './api';
 import { AreaField, CompetenceField, IconPickerField, ImageField, IpaAreaField, NumberField, PicsField, PresetField, SegField, TextField } from './fields';
 import { ImageSearchDialog, queryFromCaption } from './ImageSearchDialog';
 import type { ImageAspect } from '../ai/images';
+import type { LucideIcon } from 'lucide-react';
+import { detectSymbol, isSymKey, SYMBOLS, symbolLabel, type SymKey } from '../sheet/symbols';
+import { SYMBOL_ICONS } from '../sheet/symbolIcons';
 
 interface PanelProps {
   api: EditorApi;
@@ -83,6 +86,37 @@ const KEY_HINTS: [string, string][] = [
   ['⌘C, ⌘V', 'in die Ablage (in der Toolbox), einfügen hinter der Auswahl, auch in einer anderen Stunde'],
 ];
 
+/** The action symbol of a task: picked from its operator, chosen, or none. Keys with the picture and its word. */
+function SymbolField({ label, value, auto, onPick }: { label: string; value: string; auto: SymKey | null; onPick(v: string): void }) {
+  const id = useId();
+  const current = value === 'none' || isSymKey(value) ? value : '';
+  const options: { v: string; l: string; icon?: LucideIcon }[] = [
+    { v: '', l: auto ? `Automatisch: ${symbolLabel(auto, 'de')}` : 'Automatisch', icon: auto ? SYMBOL_ICONS[auto] : undefined },
+    ...SYMBOLS.map((s) => ({ v: s.key, l: s.de, icon: SYMBOL_ICONS[s.key] })),
+    { v: 'none', l: 'Ohne' },
+  ];
+  return (
+    <div className="field">
+      <label id={id}>{label}</label>
+      <div className="ed-sym-grid" role="radiogroup" aria-labelledby={id}>
+        {options.map((o) => (
+          <button
+            key={o.v || 'auto'}
+            type="button"
+            role="radio"
+            aria-checked={current === o.v}
+            className={'seg-pill ed-sym-key' + (current === o.v ? ' is-on' : '') + (o.v === '' ? ' is-auto' : '')}
+            onClick={() => onPick(o.v)}
+          >
+            {o.icon && <Icon icon={o.icon} size={16} />}
+            <span>{o.l}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function PanelHead({ icon, title, close }: { icon: ReactNode; title: string; close: ReactNode }) {
   return (
     <div className="panel-head">
@@ -147,6 +181,8 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         return api.codeLocked ? <CompetenceField key={f.key} label={f.label} value={str(v)} competences={api.competences} onChange={set(f.key)} /> : null;
       case 'ipa':
         return <IpaAreaField key={f.key} label={f.label} value={str(v)} onChange={set(f.key)} />;
+      case 'symbol':
+        return <SymbolField key={f.key} label={f.label} value={str(v)} auto={detectSymbol(str(block.props.prompt), block.type)} onPick={set(f.key)} />;
       case 'pics': {
         const ids = str(v).split('\n');
         const vocab = block.type === 'vocab';

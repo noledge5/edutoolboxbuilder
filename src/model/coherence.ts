@@ -4,13 +4,14 @@
 // words in a Merksatz the class has not met on the sheets before.
 import { BLOCK_TYPES } from './blockTypes';
 import { rows, str } from './text';
+import { hasOperator } from '../sheet/symbols';
 import type { Block, Doc } from './types';
 
 export interface CoherenceFinding {
   blockId: string | null;
   /** "S2.4": page 2, block 4; empty for the lesson as a whole. */
   ref: string;
-  kind: 'material' | 'reihenfolge' | 'unbenutzt' | 'doppelt' | 'abwechslung' | 'lernweg' | 'merksatz';
+  kind: 'material' | 'reihenfolge' | 'unbenutzt' | 'doppelt' | 'abwechslung' | 'lernweg' | 'merksatz' | 'operator';
   problem: string;
 }
 
@@ -22,6 +23,7 @@ export const COHERENCE_KINDS: Record<CoherenceFinding['kind'], string> = {
   abwechslung: 'Abwechslung',
   lernweg: 'Lernweg',
   merksatz: 'Merksatz',
+  operator: 'Operator',
 };
 
 /** Lower case, letters and digits only: "Wärme-Strahlung!" → "wärme strahlung". */
@@ -113,6 +115,13 @@ export function coherence(doc: Doc): CoherenceFinding[] {
   for (const x of paths) {
     const unknown = materialRefs(rows(x.block.props.steps).map((r) => r[0] ?? '').join(' ')).filter((n) => !where.has(n));
     if (unknown.length) out.push({ blockId: x.block.id, ref: x.ref, kind: 'lernweg', problem: `Der Lernweg nennt ${unknown.join(', ')}, aber auf den Blättern gibt es dieses Material nicht.` });
+  }
+  // Every instruction says what to do with an operator (Beschreibe, Begründe, Ordne zu …); the symbol of the task comes from it.
+  for (const x of student) {
+    if (!BLOCK_TYPES[x.block.type].task) continue;
+    const prompt = str(x.block.props.prompt).trim();
+    if (prompt && !hasOperator(prompt))
+      out.push({ blockId: x.block.id, ref: x.ref, kind: 'operator', problem: 'Der Auftrag nennt keinen Operator. Beginne mit einem Verb, das sagt, was zu tun ist (z. B. Beschreibe, Begründe, Ordne zu); daraus nimmt der Baukasten auch das Symbol.' });
   }
   return out;
 }

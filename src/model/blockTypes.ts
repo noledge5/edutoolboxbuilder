@@ -9,6 +9,8 @@ export type FieldDef = (
   | { key: string; label: string; kind: 'text' | 'area' | 'variant' | 'image' | 'competence' }
   /** Multi-line text with a row of IPA characters to insert (vocabulary). */
   | { key: string; label: string; kind: 'ipa' }
+  /** The action symbol of a task (src/sheet/symbols.ts): "" picks it from the instruction, "none" shows none. */
+  | { key: string; label: string; kind: 'symbol' }
   | { key: string; label: string; kind: 'number'; min: number; max: number }
   | { key: string; label: string; kind: 'seg'; options: SegOption<string>[] }
   /** One picture per line of the prop named in `of`; the prop holds the image ids, one per line. */
@@ -44,8 +46,22 @@ export const HOOK_KINDS: SegOption<string>[] = [
   { v: 'vorwissen', l: 'Vorwissen' },
 ];
 
-/** Fields every task has: German help, level stars, points (content and language), competence and a tip card. */
+/** Fields every task has: its symbol and social form, German help, level stars, points (content and language), competence and a tip card. */
 const TASK_FIELDS: FieldDef[] = [
+  { key: 'sym', label: 'Symbol (zeigt, was die Klasse tut)', kind: 'symbol' },
+  {
+    key: 'form',
+    label: 'Sozialform (als Symbol unter der Nummer)',
+    kind: 'seg',
+    options: [
+      { v: '', l: 'Automatisch' },
+      { v: 'allein', l: 'allein' },
+      { v: 'partner', l: 'zu zweit' },
+      { v: 'gruppe', l: 'Gruppe' },
+      { v: 'klasse', l: 'Klasse' },
+      { v: 'none', l: 'Ohne' },
+    ],
+  },
   {
     key: 'level',
     label: 'Niveau',
@@ -63,7 +79,7 @@ const TASK_FIELDS: FieldDef[] = [
   { key: 'tip', label: 'Tipp (erscheint auf den Tippkarten)', kind: 'area' },
 ];
 const HELP_FIELD: FieldDef = { key: 'help', label: 'Deutsche Hilfe (klein unter dem Auftrag)', kind: 'area', when: 'en' };
-const TASK_DEFAULTS = { help: '', level: '', points: 0, langPoints: 0, competence: '', tip: '' };
+const TASK_DEFAULTS = { help: '', sym: '', form: '', level: '', points: 0, langPoints: 0, competence: '', tip: '' };
 
 /** A task's fields: its own (the instruction first), the German help right after the instruction, then the common ones. */
 const taskFields = ([prompt, ...rest]: FieldDef[]): FieldDef[] => [prompt, HELP_FIELD, ...rest, ...TASK_FIELDS];

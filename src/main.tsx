@@ -55,6 +55,7 @@ import './sheet/sheet.css';
 import './slides/slides.css';
 import './sheet/fachdesigns.css';
 import './sheet/faecher.css';
+import './sheet/blatt.css';
 import './styles/app.css';
 import './library/library.css';
 import './ui/controls.css';

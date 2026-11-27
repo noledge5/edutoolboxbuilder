@@ -1,17 +1,19 @@
 // Printable A4 pages of a module: content overview (Inhaltsübersicht) and competence grid (Kompetenzraster).
 // They use the worksheet's header and footer bands, so they match the lesson material.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft, Lightbulb, Printer } from 'lucide-react';
 import { Icon } from '../icons';
 import type { Doc, Page } from '../model/types';
 import { lookFor, sheetLookFor } from '../model/look';
 import { THEMES } from '../model/themes';
 import { PAGE_H, PAGE_W, SheetPage } from '../sheet/SheetPage';
 import { topicIcon } from '../topicIcons';
+import { FORMS, SYMBOLS } from '../sheet/symbols';
+import { FORM_ICONS, SYMBOL_ICONS } from '../sheet/symbolIcons';
 import { competenceLessons, competenceLinks, footerFor, isWorkedOut, moduleCode } from './model';
 import type { Competence, Lesson, Module, Settings } from './types';
 
-export type PrintKind = 'inhalt' | 'raster';
+export type PrintKind = 'inhalt' | 'raster' | 'symbole';
 
 const LEVELS = [
   { key: 'g', short: 'G', label: 'grundlegend', stars: 1 },
@@ -43,6 +45,8 @@ export function ModulePages({ kind, module: m, lessons, settings, scale = 1 }: M
   };
   const kicker = `Klasse ${m.grade} · ${m.subject} · Modul ${m.number}`;
   const links = competenceLinks(lessons);
+
+  if (kind === 'symbole') return <SymbolCard module={m} doc={doc} scale={scale} />;
 
   if (kind === 'inhalt') {
     const page: Page = {
@@ -331,6 +335,71 @@ function MeasuredPages<T>(p: { items: T[]; estimate(item: T): number; heading?(i
   );
 }
 
+/** The symbols of the worksheets explained, for the class's folder (once per class, in the language of the module). */
+function SymbolCard({ module: m, doc, scale }: { module: Module; doc: Doc; scale: number }) {
+  const en = m.lang === 'en';
+  const page: Page = {
+    title: en ? 'Our symbols' : 'Unsere Symbole',
+    kicker: en ? `Class ${m.grade} · ${m.subject}` : `Klasse ${m.grade} · ${m.subject}`,
+    type: 'uebung',
+    form: 'allein',
+    nameField: 'aus',
+    blocks: [],
+  };
+  const lang = en ? 'en' : 'de';
+  return (
+    <PrintFrame scale={scale}>
+      <SheetPage doc={{ ...doc, lang }} page={page} index={0} editing={false} hideForm>
+        <div className="ws-full ws-symcard">
+          <p className="ws-symcard-lead">
+            {en
+              ? 'Next to every task a symbol shows what you do. Always read the task too: it says exactly what to do.'
+              : 'Neben jeder Aufgabe zeigt ein Symbol, was du tust. Lies trotzdem immer den Auftrag: Er sagt genau, was zu tun ist.'}
+          </p>
+          <div className="ws-symcard-grid">
+            {SYMBOLS.map((s) => (
+              <div key={s.key} className="ws-symcard-row">
+                <span className="ws-sym">
+                  <Icon icon={SYMBOL_ICONS[s.key]} size={24} />
+                </span>
+                <span>
+                  <b>{s[lang]}</b>
+                  <small>{s.examples[lang]}</small>
+                </span>
+              </div>
+            ))}
+          </div>
+          <h2 className="ws-h3 ws-symcard-h">{en ? 'Who with?' : 'Mit wem?'}</h2>
+          <div className="ws-symcard-grid">
+            {FORMS.map((f) => (
+              <div key={f.key} className="ws-symcard-row">
+                <span className="ws-sym is-form">
+                  <Icon icon={FORM_ICONS[f.key]} size={24} />
+                </span>
+                <span>
+                  <b>{f[lang]}</b>
+                </span>
+              </div>
+            ))}
+          </div>
+          <h2 className="ws-h3 ws-symcard-h">{en ? 'Help' : 'Hilfe'}</h2>
+          <div className="ws-symcard-grid">
+            <div className="ws-symcard-row">
+              <span className="ws-sym">
+                <Icon icon={Lightbulb} size={24} />
+              </span>
+              <span>
+                <b>{en ? 'Tip card' : 'Tippkarte'}</b>
+                <small>{en ? 'There is a tip for this task.' : 'Zu dieser Aufgabe gibt es einen Tipp.'}</small>
+              </span>
+            </div>
+          </div>
+        </div>
+      </SheetPage>
+    </PrintFrame>
+  );
+}
+
 /** Same frame as the editor's pages, so print.css prints exactly one A4 page per sheet. */
 export function PrintFrame({ children, scale = 1 }: { children: ReactNode; scale?: number }) {
   return (
@@ -373,7 +442,7 @@ interface ModulePrintProps extends ModulePagesProps {
 
 /** Full-screen print preview of a module overview page, with "Drucken / PDF". */
 export function ModulePrint({ onClose, ...pages }: ModulePrintProps) {
-  const title = pages.kind === 'inhalt' ? 'Inhaltsübersicht' : 'Kompetenzraster';
+  const title = pages.kind === 'inhalt' ? 'Inhaltsübersicht' : pages.kind === 'symbole' ? 'Symbolkarte' : 'Kompetenzraster';
   return (
     <div className="app is-preview">
       <header className="topbar" data-noprint="1">

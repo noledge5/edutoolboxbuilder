@@ -6,7 +6,6 @@
 //   #/jahresplan?fach=…&klasse=…   year plan of a subject and grade
 //   #/auswertung/<id>              results of a task handed out digitally
 //   #/lernquest                    Lernquest: classes, unlocking lessons, progress
-//   #/entwuerfe                    designs for the worksheets to choose from (redesign stage 5, temporary)
 //   #/koppeln/<code>               pairing link of the automatic sync (opens the overview with the sync dialog)
 import { useSyncExternalStore } from 'react';
 
@@ -17,8 +16,6 @@ export type Route =
   | { view: 'slides'; id: string }
   | { view: 'results'; id: string }
   | { view: 'lernquest' }
-  /** Stage 5 of the redesign: designs for the worksheets to choose from (temporary). */
-  | { view: 'entwuerfe' }
   | { view: 'plan'; subject: string; grade: number };
 
 export function parseRoute(hash: string): Route {
@@ -29,7 +26,6 @@ export function parseRoute(hash: string): Route {
   if (parts[0] === 'folien' && parts[1]) return { view: 'slides', id: parts[1] };
   if (parts[0] === 'auswertung' && parts[1]) return { view: 'results', id: parts[1] };
   if (parts[0] === 'lernquest') return { view: 'lernquest' };
-  if (parts[0] === 'entwuerfe') return { view: 'entwuerfe' };
   if (parts[0] === 'koppeln' && parts[1]) return { view: 'overview', pair: parts[1] };
   const q = new URLSearchParams(query);
   const grade = Number(q.get('klasse'));
@@ -43,7 +39,6 @@ export function routeHash(r: Route): string {
   if (r.view === 'slides') return `#/folien/${encodeURIComponent(r.id)}`;
   if (r.view === 'results') return `#/auswertung/${encodeURIComponent(r.id)}`;
   if (r.view === 'lernquest') return '#/lernquest';
-  if (r.view === 'entwuerfe') return '#/entwuerfe';
   const q = new URLSearchParams();
   if (r.subject) q.set('fach', r.subject);
   if (r.grade) q.set('klasse', String(r.grade));

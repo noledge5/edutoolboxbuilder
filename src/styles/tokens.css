@@ -159,6 +159,10 @@
   --font-heading: "Caprasimo", system-ui, sans-serif;
   --font-heading-weight: 400;
   --font-body: "Figtree", system-ui, sans-serif;
+  /* The worksheet as part of the Baukasten (src/sheet/blatt.css): titles, labels and the lesson code in the app's faces. */
+  --font-title: "Schibsted Grotesk", var(--font-body);
+  --font-label: "Instrument Sans", var(--font-body);
+  --font-code: "DM Mono", ui-monospace, monospace;
 
   --space-1: 4.4px;
   --space-2: 8.8px;

@@ -108,6 +108,10 @@
 /* Choices as a tidy grid of keys instead of ragged rows. */
 .ed-panel .seg-pills { display: grid; grid-template-columns: repeat(var(--seg-cols, 2), minmax(0, 1fr)); gap: 8px; }
 .ed-panel .seg-pill { justify-content: center; padding: 4px 8px; text-align: center; }
+/* The symbol of a task: keys with the picture and its word, three to a row; "Automatisch" across. */
+.ed-sym-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ed-panel .ed-sym-key { display: flex; align-items: center; min-height: 56px; flex-direction: column; justify-content: center; gap: 4px; padding: 8px 4px; font-size: 12px; line-height: 1.2; text-align: center; }
+.ed-panel .ed-sym-key.is-auto { grid-column: 1 / -1; min-height: 40px; flex-direction: row; gap: 8px; }
 .ed-block-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .ed-block-actions .ui-btn { min-height: 40px; justify-content: flex-start; padding-inline: 12px; white-space: normal; text-align: left; }
 .ed-panel .panel-help { color: var(--ui-ink-2); font-size: 13.5px; line-height: 1.5; }

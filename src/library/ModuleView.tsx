@@ -14,6 +14,7 @@ import {
   PackageOpen,
   Plus,
   Printer,
+  Shapes,
   Shuffle,
   SlidersHorizontal,
   Sparkles,
@@ -167,6 +168,11 @@ export function ModuleView(p: ModuleViewProps) {
                     label: 'Kompetenzraster',
                     icon: Table,
                     onClick: () => setPrinting('raster'),
+                  },
+                  {
+                    label: 'Symbolkarte für die Klasse',
+                    icon: Shapes,
+                    onClick: () => setPrinting('symbole'),
                   },
                 ]}
               />

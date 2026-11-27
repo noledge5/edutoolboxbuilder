@@ -38,7 +38,7 @@ describe('coherence', () => {
   });
 
   it('flags a number used twice', () => {
-    const d = doc(page([b('text', { mat: 'M1' }), b('image', { mat: 'm 1' }), b('open', { prompt: 'M1' })]));
+    const d = doc(page([b('text', { mat: 'M1' }), b('image', { mat: 'm 1' }), b('open', { prompt: 'Lies M1.' })]));
     expect(kinds(d)).toEqual(['doppelt S1.2']);
   });
 
@@ -46,16 +46,16 @@ describe('coherence', () => {
     const d = doc(
       page([
         b('text', { mat: 'M1' }),
-        b('gap', { prompt: 'M1' }),
-        b('gap', { prompt: 'M1' }),
-        b('open', { prompt: 'M1' }),
-        b('open', { prompt: 'M1' }),
+        b('gap', { prompt: 'Lies M1.' }),
+        b('gap', { prompt: 'Lies M1.' }),
+        b('open', { prompt: 'Lies M1.' }),
+        b('open', { prompt: 'Lies M1.' }),
         b('heading'),
-        b('open', { prompt: 'M1' }),
+        b('open', { prompt: 'Lies M1.' }),
       ]),
     );
     expect(kinds(d)).toEqual(['abwechslung S1.3', 'abwechslung S1.7']);
-    const halves = doc(page([b('text', { mat: 'M1' }), b('gap', { prompt: 'M1' }, 6), b('gap', { prompt: 'M1' }, 6), b('mc', { prompt: 'M1' })]));
+    const halves = doc(page([b('text', { mat: 'M1' }), b('gap', { prompt: 'Lies M1.' }, 6), b('gap', { prompt: 'Lies M1.' }, 6), b('mc', { prompt: 'Lies M1.' })]));
     expect(kinds(halves)).toEqual([]);
   });
 
@@ -65,13 +65,13 @@ describe('coherence', () => {
   });
 
   it('checks the learning path: missing on the teacher page, unknown material', () => {
-    expect(kinds(doc(page([b('goal')], 'lehrkraft'), page([b('text', { mat: 'M1' }), b('open', { prompt: 'M1' })])))).toEqual(['lernweg ']);
-    const d = doc(page([b('path', { steps: 'M1, M5 | … | Aufgabe 1 | …' })], 'lehrkraft'), page([b('text', { mat: 'M1' }), b('open', { prompt: 'M1' })]));
+    expect(kinds(doc(page([b('goal')], 'lehrkraft'), page([b('text', { mat: 'M1' }), b('open', { prompt: 'Lies M1.' })])))).toEqual(['lernweg ']);
+    const d = doc(page([b('path', { steps: 'M1, M5 | … | Aufgabe 1 | …' })], 'lehrkraft'), page([b('text', { mat: 'M1' }), b('open', { prompt: 'Lies M1.' })]));
     expect(kinds(d)).toEqual(['lernweg S1.1']);
   });
 
   it('ignores material numbers on teacher pages', () => {
-    const d = doc(page([b('text', { mat: 'M1' }), b('path', { steps: 'M1 | … | … | …' })], 'lehrkraft'), page([b('open', { prompt: 'M1' })]));
+    const d = doc(page([b('text', { mat: 'M1' }), b('path', { steps: 'M1 | … | … | …' })], 'lehrkraft'), page([b('open', { prompt: 'Lies M1.' })]));
     expect(kinds(d)).toEqual(['material S2.1', 'lernweg S1.2']);
   });
 
@@ -84,5 +84,13 @@ describe('coherence', () => {
       ]),
     );
     expect(coherence(d).map((f) => [f.kind, f.problem.slice(0, 13)])).toEqual([['merksatz', '„Absorption“ ']]);
+  });
+
+  it('names tasks whose instruction says no operator, on student pages only', () => {
+    const d = doc(
+      page([b('open', { prompt: 'Warum, glaubt ihr, war das so?' })], 'lehrkraft'),
+      page([b('open', { prompt: 'Warum, glaubt ihr, war das so?' }), b('mc', { prompt: 'Wie hat sich der CO₂-Gehalt entwickelt?' }), b('open', { prompt: 'Begründe deine Vermutung.' }), b('text', { text: 'Info' })]),
+    );
+    expect(kinds(d)).toEqual(['lernweg ', 'operator S2.1', 'operator S2.2']);
   });
 });
