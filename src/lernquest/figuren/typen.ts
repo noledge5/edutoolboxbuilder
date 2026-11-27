@@ -100,6 +100,10 @@ export interface Item {
   haube?: boolean;
   /** Worn on the forehead (a headband): on the hero it sits low like a hat's brim but cuts no hair. */
   stirn?: boolean;
+  /** Hats: the width (item units) of the part that rests on the head – the band, the crown above a brim, a helmet's
+   *  dome. The hero scales it to the width of its head (crowns to about 85 %), so brims and feathers may stick out
+   *  (27.11.2026: by the whole drawing, many hats came out narrower than the head). */
+  weite?: number;
   /** View box of the item alone (for the icon): x, y, width, height around the anchor. */
   rahmen: readonly [number, number, number, number];
   /** Draws differently over time (a flame, a sparkle): icons of it run a clock. */

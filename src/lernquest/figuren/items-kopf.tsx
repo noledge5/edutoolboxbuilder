@@ -21,6 +21,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 1,
     rahmen: [-46, -66, 92, 76],
+    weite: 87,
     zeichnung: () => (
       <g>
         <path d="M-36 -4 Q-40 -42 0 -44 Q40 -42 36 -4 Z" {...flaeche(P.rot)} />
@@ -57,6 +58,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 1,
     rahmen: [-60, -62, 120, 106],
+    weite: 79,
     zeichnung: () => (
       <g>
         <path d="M-6 -44 Q10 -66 28 -56 Q14 -54 8 -42 Z" {...flaeche(P.rot, 2.5)} />
@@ -76,6 +78,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 2,
     rahmen: [-58, -50, 116, 64],
+    weite: 70,
     zeichnung: () => (
       <g>
         <ellipse cx={0} cy={4} rx={56} ry={11} {...flaeche(P.sandTief)} />
@@ -93,6 +96,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 2,
     rahmen: [-60, -50, 120, 60],
+    weite: 100,
     zeichnung: () => (
       <g>
         <Flaeche d="M-56 8 L-46 -26 Q-22 -38 0 -34 Q22 -38 46 -26 L56 8 Q30 -4 0 -3 Q-30 -4 -56 8 Z" farbe={P.dunkel} hell={P.dunkelHell} />
@@ -112,6 +116,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 1,
     rahmen: [-44, -50, 106, 64],
+    weite: 82,
     zeichnung: () => (
       <g>
         <path d="M-40 6 Q-44 -38 0 -42 Q44 -38 40 6 Z" {...flaeche(P.blau)} />
@@ -131,6 +136,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 2,
     rahmen: [-66, -60, 132, 76],
+    weite: 81,
     zeichnung: () => (
       <g>
         {/* two horns, the left one mirrored: cream with a darker edge lower right */}
@@ -154,6 +160,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 1,
     rahmen: [-52, -66, 104, 76],
+    weite: 66,
     zeichnung: () => (
       <g>
         {/* Toque: a tall column with three puffs on top, a band below. White things are drawn in `wolke` (pale grey)
@@ -176,6 +183,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 1,
     rahmen: [-62, -48, 124, 62],
+    weite: 75,
     zeichnung: () => (
       <g>
         <path d="M-60 -6 Q-54 -18 -36 -8 Q0 2 36 -8 Q54 -18 60 -6 Q52 12 0 11 Q-52 12 -60 -6 Z" {...flaeche(P.leder)} />
@@ -194,6 +202,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 3,
     rahmen: [-46, -74, 98, 88],
+    weite: 80,
     zeichnung: () => (
       <g>
         <path d="M26 -34 Q28 -48 32 -58" {...GEIST} stroke={P.metallTief} strokeWidth={6} />
@@ -214,6 +223,7 @@ export const KOPF_ITEMS: Item[] = [
     seltenheit: 4,
     bewegt: true,
     rahmen: [-42, -66, 84, 80],
+    weite: 73,
     zeichnung: (zeit) => (
       <g>
         <path d="M-32 -4 L-28 -32 L-14 -14 L0 -60 L14 -14 L28 -32 L32 -4 Z" {...flaeche(P.eis)} />
@@ -234,6 +244,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 3,
     rahmen: [-50, -76, 100, 92],
+    weite: 85,
     zeichnung: () => (
       <g>
         {/* red plume behind */}
@@ -255,6 +266,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 2,
     rahmen: [-66, -56, 132, 108],
+    weite: 106,
     zeichnung: () => (
       <g>
         {/* headset: band behind the helmet, two ear cups */}
@@ -277,6 +289,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 1,
     rahmen: [-48, -46, 96, 56],
+    weite: 78,
     zeichnung: () => (
       <g transform="rotate(-8)">
         <path d="M2 -38 L4 -47" {...GEIST} stroke={P.blauTief} strokeWidth={6} />
@@ -294,6 +307,7 @@ export const KOPF_ITEMS: Item[] = [
     seltenheit: 2,
     bewegt: true,
     rahmen: [-46, -70, 92, 80],
+    weite: 79,
     zeichnung: (zeit) => {
       // The propeller turns: its blade gets short and long (seen from the side).
       const k = Math.cos(zeit * 14);
@@ -317,6 +331,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 3,
     rahmen: [-56, -54, 112, 68],
+    weite: 72,
     zeichnung: () => (
       <g>
         {/* Deerstalker: a low dome with a big peak front and back, a few broad check stripes, a bow on top */}
@@ -338,6 +353,7 @@ export const KOPF_ITEMS: Item[] = [
     seltenheit: 4,
     bewegt: true,
     rahmen: [-50, -92, 100, 100],
+    weite: 83,
     zeichnung: (zeit) => {
       const federn: [number, string][] = [
         [-44, P.rot],
@@ -367,6 +383,7 @@ export const KOPF_ITEMS: Item[] = [
     seltenheit: 5,
     bewegt: true,
     rahmen: [-56, -76, 112, 86],
+    weite: 68,
     zeichnung: (zeit) => {
       const f = (k: number) => 1 + Math.sin(zeit * 8 + k) * 0.08;
       return (
@@ -398,6 +415,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 1,
     rahmen: [-56, -58, 112, 70],
+    weite: 90,
     zeichnung: () => (
       <g>
         {/* Toadstool: a wide red cap over a pale rim, three big white dots */}
@@ -418,6 +436,7 @@ export const KOPF_ITEMS: Item[] = [
     seltenheit: 2,
     bewegt: true,
     rahmen: [-54, -84, 108, 110],
+    weite: 83,
     zeichnung: (zeit) => {
       // An alien headband: a band over the hair, two antennae that wobble a little, green bobbles on top.
       const w = Math.sin(zeit * 3) * 5;
@@ -443,6 +462,7 @@ export const KOPF_ITEMS: Item[] = [
     haube: true,
     seltenheit: 3,
     rahmen: [-50, -52, 100, 68],
+    weite: 76,
     zeichnung: () => (
       <g>
         {/* White crown, wider at the top, a navy band, a black peak and a gold badge with an anchor */}
@@ -464,6 +484,7 @@ export const KOPF_ITEMS: Item[] = [
     seltenheit: 4,
     bewegt: true,
     rahmen: [-64, -54, 128, 126],
+    weite: 96,
     zeichnung: (zeit) => (
       <g>
         {/* Nemes: gold cloth with blue stripes over the head, a flap down beside each cheek, a cobra on the brow */}
@@ -491,6 +512,7 @@ export const KOPF_ITEMS: Item[] = [
     seltenheit: 5,
     bewegt: true,
     rahmen: [-50, -94, 100, 106],
+    weite: 77,
     zeichnung: (zeit) => {
       // A crown of black volcanic stone on a gold band: the cracks glow, a flame burns on each point.
       const f = (k: number) => (1 + Math.sin(zeit * 9 + k) * 0.12).toFixed(3);

@@ -25,6 +25,7 @@ const GRUND: Item[] = [
     haube: true,
     seltenheit: 1,
     rahmen: [-44, -56, 90, 68],
+    weite: 62,
     zeichnung: () => (
       <g>
         <path d="M18 -10 Q42 -38 31 -54 Q23 -32 12 -14 Z" {...flaeche(P.rot, 2.5)} />
@@ -42,6 +43,7 @@ const GRUND: Item[] = [
     platz: 'hut',
     seltenheit: 1,
     rahmen: [-50, -30, 100, 42],
+    weite: 84,
     zeichnung: () => (
       <g>
         {rohr('M-44 4 Q0 -18 44 4', 10, P.gruen)}
@@ -65,6 +67,7 @@ const GRUND: Item[] = [
     haube: true,
     seltenheit: 3,
     rahmen: [-40, -62, 80, 74],
+    weite: 68,
     zeichnung: () => (
       <g>
         <path d="M-2 -44 Q8 -62 24 -56 Q12 -52 6 -42 Z" {...flaeche(P.rot, 2.5)} />
@@ -84,6 +87,7 @@ const GRUND: Item[] = [
     seltenheit: 3,
     bewegt: true,
     rahmen: [-48, -70, 96, 82],
+    weite: 66,
     zeichnung: (zeit) => (
       <g>
         <path d="M-32 2 L-2 -54 Q6 -66 16 -62 Q8 -58 6 -50 L34 2 Z" {...flaeche(P.lila)} />
@@ -102,6 +106,7 @@ const GRUND: Item[] = [
     seltenheit: 4,
     bewegt: true,
     rahmen: [-38, -42, 76, 50],
+    weite: 64,
     zeichnung: (zeit) => (
       <g>
         <path d="M-30 4 L-33 -26 L-15 -9 L0 -34 L15 -9 L33 -26 L30 4 Z" {...flaeche(P.gold)} />
