@@ -629,6 +629,16 @@ const NACHT_DECKUNG = 0.45;
 /** Text longer than 10 characters is shortened (names on the teacher's map). */
 const kurz = (t: string) => (t.length > 10 ? `${t.slice(0, 9)}…` : t);
 
+/** Rocks in the shallow water along the lower half of the shore, always the same for the same island. */
+function ufersteine(kueste: Pt[]): Pt[] {
+  const unten = Math.max(...kueste.map((p) => p[1]));
+  const oben = Math.min(...kueste.map((p) => p[1]));
+  const mitte = (oben + unten) / 2;
+  return kueste
+    .filter((p, i) => i % 9 === 4 && p[1] > mitte - 200)
+    .map(([x, y]) => [x + (x > 0 ? 16 : -16), y + 30] as Pt);
+}
+
 /** Scale of the big community buildings on the map (Dorf 4, 27.11.2026). */
 const GEBAEUDE_MASS: Record<string, number> = { bibliothek: 0.76, baeckerei: 0.8, sternwarte: 0.84 };
 
@@ -745,8 +755,16 @@ export function DorfKarte({
         <g key={i}>{glitzer(p, i, winter ? P.eisHell : P.wasserHell)}</g>
       ))}
       {!winter && wasserLeben(n).map((w, i) => <g key={`w${i}`}>{w.boot ? boot(w.p) : ente(w.p, i % 2 === 1)}</g>)}
-      <polygon points={punkte(runter(ins.umriss, 20))} fill={P.holzTief} />
-      <polygon points={punkte(runter(ins.umriss, 11))} fill={P.holz} />
+      {/* Dorf 4 (27.11.2026): shallow water and broken foam round the shore, a cliff of earth in three layers instead
+          of a board edge, a few rocks in the water. */}
+      <polygon points={punkte(runter(ins.umriss, 16))} fill="none" stroke={winter ? P.eis : P.wasserHell} strokeWidth={34} strokeLinejoin="round" opacity={0.55} />
+      <polygon points={punkte(runter(ins.umriss, 24))} fill="none" stroke={winter ? P.eisHell : P.weiss} strokeWidth={6} strokeLinejoin="round" strokeLinecap="round" strokeDasharray="16 12" opacity={0.6} />
+      {ufersteine(ins.umriss).map((p, i) => (
+        <g key={`u${i}`}>{stein(p, 0.9 + (i % 3) * 0.2)}</g>
+      ))}
+      <polygon points={punkte(runter(ins.umriss, 26))} fill={P.lederTief} />
+      <polygon points={punkte(runter(ins.umriss, 17))} fill={P.leder} />
+      <polygon points={punkte(runter(ins.umriss, 10))} fill={P.holz} />
       <polygon points={punkte(runter(ins.umriss, 5))} fill={boden.kante} />
       <polygon points={punkte(ins.umriss)} fill={boden.grund} />
       {flecken}
