@@ -531,6 +531,55 @@ export function wissen(leitner: Stand['leitner'], gueltig?: Set<string>): { sitz
   return w;
 }
 
+// — Badges (27.11.2026): learning behaviour made visible – days, cards that sit, stars, perfect rounds, stations,
+// parts, level – each in bronze, silver and gold. Only what the Spielstand already holds, no server. —
+
+export interface Abzeichen {
+  id: 'fleiss' | 'gedaechtnis' | 'sterne' | 'perfekt' | 'entdecker' | 'sammler' | 'aufsteiger';
+  name: string;
+  /** What is counted, as it follows a number („10 von 30 Lerntage“). */
+  was: string;
+  /** Bronze, silver, gold. */
+  stufen: [number, number, number];
+}
+export const ABZEICHEN: Abzeichen[] = [
+  { id: 'fleiss', name: 'Fleißig', was: 'Lerntage', stufen: [3, 10, 30] },
+  { id: 'gedaechtnis', name: 'Gedächtnis', was: 'Aufgaben sitzen', stufen: [10, 40, 120] },
+  { id: 'sterne', name: 'Sternensammler', was: 'Sterne', stufen: [5, 20, 50] },
+  { id: 'perfekt', name: 'Fehlerfrei', was: 'perfekte Runden', stufen: [1, 5, 15] },
+  { id: 'entdecker', name: 'Entdecker', was: 'Stationen mit Stern', stufen: [2, 8, 20] },
+  { id: 'sammler', name: 'Sammler', was: 'Teile', stufen: [5, 15, 35] },
+  { id: 'aufsteiger', name: 'Aufsteiger', was: 'Heldenstufe', stufen: [3, 8, 16] },
+];
+export const ABZEICHEN_STUFEN = ['Bronze', 'Silber', 'Gold'] as const;
+
+/** The counts behind the badges. `pakete`: the stations the child has (for stars and stations). */
+export function abzeichenWerte(s: Stand, pakete: { stunde: string; uebungen: Uebung[] }[]): Record<Abzeichen['id'], number> {
+  const sterneJe = pakete.map((p) => sterneVon(s, p));
+  return {
+    fleiss: new Set(s.tage).size,
+    gedaechtnis: wissen(s.leitner).sitzt,
+    sterne: sterneJe.reduce((a, b) => a + b, 0),
+    perfekt: Object.values(s.bestwerte)
+      .flat()
+      .filter((w) => w >= 100).length,
+    entdecker: sterneJe.filter((n) => n > 0).length,
+    sammler: s.inventar.length,
+    aufsteiger: heldenstufe(s.xp).stufe,
+  };
+}
+
+/** 0 (none yet), 1 bronze, 2 silver, 3 gold. */
+export const abzeichenStufe = (a: Abzeichen, wert: number) => a.stufen.filter((g) => wert >= g).length;
+
+/** Badges that reached a higher tier between two counts (for the result of a round). */
+export function neueAbzeichen(vorher: Record<Abzeichen['id'], number>, nachher: Record<Abzeichen['id'], number>): { id: Abzeichen['id']; stufe: number }[] {
+  return ABZEICHEN.flatMap((a) => {
+    const stufe = abzeichenStufe(a, nachher[a.id]);
+    return stufe > abzeichenStufe(a, vorher[a.id]) ? [{ id: a.id, stufe }] : [];
+  });
+}
+
 /** Most cards of „Wiederholen“ a day, two rounds (teacher 20.11.2026). What is left waits for the next days, so it
  *  never piles up for the child, also after days without practice. */
 export const WDH_TAG = 16;

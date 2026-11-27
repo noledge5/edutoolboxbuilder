@@ -1,0 +1,30 @@
+# Lernquest-Logbuch
+
+Was an Lernquest gebaut wurde, Schritt für Schritt: was, warum, wie geprüft, PR und Sicherung. Neue Einträge oben.
+Vor größeren Änderungen steht ein Git-Tag `backup/<datum>-<thema>` auf dem Stand von `main` davor; zurück geht es mit
+`git checkout <tag>` (ansehen) oder einem Revert des PRs.
+
+Prüfung bei jedem Schritt: `npx vitest run`, `npm run typecheck`, `npm run build`, `npm run rundgang` (bei laufendem
+`npm run spieltest` oder `npm run demo` mit `LQ_URL`) auf Handy, kleinem Handy, iPad hoch und quer und am Beamer, und
+Bildschirmfotos, die angesehen wurden.
+
+## 27.11.2026, abends (eigenständig, mit Erlaubnis für PRs und Merges)
+
+### Abzeichen (PR folgt)
+- **Was:** sieben Abzeichen mit Bronze, Silber und Gold – Fleißig (Lerntage), Gedächtnis (Aufgaben, die sitzen),
+  Sternensammler, Fehlerfrei (perfekte Runden), Entdecker (Stationen mit Stern), Sammler (Teile), Aufsteiger
+  (Heldenstufe). Auf der Held-Seite mit Medaille und Weg zur nächsten Stufe; nach einer Runde ein Band „Neues Abzeichen“.
+- **Warum:** Spielbarkeit wie bei Duolingo, aber für Lernverhalten (Tage, Sitzen, Fehlerfreiheit), nicht fürs Sammeln
+  von Münzen. Nur aus dem Spielstand gezählt, kein Server.
+- **Wie:** `ABZEICHEN`, `abzeichenWerte`, `abzeichenStufe`, `neueAbzeichen` in `rules.ts` (Tests:
+  `abzeichen.test.ts`), `app/Abzeichen.tsx`, Farben `--lq-bronze`, `--lq-silber`.
+- **Geprüft:** Held-Seite am Handy und iPad quer, perfekte Runde mit neuem Abzeichen im Browser; Rundgang.
+- **Sicherung:** `backup/2026-11-27-vor-abzeichen`.
+
+### #105–#118 (siehe auch „Feinschliff am Abend“ in `docs/lernquest.md`)
+- #105 Held nirgends abgeschnitten, Anprobe im Laden · #106 Fehlgriffe erklärt, Tastatur · #107 „Das sitzt schon“ ·
+  #108 Karte: Sterne ploppen, Held hüpft · #109 vier neue Münder · #110 Aufgaben gleiten herein, beste Serie ·
+  #111 falsche Antwort wackelt, Herz zerbricht · #112 „Das nimmst du mit“, Knöpfe unten · #113 Reiter blenden ein ·
+  #114 Tippfehler benannt · #115 Aufstieg zur Heldenstufe · #116 Klang für den Aufstieg · #118 Fuchs im Willkommen.
+- Fund und Lehre: #110 schob die Seite auf einem kleinen Handy kurz seitlich; behoben vor dem Merge. Der Rundgang
+  wird seitdem nie mehr durch `tail` geleitet, damit sein Exit-Code zählt.

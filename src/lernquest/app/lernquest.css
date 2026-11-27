@@ -19,6 +19,11 @@
   --lq-gold-tief: #c98f00;
   --lq-gold-flaeche: #fff4d1;
   --lq-gold-schrift: #7a5600;
+  /* Badge tiers (27.11.2026): bronze and silver beside gold */
+  --lq-bronze: #cd8a4c;
+  --lq-bronze-tief: #9a5f2c;
+  --lq-silber: #b9c3cc;
+  --lq-silber-tief: #8a96a2;
   --lq-auf-gold: #4a3300;
   --lq-stern: #a87400;
   --lq-stern-aus: #d9cfb2;
@@ -5476,4 +5481,85 @@ button.lq-teil:active {
 }
 .lq-aufstieg-abzeichen b {
   font-size: var(--lq-t-gross);
+}
+
+/* Badges (27.11.2026): a round medal, its ring in the tier's metal (grey while open), the symbol in the middle. */
+.lq-medaille {
+  --lq-ring: var(--lq-linie);
+  --lq-ring-tief: var(--lq-linie);
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  background: var(--lq-karte);
+  box-shadow:
+    inset 0 0 0 5px var(--lq-ring),
+    0 3px 0 var(--lq-ring-tief);
+}
+.lq-medaille.s0 svg {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+.lq-medaille.s1 {
+  --lq-ring: var(--lq-bronze);
+  --lq-ring-tief: var(--lq-bronze-tief);
+}
+.lq-medaille.s2 {
+  --lq-ring: var(--lq-silber);
+  --lq-ring-tief: var(--lq-silber-tief);
+}
+.lq-medaille.s3 {
+  --lq-ring: var(--lq-gold);
+  --lq-ring-tief: var(--lq-gold-tief);
+}
+.lq-medaille.neu {
+  animation: lq-plopp var(--lq-dauer-lang) var(--lq-feder) 0.4s both;
+}
+.lq-abzeichen {
+  display: grid;
+  gap: var(--lq-a-3);
+}
+.lq-abzeichen-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--lq-a-2);
+}
+.lq-abzeichen ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--lq-a-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lq-abzeichen li {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-3);
+}
+.lq-abzeichen li > div {
+  display: grid;
+  gap: var(--lq-a-1);
+  flex: 1;
+  min-width: 0;
+}
+.lq-abzeichen-stufe {
+  font-size: var(--lq-t-klein);
+  font-weight: 700;
+  color: var(--lq-gedaempft);
+}
+.lq-abzeichen-stufe.s1 {
+  color: var(--lq-bronze-tief);
+}
+.lq-abzeichen-stufe.s2 {
+  color: var(--lq-silber-tief);
+}
+.lq-abzeichen-stufe.s3 {
+  color: var(--lq-gold-schrift);
+}
+.lq-abzeichen-balken {
+  height: 8px;
+  /* the empty track must show, or a short way reads as a lone dot */
+  background: var(--lq-stern-aus);
 }

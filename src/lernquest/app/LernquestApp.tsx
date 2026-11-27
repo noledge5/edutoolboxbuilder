@@ -39,6 +39,9 @@ import {
   laengsteSerie,
   merksatz,
   LADEN_AB,
+  abzeichenWerte,
+  neueAbzeichen,
+  type Abzeichen,
 } from '../rules';
 import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
 import { BOSSE } from '../boss';
@@ -51,6 +54,7 @@ import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, 
 import { ton } from './ton';
 import { Jubel } from './Jubel';
 import { WissenKarte } from './Wissen';
+import { AbzeichenNeu } from './Abzeichen';
 import { Rich } from './Uebungen';
 import { PfadHeld, StationsSterne } from './KartenNeu';
 import { GluehbirneIcon, HilfeSeite } from './Hilfe';
@@ -114,6 +118,8 @@ export type Screen =
       verpasst?: Uebung[];
       /** The hero level reached with this round, 0 when it stayed (27.11.2026). */
       aufstieg?: number;
+      /** Badges that reached a new tier with this round (27.11.2026). */
+      abzeichenNeu?: { id: Abzeichen['id']; stufe: number }[];
       plus: number;
       muenzenPlus: number;
       /** Stufe D: coins for daily tasks done with this round, and their ids. */
@@ -679,6 +685,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       ergebnisse,
       verpasst: screen.kind === 'runde' ? screen.uebungen.filter((_, i) => ergebnisse[i] === false).map((x) => x.u) : [],
       aufstieg: heldenstufe(r.stand.xp).stufe > heldenstufe(stand.xp).stufe ? heldenstufe(r.stand.xp).stufe : 0,
+      abzeichenNeu: neueAbzeichen(abzeichenWerte(stand, Object.values(daten.pakete)), abzeichenWerte(r.stand, Object.values(daten.pakete))),
       plus: r.plus,
       muenzenPlus: r.muenzenPlus,
       aufgabenPlus: r.aufgabenPlus,
@@ -908,6 +915,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </div>
           </div>
         )}
+        <AbzeichenNeu neu={screen.abzeichenNeu ?? []} />
         {(() => {
           const zeilen = (screen.verpasst ?? []).map((u) => ({ id: u.id, m: merksatz(u) })).filter((z) => z.m);
           return zeilen.length ? (
