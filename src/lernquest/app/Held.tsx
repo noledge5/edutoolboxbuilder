@@ -396,11 +396,16 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
     }
   };
 
+  /** The own hero wearing a part (for trying it on and for putting it on). */
+  const mit = (t: Teil): Avatar => {
+    const f = frisurAusTeil(t.id);
+    return f ? { ...ohneFigur(stand.avatar), frisur: f.id } : { ...stand.avatar, [t.slot]: t.id };
+  };
+
   const anlegen = async (t: Teil) => {
     setBusy(true);
     try {
-      const f = frisurAusTeil(t.id);
-      setStand(await aktion((tok) => avatarSetzen(tok, f ? { ...ohneFigur(stand.avatar), frisur: f.id } : { ...stand.avatar, [t.slot]: t.id })));
+      setStand(await aktion((tok) => avatarSetzen(tok, mit(t))));
       onZurueck();
     } catch (e) {
       setMsg(lqText(e));
@@ -468,6 +473,14 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
       {!ware.length && <p className="lq-leer">Hier hast du schon alles. Schau in einem anderen Bereich.</p>}
       {wahl && (
         <div className="lq-kaufleiste">
+          {/* Try it on (27.11.2026): the own hero wears the part and cheers, before any coins go */}
+          <div className="lq-anprobe">
+            <AvatarBild key={wahl.id} avatar={{ ...mit(wahl), hintergrund: wahl.slot === 'hintergrund' ? wahl.id : '' }} className="lq-anprobe-held" lebendig animation="jubeln" />
+            <div className="lq-anprobe-text">
+              <strong>{wahl.name}</strong>
+              <Seltenheit s={wahl.seltenheit} />
+            </div>
+          </div>
           {stufe < ladenAb(wahl.seltenheit) ? (
             <button type="button" className="lq-knopf" disabled>
               <SchlossIcon />

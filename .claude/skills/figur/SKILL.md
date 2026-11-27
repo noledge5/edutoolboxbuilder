@@ -46,7 +46,9 @@ Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werk
   tight around the drawing; the icon is cut from it. Every hat sets `weite`: the width of the part that rests on the
   head (band, the crown above a brim, a helmet's dome); the hero scales it to its head (`hutLage` in held.tsx: covering
   hats `haube` low on the brow, crowns at 85 % on the head, headbands `stirn` on the brow), so brims and feathers stick
-  out. HeldBild grows its crop upward for tall hats (`mitHut`), so nothing is cut off; `hut.test.tsx` checks both.
+  out. HeldBild grows its crop for tall hats, high hair (`FRISUR_OBEN`), companions and jumps (`heldRaum` in held.tsx,
+  `mitPlatz` in app/heldVektor.tsx), so nothing is cut off; `hut.test.tsx` checks it. A new hairstyle that rises above
+  21 needs its top in `FRISUR_OBEN`.
 - Readable at 48 px: check the size row in the workshop.
 
 ## Steps
