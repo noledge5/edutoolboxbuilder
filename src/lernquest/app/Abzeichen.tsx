@@ -1,7 +1,7 @@
 // Badges (27.11.2026): a medal per badge – its symbol in a ring of bronze, silver or gold – on the hero page with the
 // way to the next tier, and a banner on the result when a round reached a new tier. Counted in rules.ts.
 import type { ReactElement } from 'react';
-import { SymbolAufgaben, SymbolHeld, SymbolKarte, SymbolStern, SymbolStufe, SymbolTruhe, SymbolWiederholen } from '../figuren/symbole';
+import { SymbolAufgaben, SymbolBurg, SymbolHeld, SymbolKarte, SymbolStern, SymbolStufe, SymbolTruhe, SymbolWiederholen } from '../figuren/symbole';
 import { ABZEICHEN, ABZEICHEN_STUFEN, abzeichenStufe, abzeichenWerte, type Abzeichen } from '../rules';
 import type { Stand, Uebung } from '../types';
 
@@ -12,6 +12,7 @@ const SYMBOL: Record<Abzeichen['id'], (p: { groesse?: number }) => ReactElement>
   sterne: SymbolStern,
   perfekt: SymbolHeld,
   entdecker: SymbolKarte,
+  regionen: SymbolBurg,
   sammler: SymbolTruhe,
   aufsteiger: SymbolStufe,
 };
@@ -25,8 +26,19 @@ export function Medaille({ id, stufe, groesse = 60, neu = false }: { id: Abzeich
   );
 }
 
-const fortschrittText = (a: Abzeichen, wert: number, ziel: number) =>
-  a.id === 'aufsteiger' ? `Heldenstufe ${wert} von ${ziel}` : `${wert} von ${ziel} ${a.was}`;
+/** The words per badge, declined as German wants them (28.11.2026: „von“ takes the dative, one region is singular):
+ *  the way to the next tier and what a tier was earned for. */
+const TEXT: Record<Abzeichen['id'], { weg: (w: number, z: number) => string; fuer: (z: number) => string }> = {
+  fleiss: { weg: (w, z) => `${w} von ${z} Lerntagen`, fuer: (z) => `${z} Lerntage` },
+  gedaechtnis: { weg: (w, z) => `${w} von ${z} Aufgaben sitzen`, fuer: (z) => `${z} Aufgaben, die sitzen` },
+  sterne: { weg: (w, z) => `${w} von ${z} Sternen`, fuer: (z) => `${z} Sterne` },
+  perfekt: { weg: (w, z) => `${w} von ${z} ${z === 1 ? 'perfekten Runde' : 'perfekten Runden'}`, fuer: (z) => (z === 1 ? 'die erste perfekte Runde' : `${z} perfekte Runden`) },
+  entdecker: { weg: (w, z) => `${w} von ${z} Stationen mit Stern`, fuer: (z) => `${z} Stationen mit Stern` },
+  regionen: { weg: (w, z) => `${w} von ${z} ${z === 1 ? 'Region' : 'Regionen'} geschafft`, fuer: (z) => (z === 1 ? 'die erste geschaffte Region' : `${z} geschaffte Regionen`) },
+  sammler: { weg: (w, z) => `${w} von ${z} Teilen`, fuer: (z) => `${z} Teile` },
+  aufsteiger: { weg: (w, z) => `Heldenstufe ${w} von ${z}`, fuer: (z) => `Heldenstufe ${z}` },
+};
+const fortschrittText = (a: Abzeichen, wert: number, ziel: number) => TEXT[a.id].weg(wert, ziel);
 
 /** All badges on the hero page: the tier reached and the way to the next one. */
 export function AbzeichenKarte({ stand, pakete }: { stand: Stand; pakete: { stunde: string; uebungen: Uebung[] }[] }) {
@@ -83,7 +95,7 @@ export function AbzeichenNeu({ neu }: { neu: { id: Abzeichen['id']; stufe: numbe
             <div>
               <strong>Neues Abzeichen: {a.name}</strong>
               <span>
-                {ABZEICHEN_STUFEN[stufe - 1]} für {a.id === 'aufsteiger' ? `Heldenstufe ${a.stufen[stufe - 1]}` : `${a.stufen[stufe - 1]} ${a.was}`}.
+                {ABZEICHEN_STUFEN[stufe - 1]} für {TEXT[id].fuer(a.stufen[stufe - 1])}.
               </span>
             </div>
           </div>

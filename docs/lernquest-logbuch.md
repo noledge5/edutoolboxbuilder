@@ -10,7 +10,17 @@ Bildschirmfotos, die angesehen wurden.
 
 ## 27.11.2026, abends (eigenständig, mit Erlaubnis für PRs und Merges)
 
-### Zahlen in Antworten (PR folgt, Mathe-Wunsch vom 25.11.)
+### Abzeichen „Eroberer“ und richtiges Deutsch (PR folgt)
+- **Was:** achtes Abzeichen „Eroberer“ für geschaffte Regionen (1, 3, 6) mit eigener Burg als Symbol
+  (`SymbolBurg`); eine Region zählt erst, wenn alle Stunden des Moduls einen Stern haben, auch noch nicht offene.
+  Dazu die Texte der Abzeichen in richtigem Deutsch: Dativ nach „von“ („5 von 10 Lerntagen“, „6 von 15 Teilen“),
+  Einzahl bei eins („0 von 1 Region“), „Silber für 40 Aufgaben, die sitzen“; und „einmal danebengetippt“ statt „1-mal“.
+- **Warum:** Wunsch der Lehrkraft („Abzeichen z. B. für geschaffte Regionen“); und weil eine Kinder-App, die falsch
+  dekliniert, nicht mit Liebe gemacht wirkt – der Fehler stand seit #121 auf der Held-Seite.
+- **Wie:** `regionenGeschafft` in rules.ts, Texte je Abzeichen in `app/Abzeichen.tsx`; Tests: `abzeichen.test.ts`,
+  `app/abzeichentext.test.tsx`, `runde.test.ts`.
+
+### Zahlen in Antworten (#123, Mathe-Wunsch vom 25.11.)
 - **Was:** gleicher Wert zählt (3,5 = 3.5 = 3,50; 1 000 = 1000; −4 = -4), „1.000“ bleibt mehrdeutig und zählt nicht;
   Zahlentastatur, wenn alle Lösungen Zahlen sind; eine falsche Zahl heißt nie „fast richtig“.
 - **Warum:** der Plan verlangte zu prüfen, ob die Formate Rechnen tragen; ein Kind, das 3.5 statt 3,5 tippt, hat

@@ -67,6 +67,10 @@ describe('slips in pairs and places', () => {
   it('say why the answer is wrong when the board ends all green', () => {
     expect(fehlgriffHinweis(paare, { art: 'paare', fehler: 2 })).toBe('Du hast 2-mal danebengetippt. Einmal ist erlaubt.');
   });
+  it('say „einmal“ for a single slip where none is allowed', () => {
+    const zwei = { ...paare, paare: paare.paare.slice(0, 2) };
+    expect(fehlgriffHinweis(zwei, { art: 'paare', fehler: 1 })).toBe('Du hast einmal danebengetippt. Hier zählt jeder Fehlgriff.');
+  });
   it('stay quiet when the slips are allowed or for other formats', () => {
     expect(fehlgriffHinweis(paare, { art: 'paare', fehler: 1 })).toBeNull();
     expect(fehlgriffHinweis({ art: 'richtigfalsch', id: 'r', frage: 'Stimmt das?', aussage: 'x', richtig: true } as never, { art: 'richtigfalsch', wert: false })).toBeNull();
