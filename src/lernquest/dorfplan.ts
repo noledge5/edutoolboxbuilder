@@ -37,7 +37,15 @@ const SPALT = 12;
 export const anzahl = (n: number) => (Number.isFinite(n) ? Math.min(200, Math.max(0, Math.floor(n))) : 0);
 
 /** Centre of the road at height sy: straight on the square, then a gentle wave. */
-export const wegX = (sy: number) => (sy >= WEG_START ? 0 : SCHWUNG * Math.sin((WEG_START - sy) / WELLE));
+/** Sideways swing of the road at a height; it eases in over the first `EINLAUF` units, so the road leaves its straight
+ *  lower part without a kink (Dorf 5, 27.11.2026). */
+const EINLAUF = 70;
+export const wegX = (sy: number) => {
+  if (sy >= WEG_START) return 0;
+  const d = WEG_START - sy;
+  const t = Math.min(1, d / EINLAUF);
+  return SCHWUNG * Math.sin(d / WELLE) * t * t * (3 - 2 * t);
+};
 
 export interface Grundstueck {
   /** World corner of the plot (GRUND × GRUND). */
@@ -87,8 +95,8 @@ export const GEBAEUDE_ORT = Object.fromEntries(
 ) as Record<GebaeudeId, { sx: number; sy: number; x: number; y: number }>;
 /** Market stalls between the rows (from Marktflecken on), chickens at the front edge. */
 export const STAENDE: Pt[] = [
-  [0, 50],
-  [0, 150],
+  [-40, 102],
+  [42, 130],
 ];
 export const HUEHNER: Pt[] = [
   [-16, 258],
