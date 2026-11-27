@@ -85,6 +85,14 @@ describe('moves', () => {
 });
 
 describe('motion engine', () => {
+  it('stretches in fine steps, so breathing moves smoothly (27.11.2026: 0.01 steps made it jump twice a second)', () => {
+    expect(transform({ drehen: 0, schieben: [0, 0], strecken: [0.9856, 1.0237] }, [120, 230])).toContain('scale(0.9856 1.0237)');
+    // one breath of the hero at 60 frames a second: nearly every frame is a new shape
+    const atmen = ANIMATIONEN.atmen;
+    const bilder = Array.from({ length: Math.round(atmen.dauer * 60) }, (_, i) => transform(stellung({ name: 'stehen', gesicht: 'froh' }, { animation: atmen, zeit: i / 60 }).ganz, [120, 230]));
+    const wechsel = bilder.filter((b, i) => i > 0 && b !== bilder[i - 1]).length;
+    expect(wechsel).toBeGreaterThan(bilder.length * 0.9);
+  });
   const a: Animation = { id: 't', name: 'T', dauer: 2, wiederholen: 2, kurve: 'linear', spuren: { kopf: { drehen: [0, 10, 0] }, ganz: { schieben: [[0, 0], [0, -8], [0, 0]] } } };
 
   it('finds the phase and stops after the last run', () => {

@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "anleitung": "vitest run src/claude -u",
     "spieltest": "vite --mode spieltest --port 4174 --strictPort",
+    "rundgang": "node scripts/lernquest-rundgang.mjs",
     "demo": "vite --mode demo --port 5181 --strictPort",
     "werkstatt": "vite build -c vite.werkstatt.config.ts && node scripts/werkstatt-artefakt.mjs",
     "lq:testlauf": "vite build && LQ_TESTLAUF=1 vitest run src/lernquest/testlauf.live.test.ts"
@@ -59,6 +60,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "fake-indexeddb": "^6.2.5",
+    "playwright": "^1.65.1",
     "sharp": "^0.35.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",

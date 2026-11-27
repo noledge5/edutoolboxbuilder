@@ -2294,8 +2294,9 @@ button.lq-teil:active {
   padding: var(--lq-a-1) 0;
   border-radius: var(--lq-r-klein);
 }
-.lq-chancen span.an {
-  box-shadow: inset 0 0 0 2px var(--lq-primary-nacht);
+.lq-chance-treffer {
+  margin: 0;
+  font-weight: 700;
   color: var(--lq-primary-nacht);
 }
 .lq-chancen b {
@@ -3132,6 +3133,10 @@ button.lq-teil:active {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--lq-a-3);
+  /* Walkthrough 27.11.2026: on a low screen (iPad landscape, small phones) the square cards pushed the second row under
+     the check bar; the grid is no wider than the height left for both rows. */
+  width: min(100%, max(240px, calc(100dvh - 440px)));
+  margin-inline: auto;
 }
 .lq-bild {
   aspect-ratio: 1;
@@ -4766,7 +4771,11 @@ button.lq-teil:active {
   box-shadow: inset 0 0 0 2px var(--lq-linie);
 }
 
-/* The chest stands in a slow ray burst (flat shapes, no gradient). */
+/* The chest stands in a slow ray burst (flat shapes, no gradient). Turned, the burst is wider than a phone: the page
+   must not scroll sideways (walkthrough 27.11.2026). */
+.lq-truhe {
+  overflow-x: clip;
+}
 .lq-truhe-glanz {
   width: 280px;
   height: 280px;

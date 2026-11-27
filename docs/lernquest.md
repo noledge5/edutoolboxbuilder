@@ -449,6 +449,12 @@ Server bekommt wie bisher „richtig von gesamt“, gezählt werden die ersten V
   erfundenen Schülerin mit allen acht Formaten legt `scripts/spieltest-daten.js` in den Browser,
   `scripts/spieltest-helfer.js` spielt Aufgaben richtig oder falsch. So gespielt am 11.11.2026: alle Formate, Wiederholen,
   Held, Laden, Truhe, Gutscheine und Klasse ohne Netz, offene Übung mit Probetest, Zurück-Taste überall.
+- **Rundgang mit Playwright (27.11.2026):** `npm run rundgang [ordner]` (bei laufendem `npm run spieltest`) spielt die
+  App wie ein Kind auf Handy, kleinem Handy, iPad hoch und quer durch (Karte, Klasse mit Dorf, Held, Laden, Aufgaben,
+  Wiederholen, Truhe, Runde mit falscher und richtiger Antwort, Ergebnis), macht Bilder und meldet seitliches Scrollen,
+  abgeschnittenen Text, Knöpfe unter 40 px, Antworten unter der Prüfleiste und Konsolenfehler (Exit-Code 1 bei Befund).
+  Truhe und Klasse antwortet das Skript selbst. Erster Lauf: Truhe scrollte seitwärts, Bilder-Aufgabe im iPad quer
+  verdeckt, „Weiter“ nach der Truhe unter dem Bildschirmrand – behoben.
 
 ## Wiederholung mit Maß (20.11.2026)
 
