@@ -1084,6 +1084,34 @@ const MUND_ZEICHNUNG: Record<string, ReactNode> = {
       <path d="M111 120h18" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
     </>
   ),
+  // 27.11.2026: the four new mouths in the older drawing too (heroes wearing an uploaded-only part)
+  zahnluecke: (
+    <>
+      {baeckchen}
+      <path d="M105 113h30q-3 13-15 13t-15-13Z" fill="#FFFFFF" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      <rect x="117.5" y="113" width="5" height="6" rx="1" fill={MUND_INNEN} />
+    </>
+  ),
+  schief: (
+    <>
+      {baeckchen}
+      <path d="M108 121q13 4 24-8" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+    </>
+  ),
+  vampir: (
+    <>
+      {baeckchen}
+      <path d="M107 112h26q0 15-13 15t-13-15Z" fill={MUND_INNEN} stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      <path d="M111 113.5l3 6 3-6Z M123 113.5l3 6 3-6Z" fill="#FFFFFF" />
+    </>
+  ),
+  zahnspange: (
+    <>
+      {baeckchen}
+      <path d="M105 113h30q-3 13-15 13t-15-13Z" fill="#FFFFFF" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      <path d="M108 117.5h24" fill="none" stroke="#8E9BA8" strokeWidth="2.4" strokeLinecap="round" />
+    </>
+  ),
 };
 
 /** Back to front; the body sits between companion and clothes, the hair over the clothes (long hair falls on them),

@@ -1068,6 +1068,29 @@ const MUND_FORM: Record<string, () => ReactNode> = {
     </g>
   ),
   ernst: () => <path d="M92 120 H108" fill="none" {...STRICH} strokeWidth={3.5} />,
+  // 27.11.2026: four more, bold enough for 48 px
+  zahnluecke: () => (
+    <g>
+      <path d="M86 115 Q100 132 114 115 Z" {...flaeche(P.weiss, 2.5)} stroke={P.linie} />
+      <rect x={97.6} y={115.5} width={4.8} height={6.5} rx={1.2} fill={P.mund} />
+    </g>
+  ),
+  schief: () => <path d="M89 122 Q101 126 112 113" fill="none" {...STRICH} strokeWidth={3.5} />,
+  vampir: () => (
+    <g>
+      <path d="M87 115 Q100 131 113 115 Q100 121 87 115 Z" {...flaeche(P.mund, 2)} />
+      <path d="M91.5 116.4 L95 124 L98 117.8 Z M102 117.8 L105 124 L108.5 116.4 Z" fill={P.weiss} stroke={P.weiss} strokeWidth={1.4} strokeLinejoin="round" />
+    </g>
+  ),
+  zahnspange: () => (
+    <g>
+      <path d="M86 115 Q100 132 114 115 Z" {...flaeche(P.weiss, 2.5)} stroke={P.linie} />
+      <path d="M89 119 Q100 123.5 111 119" fill="none" stroke={P.metallTief} strokeWidth={2.4} strokeLinecap="round" />
+      {[93, 100, 107].map((x) => (
+        <rect key={x} x={x - 1.8} y={x === 100 ? 119.8 : 118.8} width={3.6} height={3.4} rx={0.8} fill={P.metall} />
+      ))}
+    </g>
+  ),
 };
 export const MUND_ARTEN = Object.keys(MUND_FORM);
 
