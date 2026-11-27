@@ -666,6 +666,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     speichereWarteschlange([...ladeWarteschlange(), m]);
     void flush();
     ton('fertig');
+    // A new hero level rings its own run of bells after the fanfare (27.11.2026).
+    if (heldenstufe(r.stand.xp).stufe > heldenstufe(stand.xp).stufe) window.setTimeout(() => ton('aufstieg'), 1300);
     // A new star rings once more after the fanfare.
     if (paket && sterneVon(r.stand, paket) > vorher) window.setTimeout(() => ton('stern'), 800);
     setScreen({
