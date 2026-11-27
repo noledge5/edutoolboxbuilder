@@ -638,23 +638,30 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
         {phase === 'zu' && !stand.truhen && <p>Gerade wartet keine Truhe. Truhen gibt es für je 3 Sterne, fürs Wochenziel und den Bosssieg.</p>}
       </div>
       <Meldung text={msg} />
-      {phase !== 'auf' && (
+      {/* Walkthrough 27.11.2026: after the reveal the full table pushed „Weiter“ below a phone's screen; one line names the
+          chance that came true instead. */}
+      {phase === 'da' && inhalt && (
+        <p className="lq-chance-treffer">
+          Chance auf {nurMuenzen ? 'Münzen' : SELTENHEITEN[inhalt.seltenheit]?.name}: {(nurMuenzen ? MUENZ_CHANCEN.reduce((a, b) => a + b, 0) : (CHANCEN[inhalt.seltenheit] ?? 0)).toLocaleString('de-DE')} %
+        </p>
+      )}
+      {phase === 'zu' && (
         <section className="lq-chancen" aria-label="Chancen in dieser Truhe">
           <strong>Chancen in dieser Truhe</strong>
           <div>
-            <span className={nurMuenzen && phase === 'da' ? 'an' : ''}>
+            <span>
               <b>{MUENZ_CHANCEN.reduce((a, b) => a + b, 0)} %</b>
               <small>Münzen</small>
             </span>
             {CHANCEN.map((c, i) => (
-              <span key={i} className={t && inhalt && phase === 'da' && inhalt.seltenheit === i ? 'an' : ''}>
+              <span key={i}>
                 <b>{c.toLocaleString('de-DE')} %</b>
                 <small>{SELTENHEITEN[i].kurz}</small>
               </span>
             ))}
           </div>
           <span className="lq-klein">
-            Doppelte Teile werden zu Münzen. {sicher && phase === 'zu' ? 'Diese Truhe hat sicher etwas Seltenes!' : `Spätestens jede ${GARANTIE}. Truhe hat etwas Seltenes.`}
+            Doppelte Teile werden zu Münzen. {sicher ? 'Diese Truhe hat sicher etwas Seltenes!' : `Spätestens jede ${GARANTIE}. Truhe hat etwas Seltenes.`}
           </span>
         </section>
       )}
