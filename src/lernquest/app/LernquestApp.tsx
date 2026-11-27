@@ -48,6 +48,7 @@ import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, 
 import { ton } from './ton';
 import { Jubel } from './Jubel';
 import { WissenKarte } from './Wissen';
+import { PfadHeld, StationsSterne } from './KartenNeu';
 import { GluehbirneIcon, HilfeSeite } from './Hilfe';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
 import { useZurueck } from './zurueck';
@@ -1266,16 +1267,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
               klasse: `ist-${st.zustand}`,
               inhalt: (
                 <>
-                  {st.zustand === 'aktuell' && <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} className="lq-pfad-held" lebendig />}
-                  {st.zustand !== 'gesperrt' && (
-                    <span className="lq-stufen" aria-hidden>
-                      {[0, 1, 2].map((i) => (
-                        <span key={i} className={i < st.sterne ? 'an' : ''}>
-                          <SternIcon />
-                        </span>
-                      ))}
-                    </span>
-                  )}
+                  {st.zustand === 'aktuell' && <PfadHeld stunde={st.stunde} avatar={stand.avatar} />}
+                  {st.zustand !== 'gesperrt' && <StationsSterne stunde={st.stunde} sterne={st.sterne} icon={<SternIcon />} />}
                   <button
                     type="button"
                     className={`lq-knoten ${st.zustand}${blass ? ' faellig' : ''}`}

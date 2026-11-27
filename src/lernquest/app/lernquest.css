@@ -5312,3 +5312,27 @@ button.lq-teil:active {
   border-radius: 50%;
   background: var(--lq-wissen-farbe);
 }
+
+/* What is new on the map (27.11.2026): won stars pop in one after the other, the hero hops over to a new station. */
+.lq-stufen span.neu {
+  animation: lq-plopp var(--lq-dauer-lang) var(--lq-feder) both;
+}
+.lq-pfad-held.kommt {
+  animation: lq-held-kommt 1s var(--lq-feder) both;
+}
+@keyframes lq-held-kommt {
+  0% {
+    transform: translate(-70%, 10%) scale(0.85);
+    opacity: 0;
+  }
+  45% {
+    transform: translate(-30%, -30%);
+    opacity: 1;
+  }
+  75% {
+    transform: translate(-5%, 0);
+  }
+  100% {
+    transform: none;
+  }
+}
