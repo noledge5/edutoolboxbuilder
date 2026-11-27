@@ -47,14 +47,14 @@ const T = {
 
 // — Body: torso, legs and shoes; clothes paint the torso and the arms. —
 
-const RUMPF = 'M92 140 Q120 132 148 140 L153 196 Q120 203 87 196 Z';
+const RUMPF = 'M93 139 Q120 131 147 139 Q151 166 155 195 Q120 204 85 195 Q89 166 93 139 Z';
 /** The torso in a colour: fill, shade on the right, light on the left, outline; `kinder` are the clothes' details. */
 function Rumpf({ t, d = RUMPF, kinder }: { t: Ton; d?: string; kinder?: ReactNode }) {
   return (
     <g>
       <Flaeche d={d} farbe={t.farbe} hell={t.hell} />
-      <path d="M138 140 Q146 141 148 140 L153 196 Q142 199 132 200 Q140 170 138 140 Z" fill={t.tief} opacity={0.5} />
-      <path d="M96 148 Q95 166 96 184" fill="none" stroke={t.hell} strokeWidth={4} strokeLinecap="round" opacity={0.8} />
+      <path d="M139 138.5 Q144 138.8 147 139 Q151 166 155 195 Q144 199.5 133 201 Q141 170 139 138.5 Z" fill={t.tief} opacity={0.5} />
+      <path d="M97 148 Q94.5 166 93 184" fill="none" stroke={t.hell} strokeWidth={4} strokeLinecap="round" opacity={0.8} />
       {kinder}
     </g>
   );
@@ -707,7 +707,13 @@ export const KLEIDUNG: Record<string, Kleid> = {
           t={T.oliv}
           kinder={
             <>
-              {[[100, 160], [120, 156], [140, 160], [110, 183], [131, 183]].map(([x, y], i) => (
+              {[
+                [100, 160],
+                [120, 156],
+                [140, 160],
+                [110, 183],
+                [131, 183],
+              ].map(([x, y], i) => (
                 <g key={i}>
                   <path d={blatt(x, y)} {...flaeche(i % 2 ? P.gruenHell : P.gruen, 2)} />
                   <path d={`M${x} ${y - 6} V${y + 8}`} stroke={P.gruenTief} strokeWidth={2} strokeLinecap="round" opacity={0.6} />
@@ -735,7 +741,15 @@ export const KLEIDUNG: Record<string, Kleid> = {
             kinder={
               <>
                 {/* Plates of black volcanic stone with glowing cracks and a lava stone in the middle */}
-                <path d="M96 150 L106 162 L100 176 M144 152 L134 166 L140 184 M110 188 L120 196 L130 188" fill="none" stroke={P.lava} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" opacity={glut} />
+                <path
+                  d="M96 150 L106 162 L100 176 M144 152 L134 166 L140 184 M110 188 L120 196 L130 188"
+                  fill="none"
+                  stroke={P.lava}
+                  strokeWidth={4}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity={glut}
+                />
                 <circle cx={120} cy={166} r={9} {...flaeche(P.lava, 2.5)} />
                 <circle cx={118} cy={164} r={4} fill={P.lavaHell} opacity={glut} />
               </>
@@ -786,7 +800,7 @@ const AUGE_Y = 93;
 const linie = { fill: 'none', stroke: P.auge, strokeWidth: 4.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
 
 // Flat eyes (teacher's review 12.11.2026): one dark shape, no white shine; only the special eyes carry a colour or a star.
-function Punktauge({ x, rx = 7.5, ry = 9.5, iris, funkeln = false }: { x: number; rx?: number; ry?: number; iris?: string; funkeln?: boolean }) {
+function Punktauge({ x, rx = 8.2, ry = 10.4, iris, funkeln = false }: { x: number; rx?: number; ry?: number; iris?: string; funkeln?: boolean }) {
   return (
     <g>
       <ellipse cx={x} cy={AUGE_Y} rx={rx} ry={ry} fill={P.auge} />
@@ -800,7 +814,7 @@ const froh = (x: number) => <path key={x} d={`M${x - 9} 95 Q${x} 84 ${x + 9} 95`
 
 /** The eye styles of the `augen` place (src/lernquest/teile.ts). Glasses are drawn over plain eyes. */
 const AUGEN_FORM: Record<string, (x: number, s: Stand) => ReactNode> = {
-  punktaugen: (x, s) => <Punktauge x={x} ry={s.gesicht === 'staunen' ? 11 : s.gesicht === 'sanft' ? 8 : 9.5} rx={s.gesicht === 'staunen' ? 8.5 : 7.5} />,
+  punktaugen: (x, s) => <Punktauge x={x} ry={s.gesicht === 'staunen' ? 12 : s.gesicht === 'sanft' ? 9 : 11} rx={s.gesicht === 'staunen' ? 9 : 8} />,
   froehlich: (x) => froh(x),
   sternaugen: (x) => <path d={stern(x, AUGE_Y, 11)} {...flaeche(P.gold, 2)} stroke={P.goldTief} />,
   funkelaugen: (x) => <Punktauge x={x} rx={8.5} ry={10.5} iris={P.lilaHell} funkeln />,
@@ -843,7 +857,14 @@ const AUGEN_FORM: Record<string, (x: number, s: Stand) => ReactNode> = {
       <g>
         <ellipse cx={x} cy={AUGE_Y} rx={9} ry={11} fill={P.auge} />
         {farben.map((_, i) => (
-          <path key={i} d={`M${x - 6 + i} ${AUGE_Y + 1 + i * 2.6} Q${x} ${AUGE_Y + 7 + i * 1.6} ${x + 6 - i} ${AUGE_Y + 1 + i * 2.6}`} fill="none" stroke={farben[(i + d) % farben.length]} strokeWidth={2.4} strokeLinecap="round" />
+          <path
+            key={i}
+            d={`M${x - 6 + i} ${AUGE_Y + 1 + i * 2.6} Q${x} ${AUGE_Y + 7 + i * 1.6} ${x + 6 - i} ${AUGE_Y + 1 + i * 2.6}`}
+            fill="none"
+            stroke={farben[(i + d) % farben.length]}
+            strokeWidth={2.4}
+            strokeLinecap="round"
+          />
         ))}
       </g>
     );
@@ -975,7 +996,7 @@ function Augen({ augen, s }: { augen: string; s: Stand }) {
 }
 
 function Brauen({ s, t }: { s: Stand; t: Ton }) {
-  const st = { fill: 'none', stroke: t.tief, strokeWidth: 3.5, strokeLinecap: 'round' as const };
+  const st = { fill: 'none', stroke: t.tief, strokeWidth: 5, strokeLinecap: 'round' as const };
   const formen: Record<string, [string, string]> = {
     denken: ['M70 76 Q79 72 88 76', 'M112 72 Q121 66 130 71'],
     sanft: ['M71 80 Q79 78 88 74', 'M112 74 Q121 78 129 80'],
@@ -985,7 +1006,7 @@ function Brauen({ s, t }: { s: Stand; t: Ton }) {
   };
   const f = formen[s.gesicht] ?? ['M72 77 Q79 74 86 76', 'M114 76 Q121 74 128 77'];
   return (
-    <g {...st} opacity={formen[s.gesicht] ? 1 : 0.7}>
+    <g {...st} opacity={formen[s.gesicht] ? 1 : 0.85}>
       <path d={f[0]} />
       <path d={f[1]} />
     </g>
@@ -994,7 +1015,8 @@ function Brauen({ s, t }: { s: Stand; t: Ton }) {
 
 /** The chosen mouths (MUENDER in src/lernquest/teile.ts). */
 const MUND_FORM: Record<string, () => ReactNode> = {
-  laecheln: () => <path d="M90 117 Q100 127 110 117" fill="none" {...STRICH} strokeWidth={3.5} />,
+  // A small open smile reads warmer than a line at every size (Stilprobe A, 27.11.2026); „Lachen“ stays bigger, with tongue.
+  laecheln: () => <path d="M91 117 Q100 128 109 117 Z" {...flaeche(P.mund, 2.5)} />,
   grinsen: () => <path d="M86 115 Q100 132 114 115 Z" {...flaeche(P.weiss, 2.5)} stroke={P.linie} />,
   lachen: () => (
     <g>
@@ -1257,7 +1279,10 @@ function arm(seite: 'l' | 'r', k: Kleid, haut: Ton): Teil {
             <circle cx={x} cy={166} r={9.5} fill={oben.farbe} />
             {k.aermel === 'haut' && <path d={`M${x + 3} 160.5 V171.5`} fill="none" stroke={oben.tief} strokeWidth={4} opacity={0.6} />}
             {k.unterarm === 'haut' && <path d={`M${x + 3} 171.5 V184`} fill="none" stroke={unten.tief} strokeWidth={4} opacity={0.6} />}
-            <circle cx={hand[0]} cy={hand[1]} r={9} {...flaeche(h.farbe)} />
+            {/* A mitten with its thumb towards the body, not a ball. */}
+            <circle cx={hand[0] + (seite === 'l' ? 6.5 : -6.5)} cy={hand[1] - 4.5} r={4.6} {...flaeche(h.farbe, 2)} />
+            <ellipse cx={hand[0]} cy={hand[1] + 0.5} rx={9.6} ry={10.2} {...flaeche(h.farbe)} />
+            <path d={`M${x + 3} ${hand[1] + 9} q6 -2 6.5 -8`} fill="none" stroke={h.tief} strokeWidth={3} strokeLinecap="round" opacity={0.55} />
             <path d={`M${x - 5} ${hand[1] - 4} q3 -3 6 -2`} fill="none" stroke={h.hell} strokeWidth={2.5} strokeLinecap="round" />
           </g>
         ),
@@ -1276,13 +1301,24 @@ function koerper(k: Kleid): Teil {
       <g>
         {k.hinten?.()}
         {/* Legs and shoes */}
-        {[100, 122].map((x) => (
-          <g key={x}>
-            <rect x={x} y={186} width={18} height={30} rx={5} {...flaeche(k.hose.farbe)} />
-            <path d={`M${x - 3} 226 Q${x - 3} 210 ${x + 9} 210 Q${x + 23} 210 ${x + 23} 226 Z`} {...flaeche(k.schuhe.farbe)} />
-            <path d={`M${x + 2} 218 q3 -4 8 -4`} fill="none" stroke={k.schuhe.hell} strokeWidth={2.5} strokeLinecap="round" />
-          </g>
-        ))}
+        {/* Legs and chunky sneakers: the toes point outwards, a light sole under each, so the hero stands firmly. */}
+        {(
+          [
+            [100, -1],
+            [122, 1],
+          ] as const
+        ).map(([x, aussen]) => {
+          const m = x + 9;
+          const [l, r] = aussen < 0 ? [m - 16, m + 10] : [m - 10, m + 16];
+          return (
+            <g key={x}>
+              <rect x={x} y={186} width={18} height={28} rx={7} {...flaeche(k.hose.farbe)} />
+              <path d={`M${l} 221 Q${l} 207 ${m} 207 Q${r} 207 ${r} 221 Z`} {...flaeche(k.schuhe.farbe)} />
+              <rect x={l - 2} y={218.5} width={r - l + 4} height={7} rx={3.5} fill={P.wolke} />
+              <path d={`M${l + 3} 216.5 q2 -5 7 -6`} fill="none" stroke={k.schuhe.hell} strokeWidth={2.5} strokeLinecap="round" />
+            </g>
+          );
+        })}
         {k.rumpf(s)}
       </g>
     ),
@@ -1301,18 +1337,31 @@ function kopf(haut: Ton, haar: Ton, frisur: string, augen: string, mund: string)
         {/* The head's hard shadow on the body (and hair behind it), instead of an outline at the chin */}
         <Schlagschatten form={KOPF} auf={[RUMPF]} />
         {/* Ears, head with one light and one shade */}
-        {[68, 172].map((x) => (
-          <circle key={x} cx={x} cy={104} r={10} {...flaeche(haut.farbe)} />
+        {/* Ears tucked under the head, with an inner shade: no handles on a ball. */}
+        {[71, 169].map((x) => (
+          <g key={x}>
+            <circle cx={x} cy={107} r={8.5} {...flaeche(haut.farbe)} />
+            <circle cx={x + (x < 120 ? 1.5 : -1.5)} cy={108} r={3.8} fill={haut.tief} opacity={0.5} />
+          </g>
         ))}
         <path d={KOPF} {...flaeche(haut.farbe)} />
         <path d="M168 104 C166 130 146 146 120 146 C146 138 160 122 162 104 Z" fill={haut.tief} opacity={0.55} />
         <path d="M78 84 Q82 66 98 58" fill="none" stroke={haut.hell} strokeWidth={5} strokeLinecap="round" opacity={0.9} />
         {f.vorn?.(haar)}
         <g transform="translate(20 11)">
-          <ellipse cx="66" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.55} />
-          <ellipse cx="134" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.55} />
+          <ellipse cx="65" cy="113" rx="9" ry="5" fill={P.backe} opacity={0.5} />
+          <ellipse cx="135" cy="113" rx="9" ry="5" fill={P.backe} opacity={0.5} />
           <Brauen s={s} t={haar} />
           <Augen augen={augen} s={s} />
+          {/* Plain eyes smile with a lower lid in the skin tone (Stilprobe A): the face looks friendly, not blank. */}
+          {augen === 'punktaugen' &&
+            !s.augenZu &&
+            (s.gesicht === 'froh' || s.gesicht === 'lachen') &&
+            [AUGE_L, AUGE_R].map((x) => (
+              <path key={x} d={`M${x - 11} ${AUGE_Y + 7} Q${x} ${AUGE_Y + 1} ${x + 11} ${AUGE_Y + 7} L${x + 11} ${AUGE_Y + 14} L${x - 11} ${AUGE_Y + 14} Z`} fill={haut.farbe} />
+            ))}
+          {/* A small nose in the skin's shade. */}
+          <ellipse cx="100" cy="106.5" rx="4" ry="3" fill={haut.tief} opacity={0.85} />
           <Mund mund={mund} s={s} />
           {s.gesicht === 'traurig' && <path d="M131 101 q4 6 0 9 q-4 -3 0 -9 Z" fill={P.blauHell} stroke={P.blauTief} strokeWidth={1.5} />}
         </g>
@@ -1331,9 +1380,7 @@ const posen: Record<string, Pose> = {
   traurig: { name: 'Traurig', gesicht: 'traurig', winkel: { 'arm-l': 4, 'unterarm-l': -4, 'arm-r': -4, 'unterarm-r': 4, kopf: 6 } },
 };
 /** The fox's extras (stars, thought bubbles, „!“), moved over to the hero's head. */
-const extras = Object.fromEntries(
-  (['sterne', 'gedanken', 'ausruf'] as const).map((e) => [e, (s: Stand) => <g transform="translate(20 0)">{FUCHS.extras![e](s)}</g>]),
-);
+const extras = Object.fromEntries((['sterne', 'gedanken', 'ausruf'] as const).map((e) => [e, (s: Stand) => <g transform="translate(20 0)">{FUCHS.extras![e](s)}</g>]));
 
 const SPEICHER = new Map<string, Figur>();
 const nimm = <W,>(liste: Record<string, W>, id: string | undefined, sonst: string) => (id && id in liste ? id : sonst);
