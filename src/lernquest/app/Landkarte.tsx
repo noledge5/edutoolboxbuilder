@@ -5,6 +5,7 @@
 import type { ReactNode } from 'react';
 import { useId } from 'react';
 import { BossBurg } from '../figuren';
+import { Wimpelkette, type WimpelFarbe } from '../figuren/fest';
 import { weltVon } from '../figuren/welten';
 import { wegPlan } from '../weg';
 
@@ -18,8 +19,9 @@ export interface Wegpunkt {
 }
 
 /** `kopf`: the region's title card above the castle; `mitBoss`: the last waypoint is the Meilenstein; `nummer`: the
- *  region's number, which picks its world (figuren/welten.tsx; the Extra-Pakete regions have fixed ones). */
-export function Landkarte({ id, nummer = 1, kopf, punkte, mitBoss }: { id: string; nummer?: number; kopf: ReactNode; punkte: Wegpunkt[]; mitBoss: boolean }) {
+ *  region's number, which picks its world (figuren/welten.tsx; the Extra-Pakete regions have fixed ones); `wimpel`: the
+ *  colours of a running class event, strung across the top (src/lernquest/event.ts). */
+export function Landkarte({ id, nummer = 1, kopf, punkte, mitBoss, wimpel }: { id: string; nummer?: number; kopf: ReactNode; punkte: Wegpunkt[]; mitBoss: boolean; wimpel?: readonly WimpelFarbe[] }) {
   const plan = wegPlan(punkte.length, mitBoss, id);
   const welt = weltVon(id, nummer);
   const clip = useId();
@@ -60,6 +62,7 @@ export function Landkarte({ id, nummer = 1, kopf, punkte, mitBoss }: { id: strin
             {stehend.map((s) => (
               <g key={s.key}>{s.el}</g>
             ))}
+            {wimpel && <Wimpelkette breite={breite} y={-4} durchhang={34} tiefe={26} farben={wimpel} />}
           </g>
         </svg>
         <ol className="lq-wegpunkte">

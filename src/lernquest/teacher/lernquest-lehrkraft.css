@@ -1076,6 +1076,17 @@
   gap: 8px;
   align-items: center;
 }
+/* The class event (EventKarte.tsx): title and the two days side by side, labels over the fields. */
+.lqt-event-feld {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  min-width: 0;
+}
+.lqt-event-titel {
+  flex: 1 1 220px;
+}
 
 .lqt-bild-farben {
   display: grid;

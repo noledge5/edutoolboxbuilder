@@ -5,6 +5,7 @@
 import { SERVER } from '../share/server';
 import type { BossFrage } from './boss';
 import type { Aussehen, Dorf } from './dorf';
+import type { KlassenEvent } from './event';
 import type { Avatar } from './teile';
 import { LEERER_STAND, type KlassenAufgabe, type Stand } from './types';
 
@@ -102,6 +103,8 @@ export interface MeinStand {
   jetzt: string;
   /** „Wiederholen sofort“ of the class, if set (checked by `readExtra`). */
   extra?: unknown;
+  /** The class event, if set (checked by `readEvent`, src/lernquest/event.ts); missing before 20261207. */
+  event?: unknown;
 }
 
 export async function meinStand(token: string, seit: string | null): Promise<MeinStand> {
@@ -357,6 +360,8 @@ export interface KlasseInfo {
   zeitLimit?: number | null;
   /** The children's app of the class shows the Umbau page; missing before 20261202 (then in Umbau, see `imUmbau`). */
   umbau?: boolean;
+  /** The class event ({art, titel, ab, bis, stunden}), if set (20261207_lernquest_event.sql, `readEvent`). */
+  event?: unknown;
   aufgabe?: KlassenAufgabe;
 }
 
@@ -480,6 +485,8 @@ export const umbauSetzen = (keys: string[], klasse: string, umbau: boolean) =>
   lq<null>('lq_umbau_setzen', { p_schluessel: keys, p_klasse: klasse, p_umbau: umbau });
 export const wiederholenSetzen = (keys: string[], klasse: string, extra: { ab: string; bis: string; stunden: string[] } | null) =>
   lq<null>('lq_wiederholen_setzen', { p_schluessel: keys, p_klasse: klasse, p_extra: extra });
+/** Sets the class event, or ends it with null (src/lernquest/event.ts). */
+export const eventSetzen = (keys: string[], klasse: string, event: KlassenEvent | null) => lq<null>('lq_event_setzen', { p_schluessel: keys, p_klasse: klasse, p_event: event });
 
 // — Own hair (supabase/migrations/20261121_lernquest_eigene_frisuren.sql): name and five colour layers. —
 

@@ -55,6 +55,7 @@ import {
   frisurAendern,
   frisurenEigen,
   wiederholenSetzen,
+  eventSetzen,
   willkommen,
   wochenzielSetzen,
 } from './server';
@@ -541,6 +542,29 @@ describe.skipIf(!live)('Lernquest-Server (live)', () => {
     expect((await meinStand(login.token, null)).extra).toEqual(extra);
     await wiederholenSetzen(keyA, a.id, null);
     expect((await meinStand(login.token, null)).extra).toBeNull();
+  });
+
+  it('Event: nur die eigene Klasse, nur freigeschaltete Stationen, Runden anderer Stationen abgelehnt', async () => {
+    const a = await klasseAnlegen(keyA, 'Test Event');
+    made.push({ keys: keyA, id: a.id });
+    const kind = await kindAnlegen(keyA, a.id, 'Eva T.', '4321');
+    for (const s of ['sE1', 'sE2']) await freischalten(keyA, a.id, s, { format: 'lernquest-paket', stunde: s, uebungen: [] });
+    const heute = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
+    const event = { art: 'vokabeltest' as const, titel: 'Vokabeltest diese Woche', ab: heute, bis: heute, stunden: ['sE1'] };
+    expect(await code(eventSetzen(keyB, a.id, event))).toBe('zugang');
+    expect(await code(eventSetzen(keyA, a.id, { ...event, stunden: ['fremd'] }))).toBe('ungueltig');
+    expect(await code(eventSetzen(keyA, a.id, { ...event, titel: ' ' }))).toBe('ungueltig');
+    const login = await anmelden(a.code, kind, '4321');
+    if (!login.ok) throw new Error('Anmeldung');
+    await eventSetzen(keyA, a.id, event);
+    expect((await meinStand(login.token, null)).event).toEqual(event);
+    expect((await klassen(keyA)).find((k) => k.id === a.id)?.event).toEqual(event);
+    expect(await code(rundeMelden(login.token, 'sE2', 0, 1, 1, {}))).toBe('ungueltig');
+    expect(await code(rundeMelden(login.token, 'sE1', 0, 1, 1, {}))).toBe('ok');
+    expect(await code(rundeMelden(login.token, '', 0, 1, 1, {}))).toBe('ok');
+    await eventSetzen(keyA, a.id, null);
+    expect((await meinStand(login.token, null)).event).toBeNull();
+    expect(await code(rundeMelden(login.token, 'sE2', 0, 1, 1, {}))).toBe('ok');
   });
 
   it('Frisur-Bilder: nur Admins, nur gültige Kennungen', async () => {
