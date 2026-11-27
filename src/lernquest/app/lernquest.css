@@ -5428,3 +5428,22 @@ button.lq-teil:active {
   padding: var(--lq-a-3) 0 max(var(--lq-a-3), env(safe-area-inset-bottom));
   background: var(--lq-grund);
 }
+
+/* Moving between the tabs (27.11.2026): the page fades up instead of jumping, the icon of the tab just chosen hops once. */
+.lq-inhalt > * {
+  animation: lq-seite-rein 0.24s ease-out both;
+}
+@keyframes lq-seite-rein {
+  from {
+    transform: translateY(var(--lq-a-2));
+    opacity: 0;
+  }
+}
+.lq-leiste button.an svg {
+  animation: lq-tab-hops 0.5s var(--lq-feder);
+}
+@keyframes lq-tab-hops {
+  40% {
+    transform: translateY(calc(-1 * var(--lq-a-2))) scale(1.15);
+  }
+}
