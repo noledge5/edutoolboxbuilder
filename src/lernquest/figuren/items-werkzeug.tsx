@@ -48,7 +48,7 @@ export const WERKZEUG_ITEMS: Item[] = [
         <rect x="-4" y="-24" width="31" height="46" rx="5" {...flaeche(P.sand)} />
         <rect x="-8" y="-28" width="31" height="46" rx="5" {...flaeche(P.rot)} />
         <rect x="-8" y="-28" width="9" height="46" rx="4" {...flaeche(P.rotTief)} />
-        <path d={stern(12, -5, 8)} {...flaeche(P.gold, 2)} />
+        <path d={stern(12, -5, 8)} {...flaeche(P.gelb, 2)} />
       </g>
     ),
   },

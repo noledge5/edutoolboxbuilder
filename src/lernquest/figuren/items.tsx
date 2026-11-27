@@ -47,12 +47,12 @@ const GRUND: Item[] = [
         {rohr('M-44 4 Q0 -18 44 4', 10, P.gruen)}
         {[
           [-30, -4, P.backe],
-          [0, -11, P.gold],
+          [0, -11, P.gelb],
           [30, -4, P.lilaHell],
         ].map(([x, y, f]) => (
           <g key={`${x}`}>
             <path d={stern(x as number, y as number, 14)} {...flaeche(f as string, 2.5)} />
-            <circle cx={x as number} cy={y as number} r={4.5} fill={P.goldTief} />
+            <circle cx={x as number} cy={y as number} r={4.5} fill={P.gelbTief} />
           </g>
         ))}
       </g>
@@ -195,9 +195,9 @@ const GRUND: Item[] = [
     name: 'Rundschild',
     platz: 'hand-links',
     seltenheit: 2,
-    rahmen: [-27, -26, 50, 52],
+    rahmen: [-34, -33, 63, 65],
     zeichnung: () => (
-      <g>
+      <g transform="scale(1.25)">
         <circle cx="-2" cy="0" r="23" {...flaeche(P.metall)} />
         <circle cx="-2" cy="0" r="17" {...flaeche(P.holz)} />
         <path d="M6 -14 A17 17 0 0 1 6 14 A22 22 0 0 0 6 -14 Z" {...flaeche(P.holzTief, 1.5)} />
@@ -211,9 +211,9 @@ const GRUND: Item[] = [
     platz: 'hand-links',
     seltenheit: 3,
     bewegt: true,
-    rahmen: [-17, -32, 34, 46],
+    rahmen: [-21, -40, 43, 58],
     zeichnung: (zeit) => (
-      <g>
+      <g transform="scale(1.25)">
         <rect x="-5.5" y="-25" width="11" height="14" rx="2" {...flaeche(P.blauHell, 2.5)} />
         <rect x="-7" y="-32" width="14" height="8" rx="3" {...flaeche(P.holz, 2.5)} />
         <circle cx="0" cy="1" r="15" {...flaeche(P.blauHell)} />
@@ -228,9 +228,9 @@ const GRUND: Item[] = [
     platz: 'hand-links',
     seltenheit: 1,
     bewegt: true,
-    rahmen: [-17, -8, 34, 50],
+    rahmen: [-21, -10, 43, 63],
     zeichnung: (zeit) => (
-      <g transform={`rotate(${(Math.sin(zeit * 2) * 6).toFixed(2)})`}>
+      <g transform={`scale(1.25) rotate(${(Math.sin(zeit * 2) * 6).toFixed(2)})`}>
         {rohr('M-7 6 Q0 -10 7 6', 3, P.metallTief)}
         <path d="M-12 4 h24 l-3 6 h-18 Z" {...flaeche(P.metallTief)} />
         <rect x="-10" y="10" width="20" height="22" rx="4" {...flaeche(P.goldHell, 2.5)} />
