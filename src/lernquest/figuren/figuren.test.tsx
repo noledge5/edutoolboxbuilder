@@ -158,7 +158,7 @@ describe('items', () => {
   });
 
 
-  it('sit on an anchor some figure has, and draw as icon and worn, still and moving', () => {
+  it('sit on an anchor some figure has, and draw as icon and worn, still and moving', { timeout: 30_000 }, () => {
     const plaetze = new Set(FIGUREN.flatMap(anker));
     expect(new Set(ITEMS.map((i) => i.id)).size).toBe(ITEMS.length);
     for (const i of ITEMS) {

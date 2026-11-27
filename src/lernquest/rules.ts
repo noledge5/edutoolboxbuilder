@@ -103,6 +103,18 @@ export function punktTrifft(punkte: [number, number, string][], ziel: number, x:
  */
 export const fehlgriffeFrei = (n: number) => (n >= 3 ? 1 : 0);
 
+/** Why a pairs or places answer counts as wrong although the board ends all green (27.11.2026: children saw every pair
+ *  found and only „Nicht ganz.“): the slips and how many are allowed. Null for other formats or when it was right. */
+export function fehlgriffHinweis(u: Uebung, a: Antwort | null): string | null {
+  const n = u.art === 'paare' ? u.paare.length : u.art === 'punkt' ? u.punkte.length : 0;
+  if (!n || !a) return null;
+  const daneben =
+    u.art === 'paare' && a.art === 'paare' ? a.fehler : u.art === 'punkt' && a.art === 'punkt' ? a.getippt.filter((t) => !punktTrifft(u.punkte, t.ziel, t.x, t.y)).length : 0;
+  const frei = fehlgriffeFrei(n);
+  if (daneben <= frei) return null;
+  return `Du hast ${daneben}-mal danebengetippt. ${frei ? 'Einmal ist erlaubt.' : 'Hier zählt jeder Fehlgriff.'}`;
+}
+
 /** A sentence from tiles: spaces before end marks and commas go. */
 /** Two answers in words are the same, as `istRichtig` compares them (case, spaces, punctuation). */
 export const gleich = (a: string, b: string) => normalize(a) === normalize(b);
