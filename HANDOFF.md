@@ -1,5 +1,14 @@
 # Handoff – 26.11.2026 (Teile, Häuser und Vorlesen mit Google-Stimme live)
 
+> **Freigabe der Lehrkraft (27.11.2026, über Claude weitergegeben):** Beim **Dorf** darfst du richtig loslegen:
+> groß umbauen, Neues ausprobieren, nicht nur Feinschliff. Und du darfst **Layout- und Mechanik-Entscheidungen der App neu
+> denken**, auch solche, die in `docs/lernquest.md` oder in ADRs schon festgelegt sind. Was du änderst, dort als neue
+> Entscheidung mit Grund festhalten.
+>
+> **Neue Figuren-Werkstatt:** https://claude.ai/artifact/6YDQU9Ghhp6SZ7mLLXj2jD (neuer Bewegungs-Motor, alle 180
+> Rückmeldungen übernommen). Rückmeldungen ab jetzt dort lesen (ArtifactData, Sammlung `pruefung`). Die alte Adresse
+> (…/WmzYWa5W6igWNwv2iUZdnG) steht noch in `docs/design/lernquest/README.md` und im Skill `figur`: bitte dort ersetzen.
+
 > **Hinweis Bewegung (27.11.2026, PR #117 und „Lernquest Held: Hallo“):** Der Bewegungs-Motor (`figuren/bewegung.ts`)
 > hat sich geändert: `weich` ist eine Kurve durch alle Schlüsselbilder; neu sind `kurven` je Abschnitt (`rein` zum
 > Fallen), `versatz` je Spur (Nachziehen), `vorne` je Bewegung und ein Übergang von 0,2 s bei jedem Wechsel von Pose
