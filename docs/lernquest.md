@@ -590,6 +590,31 @@ Thema „Welten der Karte“, Herkunft wie bisher. Jetzt 150 Teile.
 - Server: nur neue Zeilen in `lq_teil` (`20261205_lernquest_welten_teile.sql`); Truhen, Laden und Spielstände bleiben.
   Erst mergen, dann einspielen: eine ältere App kennt die neuen Teile nicht und zeigt sie aus der Truhe ohne Bild.
 
+## Events je Klasse (27.11.2026)
+
+- **Wunsch:** „Ein Event wie ‚Vokabeltest diese Woche‘, bei dem nur bestimmte Quests offen sind.“ Entschieden: die
+  anderen Stationen sind **ausgeblendet** (nicht gesperrt); drei Arten **Vokabeltest**, **Klassenarbeit**,
+  **Eigenes Event**; dazu ein **Banner** und ein **Event-Look** auf der Karte.
+- **Kinder:** Läuft ein Event (heute, Berliner Zeit, zwischen erstem und letztem Tag), zeigt die Karte nur seine
+  Stationen, auch keine grauen gesperrten der Module (`eventPakete` in `src/lernquest/event.ts`). Fächer ohne
+  Event-Station fallen weg, „Wiederholen“ nimmt nur Aufgaben dieser Stationen, Meilensteine ruhen (sie würden nur
+  einen Teil der Region prüfen und für die ganze zählen). Oben das Banner (`app/EventBanner.tsx`): Titel, „Noch
+  4 Tage, bis Freitag.“, geschaffte Stationen mit Balken; auf dem Handy vor der Truhe, ab 1024 px über der Karte.
+  Look: Wimpelkette in den Farben der Art über Banner und jeder Region (`figuren/fest.tsx`), Farbe der Art auf
+  Banner und Regionsband (`--lq-event-*`). Vokabeltest blau und gold, Klassenarbeit rot, gold und silber, eigenes
+  Event bunt.
+- **Lehrkraft:** Karte „Event“ je Klasse vor „Wiederholen sofort“ (`teacher/EventKarte.tsx`): Art wählen, Titel,
+  erster und letzter Tag (Vorschlag: heute bis Freitag, ab Freitag bis Freitag der nächsten Woche), Stationen nach
+  Modul ankreuzen. Vokabeltest wählt die freigeschalteten Stationen aus dem Wortschatz-Wald vor. Ein Event kann
+  geplant werden (bis 60 Tage voraus), dauert höchstens drei Wochen, „Beenden“ oder „Absagen“ löscht es.
+- **Server** (`supabase/migrations/20261207_lernquest_event.sql`): Spalte `lq_klasse.event`
+  (`{art, titel, ab, bis, stunden}`), `lq_event_setzen` (nur die Lehrkraft der Klasse; prüft Art, Titel 1–60
+  Zeichen, Tage, 1–200 freigeschaltete Stationen), `lq_mein_stand` und `lq_klassen` liefern `event` mit.
+  `lq_runde_melden` nimmt während eines Events nur Runden seiner Stationen an (sonst `ungueltig`, die App lässt
+  solche Runden fallen wie die gesperrter Stunden); Wiederholen-Runden bleiben erlaubt.
+- **Geprüft:** Logik in `event.test.ts`; SQL lokal mit PGlite (alle Migrationen, 24 Prüfungen: Rechte, Grenzen,
+  Auslieferung, Runden während, vor und nach dem Event); Bildschirmfotos mit `npm run demo` (Handy und iPad quer).
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

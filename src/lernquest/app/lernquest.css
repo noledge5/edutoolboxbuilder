@@ -45,6 +45,14 @@
   --lq-selten-3: #2459b8;
   --lq-selten-4: #6a2fc4;
   --lq-selten-5: #8a6100;
+  /* Class events (src/lernquest/event.ts): the colour of each kind and its light area, as the pennants
+     (figuren/fest.tsx) */
+  --lq-event-vokabel: #2f62b0;
+  --lq-event-vokabel-flaeche: #e6efff;
+  --lq-event-arbeit: #a3302a;
+  --lq-event-arbeit-flaeche: #fdebe6;
+  --lq-event-eigen: #5e33a6;
+  --lq-event-eigen-flaeche: #f1e9fc;
   /* Type scale */
   --lq-t-klein: 13px;
   --lq-t-text: 16px;
@@ -3829,6 +3837,86 @@ button.lq-teil:active {
 }
 .lq-karte-haupt .lq-region + .lq-region {
   margin-top: var(--lq-a-5);
+}
+
+/* Class events (src/lernquest/event.ts): the banner over the map in the event's colour, the same colour on the
+   region bands, pennants across each region (Landkarte.tsx). */
+.lq-karte-raster.event-vokabeltest {
+  --lq-event: var(--lq-event-vokabel);
+  --lq-event-flaeche: var(--lq-event-vokabel-flaeche);
+}
+.lq-karte-raster.event-klassenarbeit {
+  --lq-event: var(--lq-event-arbeit);
+  --lq-event-flaeche: var(--lq-event-arbeit-flaeche);
+}
+.lq-karte-raster.event-eigenes {
+  --lq-event: var(--lq-event-eigen);
+  --lq-event-flaeche: var(--lq-event-eigen-flaeche);
+}
+.lq-event-banner {
+  position: relative;
+  max-width: 480px;
+  width: 100%;
+  margin-inline: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+  padding: calc(var(--lq-a-6) + var(--lq-a-2)) var(--lq-a-4) var(--lq-a-4);
+  border-radius: var(--lq-r);
+  background: var(--lq-event-flaeche);
+  box-shadow: inset 0 0 0 2px var(--lq-event);
+}
+.lq-event-banner > svg {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  height: 40px;
+  display: block;
+}
+.lq-event-banner h2 {
+  margin: 0;
+  font:
+    600 var(--lq-t-h3) Fredoka,
+    sans-serif;
+  color: var(--lq-event);
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+.lq-event-banner p {
+  margin: 0;
+}
+.lq-event-stand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lq-a-1);
+  margin-top: var(--lq-a-2);
+  font-size: var(--lq-t-klein);
+  color: var(--lq-gedaempft);
+}
+.lq-event-stand .lq-balken {
+  background: var(--lq-karte);
+}
+.lq-event-stand .lq-balken > span {
+  background: var(--lq-event);
+}
+.ist-event .lq-landkarte .lq-region-band span {
+  color: var(--lq-event);
+}
+/* The banner comes first: on a phone above the chest, from 1024 px over the map with the chest beside both. */
+@media (min-width: 1024px) {
+  .lq-karte-raster.ist-event > .lq-event-banner {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .lq-karte-raster.ist-event > .lq-karte-seite {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .lq-karte-raster.ist-event > .lq-karte-haupt {
+    grid-column: 2;
+    grid-row: 2;
+  }
 }
 
 /* The bar at the bottom as in the mockup: a floating white card, the current tab as a green pill. */

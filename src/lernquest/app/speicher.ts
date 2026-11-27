@@ -1,5 +1,6 @@
 // What Lernquest keeps in the child's browser: the session, the Lernpakete and the last Spielstand (so it also opens
 // without internet), and rounds played offline, sent later. All in localStorage; a private window simply starts empty.
+import { readEvent, type KlassenEvent } from '../event';
 import { readPaket } from '../paket';
 import { readExtra, type ExtraWiederholen } from '../rules';
 import { LEERER_STAND, type Paket, type Stand } from '../types';
@@ -21,6 +22,8 @@ export interface Daten {
   seit: string | null;
   /** „Wiederholen sofort“ from the teacher, if set. */
   extra?: ExtraWiederholen | null;
+  /** The class event, if set (src/lernquest/event.ts). */
+  event?: KlassenEvent | null;
 }
 
 /** A round played, waiting to be sent. */
@@ -79,6 +82,7 @@ export function ladeDaten(): Daten | null {
     pakete,
     seit: d.seit ?? null,
     extra: readExtra(d.extra),
+    event: readEvent(d.event),
   };
 }
 export const speichereDaten = (d: Daten | null) => write(K_DATEN, d);

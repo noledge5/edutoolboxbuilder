@@ -52,6 +52,7 @@ import { PinCards } from './PinCards';
 import { Antwortkarten, type KartenKind } from './Antwortkarten';
 import { Kartenrunde } from './Kartenrunde';
 import { WiederholenSofort } from './WiederholenSofort';
+import { EventKarte } from './EventKarte';
 import { KlassenAufgabe } from './KlassenAufgabe';
 import { BossScan } from './BossScan';
 import './lernquest-lehrkraft.css';
@@ -623,6 +624,8 @@ function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse,
       <StimmeKarte busy={busy} />
 
       <KlassenDorf klasse={klasse} keys={keys} busy={busy} act={act} />
+
+      <EventKarte lib={lib} klasse={klasse} busy={busy} act={act} />
 
       <WiederholenSofort lib={lib} klasse={klasse} busy={busy} act={act} />
 

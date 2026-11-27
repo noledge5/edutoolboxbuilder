@@ -58,6 +58,9 @@ import { AUSSCHNITT_KOPF, AvatarBild } from './avatar';
 import { Fuchs, FuchsSagt } from './Fuchs';
 import { Landschaft } from './Landschaft';
 import { Landkarte } from './Landkarte';
+import { EventBanner } from './EventBanner';
+import { eventFortschritt, eventLaeuft, eventPakete, readEvent } from '../event';
+import { EVENT_FARBEN } from '../figuren/fest';
 import type { Wegpunkt } from './Landkarte';
 
 export type Screen =
@@ -451,11 +454,15 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   /** The send going on: a second call waits for it, so no round is sent twice. */
   const sending = useRef<Promise<void> | null>(null);
 
-  /** Sends rounds played offline; the server's Spielstand wins after the last one. */
-  const flush = useCallback((): Promise<void> => {
+  /** `laden`, for `flush` (defined below it). */
+  const ladenRef = useRef<() => Promise<void>>(async () => {});
+  /** Sends rounds played offline; the server's Spielstand wins after the last one. A round the server refused (a
+   *  lesson locked or a class event started since the last load) loads the class's state at once, so the map shows
+   *  what is open now; not when `laden` itself sends (`nachladen` false). */
+  const flush = useCallback((nachladen = true): Promise<void> => {
     const run = async () => {
       await sending.current?.catch(() => {});
-      await send();
+      if ((await send()) && nachladen) void ladenRef.current();
     };
     const p = run();
     sending.current = p;
@@ -463,7 +470,9 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sitzung.token, store, fail]);
 
-  const send = async () => {
+  /** True when the server refused a round. */
+  const send = async (): Promise<boolean> => {
+    let verworfen = false;
     let queue = ladeWarteschlange();
     while (queue.length) {
       const m = queue[0];
@@ -479,17 +488,19 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         if (e instanceof LqError && (e.code === 'ungueltig' || e.code === 'zeit')) {
           queue = queue.slice(1);
           speichereWarteschlange(queue);
+          verworfen = true;
           continue;
         }
         fail(e);
-        return;
+        return verworfen;
       }
     }
+    return verworfen;
   };
 
   const laden = useCallback(async () => {
     try {
-      await flush();
+      await flush(false);
       const d = datenRef.current;
       const r = await meinStand(sitzung.token, d?.seit ?? null);
       const pakete: Record<string, Paket> = {};
@@ -499,12 +510,15 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         if (paket) pakete[p.stunde] = paket;
       }
       const stand = ladeWarteschlange().length && d ? d.stand : r.stand;
-      store({ name: r.name, klasse: r.klasse, stand, pakete, seit: r.jetzt, extra: readExtra(r.extra) });
+      store({ name: r.name, klasse: r.klasse, stand, pakete, seit: r.jetzt, extra: readExtra(r.extra), event: readEvent(r.event) });
       setOffline(false);
     } catch (e) {
       fail(e);
     }
   }, [sitzung.token, flush, store, fail]);
+  useEffect(() => {
+    ladenRef.current = laden;
+  }, [laden]);
 
   useEffect(() => {
     void laden();
@@ -551,7 +565,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   });
 
   const stand = daten?.stand;
-  const pakete = useMemo(() => Object.values(daten?.pakete ?? {}), [daten]);
+  const allePakete = useMemo(() => Object.values(daten?.pakete ?? {}), [daten]);
+  // A class event (src/lernquest/event.ts): while it runs, the child sees only its stations, on the map and in „Wiederholen“.
+  const heuteTag = heute();
+  const event = daten?.event && eventLaeuft(daten.event, heuteTag) ? daten.event : null;
+  const pakete = useMemo(() => eventPakete(allePakete, daten?.event, heuteTag), [allePakete, daten?.event, heuteTag]);
 
   // A boss fight of the class: asked for every 15 s while the child is on the map, hero or class pages.
   const [boss, setBoss] = useState<BossOffen | null>(null);
@@ -1145,7 +1163,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   // The map.
   const faecher = faecherVon(pakete);
   const aktiv = faecher.includes(fach) ? fach : (faecher[0] ?? '');
-  const regionen = regionenVon(pakete, aktiv, stand, new Set(dran));
+  // During an event no Meilenstein: it would test only the event's stations of a region and count for the whole region.
+  const regionen = regionenVon(pakete, aktiv, stand, new Set(dran)).map((r) => (event ? { ...r, meilenstein: false } : r));
   const tippen = (s: Station) => {
     const p = s.stunde ? daten.pakete[s.stunde] : undefined;
     if (!p) return;
@@ -1174,7 +1193,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
 
   // From 1024 px (iPad landscape, laptop) two columns: the week goal beside the map; on a phone one after the other.
   return rahmen(
-    <div className="lq-karte-raster">
+    <div className={`lq-karte-raster${event ? ` ist-event event-${event.art}` : ''}`}>
+      {event && <EventBanner event={event} tag={heuteTag} {...eventFortschritt(pakete, stand)} />}
       <aside className="lq-karte-seite">
         <TruhenFortschritt rest={stand.sterneRest} truhen={stand.truhen} onOeffnen={() => setScreen({ kind: 'truhe', zurueck: 'karte' })} />
       </aside>
@@ -1188,7 +1208,9 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             ))}
           </nav>
         )}
-        {!pakete.length && <p className="lq-leer">Deine Lehrkraft hat noch keine Station freigeschaltet. Schau bald wieder vorbei!</p>}
+        {!pakete.length && (
+          <p className="lq-leer">{event ? 'Für das Event ist gerade keine Station offen. Frag deine Lehrkraft!' : 'Deine Lehrkraft hat noch keine Station freigeschaltet. Schau bald wieder vorbei!'}</p>
+        )}
         {pakete.length > 0 && (
           <FuchsSagt pose={hinweis.pose}>
             <p>{hinweis.text}</p>
@@ -1196,7 +1218,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         )}
         {regionen.map((r, ri) => {
           const sterne = r.stationen.reduce((n, st) => n + st.sterne, 0);
-          const pfad = pfadVon(r, ri === wdhRegion && fachDran.length > 0);
+          const pfad = pfadVon(r, ri === wdhRegion && fachDran.length > 0, !event);
           const punkte: Wegpunkt[] = pfad.map((x) => {
             if (x === 'wdh') return { key: 'wdh', klasse: 'ist-wdh', inhalt: wdhKnoten };
             if (x === 'meilenstein') {
@@ -1253,6 +1275,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
                 id={r.id}
                 nummer={r.nummer}
                 mitBoss={pfad.at(-1) === 'meilenstein'}
+                wimpel={event ? EVENT_FARBEN[event.art] : undefined}
                 punkte={punkte}
                 kopf={
                   <div className="lq-region-band">
@@ -1277,14 +1300,14 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
 }
 
 /** The nodes on a region's path: its stations, the „Wiederholen“ node before the current one (or at the end), the
- *  Meilenstein last (regions with at least two stations). */
-function pfadVon(r: Region, mitWdh: boolean): (Station | 'wdh' | 'meilenstein')[] {
+ *  Meilenstein last (regions with at least two stations; none during a class event). */
+function pfadVon(r: Region, mitWdh: boolean, mitMeilenstein = true): (Station | 'wdh' | 'meilenstein')[] {
   const out: (Station | 'wdh' | 'meilenstein')[] = [...r.stationen];
   if (mitWdh) {
     const i = out.findIndex((s) => s !== 'wdh' && s !== 'meilenstein' && s.zustand === 'aktuell');
     out.splice(i >= 0 ? i : out.length, 0, 'wdh');
   }
-  if (r.stationen.length >= 2) out.push('meilenstein');
+  if (mitMeilenstein && r.stationen.length >= 2) out.push('meilenstein');
   return out;
 }
 
