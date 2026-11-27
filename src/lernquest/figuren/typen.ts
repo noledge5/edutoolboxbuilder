@@ -98,6 +98,8 @@ export interface Item {
   hinten?: boolean;
   /** Headwear that covers the top of the head (cap, hat, helmet): on the hero the hair is cut at its brim (Held 4). */
   haube?: boolean;
+  /** Worn on the forehead (a headband): on the hero it sits low like a hat's brim but cuts no hair. */
+  stirn?: boolean;
   /** View box of the item alone (for the icon): x, y, width, height around the anchor. */
   rahmen: readonly [number, number, number, number];
   /** Draws differently over time (a flame, a sparkle): icons of it run a clock. */
