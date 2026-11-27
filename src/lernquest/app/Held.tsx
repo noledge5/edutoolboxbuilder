@@ -36,6 +36,7 @@ import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
 import { TruheZeichnung } from '../figuren';
 import { ruhig } from '../figuren/Figur';
+import { Zaehler } from './Zaehler';
 import { Fuchs } from './Fuchs';
 import { Jubel } from './Jubel';
 import { BilderNeuLaden, useAlleFrisuren, useAlleTeile } from './bilderKontext';
@@ -56,11 +57,18 @@ const slotName = (s: Slot) => SLOTS.find((x) => x.slot === s)?.label ?? s;
 
 // — Small pieces —
 
-export function Muenzen({ n, label = 'Münzen' }: { n: number; label?: string }) {
+/** The coins last shown in the status row: when it comes back with more, it counts up from there (Belohnungen). */
+let zuletztGezeigt: number | null = null;
+
+export function Muenzen({ n, label = 'Münzen', zaehlen = false }: { n: number; label?: string; zaehlen?: boolean }) {
+  const von = zaehlen && zuletztGezeigt !== null ? zuletztGezeigt : n;
+  useEffect(() => {
+    if (zaehlen) zuletztGezeigt = n;
+  }, [n, zaehlen]);
   return (
     <span className="lq-muenzen" aria-label={`${n} ${label}`}>
       <MuenzIcon />
-      <span aria-hidden>{n}</span>
+      <span aria-hidden>{zaehlen && von !== n ? <Zaehler key={`${von}-${n}`} von={von} wert={n} verzoegerung={250} klang={n > von} /> : n}</span>
     </span>
   );
 }
@@ -564,10 +572,10 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
   }, [unbekannt, neuLaden]);
   const nurMuenzen = !!inhalt && !inhalt.teil;
   return (
-    <main className="lq-app lq-nacht lq-truhe">
+    <main className="lq-app lq-nacht lq-truhe" data-phase={phase}>
       <span className="lq-truhe-kicker">{phase === 'da' ? 'Aus deiner Truhe' : stand.truhen > 1 ? `${stand.truhen} Truhen warten` : 'Deine Truhe'}</span>
       <div
-        className={`lq-truhe-buehne ${phase}`}
+        className={`lq-truhe-buehne ${phase}${inhalt ? (inhalt.teil ? ` lq-glanz-s-${inhalt.seltenheit}` : ' lq-glanz-muenzen') : ''}`}
         onClick={() => phase === 'auf' && setUebersprungen(true)}
         aria-busy={phase === 'auf'}
         role={phase === 'auf' ? 'button' : undefined}
@@ -587,6 +595,15 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
           <MuenzHaufen />
         ) : (
           <TruheGross offen={phase === 'auf'} />
+        )}
+        {/* The reveal (Belohnungen): a flash, the light in the rarity's colour, sparkles from „Selten“ on. */}
+        {phase === 'da' && <span className="lq-truhe-blitz" aria-hidden />}
+        {phase === 'da' && t && inhalt && inhalt.seltenheit >= 2 && (
+          <span className="lq-truhe-funken" aria-hidden>
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <i key={i} style={{ ['--w' as string]: `${i * 60 + 20}deg`, ['--v' as string]: `${i * 150}ms` }} />
+            ))}
+          </span>
         )}
         {phase === 'da' && t && inhalt && inhalt.seltenheit >= 2 && <Jubel stark={inhalt.seltenheit >= 3} />}
         {phase === 'da' && (
@@ -612,7 +629,9 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
         )}
         {phase === 'da' && nurMuenzen && inhalt && (
           <>
-            <h1>{inhalt.muenzen} Münzen</h1>
+            <h1>
+              <Zaehler wert={inhalt.muenzen} verzoegerung={300} klang /> Münzen
+            </h1>
             <p>Diesmal nur Münzen – damit kannst du im Laden einkaufen.</p>
           </>
         )}

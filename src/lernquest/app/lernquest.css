@@ -4872,3 +4872,179 @@ button.lq-teil:active {
     animation: none;
   }
 }
+
+/* ===== Belohnungen (27.11.2026): Zähler und Truhe ===== */
+
+/* A counted reward pops once when it lands. */
+.lq-zaehler {
+  display: inline-block;
+}
+.lq-zaehler.fertig {
+  animation: lq-zaehler-pop var(--lq-dauer) var(--lq-feder);
+}
+@keyframes lq-zaehler-pop {
+  50% {
+    transform: scale(1.25);
+  }
+}
+.lq-kacheln-ergebnis strong {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lq-a-1);
+}
+
+/* The chest: its light takes the colour of the rarity as soon as the server has answered. */
+.lq-truhe-buehne.lq-glanz-s-0 .lq-truhe-glanz :is(path, circle) {
+  fill: var(--lq-selten-1);
+}
+.lq-truhe-buehne.lq-glanz-s-1 .lq-truhe-glanz :is(path, circle) {
+  fill: var(--lq-selten-2);
+}
+.lq-truhe-buehne.lq-glanz-s-2 .lq-truhe-glanz :is(path, circle) {
+  fill: var(--lq-selten-3);
+}
+.lq-truhe-buehne.lq-glanz-s-3 .lq-truhe-glanz :is(path, circle) {
+  fill: var(--lq-selten-4);
+}
+.lq-truhe-buehne.lq-glanz-s-4 .lq-truhe-glanz :is(path, circle),
+.lq-truhe-buehne.lq-glanz-muenzen .lq-truhe-glanz :is(path, circle) {
+  fill: var(--lq-gold);
+}
+.lq-truhe-buehne:is(.auf, .da) .lq-truhe-glanz :is(path, circle) {
+  opacity: 0.34;
+}
+.lq-truhe-buehne.da .lq-truhe-glanz {
+  animation-duration: 14s;
+}
+
+/* Reveal: a flash, then the part springs up and settles; the text slides in after it. */
+.lq-truhe-blitz {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: var(--lq-auf-farbe);
+  opacity: 0;
+  pointer-events: none;
+  animation: lq-blitz var(--lq-dauer-lang) ease-out both;
+}
+@keyframes lq-blitz {
+  from {
+    transform: scale(0.3);
+    opacity: 0.85;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+.lq-truhe-buehne.da .lq-truhe-teil,
+.lq-truhe-buehne.da .lq-muenz-haufen {
+  animation: lq-enthuellen calc(var(--lq-dauer-lang) * 1.4) var(--lq-feder) both;
+}
+@keyframes lq-enthuellen {
+  0% {
+    transform: scale(0.2) rotate(-14deg);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.18) rotate(5deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.96) rotate(-2deg);
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+.lq-truhe[data-phase='da'] .lq-truhe-text > * {
+  animation: lq-hochkommen var(--lq-dauer) ease-out both;
+}
+.lq-truhe[data-phase='da'] .lq-truhe-text > :nth-child(1) {
+  animation-delay: 350ms;
+}
+.lq-truhe[data-phase='da'] .lq-truhe-text > :nth-child(2) {
+  animation-delay: 480ms;
+}
+.lq-truhe[data-phase='da'] .lq-truhe-text > :nth-child(n + 3) {
+  animation-delay: 600ms;
+}
+@keyframes lq-hochkommen {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Sparkles round a rare part: six small stars that twinkle in turn. */
+.lq-truhe-funken {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.lq-truhe-funken i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  transform: rotate(var(--w)) translateY(-112px) rotate(calc(-1 * var(--w)));
+}
+.lq-truhe-funken i::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--lq-gold);
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+  animation: lq-funkeln 1.6s ease-in-out infinite;
+  animation-delay: var(--v);
+}
+@keyframes lq-funkeln {
+  0%,
+  100% {
+    transform: scale(0.35);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-zaehler.fertig,
+  .lq-truhe-blitz,
+  .lq-truhe-buehne.da .lq-truhe-teil,
+  .lq-truhe-buehne.da .lq-muenz-haufen,
+  .lq-truhe[data-phase='da'] .lq-truhe-text > *,
+  .lq-truhe-funken i::before {
+    animation: none;
+  }
+  .lq-truhe-blitz {
+    display: none;
+  }
+}
+
+/* The counted value in a result tile keeps the tile's big number style (the labels are spans too). */
+.lq-kacheln-ergebnis .lq-wert {
+  font-style: normal;
+}
+.lq-kacheln-ergebnis .lq-wert span {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  text-transform: none;
+}
+.lq-kacheln-ergebnis .lq-wert {
+  white-space: nowrap;
+}
+.lq-kacheln-ergebnis .lq-einheit {
+  margin-left: var(--lq-a-1);
+  font-size: var(--lq-t-text);
+}

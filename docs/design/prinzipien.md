@@ -120,6 +120,10 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
 - Dauern und Kurven aus den Tokens (`--lq-dauer-*`, federnd nur für Belohnungen); nur `transform` und `opacity`.
 - Im Dorf: Rauch (`lq-rauch`), Fahnen (`lq-fahne`), Wasser (`lq-glitzer`), Hühner (`lq-huhn`), „Du“ (`lq-du`), Neues
   (`lq-neu` mit `lq-staub`). Sparsam: die Karte ist kein Lernbildschirm, aber das Auge soll das eigene Haus zuerst finden.
+- **Belohnungen (27.11.2026):** Erfahrung und Münzen zählen hoch (`zaehler.ts`, `app/Zaehler.tsx`: erst schnell, dann
+  langsam, höchstens 1,2 s, am Ende ein kleiner Hüpfer und ein Münzklang); die Münzen in der Statuszeile zählen vom
+  zuletzt gezeigten Stand weiter. Truhe: beim Rütteln nimmt das Licht die Farbe der Seltenheit an, beim Öffnen ein Blitz,
+  das Teil springt groß heraus und federt nach, ab „Selten“ funkeln Sterne, der Text gleitet nach.
 - „Bewegung reduzieren“ im App-Menü hält alles an; jede Pose muss allein lesbar sein.
 
 ## Oberfläche
