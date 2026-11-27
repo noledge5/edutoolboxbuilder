@@ -631,6 +631,30 @@ Thema „Welten der Karte“, Herkunft wie bisher. Jetzt 150 Teile.
 - **Geprüft:** Logik in `event.test.ts`; SQL lokal mit PGlite (alle Migrationen, 24 Prüfungen: Rechte, Grenzen,
   Auslieferung, Runden während, vor und nach dem Event); Bildschirmfotos mit `npm run demo` (Handy und iPad quer).
 
+## Feinschliff am Abend (27.11.2026, eigenständig)
+
+Auf Wunsch der Lehrkraft eigenständig gebaut, jeder Schritt mit Tests, `npm run rundgang` auf sechs Größen und
+Bildern geprüft und live (PRs #105–#116):
+
+- **Held:** nichts mehr abgeschnitten (hohe Hüte, hohes Haar, Begleiter, Sprünge: `heldRaum`/`mitPlatz`); Anprobe im
+  Laden; vier neue Münder (Zahnlücke, Schief, Vampir, Zahnspange).
+- **Runde:** Fehlgriffe bei Paaren und Orten erklärt; Tastatur (1–9, Enter); Aufgaben gleiten herein; falsche Antwort
+  wackelt, verlorenes Herz zerbricht; Tippfehler beim Schreiben benannt („Fast! Nur ein Buchstabe anders.“).
+- **Ergebnis:** „Das nimmst du mit“ (falsche Aufgaben mit richtiger Antwort), beste Serie, Aufstieg zur neuen
+  Heldenstufe mit Band, Konfetti und eigenem Klang, Knöpfe am unteren Rand.
+- **Lernen sichtbar:** „Das sitzt schon“ unter „Wiederholen“ (Kästen je Fach).
+- **Karte und Leiste:** neue Sterne ploppen auf, der Held hüpft zur neuen Station; Reiter blenden ein.
+
+### Vorschläge, die den Server brauchen (offen, Entscheidung der Lehrkraft)
+
+- **Neue Teile** (Hüte, Werkzeuge, Begleiter, Hintergründe, Frisuren): jedes Teil braucht einen Eintrag in `lq_teil`
+  (Migration wie `20261205_lernquest_welten_teile.sql`); Zeichnungen und Seltenheits-Standard sind vorbereitet.
+- **Freie Anpassung ohne Teil** (z. B. Farbe der Kleidung, Lieblingsbewegung des Helden): `lq_avatar_setzen` lässt nur
+  bekannte Schlüssel zu; ein neuer Schlüssel braucht eine kleine Änderung dort.
+- **Tippfehler als richtig zählen** (wie bei Duolingo, vielleicht ab Niveau 2): heute bewusst falsch, weil Schreibung
+  geübt wird; ändert, was zählt, und gehört zur Lehrkraft.
+- **Mehr Haarfarben** (heute 0–4 auf dem Server festgelegt).
+
 ## Erfolgskriterien Stufe 1
 
 - Lehrkraft legt im Baukasten eine Klasse mit 3 Kindern an, druckt QR + PINs, schaltet eine Stunde frei.

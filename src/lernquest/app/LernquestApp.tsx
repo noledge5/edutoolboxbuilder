@@ -805,6 +805,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           <li>Spiel eine Mini-Runde mit drei Fragen.</li>
           <li>Öffne deine erste Truhe.</li>
         </ol>
+        {/* The fox who guides through Lernquest greets the new child too (27.11.2026). */}
+        <FuchsSagt pose="winken">Ich bin dein Fuchs und zeige dir auf der Karte, was als Nächstes dran ist.</FuchsSagt>
         <MeldungText text={willkommenMsg} />
         <div className="lq-platz" />
         <button type="button" className="lq-knopf" onClick={() => setScreen({ kind: 'held', willkommen: true })}>
