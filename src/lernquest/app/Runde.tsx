@@ -2,7 +2,7 @@
 // exercise counts for the result, hearts and the repetition boxes; the second meeting is there to learn it. Leaving a
 // round that has answers asks first, so a slip of the finger (or the phone's back key) does not throw them away.
 import { useEffect, useRef, useState } from 'react';
-import { heute, istRichtig, karteKey, karteNach, loesungText, nachAntwort, serieMeilenstein, tagNummer, type Antwort } from '../rules';
+import { fehlgriffHinweis, heute, istRichtig, karteKey, karteNach, loesungText, nachAntwort, serieMeilenstein, tagNummer, type Antwort } from '../rules';
 import type { Avatar } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { KopfBild } from './avatar';
@@ -107,6 +107,39 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
     setLeitner({ ...leitner, [key]: karteNach(leitner[key] ?? stand.leitner[key], right, tagNummer(heute())) });
   };
 
+  // Keyboard (27.11.2026, iPads with a keyboard and the teacher's Mac): 1–9 picks the n-th answer, Enter checks or goes on.
+  // Typing into a field is left alone; a focused button keeps its own Enter.
+  useEffect(() => {
+    const taste = (e: KeyboardEvent) => {
+      const ziel = e.target as HTMLElement | null;
+      if (!item || frage || hilfeAuf || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (ziel && (ziel.tagName === 'INPUT' || ziel.tagName === 'TEXTAREA' || ziel.isContentEditable)) return;
+      if (e.key === 'Enter') {
+        if (ziel?.tagName === 'BUTTON') return;
+        if (ok === null && antwort && !prueftSelbst(item.u)) {
+          e.preventDefault();
+          pruefen();
+        } else if (ok !== null) {
+          e.preventDefault();
+          weiter();
+        }
+        return;
+      }
+      if (ok === null && /^[1-9]$/.test(e.key)) {
+        const knoepfe = [...document.querySelectorAll<HTMLButtonElement>('.lq-uebung :is(.lq-option, .lq-bild, .lq-rf button, .lq-kacheln .lq-kachel, .lq-gruppe-kopf)')].filter(
+          (k) => !k.disabled && !k.classList.contains('weg'),
+        );
+        const k = knoepfe[Number(e.key) - 1];
+        if (k) {
+          e.preventDefault();
+          k.click();
+        }
+      }
+    };
+    window.addEventListener('keydown', taste);
+    return () => window.removeEventListener('keydown', taste);
+  });
+
   const weiter = () => {
     if (pos + 1 >= reihe.length) return onFertig(stunde, runde, ergebnisse, leitner);
     setPos(pos + 1);
@@ -185,6 +218,7 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
               ) : (
                 <strong>{ok ? (nochmal ? 'Jetzt sitzt es!' : serie >= 3 ? `${serie} in Folge!` : 'Richtig!') : 'Nicht ganz.'}</strong>
               )}
+              {!ok && fehlgriffHinweis(item.u, antwort) && <span>{fehlgriffHinweis(item.u, antwort)}</span>}
               {!ok && !loesungSichtbar(item.u) && (
                 <span>
                   Richtig wäre: <Rich text={loesungText(item.u)} />

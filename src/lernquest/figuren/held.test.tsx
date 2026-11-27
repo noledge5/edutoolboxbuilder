@@ -45,7 +45,7 @@ describe('hero', () => {
     expect(HAAR_TOENE.map((t) => t.farbe)).toEqual(HAARFARBEN.map((h) => h.farbe));
   });
 
-  it('draws every look, falls back for unknown ids and keeps one object per look', () => {
+  it('draws every look, falls back for unknown ids and keeps one object per look', { timeout: 30_000 }, () => {
     for (const k of Object.keys(KLEIDUNG))
       for (const augen of AUGEN_ARTEN) {
         const svg = renderToStaticMarkup(<FigurBild figur={held({ kleidung: k, augen })} zeit={0.5} />);

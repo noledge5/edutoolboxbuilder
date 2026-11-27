@@ -445,6 +445,10 @@ Server bekommt wie bisher „richtig von gesamt“, gezählt werden die ersten V
 - **Verlassen:** Die Zurück-Taste des Handys geht einen Schritt zurück statt aus der App (`app/zurueck.ts`), auch in
   der Anmeldung. Eine Runde mit Antworten fragt vorher „Runde beenden?“. Ein neuer Link im selben Tab lädt neu.
 - **Hören ohne Stimme:** „Ich höre nichts – Text zeigen“ unter dem Lautsprecher.
+- **Tastatur (27.11.2026):** In der Runde wählen 1–9 die n-te Antwort (Optionen, Bilder, richtig/falsch, Kacheln, Gruppen), Enter
+  prüft oder geht weiter; Eingabefelder bleiben unberührt.
+- **Fehlgriffe erklärt (27.11.2026):** Bei Paaren und Orten auf der Karte steht in der Rückmeldung, wie oft daneben getippt
+  wurde und wie viel erlaubt ist (`fehlgriffHinweis`), weil das Brett am Ende ganz grün ist.
 - **Spieltest ohne Server:** `npm run spieltest` startet Lernquest gegen einen toten Server (offline); die Daten einer
   erfundenen Schülerin mit allen acht Formaten legt `scripts/spieltest-daten.js` in den Browser,
   `scripts/spieltest-helfer.js` spielt Aufgaben richtig oder falsch. So gespielt am 11.11.2026: alle Formate, Wiederholen,

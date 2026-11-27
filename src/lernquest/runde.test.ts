@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fehlgriffeFrei, istRichtig, nachAntwort, serieMeilenstein, rundenFazit, WIEDER_MAX } from './rules';
+import { fehlgriffeFrei, istRichtig, nachAntwort, fehlgriffHinweis, serieMeilenstein, rundenFazit, WIEDER_MAX } from './rules';
 import { readUebung } from './fragenpool';
 import type { Uebung } from './types';
 
@@ -59,5 +59,16 @@ describe('Erklärung', () => {
 describe('streak moments', () => {
   it('come at 3 in a row and then every 5', () => {
     expect([1, 2, 3, 4, 5, 6, 9, 10, 11, 15].filter(serieMeilenstein)).toEqual([3, 5, 10, 15]);
+  });
+});
+
+describe('slips in pairs and places', () => {
+  const paare = { art: 'paare' as const, id: 'p', frage: 'Finde die Paare.', paare: [['N', 'Norden'], ['S', 'Süden'], ['O', 'Osten']] as [string, string][] };
+  it('say why the answer is wrong when the board ends all green', () => {
+    expect(fehlgriffHinweis(paare, { art: 'paare', fehler: 2 })).toBe('Du hast 2-mal danebengetippt. Einmal ist erlaubt.');
+  });
+  it('stay quiet when the slips are allowed or for other formats', () => {
+    expect(fehlgriffHinweis(paare, { art: 'paare', fehler: 1 })).toBeNull();
+    expect(fehlgriffHinweis({ art: 'richtigfalsch', id: 'r', frage: 'Stimmt das?', aussage: 'x', richtig: true } as never, { art: 'richtigfalsch', wert: false })).toBeNull();
   });
 });
