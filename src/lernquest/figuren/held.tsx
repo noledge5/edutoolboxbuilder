@@ -1535,7 +1535,7 @@ export function held(a: Aussehen = {}): Figur {
     teile: [koerper(k), arm('l', k, haut), arm('r', k, haut), kopf(haut, haar, frisur, augen, mund, !!a.haube)],
     posen,
     gesichter: ['froh', 'lachen', 'jubel', 'denken', 'sanft', 'staunen', 'traurig', 'au'],
-    animationen: ['atmen', 'winken', 'huepfen', 'jubeln', 'staunen', 'seufzen', 'nicken', 'kopfschuetteln', 'treffer'],
+    animationen: ['atmen', 'hallo', 'winken', 'huepfen', 'jubeln', 'staunen', 'seufzen', 'nicken', 'kopfschuetteln', 'treffer'],
     extras,
   };
   SPEICHER.set(schluessel, f);

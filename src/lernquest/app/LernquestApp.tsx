@@ -797,7 +797,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     }
     return (
       <main className="lq-app lq-willkommen">
-        <AvatarBild avatar={stand.avatar} className="lq-willkommen-held" lebendig animation="winken" />
+        <AvatarBild avatar={stand.avatar} className="lq-willkommen-held" lebendig animation="hallo" />
         <h1>Hallo {vorname(daten.name)}!</h1>
         <p className="lq-untertitel">Willkommen bei Lernquest. In zwei Minuten bist du startklar:</p>
         <ol className="lq-willkommen-schritte">

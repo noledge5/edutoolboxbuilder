@@ -182,13 +182,14 @@ export function stellung(pose: Pose, { animation, zeit = 0, lebendig = false }: 
     }
     for (const [ab, g] of animation.gesichter ?? []) if (t >= ab) gesicht = g;
   }
+  const vorne = animation?.vorne && t !== null ? [...new Set([...(pose.vorne ?? []), ...animation.vorne])] : (pose.vorne ?? []);
   return {
     teile,
     ganz,
     gesicht,
     augenZu: lebendig && blinzelt(zeit),
     extras: pose.extras ?? [],
-    vorne: pose.vorne ?? [],
+    vorne,
     zeit,
   };
 }

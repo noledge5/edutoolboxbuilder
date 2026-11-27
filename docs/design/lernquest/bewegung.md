@@ -7,6 +7,8 @@ von Duolingo lernen wir die **Regeln**, nicht den Look (keine Eule, keine Duolin
 |---|---|
 | ![Hüpfen](bewegung/held-huepfen.gif) | ![Jubeln](bewegung/held-jubeln.gif) |
 
+![Hallo statt Winken: links je die alte Begrüßung, rechts `hallo`](bewegung/held-hallo.gif)
+
 ## Was Duolingo selbst sagt
 - Die Figur macht „leichte, ausdrucksstarke Bewegungen“ und **keine plötzlichen oder schnellen**.
   [design.duolingo.com/writing/duo](https://design.duolingo.com/writing/duo)
@@ -33,8 +35,15 @@ klassischen Grundsätze der Animation, passend zu „keine plötzlichen Bewegung
   läuft durch Zwischenpunkte ohne anzuhalten. Vorher hielt jede Spur an jedem Schlüsselbild kurz an.
 - **`kurven`** je Abschnitt: `rein` (immer schneller, zum Fallen), `raus`, `linear`, `feder`.
 - **`versatz`** je Spur (Anteil eines Durchlaufs): die Spur zieht nach. Eine Bewegung mit Ende endet trotzdem in Ruhe.
+- **`vorne`** je Bewegung: Teile, die während der Bewegung vor dem Kopf liegen (ein erhobener Arm), zusätzlich zur Pose.
+  Nur Teile der obersten Ebene (Arm, nicht Unterarm); ein Test prüft das für jede Figur.
 - **Übergang** (`UEBERGANG`, 0,2 s): Neue Pose oder neue Bewegung gleitet vom zuletzt gezeigten Bild aus; das Gesicht
   wechselt sofort, weil es die Reaktion zeigt. Aus in der Werkstatt (eigene Zeit) und bei „Bewegung reduzieren“.
+
+## Welche Bewegung wofür
+- **`hallo`**: Begrüßen, für Figuren mit hängenden Armen (Held). Arm hoch, dreimal winken, Arm runter.
+- **`winken`**: wackelt nur einen Arm, den die Pose schon erhoben hat (Pose `winken`, z. B. der Fuchs). Ohne diese Pose
+  winkt nur die Hand neben der Hüfte.
 
 ## Faustregeln für neue Bewegungen
 - **Ausholen**: vor einer großen Bewegung kurz in die Gegenrichtung (etwa 15 % der Dauer), z. B. in die Knie vor dem Sprung.
@@ -43,11 +52,11 @@ klassischen Grundsätze der Animation, passend zu „keine plötzlichen Bewegung
 - **Schwerkraft**: vom höchsten Punkt nach unten `rein`, das letzte Stück bis zum Boden `linear`; die Geschwindigkeit
   am Übergang soll passen (siehe `huepfen`).
 - **Nachziehen** (`versatz`): Unterarm und Hände 0,04–0,06, Kopf 0,03–0,08, Schwanz, Haare, Lose 0,08–0,15.
+- **Hände nie übers Gesicht**: Der Held hat kurze Arme und einen großen Kopf. Winkel für Arme am Kopf erst im Raster
+  ausprobieren (Werkstatt „Pose“); beim Helden winkt die Hand bei Oberarm etwa −110° und Unterarm +15…+45° neben dem Kopf.
 - Keine Spur springt von Bild zu Bild: `bewegung.test.ts` prüft jede Bewegung bei 60 Bildern je Sekunde.
 
 ## Als Nächstes
 - Ruhe-Varianten: kurze Kopf- und Körperbewegungen, zufällig kombiniert, statt nur `atmen`.
-- „Hallo“ mit erhobenem Arm für den Helden: Die App spielt `winken` ohne die Pose `winken`, darum winkt nur die Hand
-  neben der Hüfte. Braucht `vorne` je Bewegung (der Arm muss vor den Kopf).
 - Beine für den Helden (Absprung aus den Knien) und Nachschwingen für Haare, Hut und Begleiter.
 - Messen, ob viele Figuren gleichzeitig ruckeln (jede zeichnet je Bild in React neu); wenn ja, Transformationen direkt setzen.

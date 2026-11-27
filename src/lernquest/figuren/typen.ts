@@ -78,6 +78,9 @@ export interface Animation {
   kurven?: (Kurve | null)[];
   /** Per part id, or `ganz` for the whole figure (turns and stretches around its `boden`). */
   spuren: Record<string, Spur>;
+  /** Top-level parts drawn in front (of the head) while the move runs, added to the pose's `vorne`: an arm raised
+   *  to wave would otherwise vanish behind the big head. */
+  vorne?: string[];
   /** Faces during the move: [from time 0…1, face]; before the first entry the pose's face. */
   gesichter?: [number, string][];
 }

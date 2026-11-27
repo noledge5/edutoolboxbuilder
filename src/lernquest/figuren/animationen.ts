@@ -104,6 +104,25 @@ export const ANIMATIONEN: Record<string, Animation> = Object.fromEntries(
       },
       gesichter: [[0, 'traurig']],
     }),
+    A({
+      id: 'hallo',
+      name: 'Hallo',
+      dauer: 2.4,
+      wiederholen: 1,
+      // From rest: arm up (in front of the head), three waves from the elbow, arm down again. For a hero standing with
+      // arms down; `winken` only wiggles an arm that a pose has already raised (the fox's „winken“).
+      zeiten: [0, 0.16, 0.3, 0.42, 0.54, 0.66, 0.82, 1],
+      kurven: [null, null, null, null, null, null, 'raus'],
+      vorne: ['arm-r'],
+      spuren: {
+        // The hand waves beside the head, never over the face: the forearm swings outwards only.
+        'arm-r': { drehen: [0, -112, -106, -112, -106, -112, -110, 0] },
+        'unterarm-r': { drehen: [0, 30, 12, 45, 12, 45, 30, 0], versatz: 0.04 },
+        kopf: { drehen: [0, -3, -2, -4, -2, -4, -3, 0], versatz: 0.05 },
+        ganz: { strecken: [[1, 1], [0.98, 1.02], [1, 1], [0.99, 1.01], [1, 1], [0.99, 1.01], [1, 1], [1, 1]] },
+      },
+      gesichter: [[0, 'lachen']],
+    }),
     A({ id: 'nicken', name: 'Nicken', dauer: 1, wiederholen: 1, spuren: { kopf: { schieben: [STILL, [0, 5], STILL, [0, 5], STILL], drehen: [0, 3, 0, 3, 0] } }, gesichter: [[0, 'froh']] }),
     A({ id: 'kopfschuetteln', name: 'Kopfschütteln', dauer: 1, wiederholen: 1, spuren: { kopf: { drehen: [0, -10, 10, -10, 8, 0] } } }),
     A({ id: 'wedeln', name: 'Schwanz wedeln', dauer: 1.2, wiederholen: 'immer', spuren: { schwanz: { drehen: [0, 12, -6, 12, -6, 0] } } }),
