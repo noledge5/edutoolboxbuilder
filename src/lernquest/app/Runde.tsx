@@ -2,7 +2,7 @@
 // exercise counts for the result, hearts and the repetition boxes; the second meeting is there to learn it. Leaving a
 // round that has answers asks first, so a slip of the finger (or the phone's back key) does not throw them away.
 import { useEffect, useRef, useState } from 'react';
-import { fehlgriffHinweis, heute, istRichtig, karteKey, karteNach, loesungText, nachAntwort, serieMeilenstein, tagNummer, type Antwort } from '../rules';
+import { fastRichtig, fehlgriffHinweis, heute, istRichtig, karteKey, karteNach, loesungText, nachAntwort, serieMeilenstein, tagNummer, type Antwort } from '../rules';
 import type { Avatar } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { KopfBild } from './avatar';
@@ -219,6 +219,7 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
                 <strong>{ok ? (nochmal ? 'Jetzt sitzt es!' : serie >= 3 ? `${serie} in Folge!` : 'Richtig!') : 'Nicht ganz.'}</strong>
               )}
               {!ok && fehlgriffHinweis(item.u, antwort) && <span>{fehlgriffHinweis(item.u, antwort)}</span>}
+              {!ok && fastRichtig(item.u, antwort) > 0 && <span>Fast! Nur {fastRichtig(item.u, antwort) === 1 ? 'ein Buchstabe' : 'zwei Buchstaben'} anders.</span>}
               {!ok && !loesungSichtbar(item.u) && (
                 <span>
                   Richtig wäre: <Rich text={loesungText(item.u)} />
