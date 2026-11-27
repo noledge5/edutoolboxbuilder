@@ -89,10 +89,17 @@ export function Seltenheit({ s, kurz = false }: { s: number; kurz?: boolean }) {
 }
 
 export function Herzen({ voll, von }: { voll: number; von: number }) {
+  // the heart just lost wobbles before it empties (27.11.2026)
+  const vorher = useRef(voll);
+  const [weg, setWeg] = useState<number | null>(null);
+  useEffect(() => {
+    if (voll < vorher.current) setWeg(voll);
+    vorher.current = voll;
+  }, [voll]);
   return (
     <span className="lq-herzen" role="img" aria-label={`${voll} von ${von} Herzen`}>
       {Array.from({ length: von }, (_, i) => (
-        <span key={i} className={i < voll ? 'an' : ''}>
+        <span key={i} className={i < voll ? 'an' : i === weg ? 'weg' : ''}>
           <HerzIcon />
         </span>
       ))}

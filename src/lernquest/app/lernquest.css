@@ -5360,3 +5360,33 @@ button.lq-teil:active {
 .lq-serie-zeile .lq-serie-marke {
   animation: lq-plopp var(--lq-dauer-lang) var(--lq-feder) 0.5s both;
 }
+
+/* A wrong answer shakes once; a lost heart wobbles red, then empties (27.11.2026). */
+.lq-option.nein,
+.lq-bild.nein,
+.lq-zeile.nein,
+.lq-gruppe-karte.nein {
+  animation: lq-wackeln var(--lq-dauer);
+}
+.lq-herzen span.weg {
+  animation: lq-herz-leer 0.8s ease-out;
+}
+@keyframes lq-herz-leer {
+  0% {
+    color: var(--lq-herz);
+    transform: scale(1);
+  }
+  30% {
+    color: var(--lq-herz);
+    transform: scale(1.45) rotate(-12deg);
+  }
+  55% {
+    color: var(--lq-herz);
+    transform: scale(1.2) rotate(10deg);
+  }
+  56%,
+  100% {
+    color: var(--lq-stern-aus);
+    transform: scale(1);
+  }
+}
