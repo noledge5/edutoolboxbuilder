@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { noten, type TonArt } from './ton';
 
-const ARTEN: TonArt[] = ['richtig', 'falsch', 'fertig', 'tipp', 'stern', 'truhe', 'muenze', 'serie'];
+const ARTEN: TonArt[] = ['richtig', 'falsch', 'fertig', 'tipp', 'stern', 'truhe', 'muenze', 'serie', 'aufstieg'];
 
 describe('sounds', () => {
   it.each(ARTEN)('%s is short and soft', (art) => {
