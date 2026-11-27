@@ -122,6 +122,11 @@ Gelb (`P.gelb`) ist eine Farbe, Gold (`P.gold*`) ein Material.
   ohne Naht; im Dorf und Marktflecken liegt ein runder Platz im Blickwinkel des Bodens (wie die kleinen Plätze) mitten
   zwischen den Gemeinschaftsgebäuden, der Weg läuft hindurch, die Marktstände stehen links und rechts davon; in der Stadt
   liegt das Pflaster über dem Weg. Der Schwung des Wegs setzt ohne Knick ein (`wegX`).
+- **Hüte und Haare am Held 4 (27.11.2026):** Jeder Hut nennt die Weite des Teils, das auf dem Kopf sitzt (`weite`), und
+  wird auf die Kopfbreite gebracht (Krempen, Federn, Hörner stehen über); Kronen sitzen groß auf dem Kopf statt klein auf
+  dem Haar. Ein hoher Hut wird nie abgeschnitten: das Bild des Helden wächst nach oben, der Held wird etwas kleiner.
+  Frisuren in kräftigen, runden Formen: Zöpfe aus drei Gliedern, Stacheln als geschwungene Büschel, die Bürste so breit
+  wie der Kopf, Regenbogenhaar in Bändern entlang der Haarkante.
 - **Aufbau rechnet, Zeichnung zeichnet:** `dorfplan.ts` legt Weg, Grundstücke, Plätze, Laternen und Deko fest (reine Geometrie,
   getestet: nichts überlappt, Bäume stehen nie vor einem Haus, die Karte wächst nur nach oben); `figuren/dorf.tsx` zeichnet.
 - **Abend ohne Verläufe:** Jedes Ding bekommt eine einfarbige Kopie in `nachtTief` darüber (halb durchsichtig,

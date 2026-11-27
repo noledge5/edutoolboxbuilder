@@ -9,7 +9,7 @@ import { Flaeche, ovalPfad, Schlagschatten } from './flaeche';
 import { FUCHS, Glied } from './fuchs';
 import { flaeche, HAAR_TOENE, HAUT_TOENE, P, STRICH } from './stil';
 import type { Ton } from './stil';
-import type { Figur, Pose, Punkt, Stand, Teil } from './typen';
+import type { Figur, Item, Pose, Punkt, Stand, Teil } from './typen';
 import { Funkeln, stern } from './zeichnen';
 
 /** What the hero looks like; ids as in src/lernquest/teile.ts. Missing = the start look. */
@@ -1087,7 +1087,8 @@ const KOPF = 'M102 38 H138 Q170 38 170 68 V102 Q170 138 134 138 H106 Q70 138 70 
 const KOPF_SCHATTEN = 'M170 82 V102 Q170 138 134 138 H114 Q152 132 160 106 Q164 94 162 80 Z';
 const PONY = 'M64 90 V66 Q64 24 120 24 Q176 24 176 66 V90 Q170 76 162 70 Q148 80 128 68 Q112 82 90 74 Q76 78 64 90 Z';
 const GLATT = 'M64 94 V66 Q64 24 120 24 Q176 24 176 66 V94 Q172 80 164 72 Q120 64 76 72 Q68 80 64 94 Z';
-const STACHELN = 'M64 92 V70 Q64 44 82 34 L74 8 L100 24 L112 0 L128 22 L150 4 L152 30 Q176 42 176 70 V92 Q170 78 160 72 Q120 66 80 72 Q70 78 64 92 Z';
+/** Spiky hair (27.11.2026): four broad, low spikes across the whole head instead of thin points that read as a crown. */
+const STACHELN = 'M64 94 V64 Q60 46 66 30 Q74 38 80 40 Q80 20 88 8 Q96 24 104 28 Q108 10 120 0 Q124 20 130 26 Q142 10 156 6 Q152 24 156 30 Q168 24 180 24 Q172 38 172 46 Q178 54 176 66 V94 Q172 80 164 72 Q120 64 76 72 Q68 80 64 94 Z';
 const BOB_VORN = 'M62 124 V66 Q62 24 120 24 Q178 24 178 66 V124 Q170 124 166 114 V80 Q120 70 74 80 V114 Q70 124 62 124 Z';
 const LANG_HINTEN = 'M60 72 Q60 22 120 22 Q180 22 180 72 V166 Q180 178 168 176 Q152 172 148 160 H92 Q88 172 72 176 Q60 178 60 166 Z';
 const HAARLICHT = 'M84 42 Q98 32 116 30';
@@ -1122,13 +1123,23 @@ function Haarform({ d, t, licht = HAARLICHT }: { d: string; t: Ton; licht?: stri
 /** A hair shape without a light stroke. */
 const Haar = ({ d, t }: { d: string; t: Ton }) => <Flaeche d={d} farbe={t.farbe} hell={t.hell} />;
 const Zopfband = ({ x, y }: { x: number; y: number }) => <circle cx={x} cy={y} r={5.5} {...flaeche(P.rot, 2.5)} />;
-/** A plait hanging beside the head: one capsule with a band. */
-const Zopf = ({ x, t }: { x: number; t: Ton }) => (
-  <g>
-    <Haar d={`M${x - 10} 108 H${x + 10} V166 A10 10 0 0 1 ${x - 10} 166 Z`} t={t} />
-    <Zopfband x={x} y={160} />
-  </g>
-);
+/** A plait hanging beside the head (27.11.2026): three plump segments with a crease between them, a band and a tuft at
+ *  the end, so it reads as a braid at 48 px instead of a stiff bar. */
+const Zopf = ({ x, t }: { x: number; t: Ton }) => {
+  const s = x < 120 ? -1 : 1;
+  return (
+    <g>
+      {[0, 1, 2].map((k) => (
+        <ellipse key={k} cx={x + (k % 2 ? s * 2 : 0)} cy={110 + k * 21} rx={13 - k} ry={13} fill={t.farbe} stroke={t.farbe} strokeWidth={3} />
+      ))}
+      {[0, 1].map((k) => (
+        <path key={k} d={`M${x - 9} ${121 + k * 21} Q${x} ${127 + k * 21} ${x + 9} ${121 + k * 21}`} fill="none" stroke={t.tief} strokeWidth={2.6} strokeLinecap="round" />
+      ))}
+      <path d={`M${x - 7} 166 Q${x - 9} 182 ${x - 2} 186 Q${x} 178 ${x + 2} 186 Q${x + 9} 182 ${x + 7} 166 Z`} fill={t.farbe} stroke={t.farbe} strokeWidth={3} strokeLinejoin="round" />
+      <Zopfband x={x} y={163} />
+    </g>
+  );
+};
 
 /** Rainbow hair (13.11.2026): long hair in six coloured bands, its own colours whatever the hair colour. */
 function RegenbogenHaar({ teil }: { teil: 'hinten' | 'vorn' }) {
@@ -1141,8 +1152,10 @@ function RegenbogenHaar({ teil }: { teil: 'hinten' | 'vorn' }) {
         <path d={d} />
       </clipPath>
       <g clipPath={`url(#${id})`}>
+        {/* 27.11.2026: the bands follow the edge of the hair, one inside the other, so every colour runs over the head and
+            down the sides (straight stripes read as a striped box) */}
         {farben.map((f, i) => (
-          <rect key={f} x={50} y={22 + i * (teil === 'hinten' ? 25 : 12)} width={140} height={teil === 'hinten' ? 25 : 13} fill={f} />
+          <path key={f} d={d} fill={f} transform={`translate(120 ${teil === 'hinten' ? 104 : 80}) scale(${1 - i * 0.1}) translate(-120 -${teil === 'hinten' ? 104 : 80})`} />
         ))}
       </g>
     </g>
@@ -1210,7 +1223,8 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
     vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
   buerste: {
-    vorn: (t) => <Haarform d="M64 94 V60 Q64 40 80 36 V16 H160 V36 Q176 40 176 60 V94 Q170 80 160 74 Q120 66 80 74 Q70 80 64 94 Z" t={t} licht="M92 24 V40" />,
+    // a flat top as wide as the head with round corners (27.11.2026; a narrow box on top read as a hat)
+    vorn: (t) => <Haarform d="M64 94 V56 Q64 30 84 26 Q88 14 104 14 H136 Q152 14 156 26 Q176 30 176 56 V94 Q172 80 164 72 Q120 64 76 72 Q68 80 64 94 Z" t={t} licht="M96 24 H124" />,
   },
   afro: {
     hinten: (t) => <Haar d={AFRO} t={t} />,
@@ -1365,6 +1379,29 @@ function koerper(k: Kleid): Teil {
 
 /** Where the brim of a covering hat sits on the hero; the hair is cut a little above it (Held 4). */
 const HUT_KREMPE = 62;
+/** Width of the head with short hair at the brim line (measured 27.11.2026: short 114, long 122): a hat's `weite` is
+ *  scaled to it. */
+const KOPF_WEITE = 118;
+/** Where the band of a crown or wreath sits: on the head, a little above the brow, not perched on the hair. */
+const KRONE_UNTEN = 50;
+const zwischen = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
+
+/** Where a hat sits on the hero and how big (figure units): covering hats low on the brow, their `weite` as wide as the
+ *  head; headbands on the brow; crowns and wreaths on the head at about 85 % of its width. */
+export function hutLage(i: Item): { p: Punkt; s: number } {
+  if (i.haube) return { p: [120, HUT_KREMPE], s: zwischen(KOPF_WEITE / (i.weite ?? i.rahmen[2]), 1, 2) };
+  if (i.stirn) return { p: [120, HUT_KREMPE - 16], s: 1.05 };
+  if (i.weite) return { p: [120, KRONE_UNTEN], s: zwischen((KOPF_WEITE * 0.85) / i.weite, 1, 1.8) };
+  return { p: [120, 38], s: 1.15 };
+}
+
+/** How high a hat reaches on the standing hero (figure units; the hero is 240 high), or null for no hat: a picture of
+ *  the hero makes room for it (HeldBild). */
+export function hutOben(i: Item | undefined): number | null {
+  if (!i || i.platz !== 'hut') return null;
+  const { p, s } = hutLage(i);
+  return p[1] + i.rahmen[1] * s;
+}
 /** Hair under a covering hat: only what lies below the brim shows, so the hat sits on the head, not in front of it. */
 function UnterHut({ an, children }: { an: boolean; children: ReactNode }) {
   const id = `unterhut-${useId().replace(/:/g, '')}`;
@@ -1387,14 +1424,7 @@ function kopf(haut: Ton, haar: Ton, frisur: string, augen: string, mund: string,
     anker: { hut: [120, 38] },
     // Covering hats sit low on the brow and as wide as the head (by the width of their drawing); crowns, bands and
     // wreaths sit on the hair, a little larger.
-    ankerLage: (i) =>
-      i.platz !== 'hut'
-        ? undefined
-        : i.haube
-          ? { p: [120, HUT_KREMPE], s: Math.min(1.55, Math.max(1, 124 / i.rahmen[2])) }
-          : i.stirn
-            ? { p: [120, HUT_KREMPE - 16], s: 1.05 }
-            : { p: [120, 38], s: 1.15 },
+    ankerLage: (i) => (i.platz === 'hut' ? hutLage(i) : undefined),
     zeichnung: (s) => (
       <g>
         <UnterHut an={haube}>{f.hinten?.(haar)}</UnterHut>

@@ -10,7 +10,7 @@ import type { Figur } from './typen';
 
 export const FIGUREN: Figur[] = [FUCHS, HELD, GOLEM, TINTENKRAKE, RAETSELDRACHE];
 export { ITEMS, FUCHS, HELD, GOLEM, TINTENKRAKE, RAETSELDRACHE };
-export { EIGENE_ZEICHNUNGEN, held, KLEIDUNG, AUGEN_ARTEN, MUND_ARTEN, FRISUR_ARTEN } from './held';
+export { EIGENE_ZEICHNUNGEN, held, hutOben, KLEIDUNG, AUGEN_ARTEN, MUND_ARTEN, FRISUR_ARTEN } from './held';
 export type { Aussehen } from './held';
 export { HINTERGRUENDE } from './hintergruende';
 export type { Hintergrund } from './hintergruende';
