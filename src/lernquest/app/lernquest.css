@@ -5251,3 +5251,64 @@ button.lq-teil:active {
   min-width: 0;
   font-size: var(--lq-t-gross);
 }
+
+/* „Das sitzt schon“ on the review page (27.11.2026): one bar per subject, green sits, gold is getting there, soft red
+   still needs practice. */
+.lq-wissen {
+  display: grid;
+  gap: var(--lq-a-3);
+}
+.lq-wissen-zeile {
+  display: grid;
+  gap: var(--lq-a-1);
+}
+.lq-wissen-kopf {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--lq-a-2);
+}
+.lq-wissen-kopf span {
+  color: var(--lq-gedaempft);
+}
+.lq-wissen-balken {
+  display: flex;
+  gap: var(--lq-a-1);
+  height: 14px;
+  border-radius: var(--lq-r-pille);
+  overflow: hidden;
+  background: var(--lq-linie);
+}
+.lq-wissen-balken span {
+  min-width: 8px;
+}
+.lq-wissen .sitzt {
+  --lq-wissen-farbe: var(--lq-primary);
+}
+.lq-wissen .wird {
+  --lq-wissen-farbe: var(--lq-gold);
+}
+.lq-wissen .ueben {
+  --lq-wissen-farbe: color-mix(in srgb, var(--lq-fehler) 55%, var(--lq-karte));
+}
+.lq-wissen-balken span {
+  background: var(--lq-wissen-farbe);
+}
+.lq-wissen-legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lq-a-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--lq-t-klein);
+  color: var(--lq-gedaempft);
+}
+.lq-wissen-legende li::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: var(--lq-a-1);
+  border-radius: 50%;
+  background: var(--lq-wissen-farbe);
+}

@@ -466,6 +466,20 @@ export function faellig(leitner: Stand['leitner'], heuteNr: number, gueltig?: Se
     .map(([k]) => k);
 }
 
+/** How well the child knows its cards (27.11.2026, „Aufgaben, die sitzen“ from docs/kritik-und-plan.md): box 4–5 sits
+ *  (seen again only after two weeks or more), box 2–3 is getting there, box 1 still needs practice. `gueltig`: only
+ *  cards of exercises that still exist. */
+export function wissen(leitner: Stand['leitner'], gueltig?: Set<string>): { sitzt: number; wird: number; ueben: number } {
+  const w = { sitzt: 0, wird: 0, ueben: 0 };
+  for (const [k, [box]] of Object.entries(leitner)) {
+    if (gueltig && !gueltig.has(k)) continue;
+    if (box >= 4) w.sitzt++;
+    else if (box >= 2) w.wird++;
+    else w.ueben++;
+  }
+  return w;
+}
+
 /** Most cards of „Wiederholen“ a day, two rounds (teacher 20.11.2026). What is left waits for the next days, so it
  *  never piles up for the child, also after days without practice. */
 export const WDH_TAG = 16;

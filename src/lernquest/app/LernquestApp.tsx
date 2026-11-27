@@ -47,6 +47,7 @@ import { HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText,
 import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, hilfeGesehen, merkeHilfe, merkeWiederholt, wiederholtHeute, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
 import { Jubel } from './Jubel';
+import { WissenKarte } from './Wissen';
 import { GluehbirneIcon, HilfeSeite } from './Hilfe';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
 import { useZurueck } from './zurueck';
@@ -1102,6 +1103,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
 
   if (screen.kind === 'wiederholen') {
     return rahmen(
+      <>
       <section className="lq-box lq-wiederholen-box">
         <h2>Wiederholen</h2>
         {dueCount ? (
@@ -1120,7 +1122,9 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         )}
         {extraHeute && dueCount > 0 && <p className="lq-wdh-hinweis">Deine Lehrkraft hat Aufgaben zum Üben freigegeben, zum Beispiel vor einer Klassenarbeit.</p>}
         {!dueCount && morgen > 0 && <p className="lq-wdh-hinweis">Morgen {morgen === 1 ? 'ist 1 Aufgabe' : `sind ${morgen} Aufgaben`} dran.</p>}
-      </section>,
+      </section>
+      <WissenKarte pakete={pakete} leitner={stand.leitner} />
+      </>,
     );
   }
 

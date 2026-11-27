@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fehlgriffeFrei, istRichtig, nachAntwort, fehlgriffHinweis, serieMeilenstein, rundenFazit, WIEDER_MAX } from './rules';
+import { fehlgriffeFrei, istRichtig, nachAntwort, fehlgriffHinweis, serieMeilenstein, wissen, rundenFazit, WIEDER_MAX } from './rules';
 import { readUebung } from './fragenpool';
 import type { Uebung } from './types';
 
@@ -70,5 +70,13 @@ describe('slips in pairs and places', () => {
   it('stay quiet when the slips are allowed or for other formats', () => {
     expect(fehlgriffHinweis(paare, { art: 'paare', fehler: 1 })).toBeNull();
     expect(fehlgriffHinweis({ art: 'richtigfalsch', id: 'r', frage: 'Stimmt das?', aussage: 'x', richtig: true } as never, { art: 'richtigfalsch', wert: false })).toBeNull();
+  });
+});
+
+describe('what sits', () => {
+  it('counts box 4–5 as sitting, 2–3 as getting there, 1 as still to practise', () => {
+    const leitner = { 'a/1': [5, 0], 'a/2': [4, 0], 'a/3': [3, 0], 'a/4': [2, 0], 'a/5': [1, 0], 'b/1': [5, 0] } as Record<string, [number, number]>;
+    expect(wissen(leitner)).toEqual({ sitzt: 3, wird: 2, ueben: 1 });
+    expect(wissen(leitner, new Set(['a/1', 'a/5']))).toEqual({ sitzt: 1, wird: 0, ueben: 1 });
   });
 });
