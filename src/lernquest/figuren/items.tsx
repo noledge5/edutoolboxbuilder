@@ -22,6 +22,7 @@ const GRUND: Item[] = [
     id: 'waldhut',
     name: 'Waldhut',
     platz: 'hut',
+    haube: true,
     seltenheit: 1,
     rahmen: [-44, -56, 90, 68],
     zeichnung: () => (
@@ -61,6 +62,7 @@ const GRUND: Item[] = [
     id: 'eisenhelm',
     name: 'Eisenhelm',
     platz: 'hut',
+    haube: true,
     seltenheit: 3,
     rahmen: [-40, -62, 80, 74],
     zeichnung: () => (
@@ -78,6 +80,7 @@ const GRUND: Item[] = [
     id: 'zauberhut',
     name: 'Zauberhut',
     platz: 'hut',
+    haube: true,
     seltenheit: 3,
     bewegt: true,
     rahmen: [-48, -70, 96, 82],

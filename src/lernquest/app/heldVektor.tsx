@@ -8,7 +8,7 @@ import type { Avatar, Teil } from '../teile';
 
 /** The look of a saved avatar (old saves included: `figur`, missing places, unknown ids fall back). */
 export function aussehenVon(a: Avatar): Aussehen {
-  return { haut: a.haut, frisur: frisurVon(a), haarfarbe: haarfarbeVon(a), mund: mundVon(a), augen: angelegt(a, 'augen')?.id, kleidung: angelegt(a, 'kleidung')?.id };
+  return { haut: a.haut, frisur: frisurVon(a), haarfarbe: haarfarbeVon(a), mund: mundVon(a), augen: angelegt(a, 'augen')?.id, kleidung: angelegt(a, 'kleidung')?.id, haube: !!ITEM.get(angelegt(a, 'kopf')?.id ?? '')?.haube };
 }
 
 const ITEM = new Map(ITEMS.map((i) => [i.id, i]));

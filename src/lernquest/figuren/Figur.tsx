@@ -50,6 +50,14 @@ function Punktmarke({ p, farbe, gross = false }: { p: Punkt; farbe: string; gros
  *  disappears behind the big head; they still follow the arm. Everything else sits with its part. */
 export const ganzVorne = (i: Item) => !i.hinten && i.platz.startsWith('hand');
 
+/** The transform of an item on its anchor: the part may move or scale particular items (`ankerLage`, `ankerSkala`). */
+function lageVon(teil: Teil, platz: string, anker: Punkt, i: Item): string {
+  const l = teil.ankerLage?.(i);
+  const [x, y] = l?.p ?? anker;
+  const s = l?.s ?? teil.ankerSkala?.[platz];
+  return `translate(${x} ${y})${s && s !== 1 ? ` scale(${Math.round(s * 1000) / 1000})` : ''}`;
+}
+
 /** A part with its children. `oben`: the second pass, only the transforms and the items held in front. */
 function TeilG({ teil, k, oben = false }: { teil: Teil; k: Kontext; oben?: boolean }): ReactNode {
   const lage = k.st.teile[teil.id] ?? RUHE;
@@ -59,7 +67,7 @@ function TeilG({ teil, k, oben = false }: { teil: Teil; k: Kontext; oben?: boole
       k.items
         .filter((i) => i.platz === platz && !!i.hinten === hinten && ganzVorne(i) === oben)
         .map((i) => (
-          <g key={i.id} transform={`translate(${ax} ${ay})${teil.ankerSkala?.[platz] ? ` scale(${teil.ankerSkala[platz]})` : ''}`} data-item={i.id}>
+          <g key={i.id} transform={lageVon(teil, platz, [ax, ay], i)} data-item={i.id}>
             {i.zeichnung(k.st.zeit)}
           </g>
         )),
@@ -67,7 +75,9 @@ function TeilG({ teil, k, oben = false }: { teil: Teil; k: Kontext; oben?: boole
   if (oben)
     return (
       <g transform={transform(lage, teil.drehpunkt)}>
-        {teil.kinder?.map((c) => <TeilG key={c.id} teil={c} k={k} oben />)}
+        {teil.kinder?.map((c) => (
+          <TeilG key={c.id} teil={c} k={k} oben />
+        ))}
         {amAnker(false)}
       </g>
     );
@@ -75,7 +85,9 @@ function TeilG({ teil, k, oben = false }: { teil: Teil; k: Kontext; oben?: boole
     <g data-teil={teil.id} transform={transform(lage, teil.drehpunkt)}>
       {amAnker(true)}
       {teil.zeichnung(stand)}
-      {teil.kinder?.map((c) => <TeilG key={c.id} teil={c} k={k} />)}
+      {teil.kinder?.map((c) => (
+        <TeilG key={c.id} teil={c} k={k} />
+      ))}
       {amAnker(false)}
       {k.hilfen.drehpunkte && <Punktmarke p={teil.drehpunkt} farbe={P.blau} />}
       {k.hilfen.anker && Object.values(teil.anker ?? {}).map((a, i) => <Punktmarke key={i} p={a} farbe={P.rot} gross />)}
@@ -163,18 +175,7 @@ export function ItemBild({ item, groesse = 64, rahmen = true, zeit }: { item: It
   const cy = y + h / 2;
   return (
     <svg width={groesse} height={groesse} viewBox={`${cx - s / 2} ${cy - s / 2} ${s} ${s}`} aria-hidden data-item={item.id}>
-      {rahmen && (
-        <rect
-          x={cx - s / 2 + 1.5}
-          y={cy - s / 2 + 1.5}
-          width={s - 3}
-          height={s - 3}
-          rx={s * 0.16}
-          fill={P.weiss}
-          stroke={SELTEN_FARBE[item.seltenheit - 1]}
-          strokeWidth={3}
-        />
-      )}
+      {rahmen && <rect x={cx - s / 2 + 1.5} y={cy - s / 2 + 1.5} width={s - 3} height={s - 3} rx={s * 0.16} fill={P.weiss} stroke={SELTEN_FARBE[item.seltenheit - 1]} strokeWidth={3} />}
       {item.zeichnung(zeit ?? uhr)}
     </svg>
   );

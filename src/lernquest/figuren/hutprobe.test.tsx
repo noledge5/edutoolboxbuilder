@@ -14,7 +14,7 @@ it.skipIf(!ziel)('Hüte am Held', () => {
     .map(
       (h, n) =>
         '<figure style="margin:0;text-align:center;font:12px sans-serif">' +
-        renderToStaticMarkup(<FigurBild figur={held({ frisur: frisuren[n % 4], haut: n % 6 })} items={[h]} zeit={0} lebendig={false} breite={130} />) +
+        renderToStaticMarkup(<FigurBild figur={held({ frisur: frisuren[n % 4], haut: n % 6, haube: h.haube })} items={[h]} zeit={0} lebendig={false} breite={130} />) +
         '<figcaption>' +
         h.id +
         '</figcaption></figure>',

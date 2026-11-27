@@ -26,6 +26,8 @@ export interface Teil {
   anker?: Record<string, Punkt>;
   /** Scale for the items on an anchor (Held 4: hats 15 % larger on the wider block head). */
   ankerSkala?: Record<string, number>;
+  /** Where and how large a particular item sits (overrides the anchor and its scale), e.g. hats by their width. */
+  ankerLage?: (item: Item) => { p?: Punkt; s?: number } | undefined;
 }
 
 export interface Pose {
@@ -94,6 +96,8 @@ export interface Item {
   seltenheit: 1 | 2 | 3 | 4 | 5;
   /** Behind the part that carries the anchor (a cape behind the body). */
   hinten?: boolean;
+  /** Headwear that covers the top of the head (cap, hat, helmet): on the hero the hair is cut at its brim (Held 4). */
+  haube?: boolean;
   /** View box of the item alone (for the icon): x, y, width, height around the anchor. */
   rahmen: readonly [number, number, number, number];
   /** Draws differently over time (a flame, a sparkle): icons of it run a clock. */

@@ -20,6 +20,8 @@ export interface Aussehen {
   mund?: string;
   augen?: string;
   kleidung?: string;
+  /** A covering hat is worn (Item.haube): the hair is cut at its brim. */
+  haube?: boolean;
 }
 
 const ton = (farbe: string, hell: string, tief: string): Ton => ({ farbe, hell, tief });
@@ -1291,7 +1293,8 @@ export const FRISUR_ARTEN = Object.keys(FRISUR_FORM);
 // — The figure —
 
 function arm(seite: 'l' | 'r', k: Kleid, haut: Ton): Teil {
-  const x = seite === 'l' ? 94 : 146;
+  // Held 4: broader shoulders, so the outfit has room (the torso is drawn 16 % wider in koerper).
+  const x = seite === 'l' ? 88 : 152;
   const schulter: Punkt = [x, 148];
   const ellbogen: Punkt = [x, 166];
   const hand: Punkt = [x, 186];
@@ -1325,6 +1328,8 @@ function arm(seite: 'l' | 'r', k: Kleid, haut: Ton): Teil {
           </g>
         ),
         anker: { [seite === 'l' ? 'hand-links' : 'hand-rechts']: hand },
+        // Held things a fifth larger on the broader hero.
+        ankerSkala: { [seite === 'l' ? 'hand-links' : 'hand-rechts']: 1.2 },
       },
     ],
   };
@@ -1334,38 +1339,58 @@ function koerper(k: Kleid): Teil {
   return {
     id: 'koerper',
     drehpunkt: [120, 200],
-    anker: { begleiter: [34, 230] },
+    anker: { begleiter: [30, 230] },
+    ankerSkala: { begleiter: 1.15 },
     zeichnung: (s) => (
       <g>
-        {k.hinten?.()}
+        <g transform="translate(120 172) scale(1.16 1.04) translate(-120 -172)">{k.hinten?.()}</g>
         {/* Legs and shoes */}
         {/* Held 4: straight legs and pill feet (a sole stripe of light), set apart so the hero stands firmly. */}
-        {[108, 132].map((x) => (
-          <path key={x} d={`M${x} 194 V216`} stroke={k.hose.farbe} strokeWidth={19} strokeLinecap="round" />
+        {[105, 135].map((x) => (
+          <path key={x} d={`M${x} 194 V216`} stroke={k.hose.farbe} strokeWidth={20} strokeLinecap="round" />
         ))}
-        <path d="M138 198 V216" stroke={k.hose.tief} strokeWidth={6} strokeLinecap="round" opacity={0.5} />
-        {[90, 122].map((x) => (
+        <path d="M141 198 V216" stroke={k.hose.tief} strokeWidth={6} strokeLinecap="round" opacity={0.5} />
+        {[86, 126].map((x) => (
           <g key={x}>
             <rect x={x} y={216} width={28} height={12} rx={6} {...flaeche(k.schuhe.farbe, 1.5)} />
             <path d={`M${x + 6} 219.5 H${x + 15}`} stroke={k.schuhe.hell} strokeWidth={3} strokeLinecap="round" />
           </g>
         ))}
-        {k.rumpf(s)}
+        {/* The outfit 16 % wider than drawn: broad shoulders like the reference figures, the outfit reads. */}
+        <g transform="translate(120 172) scale(1.16 1.04) translate(-120 -172)">{k.rumpf(s)}</g>
       </g>
     ),
   };
 }
 
-function kopf(haut: Ton, haar: Ton, frisur: string, augen: string, mund: string): Teil {
+/** Where the brim of a covering hat sits on the hero; the hair is cut a little above it (Held 4). */
+const HUT_KREMPE = 62;
+/** Hair under a covering hat: only what lies below the brim shows, so the hat sits on the head, not in front of it. */
+function UnterHut({ an, children }: { an: boolean; children: ReactNode }) {
+  const id = `unterhut-${useId().replace(/:/g, '')}`;
+  if (!an) return <>{children}</>;
+  return (
+    <g>
+      <clipPath id={id}>
+        <rect x={-80} y={HUT_KREMPE - 4} width={400} height={400} />
+      </clipPath>
+      <g clipPath={`url(#${id})`}>{children}</g>
+    </g>
+  );
+}
+
+function kopf(haut: Ton, haar: Ton, frisur: string, augen: string, mund: string, haube = false): Teil {
   const f = FRISUR_FORM[frisur] ?? FRISUR_FORM.kurz;
   return {
     id: 'kopf',
     drehpunkt: [120, 140],
-    anker: { hut: [120, 44] },
-    ankerSkala: { hut: 1.15 },
+    anker: { hut: [120, 38] },
+    // Covering hats sit low on the brow and as wide as the head (by the width of their drawing); crowns, bands and
+    // wreaths sit on the hair, a little larger.
+    ankerLage: (i) => (i.platz !== 'hut' ? undefined : i.haube ? { p: [120, HUT_KREMPE], s: Math.min(1.55, Math.max(1, 124 / i.rahmen[2])) } : { p: [120, 38], s: 1.15 }),
     zeichnung: (s) => (
       <g>
-        {f.hinten?.(haar)}
+        <UnterHut an={haube}>{f.hinten?.(haar)}</UnterHut>
         {/* Neck, then the head's hard shadow on the body instead of an outline at the chin */}
         <rect x={109} y={124} width={22} height={24} rx={6} fill={haut.tief} />
         <Schlagschatten form={KOPF} auf={[RUMPF]} />
@@ -1393,7 +1418,7 @@ function kopf(haut: Ton, haar: Ton, frisur: string, augen: string, mund: string)
         <g transform="translate(20 8)">
           <Mund mund={mund} s={s} />
         </g>
-        {f.vorn?.(haar)}
+        <UnterHut an={haube}>{f.vorn?.(haar)}</UnterHut>
       </g>
     ),
   };
@@ -1422,7 +1447,7 @@ export function held(a: Aussehen = {}): Figur {
   const augen = a.augen && AUGEN_ARTEN.includes(a.augen) ? a.augen : 'punktaugen';
   const mund = nimm(MUND_FORM, a.mund, 'laecheln');
   const kleid = nimm(KLEIDUNG, a.kleidung, 'tshirt');
-  const schluessel = [HAUT_TOENE.indexOf(haut), HAAR_TOENE.indexOf(haar), frisur, augen, mund, kleid].join('|');
+  const schluessel = [HAUT_TOENE.indexOf(haut), HAAR_TOENE.indexOf(haar), frisur, augen, mund, kleid, a.haube ? 'haube' : ''].join('|');
   const alt = SPEICHER.get(schluessel);
   if (alt) return alt;
   const k = KLEIDUNG[kleid];
@@ -1432,7 +1457,7 @@ export function held(a: Aussehen = {}): Figur {
     art: 'held',
     groesse: [240, 240],
     boden: [120, 230],
-    teile: [koerper(k), arm('l', k, haut), arm('r', k, haut), kopf(haut, haar, frisur, augen, mund)],
+    teile: [koerper(k), arm('l', k, haut), arm('r', k, haut), kopf(haut, haar, frisur, augen, mund, !!a.haube)],
     posen,
     gesichter: ['froh', 'lachen', 'jubel', 'denken', 'sanft', 'staunen', 'traurig', 'au'],
     animationen: ['atmen', 'winken', 'huepfen', 'jubeln', 'staunen', 'seufzen', 'nicken', 'kopfschuetteln', 'treffer'],
