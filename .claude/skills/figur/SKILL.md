@@ -41,7 +41,7 @@ Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werk
   (`dorf.test.tsx` fails on any gradient); add no new gradients anywhere.
 - Characters (Held 4, 27.11.2026): block head (rounded rectangle) about 45 % of the height, white eyes with a dark pupil and no shine, lids in the skin tone carry the expression, a bold nose shape, brows as thick bars, straight legs, pill feet. Hats on the hero are scaled by `ankerSkala` (1.15).
 - Faces carry the emotion; a pose changes arms and face, never redraws the body.
-- Rarity shows on the item itself too: 1–2 plain materials (wood, leather), 3 metal or glass, 4 colour plus a star or
+- Rarity shows on the item itself too (standard in prinzipien.md „Seltenheit am Teil“, checked by `seltenheit.test.tsx`): 1 plain materials, no gold, no sparkle (lights excepted); 2 plain plus a colour accent; 3 metal, glass or a magic accent; 4 gold or a gem tone plus movement (`Funkeln`, `bewegt: true`); 5 gold plus movement. Companions from 4 on move. Held things at least 56 units (`rahmen`), no visible line under 2. `P.gelb` is a colour, `P.gold*` a material. The icon frame takes `SELTEN_FARBE`.
   gem, 5 gold with gems. The icon frame takes `SELTEN_FARBE`.
 - Items: hats sit with the brim on the anchor and stay within about ±45 wide; held things put the grip on (0, 0).
   Set `rahmen` (x, y, w, h) tight around the drawing; the icon is cut from it.

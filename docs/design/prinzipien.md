@@ -73,6 +73,21 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
 - **Wenige Farben je Motiv:** höchstens vier Grundtöne (mit ihren Schattierungen), Haut und Haar nicht mitgezählt.
 - Farbe trägt Bedeutung (Seltenheit, richtig/falsch) nie allein, immer auch Form oder Text.
 
+### Seltenheit am Teil (Standard, 27.11.2026)
+Die Seltenheit zeigt sich am Teil selbst, nicht nur an der Platte im Laden. Geprüft in `figuren/seltenheit.test.tsx`
+(Farben werden aus der Zeichnung gelesen):
+
+| Seltenheit | Dinge (Hüte, Werkzeuge) | Begleiter |
+|---|---|---|
+| Gewöhnlich | schlichte Stoffe (Holz, Stoff, Leder), kein Gold, kein Funkeln; nur Lichter (Laterne, Fackel) leuchten | schlicht |
+| Ungewöhnlich | schlicht, ein farbiger Akzent | schlicht |
+| Selten | Metall, Glas oder ein magischer Akzent (Gold, Edelsteinton) | – |
+| Episch | Gold oder Edelsteinton, dazu Bewegung (Funkeln oder Wirkung) | bewegt sich |
+| Legendär | Gold, dazu Bewegung | bewegt sich |
+
+Für alle Teile: keine sichtbaren Linien unter 2 Einheiten; Gehaltenes ist mindestens 56 Einheiten groß (`rahmen`).
+Gelb (`P.gelb`) ist eine Farbe, Gold (`P.gold*`) ein Material.
+
 ### Bildaufbau
 - **Luft um das Motiv:** Freiraum statt Hintergrund. Figuren außerhalb der Karte stehen auf einem flachen
   Bodenschatten (Pille), nicht in einer Szene.

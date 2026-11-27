@@ -183,7 +183,7 @@ export const KOPF_ITEMS: Item[] = [
         <path d="M-30 0 Q-36 -28 -24 -42 Q-12 -34 0 -37 Q12 -34 24 -42 Q36 -28 30 0 Q0 6 -30 0 Z" {...flaeche(P.lederHell)} />
         <Tief d="M20 -38 Q36 -26 30 0 Q22 3 14 4 Q22 -14 20 -38 Z" farbe={P.lederTief} />
         <path d="M-31 -9 Q0 -3 31 -9 L30 1 Q0 7 -30 1 Z" {...flaeche(P.lederTief, 2.5)} />
-        <path d={stern(0, -3, 6)} fill={P.gold} stroke={P.gold} strokeWidth={1.4} strokeLinejoin="round" />
+        <path d={stern(0, -3, 6)} fill={P.gelb} stroke={P.gelb} strokeWidth={1.4} strokeLinejoin="round" />
       </g>
     ),
   },
@@ -325,6 +325,9 @@ export const KOPF_ITEMS: Item[] = [
         <path d="M-14 -37 V6 M14 -37 V6 M-34 -12 Q0 -18 34 -12" {...GEIST} stroke={P.holz} strokeWidth={6} opacity={0.75} />
         <Tief d="M20 -32 Q34 -24 34 6 L22 6 Q26 -14 20 -32 Z" farbe={P.holzTief} deckkraft={0.5} />
         <path d="M-10 -44 Q0 -52 10 -44 Q0 -38 -10 -44 Z" {...flaeche(P.leder)} />
+        {/* Selten: a metal buckle on the front (rarity standard, 27.11.2026) */}
+        <rect x={-8} y={-10} width={16} height={11} rx={2.5} {...flaeche(P.metall, 2)} />
+        <rect x={-3.5} y={-6.5} width={7} height={4} rx={1.5} fill={P.metallTief} />
       </g>
     ),
   },
@@ -459,8 +462,9 @@ export const KOPF_ITEMS: Item[] = [
     platz: 'hut',
     haube: true,
     seltenheit: 4,
+    bewegt: true,
     rahmen: [-64, -54, 128, 126],
-    zeichnung: () => (
+    zeichnung: (zeit) => (
       <g>
         {/* Nemes: gold cloth with blue stripes over the head, a flap down beside each cheek, a cobra on the brow */}
         {[-1, 1].map((s) => (
@@ -475,6 +479,8 @@ export const KOPF_ITEMS: Item[] = [
         <rect x={-46} y={0} width={92} height={12} rx={5} {...flaeche(P.goldTief)} />
         <path d="M-6 6 Q-9 -10 0 -17 Q9 -10 6 6 Z" {...flaeche(P.gold, 2.5)} />
         <path d="M0 -10 l4 4 -4 4 -4 -4 Z" fill={P.rot} stroke={P.rot} strokeWidth={1.5} strokeLinejoin="round" />
+        {/* Episch: a sparkle on the gold (rarity standard, 27.11.2026) */}
+        <Funkeln x={-26} y={-40} r={7} zeit={zeit} />
       </g>
     ),
   },

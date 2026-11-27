@@ -503,7 +503,8 @@ function Mondwolf({ zeit }: { zeit: number }) {
       <Auge x={26} y={-47} r={3.8} />
       <Backe x={6} y={-38} rx={3.6} ry={2.4} />
       {/* the moon on the forehead glows */}
-      <path d="M13 -61 A6 6 0 1 0 19 -54 A4.6 4.6 0 1 1 13 -61 Z" fill={P.gelb} opacity={glanz} />
+      {/* Episch: a gold moon on the brow (rarity standard, 27.11.2026) */}
+      <path d="M13 -61 A6 6 0 1 0 19 -54 A4.6 4.6 0 1 1 13 -61 Z" fill={P.gold} opacity={glanz} />
       <Funkeln x={-30} y={-58} r={5} zeit={zeit} />
     </g>
   );
@@ -616,7 +617,7 @@ function Alien() {
   );
 }
 
-function Eisbaer() {
+function Eisbaer({ zeit }: { zeit: number }) {
   return (
     <g>
       {/* A polar bear cub on four legs, head to the right, a blue scarf with a gold star */}
@@ -640,6 +641,8 @@ function Eisbaer() {
       <path d="M6 -27 Q19 -20 32 -26 L32 -20 Q19 -14 6 -21 Z" {...flaeche(P.blau, 2.5)} />
       <path d="M10 -22 L6 -6 L15 -8 Z" {...flaeche(P.blauTief, 2.5)} />
       <path d={stern(22, -21, 4.5)} {...flaeche(P.gold, 2)} />
+      {/* Episch: the scarf's star sparkles (rarity standard, 27.11.2026) */}
+      <Funkeln x={-10} y={-48} r={6} zeit={zeit} />
     </g>
   );
 }
@@ -712,6 +715,6 @@ export const BEGLEITER_ITEMS: Item[] = [
   tier('erdmaennchen', 'Erdmännchen', 1, rahmen(-30, -74, 62, 77), () => <Erdmaennchen />),
   tier('salamander', 'Feuersalamander', 2, rahmen(-48, -42, 86, 46), () => <Feuersalamander />),
   tier('alien', 'Alien', 3, rahmen(-26, -76, 60, 79), () => <Alien />),
-  tier('eisbaer', 'Eisbär', 4, rahmen(-32, -58, 74, 61), () => <Eisbaer />),
+  tier('eisbaer', 'Eisbär', 4, rahmen(-32, -64, 74, 67), (zeit) => <Eisbaer zeit={zeit} />, true),
   tier('leuchtqualle', 'Leuchtqualle', 5, rahmen(-34, -96, 68, 98), (zeit) => <Leuchtqualle zeit={zeit} />, true),
 ];
