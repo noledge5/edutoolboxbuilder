@@ -5,7 +5,7 @@
 // grows with the class (dorfplan.ts) and with the finished buildings from Weiler to Stadt (DORF_STUFEN): sandy road →
 // paved road and lanterns → market stalls → city wall with gate. In the evening it darkens and lights come on
 // (nacht.tsx), in winter it snows. Built from the parts of iso.tsx; every building draws into one 100 × 100 cell.
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { aussehenVon, dorfStufe, type HausPlatz } from "../dorf";
 import {
   anzahl,
@@ -686,6 +686,7 @@ export function DorfKarte({
   winter = false,
   neu,
   held,
+  wanderer = [],
 }: {
   fertig: string[];
   baustelle?: string | null;
@@ -703,6 +704,8 @@ export function DorfKarte({
   neu?: DorfNeu;
   /** The viewer's own hero (an SVG drawn on 240 × 240), standing in front of the own plot. */
   held?: ReactNode;
+  /** Classmates' heroes (SVGs on 240 × 240, no names) walking up and down the road. */
+  wanderer?: ReactNode[];
 }) {
   const n = anzahl(Math.max(plaetze, haeuser?.length ?? 0));
   const stufe = dorfStufe(new Set(fertig).size);
@@ -844,6 +847,53 @@ export function DorfKarte({
       ),
     });
   }
+
+  // Classmates on the road (Dorf 4): each walks along a stretch of it and back, with a small step; still when motion
+  // is reduced. Spread over the road from the square upwards, a little left or right of its middle.
+  wanderer.slice(0, 4).forEach((node, j) => {
+    if (weg.length < 3) return;
+    const start = Math.min(weg.length - 2, Math.floor(((j + 1) * (weg.length - 1)) / (Math.min(wanderer.length, 4) + 1)));
+    // About 45 px along the road to the middle point, as far again to the end, so the walk follows the curve.
+    const weiter = (von: number, strecke: number) => {
+      let i = von;
+      let s = 0;
+      while (i < weg.length - 1 && s < strecke) {
+        s += Math.hypot(weg[i + 1][0] - weg[i][0], weg[i + 1][1] - weg[i][1]);
+        i++;
+      }
+      return i;
+    };
+    const iM = weiter(start, 45);
+    const iB = weiter(iM, 45);
+    const [a, m, b] = [weg[start], weg[iM], weg[iB]];
+    const seite = j % 2 ? 9 : -9;
+    const w = 38;
+    const px = (v: number) => `${Math.round(v * 10) / 10}px`;
+    dinge.push({
+      k: Math.max(a[1], b[1]),
+      node: (
+        <g
+          className="lq-wanderer"
+          style={
+            {
+              ["--mx" as string]: px(m[0] - a[0]),
+              ["--my" as string]: px(m[1] - a[1]),
+              ["--bx" as string]: px(b[0] - a[0]),
+              ["--by" as string]: px(b[1] - a[1]),
+              animationDuration: `${16 + j * 3}s`,
+              animationDelay: `${-j * 5}s`,
+            } as CSSProperties
+          }
+        >
+          <g className="lq-wanderer-schritt">
+            <svg x={a[0] + seite - w / 2} y={a[1] - w * (230 / 240)} width={w} height={w} viewBox="0 0 240 240" overflow="visible" aria-hidden>
+              {node}
+            </svg>
+          </g>
+        </g>
+      ),
+    });
+  });
 
   const label = hinweis ? ([0, (plots[2]?.sy ?? -250) - 64] as Pt) : null;
   return (

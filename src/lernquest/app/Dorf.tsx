@@ -11,6 +11,8 @@ import { JE_VIERTEL } from '../dorfplan';
 import { DorfKarte, type DorfNeu } from '../figuren/dorf';
 import { AvatarBild } from './avatar';
 import { dorf as dorfLaden, lqText, spenden } from '../server';
+import { heute, tagNummer } from '../rules';
+import type { Avatar } from '../teile';
 import type { Stand } from '../types';
 import { Meldung, MuenzIcon, type Aktion } from './Held';
 import { MeinHaus } from './MeinHaus';
@@ -34,7 +36,7 @@ export function dorfNeu(alt: DorfGesehen | null, jetzt: DorfGesehen): DorfNeu {
   };
 }
 
-export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: Stand; setStand: (s: Stand) => void }) {
+export function DorfBox({ aktion, stand, setStand, mitschueler = [] }: { aktion: Aktion; stand: Stand; setStand: (s: Stand) => void; mitschueler?: Avatar[] }) {
   const [d, setD] = useState<Dorf | null>(null);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
@@ -123,6 +125,9 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
           winter={istWinter(jetzt)}
           neu={neu}
           held={<AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} lebendig />}
+          wanderer={unterwegs(mitschueler, heute()).map((a, i) => (
+            <AvatarBild key={i} avatar={{ ...a, hintergrund: '' }} />
+          ))}
         />
       </div>
       <p className="lq-klein lq-dorf-stufe">
@@ -177,4 +182,11 @@ export function DorfBox({ aktion, stand, setStand }: { aktion: Aktion; stand: St
       )}
     </section>
   );
+}
+
+/** Up to four classmates on the road today: a different few each day, the same all day long. */
+function unterwegs(mitschueler: Avatar[], tag: string): Avatar[] {
+  if (mitschueler.length <= 4) return mitschueler;
+  const start = tagNummer(tag) % mitschueler.length;
+  return Array.from({ length: 4 }, (_, i) => mitschueler[(start + i * 3) % mitschueler.length]);
 }
