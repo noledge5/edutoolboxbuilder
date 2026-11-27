@@ -115,7 +115,7 @@ export function fehlgriffHinweis(u: Uebung, a: Antwort | null): string | null {
     u.art === 'paare' && a.art === 'paare' ? a.fehler : u.art === 'punkt' && a.art === 'punkt' ? a.getippt.filter((t) => !punktTrifft(u.punkte, t.ziel, t.x, t.y)).length : 0;
   const frei = fehlgriffeFrei(n);
   if (daneben <= frei) return null;
-  return `Du hast ${daneben}-mal danebengetippt. ${frei ? 'Einmal ist erlaubt.' : 'Hier zählt jeder Fehlgriff.'}`;
+  return `Du hast ${daneben === 1 ? 'einmal' : `${daneben}-mal`} danebengetippt. ${frei ? 'Einmal ist erlaubt.' : 'Hier zählt jeder Fehlgriff.'}`;
 }
 
 /** A sentence from tiles: spaces before end marks and commas go. */
@@ -557,7 +557,7 @@ export function wissen(leitner: Stand['leitner'], gueltig?: Set<string>): { sitz
 // parts, level – each in bronze, silver and gold. Only what the Spielstand already holds, no server. —
 
 export interface Abzeichen {
-  id: 'fleiss' | 'gedaechtnis' | 'sterne' | 'perfekt' | 'entdecker' | 'sammler' | 'aufsteiger';
+  id: 'fleiss' | 'gedaechtnis' | 'sterne' | 'perfekt' | 'entdecker' | 'regionen' | 'sammler' | 'aufsteiger';
   name: string;
   /** What is counted, as it follows a number („10 von 30 Lerntage“). */
   was: string;
@@ -570,13 +570,28 @@ export const ABZEICHEN: Abzeichen[] = [
   { id: 'sterne', name: 'Sternensammler', was: 'Sterne', stufen: [5, 20, 50] },
   { id: 'perfekt', name: 'Fehlerfrei', was: 'perfekte Runden', stufen: [1, 5, 15] },
   { id: 'entdecker', name: 'Entdecker', was: 'Stationen mit Stern', stufen: [2, 8, 20] },
+  // 28.11.2026, wish of the teacher („geschaffte Regionen“): every station of a region with a star
+  { id: 'regionen', name: 'Eroberer', was: 'Regionen geschafft', stufen: [1, 3, 6] },
   { id: 'sammler', name: 'Sammler', was: 'Teile', stufen: [5, 15, 35] },
   { id: 'aufsteiger', name: 'Aufsteiger', was: 'Heldenstufe', stufen: [3, 8, 16] },
 ];
 export const ABZEICHEN_STUFEN = ['Bronze', 'Silber', 'Gold'] as const;
 
-/** The counts behind the badges. `pakete`: the stations the child has (for stars and stations). */
-export function abzeichenWerte(s: Stand, pakete: { stunde: string; uebungen: Uebung[] }[]): Record<Abzeichen['id'], number> {
+/** A region (module) counts as done when as many of its stations have a star as the module has lessons – also the ones
+ *  not yet open, so a region is never done early. Stations without module data count for no region. */
+function regionenGeschafft(s: Stand, pakete: { stunde: string; uebungen: Uebung[]; modul?: { id: string; stunden?: unknown[] } }[]): number {
+  const je = new Map<string, { mitStern: number; alle: number }>();
+  for (const p of pakete) {
+    if (!p.modul) continue;
+    const r = je.get(p.modul.id) ?? { mitStern: 0, alle: p.modul.stunden?.length ?? 0 };
+    if (sterneVon(s, p) > 0) r.mitStern++;
+    je.set(p.modul.id, r);
+  }
+  return [...je.values()].filter((r) => r.alle > 0 && r.mitStern >= r.alle).length;
+}
+
+/** The counts behind the badges. `pakete`: the stations the child has (for stars, stations and regions). */
+export function abzeichenWerte(s: Stand, pakete: { stunde: string; uebungen: Uebung[]; modul?: { id: string; stunden?: unknown[] } }[]): Record<Abzeichen['id'], number> {
   const sterneJe = pakete.map((p) => sterneVon(s, p));
   return {
     fleiss: new Set(s.tage).size,
@@ -586,6 +601,7 @@ export function abzeichenWerte(s: Stand, pakete: { stunde: string; uebungen: Ueb
       .flat()
       .filter((w) => w >= 100).length,
     entdecker: sterneJe.filter((n) => n > 0).length,
+    regionen: regionenGeschafft(s, pakete),
     sammler: s.inventar.length,
     aufsteiger: heldenstufe(s.xp).stufe,
   };

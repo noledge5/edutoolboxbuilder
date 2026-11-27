@@ -138,6 +138,22 @@ export const SymbolStern = (p: Props) => (
   </Rahmen>
 );
 
+/** A castle (27.11.2026): a region of the map conquered – two towers with blue roofs, a wall with a gate, a pennant. */
+export const SymbolBurg = (p: Props) => (
+  <Rahmen {...p}>
+    <path d="M7 15 H25 V28.6 H7 Z" {...flaeche(P.stein, 2)} />
+    <path d="M10 12.4 H13.2 V16 H10 Z M18.8 12.4 H22 V16 H18.8 Z" {...flaeche(P.stein, 1.6)} />
+    <path d="M4.2 11.4 H11.8 V28.6 H4.2 Z M20.2 11.4 H27.8 V28.6 H20.2 Z" {...flaeche(P.stein, 2)} />
+    <path d="M24 11.4 H27.8 V28.6 H24 Z" fill={P.steinTief} opacity={0.6} />
+    <path d="M3.2 12 L8 4.4 L12.8 12 Z M19.2 12 L24 4.4 L28.8 12 Z" {...flaeche(P.blau, 2)} />
+    <path d="M24 4.4 L28.8 12 H24 Z" fill={P.blauTief} opacity={0.55} />
+    <path d="M13 28.6 V23.4 Q16 19.6 19 23.4 V28.6 Z" {...flaeche(P.holzTief, 1.6)} />
+    <path d="M8 4.4 V1.6" stroke={P.holzTief} strokeWidth={2} strokeLinecap="round" />
+    <path d="M8.6 1.4 L13 2.8 L8.6 4.4 Z" {...flaeche(P.gold, 1.2)} />
+    <path d="M6 14.6 V24" stroke={P.steinHell} strokeWidth={2} strokeLinecap="round" />
+  </Rahmen>
+);
+
 /** A flame (27.11.2026): the combo of right answers in a row, beside the hearts. Orange outside, yellow inside, a light
  *  tongue top left; drawn like the other symbols (palette, no outline). */
 export const SymbolFlamme = (p: Props) => (

@@ -24,6 +24,13 @@ describe('badges', () => {
     expect(w.aufsteiger).toBe(3);
   });
 
+  it('count a region only when every lesson of its module has a star', () => {
+    const p = (stunde: string, modul: string, lessons: number) => ({ ...station(stunde), modul: { id: modul, stunden: Array.from({ length: lessons }, (_, i) => i) } });
+    const s: Stand = { ...LEERER_STAND, sterneStationen: { a1: 1, a2: 2, b1: 1, b2: 1 } };
+    // region A: both lessons starred; region B: 2 of 3 lessons (the third not even open yet)
+    expect(abzeichenWerte(s, [p('a1', 'A', 2), p('a2', 'A', 2), p('b1', 'B', 3), p('b2', 'B', 3)]).regionen).toBe(1);
+  });
+
   it('have three growing tiers each', () => {
     for (const a of ABZEICHEN) expect(a.stufen[0] < a.stufen[1] && a.stufen[1] < a.stufen[2]).toBe(true);
     const fleiss = ABZEICHEN.find((a) => a.id === 'fleiss')!;
