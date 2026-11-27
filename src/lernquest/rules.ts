@@ -211,6 +211,32 @@ export function loesungText(u: Uebung): string {
   }
 }
 
+/** A missed exercise as one line to take away after the round (27.11.2026, „Das nimmst du mit“): what was asked and the
+ *  right answer, with enough context to stand alone. Null where a line says nothing (places on a map, picture files). */
+export function merksatz(u: Uebung): { frage: string; antwort: string } | null {
+  switch (u.art) {
+    case 'waehlen':
+      return { frage: u.hoeren ? 'Gehört' : u.aussage ? `${u.frage} ${u.aussage}` : u.frage, antwort: loesungText(u) };
+    case 'richtigfalsch':
+      return { frage: u.aussage, antwort: u.richtig ? 'stimmt' : 'stimmt nicht' };
+    case 'luecke':
+      return { frage: u.frage, antwort: loesungText(u) };
+    case 'reihenfolge':
+      return { frage: u.hinweis ? `${u.frage} ${u.hinweis}` : u.frage, antwort: u.loesung };
+    case 'paare':
+    case 'gruppen':
+      return { frage: u.frage, antwort: loesungText(u) };
+    case 'bild': {
+      const b = u.bilder[u.richtig] ?? '';
+      return b.startsWith('img:') ? null : { frage: u.wort, antwort: b };
+    }
+    case 'schreiben':
+      return { frage: u.aussage ? `${u.frage} ${u.aussage}` : u.frage, antwort: u.loesungen[0] };
+    case 'punkt':
+      return null;
+  }
+}
+
 /** Order of the options or tiles on screen, the same for the same exercise and try. */
 export const gemischt = <T>(xs: T[], seed: string) => shuffle(xs, seeded(seed));
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fehlgriffeFrei, istRichtig, nachAntwort, fehlgriffHinweis, serieMeilenstein, wissen, laengsteSerie, rundenFazit, WIEDER_MAX } from './rules';
+import { fehlgriffeFrei, istRichtig, nachAntwort, fehlgriffHinweis, serieMeilenstein, wissen, laengsteSerie, merksatz, rundenFazit, WIEDER_MAX } from './rules';
 import { readUebung } from './fragenpool';
 import type { Uebung } from './types';
 
@@ -86,5 +86,18 @@ describe('longest streak', () => {
     expect(laengsteSerie([true, true, false, true, true, true, false])).toBe(3);
     expect(laengsteSerie([])).toBe(0);
     expect(laengsteSerie([false, false])).toBe(0);
+  });
+});
+
+describe('take-away lines', () => {
+  it('give the statement and the verdict for true or false', () => {
+    expect(merksatz({ art: 'richtigfalsch', id: 'r', frage: 'Stimmt das?', aussage: '12 = twelve', richtig: true })).toEqual({ frage: '12 = twelve', antwort: 'stimmt' });
+  });
+  it('give the sentence with the gaps filled', () => {
+    expect(merksatz({ art: 'luecke', id: 'l', frage: 'Fill in.', teile: ['There ', 'are', ' two pens.'], kacheln: ['are', 'is'] })).toEqual({ frage: 'Fill in.', antwort: 'There **are** two pens.' });
+  });
+  it('leave out what a line cannot show', () => {
+    expect(merksatz({ art: 'punkt', id: 'p', frage: 'Finde', bild: 'karte:x', punkte: [] })).toBeNull();
+    expect(merksatz({ art: 'bild', id: 'b', frage: 'Welches Bild?', wort: 'apple', bilder: ['img:x', '🐕'], richtig: 0 })).toBeNull();
   });
 });

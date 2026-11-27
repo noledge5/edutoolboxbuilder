@@ -37,6 +37,7 @@ import {
   wochenStart,
   WOCHENZIEL,
   laengsteSerie,
+  merksatz,
 } from '../rules';
 import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
 import { BOSSE } from '../boss';
@@ -49,6 +50,7 @@ import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, 
 import { ton } from './ton';
 import { Jubel } from './Jubel';
 import { WissenKarte } from './Wissen';
+import { Rich } from './Uebungen';
 import { PfadHeld, StationsSterne } from './KartenNeu';
 import { GluehbirneIcon, HilfeSeite } from './Hilfe';
 import { HakenIcon, KreuzIcon, Runde } from './Runde';
@@ -107,6 +109,8 @@ export type Screen =
       gesamt: number;
       /** Right or wrong per exercise, in order, for the row of dots. */
       ergebnisse: boolean[];
+      /** The exercises missed at the first try, for „Das nimmst du mit“ (27.11.2026). */
+      verpasst?: Uebung[];
       plus: number;
       muenzenPlus: number;
       /** Stufe D: coins for daily tasks done with this round, and their ids. */
@@ -668,6 +672,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       richtig: m.richtig,
       gesamt: m.gesamt,
       ergebnisse,
+      verpasst: screen.kind === 'runde' ? screen.uebungen.filter((_, i) => ergebnisse[i] === false).map((x) => x.u) : [],
       plus: r.plus,
       muenzenPlus: r.muenzenPlus,
       aufgabenPlus: r.aufgabenPlus,
@@ -880,6 +885,26 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </li>
           ))}
         </ol>
+        {(() => {
+          const zeilen = (screen.verpasst ?? []).map((u) => ({ id: u.id, m: merksatz(u) })).filter((z) => z.m);
+          return zeilen.length ? (
+            <section className="lq-box lq-mitnehmen" aria-labelledby="lq-mitnehmen-titel">
+              <h2 id="lq-mitnehmen-titel">Das nimmst du mit</h2>
+              <ul>
+                {zeilen.map(({ id, m }) => (
+                  <li key={id}>
+                    <span>
+                      <Rich text={m!.frage} />
+                    </span>
+                    <strong>
+                      <Rich text={m!.antwort} />
+                    </strong>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null;
+        })()}
         {laengsteSerie(screen.ergebnisse) >= 3 && (
           <p className="lq-serie-zeile">
             <span className="lq-serie-marke">Beste Serie: {laengsteSerie(screen.ergebnisse)} richtig in Folge</span>
@@ -955,6 +980,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           )
         )}
         <div className="lq-platz" />
+        {/* The way on stays at the bottom edge, also when the take-away list makes the page long (27.11.2026). */}
+        <div className="lq-ergebnis-knoepfe">
         {screen.truhenPlus > 0 && (
           <button type="button" className="lq-knopf lq-gold" onClick={() => setScreen({ kind: 'truhe', zurueck: 'karte' })}>
             Truhe öffnen
@@ -973,6 +1000,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         <button type="button" className={`lq-knopf ${weiter || screen.truhenPlus > 0 ? 'lq-hell' : ''}`} onClick={() => setScreen({ kind: 'karte' })}>
           Zur Karte
         </button>
+        </div>
       </main>
     );
   }
