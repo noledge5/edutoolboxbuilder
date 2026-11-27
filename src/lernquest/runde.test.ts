@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fehlgriffeFrei, istRichtig, nachAntwort, rundenFazit, WIEDER_MAX } from './rules';
+import { fehlgriffeFrei, istRichtig, nachAntwort, serieMeilenstein, rundenFazit, WIEDER_MAX } from './rules';
 import { readUebung } from './fragenpool';
 import type { Uebung } from './types';
 
@@ -53,5 +53,11 @@ describe('Erklärung', () => {
     expect(readUebung({ ...u, erklaerung: '' })).not.toHaveProperty('erklaerung');
     expect(readUebung({ ...u, erklaerung: 'x'.repeat(2000) })).not.toHaveProperty('erklaerung');
     expect(readUebung({ ...u, erklaerung: 7 })).not.toHaveProperty('erklaerung');
+  });
+});
+
+describe('streak moments', () => {
+  it('come at 3 in a row and then every 5', () => {
+    expect([1, 2, 3, 4, 5, 6, 9, 10, 11, 15].filter(serieMeilenstein)).toEqual([3, 5, 10, 15]);
   });
 });

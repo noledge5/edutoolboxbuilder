@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { noten, type TonArt } from './ton';
 
-const ARTEN: TonArt[] = ['richtig', 'falsch', 'fertig', 'tipp', 'stern', 'truhe'];
+const ARTEN: TonArt[] = ['richtig', 'falsch', 'fertig', 'tipp', 'stern', 'truhe', 'muenze', 'serie'];
 
 describe('sounds', () => {
   it.each(ARTEN)('%s is short and soft', (art) => {
@@ -15,6 +15,10 @@ describe('sounds', () => {
       expect(start + dur).toBeLessThanOrEqual(1.5);
       expect(vol).toBeLessThanOrEqual(0.15);
     }
+  });
+  it('a streak climbs higher than a right answer', () => {
+    const hoch = (a: TonArt) => Math.max(...noten(a).map((x) => x[0]));
+    expect(hoch('serie')).toBeGreaterThan(hoch('richtig'));
   });
   it('wrong is lower and quieter than right', () => {
     const hoch = (a: TonArt) => Math.max(...noten(a).map((x) => x[0]));

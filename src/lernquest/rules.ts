@@ -56,6 +56,9 @@ export const WIEDER_MAX = 3;
  * The order of a round after the answer at `pos`: `reihe` holds exercise indexes; a missed exercise is put at the
  * end again, so the child meets it once more before the round is over.
  */
+/** A streak worth a moment of its own (sound, badge, a higher jump): 3 in a row, then every 5. */
+export const serieMeilenstein = (serie: number) => serie === 3 || (serie >= 5 && serie % 5 === 0);
+
 export function nachAntwort(reihe: number[], pos: number, richtig: boolean): number[] {
   const i = reihe[pos];
   if (richtig || i === undefined || reihe.filter((x) => x === i).length >= WIEDER_MAX) return reihe;
