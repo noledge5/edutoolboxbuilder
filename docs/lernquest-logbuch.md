@@ -10,7 +10,20 @@ Bildschirmfotos, die angesehen wurden.
 
 ## 27.11.2026, abends (eigenständig, mit Erlaubnis für PRs und Merges)
 
-### Abzeichen „Eroberer“ und richtiges Deutsch (PR folgt)
+### Einzahl bei eins, überall (PR folgt)
+- **Was:** alle Texte der Kinder-App mit einer Zahl vor einem Wort durchgesehen; wo eine 1 möglich ist, steht jetzt die
+  Einzahl: „Noch 1 Münze sammeln“ (Laden), „Dir fehlt noch eine Münze“ (Haus), „noch 1 Münze spenden“ und „Deine
+  Münze zählt 1“ (Dorf), „von 1 Runde“ und „1 Aufgabe aus allen Stationen“ (Probetest), Wiederholen-Knoten für
+  Vorleser, Klassen-Aufgabe.
+- **Warum:** nach dem Fund bei den Abzeichen (#124) die gleiche Art Fehler überall suchen statt warten, bis ein Kind ihn
+  sieht. Schon richtig waren: Wiederholen-Hinweise, Abmelden, Truhen, Event-Banner, Helfer im Dorf.
+- **Wie:** `mitZahl(n, einzahl, mehrzahl)` in rules.ts (Test in `zahlen.test.ts`); Dorf und Haus nur je eine Textzeile,
+  damit der Umbau des Dorfs (andere Sitzung) nicht berührt wird.
+- **Verworfen:** ein Solo-Boss im Meilenstein. Der Bosskampf ist das Ereignis der Klasse, das die Lehrkraft startet
+  (`docs/lernquest.md`: „Der Bosskampf hängt nicht am Meilenstein“); wer den Boss allein besiegt, nähme der Klasse
+  den Moment.
+
+### Abzeichen „Eroberer“ und richtiges Deutsch (#124)
 - **Was:** achtes Abzeichen „Eroberer“ für geschaffte Regionen (1, 3, 6) mit eigener Burg als Symbol
   (`SymbolBurg`); eine Region zählt erst, wenn alle Stunden des Moduls einen Stern haben, auch noch nicht offene.
   Dazu die Texte der Abzeichen in richtigem Deutsch: Dativ nach „von“ („5 von 10 Lerntagen“, „6 von 15 Teilen“),

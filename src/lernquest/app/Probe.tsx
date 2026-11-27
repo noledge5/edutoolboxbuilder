@@ -3,7 +3,7 @@
 // experience, coins or chests.
 import { useState } from 'react';
 import { ladeProbe, probeTest, PROBEN, schwachePunkte, speichereProbe, stationPaket, type ProbeStand } from '../probe';
-import { naechsteRunde, rundenFazit, rundenGeschafft, rundenStufen, rundenZahl, rundeVon, sterne } from '../rules';
+import { mitZahl, naechsteRunde, rundenFazit, rundenGeschafft, rundenStufen, rundenZahl, rundeVon, sterne } from '../rules';
 import { LEERER_STAND, type Paket, type Uebung } from '../types';
 import { Sterne, SternIcon, type Screen } from './LernquestApp';
 import { HakenIcon, Runde } from './Runde';
@@ -165,7 +165,7 @@ export function ProbeApp({ id }: { id: string }) {
                 {n > 0 && <Sterne n={n} />}
                 {n === 0 && rundenGeschafft(stand.bestwerte[pk.stunde], runden(pk)) > 0 && (
                   <span className="lq-klein">
-                    {rundenGeschafft(stand.bestwerte[pk.stunde], runden(pk))} von {runden(pk)} Runden
+                    {rundenGeschafft(stand.bestwerte[pk.stunde], runden(pk))} von {mitZahl(runden(pk), 'Runde', 'Runden')}
                   </span>
                 )}
               </li>
@@ -175,7 +175,7 @@ export function ProbeApp({ id }: { id: string }) {
       </section>
       <section className="lq-box lq-probe-test">
         <h2>Probetest</h2>
-        <p>{`${Math.min(16, pakete.reduce((s, pk) => s + pk.uebungen.length, 0))} Aufgaben aus allen Stationen, gemischt – wie in der Klassenarbeit.`}</p>
+        <p>{`${mitZahl(Math.min(16, pakete.reduce((s, pk) => s + pk.uebungen.length, 0)), 'Aufgabe', 'Aufgaben')} aus allen Stationen, gemischt – wie in der Klassenarbeit.`}</p>
         {stand.test !== null && <p className="lq-klein">Dein bestes Ergebnis: {stand.test} %</p>}
         <button type="button" className="lq-knopf lq-gold" onClick={() => testStarten()}>
           Probetest starten

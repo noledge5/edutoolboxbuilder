@@ -11,7 +11,7 @@ import { JE_VIERTEL } from '../dorfplan';
 import { DorfKarte, type DorfNeu } from '../figuren/dorf';
 import { AvatarBild } from './avatar';
 import { dorf as dorfLaden, lqText, spenden } from '../server';
-import { heute, tagNummer } from '../rules';
+import { heute, mitZahl, tagNummer } from '../rules';
 import type { Avatar } from '../teile';
 import type { Stand } from '../types';
 import { Meldung, MuenzIcon, type Aktion } from './Held';
@@ -98,7 +98,7 @@ export function DorfBox({ aktion, stand, setStand, mitschueler = [] }: { aktion:
       setD(r.dorf);
       setStand(r.stand);
       ton(r.dorf.projekt ? 'richtig' : 'fertig');
-      setDanke(r.dorf.projekt ? `Danke! Deine ${m} Münzen zählen ${spendeWert(m)}.` : `Geschafft! ${gebaeudeName(p.gebaeude)} steht im Dorf.`);
+      setDanke(r.dorf.projekt ? (m === 1 ? `Danke! Deine Münze zählt ${spendeWert(m)}.` : `Danke! Deine ${m} Münzen zählen ${spendeWert(m)}.`) : `Geschafft! ${gebaeudeName(p.gebaeude)} steht im Dorf.`);
     } catch (e) {
       setMsg(lqText(e));
     } finally {
@@ -161,7 +161,7 @@ export function DorfBox({ aktion, stand, setStand, mitschueler = [] }: { aktion:
           ) : null}
           {rest > 0 && stand.muenzen < 1 && <p className="lq-klein">Sammle Münzen beim Lernen, dann kannst du mitbauen.</p>}
           <p className="lq-klein" role="status">
-            {danke || (rest > 0 ? `Diese Woche kannst du noch ${rest} Münzen spenden.` : 'Für diese Woche hast du genug gespendet. Ab Montag geht es weiter.')}
+            {danke || (rest > 0 ? `Diese Woche kannst du noch ${mitZahl(rest, 'Münze', 'Münzen')} spenden.` : 'Für diese Woche hast du genug gespendet. Ab Montag geht es weiter.')}
           </p>
         </div>
       ) : (

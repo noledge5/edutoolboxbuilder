@@ -1,7 +1,15 @@
 // Numbers in typed answers (27.11.2026, Mathe): the same value counts, whatever the decimal mark; ambiguous or
 // different numbers do not; a number is never „almost right“ like a misspelt word.
 import { describe, expect, it } from 'vitest';
-import { fastRichtig, gleicheAntwort, istRichtig, nurZahlen, zahlAus } from './rules';
+import { fastRichtig, gleicheAntwort, istRichtig, mitZahl, nurZahlen, zahlAus } from './rules';
+
+describe('counts in texts', () => {
+  it('take the singular for one and the plural otherwise', () => {
+    expect(mitZahl(1, 'Münze', 'Münzen')).toBe('1 Münze');
+    expect(mitZahl(0, 'Münze', 'Münzen')).toBe('0 Münzen');
+    expect(mitZahl(3, 'Runde', 'Runden')).toBe('3 Runden');
+  });
+});
 
 describe('numbers in typed answers', () => {
   it('read comma and point, spaces and the typographic minus', () => {

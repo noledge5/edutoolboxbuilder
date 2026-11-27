@@ -143,6 +143,9 @@ export function gleicheAntwort(loesung: string, text: string): boolean {
 /** Every solution is a number: the tablet shows the number keyboard. */
 export const nurZahlen = (loesungen: string[]) => loesungen.length > 0 && loesungen.every((l) => zahlAus(l) !== null);
 
+/** A count with its noun in the right number (28.11.2026): „1 Münze“, „3 Münzen“. */
+export const mitZahl = (n: number, einzahl: string, mehrzahl: string) => `${n} ${n === 1 ? einzahl : mehrzahl}`;
+
 /** Letters to change, add or remove to turn one word into the other (Levenshtein). */
 function abstand(a: string, b: string): number {
   let vorher = Array.from({ length: b.length + 1 }, (_, j) => j);
