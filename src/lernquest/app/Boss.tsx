@@ -16,6 +16,7 @@ import { ton } from './ton';
 import { Rich } from './Uebungen';
 import { AvatarBild } from './avatar';
 import { Jubel } from './Jubel';
+import { Fuchs } from './Fuchs';
 import type { Avatar } from '../teile';
 
 /** How often the projector and the phones ask the server. */
@@ -106,9 +107,9 @@ function Zeitring({ sekunden, gross = false }: { sekunden: number; gross?: boole
 function Lebensbalken({ s, gross = false, treffer }: { s: BossStand; gross?: boolean; treffer?: { key: string; n: number } | null }) {
   const anteil = s.lpMax ? Math.max(0, Math.min(1, s.lp / s.lpMax)) : 1;
   return (
-    <div className={`lq-lebensbalken ${gross ? 'gross' : ''}${treffer ? ' getroffen' : ''}`} key={treffer?.key}>
+    <div className={`lq-lebensbalken ${gross ? 'gross' : ''}${treffer ? ' getroffen' : ''}`}>
       {treffer && (
-        <span className="lq-schaden" aria-hidden style={{ left: `${Math.round(anteil * 100)}%` }}>
+        <span key={treffer.key} className="lq-schaden" aria-hidden style={{ left: `${Math.round(anteil * 100)}%` }}>
           −{treffer.n}
         </span>
       )}
@@ -127,10 +128,17 @@ function Lebensbalken({ s, gross = false, treffer }: { s: BossStand; gross?: boo
 }
 
 function KlassenHerzen({ n }: { n: number }) {
+  // the heart just lost breaks once (the boss hit the class)
+  const vorher = useRef(n);
+  const [weg, setWeg] = useState<number | null>(null);
+  useEffect(() => {
+    if (n < vorher.current) setWeg(n);
+    vorher.current = n;
+  }, [n]);
   return (
     <div className="lq-klassen-herzen" role="img" aria-label={`${n} von ${BOSS_HERZEN} Leben`}>
       {Array.from({ length: BOSS_HERZEN }, (_, i) => (
-        <svg key={i} viewBox="0 0 24 24" aria-hidden="true" className={i < n ? 'voll' : 'leer'}>
+        <svg key={i} viewBox="0 0 24 24" aria-hidden="true" className={i < n ? 'voll' : i === weg ? 'leer weg' : 'leer'}>
           <path d="M12 21s-7.5-4.6-9.6-9.4C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.7 1.2 5.3 3 1.6-1.8 3.1-3 5.3-3 3.7 0 5.8 3.7 4.3 7.1C19.5 16.4 12 21 12 21Z" />
         </svg>
       ))}
@@ -138,15 +146,18 @@ function KlassenHerzen({ n }: { n: number }) {
   );
 }
 
-/** Counts the hits: goes up each time the boss's life points drop. */
-function useTreffer(lp: number | undefined): number {
-  const vorher = useRef(lp);
-  const [n, setN] = useState(0);
+/** The boss's last move and a count that starts it again: hit when its life points drop, attack when the class loses a
+ *  heart (the class got less than half right; 27.11.2026, shown on the projector). */
+function useZug(lp: number | undefined, herzen: number | undefined): { art: 'treffer' | 'angriff' | null; n: number } {
+  const vorher = useRef({ lp, herzen });
+  const [zug, setZug] = useState<{ art: 'treffer' | 'angriff' | null; n: number }>({ art: null, n: 0 });
   useEffect(() => {
-    if (lp !== undefined && vorher.current !== undefined && lp < vorher.current) setN((x) => x + 1);
-    vorher.current = lp;
-  }, [lp]);
-  return n;
+    const v = vorher.current;
+    if (herzen !== undefined && v.herzen !== undefined && herzen < v.herzen) setZug((z) => ({ art: 'angriff', n: z.n + 1 }));
+    else if (lp !== undefined && v.lp !== undefined && lp < v.lp) setZug((z) => ({ art: 'treffer', n: z.n + 1 }));
+    vorher.current = { lp, herzen };
+  }, [lp, herzen]);
+  return zug;
 }
 
 /** The bosses as moving figures (figuren/), in the order of BOSSE, and what each does while it waits. */
@@ -157,20 +168,20 @@ const BOSS_FIGUR: { figur: Figur; ruhe: string }[] = [
 ];
 
 /** A boss. From 100 px on it moves: it idles, flinches when `lp` drops (a hit) and falls when beaten. */
-export function BossBild({ boss, size = 320, gefallen = false, lp }: { boss: number; size?: number; gefallen?: boolean; lp?: number }) {
-  const treffer = useTreffer(lp);
+export function BossBild({ boss, size = 320, gefallen = false, lp, herzen }: { boss: number; size?: number; gefallen?: boolean; lp?: number; herzen?: number }) {
+  const zug = useZug(lp, herzen);
   const bewegt = size >= 100;
   const { figur, ruhe } = BOSS_FIGUR[boss] ?? BOSS_FIGUR[0];
   return (
     <FigurBild
-      key={treffer}
+      key={zug.n}
       figur={figur}
       titel={BOSSE[boss]?.name ?? 'Boss'}
       className={`lq-boss-bild ${gefallen ? 'gefallen' : ''}`}
       breite={size}
       lebendig={bewegt}
       pose={gefallen ? 'besiegt' : 'lauern'}
-      animation={!bewegt ? undefined : treffer || gefallen ? 'treffer' : ruhe}
+      animation={!bewegt ? undefined : gefallen ? 'treffer' : (zug.art ?? ruhe)}
       danach={bewegt && !gefallen ? ruhe : undefined}
     />
   );
@@ -188,6 +199,14 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
   const langsam = useLangsam(!s && !msg && keys !== null);
   const sekunden = useSekunden(s);
   const phaseVorher = useRef('');
+  // The class's damage of a question pops up over the bar (27.11.2026).
+  const lpVorher = useRef<number | null>(null);
+  const [klassenTreffer, setKlassenTreffer] = useState<{ key: string; n: number } | null>(null);
+  useEffect(() => {
+    if (!s) return;
+    if (lpVorher.current !== null && s.lp < lpVorher.current) setKlassenTreffer({ key: `${s.frage}:${s.lp}`, n: lpVorher.current - s.lp });
+    lpVorher.current = s.lp;
+  }, [s]);
   const link = useMemo(() => (klasse ? beitrittsLink(location.origin + location.pathname, klasse) : ''), [klasse]);
 
   useEffect(() => {
@@ -326,8 +345,8 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
 
         <div className="lq-beamer-mitte">
           <div className="lq-beamer-boss">
-            <BossBild boss={s.boss} size={250} gefallen={s.phase === 'ende' && !!s.sieg} lp={s.lp} />
-            <Lebensbalken s={s} gross />
+            <BossBild boss={s.boss} size={250} gefallen={s.phase === 'ende' && !!s.sieg} lp={s.lp} herzen={s.herzen} />
+            <Lebensbalken s={s} gross treffer={s.phase === 'aufloesung' ? klassenTreffer : null} />
           </div>
 
           <div className="lq-beamer-frage" aria-live="polite">
@@ -356,7 +375,10 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
                 )}
               </div>
             ) : s.phase === 'ende' ? (
-              <div className="lq-beamer-karte">
+              <>
+                {/* The whole class sees this: confetti and the fox cheers (or comforts) below the text. */}
+                {s.sieg && <Jubel stark />}
+                <div className="lq-beamer-karte">
                 <p className="lq-beamer-text">
                   {s.sieg
                     ? s.truhen
@@ -367,6 +389,10 @@ export function BossBeamer({ id, klasse = '' }: { id: string; klasse?: string })
                     : 'Übt die Stationen der Region und fordert ihn noch einmal heraus.'}
                 </p>
               </div>
+                <div className="lq-beamer-fuchs">
+                  <Fuchs pose={s.sieg ? 'jubeln' : 'troesten'} groesse={170} />
+                </div>
+              </>
             ) : (
               <>
                 <div className="lq-beamer-karte">

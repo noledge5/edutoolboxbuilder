@@ -5191,3 +5191,38 @@ button.lq-teil:active {
   width: 132px;
   height: 132px;
 }
+/* The projector: the class's damage bigger, a lost heart breaks, the fox in the free space after the fight. */
+.lq-lebensbalken.gross .lq-schaden {
+  /* over the boss, not over the line of numbers under the big bar */
+  bottom: auto;
+  top: calc(-3 * var(--lq-a-6));
+  font-size: var(--lq-t-h1);
+}
+.lq-klassen-herzen .weg {
+  animation: lq-herz-weg 0.9s ease-out;
+}
+@keyframes lq-herz-weg {
+  /* red while it shakes, then empty at once (a blend of red and the empty tone passed through green) */
+  0% {
+    fill: var(--lq-herz);
+    transform: scale(1);
+  }
+  25% {
+    fill: var(--lq-herz);
+    transform: scale(1.5) rotate(-12deg);
+  }
+  50% {
+    fill: var(--lq-herz);
+    transform: scale(1.3) rotate(10deg);
+  }
+  51%,
+  100% {
+    fill: color-mix(in srgb, var(--lq-nacht-ink) 20%, transparent);
+    transform: scale(1);
+  }
+}
+.lq-beamer-fuchs {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--lq-a-4);
+}
