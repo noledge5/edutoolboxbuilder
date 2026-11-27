@@ -133,8 +133,11 @@ export function transform(l: Lage, [px, py]: Punkt): string | undefined {
   const teile: string[] = [];
   if (l.schieben[0] || l.schieben[1]) teile.push(`translate(${r(l.schieben[0])} ${r(l.schieben[1])})`);
   if (l.drehen) teile.push(`rotate(${r(l.drehen)} ${px} ${py})`);
-  if (l.strecken[0] !== 1 || l.strecken[1] !== 1) teile.push(`translate(${px} ${py}) scale(${r(l.strecken[0])} ${r(l.strecken[1])}) translate(${-px} ${-py})`);
+  if (l.strecken[0] !== 1 || l.strecken[1] !== 1) teile.push(`translate(${px} ${py}) scale(${rs(l.strecken[0])} ${rs(l.strecken[1])}) translate(${-px} ${-py})`);
   return teile.length ? teile.join(' ') : undefined;
 }
 
 const r = (x: number) => Math.round(x * 100) / 100;
+/** Scales finer: breathing stretches the whole figure by 1.5 %, and steps of 0.01 made it jump about every 0.4 s, some 3 px
+ *  at a time, instead of moving smoothly (27.11.2026). */
+const rs = (x: number) => Math.round(x * 10000) / 10000;
