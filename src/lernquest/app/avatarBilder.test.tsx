@@ -16,7 +16,7 @@ describe('vector hero', () => {
   it('shows old saves (the older `figur`, empty places) and parts alone', () => {
     expect(renderToStaticMarkup(<AvatarBild avatar={{ figur: 2 }} />)).toContain('data-held="vektor"');
     for (const t of TEILE) expect(renderToStaticMarkup(<TeilBild teil={t} />), t.id).toContain('data-held="vektor"');
-    expect(renderToStaticMarkup(<KopfBild avatar={{ frisur: 'dutt' }} nah />)).toContain('viewBox="88 104 64 52"');
+    expect(renderToStaticMarkup(<KopfBild avatar={{ frisur: 'dutt' }} nah />)).toContain('viewBox="88 106 64 52"');
   });
   it('falls back to the older drawing when a worn part exists only as an uploaded picture', () => {
     setzeEigene([{ id: 'e0123456789', slot: 'kopf', name: 'Eigener Hut', seltenheit: 1, eigen: true }]);

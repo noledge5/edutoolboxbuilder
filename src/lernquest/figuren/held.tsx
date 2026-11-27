@@ -47,14 +47,14 @@ const T = {
 
 // — Body: torso, legs and shoes; clothes paint the torso and the arms. —
 
-const RUMPF = 'M93 139 Q120 131 147 139 Q151 166 155 195 Q120 204 85 195 Q89 166 93 139 Z';
+const RUMPF = 'M96 148 Q120 142 144 148 Q152 152 153 162 L157 198 Q120 205 83 198 L87 162 Q88 152 96 148 Z';
 /** The torso in a colour: fill, shade on the right, light on the left, outline; `kinder` are the clothes' details. */
 function Rumpf({ t, d = RUMPF, kinder }: { t: Ton; d?: string; kinder?: ReactNode }) {
   return (
     <g>
       <Flaeche d={d} farbe={t.farbe} hell={t.hell} />
-      <path d="M139 138.5 Q144 138.8 147 139 Q151 166 155 195 Q144 199.5 133 201 Q141 170 139 138.5 Z" fill={t.tief} opacity={0.5} />
-      <path d="M97 148 Q94.5 166 93 184" fill="none" stroke={t.hell} strokeWidth={4} strokeLinecap="round" opacity={0.8} />
+      <path d="M142 148 Q152 152 153 162 L157 198 Q148 201 138 201 Q148 174 142 148 Z" fill={t.tief} opacity={0.5} />
+      <path d="M93 160 L90 190" fill="none" stroke={t.hell} strokeWidth={4} strokeLinecap="round" opacity={0.8} />
       {kinder}
     </g>
   );
@@ -800,12 +800,46 @@ const AUGE_Y = 93;
 const linie = { fill: 'none', stroke: P.auge, strokeWidth: 4.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
 
 // Flat eyes (teacher's review 12.11.2026): one dark shape, no white shine; only the special eyes carry a colour or a star.
-function Punktauge({ x, rx = 8.2, ry = 10.4, iris, funkeln = false }: { x: number; rx?: number; ry?: number; iris?: string; funkeln?: boolean }) {
+/** Eyes (Held 4, 27.11.2026, inspiration from the teacher): a white eye with a dark pupil, no shine (the teacher's
+ *  rule of 12.11. stays: no glint); `iris` colours a ring round the pupil, `blick` moves the pupil. The lids of an
+ *  expression are drawn over the eyes in `kopf`. */
+function Punktauge({ x, rx = 8, ry = 11, iris, funkeln = false, blick = [1.5, 2] }: { x: number; rx?: number; ry?: number; iris?: string; funkeln?: boolean; blick?: [number, number] }) {
+  const px = x + blick[0];
+  const py = AUGE_Y + blick[1];
   return (
     <g>
-      <ellipse cx={x} cy={AUGE_Y} rx={rx} ry={ry} fill={P.auge} />
-      {iris && <path d={`M${x - rx + 2} 96 Q${x} ${AUGE_Y + ry + 1} ${x + rx - 2} 96`} fill="none" stroke={iris} strokeWidth={3} strokeLinecap="round" />}
-      {funkeln && <path d={stern(x - 2, 89, 3.6, 4)} fill={P.weiss} />}
+      <ellipse cx={x} cy={AUGE_Y} rx={rx + 4.5} ry={ry + 3} fill={P.weiss} />
+      {iris && <ellipse cx={px} cy={py} rx={rx * 0.8} ry={ry * 0.74} fill={iris} />}
+      <ellipse cx={px} cy={py} rx={rx * (iris ? 0.48 : 0.7)} ry={ry * (iris ? 0.5 : 0.66)} fill={P.auge} />
+      {funkeln && <path d={stern(px - 2, py - 3, 3.4, 4)} fill={P.weiss} />}
+    </g>
+  );
+}
+/** Where the plain eyes look in an expression. */
+const blickVon = (s: Stand): [number, number] => (s.gesicht === 'denken' ? [3, -4] : s.gesicht === 'traurig' ? [0, 4] : s.gesicht === 'staunen' ? [0, 0] : [1.5, 2]);
+/** Eyes drawn white (Punktauge): they take the lids of an expression. */
+const WEISSE_AUGEN = new Set(['punktaugen', 'funkelaugen', 'feueraugen', 'kulleraugen', 'zwinkern']);
+/** The lids of an expression over white eyes, in the skin tone (face coordinates). */
+function Lider({ s, farbe }: { s: Stand; farbe: string }) {
+  const Y = AUGE_Y;
+  return (
+    <g fill={farbe}>
+      {[AUGE_L, AUGE_R].map((x) => {
+        const aussenLinks = x === AUGE_L;
+        const d =
+          s.gesicht === 'froh' || s.gesicht === 'lachen'
+            ? `M${x - 15} ${Y + 9} Q${x} ${Y + 4} ${x + 15} ${Y + 9} V${Y + 19} H${x - 15} Z`
+            : s.gesicht === 'sanft'
+              ? `M${x - 15} ${Y - 18} H${x + 15} V${Y - 2} Q${x} ${Y + 2} ${x - 15} ${Y - 2} Z`
+              : s.gesicht === 'denken'
+                ? `M${x - 15} ${Y - 18} H${x + 15} V${Y - 8} Q${x} ${Y - 5} ${x - 15} ${Y - 8} Z`
+                : s.gesicht === 'traurig'
+                  ? aussenLinks
+                    ? `M${x - 15} ${Y - 18} H${x + 15} V${Y - 13} L${x - 15} ${Y - 2} Z`
+                    : `M${x - 15} ${Y - 18} H${x + 15} V${Y - 2} L${x - 15} ${Y - 13} Z`
+                  : '';
+        return d ? <path key={x} d={d} /> : null;
+      })}
     </g>
   );
 }
@@ -814,7 +848,7 @@ const froh = (x: number) => <path key={x} d={`M${x - 9} 95 Q${x} 84 ${x + 9} 95`
 
 /** The eye styles of the `augen` place (src/lernquest/teile.ts). Glasses are drawn over plain eyes. */
 const AUGEN_FORM: Record<string, (x: number, s: Stand) => ReactNode> = {
-  punktaugen: (x, s) => <Punktauge x={x} ry={s.gesicht === 'staunen' ? 12 : s.gesicht === 'sanft' ? 9 : 11} rx={s.gesicht === 'staunen' ? 9 : 8} />,
+  punktaugen: (x, s) => <Punktauge x={x} ry={s.gesicht === 'staunen' ? 12.5 : 11} rx={s.gesicht === 'staunen' ? 9 : 8} blick={blickVon(s)} />,
   froehlich: (x) => froh(x),
   sternaugen: (x) => <path d={stern(x, AUGE_Y, 11)} {...flaeche(P.gold, 2)} stroke={P.goldTief} />,
   funkelaugen: (x) => <Punktauge x={x} rx={8.5} ry={10.5} iris={P.lilaHell} funkeln />,
@@ -996,7 +1030,7 @@ function Augen({ augen, s }: { augen: string; s: Stand }) {
 }
 
 function Brauen({ s, t }: { s: Stand; t: Ton }) {
-  const st = { fill: 'none', stroke: t.tief, strokeWidth: 5, strokeLinecap: 'round' as const };
+  const st = { fill: 'none', stroke: t.tief, strokeWidth: 6.5, strokeLinecap: 'round' as const };
   const formen: Record<string, [string, string]> = {
     denken: ['M70 76 Q79 72 88 76', 'M112 72 Q121 66 130 71'],
     sanft: ['M71 80 Q79 78 88 74', 'M112 74 Q121 78 129 80'],
@@ -1006,7 +1040,7 @@ function Brauen({ s, t }: { s: Stand; t: Ton }) {
   };
   const f = formen[s.gesicht] ?? ['M72 77 Q79 74 86 76', 'M114 76 Q121 74 128 77'];
   return (
-    <g {...st} opacity={formen[s.gesicht] ? 1 : 0.85}>
+    <g {...st}>
       <path d={f[0]} />
       <path d={f[1]} />
     </g>
@@ -1016,7 +1050,7 @@ function Brauen({ s, t }: { s: Stand; t: Ton }) {
 /** The chosen mouths (MUENDER in src/lernquest/teile.ts). */
 const MUND_FORM: Record<string, () => ReactNode> = {
   // A small open smile reads warmer than a line at every size (Stilprobe A, 27.11.2026); „Lachen“ stays bigger, with tongue.
-  laecheln: () => <path d="M91 117 Q100 128 109 117 Z" {...flaeche(P.mund, 2.5)} />,
+  laecheln: () => <path d="M88 116 Q100 130 112 116 Q100 121 88 116 Z" {...flaeche(P.mund, 2)} />,
   grinsen: () => <path d="M86 115 Q100 132 114 115 Z" {...flaeche(P.weiss, 2.5)} stroke={P.linie} />,
   lachen: () => (
     <g>
@@ -1046,13 +1080,15 @@ function Mund({ mund, s }: { mund: string; s: Stand }) {
 // — Hair: a part behind the head and one in front, in the chosen colour. One to three big shapes each, with a strong
 // silhouette (a plait is one capsule, curls are one wavy outline), at most one light stroke. —
 
-const KOPF = 'M120 50 C154 50 172 72 172 100 C172 128 150 146 120 146 C90 146 68 128 68 100 C68 72 86 50 120 50 Z';
-const PONY = 'M66 104 C60 66 86 44 120 44 C154 44 180 66 174 104 C170 92 166 84 160 80 C150 86 136 80 128 72 C118 82 98 86 84 82 C78 88 70 94 66 104 Z';
-const GLATT = 'M66 100 C62 62 88 44 120 44 C152 44 178 62 174 100 C168 82 150 70 120 70 C90 70 72 82 66 100 Z';
-const STACHELN = 'M66 100 C60 76 70 60 84 54 L76 30 L104 46 L120 20 L136 46 L164 30 L156 54 C170 60 180 76 174 100 C166 86 156 80 148 78 C136 84 104 84 92 78 C84 80 74 86 66 100 Z';
-const BOB_VORN = 'M66 102 C62 62 88 44 120 44 C152 44 178 62 174 102 L168 102 L166 80 Q120 72 74 80 L72 102 Z';
-const LANG_HINTEN = 'M64 96 C60 58 88 42 120 42 C152 42 180 58 176 96 L182 170 Q170 178 156 170 L152 140 L88 140 L84 170 Q70 178 58 170 Z';
-const HAARLICHT = 'M84 62 Q100 50 116 50';
+const KOPF = 'M102 38 H138 Q170 38 170 68 V102 Q170 138 134 138 H106 Q70 138 70 102 V68 Q70 38 102 38 Z';
+/** The head's shade bottom right (Held 4, 27.11.2026: a block head instead of a ball). */
+const KOPF_SCHATTEN = 'M170 82 V102 Q170 138 134 138 H114 Q152 132 160 106 Q164 94 162 80 Z';
+const PONY = 'M64 90 V66 Q64 24 120 24 Q176 24 176 66 V90 Q170 76 162 70 Q148 80 128 68 Q112 82 90 74 Q76 78 64 90 Z';
+const GLATT = 'M64 94 V66 Q64 24 120 24 Q176 24 176 66 V94 Q172 80 164 72 Q120 64 76 72 Q68 80 64 94 Z';
+const STACHELN = 'M64 92 V70 Q64 44 82 34 L74 8 L100 24 L112 0 L128 22 L150 4 L152 30 Q176 42 176 70 V92 Q170 78 160 72 Q120 66 80 72 Q70 78 64 92 Z';
+const BOB_VORN = 'M62 124 V66 Q62 24 120 24 Q178 24 178 66 V124 Q170 124 166 114 V80 Q120 70 74 80 V114 Q70 124 62 124 Z';
+const LANG_HINTEN = 'M60 72 Q60 22 120 22 Q180 22 180 72 V166 Q180 178 168 176 Q152 172 148 160 H92 Q88 172 72 176 Q60 178 60 166 Z';
+const HAARLICHT = 'M84 42 Q98 32 116 30';
 
 /** One closed outline of round bumps around an ellipse: the curly silhouette (n bumps). */
 function wellenPfad(cx: number, cy: number, rx: number, ry: number, n: number): string {
@@ -1069,9 +1105,9 @@ function wellenPfad(cx: number, cy: number, rx: number, ry: number, n: number): 
   }
   return `${d}Z`;
 }
-const LOCKEN = wellenPfad(120, 86, 66, 54, 12);
-const LOCKEN_KURZ = wellenPfad(120, 93, 61, 50, 16);
-const AFRO = wellenPfad(120, 80, 77, 62, 14);
+const LOCKEN = wellenPfad(120, 86, 68, 58, 12);
+const LOCKEN_KURZ = wellenPfad(120, 86, 62, 54, 16);
+const AFRO = wellenPfad(120, 76, 78, 64, 14);
 
 function Haarform({ d, t, licht = HAARLICHT }: { d: string; t: Ton; licht?: string }) {
   return (
@@ -1104,7 +1140,7 @@ function RegenbogenHaar({ teil }: { teil: 'hinten' | 'vorn' }) {
       </clipPath>
       <g clipPath={`url(#${id})`}>
         {farben.map((f, i) => (
-          <rect key={f} x={50} y={36 + i * (teil === 'hinten' ? 24 : 12)} width={140} height={teil === 'hinten' ? 25 : 13} fill={f} />
+          <rect key={f} x={50} y={22 + i * (teil === 'hinten' ? 25 : 12)} width={140} height={teil === 'hinten' ? 25 : 13} fill={f} />
         ))}
       </g>
     </g>
@@ -1142,15 +1178,15 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   dutt: {
     hinten: (t) => (
       <g>
-        <Haar d={ovalPfad(120, 36, 20)} t={t} />
-        <path d="M104 54 Q120 60 136 54" fill="none" stroke={P.rot} strokeWidth={6} strokeLinecap="round" />
+        <Haar d={ovalPfad(120, 18, 21)} t={t} />
+        <path d="M104 36 Q120 42 136 36" fill="none" stroke={P.rot} strokeWidth={6} strokeLinecap="round" />
       </g>
     ),
     vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
   stacheln: { vorn: (t) => <Haarform d={STACHELN} t={t} licht="" /> },
   bob: {
-    hinten: (t) => <Haar d="M62 100 C58 60 88 42 120 42 C152 42 182 60 178 100 L180 142 Q170 150 160 144 L80 144 Q70 150 60 142 Z" t={t} />,
+    hinten: (t) => <Haar d="M60 70 Q60 22 120 22 Q180 22 180 70 V140 Q180 148 170 148 H70 Q60 148 60 140 Z" t={t} />,
     vorn: (t) => <Haarform d={BOB_VORN} t={t} />,
   },
   glatze: {},
@@ -1163,14 +1199,16 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   pferdeschwanz: {
     hinten: (t) => (
       <g>
-        <Haar d="M118 40 C152 18 192 40 188 86 C186 114 180 130 168 138 C170 116 170 96 160 80 C150 66 134 56 118 52 Z" t={t} />
-        <ellipse cx={128} cy={46} rx={8} ry={7} {...flaeche(P.tuerkis, 2.5)} />
+        <g transform="translate(0 -14)">
+          <Haar d="M118 40 C152 18 192 40 188 86 C186 114 180 130 168 138 C170 116 170 96 160 80 C150 66 134 56 118 52 Z" t={t} />
+          <ellipse cx={128} cy={46} rx={8} ry={7} {...flaeche(P.tuerkis, 2.5)} />
+        </g>
       </g>
     ),
     vorn: (t) => <Haarform d={GLATT} t={t} />,
   },
   buerste: {
-    vorn: (t) => <Haarform d="M68 98 C64 72 74 56 88 50 L90 36 L150 36 L152 50 C166 56 176 72 172 98 C168 84 156 76 120 74 C84 76 72 84 68 98 Z" t={t} licht="M96 44 L96 58" />,
+    vorn: (t) => <Haarform d="M64 94 V60 Q64 40 80 36 V16 H160 V36 Q176 40 176 60 V94 Q170 80 160 74 Q120 66 80 74 Q70 80 64 94 Z" t={t} licht="M92 24 V40" />,
   },
   afro: {
     hinten: (t) => <Haar d={AFRO} t={t} />,
@@ -1189,7 +1227,7 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
     hinten: (t) => (
       <g>
         {[82, 158].map((x) => (
-          <g key={x}>
+          <g key={x} transform="translate(0 -14)">
             <Haar d={ovalPfad(x, 46, 21)} t={t} />
             <path d={`M${x} 46 q6 0 6 -6 q0 -8 -9 -8 q-11 0 -11 11 q0 13 14 13`} fill="none" stroke={t.tief} strokeWidth={3} strokeLinecap="round" />
           </g>
@@ -1200,17 +1238,19 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
   },
   wuschelkopf: {
     vorn: (t) => (
-      <Haarform
-        d="M66 102 C54 82 60 60 78 52 C72 36 92 28 102 38 C106 24 124 22 128 34 C138 22 158 28 156 44 C170 44 182 62 174 80 C182 88 180 96 174 102 C168 88 160 82 150 82 C146 88 136 88 130 82 C122 90 110 90 104 82 C96 88 86 88 82 82 C74 86 70 94 66 102 Z"
-        t={t}
-      />
+      <g transform="translate(0 -12)">
+        <Haarform
+          d="M66 102 C54 82 60 60 78 52 C72 36 92 28 102 38 C106 24 124 22 128 34 C138 22 158 28 156 44 C170 44 182 62 174 80 C182 88 180 96 174 102 C168 88 160 82 150 82 C146 88 136 88 130 82 C122 90 110 90 104 82 C96 88 86 88 82 82 C74 86 70 94 66 102 Z"
+          t={t}
+        />
+      </g>
     ),
   },
   blitzfrisur: {
     vorn: (t) => (
       <g>
         <Haarform d={STACHELN} t={t} licht="" />
-        <path d="M128 34 L116 58 L128 58 L114 84 L138 52 L127 52 L138 34 Z" {...flaeche(P.gelb, 2)} stroke={P.goldTief} />
+        <path d="M128 16 L116 40 L128 40 L114 66 L138 34 L127 34 L138 16 Z" {...flaeche(P.gelb, 2)} stroke={P.goldTief} />
       </g>
     ),
   },
@@ -1226,7 +1266,7 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
     vorn: (t) => (
       <g>
         <Haarform d={GLATT} t={t} />
-        <path d={stern(92, 58, 9)} {...flaeche(P.gold, 2)} stroke={P.goldTief} />
+        <path d={stern(90, 44, 9)} {...flaeche(P.gold, 2)} stroke={P.goldTief} />
       </g>
     ),
   },
@@ -1241,7 +1281,7 @@ const FRISUR_FORM: Record<string, { hinten?: (t: Ton) => ReactNode; vorn?: (t: T
     vorn: () => (
       <g>
         <path d={PONY} {...flaeche(P.lava)} />
-        <path d="M128 72 C134 62 146 58 156 66 C150 70 152 76 160 80 C150 86 136 80 128 72 Z" fill={P.lavaHell} />
+        <path d="M128 62 C134 52 146 48 156 56 C150 60 152 66 160 70 C150 76 136 70 128 62 Z" fill={P.lavaHell} />
       </g>
     ),
   },
@@ -1279,10 +1319,8 @@ function arm(seite: 'l' | 'r', k: Kleid, haut: Ton): Teil {
             <circle cx={x} cy={166} r={9.5} fill={oben.farbe} />
             {k.aermel === 'haut' && <path d={`M${x + 3} 160.5 V171.5`} fill="none" stroke={oben.tief} strokeWidth={4} opacity={0.6} />}
             {k.unterarm === 'haut' && <path d={`M${x + 3} 171.5 V184`} fill="none" stroke={unten.tief} strokeWidth={4} opacity={0.6} />}
-            {/* A mitten with its thumb towards the body, not a ball. */}
-            <circle cx={hand[0] + (seite === 'l' ? 6.5 : -6.5)} cy={hand[1] - 4.5} r={4.6} {...flaeche(h.farbe, 2)} />
-            <ellipse cx={hand[0]} cy={hand[1] + 0.5} rx={9.6} ry={10.2} {...flaeche(h.farbe)} />
-            <path d={`M${x + 3} ${hand[1] + 9} q6 -2 6.5 -8`} fill="none" stroke={h.tief} strokeWidth={3} strokeLinecap="round" opacity={0.55} />
+            <circle cx={hand[0]} cy={hand[1] + 1} r={10.5} {...flaeche(h.farbe)} />
+            <circle cx={hand[0] + (seite === 'l' ? -3 : 3)} cy={hand[1] + 4} r={5} fill={h.tief} opacity={0.4} />
             <path d={`M${x - 5} ${hand[1] - 4} q3 -3 6 -2`} fill="none" stroke={h.hell} strokeWidth={2.5} strokeLinecap="round" />
           </g>
         ),
@@ -1301,24 +1339,17 @@ function koerper(k: Kleid): Teil {
       <g>
         {k.hinten?.()}
         {/* Legs and shoes */}
-        {/* Legs and chunky sneakers: the toes point outwards, a light sole under each, so the hero stands firmly. */}
-        {(
-          [
-            [100, -1],
-            [122, 1],
-          ] as const
-        ).map(([x, aussen]) => {
-          const m = x + 9;
-          const [l, r] = aussen < 0 ? [m - 16, m + 10] : [m - 10, m + 16];
-          return (
-            <g key={x}>
-              <rect x={x} y={186} width={18} height={28} rx={7} {...flaeche(k.hose.farbe)} />
-              <path d={`M${l} 221 Q${l} 207 ${m} 207 Q${r} 207 ${r} 221 Z`} {...flaeche(k.schuhe.farbe)} />
-              <rect x={l - 2} y={218.5} width={r - l + 4} height={7} rx={3.5} fill={P.wolke} />
-              <path d={`M${l + 3} 216.5 q2 -5 7 -6`} fill="none" stroke={k.schuhe.hell} strokeWidth={2.5} strokeLinecap="round" />
-            </g>
-          );
-        })}
+        {/* Held 4: straight legs and pill feet (a sole stripe of light), set apart so the hero stands firmly. */}
+        {[108, 132].map((x) => (
+          <path key={x} d={`M${x} 194 V216`} stroke={k.hose.farbe} strokeWidth={19} strokeLinecap="round" />
+        ))}
+        <path d="M138 198 V216" stroke={k.hose.tief} strokeWidth={6} strokeLinecap="round" opacity={0.5} />
+        {[90, 122].map((x) => (
+          <g key={x}>
+            <rect x={x} y={216} width={28} height={12} rx={6} {...flaeche(k.schuhe.farbe, 1.5)} />
+            <path d={`M${x + 6} 219.5 H${x + 15}`} stroke={k.schuhe.hell} strokeWidth={3} strokeLinecap="round" />
+          </g>
+        ))}
         {k.rumpf(s)}
       </g>
     ),
@@ -1330,41 +1361,39 @@ function kopf(haut: Ton, haar: Ton, frisur: string, augen: string, mund: string)
   return {
     id: 'kopf',
     drehpunkt: [120, 140],
-    anker: { hut: [120, 58] },
+    anker: { hut: [120, 44] },
+    ankerSkala: { hut: 1.15 },
     zeichnung: (s) => (
       <g>
         {f.hinten?.(haar)}
-        {/* The head's hard shadow on the body (and hair behind it), instead of an outline at the chin */}
+        {/* Neck, then the head's hard shadow on the body instead of an outline at the chin */}
+        <rect x={109} y={124} width={22} height={24} rx={6} fill={haut.tief} />
         <Schlagschatten form={KOPF} auf={[RUMPF]} />
-        {/* Ears, head with one light and one shade */}
-        {/* Ears tucked under the head, with an inner shade: no handles on a ball. */}
-        {[71, 169].map((x) => (
+        {/* Ears half under the block head, with an inner shade */}
+        {[70, 170].map((x) => (
           <g key={x}>
-            <circle cx={x} cy={107} r={8.5} {...flaeche(haut.farbe)} />
-            <circle cx={x + (x < 120 ? 1.5 : -1.5)} cy={108} r={3.8} fill={haut.tief} opacity={0.5} />
+            <circle cx={x} cy={98} r={11} {...flaeche(haut.farbe)} />
+            <circle cx={x + (x < 120 ? -2 : 2)} cy={99} r={5} fill={haut.tief} opacity={0.5} />
           </g>
         ))}
+        {/* Held 4 (27.11.2026): a block head with one light edge top left and one shade bottom right */}
         <path d={KOPF} {...flaeche(haut.farbe)} />
-        <path d="M168 104 C166 130 146 146 120 146 C146 138 160 122 162 104 Z" fill={haut.tief} opacity={0.55} />
-        <path d="M78 84 Q82 66 98 58" fill="none" stroke={haut.hell} strokeWidth={5} strokeLinecap="round" opacity={0.9} />
-        {f.vorn?.(haar)}
-        <g transform="translate(20 11)">
-          <ellipse cx="65" cy="113" rx="9" ry="5" fill={P.backe} opacity={0.5} />
-          <ellipse cx="135" cy="113" rx="9" ry="5" fill={P.backe} opacity={0.5} />
+        <path d={KOPF_SCHATTEN} fill={haut.tief} opacity={0.45} />
+        <path d="M78 62 Q80 48 94 42" fill="none" stroke={haut.hell} strokeWidth={5} strokeLinecap="round" opacity={0.9} />
+        {/* Face: brows (their angle carries the mood), white eyes with lids, a bold nose, the mouth */}
+        <g transform="translate(20 -8)">
           <Brauen s={s} t={haar} />
-          <Augen augen={augen} s={s} />
-          {/* Plain eyes smile with a lower lid in the skin tone (Stilprobe A): the face looks friendly, not blank. */}
-          {augen === 'punktaugen' &&
-            !s.augenZu &&
-            (s.gesicht === 'froh' || s.gesicht === 'lachen') &&
-            [AUGE_L, AUGE_R].map((x) => (
-              <path key={x} d={`M${x - 11} ${AUGE_Y + 7} Q${x} ${AUGE_Y + 1} ${x + 11} ${AUGE_Y + 7} L${x + 11} ${AUGE_Y + 14} L${x - 11} ${AUGE_Y + 14} Z`} fill={haut.farbe} />
-            ))}
-          {/* A small nose in the skin's shade. */}
-          <ellipse cx="100" cy="106.5" rx="4" ry="3" fill={haut.tief} opacity={0.85} />
-          <Mund mund={mund} s={s} />
-          {s.gesicht === 'traurig' && <path d="M131 101 q4 6 0 9 q-4 -3 0 -9 Z" fill={P.blauHell} stroke={P.blauTief} strokeWidth={1.5} />}
         </g>
+        <g transform="translate(20 -1)">
+          <Augen augen={augen} s={s} />
+          {WEISSE_AUGEN.has(augen) && !s.augenZu && <Lider s={s} farbe={haut.farbe} />}
+          {s.gesicht === 'traurig' && <path d="M131 106 q4 6 0 9 q-4 -3 0 -9 Z" fill={P.blauHell} stroke={P.blauTief} strokeWidth={1.5} />}
+        </g>
+        <path d="M120 99 Q130 113 125 118 Q120 121 115 118 Q110 113 120 99 Z" fill={haut.tief} />
+        <g transform="translate(20 8)">
+          <Mund mund={mund} s={s} />
+        </g>
+        {f.vorn?.(haar)}
       </g>
     ),
   };

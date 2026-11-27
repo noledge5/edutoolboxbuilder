@@ -24,6 +24,8 @@ export interface Teil {
   kinder?: Teil[];
   /** Places for items (`hut`, `hand-rechts`, …) in figure coordinates of the rest pose. They follow the part. */
   anker?: Record<string, Punkt>;
+  /** Scale for the items on an anchor (Held 4: hats 15 % larger on the wider block head). */
+  ankerSkala?: Record<string, number>;
 }
 
 export interface Pose {

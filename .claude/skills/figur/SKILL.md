@@ -39,7 +39,7 @@ Quick look without the workshop: `VORSCHAU=<ordner> VORSCHAU_TEIL=held|kopf|werk
   bottom right. No gradients, no blur, no thin lines under 2 units (they vanish at 48 px).
 - The village in 2.5D (`iso.tsx`, `dorf.tsx`, Skill `grafik`): no outline, flat tones only since 19.11.2026
   (`dorf.test.tsx` fails on any gradient); add no new gradients anywhere.
-- Chibi proportions for characters: head about half the height, flat dark eyes without white shine (teacher, 12.11.2026), short limbs.
+- Characters (Held 4, 27.11.2026): block head (rounded rectangle) about 45 % of the height, white eyes with a dark pupil and no shine, lids in the skin tone carry the expression, a bold nose shape, brows as thick bars, straight legs, pill feet. Hats on the hero are scaled by `ankerSkala` (1.15).
 - Faces carry the emotion; a pose changes arms and face, never redraws the body.
 - Rarity shows on the item itself too: 1–2 plain materials (wood, leather), 3 metal or glass, 4 colour plus a star or
   gem, 5 gold with gems. The icon frame takes `SELTEN_FARBE`.

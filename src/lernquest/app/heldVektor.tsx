@@ -41,12 +41,12 @@ export function nurAlsBild(a: Avatar): boolean {
 export const HELD_AUSSCHNITT = {
   ganz: '0 0 240 240',
   /** Head and shoulders, for small round pictures. */
-  kopf: '50 22 140 140',
+  kopf: '50 6 140 140',
   /** The head alone, for choosing hair. */
-  gesicht: '56 26 128 116',
+  gesicht: '54 8 132 132',
   /** The lower face, for choosing a mouth. */
-  mund: '88 104 64 52',
-  augen: '72 66 96 82',
+  mund: '88 106 64 52',
+  augen: '70 56 100 76',
   kleidung: '70 126 100 104',
 } as const;
 

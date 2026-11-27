@@ -59,7 +59,7 @@ function TeilG({ teil, k, oben = false }: { teil: Teil; k: Kontext; oben?: boole
       k.items
         .filter((i) => i.platz === platz && !!i.hinten === hinten && ganzVorne(i) === oben)
         .map((i) => (
-          <g key={i.id} transform={`translate(${ax} ${ay})`} data-item={i.id}>
+          <g key={i.id} transform={`translate(${ax} ${ay})${teil.ankerSkala?.[platz] ? ` scale(${teil.ankerSkala[platz]})` : ''}`} data-item={i.id}>
             {i.zeichnung(k.st.zeit)}
           </g>
         )),
