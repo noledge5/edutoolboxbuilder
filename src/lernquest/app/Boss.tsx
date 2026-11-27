@@ -14,6 +14,9 @@ import { bossAntworten, bossBeamer, bossBeenden, bossStand, bossWeiter, LqError,
 import { QrBild } from './QrBild';
 import { ton } from './ton';
 import { Rich } from './Uebungen';
+import { AvatarBild } from './avatar';
+import { Jubel } from './Jubel';
+import type { Avatar } from '../teile';
 
 /** How often the projector and the phones ask the server. */
 const TAKT_MS = 1000;
@@ -99,10 +102,16 @@ function Zeitring({ sekunden, gross = false }: { sekunden: number; gross?: boole
   );
 }
 
-function Lebensbalken({ s, gross = false }: { s: BossStand; gross?: boolean }) {
+/** The boss's life; `treffer`: the child's own damage of this question pops up over the bar, which flashes. */
+function Lebensbalken({ s, gross = false, treffer }: { s: BossStand; gross?: boolean; treffer?: { key: string; n: number } | null }) {
   const anteil = s.lpMax ? Math.max(0, Math.min(1, s.lp / s.lpMax)) : 1;
   return (
-    <div className={`lq-lebensbalken ${gross ? 'gross' : ''}`}>
+    <div className={`lq-lebensbalken ${gross ? 'gross' : ''}${treffer ? ' getroffen' : ''}`} key={treffer?.key}>
+      {treffer && (
+        <span className="lq-schaden" aria-hidden style={{ left: `${Math.round(anteil * 100)}%` }}>
+          −{treffer.n}
+        </span>
+      )}
       {!gross && (
         <div className="lq-lebensbalken-kopf">
           <span>{BOSSE[s.boss]?.name ?? 'Boss'}</span>
@@ -470,9 +479,11 @@ interface KindProps {
   onFertig(truhe: boolean): void;
   onTruhe(): void;
   fail(e: unknown): void;
+  /** The child's hero: it cheers beside the fallen boss (27.11.2026). */
+  held?: Avatar;
 }
 
-export function BossKind({ token, id, klasse, onFertig, onTruhe, fail }: KindProps) {
+export function BossKind({ token, id, klasse, onFertig, onTruhe, fail, held }: KindProps) {
   const [s, setS] = useState<BossKindStand | null>(null);
   const [wackelt, setWackelt] = useState(false);
   const [gesendet, setGesendet] = useState<{ frage: number; wahl: number } | null>(null);
@@ -542,7 +553,7 @@ export function BossKind({ token, id, klasse, onFertig, onTruhe, fail }: KindPro
         </div>
         {s.phase === 'frage' && <Zeitring sekunden={sekunden} />}
       </div>
-      <Lebensbalken s={s} />
+      <Lebensbalken s={s} treffer={s.phase === 'aufloesung' && s.wahl != null && s.wahl === s.richtig && s.schaden ? { key: String(s.frage), n: s.schaden } : null} />
       {wackelt && <p className="lq-band">Verbindung wackelt … dein Gerät versucht es weiter.</p>}
 
       {s.phase === 'warten' && (
@@ -554,7 +565,12 @@ export function BossKind({ token, id, klasse, onFertig, onTruhe, fail }: KindPro
 
       {s.phase === 'ende' && (
         <div className="lq-boss-mitte">
-          <BossBild boss={s.boss} size={200} gefallen={!!s.sieg} lp={s.lp} />
+          {/* A win is a big moment: confetti, and the child's own hero cheers beside the fallen boss (27.11.2026). */}
+          {s.sieg && <Jubel stark />}
+          <div className="lq-boss-sieg">
+            <BossBild boss={s.boss} size={200} gefallen={!!s.sieg} lp={s.lp} />
+            {held && <AvatarBild avatar={{ ...held, hintergrund: '' }} pose={s.sieg ? 'jubeln' : 'denken'} animation={s.sieg ? 'jubeln' : 'seufzen'} className="lq-boss-held" lebendig />}
+          </div>
           <p className="lq-meldung">
             {s.sieg ? (s.truhe ? `Ihr habt ihn besiegt! Eine Truhe und ${PUNKTE_BOSS} Klassenpunkte warten beim Helden.` : 'Ihr habt ihn besiegt!') : 'Übt die Stationen der Region – dann klappt es beim nächsten Mal.'}
           </p>
@@ -567,7 +583,7 @@ export function BossKind({ token, id, klasse, onFertig, onTruhe, fail }: KindPro
             <button
               key={i}
               type="button"
-              className={`lq-pad a${i} ${meine === i ? 'gewaehlt' : ''} ${offen ? (i === s.richtig ? 'richtig' : 'aus') : meine != null && meine !== i ? 'aus' : ''}`}
+              className={`lq-pad a${i} ${meine === i ? 'gewaehlt' : ''} ${offen ? (i === s.richtig ? 'richtig' : 'aus') : meine != null && meine !== i ? 'aus' : ''}${s.phase === 'aufloesung' && meine === i ? (i === s.richtig ? ' treffer' : ' daneben') : ''}`}
               disabled={s.phase !== 'frage' || meine != null}
               aria-pressed={meine === i}
               aria-label={`${FORMEN[i]}: ${o}${offen && i === s.richtig ? ', richtige Antwort' : ''}${meine === i ? ', deine Antwort' : ''}`}

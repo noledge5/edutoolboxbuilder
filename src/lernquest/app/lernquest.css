@@ -5132,3 +5132,62 @@ button.lq-teil:active {
 .lq-ergebnis-fuchs {
   margin-bottom: var(--lq-a-1);
 }
+
+/* Boss fight with more life (27.11.2026): the own damage pops up over the boss's bar, which flashes; the chosen answer
+   hops when right and shakes when wrong; a win brings confetti and the own hero beside the fallen boss. */
+.lq-lebensbalken {
+  position: relative;
+}
+.lq-schaden {
+  /* where the bar shrank (left is set to the fill's end), rising out of the bar */
+  position: absolute;
+  bottom: 0;
+  font:
+    700 var(--lq-t-h2) Fredoka,
+    sans-serif;
+  color: var(--lq-gold);
+  pointer-events: none;
+  animation: lq-schaden 1.6s ease-out both;
+}
+@keyframes lq-schaden {
+  0% {
+    transform: translate(-50%, var(--lq-a-2)) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, 0) scale(1.3);
+    opacity: 1;
+  }
+  75% {
+    transform: translate(-50%, calc(-1 * var(--lq-a-3))) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, calc(-1 * var(--lq-a-5)));
+    opacity: 0;
+  }
+}
+.lq-lebensbalken.getroffen .lq-balken {
+  animation: lq-treffer-blitz 0.6s ease-out;
+}
+@keyframes lq-treffer-blitz {
+  30% {
+    filter: brightness(2.2);
+  }
+}
+.lq-pad.treffer {
+  animation: lq-huepfen var(--lq-dauer-lang) var(--lq-feder);
+}
+.lq-pad.daneben {
+  animation: lq-wackeln var(--lq-dauer);
+}
+.lq-boss-sieg {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--lq-a-2);
+}
+.lq-boss-held {
+  width: 132px;
+  height: 132px;
+}

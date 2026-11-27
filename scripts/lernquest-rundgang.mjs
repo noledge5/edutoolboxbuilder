@@ -1,6 +1,7 @@
 // Walkthrough of the Lernquest kid app with Playwright: plays it like a child (map, class with village, hero, shop,
 // tasks, review, a chest, a round with a wrong and a right answer, result) on four screens and checks every screen for
 // sideways scrolling, cut text, buttons under 40 px, answers hidden under the check bar and console errors.
+// The boss fight goes through waiting, a question, the answer, the reveal and the win with faked server answers.
 // Run `npm run spieltest` first, then `npm run rundgang [ordner]` (screenshots go there; default: the system's temp
 // folder). LQ_URL points elsewhere (e.g. http://localhost:5181/lernquest/ for `npm run demo`). Exit code 1 on findings.
 // Uses the made-up child of scripts/spieltest-daten.js; the dead server's answers for the chest and the class are faked.
@@ -101,6 +102,41 @@ const KLASSE = {
     },
   },
 };
+
+/** What a child's phone gets from `lq_boss_stand` in each phase (Welcome to school, question 3 of 6, 24 children). */
+function bossStand(boss) {
+  if (!boss) return undefined;
+  const { phase, wahl } = boss;
+  const offen = phase === "aufloesung" || phase === "ende";
+  return {
+    id: "b1",
+    titel: "Welcome to school",
+    boss: 0,
+    phase,
+    modus: "geraete",
+    frage: phase === "warten" ? -1 : 2,
+    fragen: 6,
+    lp: phase === "ende" ? 0 : phase === "aufloesung" ? 58 : 70,
+    lpMax: 120,
+    herzen: 3,
+    sieg: phase === "ende" ? true : null,
+    rest: 14000,
+    kinder: 24,
+    antworten: 17,
+    optionen: [
+      "There is a book on the table.",
+      "There are a book on the table.",
+      "There am a book on the table.",
+      "There be a book.",
+    ],
+    richtig: offen ? 0 : null,
+    dabei: true,
+    serie: 3,
+    truhe: phase === "ende",
+    wahl,
+    schaden: phase === "aufloesung" && wahl === 0 ? 12 : null,
+  };
+}
 
 /** Checks of one screen, run in the page. */
 function pruefen() {
@@ -207,6 +243,8 @@ async function rundgang(browser, [geraet, w, h]) {
     ),
   );
   let stand = {};
+  // the boss fight: null = none running; its phase is moved on by the walkthrough
+  let boss = null;
   await p.route("http://127.0.0.1:9/**", (r) => {
     if (r.request().method() === "OPTIONS")
       return r.fulfill({
@@ -218,16 +256,24 @@ async function rundgang(browser, [geraet, w, h]) {
         },
       });
     const fn = r.request().url().split("/rpc/")[1];
+    if (fn === "lq_boss_antworten" && boss)
+      boss.wahl = JSON.parse(r.request().postData() || "{}").p_wahl ?? 0;
     const body =
-      fn === "lq_truhe_oeffnen"
-        ? {
-            teil: "zauberhut",
-            seltenheit: 2,
-            doppelt: false,
-            muenzen: 0,
-            stand: { ...stand, truhen: 0 },
-          }
-        : KLASSE[fn];
+      fn === "lq_boss_offen"
+        ? boss && { id: "b1", titel: "Welcome to school", boss: 0 }
+        : fn === "lq_boss_stand"
+          ? bossStand(boss)
+          : fn === "lq_boss_antworten"
+            ? { angenommen: true }
+            : fn === "lq_truhe_oeffnen"
+              ? {
+                  teil: "zauberhut",
+                  seltenheit: 2,
+                  doppelt: false,
+                  muenzen: 0,
+                  stand: { ...stand, truhen: 0 },
+                }
+              : KLASSE[fn];
     return body === undefined
       ? r.abort()
       : r.fulfill({
@@ -280,6 +326,28 @@ async function rundgang(browser, [geraet, w, h]) {
   await schritt("wiederholen", () => tab("Wiederholen").click(), {
     ganz: true,
   });
+  // A boss fight through all its phases (before the round: after a round played offline the app asks the server nothing).
+  boss = { phase: "warten", wahl: null };
+  await p.reload();
+  await p.waitForTimeout(1500);
+  await schritt("boss-karte", null, { ganz: true });
+  await schritt(
+    "boss-warten",
+    () => p.locator(".lq-boss-band").first().click(),
+    { warte: 1800 },
+  );
+  await schritt("boss-frage", () => (boss.phase = "frage"), { warte: 1600 });
+  await schritt("boss-gewaehlt", () => p.locator(".lq-pad").first().click(), {
+    warte: 1500,
+  });
+  await schritt("boss-aufloesung", () => (boss.phase = "aufloesung"), {
+    warte: 1600,
+  });
+  await schritt("boss-ende", () => (boss.phase = "ende"), { warte: 2600 });
+  await knopf("Zur Karte").click();
+  boss = null;
+  await p.reload();
+  await p.waitForTimeout(1200);
   await tab("Karte").click();
   await p.waitForTimeout(800);
   await schritt("truhe", () => knopf("Öffnen").click(), { warte: 1200 });
