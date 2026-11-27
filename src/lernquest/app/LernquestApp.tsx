@@ -38,12 +38,13 @@ import {
   WOCHENZIEL,
   laengsteSerie,
   merksatz,
+  LADEN_AB,
 } from '../rules';
 import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
 import { BOSSE } from '../boss';
 import { BossBeamer, BossBild, BossKind, useLangsam } from './Boss';
 import { readPaket } from '../paket';
-import { bonusVon, HERZEN } from '../teile';
+import { SELTENHEITEN, bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
 import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, hilfeGesehen, merkeHilfe, merkeWiederholt, wiederholtHeute, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
@@ -111,6 +112,8 @@ export type Screen =
       ergebnisse: boolean[];
       /** The exercises missed at the first try, for „Das nimmst du mit“ (27.11.2026). */
       verpasst?: Uebung[];
+      /** The hero level reached with this round, 0 when it stayed (27.11.2026). */
+      aufstieg?: number;
       plus: number;
       muenzenPlus: number;
       /** Stufe D: coins for daily tasks done with this round, and their ids. */
@@ -673,6 +676,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       gesamt: m.gesamt,
       ergebnisse,
       verpasst: screen.kind === 'runde' ? screen.uebungen.filter((_, i) => ergebnisse[i] === false).map((x) => x.u) : [],
+      aufstieg: heldenstufe(r.stand.xp).stufe > heldenstufe(stand.xp).stufe ? heldenstufe(r.stand.xp).stufe : 0,
       plus: r.plus,
       muenzenPlus: r.muenzenPlus,
       aufgabenPlus: r.aufgabenPlus,
@@ -866,7 +870,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             : null;
     return (
       <main className="lq-app lq-ergebnis">
-        {!schwach && !(ms && !msGut) && (screen.sterneJetzt > screen.sterneVorher || fazit === 'perfekt' || msGut) && <Jubel stark={fazit === 'perfekt' || msGut} />}
+        {((!schwach && !(ms && !msGut) && (screen.sterneJetzt > screen.sterneVorher || fazit === 'perfekt' || msGut)) || !!screen.aufstieg) && <Jubel stark={fazit === 'perfekt' || msGut || !!screen.aufstieg} />}
         {/* Hero and fox together: they cheer, or after a weak round the fox comforts (27.11.2026). */}
         <div className="lq-ergebnis-paar">
           <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} pose={schwach || (ms && !msGut) ? 'denken' : 'jubeln'} animation={schwach || (ms && !msGut) ? 'seufzen' : 'jubeln'} className="lq-ergebnis-held" lebendig />
@@ -885,6 +889,21 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </li>
           ))}
         </ol>
+        {!!screen.aufstieg && (
+          <div className="lq-aufstieg" role="status">
+            <span className="lq-stufe-abzeichen lq-aufstieg-abzeichen" aria-hidden>
+              <SymbolStufe groesse={56} />
+              <b>{screen.aufstieg}</b>
+            </span>
+            <div>
+              <strong>Heldenstufe {screen.aufstieg}!</strong>
+              <span>
+                Du bist jetzt „{titel(screen.aufstieg)}“.
+                {LADEN_AB.indexOf(screen.aufstieg) > 0 && ` Im Laden gibt es jetzt ${SELTENHEITEN[LADEN_AB.indexOf(screen.aufstieg)].name.toLowerCase()}e Teile.`}
+              </span>
+            </div>
+          </div>
+        )}
         {(() => {
           const zeilen = (screen.verpasst ?? []).map((u) => ({ id: u.id, m: merksatz(u) })).filter((z) => z.m);
           return zeilen.length ? (
