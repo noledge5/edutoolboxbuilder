@@ -40,7 +40,7 @@ export function animCode(a: Animation): string {
 }
 
 /** The editable part of a move as JSON for the textarea. */
-const animJson = (a: Animation) => JSON.stringify({ dauer: a.dauer, wiederholen: a.wiederholen, kurve: a.kurve ?? 'weich', zeiten: a.zeiten, spuren: a.spuren, gesichter: a.gesichter }, null, 1);
+const animJson = (a: Animation) => JSON.stringify({ dauer: a.dauer, wiederholen: a.wiederholen, kurve: a.kurve ?? 'weich', zeiten: a.zeiten, kurven: a.kurven, spuren: a.spuren, gesichter: a.gesichter }, null, 1);
 
 function ausJson(basis: Animation, text: string): Animation | string {
   try {

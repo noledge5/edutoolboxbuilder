@@ -49,10 +49,20 @@ export interface Spur {
   schieben?: Punkt[];
   /** Scale x / y around the pivot (1 = as drawn), for squash and stretch. */
   strecken?: Punkt[];
+  /** Lag behind the rest of the move, as a share of one run (0…0.5): overlap and follow-through, e.g. a forearm
+   *  that trails the upper arm or a tail that swings after the body. A move with an end still starts and ends at rest
+   *  (the late track catches up during the run); a loop is shifted and stays seamless. */
+  versatz?: number;
 }
 
-/** How the values move between two keyframes. */
-export type Kurve = 'weich' | 'linear' | 'feder';
+/** How the values move between keyframes.
+ *  - `weich` (default): one smooth curve through all keyframes. It slows down only where a value turns round (the top
+ *    of a jump, the end of a wave) and at the start and end of a move; it does not stop at keyframes it passes through,
+ *    and it never overshoots them.
+ *  - `linear`: constant speed (shakes, hits).
+ *  - `feder`: each segment overshoots a little and settles (rewards).
+ *  - `rein`: speeds up into the next keyframe (falling, a hit landing). `raus`: starts fast and slows down. */
+export type Kurve = 'weich' | 'linear' | 'feder' | 'rein' | 'raus';
 
 export interface Animation {
   id: string;
@@ -63,6 +73,9 @@ export interface Animation {
   /** Keyframe times from 0 to 1 (the same for every track); missing = equally spaced. */
   zeiten?: number[];
   kurve?: Kurve;
+  /** Curve per segment (between keyframe i and i + 1), over `kurve`; for moves with `zeiten`. E.g. `rein` from the top
+   *  of a jump to the landing, so the figure falls and hits the ground instead of floating down. */
+  kurven?: (Kurve | null)[];
   /** Per part id, or `ganz` for the whole figure (turns and stretches around its `boden`). */
   spuren: Record<string, Spur>;
   /** Faces during the move: [from time 0…1, face]; before the first entry the pose's face. */
