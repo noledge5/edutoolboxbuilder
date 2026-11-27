@@ -5447,3 +5447,33 @@ button.lq-teil:active {
     transform: translateY(calc(-1 * var(--lq-a-2))) scale(1.15);
   }
 }
+
+/* A new hero level on the result (27.11.2026): the badge pops, the new title and what it unlocks beside it. */
+.lq-aufstieg {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-3);
+  width: 100%;
+  padding: var(--lq-a-3) var(--lq-a-4);
+  border-radius: var(--lq-r);
+  background: var(--lq-gold-flaeche);
+  box-shadow: inset 0 0 0 2px var(--lq-gold);
+  text-align: left;
+}
+.lq-aufstieg div {
+  display: grid;
+  gap: var(--lq-a-1);
+}
+.lq-aufstieg strong {
+  font:
+    700 var(--lq-t-gross) Fredoka,
+    sans-serif;
+}
+.lq-aufstieg-abzeichen {
+  width: 56px;
+  height: 56px;
+  animation: lq-plopp var(--lq-dauer-lang) var(--lq-feder) 0.3s both;
+}
+.lq-aufstieg-abzeichen b {
+  font-size: var(--lq-t-gross);
+}
