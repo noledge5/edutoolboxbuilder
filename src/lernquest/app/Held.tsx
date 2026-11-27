@@ -45,7 +45,7 @@ import type { Daten } from './speicher';
 import { ton } from './ton';
 
 /** What the hero does when tapped on the stage, in turn. */
-const TIPP_BEWEGUNG = ['winken', 'huepfen', 'jubeln', 'nicken'];
+const TIPP_BEWEGUNG = ['hallo', 'huepfen', 'jubeln', 'nicken'];
 
 /** Runs a server call for the child (sends waiting rounds first); throws on refusal or when offline. */
 export type Aktion = <T>(f: (token: string) => Promise<T>) => Promise<T>;

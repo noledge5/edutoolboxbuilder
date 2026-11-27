@@ -1,5 +1,12 @@
 # Handoff – 26.11.2026 (Teile, Häuser und Vorlesen mit Google-Stimme live)
 
+> **Hinweis Bewegung (27.11.2026, PR #117 und „Lernquest Held: Hallo“):** Der Bewegungs-Motor (`figuren/bewegung.ts`)
+> hat sich geändert: `weich` ist eine Kurve durch alle Schlüsselbilder; neu sind `kurven` je Abschnitt (`rein` zum
+> Fallen), `versatz` je Spur (Nachziehen), `vorne` je Bewegung und ein Übergang von 0,2 s bei jedem Wechsel von Pose
+> oder Bewegung (`UEBERGANG`). Zum Begrüßen mit dem Helden `hallo` nehmen, nicht `winken` (das wackelt nur einen schon
+> erhobenen Arm, z. B. Fuchs-Pose `winken`). Regeln: `docs/design/lernquest/bewegung.md`; `figuren/bewegung.test.ts`
+> prüft jede Bewegung (kein Sprung zwischen zwei Bildern bei 60 fps). Nächste Ideen dort unter „Als Nächstes“.
+
 ## Ziel
 Lernquest weiter ausbauen; als Nächstes die übrigen Wünsche der Lehrkraft vom 25.11. (Reihenfolge fragt man sie).
 

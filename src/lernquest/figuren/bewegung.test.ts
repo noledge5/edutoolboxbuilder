@@ -84,6 +84,29 @@ describe('blending into a new pose or move', () => {
   });
 });
 
+describe('parts in front during a move (vorne)', () => {
+  const pose = { name: 'P', gesicht: 'froh', vorne: ['arm-l'] };
+  const a: Animation = { id: 't', name: 'T', dauer: 1, wiederholen: 1, vorne: ['arm-r'], spuren: { 'arm-r': { drehen: [0, -120, 0] } } };
+
+  it('draws the part in front while the move runs, and as the pose says after it', () => {
+    expect(stellung(pose, { animation: a, zeit: 0.5 }).vorne).toEqual(['arm-l', 'arm-r']);
+    expect(stellung(pose, { animation: a, zeit: 2 }).vorne).toEqual(['arm-l']);
+  });
+
+  it('only names top-level parts of the figures that use the move', async () => {
+    const { FIGUREN } = await import('.');
+    for (const f of FIGUREN)
+      for (const id of f.animationen) for (const v of ANIMATIONEN[id].vorne ?? []) expect(f.teile.map((t) => t.id), `${f.id}/${id}`).toContain(v);
+  });
+
+  it('raises the hero\'s arm for hallo, in front of the head', () => {
+    const st = stellung({ name: 'stehen', gesicht: 'froh' }, { animation: ANIMATIONEN.hallo, zeit: 0.6 });
+    expect(st.teile['arm-r'].drehen).toBeLessThan(-100);
+    expect(st.vorne).toContain('arm-r');
+    expect(st.gesicht).toBe('lachen');
+  });
+});
+
 describe('every move at 60 frames a second', () => {
   // No part jumps from one frame to the next: the largest step per frame stays small. "Treffer" is a deliberate shake.
   it('moves in small steps', () => {
