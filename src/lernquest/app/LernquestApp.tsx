@@ -731,6 +731,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         token={sitzung.token}
         id={screen.id}
         klasse={daten.klasse}
+        held={daten.stand.avatar}
         fail={fail}
         onFertig={(truhe) => {
           setBoss(null);

@@ -454,7 +454,8 @@ Server bekommt wie bisher „richtig von gesamt“, gezählt werden die ersten V
   Wiederholen, Truhe, Runde mit falscher und richtiger Antwort, Ergebnis), macht Bilder und meldet seitliches Scrollen,
   abgeschnittenen Text, Knöpfe unter 40 px, Antworten unter der Prüfleiste und Konsolenfehler (Exit-Code 1 bei Befund).
   Truhe und Klasse antwortet das Skript selbst. Erster Lauf: Truhe scrollte seitwärts, Bilder-Aufgabe im iPad quer
-  verdeckt, „Weiter“ nach der Truhe unter dem Bildschirmrand – behoben.
+  verdeckt, „Weiter“ nach der Truhe unter dem Bildschirmrand – behoben. Seit dem 27.11. auch der Bosskampf auf dem Handy
+  (Warten, Frage, Antwort, Auflösung, Sieg).
 
 ## Wiederholung mit Maß (20.11.2026)
 
