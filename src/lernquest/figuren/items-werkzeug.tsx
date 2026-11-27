@@ -7,8 +7,10 @@ import type { Item } from './typen';
 import { Funkeln, stern } from './zeichnen';
 
 /** A tube with round ends along the path `d`, `b` wide. */
+// Shafts and handles from 5 units up are drawn 2.5 units thicker (Oberfläche neu, Stufe 3, 27.11.2026): chunky
+// sticks read on the hero and in the shop frame; thin details (strings, light lines) stay as they are.
 const rohr = (d: string, b: number, farbe: string, extra: { opacity?: number } = {}) => (
-  <path d={d} fill="none" stroke={farbe} strokeWidth={b} strokeLinecap="round" strokeLinejoin="round" {...extra} />
+  <path d={d} fill="none" stroke={farbe} strokeWidth={b >= 5 ? b + 2.5 : b} strokeLinecap="round" strokeLinejoin="round" {...extra} />
 );
 /** A straight upright tube from y `von` to y `bis` on the line x = 0. */
 const stiel = (von: number, bis: number, b: number, farbe: string) => rohr(`M0 ${von} V${bis}`, b, farbe);
@@ -263,11 +265,11 @@ export const WERKZEUG_ITEMS: Item[] = [
     zeichnung: () => (
       <g transform="rotate(20)">
         {/* A pale net bag with a shade and two strings, the stick in front, a wooden hoop on top */}
-        <path d="M-20 -74 Q-22 -42 -2 -34 Q18 -42 20 -74 Z" {...flaeche(P.wolke, 2.5)} />
+        <path d="M-22 -74 Q-26 -38 -2 -30 Q22 -38 22 -74 Z" {...flaeche(P.wolke, 2.5)} />
         <path d="M8 -72 Q14 -50 0 -36 Q16 -42 20 -74 Z" fill={P.wolkeTief} />
         <path d="M-10 -71 Q-10 -50 -4 -38 M-2 -72 Q2 -52 -1 -36" fill="none" stroke={P.wolkeTief} strokeWidth={2.5} strokeLinecap="round" />
         {stiel(14, -66, 7, P.holz)}
-        <ellipse cx="0" cy="-74" rx="20" ry="9" fill="none" stroke={P.holzTief} strokeWidth={5} />
+        <ellipse cx="0" cy="-74" rx="22" ry="9.5" fill="none" stroke={P.holzTief} strokeWidth={6.5} />
       </g>
     ),
   },
@@ -276,11 +278,12 @@ export const WERKZEUG_ITEMS: Item[] = [
     name: 'Bogen',
     platz: 'hand-rechts',
     seltenheit: 3,
-    rahmen: [-20, -62, 40, 124],
+    rahmen: [-30, -62, 50, 124],
     zeichnung: () => (
       <g>
-        <path d="M14 -54 V54" stroke={P.grauTief} strokeWidth={2} strokeLinecap="round" />
-        {rohr('M14 -54 Q-26 0 14 54', 8, P.holz)}
+        <path d="M14 -54 V54" stroke={P.grauTief} strokeWidth={3} strokeLinecap="round" />
+        {rohr('M14 -54 Q-40 0 14 54', 9, P.holz)}
+        {rohr('M6 -40 Q-14 -14 -11 0', 3, P.holzHell)}
         <circle cx="14" cy="-54" r="5" {...flaeche(P.metall, 2.5)} />
         <circle cx="14" cy="54" r="5" {...flaeche(P.metall, 2.5)} />
         <rect x="-10" y="-9" width="9" height="18" rx="4" {...flaeche(P.leder, 2.5)} />
@@ -338,12 +341,12 @@ export const WERKZEUG_ITEMS: Item[] = [
     platz: 'hand-rechts',
     seltenheit: 4,
     bewegt: true,
-    rahmen: [-24, -74, 44, 148],
+    rahmen: [-34, -74, 54, 148],
     zeichnung: (zeit) => (
       <g>
-        <path d="M14 -58 V58" stroke={P.eisTief} strokeWidth={2} strokeLinecap="round" />
-        {rohr('M14 -58 Q-28 0 14 58', 9, P.eis)}
-        {rohr('M14 -58 Q-28 0 14 58', 3, P.eisTief, { opacity: 0.7 })}
+        <path d="M14 -58 V58" stroke={P.eisTief} strokeWidth={3} strokeLinecap="round" />
+        {rohr('M14 -58 Q-42 0 14 58', 10, P.eis)}
+        {rohr('M14 -58 Q-42 0 14 58', 3, P.eisTief, { opacity: 0.7 })}
         {/* Ice crystals at both tips and a gem at the grip */}
         <path d="M14 -56 l-8 -10 l8 -8 l8 8 Z" {...flaeche(P.eisHell, 2.5)} />
         <path d="M14 56 l-8 10 l8 8 l8 -8 Z" {...flaeche(P.eisHell, 2.5)} />
