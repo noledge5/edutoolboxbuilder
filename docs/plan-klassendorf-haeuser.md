@@ -45,13 +45,15 @@ Offen: Anbauten (Turm, Balkon, Anbau) mit Seltenheit aus Truhen oder Laden; ob G
 Je eine eigene Session, Reihenfolge entscheidet die Lehrkraft. Vor dem Bauen mit Skill `aufgabe` planen und die
 offenen Fragen klären.
 - **Mathe-Aufgaben** kommen bald: prüfen, ob die Aufgabenformate (`fragenpool.ts`, `Uebungen.tsx`) Rechnen tragen
-  (Zahleneingabe, Brüche, Einheiten, Rechenweg?).
+  (Zahleneingabe, Brüche, Einheiten, Rechenweg?). Geprüft am 27.11.2026, Zahlen-Eingabe verbessert; offene Fragen in
+  `docs/lernquest.md` „Mathe-Aufgaben: tragen die Formate Rechnen?“.
 - ~~**Neue Gegenstände** für alle Seltenheiten, auch Legendär~~: gebaut am 26.11.2026, 30 Teile zu den Welten der Karte
   (`docs/lernquest.md` „Teile zu den Welten der Karte“, Migration `20261205_lernquest_welten_teile.sql`).
 - **Einschmelzen** (langfristig): mehrere Gegenstände einer Seltenheit ergeben einen der nächst selteneren.
   Legendär ist ausgenommen. Offen: wie viele, Zufall oder Wahl, Gegenstände aus Truhen und Laden gleich, was mit
   getragenen Teilen, Startteilen und eigenen Teilen der Lehrkraft. Server-Regel (wie `lq_truhe_oeffnen`).
-- **Auszeichnungen und Abzeichen** (Badges): z. B. für Lernserien, geschaffte Regionen, Hausstufen. Keine Rangliste.
+- ~~**Auszeichnungen und Abzeichen**~~: gebaut am 27.11.2026 (PR #121, sieben Abzeichen in Bronze, Silber, Gold;
+  Hausstufen fehlen noch, weil das Dorf vom Server kommt).
 - **Besuchen**: Haus und Profil der anderen ansehen (erweitert B3: Held, Trophäenregal, Abzeichen). Dafür müssen
   Kinder Namen sehen; das ist eine neue Entscheidung zur Sichtbarkeit.
 - ~~**Häuser gestalten**~~: gebaut am 25.11.2026 (siehe B2).
