@@ -5336,3 +5336,27 @@ button.lq-teil:active {
     transform: none;
   }
 }
+
+/* Each new exercise slides in from the right (27.11.2026), like turning a card; the best streak on the result. Round and
+   result clip what an animation pushes out sideways for a moment (a small phone scrolled sideways otherwise). */
+.lq-spiel,
+.lq-ergebnis {
+  overflow-x: clip;
+}
+.lq-uebung {
+  animation: lq-rein 0.32s ease-out both;
+}
+@keyframes lq-rein {
+  from {
+    transform: translateX(var(--lq-a-6));
+    opacity: 0;
+  }
+}
+.lq-serie-zeile {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}
+.lq-serie-zeile .lq-serie-marke {
+  animation: lq-plopp var(--lq-dauer-lang) var(--lq-feder) 0.5s both;
+}

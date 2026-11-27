@@ -36,6 +36,7 @@ import {
   woche,
   wochenStart,
   WOCHENZIEL,
+  laengsteSerie,
 } from '../rules';
 import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
 import { BOSSE } from '../boss';
@@ -879,6 +880,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </li>
           ))}
         </ol>
+        {laengsteSerie(screen.ergebnisse) >= 3 && (
+          <p className="lq-serie-zeile">
+            <span className="lq-serie-marke">Beste Serie: {laengsteSerie(screen.ergebnisse)} richtig in Folge</span>
+          </p>
+        )}
         {!screen.stunde && screen.richtig < screen.gesamt && <p className="lq-klein lq-mitte">Was noch nicht saß, kommt morgen wieder dran.</p>}
         {schwach && <p className="lq-klein lq-mitte">Das sitzt noch nicht. Spiel die Runde gleich nochmal, dann klappt es besser.</p>}
         {ms && <p className="lq-klein lq-mitte">{msGut ? 'Du kannst die ganze Region. Stark!' : `Ab ${MEILENSTEIN_GUT} % ist der Meilenstein geschafft.`}</p>}
