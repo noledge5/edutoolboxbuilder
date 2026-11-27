@@ -41,6 +41,7 @@ import {
   LADEN_AB,
   abzeichenWerte,
   neueAbzeichen,
+  mitZahl,
   type Abzeichen,
 } from '../rules';
 import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
@@ -1269,7 +1270,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const hinweis = fuchsHinweis(regionen, fachDran.length, new Set(Object.keys(meilensteine).filter((id) => meilensteine[id] >= MEILENSTEIN_GUT)));
   const wdhKnoten = (
     <>
-      <button type="button" className="lq-knoten wdh" aria-label={`Wiederholen: ${fachDran.length} Aufgaben aus früheren Stationen`} onClick={() => wiederholen(fachDran)}>
+      <button type="button" className="lq-knoten wdh" aria-label={`Wiederholen: ${mitZahl(fachDran.length, 'Aufgabe', 'Aufgaben')} aus früheren Stationen`} onClick={() => wiederholen(fachDran)}>
         <WiederholenIcon />
       </button>
       <span className="lq-knoten-titel">Wiederholen</span>
@@ -1534,7 +1535,7 @@ function KlassenAufgabeBox({ stand }: { stand: Stand }) {
     <section className="lq-box lq-klassenaufgabe">
       <div className="lq-zeile-zwischen">
         <h2>Klassen-Aufgabe</h2>
-        <strong>{geschafft ? 'Geschafft!' : `${sterne} von ${a.ziel} Sternen`}</strong>
+        <strong>{geschafft ? 'Geschafft!' : `${sterne} von ${mitZahl(a.ziel, 'Stern', 'Sternen')}`}</strong>
       </div>
       <div className="lq-balken" role="progressbar" aria-label="Sterne der Klasse diese Woche" aria-valuemin={0} aria-valuemax={a.ziel} aria-valuenow={Math.min(sterne, a.ziel)}>
         <span style={{ width: `${Math.min(100, (100 * sterne) / a.ziel)}%` }} />

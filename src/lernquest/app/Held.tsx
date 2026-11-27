@@ -3,7 +3,7 @@
 // shows them and sends what the child chooses.
 import { useContext, useEffect, useRef, useState } from 'react';
 import { SymbolMuenze } from '../figuren/symbole';
-import { heldenstufe, ladenAb, titel } from '../rules';
+import { heldenstufe, ladenAb, mitZahl, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
 import {
   bonusText,
@@ -502,7 +502,7 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
           ) : (
             <button type="button" className="lq-knopf" disabled>
               <SchlossIcon />
-              Noch {preis - stand.muenzen} Münzen sammeln
+              Noch {mitZahl(preis - stand.muenzen, 'Münze', 'Münzen')} sammeln
             </button>
           )}
         </div>

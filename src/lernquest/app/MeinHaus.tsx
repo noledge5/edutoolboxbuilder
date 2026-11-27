@@ -139,7 +139,9 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
                   <p className="lq-klein" role="status">
                     {next.grund === 'stufe'
                       ? `Dafür brauchst du Heldenstufe ${next.ab}. Du bist auf Stufe ${held}.`
-                      : `Dir fehlen noch ${next.preis - stand.muenzen} Münzen. Sammle sie beim Lernen.`}
+                      : next.preis - stand.muenzen === 1
+                        ? 'Dir fehlt noch eine Münze. Sammle sie beim Lernen.'
+                        : `Dir fehlen noch ${next.preis - stand.muenzen} Münzen. Sammle sie beim Lernen.`}
                   </p>
                 )}
               </>
