@@ -447,6 +447,9 @@ Server bekommt wie bisher „richtig von gesamt“, gezählt werden die ersten V
 - **Hören ohne Stimme:** „Ich höre nichts – Text zeigen“ unter dem Lautsprecher.
 - **Tastatur (27.11.2026):** In der Runde wählen 1–9 die n-te Antwort (Optionen, Bilder, richtig/falsch, Kacheln, Gruppen), Enter
   prüft oder geht weiter; Eingabefelder bleiben unberührt.
+- **Neues auf der Karte (27.11.2026):** Neue Sterne einer Station ploppen nacheinander auf (mit Sternklang), und ist seit dem
+  letzten Blick eine andere Station die aktuelle, hüpft der Held hinüber. Gemerkt nur auf dem Gerät
+  (`lernquest:karte-gesehen`, `app/KartenNeu.tsx`).
 - **Das sitzt schon (27.11.2026):** Unter „Wiederholen“ zeigt je Fach ein Balken, welche Aufgaben sitzen (Kasten 4–5), sicherer
   werden (2–3) und noch geübt werden (1) – aus den Karten im Spielstand (`wissen` in rules.ts, `app/Wissen.tsx`).
 - **Fehlgriffe erklärt (27.11.2026):** Bei Paaren und Orten auf der Karte steht in der Rückmeldung, wie oft daneben getippt
