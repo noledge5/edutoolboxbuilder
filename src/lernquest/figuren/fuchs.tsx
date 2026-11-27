@@ -48,64 +48,76 @@ function arm(seite: 'l' | 'r'): Teil {
   };
 }
 
+// Fox 4 (27.11.2026, with Held 4): white eyes with a dark pupil on the orange fur, lids in the fur colour for the
+// expressions, thick brows; the cream mask sits below the eyes. No shine (rule of 12.11.).
+const FAUGE_Y = 86;
+const FAUGEN = [78, 122];
 function Augen({ gesicht, augenZu }: Stand) {
-  const linie = { fill: 'none', stroke: P.auge, strokeWidth: 4.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+  const Y = FAUGE_Y;
+  const linie = { fill: 'none', stroke: P.auge, strokeWidth: 6, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
   if (gesicht === 'jubel')
     return (
       <g {...linie}>
-        <path d="M71 95 Q80 84 89 95" />
-        <path d="M111 95 Q120 84 129 95" />
+        {FAUGEN.map((x) => (
+          <path key={x} d={`M${x - 11} ${Y + 4} Q${x} ${Y - 9} ${x + 11} ${Y + 4}`} />
+        ))}
       </g>
     );
   if (gesicht === 'au')
     return (
       <g {...linie}>
-        <path d="M72 86 L87 94 L72 101" />
-        <path d="M128 86 L113 94 L128 101" />
+        <path d={`M70 ${Y - 8} L86 ${Y} L70 ${Y + 8}`} />
+        <path d={`M130 ${Y - 8} L114 ${Y} L130 ${Y + 8}`} />
       </g>
     );
   if (augenZu)
     return (
-      <g {...linie} strokeWidth={4}>
-        <path d="M71 93 Q80 99 89 93" />
-        <path d="M111 93 Q120 99 129 93" />
+      <g {...linie} strokeWidth={5}>
+        {FAUGEN.map((x) => (
+          <path key={x} d={`M${x - 11} ${Y} Q${x} ${Y + 7} ${x + 11} ${Y}`} />
+        ))}
       </g>
     );
-  const dy = gesicht === 'denken' ? -3 : gesicht === 'traurig' ? 2 : 0;
-  const dx = gesicht === 'denken' ? 2 : 0;
-  const ry = gesicht === 'sanft' ? 9 : gesicht === 'staunen' ? 12.5 : 11;
-  const rx = gesicht === 'staunen' ? 10 : 9;
+  const [bx, by] = gesicht === 'denken' ? [3, -4] : gesicht === 'traurig' ? [0, 4] : gesicht === 'staunen' ? [0, 0] : [1.5, 2];
+  const rx = gesicht === 'staunen' ? 13.5 : 12.5;
+  const ry = gesicht === 'staunen' ? 16.5 : 15;
   return (
     <g>
-      {[80, 120].map((x) => (
-        <g key={x}>
-          {/* Flat eyes like the mockup's fox: one dark oval, no shine (teacher's review 12.11.2026); the look of a
-              face (thinking: up and aside) moves the whole eye. */}
-          <ellipse cx={x + dx} cy={93 + dy} rx={rx} ry={ry} fill={P.auge} />
-          {gesicht === 'traurig' && <path d={`M${x - 10} 84 Q${x} 80 ${x + 10} 84 L${x + 10} 82 L${x - 10} 82 Z`} fill={P.fell} />}
-        </g>
-      ))}
+      {FAUGEN.map((x, i) => {
+        const lid =
+          gesicht === 'froh' || gesicht === 'lachen'
+            ? `M${x - 15} ${Y + 9} Q${x} ${Y + 4} ${x + 15} ${Y + 9} V${Y + 19} H${x - 15} Z`
+            : gesicht === 'sanft'
+              ? `M${x - 15} ${Y - 18} H${x + 15} V${Y - 2} Q${x} ${Y + 2} ${x - 15} ${Y - 2} Z`
+              : gesicht === 'denken'
+                ? `M${x - 15} ${Y - 18} H${x + 15} V${Y - 8} Q${x} ${Y - 5} ${x - 15} ${Y - 8} Z`
+                : gesicht === 'traurig'
+                  ? i === 0
+                    ? `M${x - 15} ${Y - 18} H${x + 15} V${Y - 13} L${x - 15} ${Y - 2} Z`
+                    : `M${x - 15} ${Y - 18} H${x + 15} V${Y - 2} L${x - 15} ${Y - 13} Z`
+                  : '';
+        return (
+          <g key={x}>
+            <ellipse cx={x} cy={Y} rx={rx} ry={ry} fill={P.weiss} />
+            <ellipse cx={x + bx} cy={Y + by} rx={6} ry={7.6} fill={P.auge} />
+            {lid && <path d={lid} fill={P.fell} />}
+          </g>
+        );
+      })}
     </g>
   );
 }
 
 function Brauen({ gesicht }: Stand) {
-  const s = { fill: 'none', stroke: P.ohrInnen, strokeWidth: 3.5, strokeLinecap: 'round' as const };
+  const s = { fill: 'none', stroke: P.ohrInnen, strokeWidth: 6.5, strokeLinecap: 'round' as const };
   const formen: Record<string, [string, string]> = {
-    denken: ['M70 76 Q79 72 88 76', 'M112 72 Q121 66 130 71'],
-    sanft: ['M71 80 Q79 78 88 74', 'M112 74 Q121 78 129 80'],
-    traurig: ['M70 80 Q79 79 88 73', 'M112 73 Q121 79 130 80'],
-    staunen: ['M70 72 Q79 66 88 71', 'M112 71 Q121 66 130 72'],
-    au: ['M70 78 L88 82', 'M130 78 L112 82'],
+    denken: ['M66 66 Q77 63 88 66', 'M112 62 Q123 56 134 61'],
+    sanft: ['M66 69 Q77 67 88 64', 'M112 64 Q123 67 134 69'],
+    traurig: ['M66 70 Q77 68 88 62', 'M112 62 Q123 68 134 70'],
+    staunen: ['M66 60 Q77 54 88 59', 'M112 59 Q123 54 134 60'],
+    au: ['M66 63 L88 68', 'M134 63 L112 68'],
   };
-  const f = formen[gesicht];
-  if (!f)
-    return (
-      <g {...s} opacity={0.55}>
-        <path d="M72 77 Q79 74 86 76" />
-        <path d="M114 76 Q121 74 128 77" />
-      </g>
-    );
+  const f = formen[gesicht] ?? ['M66 66 Q77 62 88 65', 'M112 65 Q123 62 134 66'];
   return (
     <g {...s}>
       <path d={f[0]} />
@@ -205,15 +217,15 @@ const kopf: Teil = {
       {/* Light top left, shade right */}
       <path d="M48 70 Q56 54 72 46 Q58 58 54 72 Z" fill={P.fellHell} opacity={0.7} />
       <path d="M163 86 L174 100 L159 104 C151 124 128 136 100 136 C126 128 146 114 152 90 Q158 86 163 86 Z" {...flaeche(P.fellTief)} opacity={0.35} />
-      {/* Cream mask and cheek fluff */}
-      <path d="M100 84 C114 84 132 92 152 101 C142 122 124 132 100 132 C76 132 58 122 48 101 C68 92 86 84 100 84 Z" fill={P.creme} />
-      <ellipse cx="66" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.6} />
-      <ellipse cx="134" cy="112" rx="8" ry="4.5" fill={P.backe} opacity={0.6} />
+      {/* Cream muzzle below the eyes, so the white eyes sit on the fur */}
+      <path d="M100 102 C116 102 134 105 151 108 C143 126 124 134 100 134 C76 134 57 126 49 108 C66 105 84 102 100 102 Z" fill={P.creme} />
       <Brauen {...s} />
       <Augen {...s} />
-      <path d="M92 104 Q100 99 108 104 Q105 112 100 113 Q95 112 92 104 Z" fill={P.auge} />
-      <Mund {...s} />
-      {s.gesicht === 'traurig' && <path d="M131 101 q4 6 0 9 q-4 -3 0 -9 Z" fill={P.blauHell} stroke={P.blauTief} strokeWidth={1.5} />}
+      <path d="M90 106 Q100 100 110 106 Q106 115 100 116 Q94 115 90 106 Z" fill={P.auge} />
+      <g transform="translate(0 3)">
+        <Mund {...s} />
+      </g>
+      {s.gesicht === 'traurig' && <path d="M134 100 q4 6 0 9 q-4 -3 0 -9 Z" fill={P.blauHell} stroke={P.blauTief} strokeWidth={1.5} />}
     </g>
   ),
 };
@@ -252,7 +264,13 @@ export const FUCHS: Figur = {
     gedanken: ({ zeit }) => (
       // Light blue instead of white with an outline: white alone vanishes on the cream of the app.
       <g transform={`translate(0 ${(Math.sin(zeit * 2) * 2).toFixed(2)})`}>
-        {([[160, 58, 6.25], [172, 42, 8.75], [188, 22, 12.25]] as const).map(([x, y, r]) => (
+        {(
+          [
+            [160, 58, 6.25],
+            [172, 42, 8.75],
+            [188, 22, 12.25],
+          ] as const
+        ).map(([x, y, r]) => (
           <g key={r}>
             <circle cx={x} cy={y} r={r} fill={P.blauHell} />
             <circle cx={x - r * 0.35} cy={y - r * 0.35} r={r * 0.3} fill={P.weiss} />

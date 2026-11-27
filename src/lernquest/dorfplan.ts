@@ -189,7 +189,8 @@ export function deko(n: number): { art: DekoArt; p: Pt; k: number }[] {
   for (let gy = Math.ceil(i.oben / S); gy * S < WEG_START - 60; gy++)
     for (let gx = -9; gx <= 9; gx++) {
       const r = hash(gx, gy);
-      if (r < 0.35) continue;
+      // Calmer ground (Oberfläche neu, Stufe 4, 27.11.2026): about half as many pieces as before, fewer dots.
+      if (r < 0.62) continue;
       const p: Pt = [gx * S + (hash(gy, gx) - 0.5) * 14, gy * S + (hash(gx + 7, gy) - 0.5) * 12];
       if (Math.abs(p[0]) > KARTE_BREITE / 2 + 10 || !i.auf(p, 12)) continue;
       if (p[1] > ende - 50 && Math.abs(p[0] - wegX(p[1])) < WEG_HALB + 14) continue;
@@ -197,7 +198,7 @@ export function deko(n: number): { art: DekoArt; p: Pt; k: number }[] {
       if (g.some((x) => aufGrund(x, p, 8))) continue;
       if (klein.some((q) => Math.hypot(p[0] - q[0], (p[1] - q[1]) * 1.6) < 70)) continue;
       if (lat.some((q) => Math.hypot(p[0] - q[0], p[1] - q[1]) < 14)) continue;
-      const art: DekoArt = r > 0.86 ? 'baum' : r > 0.76 ? 'busch' : r > 0.45 ? 'blume' : 'stein';
+      const art: DekoArt = r > 0.88 ? 'baum' : r > 0.78 ? 'busch' : r > 0.68 ? 'blume' : 'stein';
       if (art === 'baum' || art === 'busch') {
         const verdeckt = g.some((x) => Math.abs(p[0] - x.sx) < GRUND_HALB[0] + 8 && p[1] > x.sy && p[1] - x.sy < 72);
         if (verdeckt) continue;

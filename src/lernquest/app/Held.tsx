@@ -2,6 +2,7 @@
 // to wear, chests, the shop and the class. Coins, chests and parts come from the server only (`server.ts`); this page
 // shows them and sends what the child chooses.
 import { useContext, useEffect, useRef, useState } from 'react';
+import { SymbolMuenze } from '../figuren/symbole';
 import { heldenstufe, ladenAb, titel } from '../rules';
 import { avatarSetzen, kaufen, klasseAnsicht, lqText, truheOeffnen, type KlasseAnsicht, type TruheInhalt } from '../server';
 import {
@@ -211,14 +212,14 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
                   aria-label={`${t.nurTruhe ? 'Truhen-Schatz, nur in Truhen zu finden' : t.nurLaden ? 'Nur im Laden' : 'Noch nicht gefunden'}, ${SELTENHEITEN[t.seltenheit].name}`}
                   role="img"
                 >
-                  <span className="lq-teil-bild lq-fragezeichen" aria-hidden>
-                    ?
+                  <span className={`lq-platte lq-platte-zu lq-s-${t.seltenheit}`} aria-hidden>
+                    <TeilBild teil={t} avatar={stand.avatar} className="lq-teil-bild lq-silhouette" />
                   </span>
                   <span className="lq-teil-name" aria-hidden>
                     {t.nurTruhe ? 'Nur in Truhen' : t.nurLaden ? 'Nur im Laden' : 'Noch nicht gefunden'}
                   </span>
                   <span aria-hidden>
-                    <Seltenheit s={t.seltenheit} kurz />
+                    <Seltenheit s={t.seltenheit} />
                   </span>
                 </div>
               );
@@ -233,9 +234,11 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
                 onClick={() => tippen(t)}
               >
                 {an && <span className="lq-angelegt">Angelegt</span>}
-                <TeilBild teil={t} avatar={stand.avatar} className="lq-teil-bild" />
+                <span className={`lq-platte lq-s-${t.seltenheit}`} aria-hidden>
+                  <TeilBild teil={t} avatar={stand.avatar} className="lq-teil-bild" />
+                </span>
                 <span className="lq-teil-name">{t.name}</span>
-                <Seltenheit s={t.seltenheit} kurz />
+                <Seltenheit s={t.seltenheit} />
                 {bonusText(t) && <span className="lq-teil-bonus">{bonusText(t)}</span>}
               </button>
             );
@@ -439,9 +442,11 @@ export function LadenSeite({ daten, aktion, setStand, onZurueck }: { daten: Date
               setWahl(wahl?.id === t.id ? null : t);
             }}
           >
-            <WareBild teil={t} avatar={stand.avatar} />
+            <span className={`lq-platte lq-s-${t.seltenheit}`} aria-hidden>
+              <WareBild teil={t} avatar={stand.avatar} />
+            </span>
             <span className="lq-teil-name">{t.name}</span>
-            <Seltenheit s={t.seltenheit} kurz />
+            <Seltenheit s={t.seltenheit} />
             {stufe < ladenAb(t.seltenheit) ? (
               <span className="lq-teil-ab">
                 <SchlossIcon /> Stufe {ladenAb(t.seltenheit)}
@@ -570,7 +575,12 @@ export function TruheSeite({ daten, aktion, setStand, onFertig }: { daten: Daten
         tabIndex={phase === 'auf' ? 0 : undefined}
         onKeyDown={(e) => phase === 'auf' && (e.key === 'Enter' || e.key === ' ') && setUebersprungen(true)}
       >
-        <span className="lq-truhe-glanz" aria-hidden />
+        <svg className="lq-truhe-glanz" viewBox="-120 -120 240 240" aria-hidden focusable="false">
+          <circle r="84" className="lq-glanz-ring" />
+          {Array.from({ length: 12 }, (_, i) => (
+            <path key={i} d="M0 0 L-10 -120 L10 -120 Z" transform={`rotate(${i * 30})`} />
+          ))}
+        </svg>
         {phase === 'da' && t ? (
           <WareBild teil={t} avatar={stand.avatar} className="lq-truhe-teil" />
         ) : phase === 'da' && nurMuenzen ? (
@@ -712,12 +722,7 @@ export function KlasseSeite({ aktion, aufgabe, dorf }: { aktion: Aktion; aufgabe
 
 // — Icons —
 
-export const MuenzIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden className="lq-muenz-icon">
-    <circle cx="12" cy="12" r="10" className="lq-muenz-voll" />
-    <circle cx="12" cy="12" r="6.5" fill="none" strokeWidth="2" className="lq-muenz-ring" />
-  </svg>
-);
+export const MuenzIcon = () => <SymbolMuenze groesse={24} className="lq-muenz-icon" />;
 export const HerzIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden>
     <path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.4C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.7 1.2 5.3 3 1.6-1.8 3.1-3 5.3-3 3.7 0 5.8 3.7 4.3 7.1C19.5 16.4 12 21 12 21Z" />

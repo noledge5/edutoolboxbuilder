@@ -18,6 +18,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'wollmuetze',
     name: 'Wollmütze',
     platz: 'hut',
+    haube: true,
     seltenheit: 1,
     rahmen: [-46, -66, 92, 76],
     zeichnung: () => (
@@ -52,6 +53,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'ritterhelm',
     name: 'Ritterhelm',
     platz: 'hut',
+    haube: true,
     seltenheit: 1,
     rahmen: [-60, -62, 120, 106],
     zeichnung: () => (
@@ -70,6 +72,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'entdeckerhut',
     name: 'Entdeckerhut',
     platz: 'hut',
+    haube: true,
     seltenheit: 2,
     rahmen: [-58, -50, 116, 64],
     zeichnung: () => (
@@ -86,6 +89,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'piratenhut',
     name: 'Piratenhut',
     platz: 'hut',
+    haube: true,
     seltenheit: 2,
     rahmen: [-60, -50, 120, 60],
     zeichnung: () => (
@@ -104,6 +108,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'kappe',
     name: 'Schirmmütze',
     platz: 'hut',
+    haube: true,
     seltenheit: 1,
     rahmen: [-44, -50, 106, 64],
     zeichnung: () => (
@@ -122,6 +127,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'wikingerhelm',
     name: 'Wikingerhelm',
     platz: 'hut',
+    haube: true,
     seltenheit: 2,
     rahmen: [-66, -60, 132, 76],
     zeichnung: () => (
@@ -144,6 +150,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'kochmuetze',
     name: 'Kochmütze',
     platz: 'hut',
+    haube: true,
     seltenheit: 1,
     rahmen: [-52, -66, 104, 76],
     zeichnung: () => (
@@ -165,6 +172,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'cowboyhut',
     name: 'Cowboyhut',
     platz: 'hut',
+    haube: true,
     seltenheit: 1,
     rahmen: [-62, -48, 124, 62],
     zeichnung: () => (
@@ -182,6 +190,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'raumhelm',
     name: 'Raumhelm',
     platz: 'hut',
+    haube: true,
     seltenheit: 3,
     rahmen: [-46, -74, 98, 88],
     zeichnung: () => (
@@ -221,6 +230,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'e97c799d057',
     name: 'Crowns Guard Helmet',
     platz: 'hut',
+    haube: true,
     seltenheit: 3,
     rahmen: [-50, -76, 100, 92],
     zeichnung: () => (
@@ -241,6 +251,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'e48100506fe',
     name: 'Militärhelm',
     platz: 'hut',
+    haube: true,
     seltenheit: 2,
     rahmen: [-66, -56, 132, 108],
     zeichnung: () => (
@@ -262,6 +273,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'baskenmuetze',
     name: 'Baskenmütze',
     platz: 'hut',
+    haube: true,
     seltenheit: 1,
     rahmen: [-48, -46, 96, 56],
     zeichnung: () => (
@@ -277,6 +289,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'propellermuetze',
     name: 'Propellermütze',
     platz: 'hut',
+    haube: true,
     seltenheit: 2,
     bewegt: true,
     rahmen: [-46, -70, 92, 80],
@@ -300,6 +313,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'detektivhut',
     name: 'Detektivhut',
     platz: 'hut',
+    haube: true,
     seltenheit: 3,
     rahmen: [-56, -54, 112, 68],
     zeichnung: () => (
@@ -377,6 +391,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'pilzhut',
     name: 'Pilzhut',
     platz: 'hut',
+    haube: true,
     seltenheit: 1,
     rahmen: [-56, -58, 112, 70],
     zeichnung: () => (
@@ -421,6 +436,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'kapitaensmuetze',
     name: 'Kapitänsmütze',
     platz: 'hut',
+    haube: true,
     seltenheit: 3,
     rahmen: [-50, -52, 100, 68],
     zeichnung: () => (
@@ -440,6 +456,7 @@ export const KOPF_ITEMS: Item[] = [
     id: 'pharaonenhaube',
     name: 'Pharaonenhaube',
     platz: 'hut',
+    haube: true,
     seltenheit: 4,
     rahmen: [-64, -54, 128, 126],
     zeichnung: () => (

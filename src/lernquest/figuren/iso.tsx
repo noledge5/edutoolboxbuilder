@@ -191,10 +191,11 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
       strokeWidth: 1.2,
       strokeLinejoin: "round",
     };
-    for (let r = 0, zz = z + 1.5; zz < z + h - 2; r++, zz += 8) {
-      const hh = Math.min(6, z + h - 1 - zz);
-      for (let xx = x + (r % 2 ? 5 : 1); xx < x + w - 3; xx += 11) {
-        const ww = Math.min(9, x + w - 1 - xx);
+    // Dorf 4 (27.11.2026): big stones, about a third as many, so a wall reads calm at phone size.
+    for (let r = 0, zz = z + 1.5; zz < z + h - 2; r++, zz += 12) {
+      const hh = Math.min(10, z + h - 1 - zz);
+      for (let xx = x + (r % 2 ? 10 : 1); xx < x + w - 3; xx += 19) {
+        const ww = Math.min(17, x + w - 1 - xx);
         out.push(
           <g key={`l${r}-${xx}`}>
             {poly(
@@ -210,8 +211,8 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
           </g>,
         );
       }
-      for (let yy = y + (r % 2 ? 1 : 5); yy < y + d - 3; yy += 11) {
-        const dd = Math.min(9, y + d - 1 - yy);
+      for (let yy = y + (r % 2 ? 1 : 10); yy < y + d - 3; yy += 19) {
+        const dd = Math.min(17, y + d - 1 - yy);
         out.push(
           <g key={`r${r}-${yy}`}>
             {poly(
@@ -324,7 +325,7 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
     Y: number,
     z0: number,
     z1: number,
-    feld = 22,
+    feld = 34,
   ) => {
     const k = Math.max(1, Math.round((x1 - x0) / feld));
     const s = (x1 - x0) / k;
@@ -337,8 +338,6 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
             {linie(P3(x0 + s * i, Y, z0), P3(x0 + s * i, Y, z1), P.balken, 4)}
           </g>
         ))}
-        {linie(P3(x0, Y, z0), P3(x0 + s, Y, z1), P.balken, 3.5)}
-        {linie(P3(x1, Y, z0), P3(x1 - s, Y, z1), P.balken, 3.5)}
       </g>
     );
   };
@@ -349,7 +348,7 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
     y1: number,
     z0: number,
     z1: number,
-    feld = 22,
+    feld = 34,
   ) => {
     const k = Math.max(1, Math.round((y1 - y0) / feld));
     const s = (y1 - y0) / k;
@@ -367,8 +366,6 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
             )}
           </g>
         ))}
-        {linie(P3(X, y0, z0), P3(X, y0 + s, z1), P.balkenTief, 3.5)}
-        {linie(P3(X, y1, z0), P3(X, y1 - s, z1), P.balkenTief, 3.5)}
       </g>
     );
   };
@@ -392,8 +389,6 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
       P3(xx, m + (y + d + o - m) * t, z + h + (-3 - h) * t);
     const vorn = [E(1, x - o), E(1, x + w + o), E(0, x + w + o), E(0, x - o)];
     const giebel = [P3(x + w, y, z), P3(x + w, y + d, z), P3(x + w, m, z + h)];
-    const reihen = Math.round(h / 7);
-    const stueck = Math.round((w + 2 * o) / 7.5);
     return (
       <g>
         {poly(
@@ -423,19 +418,9 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
           </g>
         )}
         {poly(vorn, c.vorn)}
-        <path
-          d={Array.from({ length: reihen }, (_, i) =>
-            bogen(
-              E((i + 1) / reihen, x - o),
-              E((i + 1) / reihen, x + w + o),
-              stueck,
-            ),
-          ).join("")}
-          fill="none"
-          stroke={c.kante}
-          strokeWidth={1.8}
-          strokeLinecap="round"
-        />
+        {/* Held 4 / Dorf 4 (27.11.2026): two broad tile bands instead of many scallops, calm at phone size. */}
+        {poly([E(0.46, x - o), E(0.46, x + w + o), E(0.56, x + w + o), E(0.56, x - o)], c.kante, { opacity: 0.28 })}
+        {poly([E(0.84, x - o), E(0.84, x + w + o), E(1, x + w + o), E(1, x - o)], c.kante, { opacity: 0.38 })}
         {linie(E(0, x - o), E(0, x + w + o), c.licht, 4)}
         {wetter.schnee && (
           <g>
@@ -444,15 +429,7 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
             {linie(E(0, x - o), E(0, x + w + o), P.wolkeTief, 3)}
           </g>
         )}
-        {linie(E(0, x - o), E(1, x - o), P.balken, 4)}
-        {linie(E(1, x - o), E(1, x + w + o), P.balken, 3)}
-        {linie(
-          P3(x + w + o, y - o, z - 3),
-          P3(x + w + o, m, z + h),
-          P.balken,
-          4,
-        )}
-        {linie(P3(x + w + o, m, z + h), E(1, x + w + o), P.balken, 4)}
+
       </g>
     );
   };
@@ -473,32 +450,13 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
     const l = P3(x - o, y + d + o, z - 2);
     const vv = P3(x + w + o, y + d + o, z - 2);
     const r = P3(x + w + o, y - o, z - 2);
-    const reihen = Math.round(h / 8);
-    let dv = "";
-    let dr = "";
-    for (let i = 1; i < reihen; i++) {
-      const t = i / reihen;
-      const st = Math.max(1, Math.round(((1 - t) * (w + 2 * o)) / 7.5));
-      dv += bogen(mix(sp, l, t), mix(sp, vv, t), st);
-      dr += bogen(mix(sp, vv, t), mix(sp, r, t), st);
-    }
     return (
       <g>
         {poly([l, vv, sp], c.vorn)}
         {poly([vv, r, sp], c.seite)}
-        <path d={dv} fill="none" stroke={c.kante} strokeWidth={1.8} />
-        <path
-          d={dr}
-          fill="none"
-          stroke={c.kante}
-          strokeWidth={1.8}
-          opacity={0.8}
-        />
-        {linie(l, vv, P.balken, 3)}
-        {linie(vv, r, P.balken, 3)}
+        {poly([mix(sp, l, 0.82), mix(sp, vv, 0.82), vv, l], c.kante, { opacity: 0.35 })}
+        {poly([mix(sp, vv, 0.82), mix(sp, r, 0.82), r, vv], c.kante, { opacity: 0.35 })}
         {linie(vv, sp, c.licht, 3.5)}
-        {linie(l, sp, P.balken, 3.5)}
-        {linie(r, sp, P.balken, 3.5)}
         {wetter.schnee && (
           <g>
             {poly([sp, mix(sp, l, 0.36), mix(sp, vv, 0.36)], P.schnee)}
@@ -547,8 +505,7 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
           hell ? { "data-licht": "" } : {},
         )}
         <g data-licht={hell ? "" : undefined}>
-          {linie(Q(a + b / 2, z), Q(a + b / 2, z + h), rahmen, 2)}
-          {linie(Q(a, z + h / 2), Q(a + b, z + h / 2), rahmen, 2)}
+          {linie(Q(a + b / 2, z), Q(a + b / 2, z + h), rahmen, 3)}
         </g>
         {poly(
           [
@@ -614,13 +571,12 @@ export function isoStift(ox: number, oy: number, wetter: Wetter = {}) {
   /** A wooden fence along x at y = Y. */
   const zaunX = (x0: number, x1: number, Y: number) => (
     <g>
-      {Array.from({ length: Math.floor((x1 - x0) / 14) + 1 }, (_, i) => (
+      {Array.from({ length: Math.floor((x1 - x0) / 24) + 1 }, (_, i) => (
         <g key={i}>
-          {linie(P3(x0 + i * 14, Y, 0), P3(x0 + i * 14, Y, 18), P.balken, 4.5)}
+          {linie(P3(x0 + i * 24, Y, 0), P3(x0 + i * 24, Y, 18), P.balken, 5.5)}
         </g>
       ))}
-      {linie(P3(x0, Y, 13), P3(x1, Y, 13), HOLZ.links, 4)}
-      {linie(P3(x0, Y, 6), P3(x1, Y, 6), HOLZ.links, 4)}
+      {linie(P3(x0, Y, 11), P3(x1, Y, 11), HOLZ.links, 5)}
     </g>
   );
 

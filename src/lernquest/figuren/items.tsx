@@ -11,7 +11,8 @@ import { BEGLEITER_ITEMS } from './begleiter';
 export { Funkeln, stern };
 
 /** A tube with round ends along the path `d`, `b` wide. */
-const rohr = (d: string, b: number, farbe: string) => <path d={d} fill="none" stroke={farbe} strokeWidth={b} strokeLinecap="round" strokeLinejoin="round" />;
+// Shafts from 5 units up 2.5 thicker, as in items-werkzeug.tsx (Stufe 3, 27.11.2026).
+const rohr = (d: string, b: number, farbe: string) => <path d={d} fill="none" stroke={farbe} strokeWidth={b >= 5 ? b + 2.5 : b} strokeLinecap="round" strokeLinejoin="round" />;
 const stiel = (von: number, bis: number, b: number, farbe: string) => rohr(`M0 ${von} V${bis}`, b, farbe);
 const klinge = (spitze: number, b: number) => `M${-b} -14 V${spitze + 12} Q${-b} ${spitze + 4} 0 ${spitze} Q${b} ${spitze + 4} ${b} ${spitze + 12} V-14 Z`;
 const klingeRechts = (spitze: number, b: number) => `M0 -14 V${spitze} Q${b} ${spitze + 4} ${b} ${spitze + 12} V-14 Z`;
@@ -21,6 +22,7 @@ const GRUND: Item[] = [
     id: 'waldhut',
     name: 'Waldhut',
     platz: 'hut',
+    haube: true,
     seltenheit: 1,
     rahmen: [-44, -56, 90, 68],
     zeichnung: () => (
@@ -60,6 +62,7 @@ const GRUND: Item[] = [
     id: 'eisenhelm',
     name: 'Eisenhelm',
     platz: 'hut',
+    haube: true,
     seltenheit: 3,
     rahmen: [-40, -62, 80, 74],
     zeichnung: () => (
@@ -77,6 +80,7 @@ const GRUND: Item[] = [
     id: 'zauberhut',
     name: 'Zauberhut',
     platz: 'hut',
+    haube: true,
     seltenheit: 3,
     bewegt: true,
     rahmen: [-48, -70, 96, 82],

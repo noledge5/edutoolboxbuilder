@@ -1,3 +1,4 @@
+import { useId } from 'react';
 // Boss „Der Kompass-Golem“ (boss template 1): a stone giant with a compass in its chest. Body with the head as a
 // child, two heavy arms that turn at the shoulder. The needle spins by itself (faster when angry).
 // Anchor `hut` on the head, so a boss can wear a crown too.
@@ -10,11 +11,24 @@ import type { Figur, Stand, Teil } from './typen';
 /** A flat dark eye under a stone brow: lurking narrow, angry slanted, hit squeezed, beaten crossed out. */
 function Auge({ x, gesicht, augenZu }: { x: number } & Stand) {
   const links = x < 130;
+  // Like the dragon and the squid (Held 4, 27.11.2026): a white eye, a dark pupil, a lid of stone for the mood.
+  const clip = `golem-auge-${useId().replace(/:/g, '')}`;
   const linie = { fill: 'none', stroke: P.auge, strokeWidth: 5, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
   if (gesicht === 'besiegt') return <path d={`M${x - 8} 62 l16 14 M${x + 8} 62 l-16 14`} {...linie} />;
   if (gesicht === 'au') return <path d={links ? `M${x - 9} 62 L${x + 7} 69 L${x - 9} 76` : `M${x + 9} 62 L${x - 7} 69 L${x + 9} 76`} {...linie} />;
-  if (augenZu) return <path d={`M${x - 10} 70 h20`} {...linie} strokeWidth={4} />;
-  return <ellipse cx={x} cy={71} rx={11} ry={gesicht === 'wut' ? 8 : 7} fill={P.auge} />;
+  const kante: [number, number] = augenZu ? [84, 84] : gesicht === 'wut' ? (links ? [63, 71] : [71, 63]) : gesicht === 'boese' ? [66, 66] : [61, 61];
+  return (
+    <g>
+      <clipPath id={clip}>
+        <ellipse cx={x} cy={71} rx={13} ry={11} />
+      </clipPath>
+      <ellipse cx={x} cy={71} rx={13} ry={11} fill={P.weiss} />
+      <g clipPath={`url(#${clip})`}>
+        <circle cx={x + (links ? 2.5 : -2.5)} cy={73} r={6.2} fill={P.auge} />
+        <path d={`M${x - 15} ${kante[0]} L${x + 15} ${kante[1]} L${x + 15} 50 L${x - 15} 50 Z`} fill={P.metall} />
+      </g>
+    </g>
+  );
 }
 
 /** Heavy brows: a flat ledge, slanted down to the middle when angry. */
@@ -108,7 +122,10 @@ function arm(seite: -1 | 1): Teil {
     zeichnung: () => (
       <g>
         <path d={`M${x - 13} 126 L${x + 13} 126 L${faust + 12} 182 L${faust - 12} 182 Z`} {...flaeche(P.metallTief)} />
-        <path d={`M${faust - 22} 186 Q${faust - 22} 168 ${faust} 168 Q${faust + 22} 168 ${faust + 22} 186 Q${faust + 22} 206 ${faust} 206 Q${faust - 22} 206 ${faust - 22} 186 Z`} {...flaeche(P.metall)} />
+        <path
+          d={`M${faust - 22} 186 Q${faust - 22} 168 ${faust} 168 Q${faust + 22} 168 ${faust + 22} 186 Q${faust + 22} 206 ${faust} 206 Q${faust - 22} 206 ${faust - 22} 186 Z`}
+          {...flaeche(P.metall)}
+        />
         <path d={`M${faust + 22} 186 Q${faust + 22} 206 ${faust} 206 Q${faust + 12} 198 ${faust + 14} 180 Z`} fill={P.metallTief} opacity={0.6} />
         <ellipse cx={x} cy={118} rx={22} ry={20} {...flaeche(P.metall)} />
         <path d={`M${x + 22} 118 A22 20 0 0 1 ${x} 138 Q${x + 12} 126 ${x + 12} 106 Z`} fill={P.metallTief} opacity={0.6} />

@@ -80,8 +80,12 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
 - Ein Bild im Kopfbereich nur, wenn es etwas sagt. Bilder sind nie Füllmaterial.
 
 ### Gesichter, Humor, Übertreibung
-- Augen bleiben dunkel und flach ohne Glanzpunkt (Lehrkraft, 12.11.2026). Den Ausdruck machen die **Lider** (eine flache
-  Form über dem Auge: müde, skeptisch, frech), Augenbrauen und der Mund.
+- **Held 4 (27.11.2026, Inspiration der Lehrkraft):** Kopf als abgerundeter Block statt Kugel, **weiße Augen mit dunkler
+  Pupille** (weiter ohne Glanzpunkt, Regel vom 12.11.), kräftige Nase als eigene Form, Brauen als dicke Balken, gerade
+  Beine und Pillen-Füße. Eigener Bau und eigene Palette, keine fremden Figuren nachgebaut. Stilprobe:
+  `lernquest/stilprobe/held-v4.png` (`STILPROBE_HELD=<ordner> npx vitest run src/lernquest/figuren/stilprobe-held4`).
+  Den Ausdruck machen die **Lider** (eine flache Form in Hautfarbe über oder unter dem Auge: froh, sanft, nachdenklich,
+  traurig), die Brauen und der Mund.
 - Der Gesichtsausdruck ist ein austauschbares Teil (`gesichter`), der Körper wird dafür nicht neu gezeichnet.
 - **Übertreiben** fast bis zur Karikatur, mit **Rhythmus**: Größen bewusst kontrastieren (riesiger Hund, winziger
   Knochen), Varianten aus derselben Grundform in anderen Proportionen (hoch, breit, rund, klein).
@@ -93,6 +97,9 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
 
 ## Klassendorf (Richtung A, 25.11.2026)
 
+- **Dorf 4 (27.11.2026, mit Held 4):** große, ruhige Formen statt vieler kleiner: Dächer als Flächen mit zwei breiten
+  Ziegelbändern und heller First (keine Bogenziegel, keine dunklen Kanten), Fachwerk mit weniger, kräftigeren Balken,
+  Fenster mit einer Sprosse, große Mauersteine, Zäune mit weniger, dickeren Pfosten, etwa halb so viel Deko auf dem Boden.
 - **Aufbau rechnet, Zeichnung zeichnet:** `dorfplan.ts` legt Weg, Grundstücke, Plätze, Laternen und Deko fest (reine Geometrie,
   getestet: nichts überlappt, Bäume stehen nie vor einem Haus, die Karte wächst nur nach oben); `figuren/dorf.tsx` zeichnet.
 - **Abend ohne Verläufe:** Jedes Ding bekommt eine einfarbige Kopie in `nachtTief` darüber (halb durchsichtig,
