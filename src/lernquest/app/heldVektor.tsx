@@ -1,7 +1,7 @@
 // The hero in the app as the vector figure of the workshop (Stufe E, Teil 4): the saved `Avatar` (src/lernquest/teile.ts)
 // becomes the hero's look (figuren/held.tsx), its hat, tool and companion become items, the background a scene behind.
 // avatar.tsx uses these unless something worn exists only as an uploaded picture (a part made on the teacher page).
-import { AUGEN_ARTEN, FigurBild, FRISUR_ARTEN, held, HINTERGRUENDE, hutOben, ITEMS, KLEIDUNG } from '../figuren';
+import { AUGEN_ARTEN, FigurBild, FRISUR_ARTEN, held, heldRaum, HINTERGRUENDE, ITEMS, KLEIDUNG } from '../figuren';
 import type { Aussehen, Item } from '../figuren';
 import { alleFrisuren, angelegt, frisurVon, haarfarbeVon, mundVon, SLOTS } from '../teile';
 import type { Avatar, Teil } from '../teile';
@@ -50,18 +50,25 @@ export const HELD_AUSSCHNITT = {
   kleidung: '70 126 100 104',
 } as const;
 
-/** A crop of the hero made taller, and as much wider, when a hat reaches above it (27.11.2026: hats were cut off at the
- *  top of the picture): the hero keeps standing where it stood and gets a little smaller. `k` scales the old crop into
- *  the new one (for the background). */
-export function mitHut(ausschnitt: string, oben: number | null): { vb: string; k: number; x: number; y: number; ox: number; oy: number } {
+/** How far the hero rises in a move (figure units), so a jump is not cut off at the top. */
+const SPRUNG: Record<string, number> = { jubeln: 22, huepfen: 30 };
+
+/** A crop of the hero made bigger when something reaches out of it (27.11.2026: tall hats, high hair and jumps were cut
+ *  off at the top, companions at the left): it grows evenly, the hero keeps standing where it stood and gets a little
+ *  smaller. `links` counts only for crops that show the whole hero. `k` scales the old crop into the new one (for the
+ *  background). */
+export function mitPlatz(ausschnitt: string, { oben, links }: { oben: number | null; links?: number | null }): { vb: string; k: number; x: number; y: number; ox: number; oy: number } {
   const [ox, oy, w, h] = ausschnitt.split(' ').map(Number);
   const rand = 4;
-  if (oben === null || oben - rand >= oy) return { vb: ausschnitt, k: 1, x: ox, y: oy, ox, oy };
-  const y = Math.floor(oben - rand);
-  const nh = oy + h - y;
-  const k = nh / h;
+  const mitte = ox + w / 2;
+  const kOben = oben !== null && oben - rand < oy ? (oy + h - (oben - rand)) / h : 1;
+  const kLinks = links != null && oy + h > 200 && links - rand < ox ? (mitte - (links - rand)) / (w / 2) : 1;
+  const k = Math.max(1, kOben, kLinks);
+  if (k === 1) return { vb: ausschnitt, k, x: ox, y: oy, ox, oy };
   const nw = w * k;
-  const x = ox + w / 2 - nw / 2;
+  const nh = h * k;
+  const x = mitte - nw / 2;
+  const y = oy + h - nh;
   return { vb: [x, y, nw, nh].map((n) => Math.round(n * 10) / 10).join(' '), k, x, y, ox, oy };
 }
 
@@ -70,11 +77,13 @@ export function mitHut(ausschnitt: string, oben: number | null): { vb: string; k
 export function HeldBild({ avatar, ausschnitt = HELD_AUSSCHNITT.ganz, className, lebendig = false, ohneHintergrund = false, pose, animation }: { avatar: Avatar; ausschnitt?: string; className?: string; lebendig?: boolean; ohneHintergrund?: boolean; pose?: string; animation?: string }) {
   const bg = ohneHintergrund ? undefined : HINTERGRUENDE.find((h) => h.id === angelegt(avatar, 'hintergrund')?.id);
   const items = itemsVon(avatar);
-  const r = mitHut(ausschnitt, hutOben(items.find((i) => i.platz === 'hut')));
+  const aussehen = aussehenVon(avatar);
+  const raum = heldRaum(aussehen.frisur, items);
+  const r = mitPlatz(ausschnitt, { oben: raum.oben - (SPRUNG[animation ?? ''] ?? 0), links: raum.links });
   return (
     <svg className={className} viewBox={r.vb} aria-hidden focusable="false" data-held="vektor">
       {bg && (r.k === 1 ? bg.zeichnung(0) : <g transform={`translate(${r.x} ${r.y}) scale(${r.k}) translate(${-r.ox} ${-r.oy})`}>{bg.zeichnung(0)}</g>)}
-      <FigurBild figur={held(aussehenVon(avatar))} items={items} breite={240} lebendig={lebendig} pose={pose} animation={animation ?? (lebendig ? 'atmen' : undefined)} danach={lebendig ? 'atmen' : undefined} />
+      <FigurBild figur={held(aussehen)} items={items} breite={240} lebendig={lebendig} pose={pose} animation={animation ?? (lebendig ? 'atmen' : undefined)} danach={lebendig ? 'atmen' : undefined} />
     </svg>
   );
 }

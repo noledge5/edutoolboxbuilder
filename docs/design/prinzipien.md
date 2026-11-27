@@ -124,7 +124,8 @@ Gelb (`P.gelb`) ist eine Farbe, Gold (`P.gold*`) ein Material.
   liegt das Pflaster über dem Weg. Der Schwung des Wegs setzt ohne Knick ein (`wegX`).
 - **Hüte und Haare am Held 4 (27.11.2026):** Jeder Hut nennt die Weite des Teils, das auf dem Kopf sitzt (`weite`), und
   wird auf die Kopfbreite gebracht (Krempen, Federn, Hörner stehen über); Kronen sitzen groß auf dem Kopf statt klein auf
-  dem Haar. Ein hoher Hut wird nie abgeschnitten: das Bild des Helden wächst nach oben, der Held wird etwas kleiner.
+  dem Haar. Nichts wird abgeschnitten: für hohe Hüte, hohes Haar, Begleiter und Sprünge wächst das Bild des Helden, der
+  Held wird etwas kleiner. Im Laden trägt der eigene Held ein Teil zur Probe, bevor Münzen fließen.
   Frisuren in kräftigen, runden Formen: Zöpfe aus drei Gliedern, Stacheln als geschwungene Büschel, die Bürste so breit
   wie der Kopf, Regenbogenhaar in Bändern entlang der Haarkante.
 - **Aufbau rechnet, Zeichnung zeichnet:** `dorfplan.ts` legt Weg, Grundstücke, Plätze, Laternen und Deko fest (reine Geometrie,

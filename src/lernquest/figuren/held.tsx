@@ -1353,8 +1353,8 @@ function koerper(k: Kleid): Teil {
   return {
     id: 'koerper',
     drehpunkt: [120, 200],
-    anker: { begleiter: [30, 230] },
-    ankerSkala: { begleiter: 1.15 },
+    anker: { begleiter: [BEGLEITER_X, 230] },
+    ankerSkala: { begleiter: BEGLEITER_SKALA },
     zeichnung: (s) => (
       <g>
         <g transform="translate(120 172) scale(1.16 1.04) translate(-120 -172)">{k.hinten?.()}</g>
@@ -1401,6 +1401,21 @@ export function hutOben(i: Item | undefined): number | null {
   if (!i || i.platz !== 'hut') return null;
   const { p, s } = hutLage(i);
   return p[1] + i.rahmen[1] * s;
+}
+
+/** The top of each hairstyle that reaches higher than the usual 21 (measured 27.11.2026). */
+const FRISUR_OBEN: Record<string, number> = { dutt: -4, stacheln: -1, blitzfrisur: -1, afro: 5, feuerhaar: 7, haarschnecken: 10, buerste: 13, wuschelkopf: 13, pferdeschwanz: 16 };
+/** Where the companion stands and how much bigger it is drawn (anchor `begleiter` of the body). */
+const BEGLEITER_X = 30;
+const BEGLEITER_SKALA = 1.15;
+
+/** The room the standing hero needs beyond its 240 × 240 square: the top of hair or hat, and the left edge of its
+ *  companion (null without one). A picture of the hero grows to show it all (HeldBild, 27.11.2026). */
+export function heldRaum(frisur: string | undefined, items: Item[]): { oben: number; links: number | null } {
+  const hut = hutOben(items.find((i) => i.platz === 'hut'));
+  const haar = FRISUR_OBEN[frisur ?? ''] ?? 21;
+  const tier = items.find((i) => i.platz === 'begleiter');
+  return { oben: Math.min(haar, hut ?? haar), links: tier ? BEGLEITER_X + tier.rahmen[0] * BEGLEITER_SKALA : null };
 }
 /** Hair under a covering hat: only what lies below the brim shows, so the hat sits on the head, not in front of it. */
 function UnterHut({ an, children }: { an: boolean; children: ReactNode }) {
