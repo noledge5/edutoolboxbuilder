@@ -100,6 +100,8 @@ Alle drei Ebenen teilen: **eine Palette** (`stil.ts`, Oberfläche über die Toke
 - **Dorf 4 (27.11.2026, mit Held 4):** große, ruhige Formen statt vieler kleiner: Dächer als Flächen mit zwei breiten
   Ziegelbändern und heller First (keine Bogenziegel, keine dunklen Kanten), Fachwerk mit weniger, kräftigeren Balken,
   Fenster mit einer Sprosse, große Mauersteine, Zäune mit weniger, dickeren Pfosten, etwa halb so viel Deko auf dem Boden.
+  Leben: der eigene Held vor dem eigenen Haus, bis zu vier Mitschüler (ohne Namen, jeden Tag andere) laufen auf dem Weg
+  hin und her, Enten und ein Boot am Dorfplatz; alles still bei „Bewegung reduzieren“.
 - **Aufbau rechnet, Zeichnung zeichnet:** `dorfplan.ts` legt Weg, Grundstücke, Plätze, Laternen und Deko fest (reine Geometrie,
   getestet: nichts überlappt, Bäume stehen nie vor einem Haus, die Karte wächst nur nach oben); `figuren/dorf.tsx` zeichnet.
 - **Abend ohne Verläufe:** Jedes Ding bekommt eine einfarbige Kopie in `nachtTief` darüber (halb durchsichtig,

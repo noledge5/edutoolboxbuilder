@@ -4828,3 +4828,47 @@ button.lq-teil:active {
     animation: none;
   }
 }
+
+/* Classmates walking on the village road (Dorf 4): along a stretch and back, a small step while walking. */
+.lq-wanderer {
+  animation: lq-wandern 18s linear infinite;
+}
+@keyframes lq-wandern {
+  0%,
+  6% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(var(--mx), var(--my));
+  }
+  44%,
+  56% {
+    transform: translate(var(--bx), var(--by));
+  }
+  75% {
+    transform: translate(var(--mx), var(--my));
+  }
+  94%,
+  100% {
+    transform: translate(0, 0);
+  }
+}
+.lq-wanderer-schritt {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: lq-schritt 0.45s ease-in-out infinite alternate;
+}
+@keyframes lq-schritt {
+  from {
+    transform: translateY(0) rotate(-3deg);
+  }
+  to {
+    transform: translateY(-2px) rotate(3deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-wanderer,
+  .lq-wanderer-schritt {
+    animation: none;
+  }
+}

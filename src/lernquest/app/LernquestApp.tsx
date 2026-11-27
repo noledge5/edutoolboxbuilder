@@ -1080,7 +1080,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   }
 
   if (screen.kind === 'klasse') {
-    return rahmen(<KlasseSeite aktion={aktion} aufgabe={<KlassenAufgabeBox stand={stand} />} dorf={<DorfBox aktion={aktion} stand={stand} setStand={setStand} />} />);
+    return rahmen(<KlasseSeite aktion={aktion} aufgabe={<KlassenAufgabeBox stand={stand} />} dorf={(mitschueler) => <DorfBox aktion={aktion} stand={stand} setStand={setStand} mitschueler={mitschueler} />} />);
   }
 
   if (screen.kind === 'wiederholen') {
