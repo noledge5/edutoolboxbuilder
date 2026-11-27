@@ -13,6 +13,7 @@ import { BLOCK_TYPES, HOOK_KINDS, LEVEL_NAMES } from '../model/blockTypes';
 import type { BlockType } from '../model/types';
 import { typo, useSheetDoc, useSheetLang, useSheetText } from './lang';
 import { Figure } from './Figure';
+import { TaskRail } from './TaskRail';
 import { LanguageBlock, LanguageTaskBody } from './LanguageBlocks';
 
 /** Block types drawn by LanguageBlocks.tsx. */
@@ -295,14 +296,14 @@ function BlockBody({ block, taskNum, editing, onImageFile, onPicFile }: BlockCon
       const help = str(p.help).trim();
       return (
         <div className="ws-task">
-          <div className="ws-num">
+          <TaskRail block={block} lang={lang}>
             {taskNum}
             {str(p.tip).trim() && (
               <span className="ws-tip-badge" title="Dazu gibt es eine Tippkarte">
                 <Icon icon={Lightbulb} size={10} />
               </span>
             )}
-          </div>
+          </TaskRail>
           <div className="ws-task-main">
             <div className="ws-task-head">
               {/* Level, work form and competence are planning data: shown while editing, never printed or in the preview. */}

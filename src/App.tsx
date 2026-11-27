@@ -34,7 +34,9 @@ import { SlidesView } from './slides/SlidesView';
 import { enterFullscreen } from './slides/Presenter';
 import { CanvaDialog } from './canva/CanvaDialog';
 import type { Slide } from './model/slides';
-import { subjectColor, subjectVars } from './library/subjectColor';
+import { subjectColor, subjectTint } from './library/subjectColor';
+import { Shell } from './shell/Shell';
+import { Sidebar } from './shell/Sidebar';
 import { ModuleView } from './library/ModuleView';
 import { Overview } from './library/Overview';
 import { SyncDialog } from './library/SyncDialog';
@@ -141,7 +143,17 @@ export function App() {
   useEffect(() => {
     let alive = true;
     Promise.all([store.loadLibrary(), store.loadInSyncUntil()])
-      .then(([l, t]) => {
+      .then(async ([loaded, syncedUntil]) => {
+        let t = syncedUntil;
+        // npm run demo: the demo storage gets the sample library once (only in that mode; its own port, its own storage).
+        let l = loaded;
+        if (import.meta.env.VITE_DEMO && !l.modules.some((m) => m.id.startsWith('demo-'))) {
+          l = (await import('./demo/demoLibrary')).demoLibrary();
+          await store.replaceWhole(l);
+          // The sample counts as backed up, so no reminder covers the screen.
+          t = Date.now();
+          await store.saveInSyncUntil(t);
+        }
         if (!alive) return;
         setLib(l);
         libRef.current = l;
@@ -748,6 +760,7 @@ export function App() {
     const lessons = lessonsOf(lib, m.id);
     view = (
       <ModuleView
+        key={m.id}
         module={m}
         lessons={lessons}
         subjects={subjectsOf(lib)}
@@ -822,12 +835,12 @@ export function App() {
     view = (
       <Overview
         lib={lib}
-        trashCount={trash.length}
-        savedAt={inSyncUntil}
-        onOpenTrash={() => setTrashOpen(true)}
         subject={route.subject}
         grade={route.grade}
-        onPick={(subject, grade) => go({ view: 'overview', subject, grade }, true)}
+        savedAt={inSyncUntil}
+        pending={changedSince(lib, inSyncUntil)}
+        autoSync={syncStatus}
+        onSync={() => setSyncOpen(true)}
         onOpenModule={(m) => go({ view: 'module', id: m.id })}
         onOpenLesson={(l) => go({ view: 'lesson', id: l.id })}
         onAddModule={(subject, grade) => {
@@ -835,24 +848,42 @@ export function App() {
           putModule(m);
           go({ view: 'module', id: m.id });
         }}
-        onAddSubject={(name) => !subjectsOf(lib).includes(name) && putSettings({ ...lib.settings, subjects: [...lib.settings.subjects, name] })}
-        onRemoveSubject={(name) => putSettings({ ...lib.settings, subjects: lib.settings.subjects.filter((s) => s !== name) })}
-        onSettings={putSettings}
-        pending={changedSince(lib, inSyncUntil)}
-        autoSync={syncStatus}
-        onSync={() => setSyncOpen(true)}
         onOpenFile={(file) => openFile(file)}
         onOpenPlan={(subject, grade) => go({ view: 'plan', subject, grade })}
-        onOpenLernquest={() => go({ view: 'lernquest' })}
       />
     );
   }
 
   return (
     <SearchContext.Provider value={openSearch}>
-      <div className="subject-scope" style={subject ? subjectVars(subjectColor(lib.settings, subject)) : undefined}>
+      <div className="subject-scope" style={subject ? subjectTint(subjectColor(lib.settings, subject)) : undefined}>
         <AiGradeContext.Provider value={here.grade}>
-          <ClassNotesContext.Provider value={{ settings: lib.settings, save: putSettings }}>{view}</ClassNotesContext.Provider>
+          <ClassNotesContext.Provider value={{ settings: lib.settings, save: putSettings }}>
+            {route.view === 'overview' || route.view === 'module' || route.view === 'plan' || route.view === 'lernquest' ? (
+              <Shell
+                nav={(close) => (
+                  <Sidebar
+                    lib={lib}
+                    route={route}
+                    trashCount={trash.length}
+                    pending={changedSince(lib, inSyncUntil)}
+                    autoSync={syncStatus}
+                    onSync={() => setSyncOpen(true)}
+                    onOpenTrash={() => setTrashOpen(true)}
+                    onAddSubject={(name) => !subjectsOf(lib).includes(name) && putSettings({ ...lib.settings, subjects: [...lib.settings.subjects, name] })}
+                    onRemoveSubject={(name) => putSettings({ ...lib.settings, subjects: lib.settings.subjects.filter((s) => s !== name) })}
+                    onSettings={putSettings}
+                    onOpenFile={(file) => openFile(file)}
+                    onNavigate={close}
+                  />
+                )}
+              >
+                {view}
+              </Shell>
+            ) : (
+              view
+            )}
+          </ClassNotesContext.Provider>
         </AiGradeContext.Provider>
       </div>
       {searchOpen && <SearchDialog lib={lib} here={here} onOpen={openHit} onClose={closeSearch} />}

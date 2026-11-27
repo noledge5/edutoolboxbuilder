@@ -107,7 +107,7 @@ export function SheetPage({ doc, page, index, editing, headerSelected, onHeaderC
   return (
     <SheetDocContext.Provider value={sheetDoc}>
       <div
-        className={'ws-page' + sheetClasses(doc.sheet) + (shown ? ' is-solution' : '') + (mode.bw ? ' is-bw' : '')}
+        className={'ws-page' + sheetClasses(doc.sheet) + (shown ? ' is-solution' : '') + (mode.bw ? ' is-bw' : '') + (front ? ' is-back-page' : '')}
         style={style}
         data-page={index}
         lang={lang}

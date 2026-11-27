@@ -1,0 +1,90 @@
+/* Controls of the chrome (26.11.2026, Dose): moulded plastic at app size. A 1px rim, a 2px rim below and a glint on
+   top; a press sinks 2px. The primary is green plastic, the secondary clear; choices are keys, mint when chosen.
+   Loaded after app.css, so these are the only definitions of these controls. */
+
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-surface);
+  color: var(--ui-ink);
+  font: 500 14px/1.2 var(--ui-font);
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 var(--ui-glint), 0 0 0 1px var(--ui-rule), 0 2px 0 var(--ui-rule);
+  transition: transform var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+.ui-btn:hover:not(:disabled) { background: var(--ui-paper); }
+.ui-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 1px 0 var(--ui-glint), 0 0 0 1px var(--ui-rule), 0 0 0 var(--ui-rule); }
+.ui-btn:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.ui-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.ui-btn.btn-primary {
+  background: linear-gradient(var(--ui-accent), var(--ui-accent-deep));
+  color: var(--ui-on-accent);
+  box-shadow: inset 0 1px 0 oklch(72% 0.1 160 / 0.7), 0 0 0 1px var(--ui-accent-deep), 0 2px 0 oklch(35% 0.09 164);
+}
+.ui-btn.btn-primary:hover:not(:disabled) { background: var(--ui-accent-deep); }
+.ui-btn.btn-primary:active:not(:disabled) { box-shadow: inset 0 1px 0 oklch(72% 0.1 160 / 0.7), 0 0 0 1px var(--ui-accent-deep), 0 0 0 oklch(35% 0.09 164); }
+.ui-btn.btn-ghost { padding-inline: 6px; background: transparent; box-shadow: none; color: var(--ui-accent-deep); }
+.ui-btn.btn-ghost:hover:not(:disabled) { background: var(--color-ui-hover); }
+.ui-btn.is-on, .ui-btn.is-on:hover:not(:disabled) { background: var(--ui-accent-soft); color: var(--ui-ink); box-shadow: inset 0 1px 0 var(--ui-glint), 0 0 0 1px oklch(70% 0.1 160), 0 2px 0 oklch(70% 0.1 160); }
+.ui-btn.is-danger { color: oklch(45% 0.13 30); }
+.ui-btn.is-small { min-height: 30px; padding: 0 10px; font-size: 13px; }
+/* In a bar, secondary buttons are quiet until hovered; the one primary stays moulded. */
+.topbar .ui-btn.btn-secondary { background: transparent; box-shadow: none; }
+.topbar .ui-btn.btn-secondary:hover:not(:disabled) { background: var(--color-ui-hover); }
+.topbar .ui-btn.btn-secondary.is-on { background: var(--ui-accent-soft); }
+.topbar-title { font-family: var(--ui-font-display); font-weight: 700; letter-spacing: -0.02em; }
+
+/* Fields: surface, a visible edge (3:1), 10px corners, a green ring on focus. */
+.input {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in oklab, var(--ui-muted) 62%, var(--ui-surface));
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-surface);
+  color: var(--ui-ink);
+  font-family: var(--ui-font);
+  caret-color: var(--ui-accent);
+}
+.input:hover { border-color: var(--ui-muted); }
+.input:focus-visible { border-color: var(--ui-focus); outline: 2px solid color-mix(in oklab, var(--ui-focus) 30%, transparent); outline-offset: 0; }
+textarea.input { border-radius: var(--ui-radius-control); }
+.input::placeholder { color: var(--color-neutral-600); }
+
+/* Choices: keys, mint when chosen (the old pills and the segmented row). */
+.seg-pill {
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ui-surface);
+  color: var(--ui-ink-2);
+  font: 500 13px/1.2 var(--ui-font);
+  box-shadow: inset 0 1px 0 var(--ui-glint), 0 0 0 1px var(--ui-rule), 0 2px 0 var(--ui-rule);
+  transition: transform var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.seg-pill:hover:not(.is-on) { background: var(--ui-paper); }
+.seg-pill:active { transform: translateY(2px); box-shadow: inset 0 1px 0 var(--ui-glint), 0 0 0 1px var(--ui-rule), 0 0 0 var(--ui-rule); }
+.seg-pill.is-on { background: var(--ui-accent-soft); color: var(--ui-ink); box-shadow: inset 0 1px 0 var(--ui-glint), 0 0 0 1px oklch(70% 0.1 160), 0 2px 0 oklch(70% 0.1 160); }
+.seg-pill:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.seg { border-radius: var(--ui-radius-control); border-color: var(--ui-rule); }
+.seg-opt:has(input:checked) { background: var(--ui-accent-soft); color: var(--ui-ink); }
+.icon-pick.is-on { background: var(--ui-accent-soft); border-color: oklch(70% 0.1 160); color: var(--ui-ink); }
+
+/* Menus and dialogs: white surfaces that lift off the paper. */
+.menu-list { border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: 0 0 0 1px var(--ui-rule), var(--ui-shadow-pop); }
+.menu-item { border-radius: 8px; font-family: var(--ui-font); font-weight: 500; }
+.menu-item:hover { background: var(--ui-paper-2); }
+.dialog { border-radius: var(--ui-radius-card); background: var(--ui-surface); box-shadow: 0 0 0 1px var(--ui-rule), var(--ui-shadow-lift); }
+.dialog-backdrop { background: oklch(21% 0.025 170 / 0.4); }
+.dialog-title { font: 700 20px/1.2 var(--ui-font-display); letter-spacing: -0.02em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-btn, .seg-pill { transition: none; }
+  .ui-btn:active:not(:disabled), .seg-pill:active { transform: none; }
+}

@@ -1,5 +1,5 @@
 // Form fields of the properties panel (Organic `.field` label + pill `.input`).
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { Globe, ImageUp, Sparkles, Trash2 } from 'lucide-react';
 import { Icon } from '../icons';
 import type { SegOption } from '../model/blockTypes';
@@ -209,10 +209,13 @@ interface SegFieldProps<V extends string | number | boolean> {
 
 export function SegField<V extends string | number | boolean>({ label, value, options, onPick }: SegFieldProps<V>) {
   const id = useId();
+  // In the editor's panel the keys stand in a grid: short labels four to a row, long ones two.
+  const longest = Math.max(0, ...options.map((o) => String(o.l).length));
+  const cols = options.length <= 2 ? options.length : longest <= 4 ? Math.min(options.length, 4) : 2;
   return (
     <div className="field">
       <label id={id}>{label}</label>
-      <div className="seg-pills" role="radiogroup" aria-labelledby={id}>
+      <div className="seg-pills" role="radiogroup" aria-labelledby={id} style={{ '--seg-cols': cols } as CSSProperties}>
         {options.map((o) => {
           const on = o.v === value;
           return (

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type Ref } from 'react';
+import { useContext, useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type Ref, type CSSProperties } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { ChevronDown, ChevronUp, ClipboardCopy, Copy, FilePlus2, ListChecks, Plus, Send, Trash2 } from 'lucide-react';
 import { Icon } from '../icons';
@@ -24,9 +24,7 @@ export function Canvas({ ref, api, zoom, draggingId, onBackgroundClick }: Canvas
       <div className="pages">
         {api.doc.pages.map((page, p) =>
           // Teacher pages are not part of the student sheets.
-          !api.editing && mode.solutions === 'hidden' && page.type === 'lehrkraft' ? null : (
-            <PageFrame key={p} api={api} page={page} p={p} zoom={zoom} draggingId={draggingId} />
-          ),
+          !api.editing && mode.solutions === 'hidden' && page.type === 'lehrkraft' ? null : <PageFrame key={p} api={api} page={page} p={p} zoom={zoom} draggingId={draggingId} />,
         )}
         {api.editing && (
           <button
@@ -133,7 +131,7 @@ function PageFrame({ api, page, p, zoom, draggingId }: PageFrameProps) {
           onBodyClick={selectPage}
           bodyRef={bodyRef}
           dropEnd={!!drop && drop.p === p && drop.pos === 'end'}
-          style={{ transform: `scale(${zoom})` }}
+          style={{ transform: `scale(${zoom})`, '--zoom': zoom } as CSSProperties}
         >
           {page.blocks.map((b, i) => (
             <BlockFrame key={b.id} api={api} block={b} p={p} i={i} taskNum={nums[i]} dragging={draggingId === b.id} />

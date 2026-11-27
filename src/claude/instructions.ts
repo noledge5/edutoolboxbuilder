@@ -60,7 +60,7 @@ const BLOCK_USE: Record<BlockType, string> = {
 const VARIANT_TEXT = '`"accent-2"`, `"accent"`, `"neutral"`';
 
 /** Fields every task has, or every material block: described once, not with each block. */
-const COMMON = new Set(['level', 'points', 'langPoints', 'competence', 'tip', 'help', 'mat']);
+const COMMON = new Set(['sym', 'form', 'level', 'points', 'langPoints', 'competence', 'tip', 'help', 'mat']);
 
 /** A field in short: its key, the format hint of its label, its values. */
 function fieldText(f: FieldDef): string {

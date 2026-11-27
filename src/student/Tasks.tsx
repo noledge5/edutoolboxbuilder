@@ -8,6 +8,7 @@ import { lines, num, richParts, rows, segments, str } from '../model/text';
 import type { Block } from '../model/types';
 import { Marked } from '../sheet/parts';
 import { typo } from '../sheet/lang';
+import { TaskRail } from '../sheet/TaskRail';
 import { useImageUrl } from '../storage/images';
 import { taskSlots, type Answers, type Slot, type WordBank } from '../share/grade';
 import type { StudentText } from './text';
@@ -426,7 +427,9 @@ export function Task({ block, num: n, help, t, bank, ...rest }: TaskProps) {
   const helpText = str(p.help).trim();
   return (
     <div className="ws-task st-task">
-      <div className="ws-num">{n}</div>
+      <TaskRail block={block} lang={rest.lang}>
+        {n}
+      </TaskRail>
       <div className="ws-task-main">
         <div className="ws-task-head">
           <div className="ws-prompt"><Marked text={typo(str(p.prompt), rest.lang)} /></div>

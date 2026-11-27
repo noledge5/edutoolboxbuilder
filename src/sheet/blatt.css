@@ -1,0 +1,53 @@
+/* The worksheet as part of the Baukasten (26.11.2026, redesign stage 5, design A "Etikett" chosen by the teacher):
+   the header is a label, a strip of the subject's tint with the subject line over a white field framed in the subject's
+   colour, the topic icon on a plate of the tint, task numbers as small keys, calm boxes with 10 px corners, the lesson
+   code in DM Mono. Titles in Schibsted Grotesk (Englisch keeps its serif, Informatik its code font, so a subject stays
+   recognisable on a black-and-white copy). Labels in sentence case without letter-spacing.
+   Rules kept from November: body text Figtree at its size, the header keeps its height, no box grows, so no sheet breaks
+   differently. Principles behind it: docs/design/arbeitsblatt-prinzipien.md. Loaded after faecher.css; every colour is a
+   variable of the subject form, so the solution sheet (red pen) and the black-and-white copy follow by themselves. */
+
+.ws-page[class*='is-k-'] { --k-head: var(--font-title); --k-head-weight: 700; }
+.ws-page[class*='is-k-'].is-k-eng { --k-head: 'DM Serif Display', var(--font-heading); --k-head-weight: 400; }
+.ws-page[class*='is-k-'].is-k-inf { --k-head: 'JetBrains Mono', var(--font-heading); --k-head-weight: 700; }
+.ws-page[class*='is-k-'] .ws-title { letter-spacing: -0.015em; }
+.ws-page[class*='is-k-'] .ws-kicker { font: 600 11.5px/1.4 var(--font-label); letter-spacing: 0; text-transform: none; }
+.ws-page[class*='is-k-'] .ws-type-pill { font: 600 11px/1.6 var(--font-label); letter-spacing: 0; text-transform: none; }
+.ws-page[class*='is-k-'] .ws-label { font-size: calc(12px * var(--fs, 1)); letter-spacing: 0; text-transform: none; }
+.ws-page[class*='is-k-'] .ws-foot-code { font: 500 10.5px var(--font-code); letter-spacing: 0; }
+.ws-page[class*='is-k-'] .ws-name-row { font-family: var(--font-label); }
+.ws-page[class*='is-k-'] .ws-band::after { display: none; }
+
+/* — The header as a label: a strip of the tint with the subject line, a line of the subject's colour, the white field — */
+.ws-page[class*='is-k-'] .ws-band { padding-left: 12px; background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--k-acc); }
+.ws-page[class*='is-k-'] .ws-band:not(.is-back) {
+  padding-top: 28px;
+  padding-bottom: 6px;
+  background: linear-gradient(var(--k-soft) 0 22px, var(--k-acc) 22px 23.5px, var(--paper) 23.5px);
+}
+.ws-page[class*='is-k-'] .ws-band:not(.is-back) .ws-kicker { position: absolute; top: 4px; left: 14px; right: 14px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ws-page[class*='is-k-'].is-bw .ws-band:not(.is-back) { background: linear-gradient(var(--paper) 0 22px, var(--color-text) 22px 23.5px, var(--paper) 23.5px); }
+.ws-page[class*='is-k-'] .ws-band:not(.is-back) .ws-band-icon { width: 48px; height: 48px; border-radius: calc(var(--k-r) - 3px); background: var(--k-soft); color: var(--k-acc); }
+.ws-page[class*='is-k-'].is-bw .ws-band-icon { box-shadow: inset 0 0 0 1.5px var(--color-text); }
+.ws-page[class*='is-k-'] .ws-type-pill { padding: 0 8px; border-radius: 6px; background: var(--k-soft); color: var(--k-acc); }
+
+/* — Tasks and boxes — */
+.ws-page[class*='is-k-']:not(.is-k-eng):not(.is-k-inf) .ws-num { border-radius: 7px; background: var(--k-acc); color: var(--paper); font: 700 calc(13px * var(--fs, 1)) var(--font-title); }
+.ws-page[class*='is-k-'] .ws-hint { border-radius: 10px; }
+.ws-page[class*='is-k-'] .ws-hint-icon { border-radius: 8px; }
+.ws-page[class*='is-k-'] .ws-merksatz { border-radius: 12px; box-shadow: inset 0 0 0 2px var(--v-solid); }
+.ws-page[class*='is-k-'] .ws-merksatz-icon { border-radius: 10px; }
+.ws-page[class*='is-k-']:not(.is-k-eng):not(.is-k-inf) .ws-table { border-radius: 10px; }
+.ws-page[class*='is-k-'] .ws-word { border-radius: 6px; background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--k-mid); }
+.ws-page[class*='is-k-'] .ws-foot { padding-top: 3px; border-top: 1px solid var(--k-mid); }
+
+/* — The Symbolkarte (module print): every symbol with its word and the operators that call for it — */
+.ws-page:has(.ws-symcard) .ws-type-pill { display: none; }
+.ws-symcard { display: flex; flex-direction: column; gap: 14px; }
+.ws-symcard-lead { margin: 0; max-width: 60ch; font-size: 15px; }
+.ws-symcard-h { margin: 6px 0 0; font-size: 18px; }
+.ws-symcard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 20px; }
+.ws-symcard-row { display: flex; align-items: center; gap: 14px; padding: 8px 12px 8px 8px; border-radius: 10px; box-shadow: inset 0 0 0 1.5px var(--k-mid); }
+.ws-symcard-row .ws-sym { width: 46px; height: 42px; flex: none; border-radius: 9px; }
+.ws-symcard-row b { display: block; font-size: 16px; }
+.ws-symcard-row small { display: block; font-size: 12.5px; line-height: 1.35; color: var(--color-neutral-700); }

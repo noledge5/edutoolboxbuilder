@@ -59,7 +59,7 @@
   border-radius: 5px;
   font-family: var(--font-body);
   font-weight: 700;
-  font-size: 13px;
+  font-size: calc(13px * var(--fs, 1));
 }
 .ws-page .ws-table { position: relative; border: 0; border-radius: var(--k-r); --k-frame: var(--k-mid); }
 /* The frame lies over the cells (an inset shadow on the table itself would be hidden by the coloured head row). */
@@ -92,7 +92,7 @@
 .is-k-eng .ws-band { border-radius: calc(var(--k-r) + 10px); box-shadow: inset 0 5px 0 var(--k-acc); }
 .is-k-eng .ws-band-icon { border-radius: 50%; }
 .is-k-eng .ws-type-pill, .is-k-eng .ws-form-pill { border-radius: 999px; }
-.is-k-eng .ws-num { border-radius: 50%; background: var(--paper); color: var(--k-acc); box-shadow: inset 0 0 0 2px var(--k-acc); font-family: "DM Serif Display", var(--font-body); font-weight: 400; font-size: 14px; }
+.is-k-eng .ws-num { border-radius: 50%; background: var(--paper); color: var(--k-acc); box-shadow: inset 0 0 0 2px var(--k-acc); font-family: "DM Serif Display", var(--font-body); font-weight: 400; font-size: calc(14px * var(--fs, 1)); }
 .is-k-eng .ws-table { border-radius: 0; }
 .is-k-eng .ws-table::after { display: none; }
 .is-k-eng .ws-table-head { background: none; box-shadow: inset 0 -2px 0 var(--k-acc); }
@@ -115,13 +115,13 @@
 /* — Informatik: code font, square framed header, [1] numbers, dark table head, notes as // comments — */
 .is-k-inf { --k-head: "JetBrains Mono", var(--font-heading); --k-head-weight: 700; }
 .is-k-inf .ws-title { font-size: 19px; letter-spacing: -0.01em; }
-.is-k-inf .ws-h3 { font-size: 18px; }
+.is-k-inf .ws-h3 { font-size: calc(18px * var(--fs, 1)); }
 .is-k-inf .ws-h3::before { content: "> "; color: var(--k-acc); }
 .is-k-inf .ws-kicker, .is-k-inf .ws-type-pill, .is-k-inf .ws-num { font-family: "JetBrains Mono", var(--font-body); }
 .is-k-inf .ws-band { border-radius: calc(var(--k-r) - 8px); background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--k-acc); }
 .is-k-inf .ws-band-icon { border-radius: 2px; background: var(--k-acc); color: var(--paper); }
 .is-k-inf .ws-type-pill, .is-k-inf .ws-form-pill { border-radius: 0; box-shadow: inset 0 0 0 1px var(--k-acc); }
-.is-k-inf .ws-num { background: none; color: var(--k-acc); width: 30px; justify-content: start; font-size: 13px; border-radius: 0; }
+.is-k-inf .ws-num { background: none; color: var(--k-acc); width: 30px; justify-content: start; font-size: calc(13px * var(--fs, 1)); border-radius: 0; }
 .is-k-inf .ws-num::before { content: "["; }
 .is-k-inf .ws-num::after { content: "]"; }
 .is-k-inf .ws-num { display: flex; align-items: center; }

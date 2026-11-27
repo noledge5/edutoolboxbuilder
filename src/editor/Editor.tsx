@@ -39,9 +39,10 @@ import { markFound, pulse, type SearchFocus } from '../library/highlight';
 import type { Handout } from '../share/assignment';
 import { PropertiesPanel } from './PropertiesPanel';
 import { DragGhost, Toolbox } from './Toolbox';
-import { TopBar } from './TopBar';
+import { TopBar, ZoomDock } from './TopBar';
 import { useMediaQuery } from './useMediaQuery';
 import { setPart, str } from '../model/text';
+import './editor.css';
 
 const ZOOM_MIN = 0.4;
 const ZOOM_MAX = 1.5;
@@ -69,8 +70,7 @@ function validSelection(doc: Doc, sel: Selection): Selection {
   return ids.length === sel.ids.length ? sel : ops.selectionOf(ids);
 }
 
-const isTyping = (el: Element | null) =>
-  !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || (el as HTMLElement).isContentEditable);
+const isTyping = (el: Element | null) => !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || (el as HTMLElement).isContentEditable);
 
 /** Delete/Backspace and the arrow keys only act on the page, not while a button in the panel or toolbox has focus. */
 const focusOnCanvas = (el: Element | null) => !el || el === document.body || !!el.closest('.canvas');
@@ -170,6 +170,8 @@ export function Editor({
   const sel = validSelection(doc, rawSel);
   const compact = useMediaQuery('screen and (max-width: 1099px)');
   const [zoom, setZoomState] = useState(() => storedZoom() ?? 0.8);
+  // The zoom at the start, for the check whether the page fits the canvas.
+  const zoomRef = useRef(zoom);
   const [preview, setPreview] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
   const [keysOpen, setKeysOpen] = useState(false);
@@ -274,7 +276,10 @@ export function Editor({
     const { doc, sel, clips } = latest.current;
     const clip = clipId ? clips.find((c) => c.id === clipId) : clips[0];
     if (!clip) return;
-    const blocks = ops.copyBlocks(clip.blocks, competences.map((c) => c.id));
+    const blocks = ops.copyBlocks(
+      clip.blocks,
+      competences.map((c) => c.id),
+    );
     const at = ops.insertionPoint(doc, sel);
     commit(target ? ops.dropBlocks(doc, blocks, target) : ops.insertBlocks(doc, at.p, at.i, blocks), { select: ops.selectionOf(blocks.map((b) => b.id)) });
     anchor.current = blocks[0].id;
@@ -364,10 +369,14 @@ export function Editor({
     setZoom(Math.floor((free / PAGE_W) * 100) / 100);
   }, [setZoom]);
 
-  // On a tablet without a remembered zoom, start with the page fitted to the screen.
+  // On a tablet without a remembered zoom, and wherever the remembered zoom makes the page wider than the canvas
+  // (an iPad in landscape after the Mac), start with the page fitted to the screen.
   const fitOnStart = useRef(compact && storedZoom() === null);
   useEffect(() => {
-    if (fitOnStart.current) fitZoom();
+    const c = canvasRef.current;
+    const cs = c && getComputedStyle(c);
+    const free = c && cs ? c.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) : Infinity;
+    if (fitOnStart.current || zoomRef.current * PAGE_W > free) fitZoom();
   }, [fitZoom]);
 
   const api: EditorApi = {
@@ -659,10 +668,7 @@ export function Editor({
   // — Drag and drop —
   // dnd-kit provides the sensors (mouse, and long-press on touch) and the drag overlay; the drop
   // position is computed from the pointer against the DOM, and the canvas scrolls near its edges.
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
-  );
+  const sensors = useSensors(useSensor(MouseSensor, { activationConstraint: { distance: 5 } }), useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }));
   const pointer = useRef<{ x: number; y: number } | null>(null);
 
   const updateDrop = useCallback(() => {
@@ -800,22 +806,28 @@ export function Editor({
         screenReaderInstructions: { draggable: 'Mit der Maus ziehen oder auf dem Tablet gedrückt halten und ziehen. Mit Eingabe auswählen.' },
       }}
     >
-      <div className={'app ' + (editing ? 'is-editing' : 'is-preview') + (compact ? ' is-compact' : '') + (dragItem ? ' is-dragging' : '') + (note && noteOpen ? ' has-note' : '')}>
+      <div
+        className={
+          'app ' +
+          (editing ? 'is-editing' : 'is-preview') +
+          (compact ? ' is-compact' : '') +
+          (dragItem ? ' is-dragging' : '') +
+          (note && noteOpen ? ' has-note' : '') +
+          (compact && panelOpen && sel !== null && inline === null ? ' has-sheet' : '')
+        }
+      >
         <TopBar
           icon={doc.icon}
           place={place}
           onBack={onBack}
           editing={editing}
           compact={compact}
-          zoom={zoom}
           canUndo={hist.past.length > 0}
           canRedo={hist.future.length > 0}
           toolboxOpen={toolboxOpen}
           onToggleToolbox={() => setToolboxOpen((o) => !o)}
           onUndo={() => undo()}
           onRedo={() => undo(true)}
-          onZoom={(dir) => setZoom(zoom + dir * 0.1)}
-          onFitZoom={fitZoom}
           onOpenFile={() => fileInput.current?.click()}
           onSaveFile={saveFile}
           onOpenJson={() => setJsonOpen(true)}
@@ -831,7 +843,7 @@ export function Editor({
                   printMode.group && `Gruppe ${printMode.group}`,
                 ]
                   .filter(Boolean)
-                  .join(' · ')
+                  .join(', ')
               : undefined
           }
           onSlides={onSlides}
@@ -894,57 +906,58 @@ export function Editor({
               onClose={() => setToolboxOpen(false)}
             />
           )}
-          <InlineEditContext.Provider value={editing ? inlineEdit : null}>
-            <SheetModeContext.Provider value={sheetMode}>
-              <CompetenceNamesContext.Provider value={competenceNames}>
-              <Canvas
-                ref={canvasRef}
-                api={api}
-                zoom={zoom}
-                draggingId={dragItem?.kind === 'move' ? dragItem.id : null}
-                onBackgroundClick={() => {
-                  // While choosing blocks, a tap between them keeps the choice.
-                  if (picking) return;
-                  select(null);
-                  setToolboxOpen(false);
-                }}
-              />
-              </CompetenceNamesContext.Provider>
-            </SheetModeContext.Provider>
-          </InlineEditContext.Provider>
-          {editing && (picking || sel?.kind === 'blocks') && (
-            <div className="multi-bar" data-noprint="1" role="toolbar" aria-label="Ausgewählte Bausteine">
-              <span className="multi-count">{selIds.length ? `${selIds.length} ${selIds.length === 1 ? 'Baustein' : 'Bausteine'}` : 'Bausteine antippen'}</span>
-              <button type="button" disabled={!selIds.length} onClick={() => toAblage(selIds)} title="In die Ablage (⌘C)">
-                <Icon icon={ClipboardCopy} />
-                <span className="multi-label">In die Ablage</span>
-              </button>
-              <button type="button" disabled={!selIds.length} onClick={() => toAblage(selIds, true)} title="Ausschneiden (⌘X)">
-                <Icon icon={Scissors} />
-                <span className="multi-label">Ausschneiden</span>
-              </button>
-              <button type="button" disabled={!selIds.length} onClick={duplicateSelected} title="Duplizieren (⌘D)">
-                <Icon icon={Copy} />
-                <span className="multi-label">Duplizieren</span>
-              </button>
-              {onShare && (
-                <button type="button" disabled={!selIds.length} onClick={() => onShare(doc, selIds)} title="Digital austeilen (Link und QR-Code)">
-                  <Icon icon={Send} />
-                  <span className="multi-label">Austeilen</span>
+          <div className="canvas-wrap">
+            <InlineEditContext.Provider value={editing ? inlineEdit : null}>
+              <SheetModeContext.Provider value={sheetMode}>
+                <CompetenceNamesContext.Provider value={competenceNames}>
+                  <Canvas
+                    ref={canvasRef}
+                    api={api}
+                    zoom={zoom}
+                    draggingId={dragItem?.kind === 'move' ? dragItem.id : null}
+                    onBackgroundClick={() => {
+                      // While choosing blocks, a tap between them keeps the choice.
+                      if (picking) return;
+                      select(null);
+                      setToolboxOpen(false);
+                    }}
+                  />
+                </CompetenceNamesContext.Provider>
+              </SheetModeContext.Provider>
+            </InlineEditContext.Provider>
+            {editing && (picking || sel?.kind === 'blocks') && (
+              <div className="multi-bar" data-noprint="1" role="toolbar" aria-label="Ausgewählte Bausteine">
+                <span className="multi-count">{selIds.length ? `${selIds.length} ${selIds.length === 1 ? 'Baustein' : 'Bausteine'}` : 'Bausteine antippen'}</span>
+                <button type="button" disabled={!selIds.length} onClick={() => toAblage(selIds)} title="In die Ablage (⌘C)">
+                  <Icon icon={ClipboardCopy} />
+                  <span className="multi-label">In die Ablage</span>
                 </button>
-              )}
-              <button type="button" className="is-danger" disabled={!selIds.length} onClick={deleteSelected} title="Löschen (Entf)">
-                <Icon icon={Trash2} />
-                <span className="multi-label">Löschen</span>
-              </button>
-              <button type="button" className="multi-done" onClick={endPicking}>
-                Fertig
-              </button>
-            </div>
-          )}
-          {editing && (
-            <PropertiesPanel api={api} open={!compact || (panelOpen && sel !== null && inline === null)} compact={compact} onClose={() => setPanelOpen(false)} />
-          )}
+                <button type="button" disabled={!selIds.length} onClick={() => toAblage(selIds, true)} title="Ausschneiden (⌘X)">
+                  <Icon icon={Scissors} />
+                  <span className="multi-label">Ausschneiden</span>
+                </button>
+                <button type="button" disabled={!selIds.length} onClick={duplicateSelected} title="Duplizieren (⌘D)">
+                  <Icon icon={Copy} />
+                  <span className="multi-label">Duplizieren</span>
+                </button>
+                {onShare && (
+                  <button type="button" disabled={!selIds.length} onClick={() => onShare(doc, selIds)} title="Digital austeilen (Link und QR-Code)">
+                    <Icon icon={Send} />
+                    <span className="multi-label">Austeilen</span>
+                  </button>
+                )}
+                <button type="button" className="is-danger" disabled={!selIds.length} onClick={deleteSelected} title="Löschen (Entf)">
+                  <Icon icon={Trash2} />
+                  <span className="multi-label">Löschen</span>
+                </button>
+                <button type="button" className="multi-done" onClick={endPicking}>
+                  Fertig
+                </button>
+              </div>
+            )}
+            <ZoomDock zoom={zoom} pages={shownDoc.pages.length} onZoom={(dir) => setZoom(zoom + dir * 0.1)} onFit={fitZoom} />
+          </div>
+          {editing && <PropertiesPanel api={api} open={!compact || (panelOpen && sel !== null && inline === null)} compact={compact} onClose={() => setPanelOpen(false)} />}
         </div>
         {printOpen && (
           <PrintDialog

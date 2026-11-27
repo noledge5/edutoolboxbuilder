@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { ClipboardCopy, Copy, File, ListChecks, Send, Trash2, X } from 'lucide-react';
 import { BLOCK_ICONS, Icon } from '../icons';
 import { BLOCK_TYPES, SPAN_OPTIONS, type FieldDef } from '../model/blockTypes';
@@ -10,6 +10,9 @@ import type { EditorApi } from './api';
 import { AreaField, CompetenceField, IconPickerField, ImageField, IpaAreaField, NumberField, PicsField, PresetField, SegField, TextField } from './fields';
 import { ImageSearchDialog, queryFromCaption } from './ImageSearchDialog';
 import type { ImageAspect } from '../ai/images';
+import type { LucideIcon } from 'lucide-react';
+import { detectSymbol, isSymKey, SYMBOLS, symbolLabel, type SymKey } from '../sheet/symbols';
+import { SYMBOL_ICONS } from '../sheet/symbolIcons';
 
 interface PanelProps {
   api: EditorApi;
@@ -29,7 +32,7 @@ export function PropertiesPanel({ api, open, compact, onClose }: PanelProps) {
   );
 
   return (
-    <aside className={'panel' + (open ? ' is-open' : '')} data-noprint="1" aria-label="Eigenschaften">
+    <aside className={'panel ed-panel' + (open ? ' is-open' : '')} data-noprint="1" aria-label="Eigenschaften">
       {block ? (
         <BlockProperties api={api} block={block} close={close} />
       ) : page && sel?.kind === 'page' ? (
@@ -53,14 +56,64 @@ export function PropertiesPanel({ api, open, compact, onClose }: PanelProps) {
           <div className="panel-title">Eigenschaften</div>
           <p className="panel-help">Wähle ein Element auf der Seite aus, um Inhalt und Breite zu ändern. Ein Klick auf den Kopf der Seite öffnet Titel, Blatt-Typ und Fußzeile.</p>
           <p className="panel-help">Texte lassen sich auch direkt auf der Seite ändern: Doppelklick, oder ein ausgewähltes Element noch einmal antippen.</p>
-          <p className="panel-help">Entf löscht das ausgewählte Element, Esc hebt die Auswahl auf. ⌘D dupliziert, Pfeiltasten wählen das nächste Element, Alt+Pfeiltasten verschieben es, ↵ bearbeitet den Text auf der Seite, 1/2/3 setzt das Niveau. Alle Tastenkürzel: ?</p>
-          <p className="panel-help">
-            Mehrere Bausteine: ⌘-Klick oder ⇧-Klick, ⌘A wählt alle; auf dem iPad „Mehrere auswählen“ an einem Baustein. ⌘C legt sie in die Ablage (in der Toolbox), ⌘V fügt sie hinter der Auswahl ein,
-            auch in einer anderen Stunde.
-          </p>
+          <dl className="ed-keys" aria-label="Tastenkürzel">
+            {KEY_HINTS.map(([k, what]) => (
+              <div key={k}>
+                <dt>
+                  <kbd>{k}</kbd>
+                </dt>
+                <dd>{what}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="panel-help">Auf dem iPad: „Mehrere auswählen“ an einem Baustein. Alle Tastenkürzel: ?</p>
         </div>
       )}
     </aside>
+  );
+}
+
+/** The shortcuts of the editor, as the panel shows them while nothing is selected. */
+const KEY_HINTS: [string, string][] = [
+  ['Entf', 'löscht das ausgewählte Element'],
+  ['Esc', 'hebt die Auswahl auf'],
+  ['⌘D', 'dupliziert'],
+  ['Pfeiltasten', 'wählen das nächste Element'],
+  ['Alt+Pfeile', 'verschieben es'],
+  ['↵', 'bearbeitet den Text auf der Seite'],
+  ['1, 2, 3', 'setzt das Niveau'],
+  ['⌘-Klick, ⇧-Klick', 'mehrere Bausteine; ⌘A wählt alle'],
+  ['⌘C, ⌘V', 'in die Ablage (in der Toolbox), einfügen hinter der Auswahl, auch in einer anderen Stunde'],
+];
+
+/** The action symbol of a task: picked from its operator, chosen, or none. Keys with the picture and its word. */
+function SymbolField({ label, value, auto, onPick }: { label: string; value: string; auto: SymKey | null; onPick(v: string): void }) {
+  const id = useId();
+  const current = value === 'none' || isSymKey(value) ? value : '';
+  const options: { v: string; l: string; icon?: LucideIcon }[] = [
+    { v: '', l: auto ? `Automatisch: ${symbolLabel(auto, 'de')}` : 'Automatisch', icon: auto ? SYMBOL_ICONS[auto] : undefined },
+    ...SYMBOLS.map((s) => ({ v: s.key, l: s.de, icon: SYMBOL_ICONS[s.key] })),
+    { v: 'none', l: 'Ohne' },
+  ];
+  return (
+    <div className="field">
+      <label id={id}>{label}</label>
+      <div className="ed-sym-grid" role="radiogroup" aria-labelledby={id}>
+        {options.map((o) => (
+          <button
+            key={o.v || 'auto'}
+            type="button"
+            role="radio"
+            aria-checked={current === o.v}
+            className={'seg-pill ed-sym-key' + (current === o.v ? ' is-on' : '') + (o.v === '' ? ' is-auto' : '')}
+            onClick={() => onPick(o.v)}
+          >
+            {o.icon && <Icon icon={o.icon} size={16} />}
+            <span>{o.l}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -128,6 +181,8 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         return api.codeLocked ? <CompetenceField key={f.key} label={f.label} value={str(v)} competences={api.competences} onChange={set(f.key)} /> : null;
       case 'ipa':
         return <IpaAreaField key={f.key} label={f.label} value={str(v)} onChange={set(f.key)} />;
+      case 'symbol':
+        return <SymbolField key={f.key} label={f.label} value={str(v)} auto={detectSymbol(str(block.props.prompt), block.type)} onPick={set(f.key)} />;
       case 'pics': {
         const ids = str(v).split('\n');
         const vocab = block.type === 'vocab';
@@ -185,14 +240,10 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
         <SegField label="Breite im 12er-Raster" value={block.span} options={SPAN_OPTIONS} onPick={(v) => api.setSpan(block.id, v)} />
         {T.fields.map(field)}
       </div>
-      <div className="panel-row">
+      <div className="panel-row ed-block-actions">
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => api.duplicateBlock(block.id)}>
           <Icon icon={Copy} />
           Duplizieren
-        </button>
-        <button type="button" className="btn btn-secondary ui-btn is-danger" onClick={() => api.deleteBlock(block.id)}>
-          <Icon icon={Trash2} />
-          Löschen
         </button>
         <button type="button" className="btn btn-secondary ui-btn" onClick={() => api.toAblage([block.id])} title="Zum Einfügen hier oder in einer anderen Stunde (⌘C)">
           <Icon icon={ClipboardCopy} />
@@ -208,6 +259,10 @@ function BlockProperties({ api, block, close }: { api: EditorApi; block: Block; 
             Digital austeilen
           </button>
         )}
+        <button type="button" className="btn btn-secondary ui-btn is-danger" onClick={() => api.deleteBlock(block.id)}>
+          <Icon icon={Trash2} />
+          Löschen
+        </button>
       </div>
     </>
   );
@@ -270,7 +325,7 @@ function PageProperties({ api, p, close }: { api: EditorApi; p: number; close: R
         />
       </div>
       <div className="panel-section">
-        <div className="panel-section-label">{api.codeLocked ? 'Sprache · ganzes Modul' : 'Sprache · alle Seiten'}</div>
+        <div className="panel-section-label">{api.codeLocked ? 'Sprache (ganzes Modul)' : 'Sprache (alle Seiten)'}</div>
         <SegField<Lang>
           label="Sprache der Arbeitsblätter"
           value={doc.lang}
@@ -291,14 +346,14 @@ function PageProperties({ api, p, close }: { api: EditorApi; p: number; close: R
             onPick={(help) => api.setMeta({ help })}
           />
         )}
-        <p className="panel-note">Englisch: Kopfzeile „Name · Date“, englische Anführungszeichen, Rechtschreibprüfung und Silbentrennung auf Englisch.</p>
+        <p className="panel-note">Englisch: Kopfzeile mit „Name“ und „Date“, englische Anführungszeichen, Rechtschreibprüfung und Silbentrennung auf Englisch.</p>
       </div>
       <div className="panel-section">
-        <div className="panel-section-label">{api.codeLocked ? 'Symbol · ganzes Modul' : 'Symbol · alle Seiten'}</div>
+        <div className="panel-section-label">{api.codeLocked ? 'Symbol (ganzes Modul)' : 'Symbol (alle Seiten)'}</div>
         <IconPickerField label="Themen-Symbol im Kopfband" value={doc.icon} onPick={(icon) => api.setMeta({ icon })} />
       </div>
       <div className="panel-section">
-        <div className="panel-section-label">Fußband · alle Seiten</div>
+        <div className="panel-section-label">Fußband (alle Seiten)</div>
         <TextField label="Fußzeile" value={doc.footer} onChange={(footer) => api.setMeta({ footer })} />
         {api.codeLocked ? (
           <div className="field">
