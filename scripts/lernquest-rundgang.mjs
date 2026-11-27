@@ -1,7 +1,7 @@
 // Walkthrough of the Lernquest kid app with Playwright: plays it like a child (map, class with village, hero, shop,
 // tasks, review, a chest, a round with a wrong and a right answer, result) on four screens and checks every screen for
 // sideways scrolling, cut text, buttons under 40 px, answers hidden under the check bar and console errors.
-// The boss fight goes through waiting, a question, the answer, the reveal and the win with faked server answers.
+// Also the projector of a boss fight (16:9 and 4:3). The boss fight goes through waiting, a question, the answer, the reveal and the win with faked server answers.
 // Run `npm run spieltest` first, then `npm run rundgang [ordner]` (screenshots go there; default: the system's temp
 // folder). LQ_URL points elsewhere (e.g. http://localhost:5181/lernquest/ for `npm run demo`). Exit code 1 on findings.
 // Uses the made-up child of scripts/spieltest-daten.js; the dead server's answers for the chest and the class are faked.
@@ -136,6 +136,107 @@ function bossStand(boss) {
     wahl,
     schaden: phase === "aufloesung" && wahl === 0 ? 12 : null,
   };
+}
+
+/** The projector of a boss fight (teacher's device: a teacher key in this browser), through all phases. */
+async function beamerRundgang(browser, [geraet, w, h]) {
+  const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+  const p = await ctx.newPage();
+  const befunde = [];
+  p.on("pageerror", (e) => befunde.push("Fehler: " + e));
+  const ID = "11111111-2222-3333-4444-555555555555";
+  let phase = "warten";
+  await p.route("http://127.0.0.1:9/**", (r) => {
+    if (r.request().method() === "OPTIONS")
+      return r.fulfill({
+        status: 204,
+        headers: {
+          "access-control-allow-origin": "*",
+          "access-control-allow-headers": "*",
+          "access-control-allow-methods": "*",
+        },
+      });
+    const fn = r.request().url().split("/rpc/")[1];
+    if (fn === "lq_boss_weiter")
+      phase =
+        { warten: "frage", frage: "aufloesung", aufloesung: "ende" }[phase] ??
+        phase;
+    if (fn !== "lq_boss_beamer" && fn !== "lq_boss_weiter") return r.abort();
+    const kind = bossStand({ phase, wahl: null });
+    const offen = phase === "aufloesung" || phase === "ende";
+    // the class got less than half right in the reveal: the boss hits it, one heart less
+    const body = {
+      ...kind,
+      id: ID,
+      herzen: offen ? 2 : 3,
+      antworten: phase === "frage" ? 17 : 24,
+      klasse: "5b",
+      text: "Welcher Satz ist richtig?",
+      aussage: "",
+      verteilung: offen ? [10, 8, 4, 2] : null,
+      truhen: phase === "ende" ? 22 : 0,
+      erkannt: null,
+    };
+    return r.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: { "access-control-allow-origin": "*" },
+      body: JSON.stringify(body),
+    });
+  });
+  await p.goto(URL);
+  await p.evaluate(
+    () =>
+      new Promise((ok, nein) => {
+        const req = indexedDB.open("arbeitsblatt-baukasten");
+        req.onupgradeneeded = () => req.result.createObjectStore("daten");
+        req.onsuccess = () => {
+          const tx = req.result.transaction("daten", "readwrite");
+          tx.objectStore("daten").put(
+            {
+              keys: ["a".repeat(64)],
+              pins: {},
+              versteckt: {},
+              karten: {},
+              updatedAt: Date.now(),
+            },
+            "geraet:lernquest",
+          );
+          tx.oncomplete = ok;
+          tx.onerror = nein;
+        };
+        req.onerror = nein;
+      }),
+  );
+  // a fresh load with the link of the projector (a hash change alone keeps the page)
+  await p.goto("about:blank");
+  await p.goto(URL + "#beamer=" + ID + "&klasse=ABCDEFGH");
+  await p.waitForTimeout(2000);
+  let n = 0;
+  for (const [name, knopf] of [
+    ["beamer-warten", "Los geht’s!"],
+    ["beamer-frage", "Auflösen"],
+    ["beamer-aufloesung", "Nächste Frage"],
+    ["beamer-ende", null],
+  ]) {
+    try {
+      await p.screenshot({
+        path: join(
+          ORDNER,
+          `${geraet}-${String(++n).padStart(2, "0")}-${name}.png`,
+        ),
+      });
+      for (const b of await p.evaluate(pruefen)) befunde.push(`${name}: ${b}`);
+      if (knopf) {
+        await p.getByRole("button", { name: knopf }).click();
+        await p.waitForTimeout(1800);
+      }
+    } catch (e) {
+      befunde.push(`${name}: ging nicht (${String(e).split("\n")[0]})`);
+    }
+  }
+  await ctx.close();
+  return befunde;
 }
 
 /** Checks of one screen, run in the page. */
@@ -400,10 +501,17 @@ mkdirSync(ORDNER, { recursive: true });
 const browser = await chromium.launch({
   args: ["--explicitly-allowed-ports=9", "--disable-web-security"],
 });
-const alle = await Promise.all(GERAETE.map((g) => rundgang(browser, g)));
+const BEAMER = [
+  ["beamer", 1280, 720],
+  ["beamer-4zu3", 1024, 768],
+];
+const alle = await Promise.all([
+  ...GERAETE.map((g) => rundgang(browser, g)),
+  ...BEAMER.map((g) => beamerRundgang(browser, g)),
+]);
 await browser.close();
 let zahl = 0;
-GERAETE.forEach(([geraet, w, h], i) => {
+[...GERAETE, ...BEAMER].forEach(([geraet, w, h], i) => {
   console.log(`${geraet} (${w}×${h}): ${alle[i].length ? "" : "ok"}`);
   for (const b of alle[i]) console.log("  " + b);
   zahl += alle[i].length;

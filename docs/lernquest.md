@@ -455,7 +455,7 @@ Server bekommt wie bisher „richtig von gesamt“, gezählt werden die ersten V
   abgeschnittenen Text, Knöpfe unter 40 px, Antworten unter der Prüfleiste und Konsolenfehler (Exit-Code 1 bei Befund).
   Truhe und Klasse antwortet das Skript selbst. Erster Lauf: Truhe scrollte seitwärts, Bilder-Aufgabe im iPad quer
   verdeckt, „Weiter“ nach der Truhe unter dem Bildschirmrand – behoben. Seit dem 27.11. auch der Bosskampf auf dem Handy
-  (Warten, Frage, Antwort, Auflösung, Sieg).
+  (Warten, Frage, Antwort, Auflösung, Sieg) und der Beamer der Lehrkraft (16:9 und 4:3, mit Lehrkraft-Schlüssel im Browser).
 
 ## Wiederholung mit Maß (20.11.2026)
 
