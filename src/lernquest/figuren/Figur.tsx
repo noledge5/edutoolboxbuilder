@@ -1,10 +1,10 @@
 // Draws a figure (typen.ts) in a pose, with items and an animation. bewegung.ts computes where each part is at a
 // time; this file turns that into SVG transforms. The clock is requestAnimationFrame (works in every browser and
 // frame); with the app's switch „Bewegung reduzieren“ it shows the still pose. The workshop passes its own time instead.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ANIMATIONEN } from './animationen';
-import { RUHE, stellung, transform } from './bewegung';
+import { RUHE, UEBERGANG, mischeStellungen, stellung, transform } from './bewegung';
 import type { Stellung } from './bewegung';
 import { P, SELTEN_FARBE } from './stil';
 import type { Animation, Figur, Item, Pose, Punkt, Teil } from './typen';
@@ -15,19 +15,43 @@ export const ruhig = () => typeof document !== 'undefined' && document.documentE
 
 /** Seconds since `aktiv` became true (or `neustart` changed), counted with requestAnimationFrame. */
 export function useZeit(aktiv: boolean, tempo = 1, neustart?: unknown): number {
-  const [zeit, setZeit] = useState(0);
+  // The time belongs to one `neustart`: on the render where `neustart` changes, the clock reads 0 at once, not the
+  // old move's time for one frame (a new move sampled at, say, 12 s showed its end pose for a frame).
+  const [stand, setStand] = useState<{ zeit: number; fuer: unknown }>({ zeit: 0, fuer: neustart });
   useEffect(() => {
-    setZeit(0);
+    setStand({ zeit: 0, fuer: neustart });
     if (!aktiv || typeof requestAnimationFrame === 'undefined') return;
     let start: number | null = null;
     let id = requestAnimationFrame(function schritt(ts) {
       start ??= ts;
-      setZeit(((ts - start) / 1000) * tempo);
+      setStand({ zeit: ((ts - start) / 1000) * tempo, fuer: neustart });
       id = requestAnimationFrame(schritt);
     });
     return () => cancelAnimationFrame(id);
   }, [aktiv, tempo, neustart]);
-  return zeit;
+  return stand.fuer === neustart ? stand.zeit : 0;
+}
+
+/** Blends into a new pose or move over `UEBERGANG` instead of jumping: remembers the last frame drawn, and when the
+ *  pose or the move changes, starts from it. Off when the caller drives the time (workshop) or motion is reduced. */
+function useUebergang(st: Stellung, schluessel: string, an: boolean): { st: Stellung; laeuft: boolean } {
+  const letzte = useRef<Stellung | null>(null);
+  const alt = useRef(schluessel);
+  const blende = useRef<{ von: Stellung; start: number } | null>(null);
+  const jetzt = typeof performance === 'undefined' ? 0 : performance.now();
+  if (alt.current !== schluessel) {
+    alt.current = schluessel;
+    blende.current = an && letzte.current ? { von: letzte.current, start: jetzt } : null;
+  }
+  let aus = st;
+  const b = blende.current;
+  if (b) {
+    const k = (jetzt - b.start) / 1000 / UEBERGANG;
+    if (k >= 1) blende.current = null;
+    else aus = mischeStellungen(b.von, st, k);
+  }
+  letzte.current = aus;
+  return { st: aus, laeuft: !!blende.current };
 }
 
 export interface Hilfen {
@@ -121,13 +145,21 @@ export function FigurBild({ figur, pose, animation, danach, zeit, lebendig = tru
   const po: Pose = typeof pose === 'object' ? pose : (figur.posen[pose ?? ''] ?? Object.values(figur.posen)[0]);
   const anim = typeof animation === 'object' ? animation : animation ? ANIMATIONEN[animation] : undefined;
   const nach = danach ? ANIMATIONEN[danach] : undefined;
-  const eigeneUhr = zeit === undefined && !ruhig() && (lebendig || !!anim || !!nach);
+  const still = ruhig();
+  const schluessel = `${po.name}|${anim?.id ?? ''}`;
+  // Keeps the clock running while a blend is under way, even for a figure that otherwise stands still.
+  const [blendet, setBlendet] = useState(false);
+  const eigeneUhr = zeit === undefined && !still && (lebendig || !!anim || !!nach || blendet);
   const uhr = useZeit(eigeneUhr, 1, anim?.id);
   const jetzt = zeit ?? uhr;
   // A move with an end hands over to `danach` (its clock starts where the first one ended).
   const ende = anim ? (anim.wiederholen === 'immer' ? Infinity : anim.dauer * anim.wiederholen) : 0;
   const [aktiv, t] = nach && jetzt >= ende ? [nach, jetzt - ende] : [anim, jetzt];
-  const st = stellung(po, { animation: aktiv, zeit: t, lebendig: lebendig && (zeit !== undefined || eigeneUhr) });
+  const roh = stellung(po, { animation: aktiv, zeit: t, lebendig: lebendig && (zeit !== undefined || eigeneUhr) });
+  const { st, laeuft } = useUebergang(roh, schluessel, zeit === undefined && !still);
+  useEffect(() => {
+    if (laeuft !== blendet) setBlendet(laeuft);
+  }, [laeuft, blendet]);
   const k: Kontext = { st, items, hilfen };
   const vorne = new Set(st.vorne);
   const teile = [...figur.teile.filter((t) => !vorne.has(t.id)), ...figur.teile.filter((t) => vorne.has(t.id))];

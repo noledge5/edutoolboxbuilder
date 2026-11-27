@@ -12,7 +12,7 @@ Read `typen.ts` (the model, 80 lines) first; it explains part, pose, move and it
 A figure is a tree of **parts** (`Teil`), each with a pivot (`drehpunkt`) and a drawing in figure coordinates of the
 rest pose. A **pose** lists angles per part (clockwise degrees, children add up), a face, parts drawn in front
 (`vorne`) and extras. A **move** (`animationen.ts`) lists keyframes per part or `ganz`: `drehen`, `schieben`,
-`strecken` (squash), optional `zeiten`, `kurve` (`weich`, `linear`, `feder`) and `gesichter`. The engine
+`strecken` (squash), optional `zeiten`, `kurve` (`weich` = one smooth curve through all keys, `linear`, `feder`, `rein`, `raus`), `kurven` per segment (e.g. `rein` for falling), `versatz` per track (follow-through) and `gesichter`. A new pose or move blends in over `UEBERGANG` (0.2 s). Timing rules and Duolingo's published motion principles: `docs/design/lernquest/bewegung.md`. The engine
 `bewegung.ts` (pure, tested) turns pose + move + time into a `Stellung`; `Figur.tsx` draws it with a
 requestAnimationFrame clock (no SMIL: it did not run in every viewer). Figures blink by themselves (`augenZu`).
 An **item** is drawn around (0, 0) on an anchor (`hut`, `hand-rechts`, `hand-links`) and follows that part;
