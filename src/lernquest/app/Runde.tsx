@@ -2,7 +2,7 @@
 // exercise counts for the result, hearts and the repetition boxes; the second meeting is there to learn it. Leaving a
 // round that has answers asks first, so a slip of the finger (or the phone's back key) does not throw them away.
 import { useEffect, useRef, useState } from 'react';
-import { heute, istRichtig, karteKey, karteNach, loesungText, nachAntwort, tagNummer, type Antwort } from '../rules';
+import { heute, istRichtig, karteKey, karteNach, loesungText, nachAntwort, serieMeilenstein, tagNummer, type Antwort } from '../rules';
 import type { Avatar } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { KopfBild } from './avatar';
@@ -95,7 +95,7 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
   const pruefen = (a = antwort) => {
     if (!a || ok !== null || !item) return;
     const right = istRichtig(item.u, a);
-    ton(right ? 'richtig' : 'falsch');
+    ton(right ? (!nochmal && serieMeilenstein(serie + 1) ? 'serie' : 'richtig') : 'falsch');
     // Right in the tap, not later: an iPad lets a page speak only then.
     if (hoerSatz && tonAn()) vorlesen(hoerSatz);
     setOk(right);
@@ -129,6 +129,7 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
   const kommtWieder = ok === false && reihe.length > pos + 1 && reihe.indexOf(reihe[pos], pos + 1) > 0;
   const offen = new Set(reihe.slice(pos + (ok === null || kommtWieder ? 0 : 1))).size;
   const fehler = ergebnisse.filter((x) => !x).length;
+  const feiern = ok === true && !nochmal && serieMeilenstein(serie);
   return (
     <main className="lq-app lq-spiel">
       <div className="lq-fortschritt">
@@ -136,7 +137,10 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
           <KreuzIcon />
         </button>
         <span className="lq-balken" role="progressbar" aria-valuemin={0} aria-valuemax={n} aria-valuenow={n - offen} aria-label="Fortschritt in der Runde">
-          <span style={{ width: `${(100 * (n - offen)) / n}%` }} />
+          <span style={{ width: `${(100 * (n - offen)) / n}%` }}>
+            {/* a shine runs through the bar each time it grows (a new key starts it again) */}
+            <i key={n - offen} className="lq-balken-glanz" />
+          </span>
         </span>
         {!!paket?.hilfe?.length && (
           <button type="button" className="lq-hilfe-knopf" onClick={() => setHilfeAuf(true)} aria-label="Hilfe: So geht’s">
@@ -165,17 +169,22 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
         {ok !== null && (
           <div className="lq-rueckmeldung">
             {/* Right: the child's hero cheers (or the fox, without a hero); wrong: the fox comforts. */}
-            <span className={`lq-rueck-figur ${ok ? 'freut' : 'troestet'}`} aria-hidden>
+            {/* A streak of 3, 5, 10 … gets its own moment: a gold badge, a ring, a higher jump (27.11.2026). */}
+            <span className={`lq-rueck-figur ${ok ? 'freut' : 'troestet'}${feiern ? ' feiert' : ''}`} aria-hidden>
               {ok && held && !nurAlsBild(held) ? (
-                <HeldBild avatar={held} pose="jubeln" animation="jubeln" ohneHintergrund ausschnitt="20 0 200 200" />
+                <HeldBild avatar={held} pose="jubeln" animation={feiern ? 'huepfen' : 'jubeln'} ohneHintergrund ausschnitt="20 0 200 200" />
               ) : ok && held ? (
                 <KopfBild avatar={{ ...held, mund: 'lachen' }} />
               ) : (
-                <Fuchs pose={ok ? 'jubeln' : 'troesten'} groesse={76} />
+                <Fuchs pose={ok ? 'jubeln' : 'troesten'} groesse={104} />
               )}
             </span>
             <div className="lq-rueck-text">
-              <strong>{ok ? (nochmal ? 'Jetzt sitzt es!' : serie >= 3 ? `${serie} in Folge!` : 'Richtig!') : 'Nicht ganz.'}</strong>
+              {feiern ? (
+                <strong className="lq-serie-marke lq-serie-neu">{serie} in Folge!</strong>
+              ) : (
+                <strong>{ok ? (nochmal ? 'Jetzt sitzt es!' : serie >= 3 ? `${serie} in Folge!` : 'Richtig!') : 'Nicht ganz.'}</strong>
+              )}
               {!ok && !loesungSichtbar(item.u) && (
                 <span>
                   Richtig wäre: <Rich text={loesungText(item.u)} />

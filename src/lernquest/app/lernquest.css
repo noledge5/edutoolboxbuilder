@@ -5057,3 +5057,78 @@ button.lq-teil:active {
   margin-left: var(--lq-a-1);
   font-size: var(--lq-t-text);
 }
+
+/* Task screens with more life (27.11.2026): bigger figures on the feedback card, a moment for a streak, a shine in the
+   progress bar, the fox beside the hero after a round. „Bewegung reduzieren“ stops all of it (.lq-ruhig). */
+.lq-rueck-figur {
+  width: 104px;
+  height: 104px;
+  margin-top: calc(-1 * (var(--lq-a-6) + var(--lq-a-4)));
+}
+.lq-rueck-figur.feiert {
+  position: relative;
+}
+.lq-rueck-figur.feiert::before {
+  content: '';
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  border: 5px solid var(--lq-gold);
+  animation: lq-ring-einmal 0.9s ease-out both;
+}
+@keyframes lq-ring-einmal {
+  from {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+.lq-fuss.ok .lq-serie-marke {
+  color: var(--lq-auf-gold);
+}
+.lq-serie-neu {
+  align-self: flex-start;
+  animation: lq-plopp var(--lq-dauer-lang) var(--lq-feder) both;
+}
+.lq-fortschritt .lq-balken > span {
+  position: relative;
+  overflow: hidden;
+}
+/* a light stripe along the top of the fill, like a glossy tube */
+.lq-fortschritt .lq-balken > span::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: var(--lq-a-2);
+  right: var(--lq-a-2);
+  height: 4px;
+  border-radius: var(--lq-r-pille);
+  background: color-mix(in srgb, var(--lq-auf-farbe) 40%, transparent);
+}
+.lq-balken-glanz {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 30%;
+  background: color-mix(in srgb, var(--lq-auf-farbe) 45%, transparent);
+  transform: translateX(-150%) skewX(-20deg);
+  animation: lq-balken-glanz 0.7s ease-out 0.15s;
+}
+@keyframes lq-balken-glanz {
+  to {
+    transform: translateX(450%) skewX(-20deg);
+  }
+}
+.lq-ergebnis-paar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--lq-a-1);
+}
+.lq-ergebnis-fuchs {
+  margin-bottom: var(--lq-a-1);
+}

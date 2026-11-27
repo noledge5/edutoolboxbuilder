@@ -4,7 +4,7 @@ import { tonAn } from './speicher';
 
 let ctx: AudioContext | null = null;
 
-export type TonArt = 'richtig' | 'falsch' | 'fertig' | 'tipp' | 'stern' | 'truhe' | 'muenze';
+export type TonArt = 'richtig' | 'falsch' | 'fertig' | 'tipp' | 'stern' | 'truhe' | 'muenze' | 'serie';
 
 function note(freq: number, start: number, dur: number, type: OscillatorType = 'sine', vol = 0.18) {
   if (!ctx) return;
@@ -64,6 +64,13 @@ export function noten(art: TonArt): [number, number, number, number][] {
         ...[C5, E5, G5, C6, E6, G6].map((f, i): [number, number, number, number] => [f, i * 0.07, 0.35, 0.09]),
         [C6, 0.45, 0.9, 0.12],
         [G6, 0.45, 0.9, 0.05],
+      ];
+    case 'serie':
+      // A streak (3, 5, 10 … in a row): the bells of a right answer climb one step higher.
+      return [
+        [E6, 0, 0.3, 0.12],
+        [G6, 0.08, 0.3, 0.12],
+        [C6 * 2, 0.16, 0.6, 0.12],
       ];
     case 'muenze':
       // A counted reward lands (Belohnungen): two short bright bells.

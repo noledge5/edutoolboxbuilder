@@ -858,7 +858,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     return (
       <main className="lq-app lq-ergebnis">
         {!schwach && !(ms && !msGut) && (screen.sterneJetzt > screen.sterneVorher || fazit === 'perfekt' || msGut) && <Jubel stark={fazit === 'perfekt' || msGut} />}
-        <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} pose={schwach || (ms && !msGut) ? 'denken' : 'jubeln'} animation={schwach || (ms && !msGut) ? 'seufzen' : 'jubeln'} className="lq-ergebnis-held" lebendig />
+        {/* Hero and fox together: they cheer, or after a weak round the fox comforts (27.11.2026). */}
+        <div className="lq-ergebnis-paar">
+          <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} pose={schwach || (ms && !msGut) ? 'denken' : 'jubeln'} animation={schwach || (ms && !msGut) ? 'seufzen' : 'jubeln'} className="lq-ergebnis-held" lebendig />
+          <Fuchs pose={schwach || (ms && !msGut) ? 'troesten' : 'jubeln'} groesse={92} className="lq-ergebnis-fuchs" />
+        </div>
         {screen.stunde && <Sterne n={screen.sterneJetzt} neu={screen.sterneJetzt > screen.sterneVorher} gross />}
         <h1>{titelText}</h1>
         <p className="lq-untertitel">
