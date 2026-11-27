@@ -117,6 +117,11 @@ Gelb (`P.gelb`) ist eine Farbe, Gold (`P.gold*`) ein Material.
   Fenster mit einer Sprosse, große Mauersteine, Zäune mit weniger, dickeren Pfosten, etwa halb so viel Deko auf dem Boden.
   Leben: der eigene Held vor dem eigenen Haus, bis zu vier Mitschüler (ohne Namen, jeden Tag andere) laufen auf dem Weg
   hin und her, Enten und ein Boot am Dorfplatz; alles still bei „Bewegung reduzieren“.
+- **Dorf 5 (27.11.2026):** Gemeinschaftsgebäude sind auf der Karte nicht höher als ein Kinderhaus (etwa 130 statt 145,
+  `GEBAEUDE_MASS` in `dorf.tsx`; leerer Platz und Baustelle gleich groß). Der Weg ist ein Zug vom Inselrand bis zum Ende,
+  ohne Naht; im Dorf und Marktflecken liegt ein runder Platz im Blickwinkel des Bodens (wie die kleinen Plätze) mitten
+  zwischen den Gemeinschaftsgebäuden, der Weg läuft hindurch, die Marktstände stehen links und rechts davon; in der Stadt
+  liegt das Pflaster über dem Weg. Der Schwung des Wegs setzt ohne Knick ein (`wegX`).
 - **Aufbau rechnet, Zeichnung zeichnet:** `dorfplan.ts` legt Weg, Grundstücke, Plätze, Laternen und Deko fest (reine Geometrie,
   getestet: nichts überlappt, Bäume stehen nie vor einem Haus, die Karte wächst nur nach oben); `figuren/dorf.tsx` zeichnet.
 - **Abend ohne Verläufe:** Jedes Ding bekommt eine einfarbige Kopie in `nachtTief` darüber (halb durchsichtig,

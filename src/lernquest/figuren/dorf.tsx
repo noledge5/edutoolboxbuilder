@@ -639,8 +639,22 @@ function ufersteine(kueste: Pt[]): Pt[] {
     .map(([x, y]) => [x + (x > 0 ? 16 : -16), y + 30] as Pt);
 }
 
-/** Scale of the big community buildings on the map (Dorf 4, 27.11.2026). */
-const GEBAEUDE_MASS: Record<string, number> = { bibliothek: 0.76, baeckerei: 0.8, sternwarte: 0.84 };
+/** Scale of the community buildings on the map (Dorf 5, 27.11.2026: no taller than a child's house, about 130). Their
+ *  empty plot and the building site take the same scale. */
+const GEBAEUDE_MASS: Record<string, number> = { bibliothek: 0.62, baeckerei: 0.64, sternwarte: 0.68, festwiese: 0.8, brunnen: 0.85, bruecke: 0.85 };
+
+/** The square up to Marktflecken (Dorf 5): a round square in the middle of the community buildings, seen at the
+ *  angle of the ground (rx : ry like the small squares); the road runs through it. */
+const MARKT = { mitte: [0, 112] as Pt, rx: 96, ry: 56 };
+
+/** Outline of the square, `einzug` units inside its edge (its light middle). */
+function marktRand(einzug: number): Pt[] {
+  const { mitte, rx, ry } = MARKT;
+  return Array.from({ length: 48 }, (_, i) => {
+    const a = (i / 48) * 2 * Math.PI;
+    return [mitte[0] + (rx - einzug) * Math.cos(a), mitte[1] + (ry - einzug * 0.58) * Math.sin(a)] as Pt;
+  });
+}
 
 /** Two ducks and a boat on the water: the first spots of open water left and right of the island, always the same. */
 function wasserLeben(n: number): { p: Pt; boot?: boolean }[] {
@@ -747,6 +761,9 @@ export function DorfKarte({
   for (let y = platzOben; y <= ins.unten; y += 6) platzFlaeche.push([ins.mitte(y) + ins.halb(y) - 6, y]);
   for (let y = ins.unten; y >= platzOben; y -= 6) platzFlaeche.push([ins.mitte(y) - ins.halb(y) + 6, y]);
   const weg = wegPunkte(n);
+  // The road runs on to the bottom of the square (up to Marktflecken) or under the paved square (Stadt).
+  const strasse: Pt[] = [[0, 244], ...weg];
+  const markt = stufe === 1 || stufe === 2 ? { rand: marktRand(0), mitte: marktRand(22) } : null;
   const ellipse = (c: Pt, rx: number, fill: string, dy = 0) => <ellipse cx={c[0]} cy={c[1] + dy} rx={rx} ry={rx * 0.58} fill={fill} />;
   const grund = (
     <g>
@@ -768,19 +785,20 @@ export function DorfKarte({
       <polygon points={punkte(runter(ins.umriss, 5))} fill={boden.kante} />
       <polygon points={punkte(ins.umriss)} fill={boden.grund} />
       {flecken}
-      {stufe === 3 ? (
-        <polygon points={punkte(platzFlaeche)} fill={P.pflaster} />
-      ) : (
-        <g>
-          <path d={linienzug([[0, platzOben], [0, 244]])} stroke={wegTief} strokeWidth={stufe ? 76 : WEG_HALB * 2} strokeLinecap="round" transform="translate(0 4)" />
-          <path d={linienzug([[0, platzOben], [0, 244]])} stroke={wegHell} strokeWidth={stufe ? 76 : WEG_HALB * 2} strokeLinecap="round" />
-        </g>
-      )}
-      {stufe === 3 && <path d={linienzug(weg)} fill="none" stroke={P.bruch} strokeWidth={WEG_HALB * 2 + 6} strokeLinecap="round" strokeLinejoin="round" />}
-      <path d={linienzug(runter(weg, 4))} fill="none" stroke={wegTief} strokeWidth={WEG_HALB * 2} strokeLinecap="round" strokeLinejoin="round" />
-      <path d={linienzug(weg)} fill="none" stroke={wegHell} strokeWidth={WEG_HALB * 2} strokeLinecap="round" strokeLinejoin="round" />
-      {/* Dorf 4: a worn, lighter track down the middle of the road, paved rings for the small squares */}
-      <path d={linienzug(weg)} fill="none" stroke={wegLicht} strokeWidth={WEG_HALB * 0.9} strokeLinecap="round" strokeLinejoin="round" opacity={0.6} />
+      {/* Dorf 5 (27.11.2026): one road from the bottom of the island to its end, without a seam. From Dorf on it widens into
+          the square at the bottom like a funnel, its worn middle flowing into the square's light middle; in the Stadt the
+          paved square lies over the road's lower end. */}
+      {markt && <polygon points={punkte(runter(markt.rand, 4))} fill={wegTief} />}
+      {stufe === 3 && <path d={linienzug(strasse)} fill="none" stroke={P.bruch} strokeWidth={WEG_HALB * 2 + 6} strokeLinecap="round" strokeLinejoin="round" />}
+      <path d={linienzug(runter(strasse, 4))} fill="none" stroke={wegTief} strokeWidth={WEG_HALB * 2} strokeLinecap="round" strokeLinejoin="round" />
+      {markt && <polygon points={punkte(markt.rand)} fill={wegHell} />}
+      <path d={linienzug(strasse)} fill="none" stroke={wegHell} strokeWidth={WEG_HALB * 2} strokeLinecap="round" strokeLinejoin="round" />
+      {/* a worn, lighter track down the middle of the road (one layer, so where it meets the square's middle it does not darken) */}
+      <g opacity={0.6}>
+        <path d={linienzug(strasse)} fill="none" stroke={wegLicht} strokeWidth={WEG_HALB * 0.9} strokeLinecap="round" strokeLinejoin="round" />
+        {markt && <polygon points={punkte(markt.mitte)} fill={wegLicht} />}
+      </g>
+      {stufe === 3 && <polygon points={punkte(platzFlaeche)} fill={P.pflaster} />}
       {ellipse([wegX(ende), ende], 36, wegTief, 4)}
       {ellipse([wegX(ende), ende], 36, wegHell)}
       {ellipse([wegX(ende), ende], 22, wegLicht)}
@@ -811,11 +829,15 @@ export function DorfKarte({
   for (const [id, o] of Object.entries(GEBAEUDE_ORT)) {
     const bau = gebaut.has(id) ? BAUTEN[id] : bauId === id ? baustelle : null;
     const node = bau ? bau(s, o.x, o.y) : platz(s, o.x, o.y);
-    // Dorf 4: the big buildings a little smaller, so they stand beside the children's houses, not over them.
-    const m = bau ? (GEBAEUDE_MASS[id] ?? 1) : 1;
+    // Dorf 5: the community buildings no bigger than the children's houses, so they stand beside them, not over them.
+    const m = GEBAEUDE_MASS[id] ?? 1;
     dinge.push({
       k: o.sy,
-      node: m === 1 ? node : <g transform={`translate(${o.sx} ${o.sy}) scale(${m}) translate(${-o.sx} ${-o.sy})`}>{node}</g>,
+      node: (
+        <g data-bau={id} transform={m === 1 ? undefined : `translate(${o.sx} ${o.sy}) scale(${m}) translate(${-o.sx} ${-o.sy})`}>
+          {node}
+        </g>
+      ),
       neu: !!bau && !!neu?.gebaeude?.includes(id),
     });
   }
