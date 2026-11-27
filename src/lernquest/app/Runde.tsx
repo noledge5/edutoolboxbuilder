@@ -7,6 +7,7 @@ import type { Avatar } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { KopfBild } from './avatar';
 import { Fuchs } from './Fuchs';
+import { SymbolFlamme } from '../figuren/symbole';
 import { GluehbirneIcon, HilfeKarten, Tipp } from './Hilfe';
 import { HeldBild, nurAlsBild } from './heldVektor';
 import { Herzen } from './Held';
@@ -180,6 +181,13 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
             <GluehbirneIcon />
             <span>Hilfe</span>
           </button>
+        )}
+        {/* The combo (27.11.2026): from two right answers in a row a flame with the count; it pops at every one more. */}
+        {serie >= 2 && (
+          <span key={serie} className="lq-combo" role="img" aria-label={`${serie} richtig in Folge`}>
+            <SymbolFlamme groesse={22} />
+            <b>{serie}</b>
+          </span>
         )}
         <Herzen voll={Math.max(0, herzen - fehler)} von={herzen} />
       </div>

@@ -138,6 +138,17 @@ export const SymbolStern = (p: Props) => (
   </Rahmen>
 );
 
+/** A flame (27.11.2026): the combo of right answers in a row, beside the hearts. Orange outside, yellow inside, a light
+ *  tongue top left; drawn like the other symbols (palette, no outline). */
+export const SymbolFlamme = (p: Props) => (
+  <Rahmen {...p}>
+    <path d="M16.8 30 C9.8 30 6.4 25 7.4 19.4 C8.2 15 11.6 12.4 12.6 7.6 C15.6 10 16 13 15.6 15.8 C17.6 13.6 19.2 9.8 18.6 4 C24.4 8.2 26.6 14.4 26 20 C25.4 25.6 22 30 16.8 30 Z" {...flaeche(P.orangeTief, 2)} />
+    <path d="M16 29 C9.4 29 6.2 24.4 7.2 19.2 C8 15 11.2 12.6 12.2 8.2 C15 10.6 15.4 13.4 15 16 C17 13.8 18.6 10.2 18 4.8 C23.4 8.8 25.4 14.6 24.8 19.8 C24.2 25 21 29 16 29 Z" {...flaeche(P.orange, 2)} />
+    <path d="M16 28 C12.4 28 10.6 25.4 11.2 22.4 C11.8 19.6 14 18.4 14.8 15.4 C16.8 17.2 17.4 19.2 17.2 21 C18.4 20 19.2 18.4 19.2 16.8 C21.6 19 22.2 21.8 21.6 24 C21 26.4 18.8 28 16 28 Z" {...flaeche(P.gelb, 2)} />
+    <path d="M10.6 18.6 Q11.6 15.6 13.4 13.8" fill="none" stroke={P.orangeHell} strokeWidth={2.2} strokeLinecap="round" />
+  </Rahmen>
+);
+
 export const SymbolOffline = (p: Props) => (
   <Rahmen {...p}>
     <path d="M8.5 24 A5 5 0 0 1 8.2 14.1 A7.5 7.5 0 0 1 22.6 12.6 A5.8 5.8 0 0 1 23.5 24 Z" {...flaeche(P.wolke, 2)} />

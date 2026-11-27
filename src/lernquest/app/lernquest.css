@@ -5563,3 +5563,24 @@ button.lq-teil:active {
   /* the empty track must show, or a short way reads as a lone dot */
   background: var(--lq-stern-aus);
 }
+
+/* The combo beside the hearts (27.11.2026): a flame with the count of right answers in a row. */
+.lq-combo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lq-a-1);
+  flex: none;
+  font:
+    700 var(--lq-t-text) Fredoka,
+    sans-serif;
+  color: var(--lq-gold-schrift);
+  animation: lq-combo-plopp 0.45s var(--lq-feder);
+}
+@keyframes lq-combo-plopp {
+  from {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.25);
+  }
+}

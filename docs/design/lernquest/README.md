@@ -36,7 +36,7 @@ Canvas); die Logik steht im `<script data-dc-script>`-Block jeder Datei.
   über der Karte, was dran ist (`fuchsHinweis` in `karte.ts`).
 - **Figuren-Werkstatt** (alle Figuren, Posen, Bewegungen, Teile zum Durchklicken): lokal
   `npm run spieltest` → `/lernquest/werkstatt.html`; für die Lehrkraft als privates Artefakt
-  https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG (neu bauen: `npm run werkstatt`, dieselbe Adresse aktualisieren).
+  https://claude.ai/artifact/6YDQU9Ghhp6SZ7mLLXj2jD (neu bauen: `npm run werkstatt`, dieselbe Adresse aktualisieren).
   Dort: Zeitleiste zum Abspielen und Spulen, Pose-Editor mit Schiebern, Bewegungen live bearbeiten, Übergänge,
   Ausrüstung, Größenprobe, Farbliste, Vorlage (Mockup). Die Lehrkraft speichert je Figur und Teil „Passt“ / „Bitte
   ändern“ mit Notiz (Artefakt-Datenbank, Sammlung `pruefung`); Claude liest sie mit ArtifactData (Skill `figur`).

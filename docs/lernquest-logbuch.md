@@ -10,7 +10,17 @@ Bildschirmfotos, die angesehen wurden.
 
 ## 27.11.2026, abends (eigenständig, mit Erlaubnis für PRs und Merges)
 
-### Abzeichen (PR folgt)
+### Combo-Flamme in der Runde (PR folgt)
+- **Was:** ab zwei richtigen Antworten in Folge steht neben den Herzen eine kleine Flamme mit der Zahl; sie ploppt bei
+  jeder weiteren richtigen Antwort.
+- **Warum:** der rote Faden zwischen den Serien-Momenten (3, 5, 10 …): Konzentration wird sichtbar belohnt.
+- **Wie:** \`SymbolFlamme\` in \`figuren/symbole.tsx\` (Palette, ohne Umriss), \`.lq-combo\` in der Runde.
+- **Geprüft:** Runde im Browser (Flamme bei 3); Rundgang; Tests.
+- **Nicht gebaut, zur Entscheidung:** ein Trainingsplatz für schwache Karten. Der Server nimmt Wiederholungsrunden mit
+  beliebigen Karten an und gibt ein Drittel Erfahrung und Münzen – das öffnete wieder das Sammeln, das die Lehrkraft
+  am 17.11. abgestellt hat. Möglich wäre Training ohne Belohnung (braucht eine kleine Server-Änderung).
+
+### Abzeichen (#121)
 - **Was:** sieben Abzeichen mit Bronze, Silber und Gold – Fleißig (Lerntage), Gedächtnis (Aufgaben, die sitzen),
   Sternensammler, Fehlerfrei (perfekte Runden), Entdecker (Stationen mit Stern), Sammler (Teile), Aufsteiger
   (Heldenstufe). Auf der Held-Seite mit Medaille und Weg zur nächsten Stufe; nach einer Runde ein Band „Neues Abzeichen“.
