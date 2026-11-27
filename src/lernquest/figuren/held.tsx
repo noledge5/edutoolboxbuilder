@@ -1387,7 +1387,14 @@ function kopf(haut: Ton, haar: Ton, frisur: string, augen: string, mund: string,
     anker: { hut: [120, 38] },
     // Covering hats sit low on the brow and as wide as the head (by the width of their drawing); crowns, bands and
     // wreaths sit on the hair, a little larger.
-    ankerLage: (i) => (i.platz !== 'hut' ? undefined : i.haube ? { p: [120, HUT_KREMPE], s: Math.min(1.55, Math.max(1, 124 / i.rahmen[2])) } : { p: [120, 38], s: 1.15 }),
+    ankerLage: (i) =>
+      i.platz !== 'hut'
+        ? undefined
+        : i.haube
+          ? { p: [120, HUT_KREMPE], s: Math.min(1.55, Math.max(1, 124 / i.rahmen[2])) }
+          : i.stirn
+            ? { p: [120, HUT_KREMPE - 16], s: 1.05 }
+            : { p: [120, 38], s: 1.15 },
     zeichnung: (s) => (
       <g>
         <UnterHut an={haube}>{f.hinten?.(haar)}</UnterHut>

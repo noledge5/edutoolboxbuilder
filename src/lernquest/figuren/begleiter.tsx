@@ -33,8 +33,17 @@ const HellPf = ({ d, f = P.wolke, t = P.wolkeTief, v = 2.5 }: { d: string; f?: s
 const rr = (x: number, y: number, w: number, h: number, r: number) =>
   `M${x + r} ${y} H${x + w - r} Q${x + w} ${y} ${x + w} ${y + r} V${y + h - r} Q${x + w} ${y + h} ${x + w - r} ${y + h} H${x + r} Q${x} ${y + h} ${x} ${y + h - r} V${y + r} Q${x} ${y} ${x + r} ${y} Z`;
 
-/** Flat dark eye, no shine. */
-const Auge = ({ x, y, r = 4.6 }: { x: number; y: number; r?: number }) => <ellipse cx={x} cy={y} rx={r} ry={r * 1.15} fill={P.auge} />;
+/** Eye (Held 4, 27.11.2026): white with a dark pupil looking the way the pet faces (right), no shine. `dunkel`: the
+ *  older flat dark eye, for pets whose fur is as light as the white of the eye. */
+const Auge = ({ x, y, r = 4.6, dunkel = false }: { x: number; y: number; r?: number; dunkel?: boolean }) =>
+  dunkel ? (
+    <ellipse cx={x} cy={y} rx={r} ry={r * 1.15} fill={P.auge} />
+  ) : (
+    <g>
+      <ellipse cx={x} cy={y} rx={r * 1.4} ry={r * 1.55} fill={P.weiss} />
+      <ellipse cx={x + r * 0.35} cy={y + r * 0.2} rx={r * 0.85} ry={r * 1.0} fill={P.auge} />
+    </g>
+  );
 const Backe = ({ x, y, rx = 4.2, ry = 2.7 }: { x: number; y: number; rx?: number; ry?: number }) => (
   <ellipse cx={x} cy={y} rx={rx} ry={ry} fill={P.backe} opacity={0.6} />
 );

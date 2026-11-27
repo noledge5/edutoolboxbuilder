@@ -37,15 +37,16 @@ export const KOPF_ITEMS: Item[] = [
     id: 'stirnband',
     name: 'Stirnband',
     platz: 'hut',
+    stirn: true,
     seltenheit: 1,
     rahmen: [-54, 0, 128, 40],
     zeichnung: () => (
       <g>
         <path d="M48 16 Q62 4 76 12 Q68 16 66 22 Q60 18 50 20 Z" {...flaeche(P.rot, 2.5)} />
         <path d="M48 20 Q60 28 72 38 Q64 38 60 34 Q56 36 48 26 Z" {...flaeche(P.rotTief, 2.5)} />
-        <path d="M-52 10 Q0 3 52 10 L52 24 Q0 17 -52 24 Z" {...flaeche(P.rot)} />
-        <Tief d="M24 13 Q40 12 52 10 L52 24 Q36 20 20 19 Z" farbe={P.rotTief} />
-        <ellipse cx={50} cy={17} rx={6} ry={7.5} {...flaeche(P.rotTief, 2.5)} />
+        <path d="M-54 7 Q0 0 54 7 L54 29 Q0 22 -54 29 Z" {...flaeche(P.rot)} />
+        <Tief d="M24 10 Q40 9 54 7 L54 29 Q36 25 20 24 Z" farbe={P.rotTief} />
+        <ellipse cx={52} cy={18} rx={8} ry={10} {...flaeche(P.rotTief, 2.5)} />
       </g>
     ),
   },
@@ -419,11 +420,11 @@ export const KOPF_ITEMS: Item[] = [
       const w = Math.sin(zeit * 3) * 5;
       return (
         <g>
-          <path d="M-50 22 Q-52 -18 0 -20 Q52 -18 50 22" {...GEIST} stroke={P.lila} strokeWidth={7} />
+          <path d="M-50 22 Q-52 -18 0 -20 Q52 -18 50 22" {...GEIST} stroke={P.lila} strokeWidth={10} />
           {[-1, 1].map((s) => (
             <g key={s} transform={`rotate(${(s * 6 + w).toFixed(1)} ${s * 14} -19)`}>
-              <path d={`M${s * 14} -19 Q${s * 16} -40 ${s * 22} -56`} {...GEIST} stroke={P.lila} strokeWidth={5} />
-              <circle cx={s * 22} cy={-63} r={9} {...flaeche(P.gruenHell)} />
+              <path d={`M${s * 14} -19 Q${s * 16} -40 ${s * 22} -56`} {...GEIST} stroke={P.lila} strokeWidth={7} />
+              <circle cx={s * 22} cy={-63} r={11} {...flaeche(P.gruenHell)} />
               <path d={`M${s * 22 + 2} -56 A8 8 0 0 0 ${s * 22 + 8} -61`} {...GEIST} stroke={P.gruen} strokeWidth={3} />
               <circle cx={s * 22 - 3} cy={-66} r={2.6} fill={P.wieseHell} />
             </g>

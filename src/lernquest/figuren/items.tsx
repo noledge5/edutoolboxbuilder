@@ -41,18 +41,18 @@ const GRUND: Item[] = [
     name: 'Blumenkranz',
     platz: 'hut',
     seltenheit: 1,
-    rahmen: [-44, -24, 88, 34],
+    rahmen: [-50, -30, 100, 42],
     zeichnung: () => (
       <g>
-        {rohr('M-40 2 Q0 -18 40 2', 9, P.gruen)}
+        {rohr('M-44 4 Q0 -18 44 4', 10, P.gruen)}
         {[
-          [-27, -4, P.backe],
-          [0, -10, P.gold],
-          [27, -4, P.lilaHell],
+          [-30, -4, P.backe],
+          [0, -11, P.gold],
+          [30, -4, P.lilaHell],
         ].map(([x, y, f]) => (
           <g key={`${x}`}>
-            <path d={stern(x as number, y as number, 11)} {...flaeche(f as string, 2.5)} />
-            <circle cx={x as number} cy={y as number} r={3.5} fill={P.goldTief} />
+            <path d={stern(x as number, y as number, 14)} {...flaeche(f as string, 2.5)} />
+            <circle cx={x as number} cy={y as number} r={4.5} fill={P.goldTief} />
           </g>
         ))}
       </g>

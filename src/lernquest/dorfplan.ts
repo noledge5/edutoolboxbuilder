@@ -172,7 +172,8 @@ export function insel(n: number) {
 export function rahmen(n: number): [number, number, number, number] {
   const i = insel(n);
   const y = Math.floor(i.oben - 40);
-  return [-KARTE_BREITE / 2, y, KARTE_BREITE, Math.ceil(i.unten + 34 - y)];
+  // Dorf 4: room below the island for its cliff, the shallow water with foam, the ducks and the boat.
+  return [-KARTE_BREITE / 2, y, KARTE_BREITE, Math.ceil(i.unten + 64 - y)];
 }
 
 export type DekoArt = 'baum' | 'busch' | 'blume' | 'stein';
