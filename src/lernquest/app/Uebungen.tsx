@@ -3,7 +3,7 @@
 // and places check themselves when all are done). In English packages a speaker reads statements and words aloud.
 import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { richParts } from '../../model/text';
-import { gemischt, gleich, punktTrifft, satz, type Antwort } from '../rules';
+import { gemischt, gleich, gleicheAntwort, nurZahlen, punktTrifft, satz, type Antwort } from '../rules';
 import type { Uebung } from '../types';
 import { ton } from './ton';
 import { kannVorlesen, tonVorladen, vorlesen } from './vorlesen';
@@ -429,7 +429,7 @@ function Schreiben({ u, locked, onChange, lang, onEnter }: P<'schreiben'>) {
       {u.aussage && <Aussage text={u.aussage} />}
       {/* No help from the keyboard: it would write the answer, or „correct“ a right one. */}
       <input
-        className={`lq-eingabe ${locked ? (u.loesungen.some((l) => gleich(l, text)) ? 'ok' : 'nein') : ''}`}
+        className={`lq-eingabe ${locked ? (u.loesungen.some((l) => gleicheAntwort(l, text)) ? 'ok' : 'nein') : ''}`}
         value={text}
         readOnly={locked}
         autoFocus
@@ -441,6 +441,7 @@ function Schreiben({ u, locked, onChange, lang, onEnter }: P<'schreiben'>) {
         autoComplete="off"
         spellCheck={false}
         enterKeyHint="done"
+        inputMode={nurZahlen(u.loesungen) ? 'decimal' : undefined}
         maxLength={120}
         onChange={(e) => {
           setText(e.target.value);

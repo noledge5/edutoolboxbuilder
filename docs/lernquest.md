@@ -645,6 +645,23 @@ Bildern geprüft und live (PRs #105–#116):
 - **Lernen sichtbar:** „Das sitzt schon“ unter „Wiederholen“ (Kästen je Fach).
 - **Karte und Leiste:** neue Sterne ploppen auf, der Held hüpft zur neuen Station; Reiter blenden ein.
 
+### Mathe-Aufgaben: tragen die Formate Rechnen? (Prüfung 27.11.2026, Wunsch vom 25.11.)
+
+- **Geht schon:** Zahlen als Antwort im Format „Schreiben“ – seit heute zählt der gleiche Wert (3,5 = 3.5 = 3,50;
+  1 000 = 1000; −4 = -4), mehrdeutiges wie „1.000“ zählt nicht; sind alle Lösungen Zahlen, zeigt das Tablet die
+  Zahlentastatur; eine falsche Zahl heißt nie „fast richtig“ (`zahlAus`, `gleicheAntwort`, `nurZahlen` in rules.ts).
+  Auswählen (Ergebnis wählen), Lücke (Zahlen-Kacheln), Reihenfolge (Zahlen ordnen), Gruppen (gerade/ungerade, größer
+  als 100) und Orte auf einem Bild (z. B. Zahlenstrahl als Bild) tragen Rechnen ohne Änderung.
+- **Fehlt, Entscheidung der Lehrkraft:**
+  - *Brüche:* Eingabe „3/4“ und ob 6/8 als 3/4 zählt (Kürzen gefordert oder nicht).
+  - *Einheiten:* „5 cm“ gegen „50 mm“ – zählt Umrechnen, muss die Einheit dastehen?
+  - *Rechenweg:* nicht automatisch zu bewerten; möglich wäre ein Format mit Zwischenschritten (Lücken in einer Kette).
+  - *Kopfrechnen-Training:* Aufgaben, die die App selbst würfelt (Einmaleins, Zehnerübergang) – neues Format, und
+    wie Erfahrung und Münzen dafür zählen (das Sammeln von Belohnungen war am 17.11. abgestellt).
+  - *Zahlenstrahl als eigenes Format:* Zahl auf dem Strahl antippen, mit Toleranz.
+- **Empfehlung:** zuerst Brüche in „Schreiben“ (Eingabe und Regel fürs Kürzen), dann der Zahlenstrahl; beides ohne
+  Server-Änderung, nur die Entscheidung oben.
+
 ### Vorschläge, die den Server brauchen (offen, Entscheidung der Lehrkraft)
 
 - **Neue Teile** (Hüte, Werkzeuge, Begleiter, Hintergründe, Frisuren): jedes Teil braucht einen Eintrag in `lq_teil`

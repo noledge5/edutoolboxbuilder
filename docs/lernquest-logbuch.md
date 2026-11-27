@@ -10,11 +10,20 @@ Bildschirmfotos, die angesehen wurden.
 
 ## 27.11.2026, abends (eigenständig, mit Erlaubnis für PRs und Merges)
 
-### Combo-Flamme in der Runde (PR folgt)
+### Zahlen in Antworten (PR folgt, Mathe-Wunsch vom 25.11.)
+- **Was:** gleicher Wert zählt (3,5 = 3.5 = 3,50; 1 000 = 1000; −4 = -4), „1.000“ bleibt mehrdeutig und zählt nicht;
+  Zahlentastatur, wenn alle Lösungen Zahlen sind; eine falsche Zahl heißt nie „fast richtig“.
+- **Warum:** der Plan verlangte zu prüfen, ob die Formate Rechnen tragen; ein Kind, das 3.5 statt 3,5 tippt, hat
+  richtig gerechnet. Die Lücken- und Reihenfolge-Marken bleiben bewusst beim reinen Textvergleich (gleich), damit
+  Anzeige und Bewertung nicht auseinanderlaufen.
+- **Wie:** `zahlAus`, `gleicheAntwort`, `nurZahlen` in rules.ts, Tests in `zahlen.test.ts`; Prüfung und offene Fragen
+  (Brüche, Einheiten, Rechenweg, Kopfrechnen, Zahlenstrahl) in `docs/lernquest.md`.
+
+### Combo-Flamme in der Runde (#122)
 - **Was:** ab zwei richtigen Antworten in Folge steht neben den Herzen eine kleine Flamme mit der Zahl; sie ploppt bei
   jeder weiteren richtigen Antwort.
 - **Warum:** der rote Faden zwischen den Serien-Momenten (3, 5, 10 …): Konzentration wird sichtbar belohnt.
-- **Wie:** \`SymbolFlamme\` in \`figuren/symbole.tsx\` (Palette, ohne Umriss), \`.lq-combo\` in der Runde.
+- **Wie:** `SymbolFlamme` in `figuren/symbole.tsx` (Palette, ohne Umriss), `.lq-combo` in der Runde.
 - **Geprüft:** Runde im Browser (Flamme bei 3); Rundgang; Tests.
 - **Nicht gebaut, zur Entscheidung:** ein Trainingsplatz für schwache Karten. Der Server nimmt Wiederholungsrunden mit
   beliebigen Karten an und gibt ein Drittel Erfahrung und Münzen – das öffnete wieder das Sammeln, das die Lehrkraft

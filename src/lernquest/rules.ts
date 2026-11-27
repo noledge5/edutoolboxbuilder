@@ -122,6 +122,27 @@ export function fehlgriffHinweis(u: Uebung, a: Antwort | null): string | null {
 /** Two answers in words are the same, as `istRichtig` compares them (case, spaces, punctuation). */
 export const gleich = (a: string, b: string) => normalize(a) === normalize(b);
 
+/** A number as children type it (27.11.2026, Mathe): comma or point as decimal mark, spaces between digits, a typographic
+ *  minus. Null for anything else, and for „1.000“ (one or a thousand? – left to the plain comparison). */
+export function zahlAus(s: string): number | null {
+  const t = normalize(s)
+    .replace(/\s+/g, '')
+    .replace(/[−–]/g, '-');
+  if (!/^[+-]?\d+([.,]\d+)?$/.test(t) || /^[+-]?\d{1,3}\.\d{3}$/.test(t)) return null;
+  return Number(t.replace(',', '.'));
+}
+
+/** A typed answer matches a solution: the same text, or for numbers the same value (3,5 = 3.5 = 3,50; 1 000 = 1000). */
+export function gleicheAntwort(loesung: string, text: string): boolean {
+  if (gleich(loesung, text)) return true;
+  const a = zahlAus(loesung);
+  const b = zahlAus(text);
+  return a !== null && b !== null && Math.abs(a - b) < 1e-9;
+}
+
+/** Every solution is a number: the tablet shows the number keyboard. */
+export const nurZahlen = (loesungen: string[]) => loesungen.length > 0 && loesungen.every((l) => zahlAus(l) !== null);
+
 /** Letters to change, add or remove to turn one word into the other (Levenshtein). */
 function abstand(a: string, b: string): number {
   let vorher = Array.from({ length: b.length + 1 }, (_, j) => j);
@@ -138,7 +159,8 @@ function abstand(a: string, b: string): number {
 export function fastRichtig(u: Uebung, a: Antwort | null): number {
   if (u.art !== 'schreiben' || a?.art !== 'schreiben') return 0;
   const t = normalize(a.text);
-  if (!t) return 0;
+  // a number is not misspelt: 85 for 84 is another number
+  if (!t || nurZahlen(u.loesungen)) return 0;
   const d = Math.min(...u.loesungen.map((l) => abstand(t, normalize(l))));
   const erlaubt = Math.min(...u.loesungen.map((l) => normalize(l).length)) >= 8 ? 2 : 1;
   return d > 0 && d <= erlaubt ? d : 0;
@@ -173,7 +195,7 @@ export function istRichtig(u: Uebung, a: Antwort): boolean {
       return asked.size === u.punkte.length && daneben <= fehlgriffeFrei(u.punkte.length);
     }
     case 'schreiben':
-      return a.art === 'schreiben' && u.loesungen.some((l) => gleich(l, a.text));
+      return a.art === 'schreiben' && u.loesungen.some((l) => gleicheAntwort(l, a.text));
   }
 }
 
