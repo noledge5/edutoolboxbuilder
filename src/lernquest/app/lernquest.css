@@ -4807,3 +4807,24 @@ button.lq-teil:active {
   filter: brightness(0);
   opacity: 0.18;
 }
+
+/* Ducks and the boat on the village water bob gently (Dorf 4). */
+.lq-ente {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: lq-schaukeln calc(var(--lq-dauer-lang) * 5) ease-in-out infinite;
+}
+@keyframes lq-schaukeln {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(1.5px) rotate(2deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-ente {
+    animation: none;
+  }
+}

@@ -108,3 +108,32 @@ export function wimpel(p: Pt, farbe: string, hoch = 14) {
 export function glitzer(p: Pt, n: number, farbe: string = P.wasserHell) {
   return <rect className="lq-glitzer" x={p[0]} y={p[1]} width={9 + (n % 3) * 4} height={3} rx={1.5} fill={farbe} style={{ animationDelay: `${-(n % 7) * 0.6}s` }} />;
 }
+
+/** A duck on the water (Dorf 4, 27.11.2026): a ring of water, body, head, beak; it bobs (lq-ente). */
+export function ente(p: Pt, links = false) {
+  const s = links ? -1 : 1;
+  return (
+    <g className="lq-ente">
+      <ellipse cx={p[0]} cy={p[1]} rx={13} ry={3.4} fill={P.wasserHell} opacity={0.85} />
+      <path d={`M${p[0] - 10 * s} ${p[1] - 1} Q${p[0] - 11 * s} ${p[1] - 9} ${p[0] - 2 * s} ${p[1] - 8} L${p[0] + 7 * s} ${p[1] - 8} Q${p[0] + 10 * s} ${p[1] - 1} ${p[0]} ${p[1]} Z`} fill={P.wolkeHell} />
+      <ellipse cx={p[0] - 2 * s} cy={p[1] - 5} rx={5} ry={2.4} fill={P.wolke} />
+      <circle cx={p[0] + 6 * s} cy={p[1] - 12} r={4.2} fill={P.wolkeHell} />
+      <path d={`M${p[0] + 9.5 * s} ${p[1] - 12.5} l${4 * s} 1.2 l${-4 * s} 1.6 Z`} fill={P.orange} />
+      <circle cx={p[0] + 7 * s} cy={p[1] - 13} r={1} fill={P.auge} />
+    </g>
+  );
+}
+
+/** A small sailing boat on the water (Dorf 4): wooden hull, a white sail with a red band. */
+export function boot(p: Pt) {
+  return (
+    <g className="lq-ente">
+      <ellipse cx={p[0]} cy={p[1] + 1} rx={22} ry={4} fill={P.wasserHell} opacity={0.85} />
+      <path d={`M${p[0] - 19} ${p[1] - 6} H${p[0] + 19} L${p[0] + 13} ${p[1] + 1} H${p[0] - 13} Z`} fill={P.holz} />
+      <path d={`M${p[0] + 4} ${p[1] - 6} H${p[0] + 19} L${p[0] + 13} ${p[1] + 1} H${p[0] + 2} Z`} fill={P.holzTief} />
+      <path d={`M${p[0] - 1} ${p[1] - 6} V${p[1] - 38}`} stroke={P.holzTief} strokeWidth={2.5} strokeLinecap="round" />
+      <path d={`M${p[0] + 1} ${p[1] - 36} L${p[0] + 16} ${p[1] - 10} H${p[0] + 1} Z`} fill={P.wolkeHell} />
+      <path d={`M${p[0] + 1} ${p[1] - 21} L${p[0] + 9.5} ${p[1] - 21} L${p[0] + 12} ${p[1] - 16} H${p[0] + 1} Z`} fill={P.rot} />
+    </g>
+  );
+}
