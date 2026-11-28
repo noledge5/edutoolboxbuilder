@@ -5,7 +5,7 @@
 // see Boss.tsx); the class code lets it show a QR code to sign in.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QrScanner } from '../../sync/QrScanner';
-import { beamerAusHash, codeAus, faecherVon, fuchsHinweis, MEILENSTEIN_GROESSE, namensFarbe, regionenVon, regionName, vorname, wochenTage, type Region, type Station } from '../karte';
+import { beamerAusHash, codeAus, faecherVon, fuchsHinweis, MEILENSTEIN_GROESSE, MEILENSTEIN_GUT, waechterLeben, namensFarbe, regionenVon, regionName, vorname, wochenTage, type Region, type Station } from '../karte';
 import {
   heldenstufe,
   heute,
@@ -72,6 +72,9 @@ import { Landkarte } from './Landkarte';
 import { EventBanner } from './EventBanner';
 import { eventFortschritt, eventLaeuft, eventPakete, readEvent } from '../event';
 import { EVENT_FARBEN } from '../figuren/fest';
+import { WAECHTER_NAMEN } from '../figuren/waechter';
+import { weltVon, type WeltId } from '../figuren/welten';
+import { WaechterBild } from './Waechter';
 import { SymbolAufgaben, SymbolHeld, SymbolKarte, SymbolKlasse, SymbolMuenze, SymbolOffline, SymbolStufe, SymbolWiederholen } from '../figuren/symbole';
 import { Zaehler } from './Zaehler';
 import type { Wegpunkt } from './Landkarte';
@@ -143,10 +146,10 @@ export type Screen =
 interface Meilenstein {
   id: string;
   titel: string;
+  /** The world of the region: its guard is fought in the Meilenstein (Solo-Boss, 28.11.2026). */
+  welt: WeltId;
 }
 
-/** A Meilenstein counts as passed from this percent. */
-const MEILENSTEIN_GUT = 80;
 
 const codeFromUrl = () => {
   const h = location.hash.replace(/^#\/?/, '');
@@ -719,7 +722,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
 
   const meilensteinStarten = (r: Region) => {
     const stationen = r.stationen.flatMap((s) => (s.stunde && daten.pakete[s.stunde] ? [daten.pakete[s.stunde]] : []));
-    setScreen({ kind: 'runde', nr: Date.now(), stunde: '', runde: 0, uebungen: gemischterTest(stationen, `${r.id}:${Date.now()}`, MEILENSTEIN_GROESSE), meilenstein: { id: r.id, titel: r.titel } });
+    setScreen({ kind: 'runde', nr: Date.now(), stunde: '', runde: 0, uebungen: gemischterTest(stationen, `${r.id}:${Date.now()}`, MEILENSTEIN_GROESSE), meilenstein: { id: r.id, titel: r.titel, welt: weltVon(r.id, r.nummer).id } });
   };
 
   if (screen.kind === 'runde') {
@@ -733,7 +736,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         zurueck={zurueckTaste}
         stand={stand}
         herzen={HERZEN + bonusVon(stand.avatar).herz}
-        titel={screen.willkommen ? 'Deine erste Runde' : screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Meilenstein · ${screen.meilenstein.titel}` : 'Wiederholen'}
+        titel={screen.willkommen ? 'Deine erste Runde' : screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Wächter · ${screen.meilenstein.titel}` : 'Wiederholen'}
         onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
         onFertig={(st, r, e, l) => {
           // A round of „Wiederholen“ (not the Meilenstein or the welcome, also sent without a lesson): counts for the daily limit.
@@ -743,6 +746,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         }}
         paketVon={(st) => daten.pakete[st]}
         gefuehrt={!!screen.stunde && screen.runde === 0 && !screen.meilenstein && !screen.willkommen}
+        gegner={screen.meilenstein?.welt}
       />
     );
   }
@@ -866,13 +870,13 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     const schwach = fazit === 'schwach' && !!p;
     const ms = screen.meilenstein;
     const msGut = !!ms && screen.richtig * 100 >= screen.gesamt * MEILENSTEIN_GUT;
-    const titelText = ms ? (msGut ? 'Meilenstein geschafft!' : 'Fast!') : schwach ? 'Fast!' : !screen.stunde ? 'Wiederholt!' : screen.sterneJetzt > 0 && screen.sterneVorher === 0 ? 'Station geschafft!' : fazit === 'perfekt' ? 'Perfekt!' : 'Runde geschafft!';
+    const titelText = ms ? (msGut ? 'Wächter besiegt!' : 'Noch nicht besiegt') : schwach ? 'Fast!' : !screen.stunde ? 'Wiederholt!' : screen.sterneJetzt > 0 && screen.sterneVorher === 0 ? 'Station geschafft!' : fazit === 'perfekt' ? 'Perfekt!' : 'Runde geschafft!';
     const msRegion = ms && regionenVon(pakete, pakete.find((x) => x.modul.id === ms.id)?.fach ?? '', stand).find((r) => r.id === ms.id);
     // What comes next, as the main button: a weak round again, else the station's next open round, else more to repeat.
     const offeneRunde = p ? Array.from({ length: rundenZahl(p.uebungen.length) }, (_, i) => i).find((i) => !geschafft(stand.bestwerte[p.stunde]?.[i])) : undefined;
     const weiter: { text: string; los: () => void } | null =
       ms && !msGut && msRegion
-        ? { text: 'Meilenstein nochmal', los: () => meilensteinStarten(msRegion) }
+        ? { text: 'Nochmal kämpfen', los: () => meilensteinStarten(msRegion) }
         : schwach && p
         ? { text: 'Runde nochmal spielen', los: () => starte(p, screen.runde) }
         : p && offeneRunde !== undefined
@@ -886,7 +890,14 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         {/* Hero and fox together: they cheer, or after a weak round the fox comforts (27.11.2026). */}
         <div className="lq-ergebnis-paar">
           <AvatarBild avatar={{ ...stand.avatar, hintergrund: '' }} pose={schwach || (ms && !msGut) ? 'denken' : 'jubeln'} animation={schwach || (ms && !msGut) ? 'seufzen' : 'jubeln'} className="lq-ergebnis-held" lebendig />
-          <Fuchs pose={schwach || (ms && !msGut) ? 'troesten' : 'jubeln'} groesse={92} className="lq-ergebnis-fuchs" />
+          {/* After the Meilenstein the region's guard stands beside the hero instead of the fox: beaten, or still smug. */}
+          {ms ? (
+            <span className="lq-ergebnis-fuchs lq-ergebnis-waechter">
+              <WaechterBild welt={ms.welt} breite={92} besiegt={msGut} />
+            </span>
+          ) : (
+            <Fuchs pose={schwach || (ms && !msGut) ? 'troesten' : 'jubeln'} groesse={92} className="lq-ergebnis-fuchs" />
+          )}
         </div>
         {screen.stunde && <Sterne n={screen.sterneJetzt} neu={screen.sterneJetzt > screen.sterneVorher} gross />}
         <h1>{titelText}</h1>
@@ -942,7 +953,13 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         {screen.stunde && <p className="lq-klein lq-mitte">{sterneHinweis(screen.sternePlus, screen.sterneJetzt, screen.sterneRest)}</p>}
         {!screen.stunde && screen.richtig < screen.gesamt && <p className="lq-klein lq-mitte">Was noch nicht saß, kommt morgen wieder dran.</p>}
         {schwach && <p className="lq-klein lq-mitte">Das sitzt noch nicht. Spiel die Runde gleich nochmal, dann klappt es besser.</p>}
-        {ms && <p className="lq-klein lq-mitte">{msGut ? 'Du kannst die ganze Region. Stark!' : `Ab ${MEILENSTEIN_GUT} % ist der Meilenstein geschafft.`}</p>}
+        {ms && (
+          <p className="lq-klein lq-mitte">
+            {msGut
+              ? 'Du kannst die ganze Region. Stark!'
+              : `Mit ${waechterLeben(screen.gesamt)} von ${screen.gesamt} richtig beim ersten Versuch fällt er. Übe die Stationen der Region und versuch es nochmal.`}
+          </p>
+        )}
         {!!screen.aufstieg && (
           <div className="lq-aufstieg" role="status">
             <span className="lq-stufe-abzeichen lq-aufstieg-abzeichen" aria-hidden>
@@ -960,7 +977,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         )}
         <AbzeichenNeu neu={screen.abzeichenNeu ?? []} />
         {(() => {
-          const zeilen = (screen.verpasst ?? []).map((u) => ({ id: u.id, m: merksatz(u) })).filter((z) => z.m);
+          // keyed by position too: a Meilenstein or a review mixes stations, whose exercise ids may repeat
+          const zeilen = (screen.verpasst ?? []).map((u, i) => ({ id: `${i}:${u.id}`, m: merksatz(u) })).filter((z) => z.m);
           return zeilen.length ? (
             <section className="lq-box lq-mitnehmen" aria-labelledby="lq-mitnehmen-titel">
               <h2 id="lq-mitnehmen-titel">Das nimmst du mit</h2>
@@ -1317,11 +1335,27 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
                 klasse: 'ist-meilenstein',
                 inhalt: (
                   <>
-                    <button type="button" className="lq-knoten meilenstein" disabled={!r.meilenstein} aria-label={`Meilenstein: ${r.titel}`} onClick={() => meilensteinStarten(r)}>
-                      {best !== undefined && best >= MEILENSTEIN_GUT ? <HakenIcon /> : r.meilenstein ? <FahneIcon /> : <SchlossIcon />}
+                    {/* The region's guard waits here (Solo-Boss, 28.11.2026): a lock until every station is done, the guard
+                        while it stands, a tick once it is beaten. */}
+                    <button
+                      type="button"
+                      className={`lq-knoten meilenstein${r.meilenstein && !(best !== undefined && best >= MEILENSTEIN_GUT) ? ' mit-waechter' : ''}`}
+                      disabled={!r.meilenstein}
+                      aria-label={`${WAECHTER_NAMEN[weltVon(r.id, r.nummer).id]}: ${r.titel}`}
+                      onClick={() => meilensteinStarten(r)}
+                    >
+                      {best !== undefined && best >= MEILENSTEIN_GUT ? <HakenIcon /> : r.meilenstein ? <WaechterBild welt={weltVon(r.id, r.nummer).id} breite={50} lebendig={false} /> : <SchlossIcon />}
                     </button>
-                    <span className="lq-knoten-titel">Meilenstein</span>
-                    <span className="lq-klein">{!r.meilenstein ? 'Öffnet sich, wenn alle Stationen geschafft sind.' : best !== undefined ? `Bestes Ergebnis ${best} %` : 'Gemischter Test über die ganze Region'}</span>
+                    <span className="lq-knoten-titel">Wächter</span>
+                    <span className="lq-klein">
+                      {!r.meilenstein
+                        ? 'Wartet, bis alle Stationen geschafft sind.'
+                        : best !== undefined && best >= MEILENSTEIN_GUT
+                          ? `Besiegt · bestes Ergebnis ${best} %`
+                          : best !== undefined
+                            ? `Bestes Ergebnis ${best} % · ab ${MEILENSTEIN_GUT} % fällt er`
+                            : `${MEILENSTEIN_GROESSE} gemischte Fragen – besiege ihn!`}
+                    </span>
                   </>
                 ),
               };
@@ -1691,11 +1725,6 @@ const SchlossIcon = () => (
 export const SternIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden>
     <path fill="currentColor" d="m12 2.5 2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8Z" />
-  </svg>
-);
-const FahneIcon = () => (
-  <svg {...svg} width={30} height={30} strokeWidth={2.4}>
-    <path d="M6 21V4M6 4h11l-2.5 4L17 12H6" />
   </svg>
 );
 const WiederholenIcon = () => (

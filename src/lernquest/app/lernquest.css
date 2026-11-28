@@ -3783,6 +3783,16 @@ button.lq-teil:active {
   color: var(--lq-auf-farbe);
   box-shadow: 0 6px 0 var(--lq-antwort-4-tief);
 }
+/* The region's guard waits in the node (Solo-Boss, 28.11.2026): light ground, the purple ring stays. */
+.lq-landkarte .lq-knoten.meilenstein.mit-waechter:not(:disabled) {
+  background: var(--lq-karte);
+  box-shadow:
+    inset 0 0 0 4px var(--lq-antwort-4),
+    0 6px 0 var(--lq-antwort-4-tief);
+}
+.lq-knoten.mit-waechter .lq-waechter-bild {
+  margin-top: calc(-1 * var(--lq-a-1));
+}
 .lq-landkarte .lq-knoten-titel,
 .lq-landkarte .lq-wegpunkt .lq-klein {
   background: var(--lq-karte);
@@ -5620,4 +5630,101 @@ button.lq-teil:active {
 .lq-abzeichen-mehr-wo {
   font-size: var(--lq-t-klein);
   color: var(--lq-gedaempft);
+}
+
+/* The region's guard over the exercise in the Meilenstein (Solo-Boss, 28.11.2026): picture, name, life as pips. */
+.lq-waechter {
+  display: flex;
+  align-items: center;
+  gap: var(--lq-a-3);
+  padding: var(--lq-a-1) var(--lq-a-3);
+  border-radius: var(--lq-r);
+  background: var(--lq-karte);
+  box-shadow: inset 0 0 0 2px var(--lq-linie);
+}
+.lq-waechter.besiegt {
+  background: var(--lq-gold-flaeche);
+  box-shadow: inset 0 0 0 2px var(--lq-gold);
+}
+.lq-waechter-bild {
+  flex: none;
+  overflow: visible;
+}
+.lq-waechter-text {
+  display: grid;
+  gap: var(--lq-a-1);
+  min-width: 0;
+}
+.lq-waechter-text strong {
+  font:
+    700 var(--lq-t-text) Fredoka,
+    sans-serif;
+}
+.lq-waechter-leben {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lq-a-1);
+}
+.lq-waechter-leben i {
+  width: 18px;
+  height: 10px;
+  border-radius: var(--lq-r-pille);
+  background: var(--lq-stern-aus);
+}
+.lq-waechter-leben i.voll {
+  background: var(--lq-herz);
+}
+.lq-waechter-leben i.weg {
+  animation: lq-waechter-schlag var(--lq-dauer-lang) var(--lq-feder) both;
+}
+@keyframes lq-waechter-schlag {
+  0% {
+    transform: scale(1.6);
+    background: var(--lq-gold);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.lq-waechter-rest {
+  font-size: var(--lq-t-klein);
+  color: var(--lq-gedaempft);
+}
+.lq-waechter.besiegt .lq-waechter-rest {
+  color: var(--lq-gold-schrift);
+  font-weight: 800;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-waechter-leben i.weg {
+    animation: none;
+  }
+}
+/* Short screens (small phones): the band stays one line high so the answers keep clear of the footer. */
+@media (max-height: 720px) {
+  .lq-waechter {
+    gap: var(--lq-a-2);
+  }
+  .lq-waechter .lq-waechter-bild {
+    width: 44px;
+    height: 48px;
+  }
+  .lq-waechter-rest {
+    display: none;
+  }
+  .lq-waechter.besiegt .lq-waechter-rest {
+    display: inline;
+  }
+}
+/* Very short screens (360 × 640): only a small guard and the pips, so a 2 × 2 picture exercise still fits. */
+@media (max-height: 660px) {
+  .lq-waechter {
+    padding: 0 var(--lq-a-2);
+  }
+  .lq-waechter .lq-waechter-bild {
+    width: 30px;
+    height: 33px;
+  }
+  .lq-waechter-text strong {
+    display: none;
+  }
 }

@@ -35,6 +35,13 @@ export const regionName = (id: string, nummer: number) => (id.startsWith('extra-
 /** Exercises in the Meilenstein of a region (the server takes at most 20 per round). */
 export const MEILENSTEIN_GROESSE = 10;
 
+/** A Meilenstein counts as passed from this percent. */
+export const MEILENSTEIN_GUT = 80;
+
+/** The region's guard (Solo-Boss, 28.11.2026) has as many life points as right first tries are needed to pass: each one
+ *  is a hit, so it falls exactly when the Meilenstein is passed (8 of 10). */
+export const waechterLeben = (fragen: number) => Math.max(1, Math.ceil((fragen * MEILENSTEIN_GUT) / 100));
+
 /** Subjects of the packages, sorted. */
 export const faecherVon = (pakete: Paket[]) => [...new Set(pakete.map((p) => p.fach))].sort((a, b) => a.localeCompare(b, 'de'));
 
@@ -122,7 +129,7 @@ export function fuchsHinweis(regionen: Region[], dran: number, bestanden: Readon
   if (dran > 0) return { text: `${dran === 1 ? '1 Aufgabe wartet' : `${dran} Aufgaben warten`} aufs Wiederholen. So bleibt es im Kopf!`, pose: 'denken' };
   const offen = stationen.find((s) => s.zustand === 'offen');
   if (offen) return { text: `„${offen.titel}“ hat noch Sterne für dich.`, pose: 'stehen' };
-  if (regionen.some((r) => r.meilenstein && !bestanden.has(r.id))) return { text: 'Alle Stationen geschafft! Am dunklen Schloss wartet der Meilenstein.', pose: 'jubeln' };
+  if (regionen.some((r) => r.meilenstein && !bestanden.has(r.id))) return { text: 'Alle Stationen geschafft! Am Ende des Wegs wartet der Wächter der Region.', pose: 'jubeln' };
   if (stationen.some((s) => s.zustand === 'gesperrt')) return { text: 'Super, alles geschafft! Neue Stationen öffnen sich, sobald ihr sie im Unterricht hattet.', pose: 'jubeln' };
   return { text: 'Alles geschafft! Hol dir in den Stationen die fehlenden Sterne.', pose: 'jubeln' };
 }

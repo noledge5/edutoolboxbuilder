@@ -522,19 +522,28 @@ läuft als Runde „Wiederholen“ (ein Drittel der Erfahrung und Münzen, Wiede
   „Wiederholen“ bleibt für alle Fächer zusammen.
 - **Meilenstein:** Am Ende jeder Region mit mindestens zwei Stationen. Er öffnet sich, wenn alle Stationen der Region
   freigeschaltet und geschafft sind, und mischt 10 Aufgaben gleichmäßig aus allen Stationen (`gemischterTest` in
-  `probe.ts`, auch für den Probetest der offenen Übung). Fehler kommen wieder wie in jeder Runde; ab 80 % beim
-  ersten Versuch heißt es „Meilenstein geschafft!“, sonst „Fast!“ mit „Meilenstein nochmal“. Das beste Ergebnis
-  steht am Knoten. **Nur auf dem Gerät** gespeichert (`lernquest:meilensteine`, beim Abmelden gelöscht): Der Server
-  kennt Meilensteine nicht; der Server-Teil von Stufe C brachte nur Stufen und 60 %. Der Bosskampf hängt nicht
-  am Meilenstein (ihn startet die Lehrkraft).
-- Geprüft: Tests (`lernquest.test.ts`, „Weltkarte“), Typprüfung, Build; im Spieltest ohne Server am Handy-Format:
-  verblasste Station aufgefrischt (glänzt danach, Wiederholen-Knoten weg), Meilenstein mit 7 von 10 („Fast!“) und
-  10 von 10 („geschafft“, Haken und Bestwert am Knoten). Nicht mit echtem Server gespielt.
-
-## Sterne aus drei Stufen, Runden ab 60 % (11.11.2026, Server-Teil von „Stufe C“)
-
-Entscheidungen der Lehrkraft siehe `docs/roadmap.md` (Stufe C). Migration `20261123_lernquest_stufen.sql`; die Regeln
-stehen gleich in `rules.ts` (`GESCHAFFT_AB`, `niveauVon`, `rundenStufen`, `sternZiele`, `sterne`, `sterneVon`).
+  `probe.ts`, auch für den Probetest der offenen Übung). Fehler kommen wieder wie in jeder Runde. Seit 28.11.2026 ist er
+  ein **Kampf gegen den Wächter der Region** (siehe „Solo-Boss: der Wächter der Region“ unten); geschafft ist er wie
+  bisher ab 80 % beim ersten Versuch. Das beste Ergebnis steht am Knoten. **Nur auf dem Gerät** gespeichert
+  (`lernquest:meilensteine`, beim Abmelden gelöscht): Der Server kennt Meilensteine nicht; der Server-Teil von Stufe C
+  brachte nur Stufen und 60 %. Der Bosskampf der Klasse hängt nicht am Meilenstein (ihn startet die Lehrkraft).
+- **Solo-Boss: der Wächter der Region (28.11.2026, Wunsch der Lehrkraft vom 20.11., Plan Schritt 6):** Am Ende jedes
+  Lernwegs steht ein kleiner lebender Turm, der Wächter, in den Farben der Welt (Wiesen-, Wüsten-, Schnee-, Strand-,
+  Vulkan-, Sternen-, Wald-, Turm-Wächter; `figuren/waechter.tsx`). Jedes Kind besiegt ihn allein im Meilenstein: jede
+  richtige Antwort beim ersten Versuch ist ein Treffer (er zuckt, ein Lebenspunkt fällt), jeder Fehler ein Angriff (er
+  springt, ein Herz bricht). Er hat so viele Lebenspunkte, wie richtige Antworten fürs Bestehen nötig sind
+  (`waechterLeben`, 8 von 10), fällt also genau dann, wenn der Meilenstein geschafft ist. Im Ergebnis steht er neben
+  dem Helden, besiegt oder noch stehend, mit dem genauen Ziel („Mit 8 von 10 richtig beim ersten Versuch fällt er“);
+  „Nochmal kämpfen“ jederzeit. Auf der Karte wartet er im Knoten vor der Boss-Burg, danach ein Haken.
+  - *Entschieden (mit der Freigabe vom 27.11., Mechanik neu zu denken), statt der offenen Fragen im Plan:* **ersetzt den
+    Meilenstein** (gleiche Fragen, gleiche 80 %, kein zweiter Test); **Belohnung unverändert** (der Meilenstein zählt
+    beim Server weiter wie eine Wiederholung; mehr Belohnung bräuchte eine Server-Änderung und öffnete das Sammeln, das
+    am 17.11. abgestellt wurde); **Niederlage ohne Strafe** (er bleibt stehen, nochmal geht sofort); **eigene Figur**:
+    ein kleiner Turm in den Farben der Region statt der drei großen Bosse, damit der Klassen-Boss am Beamer das große
+    Ereignis bleibt.
+  - Prüfen: `figuren/waechter.test.tsx` (alle Welten, alle Posen, nur Palette), `app/waechterkampf.test.tsx`
+    (Lebenspunkte = 80 %, Leiste nur im Meilenstein); im Browser gewonnen (9 von 10) und verloren (5 von 10), auf Handy,
+    kleinem Handy (375 × 667) und 360 × 640: alle Aufgaben über dem Fuß.
 - **Geschafft ab 60 %:** Eine Runde zählt erst ab 60 % beim ersten Versuch als geschafft (vorher: eine richtige
   Antwort). Das gilt für die Sterne, für „nächste Runde“ und dafür, ob eine Runde als Wiederholung zählt.
 - **Stufe einer Runde:** ihre schwerste Übung. Pool-Fragen bringen `niveau` mit; sonst nach Format: Antippen,

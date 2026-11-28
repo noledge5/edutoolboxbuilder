@@ -6,10 +6,11 @@ import { ITEMS } from './items';
 import { GOLEM } from './golem';
 import { RAETSELDRACHE } from './raetseldrache';
 import { TINTENKRAKE } from './tintenkrake';
+import { WAECHTER, WAECHTER_NAMEN } from './waechter';
 import type { Figur } from './typen';
 
-export const FIGUREN: Figur[] = [FUCHS, HELD, GOLEM, TINTENKRAKE, RAETSELDRACHE];
-export { ITEMS, FUCHS, HELD, GOLEM, TINTENKRAKE, RAETSELDRACHE };
+export const FIGUREN: Figur[] = [FUCHS, HELD, GOLEM, TINTENKRAKE, RAETSELDRACHE, WAECHTER.wiese];
+export { ITEMS, FUCHS, HELD, GOLEM, TINTENKRAKE, RAETSELDRACHE, WAECHTER, WAECHTER_NAMEN };
 export { EIGENE_ZEICHNUNGEN, held, heldRaum, hutOben, KLEIDUNG, AUGEN_ARTEN, MUND_ARTEN, FRISUR_ARTEN } from './held';
 export type { Aussehen } from './held';
 export { HINTERGRUENDE } from './hintergruende';
