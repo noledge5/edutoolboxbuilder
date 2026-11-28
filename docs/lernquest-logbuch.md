@@ -13,7 +13,14 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Barrierefreiheit: Lücken mit Namen, Orte auf dem Bild per Tastatur (PR folgt)
+### Rundgang mit Haus-Fenster; Lehre aus #140 (PR folgt)
+- **Was:** der Rundgang (`npm run rundgang`) öffnet jetzt auch „Mein Haus“ über das eigene Haus im Dorf und prüft das
+  Fenster auf allen Größen (seitliches Verschieben, abgeschnittene Texte, kleine Knöpfe).
+- **Lehre aus #140:** ein Testfall hatte einen Typfehler; meine eigene Prüfung las nur die letzte Zeile der
+  Typprüfung und ließ ihn durch, erst die CI hielt den Merge an. Seitdem zählen bei mir nur die Exit-Codes von
+  Typprüfung, Tests, Build und Rundgang.
+
+### Barrierefreiheit: Lücken mit Namen, Orte auf dem Bild per Tastatur (#140)
 - **Geprüft:** eigene Prüfung im Browser (ohne Zusatzpaket – axe-core zu laden wurde abgelehnt) auf Karte, Aufgaben,
   Wiederholen, Held, Klasse mit Dorf, Haus-Fenster, Ergebnis und den Formaten Bild, Wählen, Reihenfolge, Lücke,
   Richtig/Falsch, Paare: Knöpfe ohne Namen, Bilder ohne alt, Felder ohne Beschriftung, doppelte Ids, nicht erreichbare
