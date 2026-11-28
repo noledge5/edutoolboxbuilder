@@ -10,7 +10,18 @@ Bildschirmfotos, die angesehen wurden.
 
 ## 27.11.2026, abends (eigenständig, mit Erlaubnis für PRs und Merges)
 
-### Einzahl bei eins, überall (PR folgt)
+### Ergebnis: erst das Verdiente, dann die Feier (PR folgt)
+- **Was:** Reihenfolge im Ergebnis neu: Haken, beste Serie, gleich danach die Kacheln (Erfahrung, Münzen, Woche) mit
+  dem Stern-Hinweis; dann Hinweise zur Runde, Heldenstufe, Abzeichen, „Das nimmst du mit“, Tagesaufgabe, Wochenziel,
+  Truhe. Mehrere neue Abzeichen stehen in **einem** Band mit Medaillen in einer Reihe („4 neue Abzeichen!“).
+- **Warum:** auf dem Handy war das Ergebnis bei vielen Ereignissen 1661 px hoch (Bildschirm 844), die Kacheln standen
+  ganz unten; jedes Abzeichen hatte ein eigenes Band. Jetzt 1449 px, die Kacheln auf dem ersten Bildschirm, und sie
+  zählen hoch, während das Kind hinsieht.
+- **Wie:** nur verschoben (39 Zeilen) in `LernquestApp.tsx`; `AbzeichenNeu` mit Gruppen-Band, CSS `.lq-abzeichen-mehr`;
+  Test in `app/abzeichentext.test.tsx`. Geprüft mit einer Runde, die alles auf einmal bringt (Aufstieg, vier Abzeichen,
+  Tagesaufgabe, Wochenziel, Truhe).
+
+### Einzahl bei eins, überall (#125)
 - **Was:** alle Texte der Kinder-App mit einer Zahl vor einem Wort durchgesehen; wo eine 1 möglich ist, steht jetzt die
   Einzahl: „Noch 1 Münze sammeln“ (Laden), „Dir fehlt noch eine Münze“ (Haus), „noch 1 Münze spenden“ und „Deine
   Münze zählt 1“ (Dorf), „von 1 Runde“ und „1 Aufgabe aus allen Stationen“ (Probetest), Wiederholen-Knoten für
@@ -19,9 +30,9 @@ Bildschirmfotos, die angesehen wurden.
   sieht. Schon richtig waren: Wiederholen-Hinweise, Abmelden, Truhen, Event-Banner, Helfer im Dorf.
 - **Wie:** `mitZahl(n, einzahl, mehrzahl)` in rules.ts (Test in `zahlen.test.ts`); Dorf und Haus nur je eine Textzeile,
   damit der Umbau des Dorfs (andere Sitzung) nicht berührt wird.
-- **Verworfen:** ein Solo-Boss im Meilenstein. Der Bosskampf ist das Ereignis der Klasse, das die Lehrkraft startet
-  (`docs/lernquest.md`: „Der Bosskampf hängt nicht am Meilenstein“); wer den Boss allein besiegt, nähme der Klasse
-  den Moment.
+- **Korrektur:** den Solo-Boss hatte ich hier zuerst verworfen, weil `docs/lernquest.md` sagt „Der Bosskampf hängt nicht
+  am Meilenstein“. Das war falsch: er ist Wunsch der Lehrkraft (20.11., `docs/plan-lernquest-fragen.md` Schritt 6) und
+  nächster Schritt im Handoff; der Klassen-Boss am Beamer bleibt davon unberührt. Er kommt als eigener Schritt.
 
 ### Abzeichen „Eroberer“ und richtiges Deutsch (#124)
 - **Was:** achtes Abzeichen „Eroberer“ für geschaffte Regionen (1, 3, 6) mit eigener Burg als Symbol

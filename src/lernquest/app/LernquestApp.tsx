@@ -901,6 +901,48 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </li>
           ))}
         </ol>
+        {laengsteSerie(screen.ergebnisse) >= 3 && (
+          <p className="lq-serie-zeile">
+            <span className="lq-serie-marke">Beste Serie: {laengsteSerie(screen.ergebnisse)} richtig in Folge</span>
+          </p>
+        )}
+        <div className="lq-kacheln-ergebnis">
+          <div>
+            <span>Erfahrung</span>
+            <strong className="lq-violett">
+              <SymbolStufe groesse={22} />
+              <em className="lq-wert">
+                +<Zaehler wert={screen.plus} verzoegerung={450} />
+                <small className="lq-einheit">EP</small>
+              </em>
+            </strong>
+          </div>
+          <div>
+            <span>Münzen</span>
+            <strong className="lq-gold-zahl">
+              <SymbolMuenze groesse={22} />
+              <em className="lq-wert">
+                +<Zaehler wert={screen.muenzenPlus + screen.aufgabenPlus} verzoegerung={950} klang />
+              </em>
+            </strong>
+          </div>
+          <div>
+            <span>Woche</span>
+            <strong className="lq-gruen">
+              {Math.min(w.diese, WOCHENZIEL)} / {WOCHENZIEL}
+            </strong>
+          </div>
+        </div>
+        {!screen.plus && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.</p>}
+        {screen.wiederholung && (
+          <p className="lq-klein lq-mitte">
+            {screen.stunde ? 'Diese Runde hattest du schon geschafft. ' : ''}Wiederholen gibt ein Drittel der Erfahrung und Münzen.
+          </p>
+        )}
+        {screen.stunde && <p className="lq-klein lq-mitte">{sterneHinweis(screen.sternePlus, screen.sterneJetzt, screen.sterneRest)}</p>}
+        {!screen.stunde && screen.richtig < screen.gesamt && <p className="lq-klein lq-mitte">Was noch nicht saß, kommt morgen wieder dran.</p>}
+        {schwach && <p className="lq-klein lq-mitte">Das sitzt noch nicht. Spiel die Runde gleich nochmal, dann klappt es besser.</p>}
+        {ms && <p className="lq-klein lq-mitte">{msGut ? 'Du kannst die ganze Region. Stark!' : `Ab ${MEILENSTEIN_GUT} % ist der Meilenstein geschafft.`}</p>}
         {!!screen.aufstieg && (
           <div className="lq-aufstieg" role="status">
             <span className="lq-stufe-abzeichen lq-aufstieg-abzeichen" aria-hidden>
@@ -937,48 +979,6 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </section>
           ) : null;
         })()}
-        {laengsteSerie(screen.ergebnisse) >= 3 && (
-          <p className="lq-serie-zeile">
-            <span className="lq-serie-marke">Beste Serie: {laengsteSerie(screen.ergebnisse)} richtig in Folge</span>
-          </p>
-        )}
-        {!screen.stunde && screen.richtig < screen.gesamt && <p className="lq-klein lq-mitte">Was noch nicht saß, kommt morgen wieder dran.</p>}
-        {schwach && <p className="lq-klein lq-mitte">Das sitzt noch nicht. Spiel die Runde gleich nochmal, dann klappt es besser.</p>}
-        {ms && <p className="lq-klein lq-mitte">{msGut ? 'Du kannst die ganze Region. Stark!' : `Ab ${MEILENSTEIN_GUT} % ist der Meilenstein geschafft.`}</p>}
-        <div className="lq-kacheln-ergebnis">
-          <div>
-            <span>Erfahrung</span>
-            <strong className="lq-violett">
-              <SymbolStufe groesse={22} />
-              <em className="lq-wert">
-                +<Zaehler wert={screen.plus} verzoegerung={450} />
-                <small className="lq-einheit">EP</small>
-              </em>
-            </strong>
-          </div>
-          <div>
-            <span>Münzen</span>
-            <strong className="lq-gold-zahl">
-              <SymbolMuenze groesse={22} />
-              <em className="lq-wert">
-                +<Zaehler wert={screen.muenzenPlus + screen.aufgabenPlus} verzoegerung={950} klang />
-              </em>
-            </strong>
-          </div>
-          <div>
-            <span>Woche</span>
-            <strong className="lq-gruen">
-              {Math.min(w.diese, WOCHENZIEL)} / {WOCHENZIEL}
-            </strong>
-          </div>
-        </div>
-        {!screen.plus && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.</p>}
-        {screen.wiederholung && (
-          <p className="lq-klein lq-mitte">
-            {screen.stunde ? 'Diese Runde hattest du schon geschafft. ' : ''}Wiederholen gibt ein Drittel der Erfahrung und Münzen.
-          </p>
-        )}
-        {screen.stunde && <p className="lq-klein lq-mitte">{sterneHinweis(screen.sternePlus, screen.sterneJetzt, screen.sterneRest)}</p>}
         {screen.aufgabenNeu.length > 0 && (
           <p className="lq-punkte-plus" role="status">
             <HakenIcon /> {screen.aufgabenNeu.length > 1 ? 'Tagesaufgaben' : 'Tagesaufgabe'} geschafft:{' '}

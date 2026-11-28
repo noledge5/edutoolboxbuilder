@@ -85,6 +85,24 @@ export function AbzeichenKarte({ stand, pakete }: { stand: Stand; pakete: { stun
 
 /** On the result: each badge that reached a new tier with this round. */
 export function AbzeichenNeu({ neu }: { neu: { id: Abzeichen['id']; stufe: number }[] }) {
+  // Several at once (28.11.2026; the first round after a new badge kind can bring three or four): one band with the
+  // medals in a row, so the result stays short; what each was earned for stands on the hero page.
+  if (neu.length > 1)
+    return (
+      <div className="lq-aufstieg lq-abzeichen-neu lq-abzeichen-mehr" role="status">
+        <strong>{neu.length} neue Abzeichen!</strong>
+        <ul>
+          {neu.map(({ id, stufe }) => (
+            <li key={id}>
+              <Medaille id={id} stufe={stufe} groesse={48} neu />
+              <b>{ABZEICHEN.find((x) => x.id === id)!.name}</b>
+              <span>{ABZEICHEN_STUFEN[stufe - 1]}</span>
+            </li>
+          ))}
+        </ul>
+        <span className="lq-abzeichen-mehr-wo">Alle stehen bei deinem Helden.</span>
+      </div>
+    );
   return (
     <>
       {neu.map(({ id, stufe }) => {

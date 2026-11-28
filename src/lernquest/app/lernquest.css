@@ -5584,3 +5584,40 @@ button.lq-teil:active {
     transform: scale(1.25);
   }
 }
+
+/* Several new badges at once (28.11.2026): one band, the medals in a row with name and tier. */
+.lq-abzeichen-mehr {
+  display: grid;
+  justify-items: center;
+  gap: var(--lq-a-2);
+  text-align: center;
+}
+.lq-abzeichen-mehr ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  justify-content: center;
+  gap: var(--lq-a-2);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lq-abzeichen-mehr li {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: var(--lq-a-1);
+  min-width: 0;
+}
+.lq-abzeichen-mehr li b {
+  max-width: 100%;
+  font-size: var(--lq-t-klein);
+  line-height: 1.2;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+.lq-abzeichen-mehr li span,
+.lq-abzeichen-mehr-wo {
+  font-size: var(--lq-t-klein);
+  color: var(--lq-gedaempft);
+}
