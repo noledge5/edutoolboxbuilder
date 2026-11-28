@@ -13,7 +13,17 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Rundgang mit Haus-Fenster; Lehre aus #140 (PR folgt)
+### Fuchs zeigt aufs Training (PR folgt)
+- **Was:** sind die Stationen geschafft, nichts fällig und der Wächter besiegt, und fallen dem Kind mindestens drei
+  Aufgaben noch schwer (Kasten 1–2), sagt der Fuchs „Deine Stationen sind geschafft. 8 Aufgaben fallen dir noch schwer –
+  im Training übst du sie, so oft du willst.“ mit „Zum Training“ (startet die Trainingsrunde). Gilt auch, solange neue
+  Stationen noch gesperrt sind.
+- **Warum:** das Training (#130) liegt unter „Wiederholen“ und wird leicht übersehen; genau dann, wenn sonst nichts zu
+  tun ist, hilft es am meisten.
+- **Wie:** `fuchsHinweis(…, schwer)` mit `aktion: 'training'` (karte.ts), Knopf in der Sprechblase; Test in
+  `lernquest.test.ts`; Browser.
+
+### Rundgang mit Haus-Fenster; Lehre aus #140 (#141)
 - **Was:** der Rundgang (`npm run rundgang`) öffnet jetzt auch „Mein Haus“ über das eigene Haus im Dorf und prüft das
   Fenster auf allen Größen (seitliches Verschieben, abgeschnittene Texte, kleine Knöpfe).
 - **Lehre aus #140:** ein Testfall hatte einen Typfehler; meine eigene Prüfung las nur die letzte Zeile der

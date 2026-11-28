@@ -490,6 +490,12 @@ describe('Weltkarte', () => {
     const fertig = regionenVon([pk('a', 1, m), pk('b', 2, m)], 'Erdkunde', { ...LEERER_STAND, bestwerte: { a: [100], b: [100] } });
     expect(fuchsHinweis(fertig, 1)).toEqual({ text: '1 Aufgabe wartet aufs Wiederholen. So bleibt es im Kopf!', pose: 'denken' });
     expect(fuchsHinweis(fertig, 0).text).toContain('Wächter');
+    // 28.11.2026: with every guard beaten and hard cards left, the fox points to the training (from three cards)
+    const alle = new Set(fertig.map((r) => r.id));
+    expect(fuchsHinweis(fertig, 0, alle, 5)).toMatchObject({ aktion: 'training' });
+    expect(fuchsHinweis(fertig, 0, alle, 5).text).toContain('5 Aufgaben fallen dir noch schwer');
+    expect(fuchsHinweis(fertig, 0, alle, 2).aktion).toBeUndefined();
+    expect(fuchsHinweis(fertig, 3, alle, 5).aktion).toBeUndefined();
     expect(fuchsHinweis(fertig, 0, new Set(['m1'])).text).toContain('fehlenden Sterne');
     const gesperrt = regionenVon([pk('a', 1, m1)], 'Erdkunde', { ...LEERER_STAND, bestwerte: { a: [100] } });
     expect(fuchsHinweis(gesperrt, 0).text).toContain('Unterricht');
