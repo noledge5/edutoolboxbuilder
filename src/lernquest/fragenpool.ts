@@ -353,7 +353,7 @@ export function bilderFuerClaude(l: Lesson): { id: string; zeigt: string }[] {
 }
 
 /** Whether lesson `n` is among the competence's lessons ("2, 3" or "1–4"). */
-const inStunden = (lessons: string, n: number) =>
+export const inStunden = (lessons: string, n: number) =>
   lessons.split(',').some((teil) => {
     const [von, bis = von] = teil.split(/[-–]/).map((x) => Number.parseInt(x.trim(), 10));
     return n >= von && n <= bis;

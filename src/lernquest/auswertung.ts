@@ -2,6 +2,7 @@
 // child (Leitner box 1–5 per exercise); which competence an exercise trains is known only here, from the task's
 // `competence` field in the module. So the link never goes to the server. Pure, so it is tested without a browser.
 import type { Lesson, Module } from '../library/types';
+import { inStunden } from './fragenpool';
 import { exercisesOf } from './paket';
 import { karteKey, merksatz } from './rules';
 import type { Paket, Stand, Uebung } from './types';
@@ -36,11 +37,36 @@ export interface Auswertung {
   ohneKompetenz: number;
 }
 
-/** Review keys (`karteKey`) per competence id, from the exercises of the lessons. */
-export function kartenJeKompetenz(lessons: Lesson[]): { je: Map<string, string[]>; ohne: number } {
+/**
+ * Review keys (`karteKey`) per competence id, from the exercises the children get. Since 19.11.2026 a lesson's package
+ * holds only its released pool questions (`buildPaket`); they have random ids and no competence of their own, so each
+ * counts for the competences the grid names for its lesson (`lessons`: "2, 3" or "1–4"; 28.11.2026 – before, the
+ * view looked only at the worksheet tasks and stayed empty). A lesson without released pool questions keeps the old
+ * link through the worksheet's tasks.
+ */
+export function kartenJeKompetenz(lessons: Lesson[], m?: Pick<Module, 'competences'>): { je: Map<string, string[]>; ohne: number } {
   const je = new Map<string, string[]>();
   let ohne = 0;
+  // A competence without lessons in the grid is worked on where a worksheet task links it (as competenceLessons).
+  const verknuepft = new Map<string, Set<number>>();
+  for (const l of lessons)
+    for (const p of l.doc.pages)
+      for (const b of p.blocks) {
+        const c = String(b.props.competence ?? '');
+        if (c) verknuepft.set(c, (verknuepft.get(c) ?? new Set()).add(l.number));
+      }
+  const inLektion = (c: { id: string; lessons?: string }, n: number) =>
+    String(c.lessons ?? '').trim() ? inStunden(String(c.lessons), n) : !!verknuepft.get(c.id)?.has(n);
   for (const l of lessons) {
+    const frei = (l.pool ?? []).filter((e) => e.frei);
+    if (frei.length) {
+      const comps = (m?.competences ?? []).filter((c) => inLektion(c, l.number)).map((c) => c.id);
+      for (const e of frei) {
+        if (!comps.length) ohne++;
+        for (const c of comps) je.set(c, [...(je.get(c) ?? []), karteKey(l.id, e.u.id)]);
+      }
+      continue;
+    }
     const comp = new Map<string, string>();
     for (const p of l.doc.pages) for (const b of p.blocks) comp.set(b.id, String(b.props.competence ?? ''));
     for (const u of exercisesOf(l.doc.pages)) {
@@ -72,7 +98,10 @@ export function kindKompetenz(keys: string[], leitner: Stand['leitner']): KindKo
 
 /** The competences of the module in its order, each with the children's progress; competences without exercises are left out. */
 export function auswerten(m: Module, lessons: Lesson[], kinder: { id: string; leitner: Stand['leitner'] }[]): Auswertung {
-  const { je, ohne } = kartenJeKompetenz(lessons.filter((l) => l.moduleId === m.id));
+  const { je, ohne } = kartenJeKompetenz(
+    lessons.filter((l) => l.moduleId === m.id),
+    m,
+  );
   const zeilen: KompetenzZeile[] = [];
   for (const c of m.competences) {
     const keys = je.get(c.id);

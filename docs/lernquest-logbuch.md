@@ -13,7 +13,18 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Dorf: eigenes Haus antippen, Einladung vom Fuchs (PR folgt, Wunsch des Nutzers 28.11.)
+### Lehrerseite: „Fortschritt je Kompetenz“ wieder mit Daten (PR folgt)
+- **Fehler:** die Ansicht ordnete die Karten der Kinder über die Aufgaben der Arbeitsblätter den Kompetenzen zu. Seit dem
+  19.11. bekommen die Kinder nur freigegebene Pool-Fragen (Ids `pool-…`, ohne eigene Kompetenz) – die Ansicht blieb
+  für sie leer („–“).
+- **Behoben:** eine Pool-Frage zählt für die Kompetenzen, die das Raster bei ihrer Stunde nennt (Feld „Stunde(n)“, leer:
+  die Stunden, deren Aufgaben die Kompetenz verknüpfen – wie `competenceLessons`). Eine Stunde mit freigegebenen
+  Pool-Fragen zählt genau diese (was die Kinder bekommen), eine ohne Pool wie bisher die Aufgaben des Blatts.
+- **Wie:** `kartenJeKompetenz(lessons, m)` in `auswertung.ts`, `inStunden` aus `fragenpool.ts`; zwei Tests in
+  `lernquest.test.ts`; Hinweistext auf der Lehrerseite. Sicherung `backup/2026-11-28-vor-kompetenz-pool`.
+- **Später möglich:** Claude könnte jeder Pool-Frage ihre Kompetenz mitgeben (genauer als über die Stunde).
+
+### Dorf: eigenes Haus antippen, Einladung vom Fuchs (#137, Wunsch des Nutzers 28.11.)
 - **Was:** auf der Dorfkarte ist das eigene Haus (mit „Du“) ein Knopf: Antippen (oder Enter) öffnet „Mein Haus“ als
   Fenster von unten – Ausbau, Preis, „Haus gestalten“; ohne Zelt gleich das Zelt-Quiz. Unter der Karte „Tippe auf dein
   Haus …“. Auf der Karte sagt der Fuchs, wenn im Dorf ein Platz frei ist: „Du kannst jetzt ins Dorf ziehen!“ mit
@@ -31,8 +42,7 @@ Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung
 - **Warum:** genau diese Aufgaben lohnen eine kurze Wiederholung im Unterricht; die Kompetenz-Ansicht zeigt nur Anteile.
 - **Wie:** `schwersteAufgaben`, `aufgabeKurz` in `auswertung.ts` (aus den Karteikästen, ohne Server); Tests
   `schwer.test.ts`, `teacher/auswertungSchwer.test.tsx`.
-- **Offen, zu prüfen:** „Fortschritt je Kompetenz“ ordnet die Karten über die Aufgaben der Arbeitsblätter zu; seit dem
-  19.11. bekommen die Kinder nur Pool-Fragen. Ob deren Ids zu den Aufgaben passen, ist noch nicht geprüft.
+- **Geprüft und behoben (siehe oben):** „Fortschritt je Kompetenz“ blieb bei Pool-Fragen leer.
 
 ### Besiegte Wächter auf jedem Gerät, Regal auf der Held-Seite (#135, Migration 20261212)
 - **Was:** der Spielstand vom Server nennt die besiegten Wächter (`lq_stand_json` mit `waechter`); Karte und Fuchs-Hinweis
