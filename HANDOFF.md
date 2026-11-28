@@ -5,8 +5,9 @@
 > denken**, auch solche, die in `docs/lernquest.md` oder in ADRs schon festgelegt sind. Was du änderst, dort als neue
 > Entscheidung mit Grund festhalten.
 >
-> **Neue Figuren-Werkstatt:** https://claude.ai/artifact/6YDQU9Ghhp6SZ7mLLXj2jD (neuer Bewegungs-Motor, alle 180
-> Rückmeldungen übernommen). Rückmeldungen ab jetzt dort lesen (ArtifactData, Sammlung `pruefung`). Die alte Adresse
+> **Figuren-Werkstatt (seit 28.11.2026):** https://claude.ai/artifact/1GB4Cpk8e3yZRSPLkLXEok – mit den Wächtern der Regionen. Die Adresse
+> …/6YDQU9Ghhp6SZ7mLLXj2jD (neuer Bewegungs-Motor, alle 180 Rückmeldungen übernommen) war für Claude am 28.11. nicht mehr
+> erreichbar (gelöscht oder kein Schreibrecht); Rückmeldungen ab jetzt an der neuen Adresse. Rückmeldungen ab jetzt dort lesen (ArtifactData, Sammlung `pruefung`). Die alte Adresse
 > (…/WmzYWa5W6igWNwv2iUZdnG) ist in `docs/design/lernquest/README.md` ersetzt (27.11., #122); der Skill `figur` verweist
 > auf das README.
 
