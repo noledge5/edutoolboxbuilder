@@ -1,9 +1,10 @@
-// The hero's parts (Stufe 2, 16 more on 06.11.2026, 24 more on 09.11.2026, 40 more on 13.11.2026, 30 more on 26.11.2026):
-// 150 parts on six places, five rarities, a few
+// The hero's parts (Stufe 2, 16 more on 06.11.2026, 24 more on 09.11.2026, 40 more on 13.11.2026, 30 more on 26.11.2026,
+// 5 more on 28.11.2026): 155 parts on six places, five rarities, a few
 // with small bonuses that count only in the game (never for marks or real rewards). Some are chest treasures (`nurTruhe`):
 // not in the shop, and unknown (a question mark) until found. The server holds the same catalogue (`lq_teil` in
 // supabase/migrations/20261106b_lernquest_held.sql, 20261109_lernquest_beute.sql,
-// 20261116_lernquest_truhenschaetze.sql, 20261129_lernquest_neue_teile.sql and 20261205_lernquest_welten_teile.sql); a test
+// 20261116_lernquest_truhenschaetze.sql, 20261129_lernquest_neue_teile.sql, 20261205_lernquest_welten_teile.sql and
+// 20261210_lernquest_burg_teile.sql); a test
 // checks both are the same.
 
 export type Slot = 'kopf' | 'augen' | 'kleidung' | 'werkzeug' | 'begleiter' | 'hintergrund';
@@ -196,6 +197,12 @@ export const TEILE: Teil[] = [
   { id: 'eiszepter', slot: 'werkzeug', name: 'Eiszepter', seltenheit: 4, muenzen: 10, herz: 1, schaden: 3, nurTruhe: true },
   { id: 'leuchtqualle', slot: 'begleiter', name: 'Leuchtqualle', seltenheit: 4, muenzen: 15, herz: 1, nurTruhe: true },
   { id: 'gluehwuermchenwald', slot: 'hintergrund', name: 'Glühwürmchenwald', seltenheit: 4, muenzen: 15, nurTruhe: true },
+  // 28.11.2026 (20261210_lernquest_burg_teile.sql): Burg und Wächter zum Solo-Boss, ein Rechenrahmen für Mathe.
+  { id: 'rechenrahmen', slot: 'werkzeug', name: 'Rechenrahmen', seltenheit: 1, muenzen: 5 },
+  { id: 'zinnenhelm', slot: 'kopf', name: 'Zinnenhelm', seltenheit: 2, herz: 1 },
+  { id: 'burgschluessel', slot: 'werkzeug', name: 'Burgschlüssel', seltenheit: 2, muenzen: 5, schaden: 1 },
+  { id: 'waechterchen', slot: 'begleiter', name: 'Kleiner Wächter', seltenheit: 3, herz: 1, schaden: 1, nurTruhe: true },
+  { id: 'burgkrone', slot: 'kopf', name: 'Burgkrone', seltenheit: 4, muenzen: 10, herz: 1, schaden: 2, nurTruhe: true },
 ];
 
 // — Parts the admin teacher made on the teacher page (supabase/migrations/20261118_lernquest_eigene_teile.sql). The app

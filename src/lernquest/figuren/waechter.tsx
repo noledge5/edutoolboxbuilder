@@ -107,7 +107,6 @@ function teile(f: Farben): Teil[] {
   const kopf: Teil = {
     id: 'kopf',
     drehpunkt: [100, 86],
-    anker: { hut: [100, 44] },
     zeichnung: () => (
       <g>
         <Schlagschatten form={SIMS} auf={[RUMPF]} />

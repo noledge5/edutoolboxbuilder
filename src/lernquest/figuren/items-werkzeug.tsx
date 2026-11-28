@@ -539,4 +539,55 @@ export const WERKZEUG_ITEMS: Item[] = [
       );
     },
   },
+  // 28.11.2026 (20261210_lernquest_burg_teile.sql): Mathe, Burg und Wächter.
+  {
+    id: 'rechenrahmen',
+    name: 'Rechenrahmen',
+    platz: 'hand-rechts',
+    seltenheit: 2,
+    rahmen: [-28, -84, 84, 100],
+    zeichnung: () => (
+      <g transform="rotate(26)">
+        {stiel(10, -22, 9, P.holz)}
+        {/* a wooden frame, three rods with beads in the middle of counting */}
+        <rect x={-30} y={-72} width={60} height={50} rx={8} {...flaeche(P.holz)} />
+        <rect x={-22} y={-64} width={44} height={34} rx={4} {...flaeche(P.creme, 2)} />
+        <path d="M18 -72 H22 Q30 -72 30 -64 V-30 Q30 -22 22 -22 H16 Q26 -30 24 -64 Q22 -70 18 -72 Z" fill={P.holzTief} opacity={0.55} />
+        <path d="M-24 -67 H-8" fill="none" stroke={P.holzHell} strokeWidth={3.5} strokeLinecap="round" />
+        {(
+          [
+            [-56, P.rot, [-15, -6.5, 2]],
+            [-47, P.blau, [-15, -6.5, 15]],
+            [-38, P.gelb, [-15, 6.5, 15]],
+          ] as const
+        ).map(([y, farbe, xs]) => (
+          <g key={y}>
+            <path d={`M-22 ${y} H22`} stroke={P.holzTief} strokeWidth={2.5} />
+            {xs.map((x) => (
+              <circle key={x} cx={x} cy={y} r={4.6} {...flaeche(farbe, 1.5)} />
+            ))}
+          </g>
+        ))}
+      </g>
+    ),
+  },
+  {
+    id: 'burgschluessel',
+    name: 'Burgschlüssel',
+    platz: 'hand-rechts',
+    seltenheit: 3,
+    rahmen: [-26, -98, 84, 118],
+    zeichnung: () => (
+      <g transform="rotate(30) scale(1.12)">
+        {/* the bit below the fist */}
+        <path d="M3 4 H14 V9 H9.5 V14 H3 Z" {...flaeche(P.metallTief, 2.5)} />
+        {stiel(8, -48, 9, P.metallTief)}
+        {/* the bow: a small tower with a gate and a blue glass window */}
+        <path d="M-17 -45 V-76 H-12 V-84 H-4.5 V-78 H4.5 V-84 H12 V-76 H17 V-45 Q0 -39 -17 -45 Z M-6 -48 V-57 Q0 -64 6 -57 V-48 Z" fillRule="evenodd" {...flaeche(P.metall)} />
+        <path d="M17 -76 V-45 Q10 -42 4 -41 Q12 -52 11 -76 Z" fill={P.metallTief} opacity={0.6} />
+        <path d="M-11 -50 V-70" fill="none" stroke={P.metallHell} strokeWidth={3.5} strokeLinecap="round" />
+        <circle cx={0} cy={-69} r={4.5} {...flaeche(P.blauHell, 1.5)} />
+      </g>
+    ),
+  },
 ];

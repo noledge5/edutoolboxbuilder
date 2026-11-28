@@ -383,10 +383,16 @@ describe('Held und Beute', () => {
     const welten = readFileSync(new URL('../../supabase/migrations/20261205_lernquest_welten_teile.sql', import.meta.url), 'utf8');
     const weltTeile = [...welten.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+), (\d+), (true|false)\)/g)];
     rows.push(...weltTeile.map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]));
+    // 5 more on 28.11.2026 (20261210_lernquest_burg_teile.sql), castle and guard, an abacus.
+    const burg = readFileSync(new URL('../../supabase/migrations/20261210_lernquest_burg_teile.sql', import.meta.url), 'utf8');
+    const burgTeile = [...burg.matchAll(/\('([a-z]+)', '([a-z]+)', (\d), (true|false), (\d+), (\d+), (\d+), (true|false)\)/g)];
+    rows.push(...burgTeile.map((m) => [m[1], m[2], +m[3], m[4] === 'true', +m[5], +m[6]]));
     expect(rows).toEqual(TEILE.map((t) => [t.id, t.slot, t.seltenheit, !!t.start, t.muenzen ?? 0, t.herz ?? 0]));
-    expect([...neu, ...neue, ...weltTeile].map((m) => [m[1], +m[7], m[8] === 'true'])).toEqual(TEILE.slice(56).map((t) => [t.id, t.schaden ?? 0, !!t.nurTruhe]));
+    expect([...neu, ...neue, ...weltTeile, ...burgTeile].map((m) => [m[1], +m[7], m[8] === 'true'])).toEqual(TEILE.slice(56).map((t) => [t.id, t.schaden ?? 0, !!t.nurTruhe]));
     expect(TEILE.slice(0, 56).filter((t) => t.nurTruhe)).toEqual([]);
-    expect(TEILE).toHaveLength(150);
+    expect(TEILE).toHaveLength(155);
+    // the castle set: nobody starts with one, Episch and Legendär only from chests (as the rule above)
+    expect(burgTeile.filter((m) => m[4] === 'true' || (+m[3] >= 3) !== (m[8] === 'true'))).toEqual([]);
     expect(new Set(TEILE.map((t) => t.id)).size).toBe(TEILE.length);
     // Every place one new part per rarity; nobody starts with one; Legendär only from chests, the cheap ones in the shop.
     const plaetze = ['kopf', 'augen', 'kleidung', 'werkzeug', 'begleiter', 'hintergrund'];
