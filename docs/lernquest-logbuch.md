@@ -13,7 +13,18 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Der Moment, in dem der Wächter fällt (PR folgt)
+### Besiegte Wächter auf jedem Gerät, Regal auf der Held-Seite (PR folgt, Migration 20261212)
+- **Was:** der Spielstand vom Server nennt die besiegten Wächter (`lq_stand_json` mit `waechter`); Karte und Fuchs-Hinweis
+  zählen sie (oder den Bestwert auf dem Gerät, `waechterBesiegt`). Auf der Held-Seite ein Regal „Besiegte Wächter
+  1 von 2“: je Region ein Platz, besiegte golden mit Regionsnamen, die anderen grau („wartet noch“). Truhen-Hinweis
+  nennt jetzt auch den Wächter.
+- **Warum:** der Sieg stand nur auf dem Gerät und war nach dem Abmelden oder auf dem Tablet der Schule weg; und ein
+  Regal macht das Beherrschen ganzer Regionen sichtbar wie eine Sammlung.
+- **Wie geprüft:** PGlite (39 Migrationen, 5 Fälle, Rechte unverändert), `waechterregal.test.tsx`; Browser ohne
+  gespeicherten Meilenstein: Knoten „Besiegt“, Regal 1 von 2, keine seitliche Verschiebung (Handy, iPad quer). Live:
+  Fassung vorher verglichen, Probelauf mit Rollback, eingespielt.
+
+### Der Moment, in dem der Wächter fällt (#134)
 - **Was:** beim letzten Treffer leuchtet die Wächter-Leiste einmal golden auf, „Besiegt!“ ploppt, nach dem
   „Richtig“-Klang läuten die Glocken des Aufstiegs (nur mit Ton an; „Bewegung reduzieren“ ohne Animation).
 - **Warum:** der Sieg über den Wächter ist das Ziel einer ganzen Region – er soll sich wie einer anfühlen.

@@ -5757,3 +5757,52 @@ button.lq-teil:active {
     display: none;
   }
 }
+
+/* The shelf of beaten guards on the hero page (28.11.2026): one place per region, the waiting ones in grey. */
+.lq-regal ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: var(--lq-a-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lq-regal li {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: var(--lq-a-1);
+  padding: var(--lq-a-2) var(--lq-a-1);
+  border-radius: var(--lq-r);
+  background: var(--lq-grund);
+  text-align: center;
+  min-width: 0;
+}
+.lq-regal li.besiegt {
+  background: var(--lq-gold-flaeche);
+  box-shadow: inset 0 0 0 2px var(--lq-gold);
+}
+.lq-regal li.offen .lq-waechter-bild {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+.lq-regal li b {
+  max-width: 100%;
+  font-size: var(--lq-t-klein);
+  line-height: 1.2;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+.lq-regal li .lq-regal-wartet {
+  font-size: var(--lq-t-klein);
+  font-style: normal;
+  font-weight: 800;
+  color: var(--lq-gedaempft);
+}
+.lq-regal li span {
+  max-width: 100%;
+  font-size: var(--lq-t-klein);
+  line-height: 1.2;
+  color: var(--lq-gedaempft);
+  overflow-wrap: anywhere;
+}

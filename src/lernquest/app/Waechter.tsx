@@ -6,7 +6,9 @@ import { useEffect, useRef, useState } from 'react';
 import { WAECHTER, WAECHTER_NAMEN } from '../figuren';
 import { FigurBild } from '../figuren/Figur';
 import { ton } from './ton';
-import type { WeltId } from '../figuren/welten';
+import { weltVon, type WeltId } from '../figuren/welten';
+import { waechterBesiegt } from '../karte';
+import type { Paket, Stand } from '../types';
 
 type Zug = { art: 'treffer' | 'angriff' | null; n: number };
 
@@ -66,5 +68,51 @@ export function WaechterLeiste({ welt, leben, treffer, fehler }: { welt: WeltId;
         <span className="lq-waechter-rest">{besiegt ? 'Besiegt!' : rest === 1 ? 'Noch 1 Treffer' : `Noch ${rest} Treffer`}</span>
       </div>
     </div>
+  );
+}
+
+/** The regions of the child's stations that have a guard: modules with at least two lessons (the Meilenstein needs two
+ *  stations), by subject and number. */
+export function waechterOrte(pakete: Pick<Paket, 'modul' | 'fach'>[]): { id: string; nummer: number; titel: string; fach: string; welt: WeltId }[] {
+  const je = new Map<string, { id: string; nummer: number; titel: string; fach: string; welt: WeltId; n: number; stunden: number }>();
+  for (const p of pakete) {
+    if (!p.modul) continue;
+    const r = je.get(p.modul.id) ?? { id: p.modul.id, nummer: p.modul.nummer, titel: p.modul.titel, fach: p.fach ?? '', welt: weltVon(p.modul.id, p.modul.nummer).id, n: 0, stunden: p.modul.stunden?.length ?? 0 };
+    r.n++;
+    je.set(p.modul.id, r);
+  }
+  return [...je.values()]
+    .filter((r) => Math.max(r.n, r.stunden) >= 2)
+    .sort((a, b) => a.fach.localeCompare(b.fach, 'de') || a.nummer - b.nummer)
+    .map(({ id, nummer, titel, fach, welt }) => ({ id, nummer, titel, fach, welt }));
+}
+
+/** The hero page's shelf (28.11.2026): one place per region; a beaten guard lies in its place, the others wait in grey. */
+export function WaechterRegal({ stand, pakete, besteHier }: { stand: Stand; pakete: Pick<Paket, 'modul' | 'fach'>[]; besteHier: Record<string, number> }) {
+  const orte = waechterOrte(pakete);
+  if (!orte.length) return null;
+  const besiegt = orte.filter((o) => waechterBesiegt(o.id, stand.waechter, besteHier[o.id])).length;
+  return (
+    <section className="lq-box lq-regal" aria-labelledby="lq-regal-titel">
+      <div className="lq-abzeichen-kopf">
+        <h2 id="lq-regal-titel">Besiegte Wächter</h2>
+        <span className="lq-klein">
+          {besiegt} von {orte.length}
+        </span>
+      </div>
+      <ul>
+        {orte.map((o) => {
+          const ja = waechterBesiegt(o.id, stand.waechter, besteHier[o.id]);
+          return (
+            <li key={o.id} className={ja ? 'besiegt' : 'offen'}>
+              <WaechterBild welt={o.welt} breite={56} besiegt={ja} lebendig={false} />
+              <b>{(WAECHTER_NAMEN[o.welt] ?? WAECHTER_NAMEN.wiese).replace(/^Der /, '')}</b>
+              <span>{o.titel}</span>
+              {!ja && <i className="lq-regal-wartet">wartet noch</i>}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
