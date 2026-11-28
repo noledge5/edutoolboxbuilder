@@ -539,4 +539,56 @@ export const KOPF_ITEMS: Item[] = [
       );
     },
   },
+  // 28.11.2026 (20261210_lernquest_burg_teile.sql): Burg und Wächter – zum Solo-Boss am Ende jeder Region.
+  {
+    id: 'zinnenhelm',
+    name: 'Zinnenhelm',
+    platz: 'hut',
+    haube: true,
+    seltenheit: 3,
+    rahmen: [-46, -90, 92, 108],
+    weite: 80,
+    zeichnung: () => (
+      <g>
+        {/* a blue pennant on the middle merlon */}
+        <path d="M0 -58 V-84" {...GEIST} stroke={P.holzTief} strokeWidth={3.5} />
+        <path d="M1.5 -84 L24 -78 L1.5 -71 Z" {...flaeche(P.blau, 2)} />
+        {/* helmet and cheek guards as a tower: straight walls, battlements on top */}
+        <path d="M-40 14 L-40 -40 H-28 V-54 H-14 V-44 H-7 V-58 H7 V-44 H14 V-54 H28 V-40 H40 L40 14 Q34 18 30 10 L30 4 L-30 4 L-30 10 Q-34 18 -40 14 Z" {...flaeche(P.metall)} />
+        <Tief d="M18 -40 H40 L40 14 Q34 18 30 10 L30 4 L20 4 Q26 -18 18 -40 Z M14 -44 V-54 H28 V-40 H14 Z" farbe={P.metallTief} deckkraft={0.6} />
+        <Hell d="M-32 -6 V-34" farbe={P.metallHell} />
+        {/* a blue band, the visor slit under it */}
+        <rect x={-40} y={-31} width={80} height={9} {...flaeche(P.blau, 2)} />
+        <rect x={-28} y={-14} width={56} height={11} rx={5.5} {...flaeche(P.grauTief, 2.5)} />
+      </g>
+    ),
+  },
+  {
+    id: 'burgkrone',
+    name: 'Burgkrone',
+    platz: 'hut',
+    seltenheit: 5,
+    bewegt: true,
+    rahmen: [-48, -96, 96, 110],
+    weite: 76,
+    zeichnung: (zeit) => (
+      <g>
+        {/* a red pennant on the middle tower, waving */}
+        <path d="M0 -60 V-88" {...GEIST} stroke={P.goldTief} strokeWidth={3.5} />
+        <path d={`M1.5 -88 Q12 ${(-87 + Math.sin(zeit * 4) * 2.5).toFixed(2)} 24 -82 L1.5 -75 Z`} {...flaeche(P.rot, 2)} />
+        {/* gold walls with three towers */}
+        <path d="M-38 6 V-44 H-33 V-38 H-27 V-44 H-22 V-26 H-10 V-60 H-4 V-54 H4 V-60 H10 V-26 H22 V-44 H27 V-38 H33 V-44 H38 V6 Z" {...flaeche(P.gold)} />
+        <Tief d="M22 -26 V-44 H27 V-38 H33 V-44 H38 V6 H14 Q24 -8 22 -26 Z" farbe={P.goldTief} />
+        <Hell d="M-31 -30 V-10" farbe={P.goldHell} breite={4} />
+        <rect x={-40} y={-2} width={80} height={12} rx={6} {...flaeche(P.gold)} />
+        <path d="M-36 8 Q0 11 36 8 L36 4 Q0 6 -36 4 Z" fill={P.goldTief} opacity={0.6} />
+        {/* gems: a ruby on the middle tower, amethysts in the side towers */}
+        <path d="M0 -50 l7 8 -7 8 -7 -8 Z" fill={P.rot} stroke={P.rot} strokeWidth={1.5} strokeLinejoin="round" />
+        <circle cx={-30} cy={-24} r={4.5} {...flaeche(P.lila, 1.5)} />
+        <circle cx={30} cy={-24} r={4.5} {...flaeche(P.lila, 1.5)} />
+        <Funkeln x={-30} y={-56} r={6} zeit={zeit} />
+        <Funkeln x={32} y={-58} r={5} zeit={zeit} versatz={2.4} />
+      </g>
+    ),
+  },
 ];

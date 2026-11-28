@@ -13,7 +13,16 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Training ohne Belohnung (PR folgt, Migration 20261209)
+### Teile „Burg und Wächter“ (PR folgt, Migration 20261210)
+- **Was:** Rechenrahmen, Zinnenhelm, Burgschlüssel, Kleiner Wächter (Begleiter, wippt), Burgkrone (Gold, Wimpel weht).
+- **Warum:** mehr Beute, die zum neuen Ziel jeder Region passt (der Wächter) und zu Mathe; Hüte und Begleiter hatten nur
+  zwei legendäre Teile, Werkzeuge wenige ungewöhnliche.
+- **Wie geprüft:** Seltenheits-, Hut- und Katalog-Tests; Vorschau als Bild und am Helden (zwei Werkzeuge danach
+  weiter vom Gesicht weg gedreht, der Schlüssel dunkler, damit er auf Weiß liest); die Wächter-Figur trägt keinen Hut
+  mehr (sie hatte die Hut-Vorschau übernommen). Live: Probelauf mit Rollback, eingespielt, Zeilen geprüft.
+  Sicherung `backup/2026-11-28-vor-burg-teile`.
+
+### Training ohne Belohnung (#130, Migration 20261209)
 - **Was:** Karte „Training“ unter „Wiederholen“: bis zu 8 der schwersten Karten (Kasten 1 und 2), so oft das Kind will;
   Ergebnis „Gut geübt!“ ohne Kacheln. Server `lq_training_melden` zählt nur die Lernzeit.
 - **Warum:** schwache Kinder brauchen mehr Übung als 16 Karten am Tag – ohne das Sammeln wieder zu öffnen (17.11.) und

@@ -691,6 +691,32 @@ const tier = (id: string, name: string, seltenheit: Item['seltenheit'], r: reado
   zeichnung,
 });
 
+/** The small guard (28.11.2026): a tiny living tower like the guards at the end of each region, a gem in its battlements.
+ *  It bobs, its pennant waves. Faces right: eyes and the gate (its mouth) sit right of the middle. */
+function KleinerWaechter({ zeit }: { zeit: number }) {
+  const hoch = (Math.abs(Math.sin(zeit * 3)) * 3).toFixed(2);
+  const wehen = (Math.sin(zeit * 5) * 2.5).toFixed(2);
+  return (
+    <g transform={`translate(0 -${hoch})`}>
+      <Pf d="M-14 -8 H-4 V-1 Q-9 1 -14 -1 Z" f={P.metallTief} />
+      <Pf d="M4 -8 H14 V-1 Q9 1 4 -1 Z" f={P.metallTief} />
+      <Pf d="M-17 -5 L-15 -44 H15 L17 -5 Q0 1 -17 -5 Z" f={P.metall} />
+      <Pf d="M17 -5 Q8 -1 2 -1 Q14 -14 10 -44 H15 Z" f={P.metallTief} b={0} o={0.6} />
+      <path d="M8 -56 V-74" fill="none" stroke={P.holzTief} strokeWidth={2.5} strokeLinecap="round" />
+      <Pf d={`M9 -74 L24 ${-69 + Number(wehen)} L9 -64 Z`} f={P.blau} b={2} />
+      <Pf d="M-20 -41 V-56 H-12 V-50 H-4 V-56 H4 V-50 H12 V-56 H20 V-41 Z" f={P.metall} />
+      <Pf d="M12 -50 V-56 H20 V-41 H10 Q14 -45 12 -50 Z" f={P.metallTief} b={0} o={0.6} />
+      <path d="M-11 -14 V-35" fill="none" stroke={P.metallHell} strokeWidth={3} strokeLinecap="round" />
+      <path d="M0 -52 l5 5.5 -5 5.5 -5 -5.5 Z" {...flaeche(P.lila, 1.5)} />
+      <ellipse cx={3} cy={-31} rx={2.8} ry={3.6} fill={P.auge} />
+      <ellipse cx={12} cy={-31} rx={2.8} ry={3.6} fill={P.auge} />
+      <Ov cx={15} cy={-24} rx={3} ry={2} f={P.backe} o={0.8} />
+      <Pf d="M2 -5 V-14 Q7 -20 12 -14 V-5 Q7 -3 2 -5 Z" f={P.holz} b={2} />
+      <path d="M7 -17 V-4" fill="none" stroke={P.holzTief} strokeWidth={2} />
+    </g>
+  );
+}
+
 export const BEGLEITER_ITEMS: Item[] = [
   tier('schnecke', 'Schnecke', 1, rahmen(-33, -65, 70, 67), () => <Schnecke />),
   tier('hamster', 'Hamster', 1, rahmen(-31, -62, 66, 65), () => <Hamster />),
@@ -717,4 +743,6 @@ export const BEGLEITER_ITEMS: Item[] = [
   tier('alien', 'Alien', 3, rahmen(-26, -76, 60, 79), () => <Alien />),
   tier('eisbaer', 'Eisbär', 4, rahmen(-32, -64, 74, 67), (zeit) => <Eisbaer zeit={zeit} />, true),
   tier('leuchtqualle', 'Leuchtqualle', 5, rahmen(-34, -96, 68, 98), (zeit) => <Leuchtqualle zeit={zeit} />, true),
+  // 28.11.2026 (20261210_lernquest_burg_teile.sql): a small guard like the guards of the regions
+  tier('waechterchen', 'Kleiner Wächter', 4, rahmen(-23, -78, 52, 80), (zeit) => <KleinerWaechter zeit={zeit} />, true),
 ];

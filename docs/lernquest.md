@@ -619,6 +619,22 @@ Thema „Welten der Karte“, Herkunft wie bisher. Jetzt 150 Teile.
 - Server: nur neue Zeilen in `lq_teil` (`20261205_lernquest_welten_teile.sql`); Truhen, Laden und Spielstände bleiben.
   Erst mergen, dann einspielen: eine ältere App kennt die neuen Teile nicht und zeigt sie aus der Truhe ohne Bild.
 
+## Teile „Burg und Wächter“ (28.11.2026, Server-Vorschlag „mehr Teile“ freigegeben)
+
+Fünf neue Teile zum Solo-Boss am Ende jeder Region und zu den Mathe-Aufgaben (Migration
+`20261210_lernquest_burg_teile.sql`, `TEILE` in `teile.ts`, gezeichnet in `figuren/`), nach dem Seltenheits-Standard:
+
+| Teil | Platz | Seltenheit | Herkunft | Bonus |
+|---|---|---|---|---|
+| Rechenrahmen (Holz, bunte Perlen) | Werkzeug | Ungewöhnlich | Laden | +5 % Münzen |
+| Zinnenhelm (Metall, Zinnen, Wimpel) | Kopf | Selten | Laden und Truhen | +1 Herz |
+| Burgschlüssel (Metall, Turm als Griff) | Werkzeug | Selten | Laden und Truhen | +5 % Münzen, +1 Schaden |
+| Kleiner Wächter (wippt, Edelstein) | Begleiter | Episch | nur Truhen | +1 Herz, +1 Schaden |
+| Burgkrone (Gold, Edelsteine, Wimpel weht) | Kopf | Legendär | nur Truhen | +10 % Münzen, +1 Herz, +2 Schaden |
+
+Geprüft: Seltenheits-Test, Hut-Regeln (Zinnenhelm deckt die Haare ab, Burgkrone sitzt darauf), Werkzeuge 26–30° vom
+Gesicht weg, Vorschau am Helden; Katalog-Test (App = Server, 155 Teile).
+
 ## Events je Klasse (27.11.2026)
 
 - **Wunsch:** „Ein Event wie ‚Vokabeltest diese Woche‘, bei dem nur bestimmte Quests offen sind.“ Entschieden: die
