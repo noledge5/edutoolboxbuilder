@@ -3,7 +3,7 @@
 // „Los geht’s!“), open (unlocked, started or not), locked (not yet in class). Stufe C: a done station with exercises
 // due again fades until they are refreshed; a region whose stations are all done ends in a Meilenstein, a mixed test
 // over all of them. Pure, so it is tested without a browser.
-import { karteKey, sterneVon, wochenStart } from './rules';
+import { karteKey, sterneVon, TRAINING_AB, wochenStart } from './rules';
 import type { Paket, Stand } from './types';
 
 export type StationsZustand = 'erledigt' | 'aktuell' | 'offen' | 'gesperrt';
@@ -125,7 +125,13 @@ export const beitrittsLink = (seite: string, code: string): string => `${seite.r
 
 /** What the fox on the map says is next (Stufe E: the fox guides). `dran`: exercises due in this subject;
  *  `bestanden`: ids of regions whose Meilenstein is passed. */
-export function fuchsHinweis(regionen: Region[], dran: number, bestanden: ReadonlySet<string> = new Set()): { text: string; pose: 'winken' | 'jubeln' | 'denken' | 'stehen' } {
+export function fuchsHinweis(
+  regionen: Region[],
+  dran: number,
+  bestanden: ReadonlySet<string> = new Set(),
+  /** Cards in box 1–2 the child could train (28.11.2026): with nothing else to do, the fox points to the training. */
+  schwer = 0,
+): { text: string; pose: 'winken' | 'jubeln' | 'denken' | 'stehen'; aktion?: 'training' } {
   const stationen = regionen.flatMap((r) => r.stationen);
   const aktuell = stationen.find((s) => s.zustand === 'aktuell');
   const auffrischen = dran > 0 ? ` Vorher ${dran === 1 ? 'wartet 1 Aufgabe' : `warten ${dran} Aufgaben`} aufs Wiederholen.` : '';
@@ -135,6 +141,12 @@ export function fuchsHinweis(regionen: Region[], dran: number, bestanden: Readon
   const offen = stationen.find((s) => s.zustand === 'offen');
   if (offen) return { text: `„${offen.titel}“ hat noch Sterne für dich.`, pose: 'stehen' };
   if (regionen.some((r) => r.meilenstein && !bestanden.has(r.id))) return { text: 'Alle Stationen geschafft! Am Ende des Wegs wartet der Wächter der Region.', pose: 'jubeln' };
+  if (schwer >= TRAINING_AB)
+    return {
+      text: `Deine Stationen sind geschafft. ${schwer === 1 ? '1 Aufgabe fällt' : `${schwer} Aufgaben fallen`} dir noch schwer – im Training übst du sie, so oft du willst.`,
+      pose: 'stehen',
+      aktion: 'training',
+    };
   if (stationen.some((s) => s.zustand === 'gesperrt')) return { text: 'Super, alles geschafft! Neue Stationen öffnen sich, sobald ihr sie im Unterricht hattet.', pose: 'jubeln' };
   return { text: 'Alles geschafft! Hol dir in den Stationen die fehlenden Sterne.', pose: 'jubeln' };
 }

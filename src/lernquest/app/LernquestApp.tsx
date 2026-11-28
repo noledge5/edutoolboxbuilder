@@ -1418,7 +1418,9 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const wdhBei = regionen.findIndex((r) => r.stationen.some((s) => s.zustand === 'aktuell'));
   const wdhRegion = wdhBei >= 0 ? wdhBei : regionen.length - 1;
   const meilensteine = ladeMeilensteine();
-  const hinweis = fuchsHinweis(regionen, fachDran.length, new Set(regionen.map((r) => r.id).filter((id) => waechterBesiegt(id, stand.waechter, meilensteine[id]))));
+  // Cards the child could train (box 1–2, of stations it has): with nothing else to do, the fox points there.
+  const schwer = trainingKarten(stand.leitner, new Set(pakete.flatMap((p) => p.uebungen.map((u) => karteKey(p.stunde, u.id)))), '', 1000).length;
+  const hinweis = fuchsHinweis(regionen, fachDran.length, new Set(regionen.map((r) => r.id).filter((id) => waechterBesiegt(id, stand.waechter, meilensteine[id]))), schwer);
   const wdhKnoten = (
     <>
       <button type="button" className="lq-knoten wdh" aria-label={`Wiederholen: ${mitZahl(fachDran.length, 'Aufgabe', 'Aufgaben')} aus früheren Stationen`} onClick={() => wiederholen(fachDran)}>
@@ -1474,6 +1476,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           pakete.length > 0 && (
             <FuchsSagt pose={hinweis.pose}>
               <p>{hinweis.text}</p>
+              {hinweis.aktion === 'training' && (
+                <button type="button" className="lq-knopf lq-umzug-knopf" onClick={trainieren}>
+                  Zum Training
+                </button>
+              )}
             </FuchsSagt>
           )
         )}
