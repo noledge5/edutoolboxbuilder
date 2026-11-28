@@ -144,6 +144,19 @@ export async function rundeMelden(token: string, stunde: string, runde: number, 
   return { plus: r.plus ?? 0, muenzenPlus: r.muenzenPlus ?? 0, truhenPlus: r.truhenPlus ?? 0, punktePlus: r.punktePlus ?? 0, aufgabenPlus: r.aufgabenPlus ?? 0, wiederholung: r.wiederholung, stand: voll(r.stand) };
 }
 
+/** The region's guard beaten in its Meilenstein (Solo-Boss, migration 20261208): a chest on the first win per region.
+ *  `truhe` false when it was no win, the guard was beaten before, the region does not qualify, or the server does not
+ *  know the guard yet (before the migration). Network trouble throws as everywhere. */
+export async function waechterMelden(token: string, modul: string, richtig: number, gesamt: number): Promise<{ truhe: boolean; stand: Stand | null }> {
+  try {
+    const r = await lq<{ truhe?: boolean; stand?: Partial<Stand> }>('lq_waechter_melden', { p_token: token, p_modul: modul, p_richtig: richtig, p_gesamt: gesamt });
+    return { truhe: r.truhe === true, stand: r.stand ? voll(r.stand) : null };
+  } catch (e) {
+    if (e instanceof LqError && (e.code === 'ungueltig' || e.code.includes('lq_waechter_melden'))) return { truhe: false, stand: null };
+    throw e;
+  }
+}
+
 export interface TruheInhalt {
   /** Part id (`TEILE`) and its rarity 0–4; null when the chest held only coins (`muenzen`). */
   teil: string | null;

@@ -10,6 +10,22 @@ Bildschirmfotos, die angesehen wurden.
 
 ## 28.11.2026, nachts und morgens (eigenständig; ab dem Solo-Boss nach erneutem Lesen des Handoffs)
 
+Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
+Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
+
+### Truhe vom Wächter (PR folgt, Migration 20261208)
+- **Was:** der erste Sieg über den Wächter einer Region bringt eine Truhe. Neue Server-Funktion `lq_waechter_melden`
+  (prüft 80 %, Region mit mindestens zwei Stationen in der Klasse, jede mit Stern beim Kind, noch nicht besiegt; merkt
+  `daten.waechter`). Die App fragt nach der Runde über die Warteschlange und zeigt „Truhe vom Wächter!“.
+- **Warum:** ein Ziel am Ende jeder Region, das sich lohnt, ohne neues Sammeln (nur der erste Sieg zählt).
+- **Wie geprüft:** alle 35 Migrationen auf leerem PGlite (Supabase-Ersatz: Rollen, pgcrypto-Funktionen, cron, auth),
+  17 Fälle für die neue Funktion (Sieg, Niederlage, zweiter Sieg, Station ohne Stern, festgehaltener Stern, andere
+  Klasse, eine Station, falsche Werte, fremde Sitzung; `lq_runde_melden` läuft weiter); Tests für den Aufruf in
+  `rundeMelden.test.ts`; im Browser mit nachgestelltem Server: Runde genau einmal gemeldet, Truhe erst nach „wieder
+  online“, Warteschlange danach leer. Auf dem Server: Probelauf mit Rollback, dann eingespielt und per RPC geprüft.
+- **Werkstatt:** neu veröffentlicht unter https://claude.ai/artifact/1GB4Cpk8e3yZRSPLkLXEok (#128); die alte Adresse war
+  für Claude nicht mehr erreichbar.
+
 ### Solo-Boss: der Wächter der Region (PR folgt, Plan Schritt 6, Handoff Schritt 4)
 - **Was:** Der Meilenstein ist ein Kampf gegen den Wächter der Region: ein kleiner lebender Turm (Zinnen als Kopf,
   das Tor als Mund mit Fallgitter, wenn er angreift) in den Farben der acht Welten. Leiste über der Aufgabe mit
