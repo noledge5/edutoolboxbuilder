@@ -42,9 +42,12 @@ import {
   abzeichenWerte,
   neueAbzeichen,
   mitZahl,
+  trainingAnwenden,
+  trainingKarten,
+  TRAINING_AB,
   type Abzeichen,
 } from '../rules';
-import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, waechterMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
+import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, trainingMelden, waechterMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
 import { BOSSE } from '../boss';
 import { BossBeamer, BossBild, BossKind, useLangsam } from './Boss';
 import { readPaket } from '../paket';
@@ -108,6 +111,8 @@ export type Screen =
       meilenstein?: Meilenstein;
       /** The mini round of the welcome (sent as „Wiederholen“, so no station gets a best from three questions). */
       willkommen?: boolean;
+      /** Training (28.11.2026): the hardest cards without rewards; only the learning time is sent. */
+      training?: boolean;
     }
   | {
       kind: 'ergebnis';
@@ -143,6 +148,8 @@ export type Screen =
       meilenstein?: Meilenstein;
       /** The server's answer to a won Meilenstein: the guard's chest (first win per region), added while this shows. */
       waechterTruhe?: boolean;
+      /** A training round: no experience, coins or stars to show. */
+      training?: boolean;
     };
 
 interface Meilenstein {
@@ -501,6 +508,15 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     while (queue.length) {
       const m = queue[0];
       try {
+        if (m.training) {
+          // Training: only the learning time (a server before 20261209 drops it).
+          const s = await trainingMelden(sitzung.token, m.sekunden);
+          queue = queue.slice(1);
+          speichereWarteschlange(queue);
+          const d = datenRef.current;
+          if (!queue.length && d && s) store({ ...d, stand: s });
+          continue;
+        }
         if (m.gemeldet && m.waechter) {
           // The round is in; now the guard's chest (first win per region). Refusals come back as no chest.
           const w = await waechterMelden(sitzung.token, m.waechter, m.richtig, m.gesamt);
@@ -735,6 +751,44 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     });
   };
 
+  /** Training (28.11.2026): the hardest cards of the stations the child has, mixed; mistakes come again as in every round. */
+  const trainieren = () => {
+    const karten = new Map<string, { u: Uebung; stunde: string }>();
+    for (const p of pakete) for (const u of p.uebungen) karten.set(karteKey(p.stunde, u.id), { u, stunde: p.stunde });
+    const auswahl = trainingKarten(stand.leitner, new Set(karten.keys()), String(Date.now()));
+    setScreen({ kind: 'runde', nr: Date.now(), stunde: '', runde: 0, uebungen: auswahl.map((k) => karten.get(k)!), training: true });
+  };
+
+  /** A training round is done: only the learning time counts, here and on the server. */
+  const trainingFertig = (ergebnisse: boolean[]) => {
+    const sekunden = screen.kind === 'runde' ? (Date.now() - screen.nr) / 1000 : undefined;
+    store({ ...daten, stand: trainingAnwenden(stand, sekunden, heute()) });
+    speichereWarteschlange([...ladeWarteschlange(), { stunde: '', runde: 0, richtig: ergebnisse.filter(Boolean).length, gesamt: ergebnisse.length, leitner: {}, sekunden, training: true }]);
+    void flush();
+    ton('fertig');
+    setScreen({
+      kind: 'ergebnis',
+      stunde: '',
+      runde: 0,
+      richtig: ergebnisse.filter(Boolean).length,
+      gesamt: ergebnisse.length,
+      ergebnisse,
+      verpasst: screen.kind === 'runde' ? screen.uebungen.filter((_, i) => ergebnisse[i] === false).map((x) => x.u) : [],
+      plus: 0,
+      muenzenPlus: 0,
+      aufgabenPlus: 0,
+      aufgabenNeu: [],
+      wiederholung: false,
+      truhenPlus: 0,
+      punktePlus: 0,
+      sterneVorher: 0,
+      sterneJetzt: 0,
+      sternePlus: 0,
+      sterneRest: stand.sterneRest,
+      training: true,
+    });
+  };
+
   const meilensteinStarten = (r: Region) => {
     const stationen = r.stationen.flatMap((s) => (s.stunde && daten.pakete[s.stunde] ? [daten.pakete[s.stunde]] : []));
     setScreen({ kind: 'runde', nr: Date.now(), stunde: '', runde: 0, uebungen: gemischterTest(stationen, `${r.id}:${Date.now()}`, MEILENSTEIN_GROESSE), meilenstein: { id: r.id, titel: r.titel, welt: weltVon(r.id, r.nummer).id } });
@@ -751,9 +805,10 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         zurueck={zurueckTaste}
         stand={stand}
         herzen={HERZEN + bonusVon(stand.avatar).herz}
-        titel={screen.willkommen ? 'Deine erste Runde' : screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Wächter · ${screen.meilenstein.titel}` : 'Wiederholen'}
+        titel={screen.willkommen ? 'Deine erste Runde' : screen.stunde && daten.pakete[screen.stunde] ? `Station ${daten.pakete[screen.stunde].nummer} · ${daten.pakete[screen.stunde].titel}` : screen.meilenstein ? `Wächter · ${screen.meilenstein.titel}` : screen.training ? 'Training · ohne Belohnung' : 'Wiederholen'}
         onAbbruch={() => setScreen(screen.stunde ? { kind: 'station', stunde: screen.stunde } : { kind: 'karte' })}
         onFertig={(st, r, e, l) => {
+          if (screen.training) return trainingFertig(e);
           // A round of „Wiederholen“ (not the Meilenstein or the welcome, also sent without a lesson): counts for the daily limit.
           if (!screen.stunde && !screen.meilenstein && !screen.willkommen) merkeWiederholt(heute(), Object.keys(l).length);
           fertig(st, r, e, l, screen.meilenstein);
@@ -885,12 +940,14 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     const schwach = fazit === 'schwach' && !!p;
     const ms = screen.meilenstein;
     const msGut = !!ms && screen.richtig * 100 >= screen.gesamt * MEILENSTEIN_GUT;
-    const titelText = ms ? (msGut ? 'Wächter besiegt!' : 'Noch nicht besiegt') : schwach ? 'Fast!' : !screen.stunde ? 'Wiederholt!' : screen.sterneJetzt > 0 && screen.sterneVorher === 0 ? 'Station geschafft!' : fazit === 'perfekt' ? 'Perfekt!' : 'Runde geschafft!';
+    const titelText = screen.training ? 'Gut geübt!' : ms ? (msGut ? 'Wächter besiegt!' : 'Noch nicht besiegt') : schwach ? 'Fast!' : !screen.stunde ? 'Wiederholt!' : screen.sterneJetzt > 0 && screen.sterneVorher === 0 ? 'Station geschafft!' : fazit === 'perfekt' ? 'Perfekt!' : 'Runde geschafft!';
     const msRegion = ms && regionenVon(pakete, pakete.find((x) => x.modul.id === ms.id)?.fach ?? '', stand).find((r) => r.id === ms.id);
     // What comes next, as the main button: a weak round again, else the station's next open round, else more to repeat.
     const offeneRunde = p ? Array.from({ length: rundenZahl(p.uebungen.length) }, (_, i) => i).find((i) => !geschafft(stand.bestwerte[p.stunde]?.[i])) : undefined;
     const weiter: { text: string; los: () => void } | null =
-      ms && !msGut && msRegion
+      screen.training
+        ? { text: 'Nochmal üben', los: () => trainieren() }
+        : ms && !msGut && msRegion
         ? { text: 'Nochmal kämpfen', los: () => meilensteinStarten(msRegion) }
         : schwach && p
         ? { text: 'Runde nochmal spielen', los: () => starte(p, screen.runde) }
@@ -932,6 +989,9 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             <span className="lq-serie-marke">Beste Serie: {laengsteSerie(screen.ergebnisse)} richtig in Folge</span>
           </p>
         )}
+        {screen.training ? (
+          <p className="lq-klein lq-mitte">Training zählt nicht für Erfahrung und Münzen – dafür sitzt es danach besser. Ob es wirklich sitzt, zeigt dir das Wiederholen.</p>
+        ) : (
         <div className="lq-kacheln-ergebnis">
           <div>
             <span>Erfahrung</span>
@@ -959,7 +1019,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </strong>
           </div>
         </div>
-        {!screen.plus && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.</p>}
+        )}
+        {!screen.plus && !screen.training && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.</p>}
         {screen.wiederholung && (
           <p className="lq-klein lq-mitte">
             {screen.meilenstein
@@ -968,7 +1029,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           </p>
         )}
         {screen.stunde && <p className="lq-klein lq-mitte">{sterneHinweis(screen.sternePlus, screen.sterneJetzt, screen.sterneRest)}</p>}
-        {!screen.stunde && screen.richtig < screen.gesamt && <p className="lq-klein lq-mitte">Was noch nicht saß, kommt morgen wieder dran.</p>}
+        {!screen.stunde && !screen.training && screen.richtig < screen.gesamt && <p className="lq-klein lq-mitte">Was noch nicht saß, kommt morgen wieder dran.</p>}
         {schwach && <p className="lq-klein lq-mitte">Das sitzt noch nicht. Spiel die Runde gleich nochmal, dann klappt es besser.</p>}
         {ms && (
           <p className="lq-klein lq-mitte">
@@ -1039,7 +1100,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </div>
           </div>
         ) : (
-          w.diese >= WOCHENZIEL && (
+          !screen.training && w.diese >= WOCHENZIEL && (
             <div className="lq-hinweis-gold">
               <strong>Wochenziel erreicht!</strong>
               <span>Wochenenden und Ferien setzen nichts zurück.</span>
@@ -1225,6 +1286,26 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         {extraHeute && dueCount > 0 && <p className="lq-wdh-hinweis">Deine Lehrkraft hat Aufgaben zum Üben freigegeben, zum Beispiel vor einer Klassenarbeit.</p>}
         {!dueCount && morgen > 0 && <p className="lq-wdh-hinweis">Morgen {morgen === 1 ? 'ist 1 Aufgabe' : `sind ${morgen} Aufgaben`} dran.</p>}
       </section>
+      {/* Training (28.11.2026): the hardest cards, as often as the child likes, without rewards. */}
+      {(() => {
+        const gueltig = new Set(pakete.flatMap((p) => p.uebungen.map((u) => karteKey(p.stunde, u.id))));
+        const schwer = trainingKarten(stand.leitner, gueltig, '', 1000).length;
+        return (
+          <section className="lq-box lq-training-box">
+            <h2>Training</h2>
+            {schwer >= TRAINING_AB ? (
+              <>
+                <p>{mitZahl(schwer, 'Aufgabe fällt', 'Aufgaben fallen')} dir noch schwer. Übe sie, so oft du willst: Training gibt keine Erfahrung und keine Münzen, aber Sicherheit.</p>
+                <button type="button" className="lq-knopf lq-hell" onClick={trainieren}>
+                  Schwere Aufgaben üben
+                </button>
+              </>
+            ) : (
+              <p>Gerade fällt dir nichts schwer. Stark! Training gibt es, sobald Aufgaben noch nicht sitzen.</p>
+            )}
+          </section>
+        );
+      })()}
       <WissenKarte pakete={pakete} leitner={stand.leitner} />
       </>,
     );

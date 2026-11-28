@@ -644,6 +644,23 @@ Thema „Welten der Karte“, Herkunft wie bisher. Jetzt 150 Teile.
 - **Geprüft:** Logik in `event.test.ts`; SQL lokal mit PGlite (alle Migrationen, 24 Prüfungen: Rechte, Grenzen,
   Auslieferung, Runden während, vor und nach dem Event); Bildschirmfotos mit `npm run demo` (Handy und iPad quer).
 
+## Training ohne Belohnung (28.11.2026, Server-Vorschlag freigegeben)
+
+- **Was:** Unter „Wiederholen“ steht die Karte **Training**: „5 Aufgaben fallen dir noch schwer.“ und „Schwere Aufgaben
+  üben“. Eine Runde nimmt bis zu 8 Karten aus Kasten 1 und 2 (die schwersten zuerst, aus den 16 schwersten gemischt,
+  `trainingKarten`), Fehler kommen wieder wie in jeder Runde. Ab 3 schweren Karten gibt es Training, so oft das Kind
+  will. Ergebnis „Gut geübt!“ mit Haken und „Das nimmst du mit“, ohne Kacheln; „Nochmal üben“.
+- **Keine Belohnung, keine Kästen:** keine Erfahrung, Münzen, Truhen, kein Lerntag, keine Tagesaufgabe – das Sammeln,
+  das am 17.11. abgestellt wurde, bleibt zu. Und ein richtiges Training schiebt **keine Karte nach oben**: sonst wären
+  Karten nach einer Sitzung „sitzt“, der Abstand fürs Wiederholen wäre weg und das Abzeichen „Gedächtnis“ geschönt. Ob
+  etwas sitzt, entscheidet weiter das Wiederholen.
+- **Lernzeit zählt:** wie jede Runde (höchstens 15 Minuten je Runde, ohne Dauer 2), über alle Geräte; nach dem
+  Tageslimit der Klasse startet kein Training mehr. Server: `lq_training_melden` (Migration
+  `20261209_lernquest_training.sql`), App: `trainingAnwenden`, Meldung `training` in der Warteschlange.
+- Geprüft: PGlite (alle Migrationen, 11 Fälle: nur Zeit, Grenzen, Tageslimit, danach lehnt auch `lq_runde_melden` ab),
+  Tests (`training.test.ts`, `rundeMelden.test.ts`), Browser mit nachgestelltem Server (nur `lq_training_melden`,
+  Erfahrung, Münzen, Kästen und Lerntage unverändert).
+
 ## Feinschliff am Abend (27.11.2026, eigenständig)
 
 Auf Wunsch der Lehrkraft eigenständig gebaut, jeder Schritt mit Tests, `npm run rundgang` auf sechs Größen und

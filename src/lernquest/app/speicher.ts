@@ -39,6 +39,8 @@ export interface Meldung {
   waechter?: string;
   /** The round itself is sent; only the guard's chest is still to ask for (so the round is never sent twice). */
   gemeldet?: boolean;
+  /** A training round (28.11.2026): only its learning time is sent (lq_training_melden). */
+  training?: boolean;
 }
 
 const K_SITZUNG = 'lernquest:sitzung';

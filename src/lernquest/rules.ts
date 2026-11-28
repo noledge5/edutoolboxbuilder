@@ -143,6 +143,30 @@ export function gleicheAntwort(loesung: string, text: string): boolean {
 /** Every solution is a number: the tablet shows the number keyboard. */
 export const nurZahlen = (loesungen: string[]) => loesungen.length > 0 && loesungen.every((l) => zahlAus(l) !== null);
 
+// — Training (28.11.2026): the hardest cards, as often as the child likes, without rewards —
+
+/** Cards in a training round, and how many weak cards it takes to offer one. */
+export const TRAINING_GROESSE = 8;
+export const TRAINING_AB = 3;
+
+/** The cards to train: box 1 and 2 only (still hard), of exercises that still exist; the lowest box and the most overdue
+ *  first, from those the 16 hardest mixed by `seed`, so a round is not always the same eight. */
+export function trainingKarten(leitner: Stand['leitner'], gueltig: Set<string>, seed: string, n = TRAINING_GROESSE): string[] {
+  const schwer = Object.entries(leitner)
+    .filter(([k, [box]]) => box <= 2 && gueltig.has(k))
+    .sort(([, a], [, b]) => a[0] - b[0] || a[1] - b[1])
+    .slice(0, 2 * n)
+    .map(([k]) => k);
+  return gemischt(schwer, seed).slice(0, n);
+}
+
+/** A training round on this device, as lq_training_melden: only the learning time counts – no experience, coins,
+ *  chests, learning day or boxes (a right answer in training must not push a card up and break the spacing). */
+export const trainingAnwenden = (s: Stand, sekunden: number | undefined, tag: string): Stand => ({
+  ...s,
+  zeit: { tag, sekunden: zeitHeute(s, tag) + rundeSekunden(sekunden), limit: s.zeit ? s.zeit.limit : ZEIT_LIMIT_STANDARD },
+});
+
 /** A count with its noun in the right number (28.11.2026): „1 Münze“, „3 Münzen“. */
 export const mitZahl = (n: number, einzahl: string, mehrzahl: string) => `${n} ${n === 1 ? einzahl : mehrzahl}`;
 
