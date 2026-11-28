@@ -1,7 +1,7 @@
 // The exercises on screen: tap, listen and tap, true/false, pairs, gap with tiles, word order, sort into groups, pick
 // the picture, tap the places on a picture. Each reports its answer to the round (`onChange`), which checks it when the child taps „Prüfen“ (pairs
 // and places check themselves when all are done). In English packages a speaker reads statements and words aloud.
-import { useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { richParts } from '../../model/text';
 import { gemischt, gleich, gleicheAntwort, nurZahlen, punktTrifft, satz, type Antwort } from '../rules';
 import type { Uebung } from '../types';
@@ -283,7 +283,14 @@ function Luecke({ u, seed, locked, onChange }: P<'luecke'>) {
               <Rich text={t} />
             </span>
           ) : (
-            <button key={i} type="button" className={`lq-luecke ${gelegt[(i - 1) / 2] !== null ? 'voll' : ''} ${locked ? (gleich(tiles[gelegt[(i - 1) / 2] ?? -1] ?? '', t) ? 'ok' : 'nein') : ''}`} onClick={() => take((i - 1) / 2)}>
+            <button
+              key={i}
+              type="button"
+              className={`lq-luecke ${gelegt[(i - 1) / 2] !== null ? 'voll' : ''} ${locked ? (gleich(tiles[gelegt[(i - 1) / 2] ?? -1] ?? '', t) ? 'ok' : 'nein') : ''}`}
+              // an empty gap has only a space inside: without a name a screen reader says just „button“ (28.11.2026)
+              aria-label={gelegt[(i - 1) / 2] === null ? `Lücke ${(i + 1) / 2}, leer` : `Lücke ${(i + 1) / 2}: ${tiles[gelegt[(i - 1) / 2]!]}`}
+              onClick={() => take((i - 1) / 2)}
+            >
               {gelegt[(i - 1) / 2] !== null ? tiles[gelegt[(i - 1) / 2]!] : ' '}
             </button>
           ),
@@ -311,7 +318,7 @@ function Reihenfolge({ u, seed, locked, onChange }: P<'reihenfolge'>) {
           <Rich text={u.hinweis} />
         </p>
       )}
-      <div className={`lq-zeile ${locked ? (gleich(satz(gelegt.map((k) => tiles[k!])), u.loesung) ? 'ok' : 'nein') : ''}`} aria-label="Dein Satz">
+      <div className={`lq-zeile ${locked ? (gleich(satz(gelegt.map((k) => tiles[k!])), u.loesung) ? 'ok' : 'nein') : ''}`} role="group" aria-label="Dein Satz">
         {gelegt.map((k, pos) => (
           <button key={pos} type="button" className="lq-kachel" onClick={() => take(pos)}>
             {tiles[k!]}
@@ -470,10 +477,30 @@ function Punkt({ u, seed, locked, onChange, bilder = {} }: P<'punkt'>) {
     [u, seed],
   );
   const [getippt, setGetippt] = useState<{ ziel: number; x: number; y: number }[]>([]);
+  // Keyboard (28.11.2026): the arrow keys move a crosshair over the picture, Enter or Space taps there – the iPad with a
+  // keyboard and the teacher's Mac could not do this exercise before (the picture was not focusable).
+  const [zeiger, setZeiger] = useState<{ x: number; y: number } | null>(null);
   const ziel = order[getippt.length];
   const tap = (e: MouseEvent<HTMLElement>) => {
-    if (locked || ziel === undefined) return;
     const { x, y } = prozent(e);
+    tippen(x, y);
+  };
+  const taste = (e: KeyboardEvent<HTMLElement>) => {
+    if (locked || ziel === undefined) return;
+    const s = e.shiftKey ? 1 : 4;
+    const z = zeiger ?? { x: 50, y: 50 };
+    const schritt: Record<string, [number, number]> = { ArrowLeft: [-s, 0], ArrowRight: [s, 0], ArrowUp: [0, -s], ArrowDown: [0, s] };
+    const d = schritt[e.key];
+    if (d) {
+      e.preventDefault();
+      setZeiger({ x: Math.min(100, Math.max(0, z.x + d[0])), y: Math.min(100, Math.max(0, z.y + d[1])) });
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      tippen(z.x, z.y);
+    }
+  };
+  const tippen = (x: number, y: number) => {
+    if (locked || ziel === undefined) return;
     const next = [...getippt, { ziel, x, y }];
     ton(punktTrifft(u.punkte, ziel, x, y) ? 'richtig' : 'falsch');
     setGetippt(next);
@@ -497,8 +524,16 @@ function Punkt({ u, seed, locked, onChange, bilder = {} }: P<'punkt'>) {
         </p>
       )}
       <div className="lq-karte-bild">
-        <div className="lq-karte-flaeche" onClick={tap} role="button" tabIndex={-1} aria-label={ziel !== undefined ? `Bild: tippe auf ${u.punkte[ziel][2]}` : 'Bild'}>
+        <div
+          className="lq-karte-flaeche"
+          onClick={tap}
+          onKeyDown={taste}
+          role="button"
+          tabIndex={locked || ziel === undefined ? -1 : 0}
+          aria-label={ziel !== undefined ? `Bild: tippe auf ${u.punkte[ziel][2]}. Mit den Pfeiltasten zielen, mit Enter tippen.` : 'Bild'}
+        >
           {src && <img src={src} alt="" draggable={false} />}
+          {zeiger && !locked && ziel !== undefined && <span className="lq-zeiger" style={{ left: `${zeiger.x}%`, top: `${zeiger.y}%` }} aria-hidden />}
           {getippt.map((t, i) => {
             const ok = punktTrifft(u.punkte, t.ziel, t.x, t.y);
             const [px, py, name] = u.punkte[t.ziel];

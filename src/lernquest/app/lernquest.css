@@ -5843,3 +5843,20 @@ button.lq-teil:active {
 .lq-sprech p b {
   color: var(--lq-schrift);
 }
+
+/* Places on a picture by keyboard (28.11.2026): the focused picture shows a frame, the arrow keys move a ring. */
+.lq-karte-flaeche:focus-visible {
+  outline: 3px solid var(--lq-primary);
+  outline-offset: 2px;
+}
+.lq-zeiger {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 4px var(--lq-primary),
+    0 0 0 3px var(--lq-karte);
+  pointer-events: none;
+}
