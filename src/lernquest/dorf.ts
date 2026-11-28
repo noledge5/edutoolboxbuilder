@@ -86,6 +86,11 @@ export const HAUS_STUFEN: HausStufe[] = [
   { name: 'Turmhaus', preis: 4000, ab: 12 },
 ];
 export const HAUS_MAX = HAUS_STUFEN.length - 1;
+
+/** The child may move into the village (28.11.2026): the class has its village and houses switched on, the child has a
+ *  plot and nothing stands on it yet – the fox then invites to the tent quiz. */
+export const zeltLeer = (d: Pick<Dorf, 'an' | 'haeuser'> | null | undefined): boolean =>
+  !!d?.an && !!d.haeuser?.an && d.haeuser.ich !== null && d.haeuser.ich !== undefined && (d.haeuser.plaetze[d.haeuser.ich]?.stufe ?? null) === null;
 export const hausName = (stufe: number | null) => (stufe === null ? 'leeres Grundstück' : HAUS_STUFEN[stufe]?.name ?? 'Haus');
 
 export type Ausbau =

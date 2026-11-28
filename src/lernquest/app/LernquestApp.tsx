@@ -47,7 +47,7 @@ import {
   TRAINING_AB,
   type Abzeichen,
 } from '../rules';
-import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, trainingMelden, waechterMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
+import { abmelden, anmelden, bossOffen, dorf as dorfLaden, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, trainingMelden, waechterMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
 import { BOSSE } from '../boss';
 import { BossBeamer, BossBild, BossKind, useLangsam } from './Boss';
 import { readPaket } from '../paket';
@@ -78,6 +78,8 @@ import { EVENT_FARBEN } from '../figuren/fest';
 import { WAECHTER_NAMEN } from '../figuren/waechter';
 import { weltVon, type WeltId } from '../figuren/welten';
 import { WaechterBild } from './Waechter';
+import { zeltLeer } from '../dorf';
+import { ZELT_RUNDE } from '../zelt';
 import { SymbolAufgaben, SymbolHeld, SymbolKarte, SymbolKlasse, SymbolMuenze, SymbolOffline, SymbolStufe, SymbolWiederholen } from '../figuren/symbole';
 import { Zaehler } from './Zaehler';
 import type { Wegpunkt } from './Landkarte';
@@ -94,7 +96,7 @@ export type Screen =
   | { kind: 'laden' }
   | { kind: 'gutscheine' }
   | { kind: 'truhe'; zurueck: 'held' | 'karte' }
-  | { kind: 'klasse' }
+  | { kind: 'klasse'; zelt?: boolean }
   /** The day's learning time is over (teacher 17.11.2026). */
   | { kind: 'zeitAus' }
   /** Stufe E, Teil 5: today's tasks and the week (week goal, class task). */
@@ -598,6 +600,19 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     },
     [flush, fail, sitzung.token],
   );
+  // The fox invites to the village (28.11.2026): once per visit, whether the class has houses and the own plot is still
+  // empty. Asked quietly: offline or without a village the fox simply says what it always says.
+  const [umzug, setUmzug] = useState(false);
+  const umzugGefragt = useRef(false);
+  useEffect(() => {
+    if (screen.kind !== 'karte' || umzugGefragt.current || !daten) return;
+    umzugGefragt.current = true;
+    dorfLaden(sitzung.token).then(
+      (d) => setUmzug(zeltLeer(d)),
+      () => {},
+    );
+  }, [screen.kind, daten, sitzung.token]);
+
   const setStand = useCallback(
     (s: Stand) => {
       const d = datenRef.current;
@@ -1261,7 +1276,15 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   }
 
   if (screen.kind === 'klasse') {
-    return rahmen(<KlasseSeite aktion={aktion} aufgabe={<KlassenAufgabeBox stand={stand} />} dorf={(mitschueler) => <DorfBox aktion={aktion} stand={stand} setStand={setStand} mitschueler={mitschueler} />} />);
+    return rahmen(
+      <KlasseSeite
+        aktion={aktion}
+        aufgabe={<KlassenAufgabeBox stand={stand} />}
+        dorf={(mitschueler) => (
+          <DorfBox aktion={aktion} stand={stand} setStand={setStand} mitschueler={mitschueler} zeltStart={!!screen.zelt} onDorf={(d) => setUmzug(zeltLeer(d))} />
+        )}
+      />,
+    );
   }
 
   if (screen.kind === 'wiederholen') {
@@ -1416,10 +1439,22 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         {!pakete.length && (
           <p className="lq-leer">{event ? 'Für das Event ist gerade keine Station offen. Frag deine Lehrkraft!' : 'Deine Lehrkraft hat noch keine Station freigeschaltet. Schau bald wieder vorbei!'}</p>
         )}
-        {pakete.length > 0 && (
-          <FuchsSagt pose={hinweis.pose}>
-            <p>{hinweis.text}</p>
+        {umzug ? (
+          // 28.11.2026: a free plot in the class village – the fox invites, the button opens the tent quiz.
+          <FuchsSagt pose="winken">
+            <p>
+              <b>Du kannst jetzt ins Dorf ziehen!</b> Dein Platz im Dorf deiner Klasse ist frei. Stell dein Zelt auf: Beantworte {ZELT_RUNDE} Fragen, dann wohnst du dort.
+            </p>
+            <button type="button" className="lq-knopf lq-umzug-knopf" onClick={() => setScreen({ kind: 'klasse', zelt: true })}>
+              Zum Zelt-Quiz
+            </button>
           </FuchsSagt>
+        ) : (
+          pakete.length > 0 && (
+            <FuchsSagt pose={hinweis.pose}>
+              <p>{hinweis.text}</p>
+            </FuchsSagt>
+          )
         )}
         {regionen.map((r, ri) => {
           const sterne = r.stationen.reduce((n, st) => n + st.sterne, 0);

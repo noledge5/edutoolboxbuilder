@@ -22,13 +22,17 @@ interface Props {
   stand: Stand;
   setStand: (s: Stand) => void;
   setDorf: (d: Dorf) => void;
+  /** Opened from the fox's „Zum Zelt-Quiz“ (28.11.2026): an empty plot starts with the tent quiz. */
+  zeltStart?: boolean;
+  /** Id of the heading, for a dialog that names itself by it. */
+  titelId?: string;
 }
 
-export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
+export function MeinHaus({ dorf, aktion, stand, setStand, setDorf, zeltStart = false, titelId }: Props) {
   const h = dorf.haeuser;
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
-  const [quiz, setQuiz] = useState(false);
+  const [quiz, setQuiz] = useState(zeltStart);
   const [sicher, setSicher] = useState(false);
   const [freude, setFreude] = useState('');
   const [gestalten, setGestalten] = useState(false);
@@ -62,7 +66,7 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf }: Props) {
   return (
     <div className="lq-haus">
       <div className="lq-zeile-zwischen">
-        <h3>Mein Haus</h3>
+        <h3 id={titelId}>Mein Haus</h3>
         {stufe !== null && <strong>{hausName(stufe)}</strong>}
       </div>
       <Meldung text={msg} />

@@ -13,7 +13,19 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Lehrerseite: „Diese Aufgaben fallen der Klasse schwer“ (PR folgt)
+### Dorf: eigenes Haus antippen, Einladung vom Fuchs (PR folgt, Wunsch des Nutzers 28.11.)
+- **Was:** auf der Dorfkarte ist das eigene Haus (mit „Du“) ein Knopf: Antippen (oder Enter) öffnet „Mein Haus“ als
+  Fenster von unten – Ausbau, Preis, „Haus gestalten“; ohne Zelt gleich das Zelt-Quiz. Unter der Karte „Tippe auf dein
+  Haus …“. Auf der Karte sagt der Fuchs, wenn im Dorf ein Platz frei ist: „Du kannst jetzt ins Dorf ziehen!“ mit
+  „Zum Zelt-Quiz“ – der Knopf führt zur Klasse und öffnet das Quiz; steht das Zelt, sagt der Fuchs wieder das Übliche.
+- **Fund dabei:** die Seiten-Animation der Reiter (#113) lief mit `both` und hielt jede Seite als Rahmen für feste
+  Elemente fest – Fenster und Konfetti in einer Reiter-Seite saßen in der Seite statt auf dem Bildschirm. Jetzt
+  `backwards` (sieht gleich aus), und das Haus-Fenster hängt zusätzlich direkt am `body`.
+- **Wie:** `zeltLeer` (dorf.ts), `onIch` an `DorfKarte` (Karte dann `role="group"` mit einem Knopf), Fenster in
+  `Dorf.tsx`, `zeltStart` an `MeinHaus`; Test `app/dorfhaus.test.tsx`; Browser: Einladung, Quiz, Haus-Fenster,
+  Escape, Enter, keine seitliche Verschiebung.
+
+### Lehrerseite: „Diese Aufgaben fallen der Klasse schwer“ (#136)
 - **Was:** unter „Fortschritt je Kompetenz“ je Region bis zu fünf Aufgaben, die die meisten Kinder zuletzt falsch
   beantwortet haben (mindestens 3 geübt, 2 und 40 % falsch), mit Lösung in einer Zeile und „2 von 3“; Namen im Tooltip.
 - **Warum:** genau diese Aufgaben lohnen eine kurze Wiederholung im Unterricht; die Kompetenz-Ansicht zeigt nur Anteile.
