@@ -55,6 +55,7 @@ import { WiederholenSofort } from './WiederholenSofort';
 import { EventKarte } from './EventKarte';
 import { KlassenAufgabe } from './KlassenAufgabe';
 import { BossScan } from './BossScan';
+import { besiegteRegionen, waechterRegionen } from '../waechterRegionen';
 import './lernquest-lehrkraft.css';
 
 /** Only the admin teacher opens it, so it loads on demand. */
@@ -403,6 +404,9 @@ function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse,
     return out;
   }, [lib.lessons, lib.modules, klasse.stunden]);
 
+  /** Regions with a guard (Solo-Boss, 28.11.2026): modules with at least two unlocked lessons, as on the children's map. */
+  const regionen = useMemo(() => waechterRegionen(lib.modules, lib.lessons, klasse.stunden), [lib.lessons, lib.modules, klasse.stunden]);
+
   /**
    * Unlocked, locked or hidden. Hiding changes the module's lesson list in the packages, so the other unlocked lessons
    * of the module go again. Every choice waits while one runs, so each plan starts from the stored state.
@@ -523,6 +527,7 @@ function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse,
                 </th>
                 <th>Heldenstufe</th>
                 <th>Sterne</th>
+                <th title="Regionen, deren Wächter das Kind im Meilenstein besiegt hat: ab 80 % beim ersten Versuch über alle Stationen der Region">Wächter</th>
                 <th>Lerntage diese Woche</th>
                 <th>Klassenpunkte</th>
                 <th>Zuletzt da</th>
@@ -542,6 +547,15 @@ function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse,
                     </td>
                     <td>
                       {stars} <small>von {Object.keys(rounds).length * 3}</small>
+                    </td>
+                    <td title={besiegteRegionen(regionen, k.waechter).map((m) => `Modul ${m.number}: ${m.title}`).join(', ') || undefined}>
+                      {regionen.length ? (
+                        <>
+                          {besiegteRegionen(regionen, k.waechter).length} <small>von {regionen.length}</small>
+                        </>
+                      ) : (
+                        '–'
+                      )}
                     </td>
                     <td>{woche(k.tage).diese}</td>
                     <td className="lqt-punkte">

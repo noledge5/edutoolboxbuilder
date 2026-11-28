@@ -365,6 +365,8 @@ export interface KindInfo {
   leitner?: Stand['leitner'];
   klassenpunkte?: number;
   punkteHand?: number;
+  /** Regions (module ids) whose guard the child has beaten in the Meilenstein (20261211_lernquest_waechter_lehrkraft.sql). */
+  waechter?: string[];
 }
 
 export interface KlasseInfo {

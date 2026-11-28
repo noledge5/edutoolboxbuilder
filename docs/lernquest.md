@@ -545,6 +545,10 @@ läuft als Runde „Wiederholen“ (ein Drittel der Erfahrung und Münzen, Wiede
     extra, darum öffnet der Kampf kein neues Sammeln; **Niederlage ohne Strafe** (er bleibt stehen, nochmal geht sofort); **eigene Figur**:
     ein kleiner Turm in den Farben der Region statt der drei großen Bosse, damit der Klassen-Boss am Beamer das große
     Ereignis bleibt.
+  - *Lehrerseite (28.11.):* Spalte „Wächter“ in der Klassenliste: „2 von 5“ – besiegte Wächter von den Regionen der
+    Klasse (Module mit mindestens zwei freigeschalteten Stationen; Extra-Pakete nicht gezählt), die Namen im Tooltip.
+    Daten: `lq_klassen` gibt `waechter` je Kind mit (Migration `20261211_lernquest_waechter_lehrkraft.sql`),
+    gezählt in `waechterRegionen.ts`. So sieht die Lehrkraft, wer ganze Regionen beherrscht.
   - Prüfen: `figuren/waechter.test.tsx` (alle Welten, alle Posen, nur Palette), `app/waechterkampf.test.tsx`
     (Lebenspunkte = 80 %, Leiste nur im Meilenstein); im Browser gewonnen (9 von 10) und verloren (5 von 10), auf Handy,
     kleinem Handy (375 × 667) und 360 × 640: alle Aufgaben über dem Fuß.
