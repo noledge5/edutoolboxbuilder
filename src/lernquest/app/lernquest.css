@@ -5699,6 +5699,35 @@ button.lq-teil:active {
     animation: none;
   }
 }
+/* The moment the guard falls (28.11.2026): the band lights up once, „Besiegt!“ pops. */
+.lq-waechter.faellt {
+  animation: lq-waechter-faellt var(--lq-dauer-lang) var(--lq-feder) both;
+}
+.lq-waechter.faellt .lq-waechter-rest {
+  animation: lq-plopp var(--lq-dauer-lang) var(--lq-feder) 0.15s both;
+}
+@keyframes lq-waechter-faellt {
+  0% {
+    transform: scale(1);
+    box-shadow: inset 0 0 0 2px var(--lq-gold);
+  }
+  40% {
+    transform: scale(1.04);
+    box-shadow:
+      inset 0 0 0 2px var(--lq-gold),
+      0 0 0 6px var(--lq-gold-flaeche);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: inset 0 0 0 2px var(--lq-gold);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-waechter.faellt,
+  .lq-waechter.faellt .lq-waechter-rest {
+    animation: none;
+  }
+}
 /* Short screens (small phones): the band stays one line high so the answers keep clear of the footer. */
 @media (max-height: 720px) {
   .lq-waechter {
