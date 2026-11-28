@@ -13,7 +13,16 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Teile „Burg und Wächter“ (PR folgt, Migration 20261210)
+### Lehrerseite: Spalte „Wächter“ (PR folgt, Migration 20261211)
+- **Was:** in der Klassenliste je Kind „2 von 5“ besiegte Wächter, die Regionen im Tooltip.
+- **Warum:** ein besiegter Wächter heißt: ganze Region zu 80 % beim ersten Versuch – ein echtes Lernsignal für die
+  Lehrkraft (bisher nur auf dem Gerät des Kindes sichtbar).
+- **Wie geprüft:** PGlite (alle 38 Migrationen, 6 Fälle: Liste, leer, kaputte Daten, übrige Felder unverändert,
+  Schlüssel), `waechterRegionen.test.ts`; live: Probelauf mit Rollback, eingespielt, per Abfrage geprüft.
+- **Nicht gebaut:** mehr Haarfarben – eigene Frisuren der Lehrkraft haben genau fünf gespeicherte Farb-Ebenen
+  (`haare-<frisur>-0…4`); neue Farben bräuchten neue Ebenen auf der Lehrerseite und im Bildspeicher. Vorschlag.
+
+### Teile „Burg und Wächter“ (#131, Migration 20261210)
 - **Was:** Rechenrahmen, Zinnenhelm, Burgschlüssel, Kleiner Wächter (Begleiter, wippt), Burgkrone (Gold, Wimpel weht).
 - **Warum:** mehr Beute, die zum neuen Ziel jeder Region passt (der Wächter) und zu Mathe; Hüte und Begleiter hatten nur
   zwei legendäre Teile, Werkzeuge wenige ungewöhnliche.
