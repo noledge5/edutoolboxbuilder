@@ -483,7 +483,7 @@ describe('Weltkarte', () => {
     expect(fuchsHinweis(halb, 3).text).toBe('Weiter geht’s mit „Stunde 2“! Vorher warten 3 Aufgaben aufs Wiederholen.');
     const fertig = regionenVon([pk('a', 1, m), pk('b', 2, m)], 'Erdkunde', { ...LEERER_STAND, bestwerte: { a: [100], b: [100] } });
     expect(fuchsHinweis(fertig, 1)).toEqual({ text: '1 Aufgabe wartet aufs Wiederholen. So bleibt es im Kopf!', pose: 'denken' });
-    expect(fuchsHinweis(fertig, 0).text).toContain('Meilenstein');
+    expect(fuchsHinweis(fertig, 0).text).toContain('Wächter');
     expect(fuchsHinweis(fertig, 0, new Set(['m1'])).text).toContain('fehlenden Sterne');
     const gesperrt = regionenVon([pk('a', 1, m1)], 'Erdkunde', { ...LEERER_STAND, bestwerte: { a: [100] } });
     expect(fuchsHinweis(gesperrt, 0).text).toContain('Unterricht');

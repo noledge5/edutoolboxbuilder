@@ -8,6 +8,9 @@ import type { Paket, Stand, Uebung } from '../types';
 import { KopfBild } from './avatar';
 import { Fuchs } from './Fuchs';
 import { SymbolFlamme } from '../figuren/symbole';
+import type { WeltId } from '../figuren/welten';
+import { waechterLeben } from '../karte';
+import { WaechterLeiste } from './Waechter';
 import { GluehbirneIcon, HilfeKarten, Tipp } from './Hilfe';
 import { HeldBild, nurAlsBild } from './heldVektor';
 import { Herzen } from './Held';
@@ -52,6 +55,8 @@ export interface RundeProps {
   paketVon?: (stunde: string) => Paket | undefined;
   /** The introduction (a station's first round): every tip is open from the start, the child is led through. */
   gefuehrt?: boolean;
+  /** The Meilenstein: the world of the region's guard, fought with the first tries (Solo-Boss, 28.11.2026). */
+  gegner?: WeltId;
 }
 
 /** In English: the sentence a child hears after checking a gap or word order. */
@@ -60,7 +65,7 @@ const prueftSelbst = (u: Uebung) => u.art === 'paare' || u.art === 'punkt';
 /** Formats that show the solution on the exercise itself once it is checked; the others get „Richtig wäre: …“. */
 const loesungSichtbar = (u: Uebung) => prueftSelbst(u) || u.art === 'bild';
 
-export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, held, wieder = true, zurueck = 0, onAbbruch, onFertig, paketVon, gefuehrt = false }: RundeProps) {
+export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, held, wieder = true, zurueck = 0, onAbbruch, onFertig, paketVon, gefuehrt = false, gegner }: RundeProps) {
   /** Exercise indexes in the order played; a missed one is appended. */
   const [reihe, setReihe] = useState(() => uebungen.map((_, i) => i));
   const [pos, setPos] = useState(0);
@@ -191,6 +196,7 @@ export function Runde({ uebungen, stunde, runde, stand, herzen, titel: kicker, h
         )}
         <Herzen voll={Math.max(0, herzen - fehler)} von={herzen} />
       </div>
+      {gegner && <WaechterLeiste welt={gegner} leben={waechterLeben(n)} treffer={ergebnisse.length - fehler} fehler={fehler} />}
       <span className="lq-kicker">{nochmal ? 'Nochmal: das war vorhin falsch' : kicker}</span>
       <UebungView
         key={pos}

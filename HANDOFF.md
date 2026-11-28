@@ -7,7 +7,8 @@
 >
 > **Neue Figuren-Werkstatt:** https://claude.ai/artifact/6YDQU9Ghhp6SZ7mLLXj2jD (neuer Bewegungs-Motor, alle 180
 > Rückmeldungen übernommen). Rückmeldungen ab jetzt dort lesen (ArtifactData, Sammlung `pruefung`). Die alte Adresse
-> (…/WmzYWa5W6igWNwv2iUZdnG) steht noch in `docs/design/lernquest/README.md` und im Skill `figur`: bitte dort ersetzen.
+> (…/WmzYWa5W6igWNwv2iUZdnG) ist in `docs/design/lernquest/README.md` ersetzt (27.11., #122); der Skill `figur` verweist
+> auf das README.
 
 > **Hinweis Bewegung (27.11.2026, PR #117 und „Lernquest Held: Hallo“):** Der Bewegungs-Motor (`figuren/bewegung.ts`)
 > hat sich geändert: `weich` ist eine Kurve durch alle Schlüsselbilder; neu sind `kurven` je Abschnitt (`rein` zum
@@ -40,7 +41,8 @@ Lernquest weiter ausbauen; als Nächstes die übrigen Wünsche der Lehrkraft vom
 2. Rückmeldung zu den neuen Teilen oder zum Dorf einarbeiten.
 3. Wünsche vom 25.11. (`docs/plan-klassendorf-haeuser.md`): Mathe-Aufgaben (bald!), Einschmelzen, Abzeichen, Haus und
    Profil anderer besuchen (braucht Namen für Kinder = neue Entscheidung), Anbauten mit Seltenheit aus Truhen/Laden.
-4. Solo-Boss an der Burg (Plan Schritt 6; `karte.ts` `MEILENSTEIN_GROESSE`, `meilensteinStarten` in `app/LernquestApp.tsx`).
+4. ~~Solo-Boss an der Burg~~ – gebaut am 28.11.2026: der Wächter der Region im Meilenstein (`docs/lernquest.md`
+   „Solo-Boss: der Wächter der Region“, `docs/lernquest-logbuch.md`).
 5. Plan Schritt 2 (Vokabeln getrennt, Kompetenzen statt Blatt), Schritte 4–5 (Fuchs, Lehrerseite neu).
 6. Offen: Werkstatt mit neuen Teilen, Kartenteilen, Hausstufen veröffentlichen? (Version 17:
    https://claude.ai/artifact/WmzYWa5W6igWNwv2iUZdnG; ArtifactData-Lesen der Prüfungen ging am 26.11. nicht: kein Zugriff)

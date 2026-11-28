@@ -8,9 +8,25 @@ Prüfung bei jedem Schritt: `npx vitest run`, `npm run typecheck`, `npm run buil
 `npm run spieltest` oder `npm run demo` mit `LQ_URL`) auf Handy, kleinem Handy, iPad hoch und quer und am Beamer, und
 Bildschirmfotos, die angesehen wurden.
 
-## 27.11.2026, abends (eigenständig, mit Erlaubnis für PRs und Merges)
+## 28.11.2026, nachts und morgens (eigenständig; ab dem Solo-Boss nach erneutem Lesen des Handoffs)
 
-### Ergebnis: erst das Verdiente, dann die Feier (PR folgt)
+### Solo-Boss: der Wächter der Region (PR folgt, Plan Schritt 6, Handoff Schritt 4)
+- **Was:** Der Meilenstein ist ein Kampf gegen den Wächter der Region: ein kleiner lebender Turm (Zinnen als Kopf,
+  das Tor als Mund mit Fallgitter, wenn er angreift) in den Farben der acht Welten. Leiste über der Aufgabe mit
+  Lebenspunkten; Treffer bei richtiger Antwort, Angriff bei einem Fehler; Ergebnis mit Wächter statt Fuchs; Knoten auf
+  der Karte mit dem Wächter.
+- **Warum:** Wunsch der Lehrkraft vom 20.11.; ein Ziel am Ende jeder Region, das man spürt – die gleichen zehn Fragen
+  wie vorher, aber als Kampf. Die offenen Fragen aus dem Plan sind mit der Freigabe vom 27.11. entschieden und in
+  `docs/lernquest.md` und `docs/roadmap.md` begründet.
+- **Wie:** `figuren/waechter.tsx` (eine Zeichnung, Farben je Welt, Teile wie beim Golem, damit die Boss-Bewegungen
+  passen), `app/Waechter.tsx`, `waechterLeben` und `MEILENSTEIN_GUT` in `karte.ts`, Prop `gegner` an der Runde.
+- **Geprüft:** Tests (neu: `figuren/waechter.test.tsx`, `app/waechterkampf.test.tsx`), Runde im Browser gewonnen und
+  verloren; jede Aufgabe auf 375 × 667 und 360 × 640 vermessen – zuerst lag die unterste Antwort unter dem Fuß, darum
+  ist die Leiste auf kurzen Bildschirmen schmaler. Nebenbei: „Das nimmst du mit“ hatte doppelte Schlüssel, wenn zwei
+  Stationen gleiche Aufgaben-Ids haben (behoben).
+- **Sicherung:** `backup/2026-11-28-vor-solo-boss`.
+
+### Ergebnis: erst das Verdiente, dann die Feier (#126)
 - **Was:** Reihenfolge im Ergebnis neu: Haken, beste Serie, gleich danach die Kacheln (Erfahrung, Münzen, Woche) mit
   dem Stern-Hinweis; dann Hinweise zur Runde, Heldenstufe, Abzeichen, „Das nimmst du mit“, Tagesaufgabe, Wochenziel,
   Truhe. Mehrere neue Abzeichen stehen in **einem** Band mit Medaillen in einer Reihe („4 neue Abzeichen!“).
@@ -33,6 +49,8 @@ Bildschirmfotos, die angesehen wurden.
 - **Korrektur:** den Solo-Boss hatte ich hier zuerst verworfen, weil `docs/lernquest.md` sagt „Der Bosskampf hängt nicht
   am Meilenstein“. Das war falsch: er ist Wunsch der Lehrkraft (20.11., `docs/plan-lernquest-fragen.md` Schritt 6) und
   nächster Schritt im Handoff; der Klassen-Boss am Beamer bleibt davon unberührt. Er kommt als eigener Schritt.
+
+## 27.11.2026, abends (eigenständig, mit Erlaubnis für PRs und Merges)
 
 ### Abzeichen „Eroberer“ und richtiges Deutsch (#124)
 - **Was:** achtes Abzeichen „Eroberer“ für geschaffte Regionen (1, 3, 6) mit eigener Burg als Symbol
