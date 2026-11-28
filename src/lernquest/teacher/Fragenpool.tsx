@@ -16,7 +16,7 @@ import { useAiSettings } from '../../ai/useAi';
 import type { Lesson, Module, Settings } from '../../library/types';
 import { useImageUrl } from '../../storage/images';
 import { RUNDE_MAX, RUNDEN_MAX } from '../rules';
-import { ablenkerVon, bilderDerStunde, bilderFuerClaude, frueherVon, lueckeAus, lueckeText, mitZusatz, neueId, NIVEAUS, POOL_MAX, poolAnfrage, poolAusAntwort, poolPrompt, poolSystem, POOL_ZIEL, PUNKTE, punktAufgabe, readUebung, reihenfolgeAus } from '../fragenpool';
+import { ablenkerVon, bilderDerStunde, bilderFuerClaude, frueherVon, lueckeAus, lueckeText, mitZusatz, neueEintraege, neueId, NIVEAUS, POOL_MAX, poolAnfrage, poolAusAntwort, poolPrompt, poolSystem, POOL_ZIEL, PUNKTE, punktAufgabe, readUebung, reihenfolgeAus } from '../fragenpool';
 import { BILD_KEY, KARTE_KEY } from '../paket';
 import type { Lernkarte, Niveau, PoolEintrag, Uebung, UebungsArt } from '../types';
 
@@ -76,9 +76,9 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
     inhalt,
   });
   const read = (raw: unknown) => {
-    const { neu, verworfen, hilfe } = poolAusAntwort(raw, pool.map((e) => e.u.id), modul.lang === 'en', inhalt ? [] : bilderFuerClaude(stunde).map((b) => b.id));
+    const { neu, verworfen, hilfe, kompetenzen } = poolAusAntwort(raw, pool.map((e) => e.u.id), modul.lang === 'en', inhalt ? [] : bilderFuerClaude(stunde).map((b) => b.id));
     const platz = Math.max(0, POOL_MAX - pool.length);
-    const dazu = neu.slice(0, platz).map((u) => ({ u, frei: false }));
+    const dazu = neueEintraege(neu, kompetenzen, modul).slice(0, platz);
     // New help cards replace the old ones only when Claude wrote some.
     onChange([...pool, ...dazu], hilfe.length ? hilfe : undefined);
     setChatOpen(false);
@@ -185,6 +185,8 @@ export function FragenpoolDialog({ modul, stunde, settings, onChange, onClose, s
                     <span className="lqt-pool-art">
                       {artName(e.u)}
                       {e.u.niveau && ` · ${NIVEAUS[e.u.niveau]}`}
+                      {/* the competence Claude named (28.11.2026), so the teacher sees what the question trains */}
+                      {e.kompetenz && modul.competences?.some((c) => c.id === e.kompetenz) && ` · ${modul.competences.find((c) => c.id === e.kompetenz)!.area}`}
                     </span>
                     <span className={`lqt-pool-status ${e.frei ? 'is-frei' : ''}`}>{e.frei ? 'freigegeben' : 'zu prüfen'}</span>
                   </div>

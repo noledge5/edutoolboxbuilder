@@ -163,7 +163,7 @@ export function readPool(x: unknown): PoolEintrag[] {
     const u = readUebung(e.u);
     if (!u || seen.has(u.id)) continue;
     seen.add(u.id);
-    out.push({ u, frei: e.frei === true });
+    out.push({ u, frei: e.frei === true, ...(typeof e.kompetenz === 'string' && e.kompetenz && e.kompetenz.length <= 64 ? { kompetenz: e.kompetenz } : {}) });
   }
   return out.slice(0, POOL_MAX);
 }
@@ -412,6 +412,7 @@ export function poolSystem(): string {
     '- Kurz und eindeutig: genau eine richtige Lösung (bei „waehlen“ höchstens zwei richtige Antworten), keine Fangfragen, keine doppelte Verneinung.',
     '- Falsche Antworten sind typische Denkfehler der Klassenstufe (was Kinder wirklich verwechseln), aber eindeutig falsch.',
     '- Jede Übung bekommt "niveau" (1 leicht: wiedererkennen; 2 mittel: anwenden; 3 schwer: selbst erzeugen oder übertragen) und "erklaerung": ein kurzer Satz in Kindersprache, warum die Lösung stimmt (höchstens 200 Zeichen, auf Deutsch, verrät nichts über andere Übungen).',
+    '- Jede Übung bekommt "kompetenz": den Namen der Zeile im Kompetenzraster, die sie übt, Wort für Wort wie im Raster (nur der Name, ohne „(diese Stunde)“ und ohne die Niveaus); am besten eine Zeile dieser Stunde. Ohne Raster lässt du das Feld weg.',
     '- Jede Übung bekommt auch "tipp": eine Hilfe, bevor das Kind antwortet (höchstens 160 Zeichen, auf Deutsch, Kindersprache). Der Tipp nennt die Regel oder wie man anfängt („Schau, wer gemeint ist: bei I immer am.“), verrät aber nie die Lösung. Schwächere Kinder sollen damit allein weiterkommen.',
     '',
     '## Aufbau: an die Hand nehmen, dann steigern, Wiederholung einstreuen',
@@ -543,12 +544,19 @@ function ohneZusatz(x: unknown, id: string, en: boolean, erlaubt: Set<string>): 
  * counted. `bilder`: the ids of the lesson's pictures (`bilderFuerClaude`), the only own pictures „Bild wählen“ may
  * show. Throws a German message when the answer is no pool at all.
  */
-export function poolAusAntwort(raw: unknown, ids: Iterable<string>, en: boolean, bilder: Iterable<string> = []): { neu: Uebung[]; verworfen: number; hilfe: Lernkarte[] } {
+export function poolAusAntwort(
+  raw: unknown,
+  ids: Iterable<string>,
+  en: boolean,
+  bilder: Iterable<string> = [],
+): { neu: Uebung[]; verworfen: number; hilfe: Lernkarte[]; kompetenzen: (string | undefined)[] } {
   const erlaubt = new Set(bilder);
   const list = isObj(raw) && Array.isArray(raw.uebungen) ? raw.uebungen : Array.isArray(raw) ? raw : null;
   if (!list) throw new Error('Das ist kein Fragenpool: In der Antwort fehlt die Liste „uebungen“.');
   const taken = new Set(ids);
   const neu: Uebung[] = [];
+  // the competence Claude named for each exercise, in the order of `neu` (28.11.2026)
+  const kompetenzen: (string | undefined)[] = [];
   let verworfen = 0;
   for (const x of list) {
     const id = neueId(taken);
@@ -559,8 +567,32 @@ export function poolAusAntwort(raw: unknown, ids: Iterable<string>, en: boolean,
     }
     taken.add(id);
     neu.push(u);
+    kompetenzen.push(isObj(x) && typeof x.kompetenz === 'string' && x.kompetenz.trim() ? x.kompetenz.trim().slice(0, 200) : undefined);
   }
   if (!neu.length) throw new Error('In der Antwort war keine brauchbare Übung.');
   const hilfe = isObj(raw) && Array.isArray(raw.hilfe) ? raw.hilfe.map(readLernkarte).filter((k): k is Lernkarte => !!k).slice(0, 3) : [];
-  return { neu, verworfen, hilfe };
+  return { neu, verworfen, hilfe, kompetenzen };
 }
+
+/** The grid row Claude named for a question (28.11.2026): its id, matched on the name alone (case, spaces, a leading
+ *  „(diese Stunde)“ and trailing levels „(G: … · M: …)“ do not count); undefined when it names no row of the module. */
+export function kompetenzId(m: Pick<Module, 'competences'>, name: string | undefined): string | undefined {
+  if (!name) return undefined;
+  const n = (s: string) =>
+    s
+      .replace(/^\s*\(diese Stunde\)\s*/i, '')
+      .replace(/\s*\([GME]:.*\)\s*$/, '')
+      .replace(/[„“"]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  const gesucht = n(name);
+  return gesucht ? (m.competences ?? []).find((c) => n(String(c.area ?? '')) === gesucht)?.id : undefined;
+}
+
+/** New pool entries, not released yet, each with its competence when Claude named a row of the module's grid. */
+export const neueEintraege = (neu: Uebung[], kompetenzen: (string | undefined)[], m: Pick<Module, 'competences'>): PoolEintrag[] =>
+  neu.map((u, i) => {
+    const k = kompetenzId(m, kompetenzen[i]);
+    return k ? { u, frei: false, kompetenz: k } : { u, frei: false };
+  });

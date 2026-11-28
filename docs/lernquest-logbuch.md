@@ -13,7 +13,18 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Fuchs zeigt aufs Training (PR folgt)
+### Pool-Fragen mit Kompetenz (PR folgt)
+- **Was:** Claude nennt beim Schreiben des Fragenpools zu jeder Übung die Kompetenz (Name der Zeile im Raster). Die App
+  ordnet den Namen der Zeile zu (`kompetenzId`, verzeihend bei Groß/klein, Leerzeichen, „(diese Stunde)“ und
+  mitkopierten Niveaus), speichert die Id am Pool-Eintrag (`PoolEintrag.kompetenz`, bleibt beim Lesen und Abgleich
+  erhalten) und zeigt sie in der Fragenliste der Lehrkraft. „Fortschritt je Kompetenz“ zählt eine so markierte Frage
+  nur für ihre Kompetenz; ältere Pools ohne Angabe weiter über die Stunde (#138).
+- **Warum:** genauer als „jede Kompetenz der Stunde“; die Lehrkraft sieht beim Prüfen, was eine Frage übt.
+- **Wie:** Auftrag in `poolSystem`, `poolAusAntwort` liefert `kompetenzen`, `neueEintraege`; beide Stellen, die Pools
+  anlegen (Fragenpool und automatische Fragen nach dem Freischalten); Tests `poolKompetenz.test.ts`.
+  Sicherung `backup/2026-11-28-vor-pool-kompetenz`.
+
+### Fuchs zeigt aufs Training (#142)
 - **Was:** sind die Stationen geschafft, nichts fällig und der Wächter besiegt, und fallen dem Kind mindestens drei
   Aufgaben noch schwer (Kasten 1–2), sagt der Fuchs „Deine Stationen sind geschafft. 8 Aufgaben fallen dir noch schwer –
   im Training übst du sie, so oft du willst.“ mit „Zum Training“ (startet die Trainingsrunde). Gilt auch, solange neue
