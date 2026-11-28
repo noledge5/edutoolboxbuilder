@@ -16,7 +16,7 @@ describe('exercises for keyboard and screen readers', () => {
   });
 
   it('name the row of a word order', () => {
-    const html = renderToStaticMarkup(<UebungView u={{ art: 'reihenfolge', id: 'r', frage: 'Order.', kacheln: ['I', 'am', 'here'], loesung: 'I am here' }} seed="s" locked={false} onChange={() => {}} />);
+    const html = renderToStaticMarkup(<UebungView u={{ art: 'reihenfolge', id: 'r', frage: 'Order.', hinweis: '', kacheln: ['I', 'am', 'here'], loesung: 'I am here' }} seed="s" locked={false} onChange={() => {}} />);
     expect(html).toContain('role="group" aria-label="Dein Satz"');
   });
 });
