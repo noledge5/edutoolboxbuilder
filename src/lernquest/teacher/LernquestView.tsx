@@ -15,7 +15,7 @@ import { UmbauSchalter } from './UmbauSchalter';
 import { classProfileOf } from '../../ai/classNotes';
 import { jsonOf } from '../../ai/client';
 import { runAi, useAiSettings } from '../../ai/useAi';
-import { bilderFuerClaude, freigegeben, frueherVon, POOL_MAX, poolAnfrage, poolAusAntwort } from '../fragenpool';
+import { bilderFuerClaude, freigegeben, frueherVon, neueEintraege, POOL_MAX, poolAnfrage, poolAusAntwort } from '../fragenpool';
 import { FragenpoolDialog } from './Fragenpool';
 import { PunkteDialog } from './PunkteDialog';
 import { paketSenden } from './senden';
@@ -364,10 +364,10 @@ function KlasseView({ lib, onLessonChange, onExtraChange, onExtraDelete, klasse,
         if (!l || !m || l.pool?.length) return;
         const a = await runAi(poolAnfrage({ modul: m, stunde: l, klasse: classProfileOf(settings, m.subject, m.grade), vorhanden: (l.pool ?? []).map((e) => e.u), wuensche: '', frueher: frueherVon(lessons, l) }));
         if (!a) return;
-        const { neu, hilfe } = poolAusAntwort(jsonOf(a.text), [], m.lang === 'en', bilderFuerClaude(l).map((b) => b.id));
+        const { neu, hilfe, kompetenzen } = poolAusAntwort(jsonOf(a.text), [], m.lang === 'en', bilderFuerClaude(l).map((b) => b.id));
         // The lesson as it is now: the teacher may have worked on it in the meantime.
         const jetzt = neueste.current.lib.lessons.find((x) => x.id === id);
-        if (jetzt && !jetzt.pool?.length) neueste.current.onLessonChange({ ...jetzt, pool: neu.slice(0, POOL_MAX).map((u) => ({ u, frei: false })), ...(hilfe.length ? { poolHilfe: hilfe } : {}) });
+        if (jetzt && !jetzt.pool?.length) neueste.current.onLessonChange({ ...jetzt, pool: neueEintraege(neu, kompetenzen, m).slice(0, POOL_MAX), ...(hilfe.length ? { poolHilfe: hilfe } : {}) });
       } catch (e) {
         fehler = e instanceof Error ? e.message : String(e);
       } finally {

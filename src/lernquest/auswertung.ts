@@ -61,9 +61,12 @@ export function kartenJeKompetenz(lessons: Lesson[], m?: Pick<Module, 'competenc
     const frei = (l.pool ?? []).filter((e) => e.frei);
     if (frei.length) {
       const comps = (m?.competences ?? []).filter((c) => inLektion(c, l.number)).map((c) => c.id);
+      const bekannt = new Set((m?.competences ?? []).map((c) => c.id));
       for (const e of frei) {
-        if (!comps.length) ohne++;
-        for (const c of comps) je.set(c, [...(je.get(c) ?? []), karteKey(l.id, e.u.id)]);
+        // Claude named the competence (28.11.2026): only that one; else every competence of the lesson.
+        const ziel = e.kompetenz && bekannt.has(e.kompetenz) ? [e.kompetenz] : comps;
+        if (!ziel.length) ohne++;
+        for (const c of ziel) je.set(c, [...(je.get(c) ?? []), karteKey(l.id, e.u.id)]);
       }
       continue;
     }

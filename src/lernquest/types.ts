@@ -82,6 +82,9 @@ export const UEBUNGS_ARTEN: readonly UebungsArt[] = ['waehlen', 'richtigfalsch',
 export interface PoolEintrag {
   u: Uebung;
   frei: boolean;
+  /** The competence (id in the module's grid) Claude named for the question (28.11.2026); missing in older pools,
+   *  which the teacher's evaluation then links through the lesson. */
+  kompetenz?: string;
 }
 
 export interface Paket {
