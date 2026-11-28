@@ -54,7 +54,7 @@ import { readPaket } from '../paket';
 import { SELTENHEITEN, bonusVon, HERZEN } from '../teile';
 import type { Paket, Stand, Uebung } from '../types';
 import { HeldSeite, KlasseIcon, KlasseSeite, LadenSeite, Meldung as MeldungText, Muenzen, TruheIcon, TruheSeite, type Aktion } from './Held';
-import { allesWeg, ladeDaten, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, hilfeGesehen, merkeHilfe, merkeWiederholt, wiederholtHeute, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
+import { allesWeg, ladeDaten, ladeHausHinweis, merkeHausHinweis, ladeMeilensteine, ladeSitzung, ladeWarteschlange, setzeTon, speichereDaten, speichereMeilenstein, speichereSitzung, speichereWarteschlange, hilfeGesehen, merkeHilfe, merkeWiederholt, wiederholtHeute, ruhigAn, setzeRuhig, tonAn, type Daten, type Meldung, type Sitzung } from './speicher';
 import { ton } from './ton';
 import { Jubel } from './Jubel';
 import { WissenKarte } from './Wissen';
@@ -78,7 +78,7 @@ import { EVENT_FARBEN } from '../figuren/fest';
 import { WAECHTER_NAMEN } from '../figuren/waechter';
 import { weltVon, type WeltId } from '../figuren/welten';
 import { WaechterBild } from './Waechter';
-import { zeltLeer } from '../dorf';
+import { ausbauHinweis, HAUS_MIT_ARTIKEL, HAUS_STUFEN, zeltLeer, type Dorf } from '../dorf';
 import { ZELT_RUNDE } from '../zelt';
 import { SymbolAufgaben, SymbolHeld, SymbolKarte, SymbolKlasse, SymbolMuenze, SymbolOffline, SymbolStufe, SymbolWiederholen } from '../figuren/symbole';
 import { Zaehler } from './Zaehler';
@@ -96,7 +96,7 @@ export type Screen =
   | { kind: 'laden' }
   | { kind: 'gutscheine' }
   | { kind: 'truhe'; zurueck: 'held' | 'karte' }
-  | { kind: 'klasse'; zelt?: boolean }
+  | { kind: 'klasse'; zelt?: boolean; haus?: boolean }
   /** The day's learning time is over (teacher 17.11.2026). */
   | { kind: 'zeitAus' }
   /** Stufe E, Teil 5: today's tasks and the week (week goal, class task). */
@@ -602,16 +602,23 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   );
   // The fox invites to the village (28.11.2026): once per visit, whether the class has houses and the own plot is still
   // empty. Asked quietly: offline or without a village the fox simply says what it always says.
-  const [umzug, setUmzug] = useState(false);
+  const [dorfInfo, setDorfInfo] = useState<Dorf | null>(null);
   const umzugGefragt = useRef(false);
   useEffect(() => {
     if (screen.kind !== 'karte' || umzugGefragt.current || !daten) return;
     umzugGefragt.current = true;
-    dorfLaden(sitzung.token).then(
-      (d) => setUmzug(zeltLeer(d)),
-      () => {},
-    );
+    dorfLaden(sitzung.token).then(setDorfInfo, () => {});
   }, [screen.kind, daten, sitzung.token]);
+  const umzug = zeltLeer(dorfInfo);
+  // „Dein Haus kann wachsen!“ (28.11.2026): the next house stage is affordable now (coins and hero level). Said once per
+  // stage (remembered on the device), so the fox does not keep pulling the child away from learning.
+  const ausbau = daten ? ausbauHinweis(dorfInfo, { muenzen: daten.stand.muenzen, heldenstufe: heldenstufe(daten.stand.xp).stufe }) : null;
+  const [ausbauZeigen, setAusbauZeigen] = useState<number | null>(null);
+  useEffect(() => {
+    if (ausbau === null || ladeHausHinweis(sitzung.kind) === ausbau) return;
+    merkeHausHinweis(sitzung.kind, ausbau);
+    setAusbauZeigen(ausbau);
+  }, [ausbau, sitzung.kind]);
 
   const setStand = useCallback(
     (s: Stand) => {
@@ -1204,6 +1211,11 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         <button type="button" className={tab === 'klasse' ? 'an' : ''} aria-current={tab === 'klasse' ? 'page' : undefined} onClick={() => setScreen({ kind: 'klasse' })}>
           <SymbolKlasse groesse={28} />
           Klasse
+          {umzug && (
+            <span className="lq-zahl lq-zahl-gold" aria-label="Im Dorf ist ein Platz für dich frei">
+              1
+            </span>
+          )}
         </button>
       </nav>
     </main>
@@ -1281,7 +1293,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         aktion={aktion}
         aufgabe={<KlassenAufgabeBox stand={stand} />}
         dorf={(mitschueler) => (
-          <DorfBox aktion={aktion} stand={stand} setStand={setStand} mitschueler={mitschueler} zeltStart={!!screen.zelt} onDorf={(d) => setUmzug(zeltLeer(d))} />
+          <DorfBox aktion={aktion} stand={stand} setStand={setStand} mitschueler={mitschueler} zeltStart={!!screen.zelt} hausStart={!!screen.haus} onDorf={setDorfInfo} />
         )}
       />,
     );
@@ -1447,6 +1459,15 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
             </p>
             <button type="button" className="lq-knopf lq-umzug-knopf" onClick={() => setScreen({ kind: 'klasse', zelt: true })}>
               Zum Zelt-Quiz
+            </button>
+          </FuchsSagt>
+        ) : ausbauZeigen !== null && ausbauZeigen === ausbau ? (
+          <FuchsSagt pose="jubeln">
+            <p>
+              <b>Dein Haus kann wachsen!</b> Du hast genug Münzen für {HAUS_MIT_ARTIKEL[ausbauZeigen]} ({HAUS_STUFEN[ausbauZeigen].preis} Münzen).
+            </p>
+            <button type="button" className="lq-knopf lq-umzug-knopf" onClick={() => setScreen({ kind: 'klasse', haus: true })}>
+              Zum Haus
             </button>
           </FuchsSagt>
         ) : (

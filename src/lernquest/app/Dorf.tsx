@@ -43,6 +43,7 @@ export function DorfBox({
   setStand,
   mitschueler = [],
   zeltStart = false,
+  hausStart = false,
   onDorf,
 }: {
   aktion: Aktion;
@@ -51,6 +52,8 @@ export function DorfBox({
   mitschueler?: Avatar[];
   /** From the fox's „Zum Zelt-Quiz“ (28.11.2026): an empty own plot opens „Mein Haus“ with the tent quiz at once. */
   zeltStart?: boolean;
+  /** From the fox's „Zum Haus“: the own house opens as „Mein Haus“ at once. */
+  hausStart?: boolean;
   /** Every new village state, so the app knows whether the fox still has to invite (zeltLeer). */
   onDorf?: (d: Dorf) => void;
 }) {
@@ -102,13 +105,13 @@ export function DorfBox({
   useEffect(() => {
     if (!d) return;
     onDorf?.(d);
-    if (zeltStart && !zeltGeoeffnet.current && zeltLeer(d)) {
+    if (!zeltGeoeffnet.current && ((zeltStart && zeltLeer(d)) || (hausStart && d.haeuser?.an && d.haeuser.ich !== null && !zeltLeer(d)))) {
       zeltGeoeffnet.current = true;
-      setHaus({ zelt: true });
+      setHaus({ zelt: zeltLeer(d) });
     }
     // onDorf is new on every render of the app
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [d, zeltStart]);
+  }, [d, zeltStart, hausStart]);
 
   // Escape closes the dialog.
   useEffect(() => {

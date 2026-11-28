@@ -4,7 +4,7 @@
 // Häuser gestalten (25.11.2026): „Haus gestalten“ opens the house large with one row of choices per part (AUSSEHEN);
 // free and changeable any time, locked choices show from which stage they come.
 import { useState } from 'react';
-import { AUSSEHEN, AUSSEHEN_TEILE, aussehenVon, HAUS_STUFEN, hausAusbau, hausName, type Aussehen, type AussehenTeil, type Dorf } from '../dorf';
+import { AUSSEHEN, AUSSEHEN_TEILE, aussehenVon, HAUS_MIT_ARTIKEL, HAUS_STUFEN, hausAusbau, hausName, type Aussehen, type AussehenTeil, type Dorf } from '../dorf';
 import { FARBMUSTER, GRUND, HausEinzeln } from '../figuren/haeuser';
 import { heldenstufe } from '../rules';
 import { hausBauen, hausGestalten, lqText } from '../server';
@@ -13,8 +13,6 @@ import { ZELT_RICHTIG_AB, ZELT_RUNDE, zeltBestanden, zeltFragen, type ZeltFrage 
 import { Meldung, MuenzIcon, type Aktion } from './Held';
 import { ton } from './ton';
 
-/** The stages with their article, for „Du hast jetzt …“. */
-const MIT_ARTIKEL = ['ein Zelt', 'eine Hütte', 'ein Holzhaus', 'ein Fachwerkhaus', 'ein Turmhaus'];
 
 interface Props {
   dorf: Dorf;
@@ -53,7 +51,7 @@ export function MeinHaus({ dorf, aktion, stand, setStand, setDorf, zeltStart = f
       setDorf(r.dorf);
       setStand(r.stand);
       ton('fertig');
-      setFreude(ziel === 0 ? 'Dein Zelt steht! Jetzt kannst du es ausbauen.' : `Geschafft! Du hast jetzt ${MIT_ARTIKEL[ziel]}. Mit „Haus gestalten“ machst du es zu deinem.`);
+      setFreude(ziel === 0 ? 'Dein Zelt steht! Jetzt kannst du es ausbauen.' : `Geschafft! Du hast jetzt ${HAUS_MIT_ARTIKEL[ziel]}. Mit „Haus gestalten“ machst du es zu deinem.`);
       setQuiz(false);
       setSicher(false);
     } catch (e) {
