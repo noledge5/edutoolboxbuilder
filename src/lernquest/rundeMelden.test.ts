@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { rundeMelden, waechterMelden } from './server';
+import { rundeMelden, trainingMelden, waechterMelden } from './server';
 
 describe('rundeMelden', () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -54,5 +54,28 @@ describe('waechterMelden (Solo-Boss, 28.11.2026)', () => {
       throw new TypeError('Failed to fetch');
     });
     await expect(waechterMelden('t', 'm1', 9, 10)).rejects.toThrow('offline');
+  });
+});
+
+describe('trainingMelden (28.11.2026)', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('schickt nur die Dauer und gibt den Stand zurück', async () => {
+    let body: Record<string, unknown> = {};
+    vi.stubGlobal('fetch', async (url: string, init: RequestInit) => {
+      expect(url).toContain('/rpc/lq_training_melden');
+      body = JSON.parse(String(init.body));
+      return new Response(JSON.stringify({ stand: { zeit: { tag: '2026-11-28', sekunden: 300, limit: 45 } } }));
+    });
+    const s = await trainingMelden('t', 299.6);
+    expect(body).toEqual({ p_token: 't', p_sekunden: 300 });
+    expect(s?.zeit?.sekunden).toBe(300);
+  });
+
+  it('lässt die Meldung fallen, wenn der Server Training noch nicht kennt, und meldet das Tageslimit', async () => {
+    vi.stubGlobal('fetch', async () => new Response(JSON.stringify({ code: 'PGRST202', message: 'Could not find the function public.lq_training_melden(p_sekunden, p_token) in the schema cache' }), { status: 404 }));
+    expect(await trainingMelden('t', 60)).toBeNull();
+    vi.stubGlobal('fetch', async () => new Response(JSON.stringify({ message: 'zeit' }), { status: 400 }));
+    await expect(trainingMelden('t', 60)).rejects.toMatchObject({ code: 'zeit' });
   });
 });

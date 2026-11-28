@@ -13,7 +13,16 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Truhe vom Wächter (PR folgt, Migration 20261208)
+### Training ohne Belohnung (PR folgt, Migration 20261209)
+- **Was:** Karte „Training“ unter „Wiederholen“: bis zu 8 der schwersten Karten (Kasten 1 und 2), so oft das Kind will;
+  Ergebnis „Gut geübt!“ ohne Kacheln. Server `lq_training_melden` zählt nur die Lernzeit.
+- **Warum:** schwache Kinder brauchen mehr Übung als 16 Karten am Tag – ohne das Sammeln wieder zu öffnen (17.11.) und
+  ohne die Abstände des Wiederholens zu zerstören: darum keine Belohnung und kein Kasten-Wechsel, aber Lernzeit und
+  Tageslimit wie bei jeder Runde.
+- **Geprüft:** PGlite (11 Fälle), Tests, Browser mit nachgestelltem Server; live: Probelauf mit Rollback, eingespielt,
+  per RPC geprüft. Sicherung `backup/2026-11-28-vor-training`.
+
+### Truhe vom Wächter (#129, Migration 20261208)
 - **Was:** der erste Sieg über den Wächter einer Region bringt eine Truhe. Neue Server-Funktion `lq_waechter_melden`
   (prüft 80 %, Region mit mindestens zwei Stationen in der Klasse, jede mit Stern beim Kind, noch nicht besiegt; merkt
   `daten.waechter`). Die App fragt nach der Runde über die Warteschlange und zeigt „Truhe vom Wächter!“.
@@ -93,9 +102,8 @@ Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung
 - **Warum:** der rote Faden zwischen den Serien-Momenten (3, 5, 10 …): Konzentration wird sichtbar belohnt.
 - **Wie:** `SymbolFlamme` in `figuren/symbole.tsx` (Palette, ohne Umriss), `.lq-combo` in der Runde.
 - **Geprüft:** Runde im Browser (Flamme bei 3); Rundgang; Tests.
-- **Nicht gebaut, zur Entscheidung:** ein Trainingsplatz für schwache Karten. Der Server nimmt Wiederholungsrunden mit
-  beliebigen Karten an und gibt ein Drittel Erfahrung und Münzen – das öffnete wieder das Sammeln, das die Lehrkraft
-  am 17.11. abgestellt hat. Möglich wäre Training ohne Belohnung (braucht eine kleine Server-Änderung).
+- **Damals nicht gebaut:** ein Trainingsplatz für schwache Karten (er hätte das Sammeln wieder geöffnet). Am 28.11. als
+  Training ohne Belohnung gebaut (siehe oben).
 
 ### Abzeichen (#121)
 - **Was:** sieben Abzeichen mit Bronze, Silber und Gold – Fleißig (Lerntage), Gedächtnis (Aufgaben, die sitzen),

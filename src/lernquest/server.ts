@@ -157,6 +157,18 @@ export async function waechterMelden(token: string, modul: string, richtig: numb
   }
 }
 
+/** A training round (migration 20261209): the server counts only its learning time. Null when the server does not know
+ *  training yet (before the migration); 'zeit' after the day's limit, network trouble throws as everywhere. */
+export async function trainingMelden(token: string, sekunden?: number): Promise<Stand | null> {
+  try {
+    const r = await lq<{ stand?: Partial<Stand> }>('lq_training_melden', sekunden == null ? { p_token: token } : { p_token: token, p_sekunden: Math.round(sekunden) });
+    return r.stand ? voll(r.stand) : null;
+  } catch (e) {
+    if (e instanceof LqError && e.code.includes('lq_training_melden')) return null;
+    throw e;
+  }
+}
+
 export interface TruheInhalt {
   /** Part id (`TEILE`) and its rarity 0–4; null when the chest held only coins (`muenzen`). */
   teil: string | null;
