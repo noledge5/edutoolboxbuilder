@@ -3,8 +3,8 @@
 // `competence` field in the module. So the link never goes to the server. Pure, so it is tested without a browser.
 import type { Lesson, Module } from '../library/types';
 import { exercisesOf } from './paket';
-import { karteKey } from './rules';
-import type { Paket, Stand } from './types';
+import { karteKey, merksatz } from './rules';
+import type { Paket, Stand, Uebung } from './types';
 
 /** From this box on an exercise counts as mastered: right at least twice in a row. */
 export const BOX_SITZT = 3;
@@ -100,4 +100,37 @@ export function auswertenThemen(pakete: Paket[], kinder: { id: string; leitner: 
     .filter((p) => p.uebungen.length)
     .map((p) => zeile(p.stunde, p.titel.trim() || 'Thema ohne Namen', p.uebungen.map((u) => karteKey(p.stunde, u.id)), kinder));
   return { zeilen, ohneKompetenz: 0 };
+}
+
+/** An exercise the class finds hard (28.11.2026): how many children practised it and how many answered it wrong last time
+ *  (Leitner box 1), and who. */
+export interface SchwereAufgabe {
+  key: string;
+  stunde: string;
+  u: Uebung;
+  geuebt: number;
+  falsch: number;
+  namen: string[];
+}
+
+/** The hardest exercises of a region for the class, for a short review in the lesson: practised by at least `ab`
+ *  children, at least two and 40 % of them wrong last time; the highest share first, at most `n`. */
+export function schwersteAufgaben(pakete: Pick<Paket, 'stunde' | 'uebungen'>[], kinder: { id: string; name: string; leitner: Stand['leitner'] }[], n = 5, ab = 3): SchwereAufgabe[] {
+  const out: SchwereAufgabe[] = [];
+  for (const p of pakete)
+    for (const u of p.uebungen) {
+      const key = karteKey(p.stunde, u.id);
+      const geuebt = kinder.filter((k) => k.leitner?.[key]);
+      const falsch = geuebt.filter((k) => k.leitner[key][0] === 1);
+      if (geuebt.length >= ab && falsch.length >= 2 && falsch.length * 5 >= geuebt.length * 2)
+        out.push({ key, stunde: p.stunde, u, geuebt: geuebt.length, falsch: falsch.length, namen: falsch.map((k) => k.name) });
+    }
+  return out.sort((a, b) => b.falsch / b.geuebt - a.falsch / a.geuebt || b.falsch - a.falsch).slice(0, n);
+}
+
+/** The exercise in one line for the teacher: the statement and its answer where a line can show them, else the question. */
+export function aufgabeKurz(u: Uebung): string {
+  const m = merksatz(u);
+  const ohne = (s: string) => s.replace(/\*\*|\{\{|\}\}/g, '').replace(/\s+/g, ' ').trim();
+  return m ? `${ohne(m.frage)} → ${ohne(m.antwort)}` : ohne(u.frage);
 }

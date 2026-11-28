@@ -1207,3 +1207,26 @@
   margin: 0;
   padding-left: 1.2em;
 }
+
+/* The exercises the class finds hard (28.11.2026), under the progress per competence. */
+.lqt-schwer {
+  margin-top: 14px;
+}
+.lqt-schwer ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 1.4em;
+}
+.lqt-schwer li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.lqt-schwer li > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.lqt-schwer .lqt-hint {
+  margin: 0;
+}
