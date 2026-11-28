@@ -5445,8 +5445,10 @@ button.lq-teil:active {
 }
 
 /* Moving between the tabs (27.11.2026): the page fades up instead of jumping, the icon of the tab just chosen hops once. */
+/* backwards, not both: a fill after the end would keep the page a containing block for fixed things (dialogs, confetti)
+   inside it, so they would sit in the page instead of on the screen (28.11.2026). */
 .lq-inhalt > * {
-  animation: lq-seite-rein 0.24s ease-out both;
+  animation: lq-seite-rein 0.24s ease-out backwards;
 }
 @keyframes lq-seite-rein {
   from {
@@ -5805,4 +5807,39 @@ button.lq-teil:active {
   line-height: 1.2;
   color: var(--lq-gedaempft);
   overflow-wrap: anywhere;
+}
+
+/* The own house on the village map is a button (28.11.2026): it opens „Mein Haus“ as a dialog. */
+.lq-mein-haus-knopf {
+  cursor: pointer;
+  outline: none;
+}
+.lq-mein-haus-knopf:focus-visible rect {
+  stroke: var(--lq-primary);
+  stroke-width: 4;
+}
+.lq-dorf-tipp {
+  margin: 0;
+  text-align: center;
+}
+.lq-haus-dialog {
+  max-height: calc(100dvh - 2 * var(--lq-a-4));
+  overflow-y: auto;
+}
+.lq-haus-dialog .lq-haus {
+  margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.lq-haus-dialog .lq-haus h3 {
+  font-size: var(--lq-t-h3);
+}
+/* The fox's invitation into the village: the button sits in the speech bubble. */
+.lq-umzug-knopf {
+  align-self: flex-start;
+  margin-top: var(--lq-a-2);
+}
+.lq-sprech p b {
+  color: var(--lq-schrift);
 }

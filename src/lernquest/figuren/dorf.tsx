@@ -711,6 +711,7 @@ export function DorfKarte({
   neu,
   held,
   wanderer = [],
+  onIch,
 }: {
   fertig: string[];
   baustelle?: string | null;
@@ -728,6 +729,8 @@ export function DorfKarte({
   neu?: DorfNeu;
   /** The viewer's own hero (an SVG drawn on 240 × 240), standing in front of the own plot. */
   held?: ReactNode;
+  /** Tapping the own plot (28.11.2026): opens „Mein Haus“. The map is then a group with one button, not a picture. */
+  onIch?: () => void;
   /** Classmates' heroes (SVGs on 240 × 240, no names) walking up and down the road. */
   wanderer?: ReactNode[];
 }) {
@@ -842,6 +845,7 @@ export function DorfKarte({
     });
   }
   const schilder: ReactNode[] = [];
+  let meinKnopf: { x: number; y: number; hoehe: number } | null = null;
   plots.forEach((p, i) => {
     const h = haeuser?.[i];
     const st = h && h.stufe !== null && h.stufe >= 0 && h.stufe < HAUS_HOEHE.length ? h.stufe : null;
@@ -855,6 +859,7 @@ export function DorfKarte({
       ),
       neu: neuesHaus,
     });
+    if (i === ich) meinKnopf = { x: p.sx, y: p.sy, hoehe: st === null ? 24 : HAUS_HOEHE[st] };
     const text = i === ich ? "Du" : h?.name;
     if (text) schilder.push(schild([p.sx, p.sy - (st === null ? 24 : HAUS_HOEHE[st])], text, i === ich, i));
   });
@@ -936,10 +941,12 @@ export function DorfKarte({
   });
 
   const label = hinweis ? ([0, (plots[2]?.sy ?? -250) - 64] as Pt) : null;
+  // set inside plots.forEach above; TypeScript does not follow assignments in callbacks
+  const knopf = meinKnopf as { x: number; y: number; hoehe: number } | null;
   return (
     <svg
       viewBox={`${vx} ${vy} ${vw} ${vh}`}
-      role="img"
+      role={onIch && knopf ? "group" : "img"}
       aria-label={titel}
       className="lq-dorf-karte"
       data-stufe={stufe}
@@ -953,6 +960,31 @@ export function DorfKarte({
           </g>
         ))}
       {schilder}
+      {onIch && knopf && (
+        // The own house and its „Du“ sign as one button, on top of everything (a tree in front never hides it).
+        <g
+          className="lq-mein-haus-knopf"
+          role="button"
+          tabIndex={0}
+          aria-label="Mein Haus: ansehen und ausbauen"
+          onClick={onIch}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onIch();
+            }
+          }}
+        >
+          <rect
+            x={knopf.x - 46}
+            y={knopf.y - knopf.hoehe - 34}
+            width={92}
+            height={knopf.hoehe + 34 + 26}
+            rx={16}
+            fill="transparent"
+          />
+        </g>
+      )}
       {label && (
         <g>
           <rect x={label[0] - 92} y={label[1] - 20} width={184} height={30} rx={15} fill={P.weiss} opacity={0.92} />

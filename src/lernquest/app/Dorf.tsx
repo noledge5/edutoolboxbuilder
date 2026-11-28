@@ -6,7 +6,8 @@
 // Richtung A (25.11.2026): the map in portrait, opening at the own house; evening and winter follow the clock; the
 // village stage (Weiler … Stadt) in the header; what was built since the last visit pops up (remembered on the device).
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { DORF_STUFEN, dorfStufe, gebaeudeName, istAbend, istWinter, naechsteDorfStufe, SPENDE_WOCHE, spendeMoeglich, spendeWert, type Dorf } from '../dorf';
+import { createPortal } from 'react-dom';
+import { DORF_STUFEN, dorfStufe, gebaeudeName, istAbend, istWinter, naechsteDorfStufe, SPENDE_WOCHE, spendeMoeglich, spendeWert, zeltLeer, type Dorf } from '../dorf';
 import { JE_VIERTEL } from '../dorfplan';
 import { DorfKarte, type DorfNeu } from '../figuren/dorf';
 import { AvatarBild } from './avatar';
@@ -36,8 +37,26 @@ export function dorfNeu(alt: DorfGesehen | null, jetzt: DorfGesehen): DorfNeu {
   };
 }
 
-export function DorfBox({ aktion, stand, setStand, mitschueler = [] }: { aktion: Aktion; stand: Stand; setStand: (s: Stand) => void; mitschueler?: Avatar[] }) {
+export function DorfBox({
+  aktion,
+  stand,
+  setStand,
+  mitschueler = [],
+  zeltStart = false,
+  onDorf,
+}: {
+  aktion: Aktion;
+  stand: Stand;
+  setStand: (s: Stand) => void;
+  mitschueler?: Avatar[];
+  /** From the fox's „Zum Zelt-Quiz“ (28.11.2026): an empty own plot opens „Mein Haus“ with the tent quiz at once. */
+  zeltStart?: boolean;
+  /** Every new village state, so the app knows whether the fox still has to invite (zeltLeer). */
+  onDorf?: (d: Dorf) => void;
+}) {
   const [d, setD] = useState<Dorf | null>(null);
+  // „Mein Haus“ as a dialog (28.11.2026): opened by tapping the own house on the map, or by the fox's tent button.
+  const [haus, setHaus] = useState<{ zelt: boolean } | null>(null);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [danke, setDanke] = useState('');
@@ -77,6 +96,27 @@ export function DorfBox({ aktion, stand, setStand, mitschueler = [] }: { aktion:
     aktion(dorfLaden).then(setD, () => setD(null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // The app hears every new state; the fox's invitation opens the tent quiz once, if the plot is still empty.
+  const zeltGeoeffnet = useRef(false);
+  useEffect(() => {
+    if (!d) return;
+    onDorf?.(d);
+    if (zeltStart && !zeltGeoeffnet.current && zeltLeer(d)) {
+      zeltGeoeffnet.current = true;
+      setHaus({ zelt: true });
+    }
+    // onDorf is new on every render of the app
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [d, zeltStart]);
+
+  // Escape closes the dialog.
+  useEffect(() => {
+    if (!haus) return;
+    const taste = (e: KeyboardEvent) => e.key === 'Escape' && setHaus(null);
+    window.addEventListener('keydown', taste);
+    return () => window.removeEventListener('keydown', taste);
+  }, [haus]);
 
   if (!d?.an) return null;
   const p = d.projekt;
@@ -128,8 +168,24 @@ export function DorfBox({ aktion, stand, setStand, mitschueler = [] }: { aktion:
           wanderer={unterwegs(mitschueler, heute()).map((a, i) => (
             <AvatarBild key={i} avatar={{ ...a, hintergrund: '' }} />
           ))}
+          onIch={haeuser && haeuser.ich !== null ? () => setHaus({ zelt: zeltLeer(d) }) : undefined}
         />
       </div>
+      {haeuser && haeuser.ich !== null && <p className="lq-klein lq-dorf-tipp">Tippe auf dein Haus, um es anzusehen und auszubauen.</p>}
+      {haus &&
+        typeof document !== 'undefined' &&
+        // On the body, so no page around it (scrolling, an animation) can hold the fixed dialog in place.
+        createPortal(
+          <div className="lq-dialog-grund" role="dialog" aria-modal="true" aria-labelledby="lq-haus-dialog-titel" onClick={(e) => e.target === e.currentTarget && setHaus(null)}>
+            <div className="lq-dialog lq-haus-dialog">
+              <MeinHaus dorf={d} aktion={aktion} stand={stand} setStand={setStand} setDorf={setD} zeltStart={haus.zelt} titelId="lq-haus-dialog-titel" />
+              <button type="button" className="lq-knopf lq-hell" onClick={() => setHaus(null)}>
+                Schließen
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
       <p className="lq-klein lq-dorf-stufe">
         {naechste ? `Noch ${naechste.fehlt === 1 ? '1 Gebäude' : `${naechste.fehlt} Gebäude`}, dann wird aus ${AUS[stufe]} ${WIRD[stufe + 1]}.` : 'Ihr habt zusammen eine Stadt gebaut!'}
       </p>
