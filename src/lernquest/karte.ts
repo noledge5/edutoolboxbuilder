@@ -40,6 +40,11 @@ export const MEILENSTEIN_GUT = 80;
 
 /** The region's guard (Solo-Boss, 28.11.2026) has as many life points as right first tries are needed to pass: each one
  *  is a hit, so it falls exactly when the Meilenstein is passed (8 of 10). */
+/** A region's guard counts as beaten when the server knows the win (`waechter`, every device) or this device has a
+ *  Meilenstein best from MEILENSTEIN_GUT on (before the server knew, or not sent yet). */
+export const waechterBesiegt = (id: string, waechter: string[] | undefined, besteHier: number | undefined) =>
+  !!waechter?.includes(id) || (besteHier !== undefined && besteHier >= MEILENSTEIN_GUT);
+
 export const waechterLeben = (fragen: number) => Math.max(1, Math.ceil((fragen * MEILENSTEIN_GUT) / 100));
 
 /** Subjects of the packages, sorted. */

@@ -150,6 +150,8 @@ export interface Stand {
   willkommen?: boolean;
   /** Learning time today (seconds of rounds) and the class's limit in minutes (null: none). Missing before 20261201. */
   zeit?: { tag: string; sekunden: number; limit: number | null };
+  /** Regions (module ids) whose guard the child has beaten (Solo-Boss; from the server since 20261212, on every device). */
+  waechter?: string[];
   /** The class is in Umbau: the app shows the Umbau page (20261202_lernquest_umbau.sql; missing before, see `imUmbau`). */
   umbau?: boolean;
 }

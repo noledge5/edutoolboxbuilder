@@ -35,6 +35,7 @@ import {
 import type { Stand } from '../types';
 import { AvatarBild, KopfBild, TeilBild } from './avatar';
 import { AbzeichenKarte } from './Abzeichen';
+import { WaechterRegal } from './Waechter';
 import { TruheZeichnung } from '../figuren';
 import { ruhig } from '../figuren/Figur';
 import { Zaehler } from './Zaehler';
@@ -42,7 +43,7 @@ import { Fuchs } from './Fuchs';
 import { Jubel } from './Jubel';
 import { BilderNeuLaden, useAlleFrisuren, useAlleTeile } from './bilderKontext';
 import { GutscheinLeiste } from './Gutscheine';
-import type { Daten } from './speicher';
+import { ladeMeilensteine, type Daten } from './speicher';
 import { ton } from './ton';
 
 /** What the hero does when tapped on the stage, in turn. */
@@ -203,7 +204,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
           <TruheIcon />
           <div>
             <strong>{stand.truhen ? `${stand.truhen} ${stand.truhen === 1 ? 'Truhe' : 'Truhen'} bereit` : 'Keine Truhe bereit'}</strong>
-            <span className="lq-klein">Je 3 Sterne, fürs Wochenziel und den Bosssieg</span>
+            <span className="lq-klein">Je 3 Sterne, fürs Wochenziel, den Bosssieg und jeden neuen Wächter</span>
           </div>
           <button type="button" className="lq-knopf lq-gold" disabled={!stand.truhen} onClick={onTruhe}>
             Öffnen
@@ -214,6 +215,7 @@ export function HeldSeite({ daten, aktion, setStand, onTruhe, onLaden, onGutsche
         </section>
         <GutscheinLeiste punkte={stand.klassenpunkte ?? 0} onOeffnen={onGutscheine} />
         <AbzeichenKarte stand={stand} pakete={Object.values(daten.pakete)} />
+        <WaechterRegal stand={stand} pakete={Object.values(daten.pakete)} besteHier={ladeMeilensteine()} />
       </div>
       <div className="lq-held-rechts">
         <SlotTabs slot={slot} setSlot={setSlot} label="Teile" />

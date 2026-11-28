@@ -5,7 +5,7 @@
 // see Boss.tsx); the class code lets it show a QR code to sign in.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QrScanner } from '../../sync/QrScanner';
-import { beamerAusHash, codeAus, faecherVon, fuchsHinweis, MEILENSTEIN_GROESSE, MEILENSTEIN_GUT, waechterLeben, namensFarbe, regionenVon, regionName, vorname, wochenTage, type Region, type Station } from '../karte';
+import { beamerAusHash, codeAus, faecherVon, fuchsHinweis, MEILENSTEIN_GROESSE, MEILENSTEIN_GUT, waechterBesiegt, waechterLeben, namensFarbe, regionenVon, regionName, vorname, wochenTage, type Region, type Station } from '../karte';
 import {
   heldenstufe,
   heute,
@@ -1383,7 +1383,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
   const wdhBei = regionen.findIndex((r) => r.stationen.some((s) => s.zustand === 'aktuell'));
   const wdhRegion = wdhBei >= 0 ? wdhBei : regionen.length - 1;
   const meilensteine = ladeMeilensteine();
-  const hinweis = fuchsHinweis(regionen, fachDran.length, new Set(Object.keys(meilensteine).filter((id) => meilensteine[id] >= MEILENSTEIN_GUT)));
+  const hinweis = fuchsHinweis(regionen, fachDran.length, new Set(regionen.map((r) => r.id).filter((id) => waechterBesiegt(id, stand.waechter, meilensteine[id]))));
   const wdhKnoten = (
     <>
       <button type="button" className="lq-knoten wdh" aria-label={`Wiederholen: ${mitZahl(fachDran.length, 'Aufgabe', 'Aufgaben')} aus früheren Stationen`} onClick={() => wiederholen(fachDran)}>
@@ -1437,19 +1437,21 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
                         while it stands, a tick once it is beaten. */}
                     <button
                       type="button"
-                      className={`lq-knoten meilenstein${r.meilenstein && !(best !== undefined && best >= MEILENSTEIN_GUT) ? ' mit-waechter' : ''}`}
+                      className={`lq-knoten meilenstein${r.meilenstein && !waechterBesiegt(r.id, stand.waechter, best) ? ' mit-waechter' : ''}`}
                       disabled={!r.meilenstein}
                       aria-label={`${WAECHTER_NAMEN[weltVon(r.id, r.nummer).id]}: ${r.titel}`}
                       onClick={() => meilensteinStarten(r)}
                     >
-                      {best !== undefined && best >= MEILENSTEIN_GUT ? <HakenIcon /> : r.meilenstein ? <WaechterBild welt={weltVon(r.id, r.nummer).id} breite={50} lebendig={false} /> : <SchlossIcon />}
+                      {waechterBesiegt(r.id, stand.waechter, best) ? <HakenIcon /> : r.meilenstein ? <WaechterBild welt={weltVon(r.id, r.nummer).id} breite={50} lebendig={false} /> : <SchlossIcon />}
                     </button>
                     <span className="lq-knoten-titel">Wächter</span>
                     <span className="lq-klein">
                       {!r.meilenstein
                         ? 'Wartet, bis alle Stationen geschafft sind.'
-                        : best !== undefined && best >= MEILENSTEIN_GUT
-                          ? `Besiegt · bestes Ergebnis ${best} %`
+                        : waechterBesiegt(r.id, stand.waechter, best)
+                          ? best !== undefined
+                            ? `Besiegt · bestes Ergebnis ${best} %`
+                            : 'Besiegt'
                           : best !== undefined
                             ? `Bestes Ergebnis ${best} % · ab ${MEILENSTEIN_GUT} % fällt er`
                             : `${MEILENSTEIN_GROESSE} gemischte Fragen – besiege ihn!`}
