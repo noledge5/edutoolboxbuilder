@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { WAECHTER, WAECHTER_NAMEN } from '../figuren';
 import { FigurBild } from '../figuren/Figur';
+import { ton } from './ton';
 import type { WeltId } from '../figuren/welten';
 
 type Zug = { art: 'treffer' | 'angriff' | null; n: number };
@@ -45,8 +46,15 @@ export function WaechterLeiste({ welt, leben, treffer, fehler }: { welt: WeltId;
   const zug = useZug(treffer, fehler);
   const rest = Math.max(0, leben - treffer);
   const besiegt = rest === 0;
+  // The moment it falls (28.11.2026): the band lights up and the bells of a level-up ring after the „right“ sound.
+  const fiel = besiegt && zug.art === 'treffer';
+  useEffect(() => {
+    if (!fiel) return;
+    const t = window.setTimeout(() => ton('aufstieg'), 450);
+    return () => window.clearTimeout(t);
+  }, [fiel]);
   return (
-    <div className={`lq-waechter${besiegt ? ' besiegt' : ''}`}>
+    <div className={`lq-waechter${besiegt ? ' besiegt' : ''}${fiel ? ' faellt' : ''}`}>
       <WaechterBild welt={welt} breite={64} besiegt={besiegt} zug={zug} />
       <div className="lq-waechter-text">
         <strong>{WAECHTER_NAMEN[welt] ?? WAECHTER_NAMEN.wiese}</strong>

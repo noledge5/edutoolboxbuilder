@@ -13,7 +13,13 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Lehrerseite: Spalte „Wächter“ (PR folgt, Migration 20261211)
+### Der Moment, in dem der Wächter fällt (PR folgt)
+- **Was:** beim letzten Treffer leuchtet die Wächter-Leiste einmal golden auf, „Besiegt!“ ploppt, nach dem
+  „Richtig“-Klang läuten die Glocken des Aufstiegs (nur mit Ton an; „Bewegung reduzieren“ ohne Animation).
+- **Warum:** der Sieg über den Wächter ist das Ziel einer ganzen Region – er soll sich wie einer anfühlen.
+- **Geprüft:** im Browser genau beim 8. Treffer fotografiert; Tests, Rundgang.
+
+### Lehrerseite: Spalte „Wächter“ (#132, Migration 20261211)
 - **Was:** in der Klassenliste je Kind „2 von 5“ besiegte Wächter, die Regionen im Tooltip.
 - **Warum:** ein besiegter Wächter heißt: ganze Region zu 80 % beim ersten Versuch – ein echtes Lernsignal für die
   Lehrkraft (bisher nur auf dem Gerät des Kindes sichtbar).
