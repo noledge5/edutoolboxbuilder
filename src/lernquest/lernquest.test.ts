@@ -621,6 +621,40 @@ describe('Auswertung je Kind und Kompetenz', () => {
     expect(r.ohneKompetenz).toBe(keys(d.id).length);
   });
 
+  it('ordnet Pool-Fragen über die Stunden des Rasters zu (28.11.2026)', () => {
+    const mit = {
+      ...m,
+      competences: [
+        { id: 'k1', area: 'Zahlen lesen', g: '', m: '', e: '', lessons: '1, 2', domain: '' },
+        { id: 'k2', area: 'Zahlen schreiben', g: '', m: '', e: '', lessons: '3–4', domain: '' },
+        { id: 'k3', area: 'Ohne Stunden', g: '', m: '', e: '', lessons: '', domain: '' },
+      ],
+    } as unknown as Module;
+    const rf = (id: string) => ({ art: 'richtigfalsch' as const, id, frage: 'Stimmt das?', aussage: id, richtig: true });
+    const l2 = { id: 'l2', moduleId: 'm1', number: 2, doc: { pages: [page([a, b])] }, pool: [{ frei: true, u: rf('pool-a') }, { frei: true, u: rf('pool-b') }, { frei: false, u: rf('pool-c') }] } as unknown as Lesson;
+    const l5 = { id: 'l5', moduleId: 'm1', number: 5, doc: { pages: [] }, pool: [{ frei: true, u: rf('pool-x') }] } as unknown as Lesson;
+    const { je, ohne } = kartenJeKompetenz([l2, l5], mit);
+    // the released pool questions of lesson 2 (not the sheet's tasks, not the unreleased one)
+    expect(je.get('k1')).toEqual(['l2/pool-a', 'l2/pool-b']);
+    expect(je.get('k2')).toBeUndefined();
+    // lesson 5 is in no competence's lessons
+    expect(ohne).toBe(1);
+    const r = auswerten(mit, [l2, l5], [{ id: 'anna', leitner: { 'l2/pool-a': [3, 0], 'l2/pool-b': [1, 0] } }]);
+    expect(r.zeilen.map((z) => z.id)).toEqual(['k1']);
+    expect(r.zeilen[0].kinder.anna).toMatchObject({ aufgaben: 2, geuebt: 2, sitzt: 1, wackelt: 1, anteil: 0.5 });
+  });
+
+  it('nimmt bei leerem Feld „Stunde(n)“ die Stunden, deren Aufgaben die Kompetenz verknüpfen', () => {
+    const rf = (id: string) => ({ art: 'richtigfalsch' as const, id, frage: 'Stimmt das?', aussage: id, richtig: true });
+    // k1 (lessons empty) is linked by task a on lesson 2's sheet, k2 by nothing
+    const leer = { ...m, competences: [{ id: 'k1', area: 'Karten lesen', g: '', m: '', e: '', lessons: '', domain: '' }, { id: 'k2', area: 'Klima', g: '', m: '', e: '', lessons: '', domain: '' }] } as unknown as Module;
+    const l2 = { id: 'l2', moduleId: 'm1', number: 2, doc: { pages: [page([a])] }, pool: [{ frei: true, u: rf('pool-a') }] } as unknown as Lesson;
+    const { je, ohne } = kartenJeKompetenz([l2], leer);
+    expect(je.get('k1')).toEqual(['l2/pool-a']);
+    expect(je.get('k2')).toBeUndefined();
+    expect(ohne).toBe(0);
+  });
+
   it('zählt Links auf gelöschte Kompetenzen und andere Module nicht mit', () => {
     const fremd = { ...m, competences: m.competences.filter((x) => x.id !== 'k2') } as Module;
     expect(auswerten(fremd, [l], []).ohneKompetenz).toBe(keys(d.id).length + keys(c.id).length);

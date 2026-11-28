@@ -43,7 +43,7 @@ export function Auswertung({ lib: bib, klasse }: { lib: Library; klasse: KlasseI
           <h2>Fortschritt je Kompetenz</h2>
           <p className="lqt-hint">
             Aus dem Wiederholen jedes Kindes: Eine Übung „sitzt“, wenn sie mindestens zweimal hintereinander richtig war (Kasten {BOX_SITZT} von 5). Die Prozente sind der Anteil der Übungen einer Kompetenz, die sitzen; „–“ heißt noch nicht geübt. Die Zuordnung zur Kompetenz kommt aus den
-            Aufgaben der Stunden und bleibt auf diesem Gerät. Extra-Pakete haben keine Kompetenzen: Dort steht eine Zeile je Thema.
+            Aufgaben der Stunden; Fragen aus dem Fragenpool zählen für die Kompetenzen, die das Raster bei ihrer Stunde nennt (Feld „Stunde(n)“; leer: die Stunden, deren Aufgaben die Kompetenz verknüpfen). Sie bleibt auf diesem Gerät. Extra-Pakete haben keine Kompetenzen: Dort steht eine Zeile je Thema.
           </p>
         </div>
       </div>
