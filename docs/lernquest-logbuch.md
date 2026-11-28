@@ -13,7 +13,16 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Lehrerseite: „Fortschritt je Kompetenz“ wieder mit Daten (PR folgt)
+### Dorf: Fuchs meldet „Dein Haus kann wachsen!“, Abzeichen an „Klasse“ (PR folgt)
+- **Was:** reicht es für die nächste Hausstufe (Münzen und Heldenstufe), sagt der Fuchs auf der Karte einmal je Stufe
+  „Dein Haus kann wachsen! Du hast genug Münzen für eine Hütte (300 Münzen)“ mit „Zum Haus“ (öffnet „Mein Haus“).
+  Ist im Dorf ein Platz frei, trägt „Klasse“ unten eine goldene 1.
+- **Warum:** Fortsetzung des Wunsches vom 28.11.; nur einmal je Stufe, damit der Fuchs nicht ständig vom Lernen wegzieht.
+- **Wie:** `ausbauHinweis`, `HAUS_MIT_ARTIKEL` (dorf.ts), `ladeHausHinweis`/`merkeHausHinweis` je Kind (speicher.ts,
+  beim Abmelden gelöscht), `hausStart` an `DorfBox`; Test in `app/dorfhaus.test.tsx`; Browser: Hinweis, Fenster,
+  nach Neuladen nicht wieder.
+
+### Lehrerseite: „Fortschritt je Kompetenz“ wieder mit Daten (#138)
 - **Fehler:** die Ansicht ordnete die Karten der Kinder über die Aufgaben der Arbeitsblätter den Kompetenzen zu. Seit dem
   19.11. bekommen die Kinder nur freigegebene Pool-Fragen (Ids `pool-…`, ohne eigene Kompetenz) – die Ansicht blieb
   für sie leer („–“).

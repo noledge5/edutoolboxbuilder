@@ -145,6 +145,14 @@ export function ladeDorfGesehen(kind: string): DorfGesehen | null {
 }
 export const merkeDorfGesehen = (kind: string, g: DorfGesehen) => write(K_DORF, { kind, ...g });
 
+/** The fox's „Dein Haus kann wachsen!“ (28.11.2026): the stage it was last said for, per child – once per stage. */
+const K_HAUS = 'lernquest:haus-hinweis';
+export function ladeHausHinweis(kind: string): number | null {
+  const x = read<{ kind: string; stufe: number }>(K_HAUS);
+  return x && x.kind === kind ? x.stufe : null;
+}
+export const merkeHausHinweis = (kind: string, stufe: number) => write(K_HAUS, { kind, stufe });
+
 export function allesWeg() {
-  for (const k of [K_SITZUNG, K_DATEN, K_WARTE, K_MEILENSTEINE, K_WDH, K_DORF]) write(k, null);
+  for (const k of [K_SITZUNG, K_DATEN, K_WARTE, K_MEILENSTEINE, K_WDH, K_DORF, K_HAUS]) write(k, null);
 }

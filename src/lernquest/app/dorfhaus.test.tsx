@@ -1,7 +1,7 @@
 // The own house opens „Mein Haus“, the fox invites to the tent quiz (28.11.2026).
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { zeltLeer, type Dorf } from '../dorf';
+import { ausbauHinweis, zeltLeer, type Dorf } from '../dorf';
 import { DorfKarte } from '../figuren/dorf';
 import { LEERER_STAND } from '../types';
 import { MeinHaus } from './MeinHaus';
@@ -16,6 +16,17 @@ describe('moving into the village', () => {
     expect(zeltLeer({ an: false, haeuser: dorf(null).haeuser })).toBe(false);
     expect(zeltLeer({ an: true, haeuser: { an: true, ich: null, plaetze: [] } })).toBe(false);
     expect(zeltLeer(null)).toBe(false);
+  });
+
+  it('says when the next house stage is affordable, once a tent stands', () => {
+    expect(ausbauHinweis(dorf(0), { muenzen: 300, heldenstufe: 1 })).toBe(1);
+    expect(ausbauHinweis(dorf(0), { muenzen: 299, heldenstufe: 1 })).toBeNull();
+    // the Holzhaus needs hero level 3
+    expect(ausbauHinweis(dorf(1), { muenzen: 900, heldenstufe: 2 })).toBeNull();
+    expect(ausbauHinweis(dorf(1), { muenzen: 900, heldenstufe: 3 })).toBe(2);
+    expect(ausbauHinweis(dorf(4), { muenzen: 99999, heldenstufe: 30 })).toBeNull();
+    expect(ausbauHinweis(dorf(null), { muenzen: 999, heldenstufe: 5 })).toBeNull();
+    expect(ausbauHinweis(dorf(0, false), { muenzen: 999, heldenstufe: 5 })).toBeNull();
   });
 
   it('makes the own house a button on the map, only when asked', () => {

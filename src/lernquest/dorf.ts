@@ -87,6 +87,20 @@ export const HAUS_STUFEN: HausStufe[] = [
 ];
 export const HAUS_MAX = HAUS_STUFEN.length - 1;
 
+/** The house stages with their article, for „Du hast jetzt …“ and the fox's hint. */
+export const HAUS_MIT_ARTIKEL = ['ein Zelt', 'eine Hütte', 'ein Holzhaus', 'ein Fachwerkhaus', 'ein Turmhaus'];
+
+/** The next stage of the own house when the child can build it now (coins and hero level), once a tent stands; else
+ *  null – for the fox's „Dein Haus kann wachsen!“ (28.11.2026). */
+export function ausbauHinweis(d: Pick<Dorf, 'an' | 'haeuser'> | null | undefined, k: { muenzen: number; heldenstufe: number }): number | null {
+  const h = d?.an ? d.haeuser : undefined;
+  if (!h?.an || h.ich === null || h.ich === undefined) return null;
+  const stufe = h.plaetze[h.ich]?.stufe ?? null;
+  if (stufe === null) return null;
+  const a = hausAusbau(stufe, k);
+  return a.geht ? a.stufe : null;
+}
+
 /** The child may move into the village (28.11.2026): the class has its village and houses switched on, the child has a
  *  plot and nothing stands on it yet – the fox then invites to the tent quiz. */
 export const zeltLeer = (d: Pick<Dorf, 'an' | 'haeuser'> | null | undefined): boolean =>
