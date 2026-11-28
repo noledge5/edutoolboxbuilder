@@ -418,6 +418,11 @@ async function rundgang(browser, [geraet, w, h]) {
     ganz: true,
     warte: 2500,
   });
+  // „Mein Haus“ as a dialog over the village (28.11.2026): tap the own house, look, close with Escape.
+  await schritt("haus-fenster", () =>
+    p.locator(".lq-mein-haus-knopf").first().click(),
+  );
+  await p.keyboard.press("Escape");
   await schritt("held", () => tab("Held").click(), { ganz: true, warte: 1200 });
   await schritt("laden", () => knopf("Laden").click(), {
     ganz: true,
