@@ -18,6 +18,16 @@
 > erhobenen Arm, z. B. Fuchs-Pose `winken`). Regeln: `docs/design/lernquest/bewegung.md`; `figuren/bewegung.test.ts`
 > prüft jede Bewegung (kein Sprung zwischen zwei Bildern bei 60 fps). Nächste Ideen dort unter „Als Nächstes“.
 
+> **Stand 28.11.2026 (Claude, eigenständig mit Freigabe „alles bis zum Nutzungslimit“):** Alles gemergt und live
+> (#121–#132). **Server: vier Migrationen am 28.11. eingespielt** (je Probelauf mit Rollback, danach per Abfrage/RPC
+> geprüft): `20261208_lernquest_waechter.sql` (Truhe beim ersten Sieg über den Wächter einer Region),
+> `20261209_lernquest_training.sql` (Training ohne Belohnung, zählt nur Lernzeit), `20261210_lernquest_burg_teile.sql`
+> (5 Teile, nach dem App-Deploy eingespielt), `20261211_lernquest_waechter_lehrkraft.sql` (`lq_klassen` mit
+> `waechter`). Lokal prüfen: PGlite in einem Scratch-Ordner, alle Migrationen der Reihe nach (Ersatz für pgcrypto:
+> `extensions.digest` über `sha256`, `gen_random_bytes`, `gen_salt`, `crypt`; Rollen anon/authenticated; `cron.schedule`).
+> Was gebaut wurde und warum: `docs/lernquest-logbuch.md` (neueste oben). Figuren-Werkstatt jetzt unter
+> https://claude.ai/artifact/1GB4Cpk8e3yZRSPLkLXEok (mit Wächtern und den neuen Teilen).
+
 ## Ziel
 Lernquest weiter ausbauen; als Nächstes die übrigen Wünsche der Lehrkraft vom 25.11. (Reihenfolge fragt man sie).
 
@@ -40,7 +50,8 @@ Lernquest weiter ausbauen; als Nächstes die übrigen Wünsche der Lehrkraft vom
    die Probe, drückt „Freigeschaltete neu senden“. Dann auf iPad und Handy hören; welche Stimme Google nimmt, steht in
    localStorage `lernquest:google-stimme-name` (erst `en-GB-Chirp3-HD-Aoede`). Bei Fehlern zeigt die Karte Googles Meldung.
 2. Rückmeldung zu den neuen Teilen oder zum Dorf einarbeiten.
-3. Wünsche vom 25.11. (`docs/plan-klassendorf-haeuser.md`): Mathe-Aufgaben (bald!), Einschmelzen, Abzeichen, Haus und
+3. Wünsche vom 25.11. (`docs/plan-klassendorf-haeuser.md`): ~~Abzeichen~~ (#121, #124), Mathe: Zahlen-Eingabe gebaut
+   (#123), offen Brüche/Einheiten/Zahlenstrahl (Fragen in `docs/lernquest.md` „Mathe-Aufgaben“); Einschmelzen, Haus und
    Profil anderer besuchen (braucht Namen für Kinder = neue Entscheidung), Anbauten mit Seltenheit aus Truhen/Laden.
 4. ~~Solo-Boss an der Burg~~ – gebaut am 28.11.2026: der Wächter der Region im Meilenstein (`docs/lernquest.md`
    „Solo-Boss: der Wächter der Region“, `docs/lernquest-logbuch.md`).
