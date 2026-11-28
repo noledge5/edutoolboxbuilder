@@ -16,9 +16,16 @@ describe('badge texts', () => {
     expect(karte).toContain('0 von 1 Region geschafft');
   });
   it('say what a new badge was earned for', () => {
+    const einzeln = (id: 'perfekt' | 'gedaechtnis' | 'aufsteiger', stufe: number) => renderToStaticMarkup(<AbzeichenNeu neu={[{ id, stufe }]} />);
+    expect(einzeln('perfekt', 1)).toContain('Bronze für die erste perfekte Runde.');
+    expect(einzeln('gedaechtnis', 2)).toContain('Silber für 40 Aufgaben, die sitzen.');
+    expect(einzeln('aufsteiger', 1)).toContain('Bronze für Heldenstufe 3.');
+  });
+  it('put several new badges into one band (28.11.2026)', () => {
     const neu = renderToStaticMarkup(<AbzeichenNeu neu={[{ id: 'perfekt', stufe: 1 }, { id: 'gedaechtnis', stufe: 2 }, { id: 'aufsteiger', stufe: 1 }]} />);
-    expect(neu).toContain('Bronze für die erste perfekte Runde.');
-    expect(neu).toContain('Silber für 40 Aufgaben, die sitzen.');
-    expect(neu).toContain('Bronze für Heldenstufe 3.');
+    expect(neu).toContain('3 neue Abzeichen!');
+    expect(neu.match(/role="status"/g)).toHaveLength(1);
+    expect(neu).toContain('Gedächtnis');
+    expect(neu).toContain('Silber');
   });
 });
