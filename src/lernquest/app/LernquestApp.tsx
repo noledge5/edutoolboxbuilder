@@ -44,7 +44,7 @@ import {
   mitZahl,
   type Abzeichen,
 } from '../rules';
-import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
+import { abmelden, anmelden, bossOffen, klasseOeffnen, LqError, lqText, meinStand, rundeMelden, waechterMelden, willkommen, type BossOffen, type KlasseOffen } from '../server';
 import { BOSSE } from '../boss';
 import { BossBeamer, BossBild, BossKind, useLangsam } from './Boss';
 import { readPaket } from '../paket';
@@ -141,6 +141,8 @@ export type Screen =
       /** Stufe D, Teil 2: this round reached the class task of the week (a chest for everyone who took part). */
       klassenGeschafft?: boolean;
       meilenstein?: Meilenstein;
+      /** The server's answer to a won Meilenstein: the guard's chest (first win per region), added while this shows. */
+      waechterTruhe?: boolean;
     };
 
 interface Meilenstein {
@@ -499,8 +501,19 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
     while (queue.length) {
       const m = queue[0];
       try {
+        if (m.gemeldet && m.waechter) {
+          // The round is in; now the guard's chest (first win per region). Refusals come back as no chest.
+          const w = await waechterMelden(sitzung.token, m.waechter, m.richtig, m.gesamt);
+          queue = queue.slice(1);
+          speichereWarteschlange(queue);
+          const d = datenRef.current;
+          if (!queue.length && d && w.stand) store({ ...d, stand: w.stand });
+          if (w.truhe) setScreenRoh((s) => (s.kind === 'ergebnis' && s.meilenstein?.id === m.waechter ? { ...s, truhenPlus: s.truhenPlus + 1, waechterTruhe: true } : s));
+          continue;
+        }
         const r = await rundeMelden(sitzung.token, m.stunde, m.runde, m.richtig, m.gesamt, m.leitner, m.sekunden);
-        queue = queue.slice(1);
+        // A won Meilenstein stays in the queue, marked as sent, until the guard's chest is asked for.
+        queue = m.waechter ? [{ ...m, gemeldet: true }, ...queue.slice(1)] : queue.slice(1);
         speichereWarteschlange(queue);
         const d = datenRef.current;
         if (!queue.length && d) store({ ...d, stand: r.stand });
@@ -666,6 +679,8 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
       leitner,
       // The round started at `nr` (Date.now()); counted for the day's learning time.
       ...(screen.kind === 'runde' ? { sekunden: (Date.now() - screen.nr) / 1000 } : {}),
+      // A won Meilenstein asks the server for the guard's chest after the round (Solo-Boss, 28.11.2026).
+      ...(meilenstein && ergebnisse.filter(Boolean).length * 100 >= ergebnisse.length * MEILENSTEIN_GUT ? { waechter: meilenstein.id } : {}),
     };
     const paket = daten.pakete[stunde];
     const vorher = paket ? sterneVon(stand, paket) : 0;
@@ -947,7 +962,9 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
         {!screen.plus && <p className="lq-klein lq-mitte">Für heute gibt es keine Erfahrung mehr – aber Üben zählt trotzdem.</p>}
         {screen.wiederholung && (
           <p className="lq-klein lq-mitte">
-            {screen.stunde ? 'Diese Runde hattest du schon geschafft. ' : ''}Wiederholen gibt ein Drittel der Erfahrung und Münzen.
+            {screen.meilenstein
+              ? 'Der Kampf zählt wie Wiederholen: ein Drittel der Erfahrung und Münzen. Der erste Sieg über einen Wächter bringt eine Truhe.'
+              : `${screen.stunde ? 'Diese Runde hattest du schon geschafft. ' : ''}Wiederholen gibt ein Drittel der Erfahrung und Münzen.`}
           </p>
         )}
         {screen.stunde && <p className="lq-klein lq-mitte">{sterneHinweis(screen.sternePlus, screen.sterneJetzt, screen.sterneRest)}</p>}
@@ -1017,7 +1034,7 @@ function Spiel({ sitzung, daten, setDaten, onSignOut }: SpielProps) {
           <div className="lq-hinweis-gold lq-mit-icon">
             <TruheIcon />
             <div>
-              <strong>{screen.truhenPlus > 1 ? `${screen.truhenPlus} Truhen verdient!` : screen.punktePlus > 0 ? 'Wochenziel erreicht!' : 'Truhe verdient!'}</strong>
+              <strong>{screen.truhenPlus > 1 ? `${screen.truhenPlus} Truhen verdient!` : screen.waechterTruhe ? 'Truhe vom Wächter!' : screen.punktePlus > 0 ? 'Wochenziel erreicht!' : 'Truhe verdient!'}</strong>
               <span>{screen.truhenPlus > 1 ? 'Sie warten beim Helden.' : 'Eine Truhe wartet beim Helden.'}</span>
             </div>
           </div>

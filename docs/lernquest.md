@@ -536,9 +536,13 @@ läuft als Runde „Wiederholen“ (ein Drittel der Erfahrung und Münzen, Wiede
   dem Helden, besiegt oder noch stehend, mit dem genauen Ziel („Mit 8 von 10 richtig beim ersten Versuch fällt er“);
   „Nochmal kämpfen“ jederzeit. Auf der Karte wartet er im Knoten vor der Boss-Burg, danach ein Haken.
   - *Entschieden (mit der Freigabe vom 27.11., Mechanik neu zu denken), statt der offenen Fragen im Plan:* **ersetzt den
-    Meilenstein** (gleiche Fragen, gleiche 80 %, kein zweiter Test); **Belohnung unverändert** (der Meilenstein zählt
-    beim Server weiter wie eine Wiederholung; mehr Belohnung bräuchte eine Server-Änderung und öffnete das Sammeln, das
-    am 17.11. abgestellt wurde); **Niederlage ohne Strafe** (er bleibt stehen, nochmal geht sofort); **eigene Figur**:
+    Meilenstein** (gleiche Fragen, gleiche 80 %, kein zweiter Test); **Belohnung:** die Runde zählt beim Server wie eine
+    Wiederholung; dazu gibt der **erste Sieg je Region eine Truhe** (wie beim Klassen-Boss; seit der Freigabe der
+    Server-Vorschläge am 28.11.: Migration `20261208_lernquest_waechter.sql`, `lq_waechter_melden`). Der Server prüft:
+    ab 80 %, die Region gibt es in der Klasse mit mindestens zwei Stationen, jede hat beim Kind einen Stern, noch nicht
+    besiegt (`daten.waechter`). Die App fragt nach der Runde über die Warteschlange (offline später; die Runde wird nie
+    doppelt gemeldet) und zeigt „Truhe vom Wächter!“, sobald der Server antwortet. Wiederholte Siege geben nichts
+    extra, darum öffnet der Kampf kein neues Sammeln; **Niederlage ohne Strafe** (er bleibt stehen, nochmal geht sofort); **eigene Figur**:
     ein kleiner Turm in den Farben der Region statt der drei großen Bosse, damit der Klassen-Boss am Beamer das große
     Ereignis bleibt.
   - Prüfen: `figuren/waechter.test.tsx` (alle Welten, alle Posen, nur Palette), `app/waechterkampf.test.tsx`

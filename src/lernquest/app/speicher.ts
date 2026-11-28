@@ -35,6 +35,10 @@ export interface Meldung {
   leitner: Stand['leitner'];
   /** How long the round took (for the daily learning time); missing in rounds stored by an older app. */
   sekunden?: number;
+  /** A won Meilenstein: its region (module id), sent after the round for the guard's chest (Solo-Boss, 28.11.2026). */
+  waechter?: string;
+  /** The round itself is sent; only the guard's chest is still to ask for (so the round is never sent twice). */
+  gemeldet?: boolean;
 }
 
 const K_SITZUNG = 'lernquest:sitzung';
