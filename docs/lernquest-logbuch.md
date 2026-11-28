@@ -13,7 +13,16 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Besiegte Wächter auf jedem Gerät, Regal auf der Held-Seite (PR folgt, Migration 20261212)
+### Lehrerseite: „Diese Aufgaben fallen der Klasse schwer“ (PR folgt)
+- **Was:** unter „Fortschritt je Kompetenz“ je Region bis zu fünf Aufgaben, die die meisten Kinder zuletzt falsch
+  beantwortet haben (mindestens 3 geübt, 2 und 40 % falsch), mit Lösung in einer Zeile und „2 von 3“; Namen im Tooltip.
+- **Warum:** genau diese Aufgaben lohnen eine kurze Wiederholung im Unterricht; die Kompetenz-Ansicht zeigt nur Anteile.
+- **Wie:** `schwersteAufgaben`, `aufgabeKurz` in `auswertung.ts` (aus den Karteikästen, ohne Server); Tests
+  `schwer.test.ts`, `teacher/auswertungSchwer.test.tsx`.
+- **Offen, zu prüfen:** „Fortschritt je Kompetenz“ ordnet die Karten über die Aufgaben der Arbeitsblätter zu; seit dem
+  19.11. bekommen die Kinder nur Pool-Fragen. Ob deren Ids zu den Aufgaben passen, ist noch nicht geprüft.
+
+### Besiegte Wächter auf jedem Gerät, Regal auf der Held-Seite (#135, Migration 20261212)
 - **Was:** der Spielstand vom Server nennt die besiegten Wächter (`lq_stand_json` mit `waechter`); Karte und Fuchs-Hinweis
   zählen sie (oder den Bestwert auf dem Gerät, `waechterBesiegt`). Auf der Held-Seite ein Regal „Besiegte Wächter
   1 von 2“: je Region ein Platz, besiegte golden mit Regionsnamen, die anderen grau („wartet noch“). Truhen-Hinweis

@@ -2,7 +2,7 @@
 // cards. Same look as the competence tab of the handout evaluation (`EvaluationView`).
 import { useMemo, useState } from 'react';
 import type { Library } from '../../library/types';
-import { auswerten, auswertenThemen, BOX_SITZT } from '../auswertung';
+import { aufgabeKurz, auswerten, auswertenThemen, BOX_SITZT, schwersteAufgaben } from '../auswertung';
 import { istExtraModul, mitExtras, regionLabel } from '../extra';
 import { buildPaket } from '../paket';
 import type { KlasseInfo } from '../server';
@@ -24,7 +24,12 @@ export function Auswertung({ lib: bib, klasse }: { lib: Library; klasse: KlasseI
       if (!m) return null;
       const stunden = lib.lessons.filter((l) => l.moduleId === m.id && klasse.stunden.includes(l.id)).sort((a, b) => a.number - b.number);
       const k = kinder.map((x) => ({ id: x.id, leitner: x.leitner ?? {} }));
-      return istExtraModul(m.id) ? auswertenThemen(stunden.map((l) => buildPaket(m, l, stunden)), k) : auswerten(m, stunden, k);
+      const pakete = stunden.map((l) => buildPaket(m, l, stunden));
+      return {
+        ...(istExtraModul(m.id) ? auswertenThemen(pakete, k) : auswerten(m, stunden, k)),
+        // 28.11.2026: the single exercises the class answered wrong last time, for a short review in the lesson
+        schwer: schwersteAufgaben(pakete, kinder.map((x) => ({ id: x.id, name: x.name, leitner: x.leitner ?? {} }))),
+      };
     },
     // kinder is new on every render; the class object changes when the server answers.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,6 +95,25 @@ export function Auswertung({ lib: bib, klasse }: { lib: Library; klasse: KlasseI
               );
             })}
           </div>
+          {r.schwer.length > 0 && (
+            <section className="ev-card lqt-schwer" aria-labelledby="lqt-schwer-titel">
+              <div className="ev-card-head">
+                <b id="lqt-schwer-titel">Diese Aufgaben fallen der Klasse schwer</b>
+                <span>zuletzt falsch beantwortet</span>
+              </div>
+              <ol>
+                {r.schwer.map((s) => (
+                  <li key={s.key} title={`Zuletzt falsch: ${s.namen.join(', ')}`}>
+                    <span>{aufgabeKurz(s.u)}</span>
+                    <span className="ev-share is-low">
+                      {s.falsch} von {s.geuebt}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <p className="lqt-hint">Gut für eine kurze Wiederholung im Unterricht. Gezählt ist die letzte Antwort jedes Kindes im Wiederholen; die Namen stehen im Tooltip.</p>
+            </section>
+          )}
           {r.ohneKompetenz > 0 && (
             <p className="lqt-hint">
               {r.ohneKompetenz === 1 ? '1 Übung ist keiner Kompetenz dieses Moduls zugeordnet und fehlt hier.' : `${r.ohneKompetenz} Übungen sind keiner Kompetenz dieses Moduls zugeordnet und fehlen hier.`}
