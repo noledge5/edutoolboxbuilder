@@ -13,7 +13,18 @@ Bildschirmfotos, die angesehen wurden.
 Freigabe am Morgen: „yes and yes … i admit everything till usage limit is reached“ – Werkstatt veröffentlichen und die
 Server-Vorschläge (Truhe für den Wächter, mehr Teile, Training ohne Belohnung).
 
-### Dorf: Fuchs meldet „Dein Haus kann wachsen!“, Abzeichen an „Klasse“ (PR folgt)
+### Barrierefreiheit: Lücken mit Namen, Orte auf dem Bild per Tastatur (PR folgt)
+- **Geprüft:** eigene Prüfung im Browser (ohne Zusatzpaket – axe-core zu laden wurde abgelehnt) auf Karte, Aufgaben,
+  Wiederholen, Held, Klasse mit Dorf, Haus-Fenster, Ergebnis und den Formaten Bild, Wählen, Reihenfolge, Lücke,
+  Richtig/Falsch, Paare: Knöpfe ohne Namen, Bilder ohne alt, Felder ohne Beschriftung, doppelte Ids, nicht erreichbare
+  Klick-Flächen.
+- **Gefunden und behoben:** die leere Lücke war ein Knopf ohne Namen („Lücke 1, leer“ / „Lücke 1: are“); die Zeile
+  „Dein Satz“ hatte einen Namen ohne Rolle (jetzt `role="group"`); **„Orte auf dem Bild“ ging gar nicht mit der
+  Tastatur** (Bild nicht fokussierbar): jetzt Pfeiltasten bewegen einen Ring (Umschalt: feiner), Enter oder Leertaste
+  tippt – im Browser ganz per Tastatur gelöst.
+- **Wie:** `Uebungen.tsx`, CSS `.lq-zeiger`; Test `app/barrierefrei.test.tsx`.
+
+### Dorf: Fuchs meldet „Dein Haus kann wachsen!“, Abzeichen an „Klasse“ (#139)
 - **Was:** reicht es für die nächste Hausstufe (Münzen und Heldenstufe), sagt der Fuchs auf der Karte einmal je Stufe
   „Dein Haus kann wachsen! Du hast genug Münzen für eine Hütte (300 Münzen)“ mit „Zum Haus“ (öffnet „Mein Haus“).
   Ist im Dorf ein Platz frei, trägt „Klasse“ unten eine goldene 1.
